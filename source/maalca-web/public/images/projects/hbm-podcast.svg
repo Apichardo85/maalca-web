@@ -1,0 +1,120 @@
+<svg width="400" height="240" viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradientes urbanos -->
+    <linearGradient id="streetGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1f2937" />
+      <stop offset="50%" stop-color="#374151" />
+      <stop offset="100%" stop-color="#4b5563" />
+    </linearGradient>
+    
+    <radialGradient id="micGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#dc2626" stop-opacity="0.8" />
+      <stop offset="70%" stop-color="#dc2626" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#dc2626" stop-opacity="0" />
+    </radialGradient>
+    
+    <linearGradient id="humanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+
+    <!-- Textura urbana -->
+    <pattern id="graffiti" patternUnits="userSpaceOnUse" width="20" height="20">
+      <rect width="20" height="20" fill="#1f2937"/>
+      <circle cx="5" cy="5" r="1" fill="#dc2626" opacity="0.3"/>
+      <rect x="12" y="8" width="3" height="1" fill="#f59e0b" opacity="0.2"/>
+      <circle cx="15" cy="15" r="0.5" fill="#10b981" opacity="0.4"/>
+    </pattern>
+  </defs>
+
+  <!-- Fondo urbano -->
+  <rect width="400" height="240" fill="url(#streetGrad)"/>
+  <rect width="400" height="240" fill="url(#graffiti)" opacity="0.15"/>
+
+  <!-- Micrófono central -->
+  <g transform="translate(200, 120)">
+    <!-- Resplandor del micrófono -->
+    <circle cx="0" cy="0" r="60" fill="url(#micGlow)" opacity="0.4"/>
+    
+    <!-- Cuerpo del micrófono -->
+    <ellipse cx="0" cy="0" rx="25" ry="35" fill="#2d3748" stroke="#dc2626" stroke-width="2"/>
+    <ellipse cx="0" cy="-5" rx="20" ry="25" fill="#4a5568"/>
+    
+    <!-- Rejilla del micrófono -->
+    <g stroke="#dc2626" stroke-width="1" opacity="0.8">
+      <line x1="-15" y1="-20" x2="15" y2="-20"/>
+      <line x1="-12" y1="-15" x2="12" y2="-15"/>
+      <line x1="-18" y1="-10" x2="18" y2="-10"/>
+      <line x1="-15" y1="-5" x2="15" y2="-5"/>
+      <line x1="-12" y1="0" x2="12" y2="0"/>
+      <line x1="-18" y1="5" x2="18" y2="5"/>
+      <line x1="-15" y1="10" x2="15" y2="10"/>
+    </g>
+    
+    <!-- Soporte del micrófono -->
+    <rect x="-2" y="35" width="4" height="30" fill="#2d3748"/>
+    <circle cx="0" cy="65" r="8" fill="#4a5568"/>
+  </g>
+
+  <!-- Ondas sonoras -->
+  <g opacity="0.6">
+    <!-- Ondas izquierda -->
+    <g transform="translate(80, 120)">
+      <path d="M0 0 Q-20 -10, -40 0 Q-20 10, 0 0" stroke="url(#humanGrad)" stroke-width="2" fill="none">
+        <animate attributeName="opacity" values="0.3;0.8;0.3" dur="2s" repeatCount="indefinite"/>
+      </path>
+      <path d="M10 0 Q-15 -15, -50 0 Q-15 15, 10 0" stroke="url(#humanGrad)" stroke-width="1.5" fill="none">
+        <animate attributeName="opacity" values="0.2;0.6;0.2" dur="2.5s" repeatCount="indefinite"/>
+      </path>
+    </g>
+    
+    <!-- Ondas derecha -->
+    <g transform="translate(320, 120)">
+      <path d="M0 0 Q20 -10, 40 0 Q20 10, 0 0" stroke="url(#humanGrad)" stroke-width="2" fill="none">
+        <animate attributeName="opacity" values="0.3;0.8;0.3" dur="2.2s" repeatCount="indefinite"/>
+      </path>
+      <path d="M-10 0 Q15 -15, 50 0 Q15 15, -10 0" stroke="url(#humanGrad)" stroke-width="1.5" fill="none">
+        <animate attributeName="opacity" values="0.2;0.6;0.2" dur="2.8s" repeatCount="indefinite"/>
+      </path>
+    </g>
+  </g>
+
+  <!-- Elementos humanos - siluetas conversando -->
+  <g transform="translate(50, 180)" opacity="0.4">
+    <!-- Figura 1 -->
+    <circle cx="0" cy="0" r="8" fill="url(#humanGrad)"/>
+    <rect x="-6" y="8" width="12" height="20" rx="3" fill="url(#humanGrad)"/>
+    
+    <!-- Figura 2 -->
+    <circle cx="30" cy="0" r="8" fill="url(#humanGrad)"/>
+    <rect x="24" y="8" width="12" height="20" rx="3" fill="url(#humanGrad)"/>
+    
+    <!-- Burbujas de conversación -->
+    <ellipse cx="10" cy="-15" rx="8" ry="5" fill="#ffffff" opacity="0.2"/>
+    <ellipse cx="25" cy="-18" rx="6" ry="4" fill="#ffffff" opacity="0.15"/>
+  </g>
+
+  <g transform="translate(310, 180)" opacity="0.4">
+    <!-- Figura 3 -->
+    <circle cx="0" cy="0" r="8" fill="url(#humanGrad)"/>
+    <rect x="-6" y="8" width="12" height="20" rx="3" fill="url(#humanGrad)"/>
+    
+    <!-- Burbuja de conversación -->
+    <ellipse cx="-5" cy="-15" rx="7" ry="4" fill="#ffffff" opacity="0.2"/>
+  </g>
+
+  <!-- Texto filosófico urbano -->
+  <g transform="translate(60, 50)" opacity="0.3" fill="url(#humanGrad)">
+    <text font-family="system-ui" font-size="8" font-weight="300">"Sin filtros"</text>
+  </g>
+
+  <g transform="translate(280, 200)" opacity="0.3" fill="url(#humanGrad)">
+    <text font-family="system-ui" font-size="8" font-weight="300">"Filosofía callejera"</text>
+  </g>
+
+  <!-- HBM en esquina -->
+  <g transform="translate(20, 30)">
+    <text font-family="system-ui" font-size="18" font-weight="bold" fill="#dc2626" opacity="0.8">HBM</text>
+    <text font-family="system-ui" font-size="6" font-weight="300" fill="url(#humanGrad)" y="12" opacity="0.6">Hablando Mierda</text>
+  </g>
+</svg>

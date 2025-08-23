@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+:root {
+  /* Light theme (default) */
+  --background: #fefefe;
+  --foreground: #1a1a1a;
+  
+  /* Light theme tokens */
+  --surface: #ffffff;
+  --surface-elevated: #f8f9fa;
+  --surface-muted: #f1f3f4;
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --border: #e5e7eb;
+  --border-muted: #f3f4f6;
+  
+  /* Brand colors */
+  --brand-primary: #dc2626;
+  --brand-primary-hover: #b91c1c;
+  --brand-secondary: #991b1b;
+  
+  /* Light gradients */
+  --gradient-primary: linear-gradient(135deg, #fefefe 0%, #f8f9fa 100%);
+  --gradient-secondary: linear-gradient(135deg, #f8f9fa 0%, #f1f3f4 100%);
+  --gradient-accent: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  --gradient-hero: linear-gradient(135deg, rgba(254,254,254,0.95) 0%, rgba(248,249,250,0.95) 100%);
+}
+
+[data-theme="dark"] {
+  /* Dark theme */
+  --background: #0a0a0a;
+  --foreground: #ffffff;
+  
+  /* Dark theme tokens */
+  --surface: #1a1a1a;
+  --surface-elevated: #2a2a2a;
+  --surface-muted: #1a1a1a;
+  --text-primary: #ffffff;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+  --border: #374151;
+  --border-muted: #1f2937;
+  
+  /* Brand colors (same in both themes) */
+  --brand-primary: #dc2626;
+  --brand-primary-hover: #ef4444;
+  --brand-secondary: #991b1b;
+  
+  /* Dark gradients */
+  --gradient-primary: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  --gradient-secondary: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  --gradient-accent: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+  --gradient-hero: linear-gradient(135deg, rgba(10,10,10,0.95) 0%, rgba(26,26,26,0.95) 100%);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-muted: var(--surface-muted);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-border: var(--border);
+  --color-border-muted: var(--border-muted);
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-hover: var(--brand-primary-hover);
+  --color-brand-secondary: var(--brand-secondary);
+  --font-serif: var(--font-playfair);
+  --font-sans: var(--font-inter);
+}
+
+/* Ensure smooth theme transitions */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.7;
+}
+
+.font-display {
+  font-family: var(--font-playfair), serif;
+  line-height: 1.2;
+}
+
+/* Grain texture for hero */
+.grain::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.04;
+  background-image: 
+    radial-gradient(circle at 25% 25%, #000 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, #000 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+  pointer-events: none;
+}
+
+[data-theme="dark"] .grain::before {
+  background-image: 
+    radial-gradient(circle at 25% 25%, #fff 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, #fff 1px, transparent 1px);
+}

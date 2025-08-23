@@ -1,0 +1,1 @@
+export { useLazyLoading } from "./useLazyLoading";
