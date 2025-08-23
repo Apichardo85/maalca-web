@@ -30,8 +30,7 @@ export default function HomePage() {
             transition={{ 
               duration: 8, 
               repeat: Infinity, 
-              ease: "easeInOut",
-              ...(window.matchMedia('(prefers-reduced-motion: reduce)').matches && { duration: 0 })
+              ease: "easeInOut"
             }}
           />
         </div>
