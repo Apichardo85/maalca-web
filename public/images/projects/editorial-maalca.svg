@@ -1,0 +1,96 @@
+<svg width="400" height="240" viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradientes -->
+    <linearGradient id="paperGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fefcfc" />
+      <stop offset="100%" stop-color="#f7f5f3" />
+    </linearGradient>
+    
+    <linearGradient id="inkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1f2937" />
+      <stop offset="100%" stop-color="#374151" />
+    </linearGradient>
+    
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#dc2626" />
+      <stop offset="100%" stop-color="#991b1b" />
+    </linearGradient>
+
+    <!-- Textura de papel -->
+    <pattern id="paperTexture" patternUnits="userSpaceOnUse" width="4" height="4">
+      <rect width="4" height="4" fill="#fefcfc"/>
+      <circle cx="1" cy="1" r="0.3" fill="#f9f7f5" opacity="0.5"/>
+      <circle cx="3" cy="3" r="0.2" fill="#f5f3f1" opacity="0.3"/>
+    </pattern>
+  </defs>
+
+  <!-- Fondo -->
+  <rect width="400" height="240" fill="url(#paperGrad)"/>
+  <rect width="400" height="240" fill="url(#paperTexture)" opacity="0.3"/>
+
+  <!-- Libro abierto central -->
+  <g transform="translate(120, 60)">
+    <!-- Página izquierda -->
+    <path d="M0 0 L80 10 L80 110 L0 120 Z" fill="url(#paperGrad)" stroke="#e5e7eb" stroke-width="1"/>
+    
+    <!-- Página derecha -->
+    <path d="M80 10 L160 0 L160 120 L80 110 Z" fill="#ffffff" stroke="#e5e7eb" stroke-width="1"/>
+    
+    <!-- Sombra del pliegue -->
+    <line x1="80" y1="10" x2="80" y2="110" stroke="#d1d5db" stroke-width="1" opacity="0.7"/>
+    
+    <!-- Texto en página izquierda -->
+    <g fill="url(#inkGrad)" font-family="serif" font-size="6">
+      <text x="8" y="25">Filosofía</text>
+      <line x1="8" y1="28" x2="65" y2="30" stroke="currentColor" stroke-width="0.3"/>
+      <line x1="8" y1="35" x2="60" y2="37" stroke="currentColor" stroke-width="0.3"/>
+      <line x1="8" y1="42" x2="68" y2="44" stroke="currentColor" stroke-width="0.3"/>
+      
+      <text x="8" y="60">Cultura</text>
+      <line x1="8" y1="63" x2="62" y2="65" stroke="currentColor" stroke-width="0.3"/>
+      <line x1="8" y1="70" x2="58" y2="72" stroke="currentColor" stroke-width="0.3"/>
+      <line x1="8" y1="77" x2="65" y2="79" stroke="currentColor" stroke-width="0.3"/>
+    </g>
+    
+    <!-- Texto en página derecha -->
+    <g fill="url(#inkGrad)" font-family="serif" font-size="6">
+      <text x="88" y="25">Sociedad</text>
+      <line x1="88" y1="28" x2="145" y2="26" stroke="currentColor" stroke-width="0.3"/>
+      <line x1="88" y1="35" x2="140" y2="33" stroke="currentColor" stroke-width="0.3"/>
+      <line x1="88" y1="42" x2="148" y2="40" stroke="currentColor" stroke-width="0.3"/>
+      
+      <text x="88" y="60">Humanidad</text>
+      <line x1="88" y1="63" x2="142" y2="61" stroke="currentColor" stroke-width="0.3"/>
+      <line x1="88" y1="70" x2="138" y2="68" stroke="currentColor" stroke-width="0.3"/>
+      <line x1="88" y1="77" x2="145" y2="75" stroke="currentColor" stroke-width="0.3"/>
+    </g>
+  </g>
+
+  <!-- Elementos decorativos -->
+  <!-- Pluma estilizada -->
+  <g transform="translate(50, 30)">
+    <path d="M5 40 Q8 20, 15 5 Q12 3, 8 8 Q3 25, 0 45 Z" fill="url(#accentGrad)"/>
+    <path d="M15 5 L18 3 L16 0 L13 2 Z" fill="url(#accentGrad)"/>
+    <line x1="8" y1="20" x2="2" y2="30" stroke="#ffffff" stroke-width="0.5"/>
+    <line x1="10" y1="25" x2="4" y2="35" stroke="#ffffff" stroke-width="0.3"/>
+  </g>
+
+  <!-- Tinta que fluye -->
+  <g opacity="0.6">
+    <circle cx="340" cy="60" r="8" fill="url(#accentGrad)" opacity="0.3"/>
+    <circle cx="345" cy="65" r="4" fill="url(#accentGrad)" opacity="0.4"/>
+    <circle cx="350" cy="58" r="2" fill="url(#accentGrad)" opacity="0.5"/>
+  </g>
+
+  <!-- Líneas de escritura abstractas -->
+  <g transform="translate(30, 180)" opacity="0.2">
+    <line x1="0" y1="0" x2="120" y2="0" stroke="url(#inkGrad)" stroke-width="1"/>
+    <line x1="0" y1="10" x2="100" y2="10" stroke="url(#inkGrad)" stroke-width="1"/>
+    <line x1="0" y1="20" x2="140" y2="20" stroke="url(#inkGrad)" stroke-width="1"/>
+  </g>
+
+  <!-- Logo MaalCa sutil en esquina -->
+  <g transform="translate(320, 200)" opacity="0.15">
+    <text font-family="serif" font-size="12" font-weight="bold" fill="url(#accentGrad)">MaalCa</text>
+  </g>
+</svg>
