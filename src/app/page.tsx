@@ -201,11 +201,19 @@ export default function HomePage() {
               },
               {
                 title: "CiriWhispers",
-                description: "Contenido íntimo y conversaciones profundas con estrategia IA para autopost calendario",
-                category: "Fábrica IA",
-                outcome: "Contenido automatizado y engagement aumentado",
+                description: "Autor y escritor creativo especializado en narrativas íntimas y conversaciones profundas",
+                category: "Autor + Escritor Creativo",
+                outcome: "Contenido auténtico y conexiones humanas genuinas",
                 color: "gray",
                 image: "/images/projects/ciriwhispers.png"
+              },
+              {
+                title: "CiriSonic",
+                description: "Fábrica de contenido IA con automatización inteligente y estrategia de engagement optimizada",
+                category: "Fábrica IA",
+                outcome: "Contenido automatizado y engagement aumentado",
+                color: "red",
+                image: "/images/projects/cirisonic.svg"
               },
               {
                 title: "Hablando Mierda (HBM)",
