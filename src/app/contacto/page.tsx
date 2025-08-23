@@ -256,8 +256,8 @@ export default function ContactoPage() {
               <div className="bg-gradient-to-r from-brand-primary/10 to-brand-secondary/10 rounded-2xl p-8 border border-brand-primary/20">
                 <blockquote className="text-text-primary">
                   <p className="text-lg font-medium italic mb-4">
-                    "Cada conversación es una oportunidad de crear algo extraordinario. 
-                    En MaalCa creemos que los mejores proyectos nacen del diálogo genuino y la conexión humana."
+                    &ldquo;Cada conversación es una oportunidad de crear algo extraordinario. 
+                    En MaalCa creemos que los mejores proyectos nacen del diálogo genuino y la conexión humana.&rdquo;
                   </p>
                   <cite className="text-sm text-text-secondary">
                     — Filosofía MaalCa

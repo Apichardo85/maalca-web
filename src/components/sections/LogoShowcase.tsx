@@ -19,11 +19,7 @@ export function LogoShowcase() {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: "easeOut"
-      }
+      y: 0
     }
   };
 
@@ -57,7 +53,7 @@ export function LogoShowcase() {
             variants={itemVariants}
           >
             <div className="mb-6">
-              <Logo variant="full" size="lg" theme="dark" />
+              <Logo variant="full" size="lg" />
             </div>
             <h3 className="text-lg font-semibold text-maalca-white mb-2">Logo Completo</h3>
             <p className="text-maalca-light-gray text-center text-sm">
@@ -71,7 +67,7 @@ export function LogoShowcase() {
             variants={itemVariants}
           >
             <div className="mb-6">
-              <Logo variant="icon" size="xl" theme="dark" />
+              <Logo variant="icon" size="xl"  />
             </div>
             <h3 className="text-lg font-semibold text-maalca-white mb-2">Isotipo</h3>
             <p className="text-maalca-light-gray text-center text-sm">
@@ -85,7 +81,7 @@ export function LogoShowcase() {
             variants={itemVariants}
           >
             <div className="mb-6">
-              <Logo variant="text" size="lg" theme="dark" />
+              <Logo variant="text" size="lg"  />
             </div>
             <h3 className="text-lg font-semibold text-maalca-white mb-2">Logotipo</h3>
             <p className="text-maalca-light-gray text-center text-sm">
@@ -99,7 +95,7 @@ export function LogoShowcase() {
             variants={itemVariants}
           >
             <div className="mb-6">
-              <Logo variant="full" size="lg" theme="light" />
+              <Logo variant="full" size="lg"  />
             </div>
             <h3 className="text-lg font-semibold text-maalca-black mb-2">Versión Clara</h3>
             <p className="text-maalca-gray text-center text-sm">
@@ -113,7 +109,7 @@ export function LogoShowcase() {
             variants={itemVariants}
           >
             <div className="mb-6">
-              <Logo variant="icon" size="xl" theme="light" />
+              <Logo variant="icon" size="xl"  />
             </div>
             <h3 className="text-lg font-semibold text-maalca-black mb-2">Isotipo Claro</h3>
             <p className="text-maalca-gray text-center text-sm">
@@ -127,9 +123,9 @@ export function LogoShowcase() {
             variants={itemVariants}
           >
             <div className="flex flex-col items-center space-y-4 mb-6">
-              <Logo variant="full" size="sm" theme="dark" />
-              <Logo variant="full" size="md" theme="dark" />
-              <Logo variant="full" size="lg" theme="dark" />
+              <Logo variant="full" size="sm"  />
+              <Logo variant="full" size="md"  />
+              <Logo variant="full" size="lg" />
             </div>
             <h3 className="text-lg font-semibold text-maalca-white mb-2">Escalabilidad</h3>
             <p className="text-maalca-light-gray text-center text-sm">

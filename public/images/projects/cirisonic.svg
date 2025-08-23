@@ -1,0 +1,132 @@
+<svg width="400" height="240" viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradientes tecnológicos -->
+    <linearGradient id="cirisonicTech" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#dc2626" />
+      <stop offset="50%" stop-color="#991b1b" />
+      <stop offset="100%" stop-color="#7f1d1d" />
+    </linearGradient>
+    
+    <linearGradient id="cirisonicAI" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="50%" stop-color="#1d4ed8" />
+      <stop offset="100%" stop-color="#1e40af" />
+    </linearGradient>
+    
+    <radialGradient id="cirisonicGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#dc2626" stop-opacity="0.3" />
+      <stop offset="70%" stop-color="#991b1b" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Patrón de circuitos -->
+    <pattern id="cirisonicCircuit" patternUnits="userSpaceOnUse" width="40" height="40">
+      <rect width="40" height="40" fill="#1f2937"/>
+      <path d="M0 20 L10 20 L15 15 L25 15 L30 20 L40 20" stroke="#374151" stroke-width="1" fill="none"/>
+      <path d="M20 0 L20 10 L15 15 L15 25 L20 30 L20 40" stroke="#374151" stroke-width="1" fill="none"/>
+      <circle cx="15" cy="15" r="2" fill="#dc2626" opacity="0.7"/>
+      <circle cx="25" cy="25" r="1.5" fill="#3b82f6" opacity="0.6"/>
+    </pattern>
+  </defs>
+
+  <!-- Fondo tecnológico oscuro -->
+  <rect width="400" height="240" fill="#111827"/>
+  <rect width="400" height="240" fill="url(#cirisonicCircuit)" opacity="0.3"/>
+  <rect width="400" height="240" fill="url(#cirisonicGlow)"/>
+
+  <!-- Logo/Título CiriSonic -->
+  <g transform="translate(20, 30)">
+    <text font-family="sans-serif" font-size="24" font-weight="bold" fill="#dc2626">Ciri</text>
+    <text font-family="sans-serif" font-size="24" font-weight="300" fill="#3b82f6" x="60">Sonic</text>
+    <text font-family="sans-serif" font-size="8" font-weight="300" fill="#9ca3af" y="20">AI Content Factory</text>
+  </g>
+
+  <!-- Cerebro IA central -->
+  <g transform="translate(200, 120)">
+    <!-- Núcleo del cerebro -->
+    <circle cx="0" cy="0" r="35" fill="url(#cirisonicAI)" opacity="0.8"/>
+    <circle cx="0" cy="0" r="25" fill="#1d4ed8" opacity="0.6"/>
+    
+    <!-- Conexiones neuronales -->
+    <g stroke="#dc2626" stroke-width="2" opacity="0.7">
+      <path d="M-25 -15 Q-40 -30, -55 -20"/>
+      <path d="M25 -15 Q40 -30, 55 -20"/>
+      <path d="M-15 25 Q-30 40, -20 55"/>
+      <path d="M15 25 Q30 40, 20 55"/>
+      <path d="M-30 0 Q-50 0, -60 -10"/>
+      <path d="M30 0 Q50 0, 60 -10"/>
+    </g>
+    
+    <!-- Nodos de conexión -->
+    <circle cx="-55" cy="-20" r="3" fill="#dc2626"/>
+    <circle cx="55" cy="-20" r="3" fill="#dc2626"/>
+    <circle cx="-20" cy="55" r="3" fill="#dc2626"/>
+    <circle cx="20" cy="55" r="3" fill="#dc2626"/>
+    <circle cx="-60" cy="-10" r="3" fill="#dc2626"/>
+    <circle cx="60" cy="-10" r="3" fill="#dc2626"/>
+  </g>
+
+  <!-- Ondas sonoras/datos -->
+  <g transform="translate(100, 80)" opacity="0.6">
+    <path d="M0 0 Q20 -10, 40 0 Q60 10, 80 0" stroke="#3b82f6" stroke-width="2" fill="none"/>
+    <path d="M0 20 Q25 5, 50 20 Q75 35, 100 20" stroke="#3b82f6" stroke-width="1.5" fill="none"/>
+    <path d="M0 40 Q30 25, 60 40 Q90 55, 120 40" stroke="#3b82f6" stroke-width="1" fill="none"/>
+  </g>
+
+  <!-- Partículas de datos -->
+  <g opacity="0.5">
+    <circle cx="80" cy="60" r="2" fill="#dc2626">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="320" cy="180" r="1.5" fill="#3b82f6">
+      <animate attributeName="opacity" values="0.5;1;0.5" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="150" cy="200" r="1" fill="#dc2626">
+      <animate attributeName="opacity" values="0.2;0.8;0.2" dur="1.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="280" cy="50" r="1.5" fill="#3b82f6">
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="2.5s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- Elementos de automatización -->
+  <g transform="translate(320, 80)" opacity="0.7">
+    <!-- Engranajes -->
+    <circle cx="0" cy="0" r="12" stroke="#dc2626" stroke-width="2" fill="none">
+      <animateTransform attributeName="transform" type="rotate" values="0;360" dur="6s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="0" cy="0" r="8" stroke="#3b82f6" stroke-width="1.5" fill="none">
+      <animateTransform attributeName="transform" type="rotate" values="360;0" dur="4s" repeatCount="indefinite"/>
+    </circle>
+    
+    <!-- Texto automatización -->
+    <text x="-25" y="25" font-family="sans-serif" font-size="7" fill="#9ca3af">AUTO</text>
+  </g>
+
+  <!-- Flujo de contenido -->
+  <g transform="translate(50, 180)" opacity="0.6">
+    <!-- Símbolos de contenido -->
+    <rect x="0" y="0" width="8" height="10" fill="#3b82f6" rx="1"/>
+    <rect x="15" y="0" width="8" height="10" fill="#dc2626" rx="1"/>
+    <rect x="30" y="0" width="8" height="10" fill="#3b82f6" rx="1"/>
+    
+    <!-- Flecha de flujo -->
+    <path d="M45 5 L65 5" stroke="#9ca3af" stroke-width="1" marker-end="url(#arrow)"/>
+    
+    <!-- Símbolo de salida optimizada -->
+    <circle cx="75" cy="5" r="6" stroke="#dc2626" stroke-width="1.5" fill="rgba(220, 38, 38, 0.1)"/>
+    <text x="72" y="8" font-family="sans-serif" font-size="6" fill="#dc2626">AI</text>
+  </g>
+
+  <!-- Marcador de flecha -->
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#9ca3af"/>
+    </marker>
+  </defs>
+
+  <!-- Texto descriptivo -->
+  <g transform="translate(280, 210)" opacity="0.5">
+    <text font-family="serif" font-size="10" font-weight="300" fill="#9ca3af">"Inteligencia que crea"</text>
+  </g>
+</svg>

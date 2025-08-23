@@ -65,7 +65,7 @@ export default function PropertyHero({
       });
     };
     
-    let startCount = propertyCount;
+    const startCount = propertyCount;
     let endCount = initialPropertyCount;
     
     if (filters.type || filters.location || filters.minPrice > 0) {

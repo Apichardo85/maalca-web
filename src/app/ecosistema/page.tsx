@@ -25,16 +25,33 @@ const projects = [
   {
     id: "ciriwhispers",
     title: "CiriWhispers",
-    description: "Contenido íntimo y conversaciones profundas con estrategia IA para autopost calendario",
-    category: "Fábrica IA",
-    outcome: "Contenido automatizado y engagement aumentado",
+    description: "Autor y escritor creativo especializado en narrativas íntimas y conversaciones profundas",
+    category: "Autor + Escritor Creativo",
+    outcome: "Contenido auténtico y conexiones humanas genuinas",
     color: "gray",
     image: "/images/projects/ciriwhispers.png",
+    details: [
+      "Narrativas íntimas y personales auténticas",
+      "Escritura creativa con perspectiva única",
+      "Conversaciones profundas y reflexivas",
+      "Conexión genuina con audiencias"
+    ],
+    status: "Activo",
+    launched: "2024"
+  },
+  {
+    id: "cirisonic",
+    title: "CiriSonic",
+    description: "Fábrica de contenido IA con automatización inteligente y estrategia de engagement optimizada",
+    category: "Fábrica IA",
+    outcome: "Contenido automatizado y engagement aumentado",
+    color: "red",
+    image: "/images/projects/cirisonic.svg",
     details: [
       "Sistema IA para generación de contenido personalizado",
       "Automatización de calendario de publicaciones",
       "Engagement analytics en tiempo real",
-      "Contenido íntimo y auténtico optimizado"
+      "A/B testing automatizado para optimización"
     ],
     status: "Beta",
     launched: "2024"
@@ -109,7 +126,7 @@ const projects = [
   }
 ];
 
-const categories = ["Todos", "Editorial + KDP", "Fábrica IA", "Podcast + Media", "Catálogo + POS + Stripe", "Cannabis + Lifestyle", "Turismo + Real Estate"];
+const categories = ["Todos", "Editorial + KDP", "Autor + Escritor Creativo", "Fábrica IA", "Podcast + Media", "Catálogo + POS + Stripe", "Cannabis + Lifestyle", "Turismo + Real Estate"];
 
 export default function EcosistemaPage() {
   const getStatusColor = (status: string) => {
