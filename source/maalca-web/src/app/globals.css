@@ -119,3 +119,75 @@ body {
     radial-gradient(circle at 25% 25%, #fff 1px, transparent 1px),
     radial-gradient(circle at 75% 75%, #fff 1px, transparent 1px);
 }
+
+/* CiriWhispers Light Theme - Papel Crema */
+html.light-theme {
+  --paper-bg: #f7f1e3;
+  --paper-text: #2b1810;
+  --paper-text-secondary: #5d4e3d;
+  --paper-text-muted: #8a7860;
+  --paper-surface: rgba(255, 255, 255, 0.7);
+  --paper-surface-elevated: rgba(255, 255, 255, 0.9);
+  --paper-border: #e7dccc;
+  --paper-border-light: #f0e8d8;
+}
+
+html.light-theme body,
+html.light-theme main {
+  background: #f7f1e3 !important;
+  color: #2b1810 !important;
+}
+
+html.light-theme .bg-slate-900,
+html.light-theme section {
+  background: #f7f1e3 !important;
+}
+
+html.light-theme .bg-slate-800,
+html.light-theme .bg-gradient-to-br {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(10px);
+}
+
+html.light-theme .text-slate-100,
+html.light-theme .text-stone-100 {
+  color: #2b1810 !important;
+}
+
+html.light-theme .text-slate-300,
+html.light-theme .text-slate-200,
+html.light-theme .text-stone-200 {
+  color: #5d4e3d !important;
+}
+
+html.light-theme .text-slate-400 {
+  color: #8a7860 !important;
+}
+
+html.light-theme .border-slate-700,
+html.light-theme .border-red-800 {
+  border-color: #e7dccc !important;
+}
+
+html.light-theme .text-red-400,
+html.light-theme .text-red-600 {
+  color: #8b1538 !important;
+}
+
+html.light-theme .border-red-600 {
+  border-color: #8b1538 !important;
+}
+
+html.light-theme .hover\:bg-red-600\/10:hover {
+  background: rgba(139, 21, 56, 0.1) !important;
+}
+
+html.light-theme nav {
+  background: rgba(247, 241, 227, 0.9) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* Asegurar que el fondo de las secciones también cambie */
+html.light-theme .bg-gradient-to-b {
+  background: #f7f1e3 !important;
+}
