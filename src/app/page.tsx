@@ -197,7 +197,8 @@ export default function HomePage() {
                 category: "Editorial + KDP",
                 outcome: "Libros publicados y distribuidos globalmente",
                 color: "red",
-                image: "/images/projects/editorial-maalca.svg"
+                image: "/images/projects/editorial-maalca.svg",
+                href: "/editorial"
               },
               {
                 title: "CiriWhispers",
@@ -205,7 +206,8 @@ export default function HomePage() {
                 category: "Autor + Escritor Creativo",
                 outcome: "Contenido auténtico y conexiones humanas genuinas",
                 color: "gray",
-                image: "/images/projects/ciriwhispers.png"
+                image: "/images/projects/ciriwhispers.png",
+                href: "/ciriwhispers"
               },
               {
                 title: "CiriSonic",
@@ -213,7 +215,8 @@ export default function HomePage() {
                 category: "Fábrica IA",
                 outcome: "Contenido automatizado y engagement aumentado",
                 color: "red",
-                image: "/images/projects/cirisonic.svg"
+                image: "/images/projects/cirisonic.svg",
+                href: "/cirisonic"
               },
               {
                 title: "Hablando Mierda (HBM)",
@@ -221,7 +224,8 @@ export default function HomePage() {
                 category: "Podcast + Media",
                 outcome: "Comunidad activa y monetización por episodio",
                 color: "red",
-                image: "/images/projects/hbm-podcast.svg"
+                image: "/images/projects/hbm-podcast.svg",
+                href: "/hablando-mierda"
               },
               {
                 title: "Masa Tina",
@@ -229,7 +233,8 @@ export default function HomePage() {
                 category: "Catálogo + POS + Stripe",
                 outcome: "Ventas procesadas y experiencias entregadas",
                 color: "gray",
-                image: "/images/projects/masa-tina.svg"
+                image: "/images/projects/masa-tina.svg",
+                href: "/masa-tina"
               },
               {
                 title: "Verde Privé",
@@ -237,7 +242,8 @@ export default function HomePage() {
                 category: "Cannabis + Lifestyle",
                 outcome: "Experiencias premium y bienestar entregados discretamente",
                 color: "red",
-                image: "/images/projects/verde-prive.svg"
+                image: "/images/projects/verde-prive.svg",
+                href: "/verde-prive"
               },
               {
                 title: "MaalCa Properties",
@@ -245,8 +251,9 @@ export default function HomePage() {
                 category: "Turismo + Real Estate",
                 outcome: "Propiedades vendidas a inversores globales",
                 color: "gray",
-                image: "/images/projects/maalca-properties.svg"
-              }
+                image: "/images/projects/maalca-properties.svg",
+                href: "/maalca-properties"
+              },
             ].map((project, index) => (
               <motion.div
                 key={project.title}
@@ -287,6 +294,7 @@ export default function HomePage() {
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={() => window.location.href = project.href}
                     className="w-full bg-transparent border-brand-primary/20 text-brand-primary hover:bg-brand-primary hover:text-white transition-all duration-300"
                   >
                     Ver proyecto
@@ -326,29 +334,63 @@ export default function HomePage() {
           {/* Affiliates Carousel */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
             {[
-              "Pegote Barbershop",
-              "Studio Alpha",
-              "Creative Hub",
-              "Design Co.",
-              "Media Lab",
-              "Art Collective"
+              {
+                name: "Pegote Barbershop",
+                description: "Barbería dominicana en Elmira, NY",
+                href: "/pegote-barber",
+                initials: "PB"
+              },
+              {
+                name: "Studio Alpha", 
+                description: "Estudio creativo",
+                href: "#",
+                initials: "SA"
+              },
+              {
+                name: "Creative Hub",
+                description: "Hub de creatividad",
+                href: "#", 
+                initials: "CH"
+              },
+              {
+                name: "Design Co.",
+                description: "Compañía de diseño",
+                href: "#",
+                initials: "DC"
+              },
+              {
+                name: "Media Lab",
+                description: "Laboratorio de medios",
+                href: "#",
+                initials: "ML"
+              },
+              {
+                name: "Art Collective",
+                description: "Colectivo artístico", 
+                href: "#",
+                initials: "AC"
+              }
             ].map((affiliate, index) => (
               <motion.div
-                key={affiliate}
-                className="group text-center"
+                key={affiliate.name}
+                className="group text-center cursor-pointer"
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 whileHover={{ scale: 1.05 }}
+                onClick={() => window.location.href = affiliate.href}
               >
-                <div className="bg-gray-800 rounded-xl p-8 h-24 flex items-center justify-center mb-4 group-hover:bg-red-600 transition-all duration-300">
-                  <span className="text-gray-400 group-hover:text-white font-bold text-lg">
-                    {affiliate.split(' ').map(word => word[0]).join('')}
+                <div className="bg-surface-elevated rounded-xl p-8 h-24 flex items-center justify-center mb-4 group-hover:bg-brand-primary transition-all duration-300 border border-border">
+                  <span className="text-text-secondary group-hover:text-white font-bold text-lg">
+                    {affiliate.initials}
                   </span>
                 </div>
-                <p className="text-gray-400 text-sm group-hover:text-white transition-colors">
-                  {affiliate}
+                <p className="text-text-primary text-sm group-hover:text-brand-primary transition-colors font-medium">
+                  {affiliate.name}
+                </p>
+                <p className="text-text-muted text-xs mt-1">
+                  {affiliate.description}
                 </p>
               </motion.div>
             ))}

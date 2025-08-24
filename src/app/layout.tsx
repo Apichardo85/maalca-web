@@ -16,8 +16,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "MaalCa - Catering de Lujo",
-  description: "Servicios de catering premium para eventos especiales",
+  title: "MaalCa - Ecosistema Creativo",
+  description: "Ecosistema creativo y empresarial que conecta ideas, personas y proyectos desde República Dominicana hacia el mundo",
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({

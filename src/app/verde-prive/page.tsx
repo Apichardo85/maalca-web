@@ -239,34 +239,6 @@ export default function VerdePrivePage() {
           </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="absolute top-0 left-0 right-0 z-50 bg-black/20 backdrop-blur-sm border-b border-emerald-900/30">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="flex items-center justify-between h-20">
-              <div className="text-3xl font-serif text-emerald-300">
-                Verde <span className="text-amber-400">Privé</span>
-              </div>
-              
-              <div className="hidden md:flex items-center space-x-8">
-                <a href="#collection" className="text-stone-300 hover:text-emerald-400 transition-colors">
-                  Colección
-                </a>
-                <a href="#lifestyle" className="text-stone-300 hover:text-emerald-400 transition-colors">
-                  Lifestyle
-                </a>
-                <a href="#club" className="text-stone-300 hover:text-emerald-400 transition-colors">
-                  Club Privé
-                </a>
-                <button
-                  onClick={() => setShowLoginModal(true)}
-                  className="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-emerald-100 rounded-lg transition-colors"
-                >
-                  Acceso Miembro
-                </button>
-              </div>
-            </div>
-          </div>
-        </nav>
 
         {/* Hero Content */}
         <div className="relative z-10 text-center max-w-5xl mx-auto px-4">
@@ -358,6 +330,35 @@ export default function VerdePrivePage() {
           </div>
         </motion.div>
       </section>
+
+      {/* Sticky Navigation */}
+      <nav className="sticky top-0 z-50 bg-black/90 backdrop-blur-sm border-b border-emerald-900/30">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            <span className="text-2xl font-serif text-emerald-300">
+              Verde <span className="text-amber-400">Privé</span>
+            </span>
+            
+            <div className="hidden md:flex items-center space-x-6">
+              <a href="#collection" className="text-stone-300 hover:text-emerald-400 transition-colors text-sm">
+                Colección
+              </a>
+              <a href="#lifestyle" className="text-stone-300 hover:text-emerald-400 transition-colors text-sm">
+                Lifestyle
+              </a>
+              <a href="#club" className="text-stone-300 hover:text-emerald-400 transition-colors text-sm">
+                Club Privé
+              </a>
+              <button
+                onClick={() => setShowLoginModal(true)}
+                className="px-3 py-2 bg-emerald-700 hover:bg-emerald-600 text-emerald-100 rounded-lg transition-colors text-sm"
+              >
+                Acceso Miembro
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
 
       {/* Collection Section */}
       <section id="collection" className="py-24 bg-stone-900">
