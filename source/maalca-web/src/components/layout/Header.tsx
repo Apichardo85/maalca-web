@@ -175,7 +175,7 @@ export default function Header({
 
             {/* Mobile menu button */}
             <motion.button
-              className="lg:hidden p-2 rounded-lg hover:bg-maalca-gray/20 transition-colors"
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-800/20 transition-colors"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               whileTap={{ scale: 0.95 }}
               initial={{ opacity: 0 }}
@@ -187,7 +187,7 @@ export default function Header({
                 className="w-6 h-6 flex flex-col justify-center items-center"
               >
                 <motion.span
-                  className="w-6 h-0.5 bg-maalca-white rounded-full block"
+                  className="w-6 h-0.5 bg-white rounded-full block"
                   variants={{
                     closed: { rotate: 0, y: 0 },
                     open: { rotate: 45, y: 6 }
@@ -195,7 +195,7 @@ export default function Header({
                   transition={{ duration: 0.3 }}
                 />
                 <motion.span
-                  className="w-6 h-0.5 bg-maalca-white rounded-full block mt-1.5"
+                  className="w-6 h-0.5 bg-white rounded-full block mt-1.5"
                   variants={{
                     closed: { opacity: 1 },
                     open: { opacity: 0 }
@@ -203,7 +203,7 @@ export default function Header({
                   transition={{ duration: 0.3 }}
                 />
                 <motion.span
-                  className="w-6 h-0.5 bg-maalca-white rounded-full block mt-1.5"
+                  className="w-6 h-0.5 bg-white rounded-full block mt-1.5"
                   variants={{
                     closed: { rotate: 0, y: 0 },
                     open: { rotate: -45, y: -6 }
@@ -237,7 +237,7 @@ export default function Header({
 
             {/* Menu Panel */}
             <motion.div
-              className="absolute top-16 left-0 right-0 bg-maalca-black shadow-2xl border-t border-maalca-gray"
+              className="absolute top-16 left-0 right-0 bg-black shadow-2xl border-t border-gray-700"
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -20, opacity: 0 }}
@@ -258,8 +258,8 @@ export default function Header({
                         className={cn(
                           "block px-4 py-3 rounded-xl text-lg font-medium transition-all duration-300",
                           isActive(item.href)
-                            ? "bg-gradient-to-r from-maalca-red/10 to-maalca-red-dark/10 text-maalca-red border-l-4 border-maalca-red"
-                            : "text-maalca-white hover:bg-maalca-gray/20 hover:text-maalca-red"
+                            ? "bg-gradient-to-r from-red-600/10 to-red-800/10 text-red-500 border-l-4 border-red-600"
+                            : "text-white hover:bg-gray-700/20 hover:text-red-500"
                         )}
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
@@ -272,7 +272,7 @@ export default function Header({
                 {/* Mobile Actions */}
                 {showActions && (
                   <motion.div
-                    className="mt-8 pt-6 border-t border-maalca-gray space-y-4"
+                    className="mt-8 pt-6 border-t border-gray-700 space-y-4"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: 0.4 }}
