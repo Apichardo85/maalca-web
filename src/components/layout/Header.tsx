@@ -175,7 +175,7 @@ export default function Header({
 
             {/* Mobile menu button */}
             <motion.button
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-800/20 transition-colors"
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-800/20 transition-colors text-text-primary"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               whileTap={{ scale: 0.95 }}
               initial={{ opacity: 0 }}
@@ -187,7 +187,7 @@ export default function Header({
                 className="w-6 h-6 flex flex-col justify-center items-center"
               >
                 <motion.span
-                  className="w-6 h-0.5 bg-white rounded-full block"
+                  className="w-6 h-0.5 bg-current rounded-full block"
                   variants={{
                     closed: { rotate: 0, y: 0 },
                     open: { rotate: 45, y: 6 }
@@ -195,7 +195,7 @@ export default function Header({
                   transition={{ duration: 0.3 }}
                 />
                 <motion.span
-                  className="w-6 h-0.5 bg-white rounded-full block mt-1.5"
+                  className="w-6 h-0.5 bg-current rounded-full block mt-1.5"
                   variants={{
                     closed: { opacity: 1 },
                     open: { opacity: 0 }
@@ -203,7 +203,7 @@ export default function Header({
                   transition={{ duration: 0.3 }}
                 />
                 <motion.span
-                  className="w-6 h-0.5 bg-white rounded-full block mt-1.5"
+                  className="w-6 h-0.5 bg-current rounded-full block mt-1.5"
                   variants={{
                     closed: { rotate: 0, y: 0 },
                     open: { rotate: -45, y: -6 }
