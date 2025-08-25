@@ -616,12 +616,17 @@ function CiriWhispersContent() {
 
                 <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 p-6 rounded-xl border border-slate-700/50">
                   <h4 className="font-serif text-xl font-bold text-red-600 mb-4">Servicios</h4>
-                  <ul className="text-slate-300 space-y-2 text-sm">
+                  <ul className="text-slate-300 space-y-2 text-sm mb-6">
                     <li>✍️ Textos personalizados</li>
                     <li>📖 Prólogos y reseñas</li>
                     <li>🎭 Talleres de escritura creativa</li>
                     <li>📝 Ghostwriting literario</li>
                   </ul>
+                  <a href="/servicios" className="block">
+                    <button className="inline-flex items-center justify-center rounded-full font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed border-2 focus:ring-amber-500 hover:shadow-lg px-8 py-4 text-lg border-text-primary text-text-primary hover:bg-text-primary hover:text-background w-full">
+                      Ver Todos los Servicios
+                    </button>
+                  </a>
                 </div>
               </div>
             </div>
