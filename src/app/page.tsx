@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { Button } from "@/components/ui/buttons";
 import { ThemeSwitch } from "@/components/ui/ThemeSwitch";
 import { ProjectImage } from "@/components/ui/ProjectImage";
@@ -255,16 +256,16 @@ export default function HomePage() {
                 href: "/maalca-properties"
               },
             ].map((project, index) => (
-              <motion.div
-                key={project.title}
-                className="group cursor-pointer"
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                whileHover={{ y: -8 }}
-              >
-                <div className="bg-surface rounded-2xl p-6 h-full border border-border hover:border-brand-primary/50 transition-all duration-300 shadow-sm hover:shadow-lg">
+              <Link key={project.title} href={project.href}>
+                <motion.div
+                  className="group cursor-pointer"
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  whileHover={{ y: -8 }}
+                >
+                  <div className="bg-surface rounded-2xl p-6 h-full border border-border hover:border-brand-primary/50 transition-all duration-300 shadow-sm hover:shadow-lg">
                   {/* Project Image */}
                   <ProjectImage 
                     src={project.image} 
@@ -291,23 +292,21 @@ export default function HomePage() {
                     ✓ {project.outcome}
                   </div>
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.location.href = project.href}
-                    className="w-full bg-transparent border-brand-primary/20 text-brand-primary hover:bg-brand-primary hover:text-white transition-all duration-300"
-                  >
-                    Ver proyecto
-                    <motion.span
-                      className="ml-2"
-                      animate={{ x: [0, 3, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
-                    >
-                      →
-                    </motion.span>
-                  </Button>
-                </div>
-              </motion.div>
+                  <div className="mt-auto">
+                    <div className="w-full bg-transparent border border-brand-primary/20 text-brand-primary group-hover:bg-brand-primary group-hover:text-white transition-all duration-300 rounded-lg px-4 py-2 text-sm text-center">
+                      Ver proyecto
+                      <motion.span
+                        className="ml-2 inline-block"
+                        animate={{ x: [0, 3, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      >
+                        →
+                      </motion.span>
+                    </div>
+                  </div>
+                  </div>
+                </motion.div>
+              </Link>
             ))}
           </div>
         </div>
