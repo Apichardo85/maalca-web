@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import { ProjectImage } from "@/components/ui/ProjectImage";
+import { useRouter } from "next/navigation";
 
 const projects = [
   {
@@ -13,6 +14,7 @@ const projects = [
     outcome: "Libros publicados y distribuidos globalmente",
     color: "red",
     image: "/images/projects/editorial-maalca.svg",
+    href: "/editorial",
     details: [
       "Filosofía contemporánea y pensamiento crítico",
       "Análisis cultural desde perspectiva caribeña",
@@ -30,6 +32,7 @@ const projects = [
     outcome: "Contenido auténtico y conexiones humanas genuinas",
     color: "gray",
     image: "/images/projects/ciriwhispers.png",
+    href: "/ciriwhispers",
     details: [
       "Narrativas íntimas y personales auténticas",
       "Escritura creativa con perspectiva única",
@@ -47,6 +50,7 @@ const projects = [
     outcome: "Contenido automatizado y engagement aumentado",
     color: "red",
     image: "/images/projects/cirisonic.svg",
+    href: "/cirisonic",
     details: [
       "Sistema IA para generación de contenido personalizado",
       "Automatización de calendario de publicaciones",
@@ -64,6 +68,7 @@ const projects = [
     outcome: "Comunidad activa y monetización por episodio",
     color: "red",
     image: "/images/projects/hbm-podcast.svg",
+    href: "/hbm",
     details: [
       "Conversaciones auténticas sin censura",
       "Filosofía callejera con sentido humano",
@@ -81,6 +86,7 @@ const projects = [
     outcome: "Ventas procesadas y experiencias entregadas",
     color: "gray",
     image: "/images/projects/masa-tina.svg",
+    href: "/masa-tina",
     details: [
       "Gastronomía dominicana auténtica",
       "Sistema POS integrado con Stripe",
@@ -98,6 +104,7 @@ const projects = [
     outcome: "Experiencias premium y bienestar entregados discretamente",
     color: "red",
     image: "/images/projects/verde-prive.svg",
+    href: "/verde-prive",
     details: [
       "Cannabis artesanal de máxima calidad",
       "Privacidad y discreción garantizada",
@@ -115,6 +122,7 @@ const projects = [
     outcome: "Propiedades vendidas a inversores globales",
     color: "gray",
     image: "/images/projects/maalca-properties.svg",
+    href: "/maalca-properties",
     details: [
       "Propiedades frente al océano en RD",
       "Inversión turística para clientes globales",
@@ -129,6 +137,12 @@ const projects = [
 const categories = ["Todos", "Editorial + KDP", "Autor + Escritor Creativo", "Fábrica IA", "Podcast + Media", "Catálogo + POS + Stripe", "Cannabis + Lifestyle", "Turismo + Real Estate"];
 
 export default function EcosistemaPage() {
+  const router = useRouter();
+  
+  const handleProjectClick = (href: string) => {
+    router.push(href);
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Activo": return "text-green-600 bg-green-50 border-green-200";
@@ -253,6 +267,7 @@ export default function EcosistemaPage() {
                     <Button
                       variant="outline"
                       className="w-full bg-transparent border-brand-primary/20 text-brand-primary hover:bg-brand-primary hover:text-white transition-all duration-300"
+                      onClick={() => handleProjectClick(project.href)}
                     >
                       Explorar {project.title}
                       <motion.span
@@ -292,6 +307,7 @@ export default function EcosistemaPage() {
                 variant="primary"
                 size="lg"
                 className="bg-brand-primary hover:bg-brand-primary-hover"
+                onClick={() => handleProjectClick("/contacto")}
               >
                 Proponer Colaboración
               </Button>
@@ -299,6 +315,7 @@ export default function EcosistemaPage() {
                 variant="outline"
                 size="lg"
                 className="border-text-primary text-text-primary hover:bg-text-primary hover:text-background"
+                onClick={() => handleProjectClick("/servicios")}
               >
                 Ver Nuestros Servicios
               </Button>
