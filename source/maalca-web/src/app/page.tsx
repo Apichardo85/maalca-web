@@ -2,14 +2,21 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/buttons";
 import { ThemeSwitch } from "@/components/ui/ThemeSwitch";
 import { ProjectImage } from "@/components/ui/ProjectImage";
 import { projects, affiliates } from "@/data";
 
 export default function HomePage() {
+  const router = useRouter();
+  
   const scrollToSection = (sectionId: string) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleProjectClick = (href: string) => {
+    router.push(href);
   };
 
   return (
@@ -256,15 +263,16 @@ export default function HomePage() {
                 href: "/maalca-properties"
               },
             ].map((project, index) => (
-              <Link key={project.title} href={project.href}>
-                <motion.div
-                  className="group cursor-pointer"
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  whileHover={{ y: -8 }}
-                >
+              <motion.div
+                key={project.title}
+                className="group cursor-pointer"
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                whileHover={{ y: -8 }}
+                onClick={() => handleProjectClick(project.href)}
+              >
                   <div className="bg-surface rounded-2xl p-6 h-full border border-border hover:border-brand-primary/50 transition-all duration-300 shadow-sm hover:shadow-lg">
                   {/* Project Image */}
                   <ProjectImage 
@@ -306,7 +314,6 @@ export default function HomePage() {
                   </div>
                   </div>
                 </motion.div>
-              </Link>
             ))}
           </div>
         </div>

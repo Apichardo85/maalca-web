@@ -237,7 +237,7 @@ export default function Header({
 
             {/* Menu Panel */}
             <motion.div
-              className="absolute top-16 left-0 right-0 bg-black shadow-2xl border-t border-gray-700"
+              className="absolute top-16 left-0 right-0 bg-surface shadow-2xl border-t border-border"
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -20, opacity: 0 }}
@@ -258,8 +258,8 @@ export default function Header({
                         className={cn(
                           "block px-4 py-3 rounded-xl text-lg font-medium transition-all duration-300",
                           isActive(item.href)
-                            ? "bg-gradient-to-r from-red-600/10 to-red-800/10 text-red-500 border-l-4 border-red-600"
-                            : "text-white hover:bg-gray-700/20 hover:text-red-500"
+                            ? "bg-gradient-to-r from-brand-primary/10 to-brand-primary/20 text-brand-primary border-l-4 border-brand-primary"
+                            : "text-text-primary hover:bg-surface-elevated hover:text-brand-primary"
                         )}
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
@@ -272,7 +272,7 @@ export default function Header({
                 {/* Mobile Actions */}
                 {showActions && (
                   <motion.div
-                    className="mt-8 pt-6 border-t border-gray-700 space-y-4"
+                    className="mt-8 pt-6 border-t border-border space-y-4"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: 0.4 }}
