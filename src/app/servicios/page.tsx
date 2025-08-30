@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
+import { useRouter } from "next/navigation";
 
 const services = [
   {
@@ -126,6 +127,8 @@ const process = [
 ];
 
 export default function ServiciosPage() {
+  const router = useRouter();
+  
   return (
     <main className="min-h-screen bg-background text-foreground pt-20">
       {/* Hero Section */}
@@ -326,6 +329,7 @@ export default function ServiciosPage() {
               variant="outline"
               size="lg"
               className="border-text-primary text-text-primary hover:bg-text-primary hover:text-background"
+              onClick={() => router.push('/casos-estudio')}
             >
               Ver Casos de Estudio Completos
             </Button>

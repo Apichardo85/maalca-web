@@ -1,1 +1,11 @@
 export * from "./buttons";
+export { default as NewsletterSignup } from "./NewsletterSignup";
+export { default as FirstChapter } from "./FirstChapter";
+export { default as SensitiveNotice } from "./SensitiveNotice";
+export { default as ThemeToggle } from "./ThemeToggle";
+export { default as LanguageToggle } from "./LanguageToggle";
+export { default as SocialShare } from "./SocialShare";
+export { default as DigitalReader } from "./DigitalReader";
+export { FormField } from "./FormField";
+export { TextAreaField } from "./TextAreaField";
+export { SelectField } from "./SelectField";

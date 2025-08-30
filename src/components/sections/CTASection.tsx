@@ -85,6 +85,7 @@ export default function CTASection() {
               variant="primary"
               size="lg"
               className="min-w-[200px] text-lg"
+              onClick={() => window.location.href = '/contacto'}
             >
               Solicitar Cotización
             </Button>
@@ -92,6 +93,7 @@ export default function CTASection() {
               variant="outline"
               size="lg"
               className="min-w-[200px] text-lg border-white text-white hover:bg-white hover:text-gray-900"
+              onClick={() => window.location.href = '/galeria'}
             >
               Ver Portafolio
             </Button>

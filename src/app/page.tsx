@@ -90,7 +90,7 @@ export default function HomePage() {
                 variant="outline"
                 size="lg"
                 className="border-text-primary text-text-primary hover:bg-text-primary hover:text-background text-lg px-10 py-3"
-                onClick={() => scrollToSection('contacto')}
+                onClick={() => window.location.href = '/ecosistema'}
               >
                 Únete al ecosistema
               </Button>

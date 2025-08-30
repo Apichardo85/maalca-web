@@ -3,114 +3,12 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
+import { usePropertiesI18n, usePropertySearchI18n } from "@/hooks/usePropertiesI18n";
+import { PropertyFilter } from "@/lib/types/property";
+import PropertyGallery from "@/components/ui/PropertyGallery";
+import LazyPropertyMap from "@/components/ui/LazyPropertyMap";
 
-const properties = [
-  {
-    id: "oceanfront-villa-paradise",
-    name: "Villa Paraíso Oceanfront",
-    location: "Caribbean Coastline",
-    priceFrom: 850000,
-    bedrooms: 4,
-    bathrooms: 4,
-    sqft: 3500,
-    lotSize: "2.5 acres",
-    type: "Oceanfront Villa",
-    amenities: ["Private Beach", "Infinity Pool", "Ocean Views", "Tropical Gardens", "Guest House", "Sunset Deck"],
-    description: "Luxury villa with unobstructed ocean views, private beach access, and world-class amenities. Wake up to endless Caribbean blue waters.",
-    images: ["/images/properties/villa-paradise-1.jpg", "/images/properties/villa-paradise-2.jpg"],
-    featured: true,
-    status: "Available",
-    virtualTour: "#"
-  },
-  {
-    id: "beachfront-penthouse",
-    name: "Caribbean Penthouse Dreams",
-    location: "Exclusive Beachfront",
-    priceFrom: 1200000,
-    bedrooms: 3,
-    bathrooms: 3,
-    sqft: 2800,
-    lotSize: "Penthouse",
-    type: "Luxury Penthouse",
-    amenities: ["360° Ocean Views", "Private Elevator", "Rooftop Pool", "Smart Home", "Concierge Service", "Marina Access"],
-    description: "Ultra-modern penthouse with 360-degree ocean views. The pinnacle of luxury living in the Caribbean.",
-    images: ["/images/properties/penthouse-1.jpg", "/images/properties/penthouse-2.jpg"],
-    featured: true,
-    status: "Available",
-    virtualTour: "#"
-  },
-  {
-    id: "tropical-estate",
-    name: "Tropical Estate Sanctuary",
-    location: "Private Cove",
-    priceFrom: 2500000,
-    bedrooms: 6,
-    bathrooms: 7,
-    sqft: 6500,
-    lotSize: "5 acres",
-    type: "Private Estate",
-    amenities: ["Private Cove", "Helipad", "Tennis Court", "Wine Cellar", "Staff Quarters", "Boat Dock"],
-    description: "Exclusive private estate with its own cove, helipad, and unparalleled privacy. A true Caribbean sanctuary.",
-    images: ["/images/properties/estate-1.jpg", "/images/properties/estate-2.jpg"],
-    featured: true,
-    status: "Available",
-    virtualTour: "#"
-  },
-  {
-    id: "modern-beach-house",
-    name: "Modern Beach House",
-    location: "Golden Sand Beach",
-    priceFrom: 650000,
-    bedrooms: 3,
-    bathrooms: 2,
-    sqft: 2200,
-    lotSize: "1 acre",
-    type: "Beach House",
-    amenities: ["Direct Beach Access", "Open Floor Plan", "Solar Panels", "Outdoor Kitchen", "Yoga Deck", "Fire Pit"],
-    description: "Contemporary beach house with sustainable features and direct beach access. Modern living meets tropical paradise.",
-    images: ["/images/properties/modern-beach-1.jpg", "/images/properties/modern-beach-2.jpg"],
-    featured: false,
-    status: "Available",
-    virtualTour: "#"
-  },
-  {
-    id: "luxury-condo-marina",
-    name: "Marina Luxury Residences",
-    location: "Premium Marina",
-    priceFrom: 450000,
-    bedrooms: 2,
-    bathrooms: 2,
-    sqft: 1800,
-    lotSize: "Condo",
-    type: "Marina Condo",
-    amenities: ["Marina Views", "Boat Slip Included", "Resort Amenities", "24/7 Security", "Fitness Center", "Restaurant Access"],
-    description: "Sophisticated condo with marina views and boat slip. Perfect for the nautical lifestyle enthusiast.",
-    images: ["/images/properties/marina-condo-1.jpg", "/images/properties/marina-condo-2.jpg"],
-    featured: false,
-    status: "Available",
-    virtualTour: "#"
-  },
-  {
-    id: "eco-luxury-retreat",
-    name: "Eco-Luxury Retreat",
-    location: "Rainforest Coastline",
-    priceFrom: 950000,
-    bedrooms: 4,
-    bathrooms: 3,
-    sqft: 3200,
-    lotSize: "3 acres",
-    type: "Eco Villa",
-    amenities: ["Rainforest Views", "Sustainable Design", "Natural Pool", "Organic Garden", "Wildlife Sanctuary", "Meditation Space"],
-    description: "Eco-luxury villa where rainforest meets ocean. Sustainable luxury in perfect harmony with nature.",
-    images: ["/images/properties/eco-retreat-1.jpg", "/images/properties/eco-retreat-2.jpg"],
-    featured: false,
-    status: "Available",
-    virtualTour: "#"
-  }
-];
-
-const propertyTypes = ["All Properties", "Oceanfront Villa", "Luxury Penthouse", "Private Estate", "Beach House", "Marina Condo", "Eco Villa"];
-const priceRanges = ["All Prices", "$400K - $700K", "$700K - $1M", "$1M - $2M", "$2M+"];
+// Los datos ahora vienen de Umbraco o fallback
 
 const investmentBenefits = [
   {
@@ -147,13 +45,16 @@ const investmentBenefits = [
 
 export default function MaalCaPropertiesPage() {
   const [selectedProperty, setSelectedProperty] = useState<string | null>(null);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<PropertyFilter>({
     type: "All Properties",
     priceRange: "All Prices"
   });
   const [language, setLanguage] = useState<"en" | "es">("en");
   const [showContactForm, setShowContactForm] = useState(false);
+  
+  // Use new i18n hooks
+  const { properties, loading, error, getPropertyTypes, getPriceRanges } = usePropertiesI18n(language);
+  const { searchResult, searchProperties } = usePropertySearchI18n(language);
 
   const translations = {
     en: {
@@ -202,32 +103,24 @@ export default function MaalCaPropertiesPage() {
     }
   };
 
-  const filteredProperties = properties.filter(property => {
-    const typeMatch = filters.type === "All Properties" || property.type === filters.type;
-    let priceMatch = true;
-    
-    if (filters.priceRange !== "All Prices") {
-      const price = property.priceFrom;
-      switch (filters.priceRange) {
-        case "$400K - $700K":
-          priceMatch = price >= 400000 && price < 700000;
-          break;
-        case "$700K - $1M":
-          priceMatch = price >= 700000 && price < 1000000;
-          break;
-        case "$1M - $2M":
-          priceMatch = price >= 1000000 && price < 2000000;
-          break;
-        case "$2M+":
-          priceMatch = price >= 2000000;
-          break;
-      }
+  // Filter properties when filters change
+  useEffect(() => {
+    if (properties.length > 0) {
+      searchProperties(filters);
     }
-    
-    return typeMatch && priceMatch;
-  });
-
+  }, [filters, properties]);
+  
+  const filteredProperties = (searchResult?.properties?.length > 0) ? searchResult.properties : properties;
   const featuredProperties = properties.filter(property => property.featured);
+  
+  // Types dinámicos desde Umbraco o fallback (ya traducidos)
+  const propertyTypes = (searchResult.filters?.availableTypes?.length > 0) 
+    ? searchResult.filters.availableTypes 
+    : getPropertyTypes();
+    
+  const priceRanges = (searchResult.filters?.priceRanges?.length > 0)
+    ? searchResult.filters.priceRanges
+    : getPriceRanges();
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
@@ -394,9 +287,11 @@ export default function MaalCaPropertiesPage() {
                 <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-slate-200">
                   {/* Property Image */}
                   <div className="aspect-[4/3] relative overflow-hidden">
-                    <div className="w-full h-full bg-gradient-to-br from-blue-400 to-teal-500 flex items-center justify-center">
-                      <span className="text-6xl opacity-70">🏖️</span>
-                    </div>
+                    <PropertyGallery 
+                      images={property.images} 
+                      title={property.name}
+                      className="w-full h-full"
+                    />
                     <div className="absolute top-4 left-4">
                       <span className="bg-white/90 text-slate-900 px-3 py-1 rounded-full text-sm font-medium">
                         {property.type}
@@ -493,93 +388,72 @@ export default function MaalCaPropertiesPage() {
         </div>
       </section>
 
-      {/* All Properties with Filters */}
+      {/* Interactive Properties with Map */}
       <section className="py-24 bg-slate-100">
         <div className="max-w-7xl mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-center mb-12"
           >
             <h2 className="text-4xl md:text-6xl font-light text-slate-900 mb-6">
               {t.allProperties}
             </h2>
-            
-            {/* Filters */}
-            <div className="flex flex-col md:flex-row gap-4 justify-center mb-8 max-w-4xl mx-auto">
-              <div className="flex-1">
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              Explore our exclusive properties with interactive map and detailed listings
+            </p>
+          </motion.div>
+          
+          {/* Enhanced Filters */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200 mb-8"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Property Type</label>
                 <select
                   value={filters.type}
                   onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-                  className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   {propertyTypes.map(type => (
                     <option key={type} value={type}>{type}</option>
                   ))}
                 </select>
               </div>
-              <div className="flex-1">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Price Range</label>
                 <select
                   value={filters.priceRange}
                   onChange={(e) => setFilters({ ...filters, priceRange: e.target.value })}
-                  className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   {priceRanges.map(range => (
                     <option key={range} value={range}>{range}</option>
                   ))}
                 </select>
               </div>
+              <div className="flex items-end">
+                <button
+                  onClick={() => setFilters({ type: propertyTypes[0], priceRange: priceRanges[0] })}
+                  className="w-full px-4 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg transition-colors font-medium"
+                >
+                  Clear Filters
+                </button>
+              </div>
             </div>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProperties.map((property, index) => (
-              <motion.div
-                key={property.id}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                whileHover={{ y: -4 }}
-                className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
-              >
-                {/* Property Image */}
-                <div className="aspect-video relative overflow-hidden">
-                  <div className="w-full h-full bg-gradient-to-br from-blue-300 to-teal-400 flex items-center justify-center">
-                    <span className="text-4xl opacity-70">🏖️</span>
-                  </div>
-                  <div className="absolute top-3 right-3">
-                    <span className="bg-white/90 text-slate-900 px-2 py-1 rounded text-xs font-medium">
-                      {formatPrice(property.priceFrom)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                    {property.name}
-                  </h3>
-                  <p className="text-slate-600 text-sm mb-4">{property.location}</p>
-                  
-                  <div className="flex items-center text-sm text-slate-600 mb-4">
-                    <span className="mr-4">{property.bedrooms} bed</span>
-                    <span className="mr-4">{property.bathrooms} bath</span>
-                    <span>{property.sqft.toLocaleString()} sqft</span>
-                  </div>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white"
-                    onClick={() => setSelectedProperty(property.id)}
-                  >
-                    {t.viewDetails}
-                  </Button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          {/* Interactive List with Map */}
+          <LazyPropertyMap
+            properties={filteredProperties}
+            onPropertySelect={(property) => setSelectedProperty(property.id)}
+            language={language}
+          />
         </div>
       </section>
 
@@ -936,9 +810,11 @@ export default function MaalCaPropertiesPage() {
                     <>
                       {/* Property Header */}
                       <div className="relative aspect-[2/1] bg-gradient-to-br from-blue-500 to-teal-500">
-                        <div className="w-full h-full flex items-center justify-center text-8xl opacity-70">
-                          🏖️
-                        </div>
+                        <PropertyGallery 
+                          images={property.images} 
+                          title={property.name}
+                          className="w-full h-full"
+                        />
                         <button
                           onClick={() => setSelectedProperty(null)}
                           className="absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white"
