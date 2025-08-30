@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
+import SocialShare from "@/components/ui/SocialShare";
+import { useAnalytics } from "@/hooks/useAnalytics";
+import SimpleReader from "@/components/ui/SimpleReader";
+import { getArticleContent } from "@/data/editorialContent";
 
 const articles = [
   {
@@ -101,6 +105,8 @@ const books = [
 
 export default function EditorialPage() {
   const [selectedCategory, setSelectedCategory] = useState("Todos");
+  const [selectedArticle, setSelectedArticle] = useState<string | null>(null);
+  const { trackArticleClick } = useAnalytics('editorial');
 
   const filteredArticles = selectedCategory === "Todos" 
     ? articles 
@@ -132,6 +138,36 @@ export default function EditorialPage() {
         </div>
       </section>
 
+      {/* Social Share Section */}
+      <section className="py-12 bg-surface">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="bg-surface-elevated p-8 rounded-2xl border border-border shadow-lg"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <div className="text-center mb-6">
+              <h3 className="text-xl font-bold text-text-primary mb-2">
+                Comparte Editorial MaalCa
+              </h3>
+              <p className="text-text-secondary text-sm">
+                Ayuda a difundir pensamiento crítico y análisis profundo
+              </p>
+            </div>
+            <SocialShare
+              title="Editorial MaalCa - Pensamiento crítico y análisis cultural"
+              description="Exploramos filosofía, tecnología, cultura y sociedad desde una perspectiva caribeña contemporánea."
+              platforms={["twitter", "linkedin", "facebook", "whatsapp", "copy"]}
+              variant="icons"
+              className="justify-center"
+              project="editorial"
+            />
+          </motion.div>
+        </div>
+      </section>
+
       {/* Featured Articles */}
       <section className="py-16 md:py-24 bg-surface-elevated">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -156,6 +192,10 @@ export default function EditorialPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.2 }}
+                onClick={() => {
+                  trackArticleClick(article.id);
+                  setSelectedArticle(article.id);
+                }}
               >
                 <div className="bg-surface rounded-2xl overflow-hidden border border-border hover:border-brand-primary/30 transition-all duration-300 shadow-sm hover:shadow-xl h-full">
                   {/* Article Image Placeholder */}
@@ -245,6 +285,10 @@ export default function EditorialPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
+                onClick={() => {
+                  trackArticleClick(article.id);
+                  setSelectedArticle(article.id);
+                }}
               >
                 <div className="bg-surface-elevated rounded-2xl p-6 h-full border border-border hover:border-brand-primary/30 transition-all duration-300 hover:shadow-lg">
                   {/* Category */}
@@ -274,6 +318,17 @@ export default function EditorialPage() {
                         #{tag}
                       </span>
                     ))}
+                  </div>
+
+                  {/* Share Article */}
+                  <div className="mb-4 pt-3 border-t border-border/50">
+                    <SocialShare
+                      title={`${article.title} | Editorial MaalCa`}
+                      description={article.excerpt}
+                      platforms={["twitter", "linkedin", "copy"]}
+                      variant="minimal"
+                      project="editorial"
+                    />
                   </div>
 
                   {/* Meta */}
@@ -402,6 +457,19 @@ export default function EditorialPage() {
           </motion.div>
         </div>
       </section>
+
+      {/* Reader Modal */}
+      <AnimatePresence>
+        {selectedArticle && (
+          <SimpleReader
+            bookId={selectedArticle}
+            title={articles.find(a => a.id === selectedArticle)?.title || "Artículo"}
+            author="Editorial MaalCa"
+            content={getArticleContent(selectedArticle)}
+            onClose={() => setSelectedArticle(null)}
+          />
+        )}
+      </AnimatePresence>
     </main>
   );
 }

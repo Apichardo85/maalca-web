@@ -1,13 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import FirstChapter from "@/components/ui/FirstChapter";
 import SensitiveNotice from "@/components/ui/SensitiveNotice";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import LanguageToggle from "@/components/ui/LanguageToggle";
+import NewsletterSignup from "@/components/ui/NewsletterSignup";
+import SocialShare from "@/components/ui/SocialShare";
+import DigitalReader from "@/components/ui/DigitalReader";
+import SimpleReader from "@/components/ui/SimpleReader";
+import { amarantaContent, lucesSombrasContent } from "@/data/bookContent";
 import { LanguageProvider, useLanguage } from "@/hooks/useLanguage";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 const books = [
   {
@@ -18,10 +24,12 @@ const books = [
     cover: "/images/books/amaranta.jpg",
     status: "Disponible",
     amazonLink: "https://www.amazon.com/Amaranta-Ciriaco-Alejandro-Pichardo-Santana/dp/841915122X",
+    hasEpub: true,
+    hasSimpleReader: true,
     excerpt: "En la penumbra de su memoria, Amaranta encontró las palabras que nunca pudo decir en vida...",
     year: "2024",
     tags: ["novela", "psicológico", "drama íntimo"],
-    notes: "Edición bajo Editorial MaalCa. Primer capítulo legible en web."
+    notes: "Lectura inmersiva disponible - Versión demo del contenido original."
   },
   {
     id: "luz-sombras",
@@ -31,10 +39,12 @@ const books = [
     cover: "/images/books/luz-sombras.jpg",
     status: "Disponible",
     amazonLink: "https://www.amazon.com/Luces-Sombras-Spanish-ebook/dp/B084M8356R",
+    hasEpub: true,
+    hasSimpleReader: true,
     excerpt: "Hay luces que solo brillan en la oscuridad más absoluta, como las estrellas que nacen del vacío...",
     year: "2023",
     tags: ["poesía", "amor", "intimidad"],
-    notes: "Versión KDP confirmada."
+    notes: "Lectura inmersiva disponible - Selección representativa de los 106 poemas originales."
   },
   {
     id: "cartas-hiedra",
@@ -46,6 +56,7 @@ const books = [
     amazonLink: "#",
     excerpt: "Querida Hiedra, tus brazos abrazan muros como yo abrazo palabras: con la desesperación de quien sabe que todo es efímero...",
     year: "2024",
+    
     tags: ["epistolar", "prosa poética"],
     notes: "Meta en web: 30 cartas visibles (muestras selectas, no newsletter masivo)."
   },
@@ -110,7 +121,10 @@ const blogPosts = [
 function CiriWhispersContent() {
   const [selectedBook, setSelectedBook] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState("home");
+  const [readerOpen, setReaderOpen] = useState(false);
+  const [currentReaderBook, setCurrentReaderBook] = useState<typeof books[0] | null>(null);
   const { t, language } = useLanguage();
+  const { trackBookInteraction, trackSocialShare } = useAnalytics('ciriwhispers');
   
   // Helper function to get localized content
   const getLocalizedContent = (content: any) => {
@@ -124,6 +138,31 @@ function CiriWhispersContent() {
   const scrollToSection = (sectionId: string) => {
     setActiveSection(sectionId);
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const openReader = (book: typeof books[0]) => {
+    setCurrentReaderBook(book);
+    setReaderOpen(true);
+    trackBookInteraction(book.id, 'reader_open');
+  };
+
+  const closeReader = () => {
+    if (currentReaderBook) {
+      trackBookInteraction(currentReaderBook.id, 'reader_close');
+    }
+    setReaderOpen(false);
+    setCurrentReaderBook(null);
+  };
+
+  const getBookContent = (bookId: string) => {
+    switch (bookId) {
+      case 'amaranta':
+        return amarantaContent;
+      case 'luz-sombras':
+        return lucesSombrasContent;
+      default:
+        return '<p>Contenido no disponible</p>';
+    }
   };
 
   return (
@@ -337,7 +376,10 @@ function CiriWhispersContent() {
             </p>
             <div className="bg-red-900/10 border border-red-800/20 rounded-lg p-4 max-w-2xl mx-auto">
               <p className="text-red-400/80 text-sm font-serif italic">
-                🔮 Próximamente: Lector EPUB integrado para sumergirte completamente en cada historia
+                📖 ¡Ya disponible! Lector digital integrado - <strong>Demo funcional</strong> con libros de prueba
+              </p>
+              <p className="text-red-300/60 text-xs mt-1">
+                Los libros disponibles cargan contenido demo para probar la experiencia de lectura inmersiva
               </p>
             </div>
           </motion.div>
@@ -351,7 +393,13 @@ function CiriWhispersContent() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 className="group cursor-pointer"
-                onClick={() => setSelectedBook(selectedBook === book.id ? null : book.id)}
+                onClick={() => {
+                  const newSelection = selectedBook === book.id ? null : book.id;
+                  setSelectedBook(newSelection);
+                  if (newSelection) {
+                    trackBookInteraction(book.id, 'expand');
+                  }
+                }}
               >
                 <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-2xl overflow-hidden border border-red-800/20 hover:border-red-600/40 transition-all duration-300">
                   {/* Book Cover */}
@@ -410,7 +458,17 @@ function CiriWhispersContent() {
                         
                         {getLocalizedContent(book.status) === t('works.status.available') && (
                           <div className="space-y-2">
-                            {book.id === 'amaranta' ? (
+                            {/* Digital Reader Button */}
+                            {book.hasSimpleReader ? (
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                className="w-full bg-gradient-to-r from-red-800 to-red-600 hover:from-red-600 hover:to-red-800 text-stone-100"
+                                onClick={() => openReader(book)}
+                              >
+                                📖 Leer en CiriWhispers
+                              </Button>
+                            ) : book.id === 'amaranta' ? (
                               <FirstChapter 
                                 title={getLocalizedContent(book.title)}
                                 content={t('chapter.amaranta.content')}
@@ -424,11 +482,14 @@ function CiriWhispersContent() {
                                 📖 Leer Aquí (Próximamente)
                               </Button>
                             )}
+                            
+                            {/* Amazon Purchase Button */}
                             <a 
                               href={book.amazonLink}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="block"
+                              onClick={() => trackBookInteraction(book.id, 'amazon_click')}
                             >
                               <Button
                                 variant="outline"
@@ -438,6 +499,17 @@ function CiriWhispersContent() {
                                 🛒 Comprar en Amazon
                               </Button>
                             </a>
+
+                            {/* Share Book */}
+                            <div className="pt-3 border-t border-slate-700/30">
+                              <SocialShare
+                                title={`${book.title} - ${book.subtitle} | CiriWhispers`}
+                                description={book.synopsis}
+                                platforms={["twitter", "facebook", "whatsapp", "copy"]}
+                                variant="minimal"
+                                project="ciriwhispers"
+                              />
+                            </div>
                           </div>
                         )}
                         
@@ -480,27 +552,21 @@ function CiriWhispersContent() {
             </p>
             
             {/* Newsletter Signup */}
-            <div className="bg-gradient-to-r from-slate-800/50 to-slate-900/50 p-6 rounded-2xl border border-red-800/20 mb-12">
-              <h3 className="font-serif text-xl font-bold text-stone-100 mb-4">
-                Suscríbete a mis Cartas
-              </h3>
-              <p className="text-slate-400 text-sm mb-4">
-                Recibe nuevas cartas y reflexiones directamente en tu correo, 
-                como secretos susurrados entre amigos de alma.
-              </p>
-              <div className="flex gap-3 max-w-md mx-auto">
-                <input
-                  type="email"
-                  placeholder="tu@email.com"
-                  className="flex-1 px-4 py-2 bg-slate-800/50 border border-slate-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 text-stone-100"
-                />
-                <Button
-                  variant="primary"
-                  className="bg-gradient-to-r from-red-800 to-red-600 hover:from-red-600 hover:to-red-800 text-stone-100"
-                >
-                  Suscribirse
-                </Button>
-              </div>
+            <NewsletterSignup 
+              source="ciriwhispers"
+              className="mb-8" 
+            />
+
+            {/* Social Share */}
+            <div className="bg-gradient-to-br from-slate-800/30 to-slate-900/30 p-6 rounded-xl border border-slate-700/50 mb-12">
+              <SocialShare
+                title="CiriWhispers - Palabras que susurran al alma"
+                description="Literatura íntima, poesía y reflexiones nocturnas desde el laberinto de las emociones."
+                platforms={["twitter", "linkedin", "facebook", "whatsapp", "copy"]}
+                variant="icons"
+                className="justify-center"
+                project="ciriwhispers"
+              />
             </div>
           </motion.div>
 
@@ -616,17 +682,12 @@ function CiriWhispersContent() {
 
                 <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 p-6 rounded-xl border border-slate-700/50">
                   <h4 className="font-serif text-xl font-bold text-red-600 mb-4">Servicios</h4>
-                  <ul className="text-slate-300 space-y-2 text-sm mb-6">
+                  <ul className="text-slate-300 space-y-2 text-sm">
                     <li>✍️ Textos personalizados</li>
                     <li>📖 Prólogos y reseñas</li>
                     <li>🎭 Talleres de escritura creativa</li>
                     <li>📝 Ghostwriting literario</li>
                   </ul>
-                  <a href="/servicios" className="block">
-                    <button className="inline-flex items-center justify-center rounded-full font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed border-2 focus:ring-amber-500 hover:shadow-lg px-8 py-4 text-lg border-text-primary text-text-primary hover:bg-text-primary hover:text-background w-full">
-                      Ver Todos los Servicios
-                    </button>
-                  </a>
                 </div>
               </div>
             </div>
@@ -640,6 +701,19 @@ function CiriWhispersContent() {
           </motion.div>
         </div>
       </section>
+
+      {/* Digital Reader Modal */}
+      <AnimatePresence>
+        {readerOpen && currentReaderBook && (
+          <SimpleReader
+            bookId={currentReaderBook.id}
+            title={currentReaderBook.title}
+            author="Ciriaco A. Pichardo (CiriWhispers)"
+            content={getBookContent(currentReaderBook.id)}
+            onClose={closeReader}
+          />
+        )}
+      </AnimatePresence>
     </main>
   );
 }

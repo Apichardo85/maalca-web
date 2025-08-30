@@ -1,44 +1,105 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
+import { FormField } from "@/components/ui/FormField";
+import { TextAreaField } from "@/components/ui/TextAreaField";
+import { SelectField } from "@/components/ui/SelectField";
+import { useFormValidation, EMAIL_PATTERN, NAME_PATTERN, type ValidationRules } from "@/hooks/useFormValidation";
+import { useContactForm, type ContactFormData } from "@/hooks/useContactForm";
+
+// Form validation rules
+const validationRules: ValidationRules = {
+  name: {
+    required: true,
+    minLength: 2,
+    pattern: NAME_PATTERN,
+    custom: (value: string) => {
+      if (value.trim().split(' ').length < 2) {
+        return 'Por favor ingresa tu nombre completo';
+      }
+      return null;
+    }
+  },
+  email: {
+    required: true,
+    pattern: EMAIL_PATTERN
+  },
+  company: {
+    maxLength: 100
+  },
+  project: {
+    required: true
+  },
+  message: {
+    required: true,
+    minLength: 10,
+    maxLength: 1000
+  }
+};
+
+// Project type options
+const projectOptions = [
+  { value: "editorial", label: "Editorial y Publicaciones" },
+  { value: "tech", label: "Desarrollo Tecnológico" },
+  { value: "content", label: "Creación de Contenido" },
+  { value: "real-estate", label: "Bienes Raíces" },
+  { value: "catering", label: "Servicios de Catering" },
+  { value: "consulting", label: "Consultoría" },
+  { value: "collaboration", label: "Colaboración/Partnership" },
+  { value: "other", label: "Otro" }
+];
 
 export default function ContactoPage() {
-  const [formData, setFormData] = useState({
+  const initialData: ContactFormData = {
     name: "",
     email: "",
     company: "",
     message: "",
     project: ""
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  };
+
+  const {
+    formData,
+    errors,
+    touched,
+    handleChange,
+    handleBlur,
+    validateAllFields,
+    resetForm,
+    getFieldProps
+  } = useFormValidation(initialData, validationRules);
+
+  const {
+    status,
+    message,
+    submitForm,
+    isLoading,
+    isSuccess,
+    isError
+  } = useContactForm('global');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
     
-    // Simular envío de formulario
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Validate all fields
+    const isValid = validateAllFields();
     
-    console.log("Form submitted:", formData);
-    setIsSubmitting(false);
+    if (!isValid) {
+      // Scroll to first error
+      const firstErrorField = Object.keys(errors).find(key => errors[key]);
+      if (firstErrorField) {
+        document.getElementById(firstErrorField)?.focus();
+      }
+      return;
+    }
     
-    // Reset form
-    setFormData({
-      name: "",
-      email: "",
-      company: "",
-      message: "",
-      project: ""
-    });
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
+    // Submit form
+    const result = await submitForm(formData);
+    
+    if (result.success) {
+      resetForm();
+    }
   };
 
   return (
@@ -82,94 +143,95 @@ export default function ContactoPage() {
                 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Name */}
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-text-primary mb-2">
-                      Nombre *
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      required
-                      value={formData.name}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 bg-surface-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition-colors text-text-primary"
-                      placeholder="Tu nombre completo"
-                    />
-                  </div>
+                  <FormField
+                    label="Nombre"
+                    name="name"
+                    type="text"
+                    required
+                    placeholder="Tu nombre completo"
+                    autoComplete="name"
+                    error={errors.name}
+                    {...getFieldProps('name')}
+                  />
 
                   {/* Email */}
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-text-primary mb-2">
-                      Email *
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      required
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 bg-surface-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition-colors text-text-primary"
-                      placeholder="tu@email.com"
-                    />
-                  </div>
+                  <FormField
+                    label="Email"
+                    name="email"
+                    type="email"
+                    required
+                    placeholder="tu@email.com"
+                    autoComplete="email"
+                    error={errors.email}
+                    {...getFieldProps('email')}
+                  />
 
                   {/* Company */}
-                  <div>
-                    <label htmlFor="company" className="block text-sm font-medium text-text-primary mb-2">
-                      Empresa/Organización
-                    </label>
-                    <input
-                      type="text"
-                      id="company"
-                      name="company"
-                      value={formData.company}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 bg-surface-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition-colors text-text-primary"
-                      placeholder="Nombre de tu empresa (opcional)"
-                    />
-                  </div>
+                  <FormField
+                    label="Empresa/Organización"
+                    name="company"
+                    type="text"
+                    placeholder="Nombre de tu empresa (opcional)"
+                    autoComplete="organization"
+                    error={errors.company}
+                    {...getFieldProps('company')}
+                  />
 
                   {/* Project Type */}
-                  <div>
-                    <label htmlFor="project" className="block text-sm font-medium text-text-primary mb-2">
-                      Tipo de Proyecto
-                    </label>
-                    <select
-                      id="project"
-                      name="project"
-                      value={formData.project}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 bg-surface-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition-colors text-text-primary"
-                    >
-                      <option value="">Selecciona un tipo de proyecto</option>
-                      <option value="editorial">Editorial y Publicaciones</option>
-                      <option value="tech">Desarrollo Tecnológico</option>
-                      <option value="content">Creación de Contenido</option>
-                      <option value="real-estate">Bienes Raíces</option>
-                      <option value="consulting">Consultoría</option>
-                      <option value="collaboration">Colaboración/Partnership</option>
-                      <option value="other">Otro</option>
-                    </select>
-                  </div>
+                  <SelectField
+                    label="Tipo de Proyecto"
+                    name="project"
+                    required
+                    placeholder="Selecciona un tipo de proyecto"
+                    options={projectOptions}
+                    error={errors.project}
+                    {...getFieldProps('project')}
+                  />
 
                   {/* Message */}
-                  <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-text-primary mb-2">
-                      Mensaje *
-                    </label>
-                    <textarea
-                      id="message"
-                      name="message"
-                      required
-                      rows={6}
-                      value={formData.message}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 bg-surface-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition-colors text-text-primary resize-vertical"
-                      placeholder="Cuéntanos sobre tu proyecto, ideas o cómo podemos colaborar..."
-                    />
-                  </div>
+                  <TextAreaField
+                    label="Mensaje"
+                    name="message"
+                    required
+                    rows={6}
+                    maxLength={1000}
+                    placeholder="Cuéntanos sobre tu proyecto, ideas o cómo podemos colaborar..."
+                    error={errors.message}
+                    {...getFieldProps('message')}
+                  />
+
+                  {/* Form Status Messages */}
+                  <AnimatePresence>
+                    {message && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0, y: -10 }}
+                        animate={{ opacity: 1, height: 'auto', y: 0 }}
+                        exit={{ opacity: 0, height: 0, y: -10 }}
+                        transition={{ duration: 0.3 }}
+                        className={`p-4 rounded-xl border flex items-center gap-3 ${
+                          isSuccess 
+                            ? 'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-300'
+                            : isError
+                              ? 'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-300'
+                              : 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300'
+                        }`}
+                      >
+                        <div className="flex-shrink-0">
+                          {isSuccess && (
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                          {isError && (
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                        </div>
+                        <p className="font-medium">{message}</p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   {/* Submit Button */}
                   <Button
@@ -177,9 +239,9 @@ export default function ContactoPage() {
                     variant="primary"
                     size="lg"
                     className="w-full bg-brand-primary hover:bg-brand-primary-hover"
-                    disabled={isSubmitting}
+                    disabled={isLoading}
                   >
-                    {isSubmitting ? (
+                    {isLoading ? (
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                         Enviando...
@@ -188,6 +250,13 @@ export default function ContactoPage() {
                       "Enviar Mensaje"
                     )}
                   </Button>
+                  
+                  {/* Form Footer */}
+                  <div className="text-center">
+                    <p className="text-sm text-text-muted">
+                      Al enviar este formulario, aceptas que podamos contactarte sobre tu consulta.
+                    </p>
+                  </div>
                 </form>
               </div>
             </motion.div>

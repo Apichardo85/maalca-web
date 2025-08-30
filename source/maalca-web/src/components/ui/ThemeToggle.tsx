@@ -10,8 +10,12 @@ export default function ThemeToggle() {
   useEffect(() => {
     // Check localStorage on mount
     const savedTheme = localStorage.getItem("ciri-theme");
-    if (savedTheme === "light") {
-      setIsDark(false);
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    
+    if (savedTheme) {
+      setIsDark(savedTheme === "dark");
+    } else {
+      setIsDark(prefersDark);
     }
   }, []);
 
