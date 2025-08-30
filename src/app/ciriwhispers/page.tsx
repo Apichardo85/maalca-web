@@ -10,7 +10,7 @@ import LanguageToggle from "@/components/ui/LanguageToggle";
 import NewsletterSignup from "@/components/ui/NewsletterSignup";
 import SocialShare from "@/components/ui/SocialShare";
 import DigitalReader from "@/components/ui/DigitalReader";
-import SimpleReader from "@/components/ui/SimpleReader";
+import ProfessionalReader from "@/components/ui/ProfessionalReader";
 import { amarantaContent, lucesSombrasContent } from "@/data/bookContent";
 import { LanguageProvider, useLanguage } from "@/hooks/useLanguage";
 import { useAnalytics } from "@/hooks/useAnalytics";
@@ -705,7 +705,7 @@ function CiriWhispersContent() {
       {/* Digital Reader Modal */}
       <AnimatePresence>
         {readerOpen && currentReaderBook && (
-          <SimpleReader
+          <ProfessionalReader
             bookId={currentReaderBook.id}
             title={currentReaderBook.title}
             author="Ciriaco A. Pichardo (CiriWhispers)"
