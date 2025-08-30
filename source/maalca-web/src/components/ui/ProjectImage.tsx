@@ -12,6 +12,9 @@ interface ProjectImageProps {
 export function ProjectImage({ src, alt, className = "" }: ProjectImageProps) {
   const [imageExists, setImageExists] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Check if image is SVG
+  const isSVG = src.toLowerCase().endsWith('.svg');
 
   const handleImageError = () => {
     setImageExists(false);
@@ -46,16 +49,18 @@ export function ProjectImage({ src, alt, className = "" }: ProjectImageProps) {
         src={src}
         alt={alt}
         fill
-        className={`object-cover transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+        className={`${isSVG ? 'object-contain' : 'object-cover'} transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
         style={{
-          filter: 'contrast(1.1) saturate(1.2)',
+          filter: isSVG ? 'none' : 'contrast(1.1) saturate(1.2)',
         }}
         onError={handleImageError}
         onLoad={handleImageLoad}
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
       />
-      {/* Duotone overlay effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/10 to-transparent mix-blend-multiply"></div>
+      {/* Duotone overlay effect - disabled for SVGs to preserve colors */}
+      {!isSVG && (
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/10 to-transparent mix-blend-multiply"></div>
+      )}
     </div>
   );
 }

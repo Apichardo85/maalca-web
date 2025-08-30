@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import { usePropertiesI18n, usePropertySearchI18n } from "@/hooks/usePropertiesI18n";
+import ConsultationBooking from "@/components/ui/ConsultationBooking";
+import WhatsAppIntegration from "@/components/ui/WhatsAppIntegration";
+import PropertyNewsletterSubscription from "@/components/ui/PropertyNewsletterSubscription";
 import { PropertyFilter } from "@/lib/types/property";
 import PropertyGallery from "@/components/ui/PropertyGallery";
 import LazyPropertyMap from "@/components/ui/LazyPropertyMap";
@@ -51,6 +54,7 @@ export default function MaalCaPropertiesPage() {
   });
   const [language, setLanguage] = useState<"en" | "es">("en");
   const [showContactForm, setShowContactForm] = useState(false);
+  const [showConsultationBooking, setShowConsultationBooking] = useState(false);
   
   // Use new i18n hooks
   const { properties, loading, error, getPropertyTypes, getPriceRanges } = usePropertiesI18n(language);
@@ -612,6 +616,7 @@ export default function MaalCaPropertiesPage() {
                 <Button
                   variant="primary"
                   className="bg-blue-600 hover:bg-blue-700 text-white w-full"
+                  onClick={() => setShowConsultationBooking(true)}
                 >
                   Book Consultation
                 </Button>
@@ -629,37 +634,21 @@ export default function MaalCaPropertiesPage() {
                 <p className="text-slate-600 mb-6">
                   Get instant answers to your Caribbean real estate questions
                 </p>
-                <Button
-                  variant="primary"
-                  className="bg-green-500 hover:bg-green-600 text-white w-full"
-                >
-                  Chat Now
-                </Button>
+                <WhatsAppIntegration
+                  phoneNumber="+18491234567"
+                  businessName="MaalCa Properties"
+                  defaultMessage="Hi! I'm interested in your Caribbean properties and would like more information."
+                  className="w-full"
+                />
               </motion.div>
             </div>
 
             {/* Newsletter */}
-            <div className="bg-white rounded-3xl p-8 shadow-lg border border-slate-200">
-              <h3 className="text-2xl font-semibold text-slate-900 mb-4">
-                Exclusive Property Updates
-              </h3>
-              <p className="text-slate-600 mb-6">
-                Receive notifications about new listings and exclusive investment opportunities
-              </p>
-              <div className="flex gap-3 max-w-md mx-auto">
-                <input
-                  type="email"
-                  placeholder="your@email.com"
-                  className="flex-1 px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900"
-                />
-                <Button
-                  variant="primary"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6"
-                >
-                  Subscribe
-                </Button>
-              </div>
-            </div>
+            <PropertyNewsletterSubscription
+              title="Exclusive Property Updates"
+              description="Receive notifications about new listings and exclusive investment opportunities"
+              buttonText="Subscribe"
+            />
           </motion.div>
         </div>
       </section>
@@ -908,13 +897,19 @@ export default function MaalCaPropertiesPage() {
         transition={{ delay: 2 }}
         className="fixed bottom-6 right-6 z-40"
       >
-        <a
-          href="https://wa.me/16071234567"
-          className="w-16 h-16 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center text-white text-2xl shadow-lg hover:scale-110 transition-all duration-300"
-        >
-          💬
-        </a>
+        <WhatsAppIntegration
+          phoneNumber="+18491234567"
+          businessName="MaalCa Properties"
+          defaultMessage="Hi! I saw your website and I'm interested in Caribbean properties. Can you help me?"
+          className="w-16 h-16"
+        />
       </motion.div>
+
+      {/* Consultation Booking Modal */}
+      <ConsultationBooking
+        isOpen={showConsultationBooking}
+        onClose={() => setShowConsultationBooking(false)}
+      />
     </main>
   );
 }
