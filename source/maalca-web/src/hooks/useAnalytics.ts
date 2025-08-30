@@ -142,11 +142,13 @@ export const trackSocialShare = (platform: string, content: string, project?: st
   });
 };
 
-export const trackBookInteraction = (bookId: string, action: 'expand' | 'chapter_read' | 'amazon_click') => {
+export const trackBookInteraction = (bookId: string, action: 'expand' | 'chapter_read' | 'amazon_click' | 'reader_open' | 'reader_close') => {
   const eventMap = {
     expand: ANALYTICS_EVENTS.BOOK_EXPAND,
     chapter_read: ANALYTICS_EVENTS.CHAPTER_READ,
-    amazon_click: ANALYTICS_EVENTS.AMAZON_CLICK
+    amazon_click: ANALYTICS_EVENTS.AMAZON_CLICK,
+    reader_open: { action: 'reader_open', category: 'engagement' },
+    reader_close: { action: 'reader_close', category: 'engagement' }
   };
   
   trackEvent({
