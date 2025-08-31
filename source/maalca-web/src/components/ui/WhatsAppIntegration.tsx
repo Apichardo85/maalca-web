@@ -16,38 +16,82 @@ interface WhatsAppMessageOptions {
   message: string;
 }
 
-const quickMessages = [
-  {
-    id: 'property-inquiry',
-    title: 'Property Inquiry',
-    message: 'Hi! I\'m interested in learning more about your Caribbean properties. Could you please share available listings?'
-  },
-  {
-    id: 'investment-info',
-    title: 'Investment Information',
-    message: 'Hello! I\'d like to know more about investment opportunities in Caribbean real estate. What are the current market trends?'
-  },
-  {
-    id: 'villa-rentals',
-    title: 'Villa Rentals',
-    message: 'Hi there! I\'m looking for luxury villa rentals in the Caribbean. Do you have availability for upcoming dates?'
-  },
-  {
-    id: 'consultation',
-    title: 'Schedule Consultation',
-    message: 'Hello! I would like to schedule a consultation to discuss Caribbean property investments. When would be a good time?'
-  },
-  {
-    id: 'financing',
-    title: 'Financing Options',
-    message: 'Hi! I\'m interested in learning about financing options for Caribbean property purchases. Can you provide information?'
-  },
-  {
-    id: 'general',
-    title: 'General Question',
-    message: 'Hello! I have some questions about Caribbean real estate and would love to chat.'
+const getQuickMessages = (businessName?: string) => {
+  const isMedical = businessName?.toLowerCase().includes('dr.') || businessName?.toLowerCase().includes('pichardo');
+  
+  if (isMedical) {
+    return [
+      {
+        id: 'medical-consultation',
+        title: 'Agendar Consulta Médica',
+        message: 'Hola Dr. Pichardo, me gustaría agendar una consulta médica. ¿Qué disponibilidad tiene?'
+      },
+      {
+        id: 'teleconsultation',
+        title: 'Solicitar Teleconsulta',
+        message: 'Buenos días, estoy interesado en una teleconsulta. ¿Cómo puedo agendar una cita virtual?'
+      },
+      {
+        id: 'medical-emergency',
+        title: 'Consulta Urgente',
+        message: 'Doctor, necesito una consulta urgente. ¿Tiene disponibilidad para atenderme hoy?'
+      },
+      {
+        id: 'follow-up',
+        title: 'Seguimiento Médico',
+        message: 'Hola Dr. Pichardo, necesito agendar una cita de seguimiento. ¿Cuándo sería posible?'
+      },
+      {
+        id: 'operative-inquiry',
+        title: 'Operativo Médico',
+        message: 'Buenos días, quisiera información sobre los próximos operativos médicos comunitarios.'
+      },
+      {
+        id: 'donation-info',
+        title: 'Información de Donaciones',
+        message: 'Hola, me gustaría conocer más sobre el sistema de donaciones para apoyar la medicina solidaria.'
+      },
+      {
+        id: 'general-health',
+        title: 'Consulta General',
+        message: 'Buenos días Dr. Pichardo, tengo algunas preguntas sobre salud y me gustaría conversar.'
+      }
+    ];
   }
-];
+  
+  return [
+    {
+      id: 'property-inquiry',
+      title: 'Property Inquiry',
+      message: 'Hi! I\'m interested in learning more about your Caribbean properties. Could you please share available listings?'
+    },
+    {
+      id: 'investment-info',
+      title: 'Investment Information',
+      message: 'Hello! I\'d like to know more about investment opportunities in Caribbean real estate. What are the current market trends?'
+    },
+    {
+      id: 'villa-rentals',
+      title: 'Villa Rentals',
+      message: 'Hi there! I\'m looking for luxury villa rentals in the Caribbean. Do you have availability for upcoming dates?'
+    },
+    {
+      id: 'consultation',
+      title: 'Schedule Consultation',
+      message: 'Hello! I would like to schedule a consultation to discuss Caribbean property investments. When would be a good time?'
+    },
+    {
+      id: 'financing',
+      title: 'Financing Options',
+      message: 'Hi! I\'m interested in learning about financing options for Caribbean property purchases. Can you provide information?'
+    },
+    {
+      id: 'general',
+      title: 'General Question',
+      message: 'Hello! I have some questions about Caribbean real estate and would love to chat.'
+    }
+  ];
+};
 
 export default function WhatsAppIntegration({ 
   phoneNumber = "+18491234567", // Dominican Republic number
@@ -58,6 +102,8 @@ export default function WhatsAppIntegration({
   const [showMessageSelector, setShowMessageSelector] = useState(false);
   const [customMessage, setCustomMessage] = useState('');
   const [selectedMessageType, setSelectedMessageType] = useState<'quick' | 'custom'>('quick');
+  
+  const quickMessages = getQuickMessages(businessName);
 
   const formatWhatsAppUrl = (message: string) => {
     const encodedMessage = encodeURIComponent(message);
@@ -227,10 +273,21 @@ export default function WhatsAppIntegration({
                         <div>
                           <h4 className="text-sm font-medium text-slate-900">Tips for effective messaging:</h4>
                           <ul className="text-xs text-slate-600 mt-1 space-y-1">
-                            <li>• Be specific about your property interests</li>
-                            <li>• Mention your budget range if comfortable</li>
-                            <li>• Include your preferred timeline</li>
-                            <li>• Ask specific questions to get better responses</li>
+                            {businessName?.toLowerCase().includes('dr.') || businessName?.toLowerCase().includes('pichardo') ? (
+                              <>
+                                <li>• Indique sus síntomas o motivo de consulta</li>
+                                <li>• Mencione si es urgente o puede esperar</li>
+                                <li>• Incluya su ubicación para consultas presenciales</li>
+                                <li>• Sea específico con fechas y horarios preferidos</li>
+                              </>
+                            ) : (
+                              <>
+                                <li>• Be specific about your property interests</li>
+                                <li>• Mention your budget range if comfortable</li>
+                                <li>• Include your preferred timeline</li>
+                                <li>• Ask specific questions to get better responses</li>
+                              </>
+                            )}
                           </ul>
                         </div>
                       </div>
