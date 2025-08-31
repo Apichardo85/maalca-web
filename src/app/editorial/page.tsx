@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import SocialShare from "@/components/ui/SocialShare";
 import { useAnalytics } from "@/hooks/useAnalytics";
-import SimpleReader from "@/components/ui/SimpleReader";
+import ProfessionalReader from "@/components/ui/ProfessionalReader";
 import { getArticleContent } from "@/data/editorialContent";
 
 const articles = [
@@ -461,7 +461,7 @@ export default function EditorialPage() {
       {/* Reader Modal */}
       <AnimatePresence>
         {selectedArticle && (
-          <SimpleReader
+          <ProfessionalReader
             bookId={selectedArticle}
             title={articles.find(a => a.id === selectedArticle)?.title || "Artículo"}
             author="Editorial MaalCa"

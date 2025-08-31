@@ -275,8 +275,13 @@ export default function ProfessionalReader({
                 onClick={onClose}
                 className="transition-colors"
                 style={{
-                  color: getCurrentTheme().textColor,
-                  ':hover': { color: getCurrentTheme().accent }
+                  color: getCurrentTheme().textColor
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = getCurrentTheme().accent;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = getCurrentTheme().textColor;
                 }}
               >
                 ← Cerrar

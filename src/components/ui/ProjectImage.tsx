@@ -49,14 +49,21 @@ export function ProjectImage({ src, alt, className = "" }: ProjectImageProps) {
         src={src}
         alt={alt}
         fill
-        className={`${isSVG ? 'object-contain' : 'object-cover'} transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+        className={`${isSVG ? 'object-contain p-4' : 'object-cover'} transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
         style={{
           filter: isSVG ? 'none' : 'contrast(1.1) saturate(1.2)',
+          backgroundColor: isSVG ? 'transparent' : undefined
         }}
         onError={handleImageError}
         onLoad={handleImageLoad}
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        priority={false}
+        unoptimized={isSVG} // Disable optimization for SVGs to prevent quality issues
       />
+      {/* Enhanced background for SVG visibility */}
+      {isSVG && (
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-sm -z-10"></div>
+      )}
       {/* Duotone overlay effect - disabled for SVGs to preserve colors */}
       {!isSVG && (
         <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/10 to-transparent mix-blend-multiply"></div>

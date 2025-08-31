@@ -411,7 +411,9 @@ function CiriWhispersContent() {
                       onError={(e) => {
                         // Fallback si la imagen no carga
                         e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling.style.display = 'flex';
+                        if (e.currentTarget.nextElementSibling) {
+                          (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex';
+                        }
                       }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/50 hidden items-center justify-center">
