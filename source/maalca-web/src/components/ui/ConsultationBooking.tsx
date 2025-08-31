@@ -95,7 +95,7 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
     if (!formData.budget) newErrors.budget = 'Budget range is required';
     if (!formData.timeline) newErrors.timeline = 'Timeline is required';
     if (!formData.preferredTime) newErrors.preferredTime = 'Preferred time is required';
-    if (!formData.consent) newErrors.consent = 'You must agree to be contacted';
+    if (!formData.consent) newErrors.consent = 'You must agree to be contacted' as any;
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
