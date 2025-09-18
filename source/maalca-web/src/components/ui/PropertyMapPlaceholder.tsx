@@ -30,12 +30,12 @@ export default function PropertyMapPlaceholder({
     }
   };
 
-  // Caribbean coordinates bounds
+  // Samaná area coordinates bounds (centered around Loma Atravesada)
   const mapBounds = {
-    north: 18.6,
-    south: 18.3,
-    east: -69.6,
-    west: -70.2
+    north: 19.3,
+    south: 19.1,
+    east: -69.2,
+    west: -69.6
   };
 
   // Convert coordinates to relative positions on the placeholder map
@@ -159,7 +159,7 @@ export default function PropertyMapPlaceholder({
 
       {/* Map overlay info */}
       <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-3 z-5">
-        <div className="text-sm font-medium text-gray-900 mb-1">Caribbean Properties</div>
+        <div className="text-sm font-medium text-gray-900 mb-1">Loma Atravesada, Samaná</div>
         <div className="text-xs text-gray-600">{properties.length} locations</div>
       </div>
 

@@ -58,11 +58,11 @@ export default function PropertyGallery({ images, title, className = "" }: Prope
               src={images[0]}
               alt={`${title} - Photo 1`}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              className="object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-500 ease-out flex items-center justify-center">
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-out">
                 <span className="text-white text-2xl">🔍</span>
               </div>
             </div>
@@ -81,7 +81,7 @@ export default function PropertyGallery({ images, title, className = "" }: Prope
                   src={image}
                   alt={`${title} - Photo ${index + 1}`}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
                   sizes="(max-width: 768px) 50vw, 25vw"
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
@@ -105,7 +105,7 @@ export default function PropertyGallery({ images, title, className = "" }: Prope
                 src={images[0]}
                 alt={`${title} - Main photo`}
                 fill
-                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                className="object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
                 sizes="(max-width: 768px) 50vw, 33vw"
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
@@ -126,7 +126,7 @@ export default function PropertyGallery({ images, title, className = "" }: Prope
                   src={image}
                   alt={`${title} - Photo ${index + 2}`}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="object-cover group-hover:scale-[1.02] transition-transform duration-500 ease-out"
                   sizes="(max-width: 768px) 25vw, 16vw"
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">

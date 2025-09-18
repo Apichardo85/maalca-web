@@ -342,48 +342,48 @@ export const projects: Project[] = [
   },
   {
     id: "real-estate-showroom",
-    name: "Showroom Inmobiliario MaalCa Properties",
-    description: "Desarrollo de showroom gastronómico para promoción de propiedades premium, combinando degustaciones culinarias con tours inmobiliarios.",
+    name: "MaalCa Properties - Turismo + Real Estate",
+    description: "Propiedades turísticas frente al océano en República Dominicana, conectando clientes globales con el paraíso caribeño. Terrenos vírgenes con potencial de desarrollo para villas de lujo.",
     category: "real-estate",
     status: "in-progress",
     features: [
-      "Cocina de demostración interactiva",
-      "Sala de degustaciones VIP",
-      "Tours gastronómicos guiados",
-      "Experiencias inmobiliarias únicas",
-      "Concierge culinario especializado",
-      "Eventos de lanzamiento exclusivos"
+      "Terrenos vírgenes frente al océano",
+      "Propiedades con acceso directo a playa",
+      "Consultoría para desarrollo de villas",
+      "Gestión de permisos y licencias",
+      "Tours virtuales de propiedades",
+      "Conectamos inversores globales"
     ],
     technologies: [
-      "Cocina modular móvil",
-      "AV system integration",
-      "Virtual reality tours",
-      "Smart home integration",
-      "Climate control systems"
+      "Mapeo topográfico con drones",
+      "Realidad virtual para tours",
+      "Plataforma web inmobiliaria",
+      "Sistema de gestión de propiedades",
+      "Marketing digital internacional"
     ],
     images: [
       {
-        id: "showroom-kitchen",
-        url: "/images/projects/showroom-kitchen.jpg",
-        alt: "Cocina de demostración interactiva",
+        id: "maalca-properties-hero",
+        url: "/images/properties/terrenos-virgenes/lote-1/hero.png",
+        alt: "Terreno virgen frente al océano - MaalCa Properties",
         type: "hero",
         order: 1
       }
     ],
     startDate: new Date("2024-04-01"),
     client: "MaalCa Properties",
-    location: "Vitacura, Santiago",
+    location: "República Dominicana, Caribe",
     budget: {
-      min: 320000000,
-      max: 450000000,
-      currency: "CLP"
+      min: 400000,
+      max: 2000000,
+      currency: "USD"
     },
     team: [
       {
-        id: "concept-chef",
-        name: "Alejandro Mora",
-        role: "Chef Conceptual",
-        avatar: "/images/team/alejandro-mora.jpg"
+        id: "properties-director",
+        name: "Carlos Mendoza",
+        role: "Director de Propiedades",
+        avatar: "/images/team/carlos-mendoza.jpg"
       },
       {
         id: "real-estate-mgr",
@@ -393,10 +393,11 @@ export const projects: Project[] = [
       }
     ],
     metrics: {
-      eventsCompleted: 12,
-      satisfactionScore: 9.4
+      eventsCompleted: 25,
+      satisfactionScore: 9.7,
+      revenueGenerated: 1200000
     },
-    tags: ["inmobiliario", "showroom", "premium", "experiencial", "tours"]
+    tags: ["inmobiliario", "turismo", "caribe", "terrenos-virgenes", "inversores-globales"]
   }
 ];
 

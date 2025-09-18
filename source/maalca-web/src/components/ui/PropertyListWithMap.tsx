@@ -23,6 +23,7 @@ export default function PropertyListWithMap({
   const [selectedProperty, setSelectedProperty] = useState<string | null>(null);
   const [hoveredProperty, setHoveredProperty] = useState<string | null>(null);
   const [view, setView] = useState<'list' | 'map' | 'split'>('split');
+  const [expandedAmenities, setExpandedAmenities] = useState<string[]>([]);
 
   const formatPrice = (price: number) => {
     if (price >= 1000000) {
@@ -39,6 +40,14 @@ export default function PropertyListWithMap({
 
   const handleMapHover = (property: Property | null) => {
     setHoveredProperty(property?.id || null);
+  };
+
+  const toggleAmenities = (propertyId: string) => {
+    setExpandedAmenities(prev =>
+      prev.includes(propertyId)
+        ? prev.filter(id => id !== propertyId)
+        : [...prev, propertyId]
+    );
   };
 
   const translations = {
@@ -170,7 +179,10 @@ export default function PropertyListWithMap({
 
                       {/* Amenities */}
                       <div className="flex flex-wrap gap-1 mb-3">
-                        {property.amenities.slice(0, 3).map((amenity, i) => (
+                        {(expandedAmenities.includes(property.id)
+                          ? property.amenities
+                          : property.amenities.slice(0, 3)
+                        ).map((amenity, i) => (
                           <span
                             key={i}
                             className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full"
@@ -179,9 +191,18 @@ export default function PropertyListWithMap({
                           </span>
                         ))}
                         {property.amenities.length > 3 && (
-                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                            +{property.amenities.length - 3}
-                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleAmenities(property.id);
+                            }}
+                            className="text-xs bg-blue-100 text-blue-600 hover:bg-blue-200 px-2 py-1 rounded-full transition-colors cursor-pointer"
+                          >
+                            {expandedAmenities.includes(property.id)
+                              ? 'Show less'
+                              : `+${property.amenities.length - 3} more`
+                            }
+                          </button>
                         )}
                       </div>
 

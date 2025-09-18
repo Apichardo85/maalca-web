@@ -55,7 +55,6 @@ export default function MaalCaPropertiesPage() {
   const [language, setLanguage] = useState<"en" | "es">("en");
   const [showContactForm, setShowContactForm] = useState(false);
   const [showConsultationBooking, setShowConsultationBooking] = useState(false);
-  const [showMoreDetails, setShowMoreDetails] = useState(false);
   
   // Use new i18n hooks
   const { properties, loading, error, getPropertyTypes, getPriceRanges } = usePropertiesI18n(language);
@@ -69,7 +68,7 @@ export default function MaalCaPropertiesPage() {
       contactUs: "Contact Us",
       featuredProperties: "Featured Properties",
       allProperties: "All Properties",
-      from: "Starting at",
+      from: "From",
       bedrooms: "Bedrooms",
       bathrooms: "Bathrooms",
       viewDetails: "View Details",
@@ -77,9 +76,7 @@ export default function MaalCaPropertiesPage() {
       whyInvest: "Why Invest in Caribbean Real Estate",
       aboutMaalCa: "The MaalCa Properties Difference",
       contactTitle: "Ready to Find Your Paradise?",
-      scheduleCall: "Schedule a Call",
-      showMoreDetails: "Show More Details",
-      showLessDetails: "Show Less Details"
+      scheduleCall: "Schedule a Call"
     },
     es: {
       heroTitle: "Tu Puerta al Paraíso Caribeño",
@@ -96,17 +93,18 @@ export default function MaalCaPropertiesPage() {
       whyInvest: "Por Qué Invertir en Bienes Raíces Caribeños",
       aboutMaalCa: "La Diferencia MaalCa Properties",
       contactTitle: "¿Listo para Encontrar tu Paraíso?",
-      scheduleCall: "Agendar Llamada",
-      showMoreDetails: "Ver Más Detalles",
-      showLessDetails: "Mostrar Menos Detalles"
+      scheduleCall: "Agendar Llamada"
     }
   };
 
   const t = translations[language];
 
   const formatPrice = (price: number) => {
-    // For virgin land, show per square meter pricing
-    return `$20 per sq meter`;
+    if (price >= 1000000) {
+      return `$${(price / 1000000).toFixed(1)}M`;
+    } else {
+      return `$${(price / 1000)}K`;
+    }
   };
 
   // Filter properties when filters change
@@ -790,19 +788,17 @@ export default function MaalCaPropertiesPage() {
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
-              className="relative min-h-screen flex items-start sm:items-center justify-center p-2 sm:p-4"
+              className="relative min-h-screen flex items-center justify-center p-4"
             >
-              <div className="w-full max-w-4xl bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl mt-2 sm:mt-0 max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+              <div className="w-full max-w-4xl bg-white rounded-2xl overflow-hidden shadow-2xl">
                 {(() => {
                   const property = properties.find(p => p.id === selectedProperty);
                   if (!property) return null;
-
-                  const isVirginLand = property.sqft === 0;
-
+                  
                   return (
                     <>
                       {/* Property Header */}
-                      <div className="relative aspect-[4/3] sm:aspect-[2/1] bg-gradient-to-br from-blue-500 to-teal-500 overflow-hidden">
+                      <div className="relative aspect-[2/1] bg-gradient-to-br from-blue-500 to-teal-500">
                         <PropertyGallery 
                           images={property.images} 
                           title={property.name}
@@ -810,201 +806,78 @@ export default function MaalCaPropertiesPage() {
                         />
                         <button
                           onClick={() => setSelectedProperty(null)}
-                          className="absolute top-2 sm:top-4 right-2 sm:right-4 w-8 h-8 sm:w-10 sm:h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white text-lg sm:text-xl"
+                          className="absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-white"
                         >
                           ×
                         </button>
-                        <div className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4">
-                          <h2 className="text-xl sm:text-3xl font-bold text-white mb-1 sm:mb-2">{property.name}</h2>
-                          <p className="text-blue-100 text-sm sm:text-base">{property.location}</p>
+                        <div className="absolute bottom-4 left-4">
+                          <h2 className="text-3xl font-bold text-white mb-2">{property.name}</h2>
+                          <p className="text-blue-100">{property.location}</p>
                         </div>
-                        <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4">
-                          <div className="text-lg sm:text-3xl font-light text-white">
-                            {formatPrice(property.priceFrom)}
+                        <div className="absolute bottom-4 right-4">
+                          <div className="text-3xl font-light text-white">
+                            From {formatPrice(property.priceFrom)}
                           </div>
                         </div>
                       </div>
                       
                       {/* Property Content */}
-                      <div className="p-4 sm:p-6 lg:p-8">
-                        {/* Property Tags */}
-                        <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
-                          {property.bedrooms > 0 && (
-                            <div className="bg-blue-50 px-3 py-2 rounded-full border border-blue-200">
-                              <span className="text-blue-800 font-medium text-sm">{property.bedrooms} {language === 'en' ? 'beds' : 'hab'}</span>
+                      <div className="p-8">
+                        <div className="grid md:grid-cols-2 gap-8 mb-8">
+                          <div>
+                            <h3 className="text-xl font-semibold text-slate-900 mb-4">Property Details</h3>
+                            <div className="space-y-3">
+                              <div className="flex justify-between">
+                                <span className="text-slate-600">Bedrooms:</span>
+                                <span className="font-medium">{property.bedrooms}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-600">Bathrooms:</span>
+                                <span className="font-medium">{property.bathrooms}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-600">Square Feet:</span>
+                                <span className="font-medium">{property.sqft.toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-600">Lot Size:</span>
+                                <span className="font-medium">{property.lotSize}</span>
+                              </div>
                             </div>
-                          )}
-                          {property.bathrooms > 0 && (
-                            <div className="bg-green-50 px-3 py-2 rounded-full border border-green-200">
-                              <span className="text-green-800 font-medium text-sm">{property.bathrooms} {language === 'en' ? 'baths' : 'baños'}</span>
+                          </div>
+                          
+                          <div>
+                            <h3 className="text-xl font-semibold text-slate-900 mb-4">Amenities</h3>
+                            <div className="flex flex-wrap gap-2">
+                              {property.amenities.map(amenity => (
+                                <span
+                                  key={amenity}
+                                  className="text-sm bg-teal-50 text-teal-700 px-3 py-1 rounded-full"
+                                >
+                                  {amenity}
+                                </span>
+                              ))}
                             </div>
-                          )}
-                          <div className="bg-teal-50 px-3 py-2 rounded-full border border-teal-200">
-                            <span className="text-teal-800 font-medium text-sm">{property.status}</span>
                           </div>
                         </div>
-
-                        {/* Show More/Less Toggle */}
-                        <div className="mb-4">
-                          <button
-                            onClick={() => setShowMoreDetails(!showMoreDetails)}
-                            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                          >
-                            <span>{showMoreDetails
-                              ? t.showLessDetails
-                              : t.showMoreDetails
-                            }</span>
-                            <motion.div
-                              animate={{ rotate: showMoreDetails ? 180 : 0 }}
-                              transition={{ duration: 0.2 }}
-                            >
-                              ⌄
-                            </motion.div>
-                          </button>
-                        </div>
-
-                        {/* Detailed Information - Collapsible */}
-                        <AnimatePresence>
-                          {showMoreDetails && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                              transition={{ duration: 0.3, ease: "easeInOut" }}
-                              className="overflow-hidden"
-                            >
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-8">
-                                <div>
-                                  <h3 className="text-lg sm:text-xl font-semibold text-slate-900 mb-4 sm:mb-6">
-                                    {isVirginLand
-                                      ? (language === 'en' ? 'Land Details' : 'Detalles del Terreno')
-                                      : (language === 'en' ? 'Property Details' : 'Detalles de la Propiedad')
-                                    }
-                                  </h3>
-                                  <div className="space-y-2 sm:space-y-4">
-                                    <div className="flex justify-between items-center py-2 sm:py-3 border-b border-slate-100">
-                                      <span className="text-slate-600 font-medium text-sm sm:text-base">
-                                        {isVirginLand
-                                          ? (language === 'en' ? 'Total Area:' : 'Área Total:')
-                                          : (language === 'en' ? 'Lot Size:' : 'Tamaño del Lote:')
-                                        }
-                                      </span>
-                                      <span className="font-semibold text-sm sm:text-lg text-slate-900">{property.lotSize}</span>
-                                    </div>
-
-                                    {!isVirginLand && property.bedrooms > 0 && (
-                                      <div className="flex justify-between items-center py-2 sm:py-3 border-b border-slate-100">
-                                        <span className="text-slate-600 font-medium text-sm sm:text-base">
-                                          {language === 'en' ? 'Bedrooms:' : 'Habitaciones:'}
-                                        </span>
-                                        <span className="font-semibold text-sm sm:text-lg text-slate-900">{property.bedrooms}</span>
-                                      </div>
-                                    )}
-
-                                    {!isVirginLand && property.bathrooms > 0 && (
-                                      <div className="flex justify-between items-center py-2 sm:py-3 border-b border-slate-100">
-                                        <span className="text-slate-600 font-medium text-sm sm:text-base">
-                                          {language === 'en' ? 'Bathrooms:' : 'Baños:'}
-                                        </span>
-                                        <span className="font-semibold text-sm sm:text-lg text-slate-900">{property.bathrooms}</span>
-                                      </div>
-                                    )}
-
-                                    {!isVirginLand && property.sqft > 0 && (
-                                      <div className="flex justify-between items-center py-2 sm:py-3 border-b border-slate-100">
-                                        <span className="text-slate-600 font-medium text-sm sm:text-base">
-                                          {language === 'en' ? 'Built Area:' : 'Área Construida:'}
-                                        </span>
-                                        <span className="font-semibold text-sm sm:text-lg text-slate-900">{property.sqft.toLocaleString()} sqft</span>
-                                      </div>
-                                    )}
-
-                                    <div className="flex justify-between items-center py-2 sm:py-3 border-b border-slate-100">
-                                      <span className="text-slate-600 font-medium text-sm sm:text-base">
-                                        {language === 'en' ? 'Type:' : 'Tipo:'}
-                                      </span>
-                                      <span className="font-semibold text-sm sm:text-lg text-slate-900">{property.type}</span>
-                                    </div>
-
-                                    <div className="flex justify-between items-center py-2 sm:py-3">
-                                      <span className="text-slate-600 font-medium text-sm sm:text-base">
-                                        {language === 'en' ? 'Status:' : 'Estado:'}
-                                      </span>
-                                      <span className="font-semibold text-sm sm:text-lg text-emerald-600">{property.status}</span>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <h3 className="text-lg sm:text-xl font-semibold text-slate-900 mb-4 sm:mb-6">
-                                    {isVirginLand
-                                      ? (language === 'en' ? 'Features & Potential' : 'Características y Potencial')
-                                      : (language === 'en' ? 'Amenities' : 'Amenidades')
-                                    }
-                                  </h3>
-                                  <div className="grid grid-cols-1 gap-2 sm:gap-3">
-                                    {property.amenities.map((amenity, index) => (
-                                      <div
-                                        key={amenity}
-                                        className="flex items-center p-2 sm:p-3 bg-teal-50 rounded-lg border border-teal-100"
-                                      >
-                                        <div className="w-2 h-2 bg-teal-600 rounded-full mr-3"></div>
-                                        <span className="text-teal-800 font-medium text-sm sm:text-base">{amenity}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-
-                                  {isVirginLand && (
-                                    <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200">
-                                      <h4 className="font-semibold text-blue-900 mb-2 text-sm sm:text-base">
-                                        {language === 'en' ? '💡 Development Potential' : '💡 Potencial de Desarrollo'}
-                                      </h4>
-                                      <p className="text-blue-700 text-xs sm:text-sm">
-                                        {language === 'en'
-                                          ? 'This virgin land offers unlimited possibilities for luxury villa development, resort projects, or eco-friendly sustainable living.'
-                                          : 'Este terreno virgen ofrece posibilidades ilimitadas para desarrollo de villas de lujo, proyectos de resort o vida sostenible eco-amigable.'
-                                        }
-                                      </p>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-
-                              <div className="mt-6 sm:mt-8">
-                                <h3 className="text-lg sm:text-xl font-semibold text-slate-900 mb-4 sm:mb-6">
-                                  {language === 'en' ? 'About This Land' : 'Acerca de Este Terreno'}
-                                </h3>
-                                <div className="prose prose-sm sm:prose-lg max-w-none">
-                                  <p className="text-slate-700 leading-relaxed text-sm sm:text-lg">{property.description}</p>
-                                </div>
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
                         
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                        <div className="mb-8">
+                          <h3 className="text-xl font-semibold text-slate-900 mb-4">Description</h3>
+                          <p className="text-slate-600 leading-relaxed">{property.description}</p>
+                        </div>
+                        
+                        <div className="flex gap-4">
                           <Button
                             variant="primary"
-                            className="bg-blue-600 hover:bg-blue-700 text-white py-3 sm:py-4 text-sm sm:text-lg font-semibold"
-                            onClick={() => setShowConsultationBooking(true)}
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                           >
-                            {isVirginLand
-                              ? (language === 'en' ? '📞 Get Development Info' : '📞 Info de Desarrollo')
-                              : (language === 'en' ? '📞 Schedule Viewing' : '📞 Agendar Visita')
-                            }
+                            Schedule Viewing
                           </Button>
                           <Button
                             variant="outline"
-                            className="border-2 border-teal-500 text-teal-600 hover:bg-teal-500 hover:text-white py-3 sm:py-4 text-sm sm:text-lg font-semibold"
-                            onClick={() => {
-                              const message = `Hi! I'm interested in ${property.name} in ${property.location}. Can you provide more information?`;
-                              window.open(`https://wa.me/18491234567?text=${encodeURIComponent(message)}`, '_blank');
-                            }}
+                            className="flex-1 border-2 border-teal-500 text-teal-600 hover:bg-teal-500 hover:text-white"
                           >
-                            {isVirginLand
-                              ? (language === 'en' ? '💬 Get Development Info' : '💬 Info de Desarrollo')
-                              : (language === 'en' ? '💬 Contact Agent' : '💬 Contactar Agente')
-                            }
+                            Virtual Tour
                           </Button>
                         </div>
                       </div>
@@ -1036,7 +909,6 @@ export default function MaalCaPropertiesPage() {
       <ConsultationBooking
         isOpen={showConsultationBooking}
         onClose={() => setShowConsultationBooking(false)}
-        language={language}
       />
     </main>
   );

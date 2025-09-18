@@ -2,54 +2,56 @@ import { LocalizedProperty } from '@/lib/types/property-i18n';
 
 export const mockPropertiesI18n: LocalizedProperty[] = [
   {
-    id: "oceanfront-villa-paradise",
+    id: "terreno-virgen-lote-1",
     name: {
-      en: "Villa Paraíso Oceanfront",
-      es: "Villa Paraíso Frente al Mar"
+      en: "Virgin Land - Lot 1",
+      es: "Terreno Virgen - Lote 1"
     },
     location: {
-      en: "Caribbean Coastline",
-      es: "Costa Caribeña"
+      en: "Loma Atravesada, Samaná",
+      es: "Loma Atravesada, Samaná"
     },
-    priceFrom: 850000,
-    bedrooms: 4,
-    bathrooms: 4,
-    sqft: 3500,
+    priceFrom: 450000,
+    bedrooms: 0,
+    bathrooms: 0,
+    sqft: 0,
     lotSize: {
       en: "2.5 acres",
       es: "2.5 acres"
     },
     type: {
-      en: "Oceanfront Villa",
-      es: "Villa Frente al Mar"
+      en: "Virgin Land",
+      es: "Terreno Virgen"
     },
     amenities: [
-      { en: "Private Beach", es: "Playa Privada" },
-      { en: "Infinity Pool", es: "Piscina Infinita" },
       { en: "Ocean Views", es: "Vistas al Mar" },
-      { en: "Tropical Gardens", es: "Jardines Tropicales" },
-      { en: "Guest House", es: "Casa de Huéspedes" },
-      { en: "Sunset Deck", es: "Terraza del Atardecer" }
+      { en: "Beach Access", es: "Acceso a Playa" },
+      { en: "Natural Topography", es: "Topografía Natural" },
+      { en: "Development Ready", es: "Listo para Desarrollo" },
+      { en: "Prime Location", es: "Ubicación Privilegiada" },
+      { en: "Investment Opportunity", es: "Oportunidad de Inversión" }
     ],
     description: {
-      en: "Luxury villa with unobstructed ocean views, private beach access, and world-class amenities. Wake up to endless Caribbean blue waters. This stunning property features elegant architecture that seamlessly blends indoor and outdoor living, creating the perfect tropical sanctuary.",
-      es: "Villa de lujo con vistas despejadas al océano, acceso a playa privada y amenidades de clase mundial. Despierta con las infinitas aguas azules del Caribe. Esta impresionante propiedad cuenta con arquitectura elegante que combina perfectamente la vida interior y exterior, creando el santuario tropical perfecto."
+      en: "Prime virgin land with stunning ocean views and direct beach access. Perfect for building your dream Caribbean villa. This exceptional lot offers natural topography and endless possibilities for development in one of the most sought-after locations.",
+      es: "Terreno virgen privilegiado con impresionantes vistas al océano y acceso directo a la playa. Perfecto para construir la villa caribeña de tus sueños. Este lote excepcional ofrece topografía natural y posibilidades infinitas de desarrollo en una de las ubicaciones más codiciadas."
     },
     images: [
-      "/images/properties/villa-paradise-1.jpg",
-      "/images/properties/villa-paradise-2.jpg", 
-      "/images/properties/villa-paradise-3.jpg",
-      "/images/properties/villa-paradise-4.jpg"
+      "/images/properties/terrenos-virgenes/lote-1/hero.png",
+      "/images/properties/terrenos-virgenes/lote-1/vista-mar.png",
+      "/images/properties/terrenos-virgenes/lote-1/topografia.png",
+      "/images/properties/terrenos-virgenes/lote-1/acceso.png"
     ],
     featured: true,
     status: {
       en: "Available",
       es: "Disponible"
     },
-    virtualTour: "https://my.matterport.com/show/?m=example1",
-    videoUrl: "https://www.youtube.com/watch?v=example1",
-    coordinates: { lat: 18.4861, lng: -69.9312 }
+    virtualTour: "",
+    videoUrl: "",
+    coordinates: { lat: 19.2058, lng: -69.4033 }
   },
+  // Otras propiedades desactivadas temporalmente para mostrar solo el lote 1 real
+  /*
   {
     id: "beachfront-penthouse",
     name: {
@@ -285,12 +287,13 @@ export const mockPropertiesI18n: LocalizedProperty[] = [
     virtualTour: "https://my.matterport.com/show/?m=example4",
     coordinates: { lat: 18.4200, lng: -69.8500 }
   }
+  */
 ];
 
 // Property types translated
 export const propertyTypesI18n = {
-  en: ["All Properties", "Oceanfront Villa", "Luxury Penthouse", "Private Estate", "Beach House", "Marina Condo", "Eco Villa"],
-  es: ["Todas las Propiedades", "Villa Frente al Mar", "Penthouse de Lujo", "Finca Privada", "Casa de Playa", "Condominio Marina", "Villa Ecológica"]
+  en: ["All Properties", "Virgin Land", "Luxury Penthouse", "Private Estate", "Beach House", "Marina Condo", "Eco Villa"],
+  es: ["Todas las Propiedades", "Terreno Virgen", "Penthouse de Lujo", "Finca Privada", "Casa de Playa", "Condominio Marina", "Villa Ecológica"]
 };
 
 // Price ranges (same in both languages)
