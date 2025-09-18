@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/apich/source/maalca-web/src/app/maalca-properties/**)",
+      "Read(//c/Users/apich/source/maalca-web/**)",
+      "Bash(mkdir:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -58,11 +58,34 @@ export function usePropertiesI18n(language: 'en' | 'es' = 'en') {
   };
 
   const getPropertyTypes = () => {
-    return propertyTypesI18n[language];
+    // Generate types dynamically from available properties
+    const allTypesLabel = language === 'en' ? 'All Properties' : 'Todas las Propiedades';
+    const availableTypes = Array.from(new Set(properties.map(p => p.type)));
+    return [allTypesLabel, ...availableTypes];
   };
 
   const getPriceRanges = () => {
-    return priceRangesI18n[language];
+    // Generate price ranges dynamically from available properties
+    const allPricesLabel = language === 'en' ? 'All Prices' : 'Todos los Precios';
+
+    if (properties.length === 0) {
+      return [allPricesLabel];
+    }
+
+    const prices = properties.map(p => p.priceFrom);
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+
+    // Generate ranges based on actual price data
+    const ranges = [allPricesLabel];
+
+    if (minPrice < 500000) ranges.push('$400K - $500K');
+    if (maxPrice >= 400000 && minPrice <= 700000) ranges.push('$400K - $700K');
+    if (maxPrice >= 700000 && minPrice <= 1000000) ranges.push('$700K - $1M');
+    if (maxPrice >= 1000000 && minPrice <= 2000000) ranges.push('$1M - $2M');
+    if (maxPrice >= 2000000) ranges.push('$2M+');
+
+    return [...new Set(ranges)]; // Remove duplicates
   };
 
   return {
@@ -101,17 +124,24 @@ export function usePropertySearchI18n(language: 'en' | 'es' = 'en') {
       // Convert localized data to regular properties for the selected language
       const localizedData = mockPropertiesI18n.map(prop => localizeProperty(prop, language));
       
+      // Generate dynamic filter options
+      const allTypesLabel = language === 'en' ? 'All Properties' : 'Todas las Propiedades';
+      const allPricesLabel = language === 'en' ? 'All Prices' : 'Todos los Precios';
+
       // Apply filters
       const filteredProperties = localizedData.filter(property => {
         // Type filter
-        if (filters.type && filters.type !== propertyTypesI18n[language][0] && property.type !== filters.type) {
+        if (filters.type && filters.type !== allTypesLabel && property.type !== filters.type) {
           return false;
         }
 
         // Price filter
-        if (filters.priceRange && filters.priceRange !== priceRangesI18n[language][0]) {
+        if (filters.priceRange && filters.priceRange !== allPricesLabel) {
           const price = property.priceFrom;
           switch (filters.priceRange) {
+            case "$400K - $500K":
+              if (price < 400000 || price >= 500000) return false;
+              break;
             case "$400K - $700K":
               if (price < 400000 || price >= 700000) return false;
               break;
@@ -157,14 +187,27 @@ export function usePropertySearchI18n(language: 'en' | 'es' = 'en') {
         new Set(localizedData.flatMap(p => p.amenities))
       ).sort();
 
+      // Generate dynamic filter options based on available data
+      const availableTypes = [allTypesLabel, ...Array.from(new Set(localizedData.map(p => p.type)))];
+      const prices = localizedData.map(p => p.priceFrom);
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+
+      const dynamicPriceRanges = [allPricesLabel];
+      if (minPrice < 500000) dynamicPriceRanges.push('$400K - $500K');
+      if (maxPrice >= 400000 && minPrice <= 700000) dynamicPriceRanges.push('$400K - $700K');
+      if (maxPrice >= 700000 && minPrice <= 1000000) dynamicPriceRanges.push('$700K - $1M');
+      if (maxPrice >= 1000000 && minPrice <= 2000000) dynamicPriceRanges.push('$1M - $2M');
+      if (maxPrice >= 2000000) dynamicPriceRanges.push('$2M+');
+
       setSearchResult({
         properties: filteredProperties,
         totalCount: filteredProperties.length,
         currentPage: 1,
         totalPages: 1,
         filters: {
-          availableTypes: propertyTypesI18n[language],
-          priceRanges: priceRangesI18n[language],
+          availableTypes: [...new Set(availableTypes)],
+          priceRanges: [...new Set(dynamicPriceRanges)],
           availableAmenities
         }
       });

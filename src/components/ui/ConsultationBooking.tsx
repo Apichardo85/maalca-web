@@ -8,6 +8,7 @@ interface ConsultationBookingProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit?: (formData: ConsultationFormData) => Promise<void>;
+  language?: 'en' | 'es';
 }
 
 interface ConsultationFormData {
@@ -23,39 +24,79 @@ interface ConsultationFormData {
   consent: boolean;
 }
 
-const propertyTypes = [
-  { value: 'villa', label: 'Luxury Villa' },
-  { value: 'penthouse', label: 'Penthouse' },
-  { value: 'estate', label: 'Private Estate' },
-  { value: 'condo', label: 'Marina Condo' },
-  { value: 'retreat', label: 'Eco Retreat' },
-  { value: 'other', label: 'Other' }
+const getPropertyTypes = (language: 'en' | 'es') => [
+  {
+    value: 'virgin-land',
+    label: language === 'en' ? 'Virgin Land / Development' : 'Terreno Virgen / Desarrollo'
+  },
+  {
+    value: 'villa',
+    label: language === 'en' ? 'Luxury Villa (Future)' : 'Villa de Lujo (Futuro)'
+  },
+  {
+    value: 'investment',
+    label: language === 'en' ? 'Investment Opportunity' : 'Oportunidad de Inversión'
+  },
+  {
+    value: 'other',
+    label: language === 'en' ? 'Other' : 'Otro'
+  }
 ];
 
-const budgetRanges = [
-  { value: '500k-1m', label: '$500K - $1M USD' },
-  { value: '1m-2m', label: '$1M - $2M USD' },
-  { value: '2m-5m', label: '$2M - $5M USD' },
-  { value: '5m+', label: '$5M+ USD' },
-  { value: 'flexible', label: 'Flexible' }
+const getBudgetRanges = (language: 'en' | 'es') => [
+  { value: '400k-500k', label: '$400K - $500K USD' },
+  { value: '500k-700k', label: '$500K - $700K USD' },
+  { value: '700k-1m', label: '$700K - $1M USD' },
+  { value: '1m+', label: '$1M+ USD' },
+  {
+    value: 'flexible',
+    label: language === 'en' ? 'Flexible' : 'Flexible'
+  }
 ];
 
-const timelineOptions = [
-  { value: 'asap', label: 'As soon as possible' },
-  { value: '3months', label: 'Within 3 months' },
-  { value: '6months', label: 'Within 6 months' },
-  { value: '1year', label: 'Within 1 year' },
-  { value: 'exploring', label: 'Just exploring' }
+const getTimelineOptions = (language: 'en' | 'es') => [
+  {
+    value: 'asap',
+    label: language === 'en' ? 'As soon as possible' : 'Lo antes posible'
+  },
+  {
+    value: '3months',
+    label: language === 'en' ? 'Within 3 months' : 'Dentro de 3 meses'
+  },
+  {
+    value: '6months',
+    label: language === 'en' ? 'Within 6 months' : 'Dentro de 6 meses'
+  },
+  {
+    value: '1year',
+    label: language === 'en' ? 'Within 1 year' : 'Dentro de 1 año'
+  },
+  {
+    value: 'exploring',
+    label: language === 'en' ? 'Just exploring' : 'Solo explorando'
+  }
 ];
 
-const timeSlots = [
-  { value: 'morning', label: 'Morning (8:00 AM - 12:00 PM)' },
-  { value: 'afternoon', label: 'Afternoon (12:00 PM - 6:00 PM)' },
-  { value: 'evening', label: 'Evening (6:00 PM - 9:00 PM)' },
-  { value: 'flexible', label: 'Flexible' }
+const getTimeSlots = (language: 'en' | 'es') => [
+  {
+    value: 'morning',
+    label: language === 'en' ? 'Morning (8:00 AM - 12:00 PM)' : 'Mañana (8:00 AM - 12:00 PM)'
+  },
+  {
+    value: 'afternoon',
+    label: language === 'en' ? 'Afternoon (12:00 PM - 6:00 PM)' : 'Tarde (12:00 PM - 6:00 PM)'
+  },
+  {
+    value: 'evening',
+    label: language === 'en' ? 'Evening (6:00 PM - 9:00 PM)' : 'Noche (6:00 PM - 9:00 PM)'
+  },
+  {
+    value: 'flexible',
+    label: language === 'en' ? 'Flexible' : 'Flexible'
+  }
 ];
 
-export default function ConsultationBooking({ isOpen, onClose, onSubmit }: ConsultationBookingProps) {
+export default function ConsultationBooking({ isOpen, onClose, onSubmit, language = 'en' }: ConsultationBookingProps) {
   const [formData, setFormData] = useState<ConsultationFormData>({
     name: '',
     email: '',
@@ -73,6 +114,100 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
+  const propertyTypes = getPropertyTypes(language);
+  const budgetRanges = getBudgetRanges(language);
+  const timelineOptions = getTimelineOptions(language);
+  const timeSlots = getTimeSlots(language);
+
+  const translations = {
+    en: {
+      scheduleConsultation: 'Schedule Your Consultation',
+      bookPersonalized: 'Book a personalized session with our Caribbean property experts',
+      personalInfo: 'Personal Information',
+      fullName: 'Full Name',
+      emailAddress: 'Email Address',
+      phoneNumber: 'Phone Number',
+      country: 'Country',
+      propertyPrefs: 'Property Preferences',
+      propertyType: 'Property Type',
+      budgetRange: 'Budget Range',
+      timeline: 'Timeline',
+      preferredTime: 'Preferred Time',
+      additionalMessage: 'Additional Message',
+      messagePlaceholder: 'Tell us about your specific needs, questions, or preferences...',
+      consent: 'I agree to be contacted by MaalCa Properties regarding my consultation request and understand that this may include phone calls, emails, and text messages. I can opt out at any time.',
+      consultationBooked: 'Consultation Booked!',
+      contactWithin24: "We'll contact you within 24 hours to schedule your consultation.",
+      bookingFailed: 'Booking Failed',
+      errorTryAgain: 'There was an error booking your consultation. Please try again.',
+      cancel: 'Cancel',
+      bookConsultation: 'Book Consultation',
+      booking: 'Booking...',
+      nameRequired: 'Name is required',
+      emailRequired: 'Email is required',
+      validEmail: 'Please enter a valid email address',
+      phoneRequired: 'Phone number is required',
+      countryRequired: 'Country is required',
+      propertyTypeRequired: 'Property type is required',
+      budgetRequired: 'Budget range is required',
+      timelineRequired: 'Timeline is required',
+      preferredTimeRequired: 'Preferred time is required',
+      consentRequired: 'You must agree to be contacted',
+      selectPropertyType: 'Select property type',
+      selectBudgetRange: 'Select budget range',
+      selectTimeline: 'Select timeline',
+      selectPreferredTime: 'Select preferred time',
+      enterFullName: 'Enter your full name',
+      emailPlaceholder: 'your.email@example.com',
+      phonePlaceholder: '+1 (555) 123-4567',
+      countryPlaceholder: 'United States'
+    },
+    es: {
+      scheduleConsultation: 'Programa tu Consulta',
+      bookPersonalized: 'Reserva una sesión personalizada con nuestros expertos en propiedades del Caribe',
+      personalInfo: 'Información Personal',
+      fullName: 'Nombre Completo',
+      emailAddress: 'Correo Electrónico',
+      phoneNumber: 'Número de Teléfono',
+      country: 'País',
+      propertyPrefs: 'Preferencias de Propiedad',
+      propertyType: 'Tipo de Propiedad',
+      budgetRange: 'Rango de Presupuesto',
+      timeline: 'Cronograma',
+      preferredTime: 'Hora Preferida',
+      additionalMessage: 'Mensaje Adicional',
+      messagePlaceholder: 'Cuéntanos sobre tus necesidades específicas, preguntas o preferencias...',
+      consent: 'Acepto ser contactado por MaalCa Properties con respecto a mi solicitud de consulta y entiendo que esto puede incluir llamadas telefónicas, correos electrónicos y mensajes de texto. Puedo optar por no participar en cualquier momento.',
+      consultationBooked: '¡Consulta Reservada!',
+      contactWithin24: 'Te contactaremos dentro de 24 horas para programar tu consulta.',
+      bookingFailed: 'Reserva Fallida',
+      errorTryAgain: 'Hubo un error al reservar tu consulta. Por favor, inténtalo de nuevo.',
+      cancel: 'Cancelar',
+      bookConsultation: 'Reservar Consulta',
+      booking: 'Reservando...',
+      nameRequired: 'El nombre es obligatorio',
+      emailRequired: 'El correo electrónico es obligatorio',
+      validEmail: 'Por favor ingresa una dirección de correo válida',
+      phoneRequired: 'El número de teléfono es obligatorio',
+      countryRequired: 'El país es obligatorio',
+      propertyTypeRequired: 'El tipo de propiedad es obligatorio',
+      budgetRequired: 'El rango de presupuesto es obligatorio',
+      timelineRequired: 'El cronograma es obligatorio',
+      preferredTimeRequired: 'La hora preferida es obligatoria',
+      consentRequired: 'Debes aceptar ser contactado',
+      selectPropertyType: 'Selecciona tipo de propiedad',
+      selectBudgetRange: 'Selecciona rango de presupuesto',
+      selectTimeline: 'Selecciona cronograma',
+      selectPreferredTime: 'Selecciona hora preferida',
+      enterFullName: 'Ingresa tu nombre completo',
+      emailPlaceholder: 'tu.correo@ejemplo.com',
+      phonePlaceholder: '+1 (555) 123-4567',
+      countryPlaceholder: 'Estados Unidos'
+    }
+  };
+
+  const t = translations[language];
+
   const updateFormData = (field: keyof ConsultationFormData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
@@ -84,18 +219,18 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
   const validateForm = (): boolean => {
     const newErrors: Partial<ConsultationFormData> = {};
 
-    if (!formData.name.trim()) newErrors.name = 'Name is required';
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    if (!formData.name.trim()) newErrors.name = t.nameRequired;
+    if (!formData.email.trim()) newErrors.email = t.emailRequired;
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
+      newErrors.email = t.validEmail;
     }
-    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-    if (!formData.country.trim()) newErrors.country = 'Country is required';
-    if (!formData.propertyType) newErrors.propertyType = 'Property type is required';
-    if (!formData.budget) newErrors.budget = 'Budget range is required';
-    if (!formData.timeline) newErrors.timeline = 'Timeline is required';
-    if (!formData.preferredTime) newErrors.preferredTime = 'Preferred time is required';
-    if (!formData.consent) newErrors.consent = 'You must agree to be contacted' as any;
+    if (!formData.phone.trim()) newErrors.phone = t.phoneRequired;
+    if (!formData.country.trim()) newErrors.country = t.countryRequired;
+    if (!formData.propertyType) newErrors.propertyType = t.propertyTypeRequired;
+    if (!formData.budget) newErrors.budget = t.budgetRequired;
+    if (!formData.timeline) newErrors.timeline = t.timelineRequired;
+    if (!formData.preferredTime) newErrors.preferredTime = t.preferredTimeRequired;
+    if (!formData.consent) newErrors.consent = t.consentRequired as any;
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -161,22 +296,22 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-start sm:items-center justify-center p-2 sm:p-4"
         onClick={handleClose}
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
-          className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          className="bg-white rounded-xl sm:rounded-2xl shadow-2xl max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto mt-2 sm:mt-0"
           onClick={e => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="sticky top-0 bg-white border-b border-slate-200 p-6 rounded-t-2xl">
+          <div className="sticky top-0 bg-white border-b border-slate-200 p-4 sm:p-6 rounded-t-xl sm:rounded-t-2xl">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">📞 Schedule Your Consultation</h2>
-                <p className="text-slate-600 mt-1">Book a personalized session with our Caribbean property experts</p>
+                <h2 className="text-xl sm:text-2xl font-bold text-slate-900">📞 {t.scheduleConsultation}</h2>
+                <p className="text-sm sm:text-base text-slate-600 mt-1">{t.bookPersonalized}</p>
               </div>
               <button
                 onClick={handleClose}
@@ -190,14 +325,14 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
             {/* Personal Information */}
             <div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-4">Personal Information</h3>
+              <h3 className="text-lg font-semibold text-slate-900 mb-4">{t.personalInfo}</h3>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Full Name *
+                    {t.fullName} *
                   </label>
                   <input
                     type="text"
@@ -206,14 +341,14 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                       errors.name ? 'border-red-300 bg-red-50' : 'border-slate-300'
                     }`}
-                    placeholder="Enter your full name"
+                    placeholder={t.enterFullName}
                   />
                   {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Email Address *
+                    {t.emailAddress} *
                   </label>
                   <input
                     type="email"
@@ -222,14 +357,14 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                       errors.email ? 'border-red-300 bg-red-50' : 'border-slate-300'
                     }`}
-                    placeholder="your.email@example.com"
+                    placeholder={t.emailPlaceholder}
                   />
                   {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Phone Number *
+                    {t.phoneNumber} *
                   </label>
                   <input
                     type="tel"
@@ -238,14 +373,14 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                       errors.phone ? 'border-red-300 bg-red-50' : 'border-slate-300'
                     }`}
-                    placeholder="+1 (555) 123-4567"
+                    placeholder={t.phonePlaceholder}
                   />
                   {errors.phone && <p className="text-red-600 text-sm mt-1">{errors.phone}</p>}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Country *
+                    {t.country} *
                   </label>
                   <input
                     type="text"
@@ -254,7 +389,7 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
                     className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                       errors.country ? 'border-red-300 bg-red-50' : 'border-slate-300'
                     }`}
-                    placeholder="United States"
+                    placeholder={t.countryPlaceholder}
                   />
                   {errors.country && <p className="text-red-600 text-sm mt-1">{errors.country}</p>}
                 </div>
@@ -263,11 +398,11 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
 
             {/* Property Preferences */}
             <div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-4">Property Preferences</h3>
+              <h3 className="text-lg font-semibold text-slate-900 mb-4">{t.propertyPrefs}</h3>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Property Type *
+                    {t.propertyType} *
                   </label>
                   <select
                     value={formData.propertyType}
@@ -276,7 +411,7 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
                       errors.propertyType ? 'border-red-300 bg-red-50' : 'border-slate-300'
                     }`}
                   >
-                    <option value="">Select property type</option>
+                    <option value="">{t.selectPropertyType}</option>
                     {propertyTypes.map(type => (
                       <option key={type.value} value={type.value}>{type.label}</option>
                     ))}
@@ -286,7 +421,7 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Budget Range *
+                    {t.budgetRange} *
                   </label>
                   <select
                     value={formData.budget}
@@ -295,7 +430,7 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
                       errors.budget ? 'border-red-300 bg-red-50' : 'border-slate-300'
                     }`}
                   >
-                    <option value="">Select budget range</option>
+                    <option value="">{t.selectBudgetRange}</option>
                     {budgetRanges.map(range => (
                       <option key={range.value} value={range.value}>{range.label}</option>
                     ))}
@@ -305,7 +440,7 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Timeline *
+                    {t.timeline} *
                   </label>
                   <select
                     value={formData.timeline}
@@ -314,7 +449,7 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
                       errors.timeline ? 'border-red-300 bg-red-50' : 'border-slate-300'
                     }`}
                   >
-                    <option value="">Select timeline</option>
+                    <option value="">{t.selectTimeline}</option>
                     {timelineOptions.map(option => (
                       <option key={option.value} value={option.value}>{option.label}</option>
                     ))}
@@ -324,7 +459,7 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Preferred Time *
+                    {t.preferredTime} *
                   </label>
                   <select
                     value={formData.preferredTime}
@@ -333,7 +468,7 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
                       errors.preferredTime ? 'border-red-300 bg-red-50' : 'border-slate-300'
                     }`}
                   >
-                    <option value="">Select preferred time</option>
+                    <option value="">{t.selectPreferredTime}</option>
                     {timeSlots.map(slot => (
                       <option key={slot.value} value={slot.value}>{slot.label}</option>
                     ))}
@@ -346,14 +481,14 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
             {/* Additional Message */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                Additional Message
+                {t.additionalMessage}
               </label>
               <textarea
                 value={formData.message}
                 onChange={(e) => updateFormData('message', e.target.value)}
                 rows={4}
                 className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-vertical"
-                placeholder="Tell us about your specific needs, questions, or preferences..."
+                placeholder={t.messagePlaceholder}
               />
             </div>
 
@@ -370,8 +505,7 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
                   }`}
                 />
                 <label htmlFor="consent" className="text-sm text-slate-700">
-                  I agree to be contacted by MaalCa Properties regarding my consultation request and understand that 
-                  this may include phone calls, emails, and text messages. I can opt out at any time.
+                  {t.consent}
                 </label>
               </div>
               {errors.consent && <p className="text-red-600 text-sm mt-1">{errors.consent}</p>}
@@ -387,8 +521,8 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-medium text-green-900">Consultation Booked!</h4>
-                    <p className="text-green-700 text-sm">We'll contact you within 24 hours to schedule your consultation.</p>
+                    <h4 className="font-medium text-green-900">{t.consultationBooked}</h4>
+                    <p className="text-green-700 text-sm">{t.contactWithin24}</p>
                   </div>
                 </div>
               </div>
@@ -403,8 +537,8 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-medium text-red-900">Booking Failed</h4>
-                    <p className="text-red-700 text-sm">There was an error booking your consultation. Please try again.</p>
+                    <h4 className="font-medium text-red-900">{t.bookingFailed}</h4>
+                    <p className="text-red-700 text-sm">{t.errorTryAgain}</p>
                   </div>
                 </div>
               </div>
@@ -419,7 +553,7 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
                 disabled={isSubmitting}
                 className="flex-1"
               >
-                Cancel
+                {t.cancel}
               </Button>
               <Button
                 type="submit"
@@ -433,10 +567,10 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit }: Consu
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Booking...
+                    {t.booking}
                   </>
                 ) : (
-                  'Book Consultation'
+                  t.bookConsultation
                 )}
               </Button>
             </div>
