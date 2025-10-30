@@ -3,10 +3,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
-import SocialShare from "@/components/ui/SocialShare";
 import { useAnalytics } from "@/hooks/useAnalytics";
-import ProfessionalReader from "@/components/ui/ProfessionalReader";
-import { getArticleContent } from "@/data/editorialContent";
+import ProfessionalReader from "@/components/editorial/ProfessionalReader";
+import { editorialArticles } from "@/data/editorialContent";
 
 const articles = [
   {
@@ -106,18 +105,52 @@ const books = [
 export default function EditorialPage() {
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [selectedArticle, setSelectedArticle] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState('');
   const { trackArticleClick } = useAnalytics('editorial');
 
-  const filteredArticles = selectedCategory === "Todos" 
-    ? articles 
+  const filteredArticles = selectedCategory === "Todos"
+    ? articles
     : articles.filter(article => article.category === selectedCategory);
 
   const featuredArticles = articles.filter(article => article.featured);
 
+  const getArticleContent = (articleId: string) => {
+    return editorialArticles[articleId as keyof typeof editorialArticles] || "Contenido no disponible";
+  };
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setMessage('');
+
+    try {
+      const response = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage('¡Suscripción exitosa! Revisa tu email.');
+        setEmail('');
+      } else {
+        setMessage(data.error || 'Error al suscribirse');
+      }
+    } catch (error) {
+      setMessage('Error de conexión. Intenta de nuevo.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <main className="min-h-screen bg-background text-foreground pt-20">
+    <main className="min-h-screen bg-background text-text-primary pt-20">
       {/* Hero Section */}
-      <section className="py-16 md:py-24 bg-surface relative overflow-hidden grain">
+      <section className="py-16 md:py-24 bg-surface relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
             <motion.div
@@ -130,41 +163,11 @@ export default function EditorialPage() {
                 <span className="block text-brand-primary">MaalCa</span>
               </h1>
               <p className="text-lg lg:text-xl text-text-secondary max-w-3xl mx-auto leading-relaxed">
-                Exploramos la intersección entre filosofía, cultura y sociedad contemporánea. 
+                Exploramos la intersección entre filosofía, cultura y sociedad contemporánea.
                 Pensamientos profundos con la autenticidad del Caribe y la perspectiva global.
               </p>
             </motion.div>
           </div>
-        </div>
-      </section>
-
-      {/* Social Share Section */}
-      <section className="py-12 bg-surface">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="bg-surface-elevated p-8 rounded-2xl border border-border shadow-lg"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            <div className="text-center mb-6">
-              <h3 className="text-xl font-bold text-text-primary mb-2">
-                Comparte Editorial MaalCa
-              </h3>
-              <p className="text-text-secondary text-sm">
-                Ayuda a difundir pensamiento crítico y análisis profundo
-              </p>
-            </div>
-            <SocialShare
-              title="Editorial MaalCa - Pensamiento crítico y análisis cultural"
-              description="Exploramos filosofía, tecnología, cultura y sociedad desde una perspectiva caribeña contemporánea."
-              platforms={["twitter", "linkedin", "facebook", "whatsapp", "copy"]}
-              variant="icons"
-              className="justify-center"
-              project="editorial"
-            />
-          </motion.div>
         </div>
       </section>
 
@@ -197,12 +200,12 @@ export default function EditorialPage() {
                   setSelectedArticle(article.id);
                 }}
               >
-                <div className="bg-surface rounded-2xl overflow-hidden border border-border hover:border-brand-primary/30 transition-all duration-300 shadow-sm hover:shadow-xl h-full">
+                <div className="bg-surface rounded-2xl overflow-hidden border border-border hover:border-brand-primary transition-all duration-300 shadow-sm hover:shadow-xl h-full">
                   {/* Article Image Placeholder */}
-                  <div className="aspect-[16/9] bg-gradient-to-br from-brand-primary/20 to-surface-elevated flex items-center justify-center">
+                  <div className="aspect-[16/9] bg-gradient-to-br from-brand-primary/10 to-surface-elevated flex items-center justify-center">
                     <div className="text-6xl opacity-30">📖</div>
                   </div>
-                  
+
                   {/* Content */}
                   <div className="p-8">
                     {/* Category and Meta */}
@@ -214,10 +217,10 @@ export default function EditorialPage() {
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-2xl font-bold text-text-primary mb-4 group-hover:text-brand-primary transition-colors leading-tight">
+                    <h3 className="text-2xl font-bold text-text-primary mb-4 group-hover:text-brand-primary-hover transition-colors leading-tight">
                       {article.title}
                     </h3>
-                    
+
                     {/* Excerpt */}
                     <p className="text-text-secondary leading-relaxed mb-6">
                       {article.excerpt}
@@ -229,7 +232,7 @@ export default function EditorialPage() {
                       <time dateTime={article.publishDate}>
                         {new Date(article.publishDate).toLocaleDateString('es-ES', {
                           year: 'numeric',
-                          month: 'long', 
+                          month: 'long',
                           day: 'numeric'
                         })}
                       </time>
@@ -256,7 +259,7 @@ export default function EditorialPage() {
             <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-8">
               Todos los Artículos
             </h2>
-            
+
             {/* Category Filter */}
             <div className="flex flex-wrap gap-2">
               {categories.map((category) => (
@@ -265,8 +268,8 @@ export default function EditorialPage() {
                   onClick={() => setSelectedCategory(category)}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                     selectedCategory === category
-                      ? 'bg-brand-primary text-white'
-                      : 'bg-surface-elevated text-text-secondary hover:bg-brand-primary/10 hover:text-brand-primary border border-border'
+                      ? 'bg-brand-primary text-text-primary'
+                      : 'bg-surface-elevated text-text-secondary hover:bg-brand-primary/20 hover:text-brand-primary border border-border'
                   }`}
                 >
                   {category}
@@ -290,7 +293,7 @@ export default function EditorialPage() {
                   setSelectedArticle(article.id);
                 }}
               >
-                <div className="bg-surface-elevated rounded-2xl p-6 h-full border border-border hover:border-brand-primary/30 transition-all duration-300 hover:shadow-lg">
+                  <div className="bg-surface-elevated rounded-2xl p-6 h-full border border-border hover:border-brand-primary transition-all duration-300 hover:shadow-lg">
                   {/* Category */}
                   <div className="mb-4">
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-surface text-text-secondary border border-border">
@@ -299,10 +302,10 @@ export default function EditorialPage() {
                   </div>
 
                   {/* Title */}
-                  <h3 className="text-lg font-bold text-text-primary mb-3 group-hover:text-brand-primary transition-colors leading-tight">
+                  <h3 className="text-lg font-bold text-text-primary mb-3 group-hover:text-brand-primary-hover transition-colors leading-tight">
                     {article.title}
                   </h3>
-                  
+
                   {/* Excerpt */}
                   <p className="text-text-secondary text-sm leading-relaxed mb-4">
                     {article.excerpt.slice(0, 120)}...
@@ -320,19 +323,8 @@ export default function EditorialPage() {
                     ))}
                   </div>
 
-                  {/* Share Article */}
-                  <div className="mb-4 pt-3 border-t border-border/50">
-                    <SocialShare
-                      title={`${article.title} | Editorial MaalCa`}
-                      description={article.excerpt}
-                      platforms={["twitter", "linkedin", "copy"]}
-                      variant="minimal"
-                      project="editorial"
-                    />
-                  </div>
-
                   {/* Meta */}
-                  <div className="flex items-center justify-between text-xs text-text-muted">
+                  <div className="flex items-center justify-between text-xs text-text-muted pt-3 border-t border-border">
                     <span>{article.readTime}</span>
                     <time dateTime={article.publishDate}>
                       {new Date(article.publishDate).toLocaleDateString('es-ES')}
@@ -373,15 +365,15 @@ export default function EditorialPage() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.2 }}
               >
-                <div className="bg-surface rounded-2xl p-8 text-center border border-border hover:border-brand-primary/30 transition-all duration-300 shadow-sm hover:shadow-xl h-full">
+                <div className="bg-surface rounded-2xl p-8 text-center border border-border hover:border-brand-primary transition-all duration-300 shadow-sm hover:shadow-xl h-full">
                   {/* Book Cover */}
                   <div className="text-6xl mb-6">{book.cover}</div>
-                  
+
                   {/* Title */}
                   <h3 className="text-xl font-bold text-text-primary mb-4">
                     {book.title}
                   </h3>
-                  
+
                   {/* Description */}
                   <p className="text-text-secondary leading-relaxed mb-6">
                     {book.description}
@@ -391,10 +383,10 @@ export default function EditorialPage() {
                   <div className="mb-6">
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                       book.status === 'Disponible en Amazon KDP'
-                        ? 'bg-green-50 text-green-700 border border-green-200'
+                        ? 'bg-green-900/30 text-green-400 border border-green-700'
                         : book.status === 'Próximamente'
-                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                        : 'bg-orange-50 text-orange-700 border border-orange-200'
+                        ? 'bg-blue-900/30 text-blue-400 border border-blue-700'
+                        : 'bg-orange-900/30 text-orange-400 border border-orange-700'
                     }`}>
                       {book.status}
                     </span>
@@ -403,9 +395,9 @@ export default function EditorialPage() {
                   {/* CTA */}
                   <Button
                     variant={book.status === 'Disponible en Amazon KDP' ? 'primary' : 'outline'}
-                    className={book.status === 'Disponible en Amazon KDP' 
-                      ? 'bg-brand-primary hover:bg-brand-primary-hover w-full'
-                      : 'w-full border-brand-primary/20 text-brand-primary hover:bg-brand-primary hover:text-white'
+                    className={book.status === 'Disponible en Amazon KDP'
+                      ? 'bg-brand-primary hover:bg-brand-primary-hover w-full text-text-primary'
+                      : 'w-full border-brand-primary/50 text-brand-primary hover:bg-brand-primary hover:text-text-primary'
                     }
                     disabled={book.status !== 'Disponible en Amazon KDP'}
                   >
@@ -431,29 +423,44 @@ export default function EditorialPage() {
               Mantente Conectado
             </h2>
             <p className="text-lg text-text-secondary mb-8 max-w-2xl mx-auto">
-              Recibe nuestros artículos más profundos directamente en tu correo. 
+              Recibe nuestros artículos más profundos directamente en tu correo.
               Filosofía, cultura y reflexiones auténticas desde el Caribe.
             </p>
-            
+
             {/* Newsletter Form */}
-            <div className="max-w-md mx-auto">
+            <form onSubmit={handleNewsletterSubmit} className="max-w-md mx-auto">
               <div className="flex gap-2">
                 <input
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="tu@email.com"
-                  className="flex-1 px-4 py-3 bg-surface-muted border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-brand-primary transition-colors text-text-primary"
+                  required
+                  disabled={isSubmitting}
+                  className="flex-1 px-4 py-3 bg-surface-elevated border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-brand-primary transition-colors text-text-primary placeholder-gray-400 disabled:opacity-50"
                 />
                 <Button
+                  type="submit"
                   variant="primary"
-                  className="bg-brand-primary hover:bg-brand-primary-hover px-6"
+                  disabled={isSubmitting}
+                  className="bg-brand-primary hover:bg-brand-primary-hover px-6 text-text-primary disabled:opacity-50"
                 >
-                  Suscribirse
+                  {isSubmitting ? 'Enviando...' : 'Suscribirse'}
                 </Button>
               </div>
+
+              {message && (
+                <p className={`text-sm mt-2 ${
+                  message.includes('exitosa') ? 'text-green-400' : 'text-brand-primary'
+                }`}>
+                  {message}
+                </p>
+              )}
+
               <p className="text-xs text-text-muted mt-2">
                 Sin spam. Solo reflexiones profundas cada semana.
               </p>
-            </div>
+            </form>
           </motion.div>
         </div>
       </section>
@@ -462,7 +469,7 @@ export default function EditorialPage() {
       <AnimatePresence>
         {selectedArticle && (
           <ProfessionalReader
-            bookId={selectedArticle}
+            articleId={selectedArticle}
             title={articles.find(a => a.id === selectedArticle)?.title || "Artículo"}
             author="Editorial MaalCa"
             content={getArticleContent(selectedArticle)}
