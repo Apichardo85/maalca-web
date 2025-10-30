@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/buttons";
 import { Logo } from "@/components/ui/Logo";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 import { NavigationItem, HeaderProps } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -140,42 +141,53 @@ export default function Header({
             </nav>
 
             {/* Actions */}
-            {showActions && (
-              <div className="hidden lg:flex items-center space-x-4">
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.6, delay: 0.4 }}
-                >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      document.getElementById('ecosistema')?.scrollIntoView({ behavior: 'smooth' });
-                    }}
+            <div className="hidden lg:flex items-center space-x-4">
+              {/* Theme Toggle */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                <ThemeToggle />
+              </motion.div>
+
+              {showActions && (
+                <>
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6, delay: 0.5 }}
                   >
-                    Explorar
-                  </Button>
-                </motion.div>
-                
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.6, delay: 0.5 }}
-                >
-                  <Button
-                    variant="primary"
-                    size="sm"
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        document.getElementById('ecosistema')?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                    >
+                      Explorar
+                    </Button>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6, delay: 0.6 }}
                   >
-                    Únete al Ecosistema
-                  </Button>
-                </motion.div>
-              </div>
-            )}
+                    <Button
+                      variant="primary"
+                      size="sm"
+                    >
+                      Únete al Ecosistema
+                    </Button>
+                  </motion.div>
+                </>
+              )}
+            </div>
 
             {/* Mobile menu button */}
             <motion.button
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-800/20 transition-colors text-text-primary"
+              className="lg:hidden p-2 rounded-lg hover:bg-surface-elevated transition-colors text-text-primary"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               whileTap={{ scale: 0.95 }}
               initial={{ opacity: 0 }}
@@ -270,35 +282,42 @@ export default function Header({
                 </nav>
 
                 {/* Mobile Actions */}
-                {showActions && (
-                  <motion.div
-                    className="mt-8 pt-6 border-t border-border space-y-4"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.4 }}
-                  >
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="w-full"
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        document.getElementById('ecosistema')?.scrollIntoView({ behavior: 'smooth' });
-                      }}
-                    >
-                      Explorar
-                    </Button>
-                    
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      className="w-full"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Únete al Ecosistema
-                    </Button>
-                  </motion.div>
-                )}
+                <motion.div
+                  className="mt-8 pt-6 border-t border-border space-y-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.4 }}
+                >
+                  {/* Theme Toggle for Mobile */}
+                  <div className="flex justify-center">
+                    <ThemeToggle />
+                  </div>
+
+                  {showActions && (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="w-full"
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          document.getElementById('ecosistema')?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                      >
+                        Explorar
+                      </Button>
+
+                      <Button
+                        variant="primary"
+                        size="lg"
+                        className="w-full"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Únete al Ecosistema
+                      </Button>
+                    </>
+                  )}
+                </motion.div>
               </div>
             </motion.div>
           </motion.div>
