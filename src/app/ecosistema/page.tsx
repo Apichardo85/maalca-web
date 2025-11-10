@@ -23,7 +23,8 @@ const projects = [
       "Formato digital y físico disponible"
     ],
     status: "Activo",
-    launched: "2022"
+    launched: "2022",
+    active: true
   },
   {
     id: "ciriwhispers",
@@ -41,7 +42,8 @@ const projects = [
       "Conexión genuina con audiencias"
     ],
     status: "Activo",
-    launched: "2024"
+    launched: "2024",
+    active: true
   },
   {
     id: "cirisonic",
@@ -59,7 +61,8 @@ const projects = [
       "A/B testing automatizado para optimización"
     ],
     status: "Beta",
-    launched: "2024"
+    launched: "2024",
+    active: true
   },
   {
     id: "hbm-podcast",
@@ -77,7 +80,8 @@ const projects = [
       "Monetización directa por episodio"
     ],
     status: "Activo",
-    launched: "2023"
+    launched: "2023",
+    active: false
   },
   {
     id: "masa-tina",
@@ -95,7 +99,8 @@ const projects = [
       "Experiencias culinarias personalizadas"
     ],
     status: "Activo",
-    launched: "2022"
+    launched: "2022",
+    active: true
   },
   {
     id: "verde-prive",
@@ -113,7 +118,8 @@ const projects = [
       "Productos wellness y bienestar integral"
     ],
     status: "Desarrollo",
-    launched: "2025"
+    launched: "2025",
+    active: false
   },
   {
     id: "maalca-properties",
@@ -131,7 +137,8 @@ const projects = [
       "ROI optimizado para inversores internacionales"
     ],
     status: "Activo",
-    launched: "2023"
+    launched: "2023",
+    active: true
   }
 ];
 
@@ -142,7 +149,7 @@ export default function EcosistemaPage() {
   const { t } = useTranslation();
 
   // Generate translated projects
-  const translatedProjects = [
+  const allTranslatedProjects = [
     {
       id: "editorial-maalca",
       titleKey: "project.editorial.title",
@@ -154,7 +161,8 @@ export default function EcosistemaPage() {
       href: "/editorial",
       detailKeys: ["details.editorial.1", "details.editorial.2", "details.editorial.3", "details.editorial.4"],
       statusKey: "ecosystem.status.active",
-      launched: "2022"
+      launched: "2022",
+      active: true
     },
     {
       id: "ciriwhispers",
@@ -167,7 +175,8 @@ export default function EcosistemaPage() {
       href: "/ciriwhispers",
       detailKeys: ["details.ciriwhispers.1", "details.ciriwhispers.2", "details.ciriwhispers.3", "details.ciriwhispers.4"],
       statusKey: "ecosystem.status.active",
-      launched: "2024"
+      launched: "2024",
+      active: true
     },
     {
       id: "cirisonic",
@@ -180,7 +189,8 @@ export default function EcosistemaPage() {
       href: "/cirisonic",
       detailKeys: ["details.cirisonic.1", "details.cirisonic.2", "details.cirisonic.3", "details.cirisonic.4"],
       statusKey: "ecosystem.status.beta",
-      launched: "2024"
+      launched: "2024",
+      active: true
     },
     {
       id: "hbm-podcast",
@@ -193,7 +203,8 @@ export default function EcosistemaPage() {
       href: "/hbm",
       detailKeys: ["details.hbm.1", "details.hbm.2", "details.hbm.3", "details.hbm.4"],
       statusKey: "ecosystem.status.active",
-      launched: "2023"
+      launched: "2023",
+      active: false
     },
     {
       id: "masa-tina",
@@ -206,7 +217,8 @@ export default function EcosistemaPage() {
       href: "/masa-tina",
       detailKeys: ["details.masatina.1", "details.masatina.2", "details.masatina.3", "details.masatina.4"],
       statusKey: "ecosystem.status.active",
-      launched: "2022"
+      launched: "2022",
+      active: true
     },
     {
       id: "verde-prive",
@@ -219,7 +231,8 @@ export default function EcosistemaPage() {
       href: "/verde-prive",
       detailKeys: ["details.verdeprive.1", "details.verdeprive.2", "details.verdeprive.3", "details.verdeprive.4"],
       statusKey: "ecosystem.status.development",
-      launched: "2025"
+      launched: "2025",
+      active: false
     },
     {
       id: "maalca-properties",
@@ -232,9 +245,13 @@ export default function EcosistemaPage() {
       href: "/maalca-properties",
       detailKeys: ["details.properties.1", "details.properties.2", "details.properties.3", "details.properties.4"],
       statusKey: "ecosystem.status.active",
-      launched: "2023"
+      launched: "2023",
+      active: true
     }
   ];
+
+  // Filter only active projects
+  const translatedProjects = allTranslatedProjects.filter(project => project.active !== false);
 
   const handleProjectClick = (href: string) => {
     router.push(href);
