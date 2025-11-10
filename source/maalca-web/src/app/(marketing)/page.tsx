@@ -3,11 +3,14 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import { projects, affiliates } from "@/data";
+import { getActiveEcosystemProjects } from "@/data/ecosystem-projects";
 
 export default function HomePage() {
   const scrollToSection = (sectionId: string) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  const activeEcosystemProjects = getActiveEcosystemProjects();
 
   return (
     <main className="min-h-screen bg-black text-white">
@@ -181,44 +184,7 @@ export default function HomePage() {
 
           {/* Projects Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Editorial MaalCa",
-                description: "Publicaciones que exploran cultura, creatividad y sociedad",
-                category: "Editorial",
-                color: "red"
-              },
-              {
-                title: "CiriWhispers",
-                description: "Proyecto de contenido íntimo y conversaciones profundas",
-                category: "Contenido",
-                color: "gray"
-              },
-              {
-                title: "Hablando Mierda (HBM)",
-                description: "Podcast y plataforma de conversaciones sin filtros",
-                category: "Podcast",
-                color: "red"
-              },
-              {
-                title: "Cocina Tina",
-                description: "Experiencias gastronómicas y catering premium",
-                category: "Gastronomía",
-                color: "gray"
-              },
-              {
-                title: "Dispensario",
-                description: "Wellness y productos de bienestar integral",
-                category: "Wellness",
-                color: "red"
-              },
-              {
-                title: "Inmobiliaria",
-                description: "Desarrollos inmobiliarios con visión creativa",
-                category: "Real Estate",
-                color: "gray"
-              }
-            ].map((project, index) => (
+            {activeEcosystemProjects.map((project, index) => (
               <motion.div
                 key={project.title}
                 className="group cursor-pointer"

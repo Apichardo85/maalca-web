@@ -10,6 +10,7 @@ import { Counter } from "@/components/ui/Counter";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
 import { projects, affiliates } from "@/data";
 import { dominicanMenus } from "@/data/dominican-menus";
+import { getActiveEcosystemProjects } from "@/data/ecosystem-projects";
 
 export default function HomePage() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function HomePage() {
 
   const handleProjectClick = (href: string) => {
     router.push(href);
+  const activeEcosystemProjects = getActiveEcosystemProjects();
   };
 
   return (
@@ -254,15 +256,6 @@ export default function HomePage() {
                 href: "/cirisonic"
               },
               {
-                titleKey: "project.hbm.title",
-                descriptionKey: "project.hbm.description",
-                categoryKey: "project.hbm.category",
-                outcomeKey: "project.hbm.outcome",
-                color: "red",
-                image: "/images/projects/hbm-podcast.svg",
-                href: "/hablando-mierda"
-              },
-              {
                 titleKey: "project.cocinatina.title",
                 descriptionKey: "project.cocinatina.description",
                 categoryKey: "project.cocinatina.category",
@@ -270,15 +263,6 @@ export default function HomePage() {
                 color: "gray",
                 image: "/images/projects/masa-tina.svg",
                 href: "/masa-tina"
-              },
-              {
-                titleKey: "project.verdeprive.title",
-                descriptionKey: "project.verdeprive.description",
-                categoryKey: "project.verdeprive.category",
-                outcomeKey: "project.verdeprive.outcome",
-                color: "red",
-                image: "/images/projects/verde-prive.svg",
-                href: "/verde-prive"
               },
               {
                 titleKey: "project.properties.title",
