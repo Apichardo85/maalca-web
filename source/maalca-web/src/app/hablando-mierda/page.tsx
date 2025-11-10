@@ -4,99 +4,102 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import { ThemeSwitch } from "@/components/ui/ThemeSwitch";
-
-const episodes = [
-  {
-    id: "ep-01",
-    title: "El Arte de No Saber Nada",
-    duration: "45 min",
-    description: "Ciri y El Nolte reflexionan sobre la sabiduría de admitir ignorancia en un mundo de expertos falsos.",
-    category: "Filosofía Callejera",
-    date: "2024-12-15",
-    spotifyUrl: "#",
-    image: "/images/hbm/episode-01.jpg"
-  },
-  {
-    id: "ep-02", 
-    title: "Política para Dummies",
-    duration: "52 min",
-    description: "Desentrañando el circo político con humor negro y cero diplomacia.",
-    category: "Política Sin Filtro",
-    date: "2024-12-08",
-    spotifyUrl: "#",
-    image: "/images/hbm/episode-02.jpg"
-  },
-  {
-    id: "ep-03",
-    title: "Amor en Tiempos de Redes",
-    duration: "38 min", 
-    description: "Las relaciones modernas vistas desde el caos digital y la soledad analógica.",
-    category: "Amor & Caos",
-    date: "2024-12-01",
-    spotifyUrl: "#",
-    image: "/images/hbm/episode-03.jpg"
-  },
-  {
-    id: "ep-04",
-    title: "El Negocio de Ser Influencer",
-    duration: "41 min",
-    description: "Analizando la economía de la atención y por qué todos quieren ser famosos.",
-    category: "Cultura Digital",
-    date: "2024-11-24",
-    spotifyUrl: "#",
-    image: "/images/hbm/episode-04.jpg"
-  }
-];
-
-const hosts = [
-  {
-    name: "Ciri",
-    role: "Co-Host & Provocador Principal",
-    description: "Escritor, filósofo callejero y maestro del arte de decir verdades incómodas con elegancia brutal.",
-    iconicPhrase: "\"La verdad duele, pero la mentira mata.\"",
-    avatar: "/images/hbm/ciri-avatar.svg",
-    color: "#E50914"
-  },
-  {
-    name: "El Nolte",
-    role: "Co-Host & Voz de la Razón",
-    description: "El equilibrio perfecto entre cordura e irreverencia. Experto en convertir el caos en conversación.",
-    iconicPhrase: "\"Si no te incomoda, no estamos haciendo bien nuestro trabajo.\"",
-    avatar: "/images/hbm/nolte-avatar.svg", 
-    color: "#FFD60A"
-  }
-];
-
-const clips = [
-  {
-    id: "clip-1",
-    title: "Cuando el Wi-Fi se cae",
-    platform: "TikTok",
-    views: "125K",
-    url: "#"
-  },
-  {
-    id: "clip-2", 
-    title: "Explicando la Inflación",
-    platform: "Instagram",
-    views: "89K", 
-    url: "#"
-  },
-  {
-    id: "clip-3",
-    title: "Dating Apps vs Realidad",
-    platform: "YouTube",
-    views: "203K",
-    url: "#"
-  }
-];
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
+import { useTranslation } from "@/hooks/useSimpleLanguage";
 
 export default function HablandoMierdaPage() {
+  const { t } = useTranslation();
   const [isLive, setIsLive] = useState(false);
   const [typewriterText, setTypewriterText] = useState("");
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  const iconicPhrase = "Recuerden, que aquí lo que estamos es hablando mierda.";
+  const iconicPhrase = t('hbm.footer.phrase');
+
+  const episodes = [
+    {
+      id: "ep-01",
+      title: t('hbm.episode.01.title'),
+      duration: "45 min",
+      description: t('hbm.episode.01.description'),
+      category: t('hbm.episodes.category.philosophy'),
+      date: "2024-12-15",
+      spotifyUrl: "#",
+      image: "/images/hbm/episode-01.jpg"
+    },
+    {
+      id: "ep-02",
+      title: t('hbm.episode.02.title'),
+      duration: "52 min",
+      description: t('hbm.episode.02.description'),
+      category: t('hbm.episodes.category.politics'),
+      date: "2024-12-08",
+      spotifyUrl: "#",
+      image: "/images/hbm/episode-02.jpg"
+    },
+    {
+      id: "ep-03",
+      title: t('hbm.episode.03.title'),
+      duration: "38 min",
+      description: t('hbm.episode.03.description'),
+      category: t('hbm.episodes.category.love'),
+      date: "2024-12-01",
+      spotifyUrl: "#",
+      image: "/images/hbm/episode-03.jpg"
+    },
+    {
+      id: "ep-04",
+      title: t('hbm.episode.04.title'),
+      duration: "41 min",
+      description: t('hbm.episode.04.description'),
+      category: t('hbm.episodes.category.culture'),
+      date: "2024-11-24",
+      spotifyUrl: "#",
+      image: "/images/hbm/episode-04.jpg"
+    }
+  ];
+
+  const hosts = [
+    {
+      name: t('hbm.hosts.ciri.name'),
+      role: t('hbm.hosts.ciri.role'),
+      description: t('hbm.hosts.ciri.description'),
+      iconicPhrase: t('hbm.hosts.ciri.phrase'),
+      avatar: "/images/hbm/ciri-avatar.svg",
+      color: "#E50914"
+    },
+    {
+      name: t('hbm.hosts.nolte.name'),
+      role: t('hbm.hosts.nolte.role'),
+      description: t('hbm.hosts.nolte.description'),
+      iconicPhrase: t('hbm.hosts.nolte.phrase'),
+      avatar: "/images/hbm/nolte-avatar.svg",
+      color: "#FFD60A"
+    }
+  ];
+
+  const clips = [
+    {
+      id: "clip-1",
+      title: t('hbm.clips.01.title'),
+      platform: "TikTok",
+      views: "125K",
+      url: "#"
+    },
+    {
+      id: "clip-2",
+      title: t('hbm.clips.02.title'),
+      platform: "Instagram",
+      views: "89K",
+      url: "#"
+    },
+    {
+      id: "clip-3",
+      title: t('hbm.clips.03.title'),
+      platform: "YouTube",
+      views: "203K",
+      url: "#"
+    }
+  ];
 
   // Typewriter effect
   useEffect(() => {
@@ -175,13 +178,13 @@ export default function HablandoMierdaPage() {
             </motion.div>
 
             <h1 className="text-4xl md:text-6xl font-black mb-6 text-text-primary font-sans">
-              HABLANDO MIERDA
+              {t('hbm.hero.title')}
             </h1>
-            
+
             <p className="text-xl md:text-2xl text-text-secondary mb-8 font-light max-w-3xl mx-auto">
-              El podcast más irreverente del internet hispanohablante.
+              {t('hbm.hero.subtitle')}
               <br />
-              <span className="text-brand-primary font-medium">Sin filtros. Sin diplomacia. Con mucho estilo.</span>
+              <span className="text-brand-primary font-medium">{t('hbm.hero.tagline')}</span>
             </p>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
@@ -191,17 +194,17 @@ export default function HablandoMierdaPage() {
                   size="lg"
                   className="bg-brand-primary hover:bg-brand-primary-hover text-white font-bold px-8 py-4 text-lg"
                 >
-                  🎧 ESCUCHAR AHORA
+                  {t('hbm.hero.listenNow')}
                 </Button>
               </motion.div>
-              
+
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button
                   variant="outline"
                   size="lg"
                   className="border-2 border-text-primary text-text-primary hover:bg-text-primary hover:text-background font-bold px-8 py-4 text-lg"
                 >
-                  📺 VER CLIPS
+                  {t('hbm.hero.watchClips')}
                 </Button>
               </motion.div>
             </div>
@@ -220,7 +223,7 @@ export default function HablandoMierdaPage() {
                     animate={{ opacity: [1, 0.3, 1] }}
                     transition={{ duration: 1, repeat: Infinity }}
                   />
-                  EN VIVO AHORA
+                  {t('hbm.hero.liveNow')}
                   <span className="text-sm opacity-90">
                     {currentTime.toLocaleTimeString()}
                   </span>
@@ -253,17 +256,18 @@ export default function HablandoMierdaPage() {
             
             <div className="hidden md:flex items-center space-x-8">
               <a href="#episodios" className="text-text-secondary hover:text-brand-primary transition-colors font-medium">
-                Episodios
+                {t('hbm.nav.episodes')}
               </a>
               <a href="#equipo" className="text-text-secondary hover:text-brand-primary transition-colors font-medium">
-                Equipo
+                {t('hbm.nav.team')}
               </a>
               <a href="#clips" className="text-text-secondary hover:text-brand-primary transition-colors font-medium">
-                Clips
+                {t('hbm.nav.clips')}
               </a>
               <a href="#contacto" className="text-text-secondary hover:text-brand-primary transition-colors font-medium">
-                Contacto
+                {t('hbm.nav.contact')}
               </a>
+              <LanguageToggle />
               <ThemeSwitch />
             </div>
           </div>
@@ -280,10 +284,10 @@ export default function HablandoMierdaPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-6xl font-black text-text-primary mb-6 font-sans">
-              ÚLTIMOS EPISODIOS
+              {t('hbm.episodes.title')}
             </h2>
             <p className="text-xl text-text-secondary max-w-3xl mx-auto">
-              Conversaciones sin filtros sobre todo lo que importa (y lo que no).
+              {t('hbm.episodes.subtitle')}
             </p>
           </motion.div>
 
@@ -341,14 +345,14 @@ export default function HablandoMierdaPage() {
                         size="sm"
                         className="bg-brand-primary hover:bg-brand-primary-hover text-white"
                       >
-                        ▶️ Reproducir
+                        {t('hbm.episodes.play')}
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         className="border-border text-text-secondary hover:bg-surface"
                       >
-                        💚 Spotify
+                        {t('hbm.episodes.spotify')}
                       </Button>
                     </div>
                   </div>
@@ -363,7 +367,7 @@ export default function HablandoMierdaPage() {
               size="lg"
               className="border-2 border-text-primary text-text-primary hover:bg-text-primary hover:text-background font-bold"
             >
-              VER TODOS LOS EPISODIOS
+              {t('hbm.episodes.viewAll')}
             </Button>
           </div>
         </div>
@@ -399,9 +403,9 @@ export default function HablandoMierdaPage() {
             viewport={{ once: true }}
           >
             <h2 className="text-4xl md:text-6xl font-black text-text-primary mb-8 font-sans">
-              RADIO EN VIVO
+              {t('hbm.radio.title')}
             </h2>
-            
+
             <div className="bg-surface-elevated rounded-3xl p-12 border border-border shadow-2xl">
               {/* Live Status */}
               <div className="flex items-center justify-center gap-4 mb-8">
@@ -411,7 +415,7 @@ export default function HablandoMierdaPage() {
                   transition={{ duration: 1, repeat: Infinity }}
                 />
                 <span className="text-xl font-bold">
-                  {isLive ? 'TRANSMITIENDO AHORA' : 'FUERA DEL AIRE'}
+                  {isLive ? t('hbm.hero.transmittingNow') : t('hbm.hero.offAir')}
                 </span>
                 <div className="text-text-muted">
                   {currentTime.toLocaleTimeString()}
@@ -442,12 +446,12 @@ export default function HablandoMierdaPage() {
                 disabled={!isLive}
                 className="bg-brand-primary hover:bg-brand-primary-hover text-white font-bold px-12 py-4 text-xl disabled:opacity-50"
               >
-                {isLive ? '🔴 ESCUCHAR EN VIVO' : '⏸️ PRÓXIMA TRANSMISIÓN'}
+                {isLive ? t('hbm.radio.listenLive') : t('hbm.radio.nextTransmission')}
               </Button>
 
               {!isLive && (
                 <p className="text-text-muted mt-4">
-                  Próxima transmisión: Viernes 8:00 PM EST
+                  {t('hbm.hero.nextShow')}
                 </p>
               )}
             </div>
@@ -465,10 +469,10 @@ export default function HablandoMierdaPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-6xl font-black text-text-primary mb-6 font-sans">
-              LOS HOSTS
+              {t('hbm.hosts.title')}
             </h2>
             <p className="text-xl text-text-secondary max-w-3xl mx-auto">
-              Los cerebros (y bocas) detrás del caos organizado.
+              {t('hbm.hosts.subtitle')}
             </p>
           </motion.div>
 
@@ -542,10 +546,10 @@ export default function HablandoMierdaPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-6xl font-black text-text-primary mb-6 font-sans">
-              CLIPS VIRALES
+              {t('hbm.clips.title')}
             </h2>
             <p className="text-xl text-text-secondary max-w-3xl mx-auto">
-              Los momentos más épicos condensados para tu consumo rápido.
+              {t('hbm.clips.subtitle')}
             </p>
           </motion.div>
 
@@ -597,11 +601,11 @@ export default function HablandoMierdaPage() {
 
           <div className="text-center mt-12">
             <Button
-              variant="outline"  
+              variant="outline"
               size="lg"
               className="border-2 border-text-primary text-text-primary hover:bg-text-primary hover:text-background font-bold"
             >
-              VER MÁS CLIPS
+              {t('hbm.clips.viewMore')}
             </Button>
           </div>
         </div>
@@ -617,18 +621,18 @@ export default function HablandoMierdaPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-6xl font-black text-text-primary mb-6 font-sans">
-              APÓYANOS
+              {t('hbm.support.title')}
             </h2>
             <p className="text-xl text-text-secondary max-w-3xl mx-auto">
-              Mantén viva la irreverencia. Tu apoyo nos permite seguir hablando mierda sin filtros.
+              {t('hbm.support.subtitle')}
             </p>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { item: "Gorra HBM", price: "$25", emoji: "🧢" },
-              { item: "Camiseta Oficial", price: "$35", emoji: "👕" },
-              { item: "Stickers Pack", price: "$10", emoji: "🏷️" }
+              { item: t('hbm.support.cap'), price: "$25", emoji: "🧢" },
+              { item: t('hbm.support.tshirt'), price: "$35", emoji: "👕" },
+              { item: t('hbm.support.stickers'), price: "$10", emoji: "🏷️" }
             ].map((product, index) => (
               <motion.div
                 key={product.item}
@@ -647,7 +651,7 @@ export default function HablandoMierdaPage() {
                     variant="primary"
                     className="w-full bg-brand-primary hover:bg-brand-primary-hover text-white font-bold"
                   >
-                    COMPRAR
+                    {t('hbm.support.buy')}
                   </Button>
                 </motion.div>
               </motion.div>
@@ -661,7 +665,7 @@ export default function HablandoMierdaPage() {
                 size="lg"
                 className="border-2 border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white font-bold px-12 py-4 text-xl"
               >
-                ❤️ DONACIÓN DIRECTA
+                {t('hbm.support.donate')}
               </Button>
             </motion.div>
           </div>
@@ -677,11 +681,10 @@ export default function HablandoMierdaPage() {
             viewport={{ once: true }}
           >
             <h2 className="text-4xl md:text-6xl font-black text-text-primary mb-6 font-sans">
-              ÚNETE AL CAOS
+              {t('hbm.contact.title')}
             </h2>
             <p className="text-xl text-text-secondary max-w-2xl mx-auto mb-12">
-              ¿Tienes una anécdota loca? ¿Una opinión controversial? ¿Quieres ser parte del show? 
-              Contáctanos y seamos cómplices del mejor contenido.
+              {t('hbm.contact.subtitle')}
             </p>
 
             <div className="grid md:grid-cols-2 gap-8 mb-12">
@@ -689,15 +692,15 @@ export default function HablandoMierdaPage() {
               <motion.div whileHover={{ scale: 1.02 }}>
                 <div className="bg-surface-elevated rounded-2xl p-8 border border-border hover:border-green-500/50 transition-all duration-300">
                   <div className="text-6xl mb-4">📱</div>
-                  <h3 className="text-2xl font-bold text-text-primary mb-4">WhatsApp</h3>
+                  <h3 className="text-2xl font-bold text-text-primary mb-4">{t('hbm.contact.whatsapp.title')}</h3>
                   <p className="text-text-secondary mb-6">
-                    Envíanos tus historias más locas directamente
+                    {t('hbm.contact.whatsapp.description')}
                   </p>
                   <Button
                     variant="primary"
                     className="bg-green-500 hover:bg-green-600 text-white font-bold"
                   >
-                    ENVIAR MENSAJE
+                    {t('hbm.contact.whatsapp.button')}
                   </Button>
                 </div>
               </motion.div>
@@ -706,15 +709,15 @@ export default function HablandoMierdaPage() {
               <motion.div whileHover={{ scale: 1.02 }}>
                 <div className="bg-surface-elevated rounded-2xl p-8 border border-border hover:border-blue-500/50 transition-all duration-300">
                   <div className="text-6xl mb-4">💬</div>
-                  <h3 className="text-2xl font-bold text-text-primary mb-4">Discord</h3>
+                  <h3 className="text-2xl font-bold text-text-primary mb-4">{t('hbm.contact.discord.title')}</h3>
                   <p className="text-text-secondary mb-6">
-                    Únete a la comunidad más irreverente
+                    {t('hbm.contact.discord.description')}
                   </p>
                   <Button
                     variant="primary"
                     className="bg-blue-500 hover:bg-blue-600 text-white font-bold"
                   >
-                    UNIRSE AL SERVER
+                    {t('hbm.contact.discord.button')}
                   </Button>
                 </div>
               </motion.div>
@@ -763,8 +766,8 @@ export default function HablandoMierdaPage() {
             </div>
             
             <div className="text-text-muted mt-8">
-              <p>© 2024 Hablando Mierda (HBM) - Parte del ecosistema MaalCa</p>
-              <p className="mt-2">Desde Elmira, NY para el mundo 🌎</p>
+              <p>{t('hbm.footer.copyright')}</p>
+              <p className="mt-2">{t('hbm.footer.location')}</p>
             </div>
           </motion.div>
         </div>

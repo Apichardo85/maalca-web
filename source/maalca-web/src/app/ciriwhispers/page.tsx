@@ -6,134 +6,124 @@ import { Button } from "@/components/ui/buttons";
 import FirstChapter from "@/components/ui/FirstChapter";
 import SensitiveNotice from "@/components/ui/SensitiveNotice";
 import ThemeToggle from "@/components/ui/ThemeToggle";
-import LanguageToggle from "@/components/ui/LanguageToggle";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import NewsletterSignup from "@/components/ui/NewsletterSignup";
 import SocialShare from "@/components/ui/SocialShare";
-import DigitalReader from "@/components/ui/DigitalReader";
 import ProfessionalReader from "@/components/ui/ProfessionalReader";
 import { amarantaContent, lucesSombrasContent } from "@/data/bookContent";
-import { LanguageProvider, useLanguage } from "@/hooks/useLanguage";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { useTranslation } from "@/hooks/useSimpleLanguage";
 
-const books = [
-  {
-    id: "amaranta",
-    title: "Amaranta",
-    subtitle: "Thriller psicológico",
-    synopsis: "Una joven enfrenta el eco de una culpa heredada. Entre recuerdos prestados y voces que insisten en hablarle, descubre que amar también puede ser una forma de perdón.",
-    cover: "/images/books/amaranta.jpg",
-    status: "Disponible",
-    amazonLink: "https://www.amazon.com/Amaranta-Ciriaco-Alejandro-Pichardo-Santana/dp/841915122X",
-    hasEpub: true,
-    hasSimpleReader: true,
-    excerpt: "En la penumbra de su memoria, Amaranta encontró las palabras que nunca pudo decir en vida...",
-    year: "2024",
-    tags: ["novela", "psicológico", "drama íntimo"],
-    notes: "Lectura inmersiva disponible - Versión demo del contenido original."
-  },
-  {
-    id: "luz-sombras",
-    title: "Luces & Sombras",
-    subtitle: "Poemario narrativo",
-    synopsis: "106 poemas que rozan la piel y la contradicción: amor, pérdida y el resplandor que solo se ve cuando todo oscurece.",
-    cover: "/images/books/luz-sombras.jpg",
-    status: "Disponible",
-    amazonLink: "https://www.amazon.com/Luces-Sombras-Spanish-ebook/dp/B084M8356R",
-    hasEpub: true,
-    hasSimpleReader: true,
-    excerpt: "Hay luces que solo brillan en la oscuridad más absoluta, como las estrellas que nacen del vacío...",
-    year: "2023",
-    tags: ["poesía", "amor", "intimidad"],
-    notes: "Lectura inmersiva disponible - Selección representativa de los 106 poemas originales."
-  },
-  {
-    id: "cartas-hiedra",
-    title: "Cartas a la Hiedra",
-    subtitle: "Colección epistolar",
-    synopsis: "Treinta cartas íntimas a una presencia viva: la hiedra. Deseo, frontera y lo que crece incluso en el muro más frío.",
-    cover: "/images/books/cartas-hiedra.png",
-    status: "En progreso",
-    amazonLink: "#",
-    excerpt: "Querida Hiedra, tus brazos abrazan muros como yo abrazo palabras: con la desesperación de quien sabe que todo es efímero...",
-    year: "2024",
-    
-    tags: ["epistolar", "prosa poética"],
-    notes: "Meta en web: 30 cartas visibles (muestras selectas, no newsletter masivo)."
-  },
-  {
-    id: "cosas-no-contar",
-    title: "Cosas que no hay que contar",
-    subtitle: "Relatos de filo íntimo",
-    synopsis: "Pequeñas heridas en voz baja: escenas que nadie confiesa, contadas con delicadeza y crudeza a la vez.",
-    cover: "/images/books/cosas-no-contar.jpg",
-    status: "En desarrollo",
-    amazonLink: "#",
-    excerpt: "Hay historias que se escriben con lágrimas en papel invisible, para que solo el alma las pueda leer...",
-    year: "2025",
-    tags: ["cuentos", "realismo crudo"],
-    notes: "En progreso: 'Bloqueado', 'La nevera de las bebidas', 'El jardín y la pelirroja'."
-  },
-  {
-    id: "elmira-ny",
-    title: "Elmira, NY",
-    subtitle: "Crónicas del exilio",
-    synopsis: "Mapa emocional de Elmira: soledades, trabajos, vínculos y los fantasmas que se cuelan por las ventanas de invierno.",
-    cover: "/images/books/elmira-ny.svg",
-    status: "En desarrollo",
-    amazonLink: "#",
-    excerpt: "El exilio no es un lugar, es un estado del alma que se lleva a todas partes...",
-    year: "2025",
-    tags: ["crónica", "autoficción", "ensayo"],
-    notes: "Vista separada Crónica/Ficción y mapa poético interactivo."
-  },
-  {
-    id: "ramirito",
-    title: "Ramirito",
-    subtitle: "Novela — memoria y estigma",
-    synopsis: "Regresar al barrio tras la prisión: el respeto ya no alcanza, los jóvenes no temen y el nombre pesa más que la carne.",
-    cover: "/images/books/ramirito.svg",
-    status: "En desarrollo",
-    amazonLink: "#",
-    excerpt: "—Ese es Ramirito, el que mató a su mamá.",
-    year: "2025",
-    tags: ["novela", "realismo social"],
-    notes: "Incluye aviso breve de temas sensibles (opcional)."
-  }
-];
-
-const blogPosts = [
-  {
-    id: "perfil-autor",
-    title: "Sobre Ciriaco A. Pichardo",
-    date: "Actualizado 2025",
-    excerpt: "Dominicano, amante de las palabras y de los mundos que nacen de ellas.",
-    content: "Empecé a escribir como un acto reflexivo, inspirado por lecturas, canciones y esas preguntas que nos confrontan con la vida. Escritor empírico con cuentos, un poemario y una novela publicada (Amaranta), sigo explorando la narrativa romántica y la poesía como formas de entender y expresar el mundo. Admiro a García Márquez, Poe y Bukowski por su capacidad de transformar lo cotidiano en arte. Actualmente trabajo en mi próxima novela, Almas rotas. Si buscas poesía, historias con alma y un espacio donde las emociones toman forma, este es tu lugar. Elmira, NY."
-  },
-  {
-    id: "invierno-elmira",
-    title: "Invierno en Elmira",
-    date: "Enero 2024",
-    excerpt: "La nieve cubre los secretos...",
-    content: "Este pueblo me enseñó a escuchar el crujido de la madera vieja y a llamar hogar a una silla en silencio."
-  }
-];
-
-function CiriWhispersContent() {
+export default function CiriWhispersPage() {
   const [selectedBook, setSelectedBook] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState("home");
   const [readerOpen, setReaderOpen] = useState(false);
-  const [currentReaderBook, setCurrentReaderBook] = useState<typeof books[0] | null>(null);
-  const { t, language } = useLanguage();
-  const { trackBookInteraction, trackSocialShare } = useAnalytics('ciriwhispers');
-  
-  // Helper function to get localized content
-  const getLocalizedContent = (content: any) => {
-    if (typeof content === 'object' && content[language]) {
-      const key = content[language];
-      return key.startsWith('books.') || key.startsWith('blog.') || key.startsWith('status.') ? t(key) : key;
+  const [currentReaderBook, setCurrentReaderBook] = useState<any | null>(null);
+  const { t, language } = useTranslation();
+  const { trackBookInteraction } = useAnalytics('ciriwhispers');
+
+  // Books data structure
+  const books = [
+    {
+      id: "amaranta",
+      title: t('ciriwhispers.book.amaranta.title'),
+      subtitle: t('ciriwhispers.book.amaranta.subtitle'),
+      synopsis: t('ciriwhispers.book.amaranta.synopsis'),
+      cover: "/images/books/amaranta.jpg",
+      status: t('ciriwhispers.works.status.available'),
+      amazonLink: "https://www.amazon.com/Amaranta-Ciriaco-Alejandro-Pichardo-Santana/dp/841915122X",
+      hasEpub: true,
+      hasSimpleReader: true,
+      excerpt: t('ciriwhispers.book.amaranta.excerpt'),
+      year: "2024",
+      tags: t('ciriwhispers.book.amaranta.tags'),
+      notes: "Lectura inmersiva disponible - Versión demo del contenido original."
+    },
+    {
+      id: "luz-sombras",
+      title: t('ciriwhispers.book.luzsombras.title'),
+      subtitle: t('ciriwhispers.book.luzsombras.subtitle'),
+      synopsis: t('ciriwhispers.book.luzsombras.synopsis'),
+      cover: "/images/books/luz-sombras.jpg",
+      status: t('ciriwhispers.works.status.available'),
+      amazonLink: "https://www.amazon.com/Luces-Sombras-Spanish-ebook/dp/B084M8356R",
+      hasEpub: true,
+      hasSimpleReader: true,
+      excerpt: t('ciriwhispers.book.luzsombras.excerpt'),
+      year: "2023",
+      tags: t('ciriwhispers.book.luzsombras.tags'),
+      notes: "Lectura inmersiva disponible - Selección representativa de los 106 poemas originales."
+    },
+    {
+      id: "cartas-hiedra",
+      title: t('ciriwhispers.book.cartashiedra.title'),
+      subtitle: t('ciriwhispers.book.cartashiedra.subtitle'),
+      synopsis: t('ciriwhispers.book.cartashiedra.synopsis'),
+      cover: "/images/books/cartas-hiedra.png",
+      status: t('ciriwhispers.works.status.inProgress'),
+      amazonLink: "#",
+      excerpt: t('ciriwhispers.book.cartashiedra.excerpt'),
+      year: "2024",
+      tags: t('ciriwhispers.book.cartashiedra.tags'),
+      notes: "Meta en web: 30 cartas visibles (muestras selectas, no newsletter masivo)."
+    },
+    {
+      id: "cosas-no-contar",
+      title: t('ciriwhispers.book.cosasnocontar.title'),
+      subtitle: t('ciriwhispers.book.cosasnocontar.subtitle'),
+      synopsis: t('ciriwhispers.book.cosasnocontar.synopsis'),
+      cover: "/images/books/cosas-no-contar.jpg",
+      status: t('ciriwhispers.works.status.development'),
+      amazonLink: "#",
+      excerpt: t('ciriwhispers.book.cosasnocontar.excerpt'),
+      year: "2025",
+      tags: t('ciriwhispers.book.cosasnocontar.tags'),
+      notes: "En progreso: 'Bloqueado', 'La nevera de las bebidas', 'El jardín y la pelirroja'."
+    },
+    {
+      id: "elmira-ny",
+      title: t('ciriwhispers.book.elmirarny.title'),
+      subtitle: t('ciriwhispers.book.elmirarny.subtitle'),
+      synopsis: t('ciriwhispers.book.elmirarny.synopsis'),
+      cover: "/images/books/elmira-ny.svg",
+      status: t('ciriwhispers.works.status.development'),
+      amazonLink: "#",
+      excerpt: t('ciriwhispers.book.elmirarny.excerpt'),
+      year: "2025",
+      tags: t('ciriwhispers.book.elmirarny.tags'),
+      notes: "Vista separada Crónica/Ficción y mapa poético interactivo."
+    },
+    {
+      id: "ramirito",
+      title: t('ciriwhispers.book.ramirito.title'),
+      subtitle: t('ciriwhispers.book.ramirito.subtitle'),
+      synopsis: t('ciriwhispers.book.ramirito.synopsis'),
+      cover: "/images/books/ramirito.svg",
+      status: t('ciriwhispers.works.status.development'),
+      amazonLink: "#",
+      excerpt: t('ciriwhispers.book.ramirito.excerpt'),
+      year: "2025",
+      tags: t('ciriwhispers.book.ramirito.tags'),
+      notes: "Incluye aviso breve de temas sensibles (opcional)."
     }
-    return content;
-  };
+  ];
+
+  const blogPosts = [
+    {
+      id: "perfil-autor",
+      title: t('ciriwhispers.blog.perfilautor.title'),
+      date: t('ciriwhispers.blog.perfilautor.date'),
+      excerpt: t('ciriwhispers.blog.perfilautor.excerpt'),
+      content: t('ciriwhispers.blog.perfilautor.content')
+    },
+    {
+      id: "invierno-elmira",
+      title: t('ciriwhispers.blog.invierno.title'),
+      date: t('ciriwhispers.blog.invierno.date'),
+      excerpt: t('ciriwhispers.blog.invierno.excerpt'),
+      content: t('ciriwhispers.blog.invierno.content')
+    }
+  ];
 
   const scrollToSection = (sectionId: string) => {
     setActiveSection(sectionId);
@@ -178,13 +168,13 @@ function CiriWhispersContent() {
           <div className="absolute bottom-40 right-10 text-2xl text-stone-300/40 animate-pulse" style={{animationDelay: '0.5s'}}>🕯️</div>
           <div className="absolute top-1/2 left-16 text-3xl text-red-600/30 animate-pulse" style={{animationDelay: '1.5s'}}>🐦‍⬛</div>
           <div className="absolute top-1/3 right-24 text-2xl text-stone-200/30 animate-pulse" style={{animationDelay: '3s'}}>📖</div>
-          
+
           {/* Labyrinth lines */}
           <div className="absolute top-32 left-1/4 w-32 h-px bg-gradient-to-r from-transparent via-red-800/20 to-transparent"></div>
           <div className="absolute top-1/2 right-1/4 w-24 h-px bg-gradient-to-r from-transparent via-stone-200/20 to-transparent transform rotate-45"></div>
           <div className="absolute bottom-32 left-1/3 w-28 h-px bg-gradient-to-r from-transparent via-red-700/20 to-transparent transform -rotate-12"></div>
         </div>
-        
+
         <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -194,8 +184,8 @@ function CiriWhispersContent() {
             {/* CiriWhispers Logo */}
             <div className="w-48 h-48 mx-auto mb-8 relative group">
               <div className="w-full h-full relative overflow-hidden rounded-full bg-gradient-to-br from-slate-900 via-slate-800 to-red-900/20 border border-red-800/30 shadow-2xl">
-                <img 
-                  src="/images/projects/ciriwhispers.png" 
+                <img
+                  src="/images/projects/ciriwhispers.png"
                   alt="CiriWhispers - Logo del Laberinto"
                   className="w-full h-full object-contain rounded-full group-hover:scale-105 transition-transform duration-500"
                 />
@@ -207,17 +197,17 @@ function CiriWhispersContent() {
             <h1 className="font-serif text-6xl md:text-8xl font-bold mb-6 bg-gradient-to-r from-red-800 via-red-600 to-red-800 bg-clip-text text-transparent">
               CiriWhispers
             </h1>
-            
+
             <p className="text-2xl md:text-3xl font-light text-stone-200 mb-8 italic font-serif">
-              "{t('hero.subtitle')}"
+              "{t('ciriwhispers.hero.subtitle')}"
             </p>
-            
+
             <div className="text-lg text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed space-y-4">
               <p className="border-l-2 border-red-800/30 pl-4">
-                {t('hero.description')}
+                {t('ciriwhispers.hero.description')}
               </p>
               <p className="text-center text-red-400/80 font-serif italic text-sm">
-                🐦‍⬛ {t('hero.quote')} 🐦‍⬛
+                🐦‍⬛ {t('ciriwhispers.hero.quote')} 🐦‍⬛
               </p>
             </div>
 
@@ -228,7 +218,7 @@ function CiriWhispersContent() {
                 onClick={() => scrollToSection('portafolio')}
                 className="bg-gradient-to-r from-red-800 to-red-600 hover:from-red-600 hover:to-red-800 text-stone-100 font-semibold border border-red-700/30 shadow-lg hover:shadow-red-900/20"
               >
-                {t('hero.enterLabyrinth')}
+                {t('ciriwhispers.hero.enterLabyrinth')}
               </Button>
               <Button
                 variant="outline"
@@ -236,7 +226,7 @@ function CiriWhispersContent() {
                 onClick={() => scrollToSection('cartas')}
                 className="border-red-600/50 text-red-400 hover:bg-red-600/10"
               >
-                {t('hero.soulWhispers')}
+                {t('ciriwhispers.hero.soulWhispers')}
               </Button>
             </div>
           </motion.div>
@@ -257,22 +247,22 @@ function CiriWhispersContent() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <span className="font-serif text-xl font-bold text-red-400">CiriWhispers</span>
-            
+
             <div className="hidden md:flex items-center space-x-4">
               <div className="flex space-x-6">
                 {[
                   { id: 'home', label: t('nav.home') },
-                  { id: 'sobre-mi', label: t('nav.about') },
-                  { id: 'portafolio', label: t('nav.works') },
-                  { id: 'cartas', label: t('nav.letters') },
+                  { id: 'sobre-mi', label: t('ciriwhispers.nav.about') },
+                  { id: 'portafolio', label: t('ciriwhispers.nav.works') },
+                  { id: 'cartas', label: t('ciriwhispers.nav.letters') },
                   { id: 'contacto', label: t('nav.contact') }
                 ].map((item) => (
                   <button
                     key={item.id}
                     onClick={() => scrollToSection(item.id)}
                     className={`transition-colors ${
-                      activeSection === item.id 
-                        ? 'text-red-400' 
+                      activeSection === item.id
+                        ? 'text-red-400'
                         : 'text-slate-300 hover:text-red-400'
                     }`}
                   >
@@ -298,7 +288,7 @@ function CiriWhispersContent() {
             className="text-center mb-16"
           >
             <h2 className="font-serif text-4xl md:text-5xl font-bold text-stone-100 mb-8">
-              El Susurro detrás de las Palabras
+              {t('ciriwhispers.about.title')}
             </h2>
           </motion.div>
 
@@ -310,19 +300,15 @@ function CiriWhispersContent() {
               transition={{ duration: 0.8 }}
             >
               <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 p-8 rounded-2xl border border-red-800/20">
-                <h3 className="font-serif text-2xl font-bold text-red-600 mb-6">Sobre Ciriaco</h3>
+                <h3 className="font-serif text-2xl font-bold text-red-600 mb-6">{t('ciriwhispers.about.heading')}</h3>
                 <p className="text-slate-300 leading-relaxed mb-4">
-                  Dominicano, amante de las palabras y de los mundos que nacen de ellas. Empecé a escribir como un acto reflexivo, 
-                  inspirado por lecturas, canciones y esas preguntas que nos confrontan con la vida.
+                  {t('ciriwhispers.about.p1')}
                 </p>
                 <p className="text-slate-400 leading-relaxed mb-4">
-                  Escritor empírico con cuentos, un poemario y una novela publicada (<em>Amaranta</em>), sigo explorando la narrativa 
-                  romántica y la poesía como formas de entender y expresar el mundo. Admiro a García Márquez, Poe y Bukowski 
-                  por su capacidad de transformar lo cotidiano en arte.
+                  {t('ciriwhispers.about.p2')}
                 </p>
                 <p className="text-slate-300 leading-relaxed italic">
-                  Actualmente trabajo en <em>Almas rotas</em>. Si buscas poesía, historias con alma y un espacio donde las emociones 
-                  toman forma, este es tu lugar. <span className="text-red-400">Elmira, NY.</span>
+                  {t('ciriwhispers.about.p3')} <span className="text-red-400">{t('ciriwhispers.about.location')}</span>
                 </p>
               </div>
             </motion.div>
@@ -335,21 +321,19 @@ function CiriWhispersContent() {
               className="space-y-8"
             >
               <div className="bg-slate-800/30 p-6 rounded-xl border border-slate-700/50">
-                <h4 className="font-serif text-xl font-bold text-red-600 mb-3">Inspiraciones</h4>
+                <h4 className="font-serif text-xl font-bold text-red-600 mb-3">{t('ciriwhispers.about.inspirations.title')}</h4>
                 <ul className="text-slate-300 space-y-2">
-                  <li>📖 Edgar Allan Poe - El maestro de lo macabro poético</li>
-                  <li>🍷 Charles Bukowski - La honestidad brutal</li>
-                  <li>✨ Realismo Mágico - Donde lo cotidiano se vuelve extraordinario</li>
-                  <li>🌙 La noche como musa y confidente</li>
+                  <li>📖 {t('ciriwhispers.about.inspirations.poe')}</li>
+                  <li>🍷 {t('ciriwhispers.about.inspirations.bukowski')}</li>
+                  <li>✨ {t('ciriwhispers.about.inspirations.magical')}</li>
+                  <li>🌙 {t('ciriwhispers.about.inspirations.night')}</li>
                 </ul>
               </div>
 
               <div className="bg-slate-800/30 p-6 rounded-xl border border-slate-700/50">
-                <h4 className="font-serif text-xl font-bold text-red-600 mb-3">Mi Proceso</h4>
+                <h4 className="font-serif text-xl font-bold text-red-600 mb-3">{t('ciriwhispers.about.process.title')}</h4>
                 <p className="text-slate-300 leading-relaxed">
-                  Escribo principalmente en las horas más silenciosas, cuando el mundo duerme y las palabras 
-                  fluyen sin filtros. Cada texto nace de una emoción visceral, de un susurro del inconsciente 
-                  que demanda ser escuchado.
+                  {t('ciriwhispers.about.process.description')}
                 </p>
               </div>
             </motion.div>
@@ -368,18 +352,17 @@ function CiriWhispersContent() {
             className="text-center mb-16"
           >
             <h2 className="font-serif text-4xl md:text-5xl font-bold text-stone-100 mb-8">
-              📚 Los Manuscritos del Laberinto
+              📚 {t('ciriwhispers.works.title')}
             </h2>
             <p className="text-xl text-slate-400 max-w-3xl mx-auto mb-4">
-              Cada libro es un fragmento de alma transformado en palabras, una invitación a explorar 
-              los rincones más profundos de la experiencia humana.
+              {t('ciriwhispers.works.description')}
             </p>
             <div className="bg-red-900/10 border border-red-800/20 rounded-lg p-4 max-w-2xl mx-auto">
               <p className="text-red-400/80 text-sm font-serif italic">
-                📖 ¡Ya disponible! Lector digital integrado - <strong>Demo funcional</strong> con libros de prueba
+                📖 {t('ciriwhispers.works.readerNotice')}
               </p>
               <p className="text-red-300/60 text-xs mt-1">
-                Los libros disponibles cargan contenido demo para probar la experiencia de lectura inmersiva
+                {t('ciriwhispers.works.readerSubnotice')}
               </p>
             </div>
           </motion.div>
@@ -404,8 +387,8 @@ function CiriWhispersContent() {
                 <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-2xl overflow-hidden border border-red-800/20 hover:border-red-600/40 transition-all duration-300">
                   {/* Book Cover */}
                   <div className="aspect-[3/4] bg-gradient-to-br from-red-900/20 to-slate-800/50 flex items-center justify-center relative overflow-hidden">
-                    <img 
-                      src={book.cover} 
+                    <img
+                      src={book.cover}
                       alt={`Portada de ${book.title}`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
@@ -421,13 +404,13 @@ function CiriWhispersContent() {
                     </div>
                     <div className="absolute bottom-4 left-4 right-4">
                       <div className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                        getLocalizedContent(book.status) === t('works.status.available')
+                        book.status === t('ciriwhispers.works.status.available')
                           ? 'bg-red-600/15 text-red-400 border border-red-600/30'
-                          : getLocalizedContent(book.status) === t('works.status.inProgress')
+                          : book.status === t('ciriwhispers.works.status.inProgress')
                           ? 'bg-red-800/15 text-red-300 border border-red-800/30'
                           : 'bg-slate-600/20 text-slate-200 border border-slate-500/30'
                       }`}>
-                        {getLocalizedContent(book.status)}
+                        {book.status}
                       </div>
                     </div>
                   </div>
@@ -438,11 +421,11 @@ function CiriWhispersContent() {
                       <span className="text-sm text-red-400 font-medium">{book.year}</span>
                       <span className="text-xs text-slate-400">{book.subtitle}</span>
                     </div>
-                    
+
                     <h3 className="font-serif text-xl font-bold text-stone-100 mb-3 group-hover:text-red-400 transition-colors">
                       {book.title}
                     </h3>
-                    
+
                     <p className="text-slate-400 text-sm leading-relaxed mb-4">
                       {book.synopsis}
                     </p>
@@ -457,8 +440,8 @@ function CiriWhispersContent() {
                         <blockquote className="font-serif italic text-slate-300 text-sm leading-relaxed mb-4">
                           "{book.excerpt}"
                         </blockquote>
-                        
-                        {getLocalizedContent(book.status) === t('works.status.available') && (
+
+                        {book.status === t('ciriwhispers.works.status.available') && (
                           <div className="space-y-2">
                             {/* Digital Reader Button */}
                             {book.hasSimpleReader ? (
@@ -468,11 +451,11 @@ function CiriWhispersContent() {
                                 className="w-full bg-gradient-to-r from-red-800 to-red-600 hover:from-red-600 hover:to-red-800 text-stone-100"
                                 onClick={() => openReader(book)}
                               >
-                                📖 Leer en CiriWhispers
+                                📖 {t('ciriwhispers.works.readButton')}
                               </Button>
                             ) : book.id === 'amaranta' ? (
-                              <FirstChapter 
-                                title={getLocalizedContent(book.title)}
+                              <FirstChapter
+                                title={book.title}
                                 content={t('chapter.amaranta.content')}
                               />
                             ) : (
@@ -481,12 +464,12 @@ function CiriWhispersContent() {
                                 size="sm"
                                 className="w-full border-red-600/50 text-red-400 hover:bg-red-600/10"
                               >
-                                📖 Leer Aquí (Próximamente)
+                                📖 {t('ciriwhispers.works.readSoonButton')}
                               </Button>
                             )}
-                            
+
                             {/* Amazon Purchase Button */}
-                            <a 
+                            <a
                               href={book.amazonLink}
                               target="_blank"
                               rel="noopener noreferrer"
@@ -498,7 +481,7 @@ function CiriWhispersContent() {
                                 size="sm"
                                 className="w-full border-stone-600/50 text-stone-400 hover:bg-stone-600/10"
                               >
-                                🛒 Comprar en Amazon
+                                🛒 {t('ciriwhispers.works.buyButton')}
                               </Button>
                             </a>
 
@@ -514,13 +497,13 @@ function CiriWhispersContent() {
                             </div>
                           </div>
                         )}
-                        
+
                         {/* Aviso de contenido sensible para libros específicos */}
                         {(book.id === 'amaranta' || book.id === 'ramirito') && (
-                          <SensitiveNotice 
+                          <SensitiveNotice
                             topics={
-                              book.id === 'amaranta' 
-                                ? ["traumaFamiliar", "duelo", "temasPsicologicos"] 
+                              book.id === 'amaranta'
+                                ? ["traumaFamiliar", "duelo", "temasPsicologicos"]
                                 : ["violencia", "prision", "estigmaSocial"]
                             }
                           />
@@ -546,24 +529,23 @@ function CiriWhispersContent() {
             className="text-center mb-16"
           >
             <h2 className="font-serif text-4xl md:text-5xl font-bold text-stone-100 mb-8">
-              📜 Susurros desde el Laberinto
+              📜 {t('ciriwhispers.letters.title')}
             </h2>
             <p className="text-xl text-slate-400 max-w-2xl mx-auto mb-8">
-              Reflexiones íntimas, fragmentos de vida y susurros nocturnos compartidos 
-              en la intimidad de estas páginas digitales.
+              {t('ciriwhispers.letters.description')}
             </p>
-            
+
             {/* Newsletter Signup */}
-            <NewsletterSignup 
+            <NewsletterSignup
               source="ciriwhispers"
-              className="mb-8" 
+              className="mb-8"
             />
 
             {/* Social Share */}
             <div className="bg-gradient-to-br from-slate-800/30 to-slate-900/30 p-6 rounded-xl border border-slate-700/50 mb-12">
               <SocialShare
-                title="CiriWhispers - Palabras que susurran al alma"
-                description="Literatura íntima, poesía y reflexiones nocturnas desde el laberinto de las emociones."
+                title={t('ciriwhispers.letters.shareTitle')}
+                description={t('ciriwhispers.letters.shareDescription')}
                 platforms={["twitter", "linkedin", "facebook", "whatsapp", "copy"]}
                 variant="icons"
                 className="justify-center"
@@ -591,20 +573,20 @@ function CiriWhispersContent() {
                     <time className="text-sm text-slate-400">{post.date}</time>
                   </div>
                 </div>
-                
+
                 <blockquote className="font-serif italic text-slate-300 text-lg leading-relaxed mb-4 pl-4 border-l-2 border-red-600/30">
                   {post.excerpt}
                 </blockquote>
-                
+
                 <p className="text-slate-400 leading-relaxed mb-6">
                   {post.content}
                 </p>
-                
+
                 <Button
                   variant="ghost"
                   className="text-red-400 hover:text-red-300 p-0"
                 >
-                  Leer carta completa →
+                  {t('ciriwhispers.works.fullLetterButton')}
                 </Button>
               </motion.article>
             ))}
@@ -622,30 +604,29 @@ function CiriWhispersContent() {
             transition={{ duration: 0.8 }}
           >
             <h2 className="font-serif text-4xl md:text-5xl font-bold text-stone-100 mb-8">
-              Conectemos Almas
+              {t('ciriwhispers.contact.title')}
             </h2>
             <p className="text-xl text-slate-400 max-w-2xl mx-auto mb-12">
-              Para colaboraciones, encargos literarios o simplemente para compartir 
-              un susurro en la inmensidad digital.
+              {t('ciriwhispers.contact.description')}
             </p>
 
             <div className="grid md:grid-cols-2 gap-8 mb-12">
               {/* Contact Form */}
               <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 p-8 rounded-2xl border border-red-800/20">
-                <h3 className="font-serif text-2xl font-bold text-stone-100 mb-6">Envíame un Mensaje</h3>
+                <h3 className="font-serif text-2xl font-bold text-stone-100 mb-6">{t('ciriwhispers.contact.form.title')}</h3>
                 <form className="space-y-4">
                   <input
                     type="text"
-                    placeholder="Tu nombre"
+                    placeholder={t('ciriwhispers.contact.form.name')}
                     className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/50 text-stone-100"
                   />
                   <input
                     type="email"
-                    placeholder="Tu email"
+                    placeholder={t('ciriwhispers.contact.form.email')}
                     className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/50 text-stone-100"
                   />
                   <textarea
-                    placeholder="Tu mensaje..."
+                    placeholder={t('ciriwhispers.contact.form.message')}
                     rows={4}
                     className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/50 text-stone-100 resize-vertical"
                   />
@@ -653,7 +634,7 @@ function CiriWhispersContent() {
                     variant="primary"
                     className="w-full bg-gradient-to-r from-red-800 to-red-600 hover:from-red-600 hover:to-red-800 text-stone-100"
                   >
-                    Enviar Susurro
+                    {t('ciriwhispers.contact.form.submit')}
                   </Button>
                 </form>
               </div>
@@ -661,34 +642,34 @@ function CiriWhispersContent() {
               {/* Social Links */}
               <div className="space-y-6">
                 <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 p-6 rounded-xl border border-slate-700/50">
-                  <h4 className="font-serif text-xl font-bold text-red-600 mb-4">Sígueme</h4>
+                  <h4 className="font-serif text-xl font-bold text-red-600 mb-4">{t('ciriwhispers.contact.social.title')}</h4>
                   <div className="space-y-3">
                     <a href="https://www.instagram.com/ciriwhispers/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-slate-300 hover:text-red-400 transition-colors">
                       <span className="text-xl">📷</span>
-                      <span>Instagram @CiriWhispers</span>
+                      <span>{t('ciriwhispers.contact.social.instagram')}</span>
                     </a>
                     <a href="#" className="flex items-center gap-3 text-slate-300 hover:text-red-400 transition-colors">
                       <span className="text-xl">📺</span>
-                      <span>YouTube - Lecturas (Próximamente)</span>
+                      <span>{t('ciriwhispers.contact.social.youtube')}</span>
                     </a>
                     <a href="#" className="flex items-center gap-3 text-slate-300 hover:text-red-400 transition-colors">
                       <span className="text-xl">🎵</span>
-                      <span>Spotify - Audiolibros (Próximamente)</span>
+                      <span>{t('ciriwhispers.contact.social.spotify')}</span>
                     </a>
                     <a href="/editorial" className="flex items-center gap-3 text-slate-300 hover:text-red-400 transition-colors">
                       <span className="text-xl">📚</span>
-                      <span>Editorial MaalCa</span>
+                      <span>{t('ciriwhispers.contact.social.editorial')}</span>
                     </a>
                   </div>
                 </div>
 
                 <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 p-6 rounded-xl border border-slate-700/50">
-                  <h4 className="font-serif text-xl font-bold text-red-600 mb-4">Servicios</h4>
+                  <h4 className="font-serif text-xl font-bold text-red-600 mb-4">{t('ciriwhispers.contact.services.title')}</h4>
                   <ul className="text-slate-300 space-y-2 text-sm">
-                    <li>✍️ Textos personalizados</li>
-                    <li>📖 Prólogos y reseñas</li>
-                    <li>🎭 Talleres de escritura creativa</li>
-                    <li>📝 Ghostwriting literario</li>
+                    <li>✍️ {t('ciriwhispers.contact.services.texts')}</li>
+                    <li>📖 {t('ciriwhispers.contact.services.prologues')}</li>
+                    <li>🎭 {t('ciriwhispers.contact.services.workshops')}</li>
+                    <li>📝 {t('ciriwhispers.contact.services.ghostwriting')}</li>
                   </ul>
                 </div>
               </div>
@@ -697,7 +678,7 @@ function CiriWhispersContent() {
             {/* Signature */}
             <div className="border-t border-red-800/20 pt-8">
               <p className="font-serif italic text-stone-100 text-lg">
-                "Siempre tuyo, @CiriWhispers"
+                {t('ciriwhispers.contact.signature')}
               </p>
             </div>
           </motion.div>
@@ -717,13 +698,5 @@ function CiriWhispersContent() {
         )}
       </AnimatePresence>
     </main>
-  );
-}
-
-export default function CiriWhispersPage() {
-  return (
-    <LanguageProvider>
-      <CiriWhispersContent />
-    </LanguageProvider>
   );
 }

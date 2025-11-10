@@ -1,0 +1,202 @@
+/* =============================================================================
+   DESIGN TOKENS - COLOR SYSTEM
+   Centralized color system using data-theme attribute
+   ============================================================================= */
+
+:root {
+  /* =============================================================================
+     SEMANTIC TOKENS - Light Theme (Default)
+     ============================================================================= */
+
+  /* Text Colors */
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #64748b;
+  --color-text-accent: #dc2626;
+  --color-text-muted: #94a3b8;
+  --color-text-inverse: #ffffff;
+  --color-text-link: #2563eb;
+  --color-text-link-hover: #1d4ed8;
+
+  /* Background Colors */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8fafc;
+  --color-bg-tertiary: #f1f5f9;
+  --color-bg-accent: #fef2f2;
+  --color-bg-overlay: rgba(0, 0, 0, 0.50);
+  --color-bg-glass: rgba(255, 255, 255, 0.95);
+
+  /* Surface Colors */
+  --color-surface-primary: #ffffff;
+  --color-surface-secondary: #f8fafc;
+  --color-surface-elevated: #ffffff;
+  --color-surface-overlay: rgba(255, 255, 255, 0.9);
+
+  /* Border Colors */
+  --color-border-primary: #e2e8f0;
+  --color-border-secondary: #cbd5e1;
+  --color-border-accent: #dc2626;
+  --color-border-focus: #2563eb;
+
+  /* Brand Colors */
+  --color-brand-primary: #dc2626;
+  --color-brand-primary-hover: #ef4444;
+  --color-brand-secondary: #991b1b;
+  --color-brand-tertiary: #fef2f2;
+
+  /* Status Colors */
+  --color-success: #10b981;
+  --color-success-bg: #ecfdf5;
+  --color-warning: #f59e0b;
+  --color-warning-bg: #fffbeb;
+  --color-error: #ef4444;
+  --color-error-bg: #fef2f2;
+  --color-info: #3b82f6;
+  --color-info-bg: #eff6ff;
+}
+
+[data-theme="dark"] {
+  /* =============================================================================
+     SEMANTIC TOKENS - Dark Theme
+     ============================================================================= */
+
+  /* Text Colors */
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-text-tertiary: #94a3b8;
+  --color-text-accent: #ef4444;
+  --color-text-muted: #64748b;
+  --color-text-inverse: #0f172a;
+  --color-text-link: #f8fafc; /* FIXED: Blue text now readable in dark mode */
+  --color-text-link-hover: #ffffff;
+
+  /* Background Colors */
+  --color-bg-primary: #0f172a;
+  --color-bg-secondary: #1e293b;
+  --color-bg-tertiary: #334155;
+  --color-bg-accent: #7f1d1d;
+  --color-bg-overlay: rgba(0, 0, 0, 0.80);
+  --color-bg-glass: rgba(15, 23, 42, 0.95);
+
+  /* Surface Colors */
+  --color-surface-primary: #1e293b;
+  --color-surface-secondary: #334155;
+  --color-surface-elevated: #475569;
+  --color-surface-overlay: rgba(30, 41, 59, 0.9);
+
+  /* Border Colors */
+  --color-border-primary: #475569;
+  --color-border-secondary: #64748b;
+  --color-border-accent: #ef4444;
+  --color-border-focus: #f8fafc;
+
+  /* Brand Colors */
+  --color-brand-primary: #ef4444;
+  --color-brand-primary-hover: #f87171;
+  --color-brand-secondary: #dc2626;
+  --color-brand-tertiary: #7f1d1d;
+
+  /* Status Colors */
+  --color-success: #34d399;
+  --color-success-bg: #064e3b;
+  --color-warning: #fbbf24;
+  --color-warning-bg: #451a03;
+  --color-error: #f87171;
+  --color-error-bg: #7f1d1d;
+  --color-info: #60a5fa;
+  --color-info-bg: #1e3a8a;
+}
+
+[data-theme="paper"] {
+  /* =============================================================================
+     SEMANTIC TOKENS - Paper Theme (CiriWhispers)
+     ============================================================================= */
+
+  /* Text Colors */
+  --color-text-primary: #2b1810;
+  --color-text-secondary: #5d4e3d;
+  --color-text-tertiary: #8a7860;
+  --color-text-accent: #8b1538;
+  --color-text-muted: #a18a75;
+  --color-text-inverse: #ffffff;
+  --color-text-link: #8b1538;
+  --color-text-link-hover: #6b1129;
+
+  /* Background Colors */
+  --color-bg-primary: #f7f1e3;
+  --color-bg-secondary: #f0e8d8;
+  --color-bg-tertiary: #e7dccc;
+  --color-bg-accent: rgba(139, 21, 56, 0.1);
+  --color-bg-overlay: rgba(247, 241, 227, 0.95);
+  --color-bg-glass: rgba(255, 255, 255, 0.8);
+
+  /* Surface Colors */
+  --color-surface-primary: rgba(255, 255, 255, 0.7);
+  --color-surface-secondary: rgba(255, 255, 255, 0.9);
+  --color-surface-elevated: rgba(255, 255, 255, 0.95);
+  --color-surface-overlay: rgba(247, 241, 227, 0.9);
+
+  /* Border Colors */
+  --color-border-primary: #e7dccc;
+  --color-border-secondary: #d4c3ab;
+  --color-border-accent: #8b1538;
+  --color-border-focus: #8b1538;
+
+  /* Brand Colors */
+  --color-brand-primary: #8b1538;
+  --color-brand-primary-hover: #6b1129;
+  --color-brand-secondary: #5a0d20;
+  --color-brand-tertiary: rgba(139, 21, 56, 0.1);
+
+  /* Status Colors */
+  --color-success: #059669;
+  --color-success-bg: rgba(5, 150, 105, 0.1);
+  --color-warning: #d97706;
+  --color-warning-bg: rgba(217, 119, 6, 0.1);
+  --color-error: #dc2626;
+  --color-error-bg: rgba(220, 38, 38, 0.1);
+  --color-info: #0ea5e9;
+  --color-info-bg: rgba(14, 165, 233, 0.1);
+}
+
+/* =============================================================================
+   PRIMITIVE TOKENS - Brand Palettes
+   ============================================================================= */
+
+:root {
+  /* Caribbean Luxury Palette */
+  --color-caribbean-50: #f0fcff;
+  --color-caribbean-100: #e0f8ff;
+  --color-caribbean-200: #b8efff;
+  --color-caribbean-300: #7ce0ff;
+  --color-caribbean-400: #38ccf4;
+  --color-caribbean-500: #0ea5e9;
+  --color-caribbean-600: #0284c7;
+  --color-caribbean-700: #0369a1;
+  --color-caribbean-800: #075985;
+  --color-caribbean-900: #0c4a6e;
+
+  /* Sunset Gold Palette */
+  --color-sunset-50: #fefdf8;
+  --color-sunset-100: #fef7e0;
+  --color-sunset-200: #fdecc8;
+  --color-sunset-300: #fbd668;
+  --color-sunset-400: #f9c23c;
+  --color-sunset-500: #f59e0b;
+  --color-sunset-600: #d97706;
+  --color-sunset-700: #b45309;
+  --color-sunset-800: #92400e;
+  --color-sunset-900: #78350f;
+
+  /* Pearl Neutral Palette */
+  --color-pearl-50: #fafafa;
+  --color-pearl-100: #f5f5f5;
+  --color-pearl-200: #e5e5e5;
+  --color-pearl-300: #d4d4d4;
+  --color-pearl-400: #a3a3a3;
+  --color-pearl-500: #737373;
+  --color-pearl-600: #525252;
+  --color-pearl-700: #404040;
+  --color-pearl-800: #262626;
+  --color-pearl-900: #171717;
+}

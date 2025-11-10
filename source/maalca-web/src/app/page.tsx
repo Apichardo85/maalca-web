@@ -6,11 +6,15 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/buttons";
 import { ThemeSwitch } from "@/components/ui/ThemeSwitch";
 import { ProjectImage } from "@/components/ui/ProjectImage";
+import { Counter } from "@/components/ui/Counter";
+import { useTranslation } from "@/hooks/useSimpleLanguage";
 import { projects, affiliates } from "@/data";
+import { dominicanMenus } from "@/data/dominican-menus";
 
 export default function HomePage() {
   const router = useRouter();
-  
+  const { t } = useTranslation();
+
   const scrollToSection = (sectionId: string) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -21,25 +25,21 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      {/* Hero Section */}
+      {/* Hero Section with DRAMATIC MOVING GRADIENT */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden grain">
-        {/* Soft Gradient Background */}
-        <div className="absolute inset-0">
-          <div className="absolute inset-0" style={{ background: 'var(--gradient-hero)' }} />
+        {/* DRAMATIC ANIMATED GRADIENT BACKGROUND */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-red-50 to-slate-50 dark:from-black dark:via-red-950/20 dark:to-black">
           <motion.div
             className="absolute inset-0"
-            animate={{ 
+            animate={{
               background: [
-                "radial-gradient(circle at 20% 80%, rgba(220, 38, 38, 0.03) 0%, transparent 50%)",
-                "radial-gradient(circle at 80% 20%, rgba(220, 38, 38, 0.03) 0%, transparent 50%)",
-                "radial-gradient(circle at 40% 40%, rgba(220, 38, 38, 0.03) 0%, transparent 50%)",
+                'radial-gradient(circle at 20% 50%, rgba(220, 38, 38, 0.15) 0%, transparent 50%)',
+                'radial-gradient(circle at 80% 50%, rgba(220, 38, 38, 0.15) 0%, transparent 50%)',
+                'radial-gradient(circle at 50% 20%, rgba(220, 38, 38, 0.15) 0%, transparent 50%)',
+                'radial-gradient(circle at 20% 50%, rgba(220, 38, 38, 0.15) 0%, transparent 50%)'
               ]
             }}
-            transition={{ 
-              duration: 8, 
-              repeat: Infinity, 
-              ease: "easeInOut"
-            }}
+            transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
           />
         </div>
 
@@ -56,11 +56,11 @@ export default function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.2, delay: 0.3 }}
             >
-              <span className="text-text-primary">MaalCa</span>
+              <span className="text-text-primary">{t('hero.maalca')}</span>
               <br />
-              <span className="text-brand-primary">Ecosistema</span>
+              <span className="text-brand-primary">{t('hero.ecosystem')}</span>
               <br />
-              <span className="text-text-secondary">Creativo</span>
+              <span className="text-text-secondary">{t('hero.creative')}</span>
             </motion.h1>
 
             <motion.p
@@ -69,7 +69,7 @@ export default function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.6 }}
             >
-              Con corazón dominicano y espíritu global
+              {t('hero.subtitle')}
             </motion.p>
 
             <motion.div
@@ -84,7 +84,7 @@ export default function HomePage() {
                 className="bg-brand-primary hover:bg-brand-primary-hover text-white border-brand-primary hover:border-brand-primary-hover text-lg px-10 py-3"
                 onClick={() => scrollToSection('ecosistema')}
               >
-                Conoce nuestros proyectos
+                {t('hero.cta.projects')}
               </Button>
               <Button
                 variant="outline"
@@ -92,7 +92,7 @@ export default function HomePage() {
                 className="border-text-primary text-text-primary hover:bg-text-primary hover:text-background text-lg px-10 py-3"
                 onClick={() => window.location.href = '/ecosistema'}
               >
-                Únete al ecosistema
+                {t('hero.cta.join')}
               </Button>
               <div className="ml-4">
                 <ThemeSwitch />
@@ -134,11 +134,10 @@ export default function HomePage() {
             transition={{ duration: 0.8 }}
           >
             <h2 className="font-display text-4xl lg:text-5xl font-bold text-text-primary mb-8">
-              Sobre MaalCa
+              {t('about.title')}
             </h2>
             <p className="text-lg lg:text-xl text-text-secondary max-w-3xl mx-auto leading-relaxed">
-              Somos un ecosistema creativo y empresarial que conecta ideas, personas y proyectos. 
-              Desde República Dominicana hacia el mundo, construimos puentes entre la creatividad y los negocios.
+              {t('about.description')}
             </p>
           </motion.div>
 
@@ -147,18 +146,18 @@ export default function HomePage() {
             {[
               {
                 year: "2020",
-                title: "Fundación",
-                description: "Nace MaalCa como concepto creativo en República Dominicana"
+                titleKey: "about.foundation",
+                descKey: "about.foundation.desc"
               },
               {
-                year: "2022", 
-                title: "Expansión",
-                description: "Crecimiento del ecosistema con múltiples verticales de negocio"
+                year: "2022",
+                titleKey: "about.expansion",
+                descKey: "about.expansion.desc"
               },
               {
                 year: "2024",
-                title: "Consolidación",
-                description: "MaalCa LLC establecida en Elmira, NY con proyectos globales"
+                titleKey: "about.consolidation",
+                descKey: "about.consolidation.desc"
               }
             ].map((item, index) => (
               <motion.div
@@ -170,8 +169,36 @@ export default function HomePage() {
                 transition={{ duration: 0.6, delay: index * 0.2 }}
               >
                 <div className="text-5xl font-bold text-brand-primary mb-4">{item.year}</div>
-                <h3 className="text-xl font-bold text-text-primary mb-4">{item.title}</h3>
-                <p className="text-text-secondary leading-relaxed">{item.description}</p>
+                <h3 className="text-xl font-bold text-text-primary mb-4">{t(item.titleKey)}</h3>
+                <p className="text-text-secondary leading-relaxed">{t(item.descKey)}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* STATS SECTION WITH ANIMATED COUNTERS */}
+      <section className="py-16 md:py-24 bg-surface-elevated">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {[
+              { number: 7, label: 'Proyectos Activos', suffix: '+' },
+              { number: 50, label: 'Colaboradores', suffix: '+' },
+              { number: 1000, label: 'Clientes Satisfechos', suffix: '+' },
+              { number: 5, label: 'Años de Experiencia', suffix: '' }
+            ].map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                className="text-center"
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <div className="text-5xl font-black text-red-600 dark:text-red-500 mb-2">
+                  <Counter to={stat.number} duration={2} />{stat.suffix}
+                </div>
+                <div className="text-text-secondary font-medium">{stat.label}</div>
               </motion.div>
             ))}
           </div>
@@ -179,7 +206,7 @@ export default function HomePage() {
       </section>
 
       {/* Ecosystem / Projects Section */}
-      <section id="ecosistema" className="py-16 md:py-24 bg-surface-elevated">
+      <section id="ecosistema" className="py-16 md:py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             className="text-center mb-16"
@@ -189,10 +216,10 @@ export default function HomePage() {
             transition={{ duration: 0.8 }}
           >
             <h2 className="font-display text-4xl lg:text-5xl font-bold text-text-primary mb-8">
-              Nuestro Ecosistema
+              {t('projects.title')}
             </h2>
             <p className="text-lg lg:text-xl text-text-secondary max-w-3xl mx-auto leading-relaxed">
-              Proyectos diversos que reflejan nuestra pasión por la creatividad, la innovación y la comunidad
+              {t('projects.description')}
             </p>
           </motion.div>
 
@@ -200,120 +227,120 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
-                title: "Editorial MaalCa",
-                description: "Publicaciones que exploran cultura, creatividad y sociedad con distribución global en Amazon KDP",
-                category: "Editorial + KDP",
-                outcome: "Libros publicados y distribuidos globalmente",
+                titleKey: "project.editorial.title",
+                descriptionKey: "project.editorial.description",
+                categoryKey: "project.editorial.category",
+                outcomeKey: "project.editorial.outcome",
                 color: "red",
                 image: "/images/projects/editorial-maalca.svg",
                 href: "/editorial"
               },
               {
-                title: "CiriWhispers",
-                description: "Autor y escritor creativo especializado en narrativas íntimas y conversaciones profundas",
-                category: "Autor + Escritor Creativo",
-                outcome: "Contenido auténtico y conexiones humanas genuinas",
+                titleKey: "project.ciriwhispers.title",
+                descriptionKey: "project.ciriwhispers.description",
+                categoryKey: "project.ciriwhispers.category",
+                outcomeKey: "project.ciriwhispers.outcome",
                 color: "gray",
                 image: "/images/projects/ciriwhispers.png",
                 href: "/ciriwhispers"
               },
               {
-                title: "CiriSonic",
-                description: "Fábrica de contenido IA con automatización inteligente y estrategia de engagement optimizada",
-                category: "Fábrica IA",
-                outcome: "Contenido automatizado y engagement aumentado",
+                titleKey: "project.cirisonic.title",
+                descriptionKey: "project.cirisonic.description",
+                categoryKey: "project.cirisonic.category",
+                outcomeKey: "project.cirisonic.outcome",
                 color: "red",
                 image: "/images/projects/cirisonic.svg",
                 href: "/cirisonic"
               },
               {
-                title: "Hablando Mierda (HBM)",
-                description: "Podcast y plataforma de conversaciones sin filtros",
-                category: "Podcast + Media",
-                outcome: "Comunidad activa y monetización por episodio",
+                titleKey: "project.hbm.title",
+                descriptionKey: "project.hbm.description",
+                categoryKey: "project.hbm.category",
+                outcomeKey: "project.hbm.outcome",
                 color: "red",
                 image: "/images/projects/hbm-podcast.svg",
                 href: "/hablando-mierda"
               },
               {
-                title: "Masa Tina",
-                description: "Experiencias gastronómicas con catálogo, POS y procesamiento Stripe integrado",
-                category: "Catálogo + POS + Stripe",
-                outcome: "Ventas procesadas y experiencias entregadas",
+                titleKey: "project.cocinatina.title",
+                descriptionKey: "project.cocinatina.description",
+                categoryKey: "project.cocinatina.category",
+                outcomeKey: "project.cocinatina.outcome",
                 color: "gray",
                 image: "/images/projects/masa-tina.svg",
                 href: "/masa-tina"
               },
               {
-                title: "Verde Privé",
-                description: "Lifestyle cannabis premium con máxima privacidad y calidad artesanal para adultos conscientes",
-                category: "Cannabis + Lifestyle",
-                outcome: "Experiencias premium y bienestar entregados discretamente",
+                titleKey: "project.verdeprive.title",
+                descriptionKey: "project.verdeprive.description",
+                categoryKey: "project.verdeprive.category",
+                outcomeKey: "project.verdeprive.outcome",
                 color: "red",
                 image: "/images/projects/verde-prive.svg",
                 href: "/verde-prive"
               },
               {
-                title: "MaalCa Properties",
-                description: "Propiedades turísticas frente al océano en República Dominicana, conectando clientes globales con el paraíso caribeño",
-                category: "Turismo + Real Estate",
-                outcome: "Propiedades vendidas a inversores globales",
+                titleKey: "project.properties.title",
+                descriptionKey: "project.properties.description",
+                categoryKey: "project.properties.category",
+                outcomeKey: "project.properties.outcome",
                 color: "gray",
                 image: "/images/projects/maalca-properties.svg",
                 href: "/maalca-properties"
               },
             ].map((project, index) => (
               <motion.div
-                key={project.title}
-                className="group cursor-pointer"
+                key={project.titleKey}
+                className="group relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl p-8 border-2 border-slate-200 dark:border-gray-700 hover:border-red-500 dark:hover:border-red-400 transition-all duration-500 shadow-2xl hover:shadow-red-500/30 hover:-translate-y-4 cursor-pointer"
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
-                whileHover={{ y: -8 }}
                 onClick={() => handleProjectClick(project.href)}
               >
-                  <div className="bg-surface rounded-2xl p-6 h-full border border-border hover:border-brand-primary/50 transition-all duration-300 shadow-sm hover:shadow-lg">
-                  {/* Project Image */}
-                  <ProjectImage 
-                    src={project.image} 
-                    alt={project.title}
+                {/* Project Image with OVERLAY */}
+                <div className="relative overflow-hidden rounded-2xl mb-6 group-hover:shadow-2xl transition-shadow">
+                  <ProjectImage
+                    src={project.image}
+                    alt={t(project.titleKey)}
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-red-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                </div>
 
-                  <div className={`inline-block px-3 py-1 rounded-full text-xs font-medium mb-4 ${
-                    project.color === 'red' 
-                      ? 'bg-brand-primary/20 text-brand-primary border border-brand-primary/30' 
-                      : 'bg-surface-elevated text-text-secondary border border-border'
-                  }`}>
-                    {project.category}
-                  </div>
-                  
-                  <h3 className="text-xl font-bold text-text-primary mb-3 group-hover:text-brand-primary transition-colors">
-                    {project.title}
-                  </h3>
-                  
-                  <p className="text-text-secondary leading-relaxed text-sm mb-4">
-                    {project.description}
-                  </p>
+                <div className={`inline-block px-3 py-1 rounded-full text-xs font-medium mb-4 ${
+                  project.color === 'red'
+                    ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-300 dark:border-red-700'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600'
+                }`}>
+                  {t(project.categoryKey)}
+                </div>
 
-                  <div className="text-xs text-text-muted mb-6 font-medium">
-                    ✓ {project.outcome}
-                  </div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                  {t(project.titleKey)}
+                </h3>
 
-                  <div className="mt-auto">
-                    <div className="w-full bg-transparent border border-brand-primary/20 text-brand-primary group-hover:bg-brand-primary group-hover:text-white transition-all duration-300 rounded-lg px-4 py-2 text-sm text-center">
-                      Ver proyecto
-                      <motion.span
-                        className="ml-2 inline-block"
-                        animate={{ x: [0, 3, 0] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                      >
-                        →
-                      </motion.span>
-                    </div>
-                  </div>
-                  </div>
-                </motion.div>
+                <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-sm mb-4">
+                  {t(project.descriptionKey)}
+                </p>
+
+                <div className="text-xs text-gray-500 dark:text-gray-400 mb-6 font-medium">
+                  ✓ {t(project.outcomeKey)}
+                </div>
+
+                {/* FUNCTIONAL BUTTON WITH DRAMATIC STYLING */}
+                <div className="mt-auto">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleProjectClick(project.href);
+                    }}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                  >
+                    {t('common.viewProject')} →
+                  </button>
+                </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -330,10 +357,10 @@ export default function HomePage() {
             transition={{ duration: 0.8 }}
           >
             <h2 className="font-display text-4xl lg:text-5xl font-bold text-text-primary mb-8">
-              Afiliados y Partners
+              {t('affiliates.title')}
             </h2>
             <p className="text-lg text-text-secondary max-w-3xl mx-auto leading-relaxed">
-              Colaboradores que comparten nuestra visión y potencian nuestro ecosistema
+              {t('affiliates.description')}
             </p>
           </motion.div>
 
@@ -341,44 +368,44 @@ export default function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
             {[
               {
-                name: "Pegote Barbershop",
-                description: "Barbería dominicana en Elmira, NY",
+                nameKey: "affiliate.pegote.name",
+                descriptionKey: "affiliate.pegote.description",
                 href: "/pegote-barber",
                 initials: "PB"
               },
               {
-                name: "Studio Alpha", 
-                description: "Estudio creativo",
+                nameKey: "affiliate.studioalpha.name",
+                descriptionKey: "affiliate.studioalpha.description",
                 href: "#",
                 initials: "SA"
               },
               {
-                name: "Creative Hub",
-                description: "Hub de creatividad",
-                href: "#", 
+                nameKey: "affiliate.creativehub.name",
+                descriptionKey: "affiliate.creativehub.description",
+                href: "#",
                 initials: "CH"
               },
               {
-                name: "Design Co.",
-                description: "Compañía de diseño",
+                nameKey: "affiliate.designco.name",
+                descriptionKey: "affiliate.designco.description",
                 href: "#",
                 initials: "DC"
               },
               {
-                name: "Media Lab",
-                description: "Laboratorio de medios",
+                nameKey: "affiliate.medialab.name",
+                descriptionKey: "affiliate.medialab.description",
                 href: "#",
                 initials: "ML"
               },
               {
-                name: "Art Collective",
-                description: "Colectivo artístico", 
+                nameKey: "affiliate.artcollective.name",
+                descriptionKey: "affiliate.artcollective.description",
                 href: "#",
                 initials: "AC"
               }
             ].map((affiliate, index) => (
               <motion.div
-                key={affiliate.name}
+                key={affiliate.nameKey}
                 className="group text-center cursor-pointer"
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
@@ -393,10 +420,10 @@ export default function HomePage() {
                   </span>
                 </div>
                 <p className="text-text-primary text-sm group-hover:text-brand-primary transition-colors font-medium">
-                  {affiliate.name}
+                  {t(affiliate.nameKey)}
                 </p>
                 <p className="text-text-muted text-xs mt-1">
-                  {affiliate.description}
+                  {t(affiliate.descriptionKey)}
                 </p>
               </motion.div>
             ))}
@@ -415,7 +442,7 @@ export default function HomePage() {
             viewport={{ once: true }}
             transition={{ duration: 1.2 }}
           >
-            "Donde la creatividad se encuentra con la comunidad y la innovación"
+            "{t('quote.philosophy')}"
           </motion.blockquote>
           
           <motion.div
@@ -440,28 +467,28 @@ export default function HomePage() {
               transition={{ duration: 0.8 }}
             >
               <h2 className="font-display text-4xl lg:text-5xl font-bold text-white mb-8">
-                Conecta con nosotros
+                {t('contact.title')}
               </h2>
-              
+
               <form className="space-y-6">
                 <div>
                   <input
                     type="text"
-                    placeholder="Nombre"
+                    placeholder={t('contact.name')}
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-6 py-4 text-white placeholder-gray-400 focus:outline-none focus:border-red-600 transition-colors"
                   />
                 </div>
                 <div>
                   <input
                     type="email"
-                    placeholder="Correo electrónico"
+                    placeholder={t('contact.email')}
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-6 py-4 text-white placeholder-gray-400 focus:outline-none focus:border-red-600 transition-colors"
                   />
                 </div>
                 <div>
                   <textarea
                     rows={6}
-                    placeholder="Mensaje"
+                    placeholder={t('contact.message')}
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-6 py-4 text-white placeholder-gray-400 focus:outline-none focus:border-red-600 transition-colors resize-none"
                   />
                 </div>
@@ -470,7 +497,7 @@ export default function HomePage() {
                   size="lg"
                   className="w-full bg-red-600 hover:bg-red-700 text-white text-lg py-4"
                 >
-                  Enviar mensaje
+                  {t('contact.send')}
                 </Button>
               </form>
             </motion.div>
@@ -487,19 +514,19 @@ export default function HomePage() {
                   <h3 className="text-2xl font-bold text-white mb-4">MaalCa LLC</h3>
                   <p className="text-gray-400 leading-relaxed">
                     Elmira, NY<br />
-                    Estados Unidos
+                    {t('contact.location')}
                   </p>
                 </div>
 
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-4">Correo</h3>
+                  <h3 className="text-xl font-bold text-white mb-4">{t('contact.emailLabel')}</h3>
                   <a href="mailto:hello@maalca.com" className="text-red-400 hover:text-red-300 transition-colors">
                     hello@maalca.com
                   </a>
                 </div>
 
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-6">Síguenos</h3>
+                  <h3 className="text-xl font-bold text-white mb-6">{t('contact.followUs')}</h3>
                   <div className="flex space-x-6">
                     {[
                       { name: "Instagram", icon: "📷" },

@@ -1,0 +1,539 @@
+/* =============================================================================
+   SEMANTIC CSS CLASSES
+   Reusable classes based on design tokens
+   ============================================================================= */
+
+/* =============================================================================
+   TEXT CLASSES
+   ============================================================================= */
+
+.text-primary {
+  color: var(--color-text-primary);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-tertiary {
+  color: var(--color-text-tertiary);
+}
+
+.text-accent {
+  color: var(--color-text-accent);
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-inverse {
+  color: var(--color-text-inverse);
+}
+
+.text-link {
+  color: var(--color-text-link);
+  transition: var(--transition-colors);
+}
+
+.text-link:hover {
+  color: var(--color-text-link-hover);
+}
+
+/* =============================================================================
+   BACKGROUND CLASSES
+   ============================================================================= */
+
+.bg-primary {
+  background-color: var(--color-bg-primary);
+}
+
+.bg-secondary {
+  background-color: var(--color-bg-secondary);
+}
+
+.bg-tertiary {
+  background-color: var(--color-bg-tertiary);
+}
+
+.bg-accent {
+  background-color: var(--color-bg-accent);
+}
+
+.bg-overlay {
+  background-color: var(--color-bg-overlay);
+}
+
+.bg-glass {
+  background-color: var(--color-bg-glass);
+  backdrop-filter: var(--backdrop-blur-lg);
+}
+
+/* =============================================================================
+   SURFACE CLASSES
+   ============================================================================= */
+
+.surface-primary {
+  background-color: var(--color-surface-primary);
+  border: 1px solid var(--color-border-primary);
+}
+
+.surface-secondary {
+  background-color: var(--color-surface-secondary);
+  border: 1px solid var(--color-border-secondary);
+}
+
+.surface-elevated {
+  background-color: var(--color-surface-elevated);
+  box-shadow: var(--elevation-2);
+  border: 1px solid var(--color-border-primary);
+}
+
+.surface-overlay {
+  background-color: var(--color-surface-overlay);
+  backdrop-filter: var(--backdrop-blur-lg);
+}
+
+/* =============================================================================
+   BORDER CLASSES
+   ============================================================================= */
+
+.border-primary {
+  border-color: var(--color-border-primary);
+}
+
+.border-secondary {
+  border-color: var(--color-border-secondary);
+}
+
+.border-accent {
+  border-color: var(--color-border-accent);
+}
+
+.border-focus {
+  border-color: var(--color-border-focus);
+}
+
+/* =============================================================================
+   BRAND CLASSES
+   ============================================================================= */
+
+.brand-primary {
+  color: var(--color-brand-primary);
+}
+
+.brand-secondary {
+  color: var(--color-brand-secondary);
+}
+
+.bg-brand-primary {
+  background-color: var(--color-brand-primary);
+}
+
+.bg-brand-secondary {
+  background-color: var(--color-brand-secondary);
+}
+
+.bg-brand-tertiary {
+  background-color: var(--color-brand-tertiary);
+}
+
+/* =============================================================================
+   STATUS CLASSES
+   ============================================================================= */
+
+.text-success {
+  color: var(--color-success);
+}
+
+.text-warning {
+  color: var(--color-warning);
+}
+
+.text-error {
+  color: var(--color-error);
+}
+
+.text-info {
+  color: var(--color-info);
+}
+
+.bg-success {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.bg-warning {
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.bg-error {
+  background-color: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+.bg-info {
+  background-color: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+/* =============================================================================
+   TYPOGRAPHY CLASSES
+   ============================================================================= */
+
+.heading-1 {
+  font-family: var(--font-display);
+  font-size: var(--typography-heading-1-size);
+  font-weight: var(--typography-heading-1-weight);
+  line-height: var(--typography-heading-1-line-height);
+  letter-spacing: var(--typography-heading-1-letter-spacing);
+  color: var(--color-text-primary);
+}
+
+.heading-2 {
+  font-family: var(--font-display);
+  font-size: var(--typography-heading-2-size);
+  font-weight: var(--typography-heading-2-weight);
+  line-height: var(--typography-heading-2-line-height);
+  letter-spacing: var(--typography-heading-2-letter-spacing);
+  color: var(--color-text-primary);
+}
+
+.heading-3 {
+  font-family: var(--font-display);
+  font-size: var(--typography-heading-3-size);
+  font-weight: var(--typography-heading-3-weight);
+  line-height: var(--typography-heading-3-line-height);
+  color: var(--color-text-primary);
+}
+
+.heading-4 {
+  font-family: var(--font-body);
+  font-size: var(--typography-heading-4-size);
+  font-weight: var(--typography-heading-4-weight);
+  line-height: var(--typography-heading-4-line-height);
+  color: var(--color-text-primary);
+}
+
+.body-large {
+  font-family: var(--font-body);
+  font-size: var(--typography-body-large-size);
+  font-weight: var(--typography-body-large-weight);
+  line-height: var(--typography-body-large-line-height);
+  color: var(--color-text-primary);
+}
+
+.body {
+  font-family: var(--font-body);
+  font-size: var(--typography-body-size);
+  font-weight: var(--typography-body-weight);
+  line-height: var(--typography-body-line-height);
+  color: var(--color-text-primary);
+}
+
+.body-small {
+  font-family: var(--font-body);
+  font-size: var(--typography-body-small-size);
+  font-weight: var(--typography-body-small-weight);
+  line-height: var(--typography-body-small-line-height);
+  color: var(--color-text-secondary);
+}
+
+.caption {
+  font-family: var(--font-body);
+  font-size: var(--typography-caption-size);
+  font-weight: var(--typography-caption-weight);
+  line-height: var(--typography-caption-line-height);
+  letter-spacing: var(--typography-caption-letter-spacing);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+}
+
+/* =============================================================================
+   LAYOUT CLASSES
+   ============================================================================= */
+
+.spacing-component-xs {
+  gap: var(--spacing-component-xs);
+}
+
+.spacing-component-sm {
+  gap: var(--spacing-component-sm);
+}
+
+.spacing-component-md {
+  gap: var(--spacing-component-md);
+}
+
+.spacing-component-lg {
+  gap: var(--spacing-component-lg);
+}
+
+.spacing-component-xl {
+  gap: var(--spacing-component-xl);
+}
+
+.spacing-layout-xs {
+  gap: var(--spacing-layout-xs);
+}
+
+.spacing-layout-sm {
+  gap: var(--spacing-layout-sm);
+}
+
+.spacing-layout-md {
+  gap: var(--spacing-layout-md);
+}
+
+.spacing-layout-lg {
+  gap: var(--spacing-layout-lg);
+}
+
+.spacing-layout-xl {
+  gap: var(--spacing-layout-xl);
+}
+
+.section-spacing-xs {
+  padding-block: var(--spacing-section-xs);
+}
+
+.section-spacing-sm {
+  padding-block: var(--spacing-section-sm);
+}
+
+.section-spacing-md {
+  padding-block: var(--spacing-section-md);
+}
+
+.section-spacing-lg {
+  padding-block: var(--spacing-section-lg);
+}
+
+.section-spacing-xl {
+  padding-block: var(--spacing-section-xl);
+}
+
+.container-padding {
+  padding-inline: var(--container-padding-mobile);
+}
+
+@media (min-width: 768px) {
+  .container-padding {
+    padding-inline: var(--container-padding-tablet);
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-padding {
+    padding-inline: var(--container-padding-desktop);
+  }
+}
+
+/* =============================================================================
+   EFFECT CLASSES
+   ============================================================================= */
+
+.elevation-0 {
+  box-shadow: var(--elevation-0);
+}
+
+.elevation-1 {
+  box-shadow: var(--elevation-1);
+}
+
+.elevation-2 {
+  box-shadow: var(--elevation-2);
+}
+
+.elevation-3 {
+  box-shadow: var(--elevation-3);
+}
+
+.elevation-4 {
+  box-shadow: var(--elevation-4);
+}
+
+.elevation-5 {
+  box-shadow: var(--elevation-5);
+}
+
+.shadow-luxury {
+  box-shadow: var(--shadow-luxury);
+}
+
+.shadow-premium {
+  box-shadow: var(--shadow-premium);
+}
+
+.shadow-glow-blue {
+  box-shadow: var(--shadow-glow-blue);
+}
+
+.shadow-glow-amber {
+  box-shadow: var(--shadow-glow-amber);
+}
+
+.radius-button {
+  border-radius: var(--radius-button);
+}
+
+.radius-card {
+  border-radius: var(--radius-card);
+}
+
+.radius-modal {
+  border-radius: var(--radius-modal);
+}
+
+.radius-premium {
+  border-radius: var(--radius-premium);
+}
+
+.transition-fast {
+  transition: var(--transition-fast);
+}
+
+.transition-base {
+  transition: var(--transition-base);
+}
+
+.transition-slow {
+  transition: var(--transition-slow);
+}
+
+.transition-colors {
+  transition: var(--transition-colors);
+}
+
+.transition-transform {
+  transition: var(--transition-transform);
+}
+
+.transition-all {
+  transition: var(--transition-all);
+}
+
+/* =============================================================================
+   GRADIENT CLASSES
+   ============================================================================= */
+
+.gradient-primary {
+  background: var(--gradient-primary-light);
+}
+
+.gradient-secondary {
+  background: var(--gradient-secondary-light);
+}
+
+.gradient-accent {
+  background: var(--gradient-accent);
+}
+
+.gradient-hero {
+  background: var(--gradient-hero-light);
+}
+
+.gradient-caribbean {
+  background: var(--gradient-caribbean);
+}
+
+.gradient-sunset {
+  background: var(--gradient-sunset);
+}
+
+.text-gradient-caribbean {
+  background: var(--gradient-caribbean);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme="dark"] .gradient-primary {
+  background: var(--gradient-primary-dark);
+}
+
+[data-theme="dark"] .gradient-secondary {
+  background: var(--gradient-secondary-dark);
+}
+
+[data-theme="dark"] .gradient-hero {
+  background: var(--gradient-hero-dark);
+}
+
+/* =============================================================================
+   UTILITY CLASSES
+   ============================================================================= */
+
+.opacity-disabled {
+  opacity: var(--opacity-disabled);
+}
+
+.opacity-muted {
+  opacity: var(--opacity-muted);
+}
+
+.opacity-subtle {
+  opacity: var(--opacity-subtle);
+}
+
+.opacity-overlay {
+  opacity: var(--opacity-overlay);
+}
+
+.backdrop-blur-sm {
+  backdrop-filter: var(--backdrop-blur-sm);
+}
+
+.backdrop-blur-md {
+  backdrop-filter: var(--backdrop-blur-md);
+}
+
+.backdrop-blur-lg {
+  backdrop-filter: var(--backdrop-blur-lg);
+}
+
+.backdrop-blur-xl {
+  backdrop-filter: var(--backdrop-blur-xl);
+}
+
+/* =============================================================================
+   INTERACTIVE STATES
+   ============================================================================= */
+
+.interactive {
+  transition: var(--transition-all);
+  cursor: pointer;
+}
+
+.interactive:hover {
+  transform: translateY(-1px);
+}
+
+.interactive:active {
+  transform: translateY(0);
+}
+
+.interactive-scale {
+  transition: var(--transition-transform);
+  cursor: pointer;
+}
+
+.interactive-scale:hover {
+  transform: scale(1.02);
+}
+
+.interactive-scale:active {
+  transform: scale(0.98);
+}
+
+/* Focus styles */
+.focus-ring {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}

@@ -1,9 +1,9 @@
 "use client";
 
-import { useLanguage } from "@/hooks/useLanguage";
+import { useSimpleLanguage } from "@/hooks/useSimpleLanguage";
 
-export default function LanguageToggle() {
-  const { language, setLanguage } = useLanguage();
+export function LanguageToggle() {
+  const { language, setLanguage } = useSimpleLanguage();
 
   return (
     <button

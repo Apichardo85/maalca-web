@@ -1,0 +1,47 @@
+/* =============================================================================
+   DESIGN TOKENS - MAIN INDEX
+   Import all design token files
+   ============================================================================= */
+
+@import './colors.css';
+@import './spacing.css';
+@import './typography.css';
+@import './effects.css';
+
+/* =============================================================================
+   THEME UTILITIES
+   ============================================================================= */
+
+/* Ensure smooth transitions for theme changes */
+* {
+  transition: var(--transition-colors);
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Theme transition helper for manual theme switching */
+.theme-transition * {
+  transition: var(--transition-colors) !important;
+}
+
+/* Theme debugging utility (remove in production) */
+.debug-theme::before {
+  content: 'Theme: ' attr(data-theme);
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: monospace;
+  z-index: 9999;
+  border: 1px solid var(--color-border-primary);
+}

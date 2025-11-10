@@ -3,132 +3,141 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import { useRouter } from "next/navigation";
-
-const services = [
-  {
-    id: "editorial-kdp",
-    title: "Editorial + Amazon KDP",
-    description: "Desde la conceptualización hasta la distribución global de tu contenido",
-    icon: "📚",
-    features: [
-      "Redacción y edición profesional",
-      "Diseño de portada y maquetación",
-      "Configuración en Amazon KDP",
-      "Distribución global automática",
-      "Marketing de lanzamiento",
-      "Análisis de métricas de ventas"
-    ],
-    pricing: "Desde $2,500",
-    timeline: "4-6 semanas"
-  },
-  {
-    id: "fabrica-ia",
-    title: "Fábrica de Contenido IA",
-    description: "Automatización inteligente de tu estrategia de contenido con IA",
-    icon: "🤖",
-    features: [
-      "Sistema de autopost calendárizado",
-      "Generación de contenido personalizado",
-      "Optimización para engagement",
-      "Analytics en tiempo real",
-      "A/B testing automatizado",
-      "Integración con todas las plataformas"
-    ],
-    pricing: "Desde $1,800/mes",
-    timeline: "2-3 semanas setup"
-  },
-  {
-    id: "podcast-media",
-    title: "Producción Podcast + Media",
-    description: "Tu voz al mundo con producción profesional y distribución estratégica",
-    icon: "🎙️",
-    features: [
-      "Producción de audio profesional",
-      "Edición y post-producción",
-      "Distribución en todas las plataformas",
-      "Creación de audiencias",
-      "Monetización desde el primer episodio",
-      "Branding completo del show"
-    ],
-    pricing: "Desde $3,200",
-    timeline: "3-4 semanas"
-  },
-  {
-    id: "pos-ecommerce",
-    title: "Catálogo + POS + Stripe",
-    description: "Solución completa de ventas online con procesamiento de pagos integrado",
-    icon: "💳",
-    features: [
-      "Catálogo digital profesional",
-      "Sistema POS integrado",
-      "Procesamiento Stripe",
-      "Gestión de inventario",
-      "Dashboard de ventas",
-      "Soporte técnico 24/7"
-    ],
-    pricing: "Desde $4,500",
-    timeline: "6-8 semanas"
-  },
-  {
-    id: "proptech-real-estate",
-    title: "PropTech + Real Estate",
-    description: "Tecnología inmobiliaria para maximizar tus inversiones turísticas",
-    icon: "🏝️",
-    features: [
-      "Plataforma de gestión de propiedades",
-      "Marketing digital especializado",
-      "Captación de inversores globales",
-      "Análisis de ROI automatizado",
-      "Documentación legal completa",
-      "Seguimiento post-venta"
-    ],
-    pricing: "Consultoría personalizada",
-    timeline: "8-12 semanas"
-  },
-  {
-    id: "consultoria-integral",
-    title: "Consultoría Integral",
-    description: "Acompañamiento estratégico para escalar tu negocio con sentido humano",
-    icon: "💡",
-    features: [
-      "Análisis profundo del negocio",
-      "Estrategia de crecimiento personalizada",
-      "Implementación paso a paso",
-      "Mentoring ejecutivo",
-      "Acceso a nuestro network",
-      "Seguimiento mensual"
-    ],
-    pricing: "Desde $8,000",
-    timeline: "Ongoing"
-  }
-];
-
-const process = [
-  {
-    step: "01",
-    title: "Conversación Inicial",
-    description: "Entendemos tu visión, objetivos y desafíos específicos"
-  },
-  {
-    step: "02", 
-    title: "Estrategia Personalizada",
-    description: "Diseñamos una propuesta única adaptada a tus necesidades"
-  },
-  {
-    step: "03",
-    title: "Implementación",
-    description: "Ejecutamos con excelencia mientras te mantenemos informado"
-  },
-  {
-    step: "04",
-    title: "Lanzamiento y Optimización",
-    description: "Ponemos en marcha y optimizamos basado en resultados reales"
-  }
-];
+import { useTranslation } from "@/hooks/useSimpleLanguage";
 
 export default function ServiciosPage() {
   const router = useRouter();
-  
+  const { t } = useTranslation();
+
+  // Define services with translation keys
+  const services = [
+    {
+      id: "editorial-kdp",
+      icon: "📚",
+      titleKey: "services.editorial-kdp.title",
+      descriptionKey: "services.editorial-kdp.description",
+      features: [
+        "services.editorial-kdp.feature1",
+        "services.editorial-kdp.feature2",
+        "services.editorial-kdp.feature3",
+        "services.editorial-kdp.feature4",
+        "services.editorial-kdp.feature5",
+        "services.editorial-kdp.feature6"
+      ],
+      pricingKey: "services.editorial-kdp.pricing",
+      timelineKey: "services.editorial-kdp.timeline"
+    },
+    {
+      id: "fabrica-ia",
+      icon: "🤖",
+      titleKey: "services.fabrica-ia.title",
+      descriptionKey: "services.fabrica-ia.description",
+      features: [
+        "services.fabrica-ia.feature1",
+        "services.fabrica-ia.feature2",
+        "services.fabrica-ia.feature3",
+        "services.fabrica-ia.feature4",
+        "services.fabrica-ia.feature5",
+        "services.fabrica-ia.feature6"
+      ],
+      pricingKey: "services.fabrica-ia.pricing",
+      timelineKey: "services.fabrica-ia.timeline"
+    },
+    {
+      id: "podcast-media",
+      icon: "🎙️",
+      titleKey: "services.podcast-media.title",
+      descriptionKey: "services.podcast-media.description",
+      features: [
+        "services.podcast-media.feature1",
+        "services.podcast-media.feature2",
+        "services.podcast-media.feature3",
+        "services.podcast-media.feature4",
+        "services.podcast-media.feature5",
+        "services.podcast-media.feature6"
+      ],
+      pricingKey: "services.podcast-media.pricing",
+      timelineKey: "services.podcast-media.timeline"
+    },
+    {
+      id: "pos-ecommerce",
+      icon: "💳",
+      titleKey: "services.pos-ecommerce.title",
+      descriptionKey: "services.pos-ecommerce.description",
+      features: [
+        "services.pos-ecommerce.feature1",
+        "services.pos-ecommerce.feature2",
+        "services.pos-ecommerce.feature3",
+        "services.pos-ecommerce.feature4",
+        "services.pos-ecommerce.feature5",
+        "services.pos-ecommerce.feature6"
+      ],
+      pricingKey: "services.pos-ecommerce.pricing",
+      timelineKey: "services.pos-ecommerce.timeline"
+    },
+    {
+      id: "proptech-real-estate",
+      icon: "🏝️",
+      titleKey: "services.proptech.title",
+      descriptionKey: "services.proptech.description",
+      features: [
+        "services.proptech.feature1",
+        "services.proptech.feature2",
+        "services.proptech.feature3",
+        "services.proptech.feature4",
+        "services.proptech.feature5",
+        "services.proptech.feature6"
+      ],
+      pricingKey: "services.proptech.pricing",
+      timelineKey: "services.proptech.timeline"
+    },
+    {
+      id: "consultoria-integral",
+      icon: "💡",
+      titleKey: "services.consultoria.title",
+      descriptionKey: "services.consultoria.description",
+      features: [
+        "services.consultoria.feature1",
+        "services.consultoria.feature2",
+        "services.consultoria.feature3",
+        "services.consultoria.feature4",
+        "services.consultoria.feature5",
+        "services.consultoria.feature6"
+      ],
+      pricingKey: "services.consultoria.pricing",
+      timelineKey: "services.consultoria.timeline"
+    }
+  ];
+
+  const process = [
+    {
+      step: "01",
+      titleKey: "services.process.step1.title",
+      descriptionKey: "services.process.step1.description"
+    },
+    {
+      step: "02",
+      titleKey: "services.process.step2.title",
+      descriptionKey: "services.process.step2.description"
+    },
+    {
+      step: "03",
+      titleKey: "services.process.step3.title",
+      descriptionKey: "services.process.step3.description"
+    },
+    {
+      step: "04",
+      titleKey: "services.process.step4.title",
+      descriptionKey: "services.process.step4.description"
+    }
+  ];
+
+  const stats = [
+    { metricKey: "services.results.metric1", labelKey: "services.results.metric1.label" },
+    { metricKey: "services.results.metric2", labelKey: "services.results.metric2.label" },
+    { metricKey: "services.results.metric3", labelKey: "services.results.metric3.label" }
+  ];
+
   return (
     <main className="min-h-screen bg-background text-foreground pt-20">
       {/* Hero Section */}
@@ -141,12 +150,11 @@ export default function ServiciosPage() {
               transition={{ duration: 0.8 }}
             >
               <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-text-primary mb-6">
-                Servicios con
-                <span className="block text-brand-primary">Sentido Humano</span>
+                {t('services.hero.title')}
+                <span className="block text-brand-primary">{t('services.hero.subtitle')}</span>
               </h1>
               <p className="text-lg lg:text-xl text-text-secondary max-w-3xl mx-auto leading-relaxed">
-                Transformamos ideas en realidades rentables. Cada servicio está diseñado 
-                para generar resultados tangibles mientras mantenemos la esencia humana en cada proyecto.
+                {t('services.hero.description')}
               </p>
             </motion.div>
           </div>
@@ -164,10 +172,10 @@ export default function ServiciosPage() {
             transition={{ duration: 0.8 }}
           >
             <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-6">
-              Nuestros Servicios
+              {t('services.section.title')}
             </h2>
             <p className="text-lg text-text-secondary max-w-2xl mx-auto">
-              Soluciones integrales que combinan tecnología de punta con estrategia humanizada
+              {t('services.section.description')}
             </p>
           </motion.div>
 
@@ -184,23 +192,23 @@ export default function ServiciosPage() {
                 <div className="bg-surface rounded-2xl p-8 h-full border border-border hover:border-brand-primary/30 transition-all duration-300 shadow-sm hover:shadow-xl">
                   {/* Icon */}
                   <div className="text-4xl mb-6">{service.icon}</div>
-                  
+
                   {/* Title */}
                   <h3 className="text-xl font-bold text-text-primary mb-4 group-hover:text-brand-primary transition-colors">
-                    {service.title}
+                    {t(service.titleKey)}
                   </h3>
-                  
+
                   {/* Description */}
                   <p className="text-text-secondary mb-6 leading-relaxed">
-                    {service.description}
+                    {t(service.descriptionKey)}
                   </p>
 
                   {/* Features */}
                   <ul className="space-y-2 mb-8">
-                    {service.features.map((feature, idx) => (
+                    {service.features.map((featureKey, idx) => (
                       <li key={idx} className="flex items-start gap-2 text-sm text-text-secondary">
                         <div className="w-1.5 h-1.5 bg-brand-primary rounded-full mt-2 flex-shrink-0"></div>
-                        {feature}
+                        {t(featureKey)}
                       </li>
                     ))}
                   </ul>
@@ -208,12 +216,12 @@ export default function ServiciosPage() {
                   {/* Pricing and Timeline */}
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-text-muted">Inversión:</span>
-                      <span className="font-semibold text-brand-primary">{service.pricing}</span>
+                      <span className="text-sm text-text-muted">{t('services.investment')}</span>
+                      <span className="font-semibold text-brand-primary">{t(service.pricingKey)}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-text-muted">Timeline:</span>
-                      <span className="font-semibold text-text-secondary">{service.timeline}</span>
+                      <span className="text-sm text-text-muted">{t('services.timeline')}</span>
+                      <span className="font-semibold text-text-secondary">{t(service.timelineKey)}</span>
                     </div>
                   </div>
 
@@ -222,7 +230,7 @@ export default function ServiciosPage() {
                     variant="outline"
                     className="w-full bg-transparent border-brand-primary/20 text-brand-primary hover:bg-brand-primary hover:text-white transition-all duration-300"
                   >
-                    Más Información
+                    {t('services.moreInfo')}
                   </Button>
                 </div>
               </motion.div>
@@ -242,10 +250,10 @@ export default function ServiciosPage() {
             transition={{ duration: 0.8 }}
           >
             <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-6">
-              Nuestro Proceso
+              {t('services.process.title')}
             </h2>
             <p className="text-lg text-text-secondary max-w-2xl mx-auto">
-              Un enfoque sistemático que garantiza resultados mientras mantenemos la comunicación transparente
+              {t('services.process.description')}
             </p>
           </motion.div>
 
@@ -264,15 +272,15 @@ export default function ServiciosPage() {
                   <div className="w-16 h-16 bg-brand-primary/10 border-2 border-brand-primary rounded-full flex items-center justify-center mx-auto mb-6">
                     <span className="text-brand-primary font-bold text-lg">{step.step}</span>
                   </div>
-                  
+
                   {/* Title */}
                   <h3 className="text-xl font-bold text-text-primary mb-4">
-                    {step.title}
+                    {t(step.titleKey)}
                   </h3>
-                  
+
                   {/* Description */}
                   <p className="text-text-secondary leading-relaxed">
-                    {step.description}
+                    {t(step.descriptionKey)}
                   </p>
                 </div>
 
@@ -297,19 +305,15 @@ export default function ServiciosPage() {
             transition={{ duration: 0.8 }}
           >
             <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-6">
-              Resultados Reales
+              {t('services.results.title')}
             </h2>
             <p className="text-lg text-text-secondary max-w-2xl mx-auto mb-8">
-              Nuestros clientes no solo obtienen servicios, obtienen resultados medibles y crecimiento sostenible
+              {t('services.results.description')}
             </p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            {[
-              { metric: "200%", label: "Crecimiento promedio en engagement" },
-              { metric: "15+", label: "Proyectos lanzados exitosamente" },
-              { metric: "98%", label: "Satisfacción del cliente" }
-            ].map((stat, index) => (
+            {stats.map((stat, index) => (
               <motion.div
                 key={index}
                 className="text-center p-8 bg-surface rounded-2xl border border-border"
@@ -318,8 +322,8 @@ export default function ServiciosPage() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.2 }}
               >
-                <div className="text-4xl font-bold text-brand-primary mb-2">{stat.metric}</div>
-                <div className="text-text-secondary">{stat.label}</div>
+                <div className="text-4xl font-bold text-brand-primary mb-2">{t(stat.metricKey)}</div>
+                <div className="text-text-secondary">{t(stat.labelKey)}</div>
               </motion.div>
             ))}
           </div>
@@ -331,7 +335,7 @@ export default function ServiciosPage() {
               className="border-text-primary text-text-primary hover:bg-text-primary hover:text-background"
               onClick={() => router.push('/casos-estudio')}
             >
-              Ver Casos de Estudio Completos
+              {t('services.results.cta')}
             </Button>
           </div>
         </div>
@@ -347,11 +351,10 @@ export default function ServiciosPage() {
             transition={{ duration: 0.8 }}
           >
             <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-6">
-              ¿Listo para transformar tu proyecto?
+              {t('services.cta.title')}
             </h2>
             <p className="text-lg text-text-secondary mb-8 max-w-2xl mx-auto">
-              Cada proyecto único merece una propuesta personalizada. 
-              Conversemos sobre tu visión y creemos algo extraordinario juntos.
+              {t('services.cta.description')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
@@ -359,14 +362,14 @@ export default function ServiciosPage() {
                 size="lg"
                 className="bg-brand-primary hover:bg-brand-primary-hover"
               >
-                Solicitar Consulta Gratuita
+                {t('services.cta.consultation')}
               </Button>
               <Button
                 variant="outline"
                 size="lg"
                 className="border-text-primary text-text-primary hover:bg-text-primary hover:text-background"
               >
-                Ver Nuestro Portafolio
+                {t('services.cta.portfolio')}
               </Button>
             </div>
           </motion.div>

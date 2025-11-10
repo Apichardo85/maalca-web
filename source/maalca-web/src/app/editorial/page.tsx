@@ -4,120 +4,128 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { useTranslation } from "@/hooks/useSimpleLanguage";
 import ProfessionalReader from "@/components/editorial/ProfessionalReader";
 import { editorialArticles } from "@/data/editorialContent";
 
-const articles = [
+// Article metadata (translation keys will be used for title/excerpt)
+const articlesData = [
   {
     id: "filosofia-calle-2024",
-    title: "Filosofía de la Calle: Reflexiones desde el Asfalto Dominicano",
-    excerpt: "Una exploración profunda sobre cómo la sabiduría popular dominicana se convierte en filosofía práctica para la vida moderna.",
-    category: "Filosofía",
-    readTime: "12 min",
+    titleKey: "filosofia-calle",
+    categoryKey: "philosophy",
+    readTime: "12",
     publishDate: "2024-03-15",
-    author: "MaalCa Editorial",
     featured: true,
     tags: ["Filosofía", "Cultura", "República Dominicana"]
   },
   {
     id: "creatividad-humana-ia",
-    title: "Creatividad Humana en la Era de la IA: Mantener el Alma en el Arte",
-    excerpt: "Análisis de cómo los creadores pueden mantener su esencia humana mientras abrazan las herramientas de inteligencia artificial.",
-    category: "Tecnología",
-    readTime: "8 min",
+    titleKey: "creatividad-ia",
+    categoryKey: "technology",
+    readTime: "8",
     publishDate: "2024-02-28",
-    author: "MaalCa Editorial",
     featured: false,
     tags: ["IA", "Creatividad", "Tecnología"]
   },
   {
     id: "ecosistemas-creativos",
-    title: "Construyendo Ecosistemas Creativos: Lecciones desde el Caribe",
-    excerpt: "Cómo crear redes de colaboración auténticas que nutran tanto la creatividad individual como el crecimiento colectivo.",
-    category: "Negocios",
-    readTime: "15 min",
+    titleKey: "ecosistemas-creativos",
+    categoryKey: "business",
+    readTime: "15",
     publishDate: "2024-02-10",
-    author: "MaalCa Editorial",
     featured: true,
     tags: ["Negocios", "Creatividad", "Colaboración"]
   },
   {
     id: "identidad-global-local",
-    title: "Identidad Global con Corazón Local: El Dilema del Creador Moderno",
-    excerpt: "Reflexiones sobre mantener las raíces culturales mientras se compite en un mercado global digitalizado.",
-    category: "Cultura",
-    readTime: "10 min",
+    titleKey: "identidad-global",
+    categoryKey: "culture",
+    readTime: "10",
     publishDate: "2024-01-22",
-    author: "MaalCa Editorial",
     featured: false,
     tags: ["Cultura", "Globalización", "Identidad"]
   },
   {
     id: "futuro-trabajo-humano",
-    title: "El Futuro del Trabajo Humano: Más Allá de la Productividad",
-    excerpt: "Una visión alternativa del trabajo que prioriza el bienestar, la creatividad y la conexión humana por encima de la eficiencia pura.",
-    category: "Sociedad",
-    readTime: "14 min",
+    titleKey: "futuro-trabajo",
+    categoryKey: "society",
+    readTime: "14",
     publishDate: "2024-01-08",
-    author: "MaalCa Editorial",
     featured: false,
     tags: ["Trabajo", "Sociedad", "Bienestar"]
   },
   {
     id: "arte-resistencia-digital",
-    title: "Arte como Resistencia en la Era Digital",
-    excerpt: "Cómo los artistas latinoamericanos utilizan medios digitales para preservar y transformar narrativas culturales.",
-    category: "Arte",
-    readTime: "11 min",
+    titleKey: "arte-resistencia",
+    categoryKey: "art",
+    readTime: "11",
     publishDate: "2023-12-18",
-    author: "MaalCa Editorial",
     featured: false,
     tags: ["Arte", "Digital", "Resistencia"]
   }
 ];
 
-const categories = ["Todos", "Filosofía", "Tecnología", "Negocios", "Cultura", "Sociedad", "Arte"];
-
-const books = [
+// Book metadata (translation keys will be used)
+const booksData = [
   {
-    title: "Filosofía Callejera: Sabiduría del Asfalto Dominicano",
-    description: "Una colección de reflexiones filosóficas nacidas en las calles de República Dominicana",
-    status: "Disponible en Amazon KDP",
+    key: "filosofia-callejera",
     cover: "🏙️",
-    link: "#"
+    link: "#",
+    statusType: "available"
   },
   {
-    title: "Ecosistemas Creativos: Manual para Constructores de Cultura",
-    description: "Guía práctica para crear y mantener comunidades creativas sostenibles",
-    status: "Próximamente",
+    key: "ecosistemas",
     cover: "🌱",
-    link: "#"
+    link: "#",
+    statusType: "coming"
   },
   {
-    title: "Humanidad Digital: Preservando el Alma en Tiempos Tecnológicos",
-    description: "Reflexiones sobre mantener nuestra esencia humana en un mundo cada vez más digital",
-    status: "En desarrollo",
+    key: "humanidad-digital",
     cover: "🤖",
-    link: "#"
+    link: "#",
+    statusType: "development"
   }
 ];
 
+// Category keys
+const categoryKeys = ["all", "philosophy", "technology", "business", "culture", "society", "art"];
+
 export default function EditorialPage() {
-  const [selectedCategory, setSelectedCategory] = useState("Todos");
+  const { t, language } = useTranslation();
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedArticle, setSelectedArticle] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const { trackArticleClick } = useAnalytics('editorial');
 
-  const filteredArticles = selectedCategory === "Todos"
+  // Transform articles data with translations
+  const articles = articlesData.map(article => ({
+    ...article,
+    title: t(`editorial.article.${article.titleKey}.title`),
+    excerpt: t(`editorial.article.${article.titleKey}.excerpt`),
+    category: t(`editorial.category.${article.categoryKey}`),
+    author: t('editorial.author')
+  }));
+
+  // Filter articles
+  const filteredArticles = selectedCategory === "all"
     ? articles
-    : articles.filter(article => article.category === selectedCategory);
+    : articles.filter(article => article.categoryKey === selectedCategory);
 
   const featuredArticles = articles.filter(article => article.featured);
 
+  // Transform books data with translations
+  const books = booksData.map(book => ({
+    ...book,
+    title: t(`editorial.book.${book.key}.title`),
+    description: t(`editorial.book.${book.key}.description`),
+    status: t(`editorial.book.${book.key}.status`)
+  }));
+
   const getArticleContent = (articleId: string) => {
-    return editorialArticles[articleId as keyof typeof editorialArticles] || "Contenido no disponible";
+    return editorialArticles[articleId as keyof typeof editorialArticles] || t('editorial.contentNotAvailable');
   };
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
@@ -135,13 +143,13 @@ export default function EditorialPage() {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage('¡Suscripción exitosa! Revisa tu email.');
+        setMessage(t('editorial.newsletter.success'));
         setEmail('');
       } else {
-        setMessage(data.error || 'Error al suscribirse');
+        setMessage(data.error || t('editorial.newsletter.error'));
       }
     } catch (error) {
-      setMessage('Error de conexión. Intenta de nuevo.');
+      setMessage(t('editorial.newsletter.errorConnection'));
     } finally {
       setIsSubmitting(false);
     }
@@ -159,12 +167,11 @@ export default function EditorialPage() {
               transition={{ duration: 0.8 }}
             >
               <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-text-primary mb-6">
-                Editorial
-                <span className="block text-brand-primary">MaalCa</span>
+                {t('editorial.hero.title')}
+                <span className="block text-brand-primary">{t('editorial.hero.brand')}</span>
               </h1>
               <p className="text-lg lg:text-xl text-text-secondary max-w-3xl mx-auto leading-relaxed">
-                Exploramos la intersección entre filosofía, cultura y sociedad contemporánea.
-                Pensamientos profundos con la autenticidad del Caribe y la perspectiva global.
+                {t('editorial.hero.description')}
               </p>
             </motion.div>
           </div>
@@ -182,7 +189,7 @@ export default function EditorialPage() {
             transition={{ duration: 0.8 }}
           >
             <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-4">
-              Artículos Destacados
+              {t('editorial.featured.title')}
             </h2>
           </motion.div>
 
@@ -213,7 +220,7 @@ export default function EditorialPage() {
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-brand-primary/20 text-brand-primary border border-brand-primary/30">
                         {article.category}
                       </span>
-                      <span className="text-sm text-text-muted">{article.readTime}</span>
+                      <span className="text-sm text-text-muted">{article.readTime} {t('editorial.readTime')}</span>
                     </div>
 
                     {/* Title */}
@@ -230,7 +237,7 @@ export default function EditorialPage() {
                     <div className="flex items-center justify-between text-sm text-text-muted">
                       <span>{article.author}</span>
                       <time dateTime={article.publishDate}>
-                        {new Date(article.publishDate).toLocaleDateString('es-ES', {
+                        {new Date(article.publishDate).toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric'
@@ -257,22 +264,22 @@ export default function EditorialPage() {
             transition={{ duration: 0.8 }}
           >
             <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-8">
-              Todos los Artículos
+              {t('editorial.all.title')}
             </h2>
 
             {/* Category Filter */}
             <div className="flex flex-wrap gap-2">
-              {categories.map((category) => (
+              {categoryKeys.map((categoryKey) => (
                 <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
+                  key={categoryKey}
+                  onClick={() => setSelectedCategory(categoryKey)}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                    selectedCategory === category
+                    selectedCategory === categoryKey
                       ? 'bg-brand-primary text-text-primary'
                       : 'bg-surface-elevated text-text-secondary hover:bg-brand-primary/20 hover:text-brand-primary border border-border'
                   }`}
                 >
-                  {category}
+                  {t(`editorial.category.${categoryKey}`)}
                 </button>
               ))}
             </div>
@@ -325,9 +332,9 @@ export default function EditorialPage() {
 
                   {/* Meta */}
                   <div className="flex items-center justify-between text-xs text-text-muted pt-3 border-t border-border">
-                    <span>{article.readTime}</span>
+                    <span>{article.readTime} {t('editorial.readTime')}</span>
                     <time dateTime={article.publishDate}>
-                      {new Date(article.publishDate).toLocaleDateString('es-ES')}
+                      {new Date(article.publishDate).toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US')}
                     </time>
                   </div>
                 </div>
@@ -348,10 +355,10 @@ export default function EditorialPage() {
             transition={{ duration: 0.8 }}
           >
             <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-6">
-              Nuestros Libros
+              {t('editorial.books.title')}
             </h2>
             <p className="text-lg text-text-secondary max-w-2xl mx-auto">
-              Pensamientos profundos compilados en formato libro, disponibles globalmente a través de Amazon KDP
+              {t('editorial.books.description')}
             </p>
           </motion.div>
 
@@ -382,9 +389,9 @@ export default function EditorialPage() {
                   {/* Status */}
                   <div className="mb-6">
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                      book.status === 'Disponible en Amazon KDP'
+                      book.statusType === 'available'
                         ? 'bg-green-900/30 text-green-400 border border-green-700'
-                        : book.status === 'Próximamente'
+                        : book.statusType === 'coming'
                         ? 'bg-blue-900/30 text-blue-400 border border-blue-700'
                         : 'bg-orange-900/30 text-orange-400 border border-orange-700'
                     }`}>
@@ -394,14 +401,14 @@ export default function EditorialPage() {
 
                   {/* CTA */}
                   <Button
-                    variant={book.status === 'Disponible en Amazon KDP' ? 'primary' : 'outline'}
-                    className={book.status === 'Disponible en Amazon KDP'
+                    variant={book.statusType === 'available' ? 'primary' : 'outline'}
+                    className={book.statusType === 'available'
                       ? 'bg-brand-primary hover:bg-brand-primary-hover w-full text-text-primary'
                       : 'w-full border-brand-primary/50 text-brand-primary hover:bg-brand-primary hover:text-text-primary'
                     }
-                    disabled={book.status !== 'Disponible en Amazon KDP'}
+                    disabled={book.statusType !== 'available'}
                   >
-                    {book.status === 'Disponible en Amazon KDP' ? 'Comprar en Amazon' : 'Próximamente'}
+                    {book.statusType === 'available' ? t('editorial.book.cta.buy') : t('editorial.book.cta.comingSoon')}
                   </Button>
                 </div>
               </motion.div>
@@ -420,11 +427,10 @@ export default function EditorialPage() {
             transition={{ duration: 0.8 }}
           >
             <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-6">
-              Mantente Conectado
+              {t('editorial.newsletter.title')}
             </h2>
             <p className="text-lg text-text-secondary mb-8 max-w-2xl mx-auto">
-              Recibe nuestros artículos más profundos directamente en tu correo.
-              Filosofía, cultura y reflexiones auténticas desde el Caribe.
+              {t('editorial.newsletter.description')}
             </p>
 
             {/* Newsletter Form */}
@@ -434,7 +440,7 @@ export default function EditorialPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tu@email.com"
+                  placeholder={t('editorial.newsletter.placeholder')}
                   required
                   disabled={isSubmitting}
                   className="flex-1 px-4 py-3 bg-surface-elevated border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-brand-primary transition-colors text-text-primary placeholder-gray-400 disabled:opacity-50"
@@ -445,20 +451,20 @@ export default function EditorialPage() {
                   disabled={isSubmitting}
                   className="bg-brand-primary hover:bg-brand-primary-hover px-6 text-text-primary disabled:opacity-50"
                 >
-                  {isSubmitting ? 'Enviando...' : 'Suscribirse'}
+                  {isSubmitting ? t('editorial.newsletter.submitting') : t('editorial.newsletter.submit')}
                 </Button>
               </div>
 
               {message && (
                 <p className={`text-sm mt-2 ${
-                  message.includes('exitosa') ? 'text-green-400' : 'text-brand-primary'
+                  message.includes(t('editorial.newsletter.success')) || message.includes('exitosa') ? 'text-green-400' : 'text-brand-primary'
                 }`}>
                   {message}
                 </p>
               )}
 
               <p className="text-xs text-text-muted mt-2">
-                Sin spam. Solo reflexiones profundas cada semana.
+                {t('editorial.newsletter.disclaimer')}
               </p>
             </form>
           </motion.div>
@@ -470,8 +476,8 @@ export default function EditorialPage() {
         {selectedArticle && (
           <ProfessionalReader
             articleId={selectedArticle}
-            title={articles.find(a => a.id === selectedArticle)?.title || "Artículo"}
-            author="Editorial MaalCa"
+            title={articles.find(a => a.id === selectedArticle)?.title || t('editorial.hero.title')}
+            author={t('editorial.author')}
             content={getArticleContent(selectedArticle)}
             onClose={() => setSelectedArticle(null)}
           />

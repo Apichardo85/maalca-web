@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useTranslation } from './useSimpleLanguage';
 
 export interface FormErrors {
   [key: string]: string;
@@ -18,6 +19,7 @@ export const useFormValidation = <T extends Record<string, any>>(
   initialData: T,
   validationRules: ValidationRules
 ) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<T>(initialData);
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -29,7 +31,7 @@ export const useFormValidation = <T extends Record<string, any>>(
 
     // Required validation
     if (rules.required && (!value || value.trim() === '')) {
-      return 'Este campo es requerido';
+      return t('validation.required');
     }
 
     // Skip other validations if field is empty and not required
@@ -37,20 +39,20 @@ export const useFormValidation = <T extends Record<string, any>>(
 
     // Min length validation
     if (rules.minLength && value.length < rules.minLength) {
-      return `Debe tener al menos ${rules.minLength} caracteres`;
+      return t('validation.minLength').replace('{min}', rules.minLength.toString());
     }
 
     // Max length validation
     if (rules.maxLength && value.length > rules.maxLength) {
-      return `No puede exceder ${rules.maxLength} caracteres`;
+      return t('validation.maxLength').replace('{max}', rules.maxLength.toString());
     }
 
     // Pattern validation
     if (rules.pattern && !rules.pattern.test(value)) {
       if (name === 'email') {
-        return 'Por favor ingresa un email válido';
+        return t('validation.emailInvalid');
       }
-      return 'Formato inválido';
+      return t('validation.formatInvalid');
     }
 
     // Custom validation
@@ -60,7 +62,7 @@ export const useFormValidation = <T extends Record<string, any>>(
     }
 
     return '';
-  }, [validationRules]);
+  }, [validationRules, t]);
 
   const handleChange = useCallback((
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>

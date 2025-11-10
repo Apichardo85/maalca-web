@@ -1,0 +1,366 @@
+/* =============================================================================
+   CARD COMPONENTS
+   Semantic card styles using design tokens
+   ============================================================================= */
+
+/* =============================================================================
+   BASE CARD
+   ============================================================================= */
+
+.card {
+  background-color: var(--color-surface-primary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-card);
+  box-shadow: var(--elevation-1);
+  transition: var(--transition-all);
+  overflow: hidden;
+}
+
+.card:hover {
+  box-shadow: var(--elevation-2);
+  transform: translateY(-1px);
+}
+
+/* =============================================================================
+   CARD VARIANTS
+   ============================================================================= */
+
+/* Elevated Card */
+.card-elevated {
+  background-color: var(--color-surface-elevated);
+  box-shadow: var(--elevation-3);
+}
+
+.card-elevated:hover {
+  box-shadow: var(--elevation-4);
+  transform: translateY(-2px);
+}
+
+/* Flat Card */
+.card-flat {
+  box-shadow: none;
+  border: 1px solid var(--color-border-secondary);
+}
+
+.card-flat:hover {
+  border-color: var(--color-border-primary);
+  box-shadow: var(--elevation-1);
+}
+
+/* Outline Card */
+.card-outline {
+  background-color: transparent;
+  border: 2px solid var(--color-border-primary);
+  box-shadow: none;
+}
+
+.card-outline:hover {
+  border-color: var(--color-border-accent);
+  background-color: var(--color-surface-primary);
+}
+
+/* Glass Card */
+.card-glass {
+  background-color: var(--color-bg-glass);
+  backdrop-filter: var(--backdrop-blur-lg);
+  border: 1px solid var(--color-border-primary);
+}
+
+.card-glass:hover {
+  background-color: var(--color-surface-overlay);
+  box-shadow: var(--elevation-2);
+}
+
+/* =============================================================================
+   PREMIUM CARD VARIANTS
+   ============================================================================= */
+
+/* Premium Card */
+.card-premium {
+  background-color: var(--color-surface-primary);
+  border-radius: var(--radius-premium);
+  box-shadow: var(--shadow-luxury);
+  border: 1px solid var(--color-border-primary);
+  overflow: hidden;
+  transition: var(--transition-slow);
+}
+
+.card-premium:hover {
+  transform: translateY(-12px) scale(1.02);
+  box-shadow: var(--shadow-premium);
+  border-color: var(--color-sunset-200);
+}
+
+/* Luxury Card */
+.card-luxury {
+  background: var(--gradient-primary);
+  border-radius: var(--radius-premium);
+  box-shadow: var(--shadow-luxury);
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-luxury::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--gradient-sunset);
+  opacity: 0;
+  transition: var(--transition-slow);
+}
+
+.card-luxury:hover::before {
+  opacity: 0.1;
+}
+
+.card-luxury:hover {
+  transform: translateY(-8px) scale(1.01);
+  box-shadow: var(--shadow-premium);
+}
+
+/* =============================================================================
+   CARD SIZES
+   ============================================================================= */
+
+.card-sm {
+  padding: var(--spacing-component-md);
+  border-radius: var(--radius-lg);
+}
+
+.card-md {
+  padding: var(--spacing-layout-xs);
+  border-radius: var(--radius-card);
+}
+
+.card-lg {
+  padding: var(--spacing-layout-sm);
+  border-radius: var(--radius-xl);
+}
+
+.card-xl {
+  padding: var(--spacing-layout-md);
+  border-radius: var(--radius-premium);
+}
+
+/* =============================================================================
+   CARD COMPONENTS
+   ============================================================================= */
+
+/* Card Header */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-component-md);
+  padding: var(--spacing-layout-xs);
+  border-bottom: 1px solid var(--color-border-primary);
+  background-color: var(--color-surface-secondary);
+}
+
+.card-header:first-child {
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+}
+
+/* Card Content */
+.card-content {
+  padding: var(--spacing-layout-xs);
+}
+
+.card-header + .card-content {
+  padding-top: var(--spacing-layout-xs);
+}
+
+/* Card Footer */
+.card-footer {
+  padding: var(--spacing-layout-xs);
+  border-top: 1px solid var(--color-border-primary);
+  background-color: var(--color-surface-secondary);
+  margin-top: auto;
+}
+
+.card-footer:last-child {
+  border-bottom-left-radius: inherit;
+  border-bottom-right-radius: inherit;
+}
+
+/* Card Title */
+.card-title {
+  font-family: var(--font-display);
+  font-size: var(--typography-heading-4-size);
+  font-weight: var(--typography-heading-4-weight);
+  line-height: var(--typography-heading-4-line-height);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+/* Card Description */
+.card-description {
+  font-size: var(--typography-body-size);
+  color: var(--color-text-secondary);
+  line-height: var(--typography-body-line-height);
+  margin: 0;
+}
+
+/* Card Image */
+.card-image {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  display: block;
+}
+
+.card-image-container {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-surface-secondary);
+}
+
+.card-image-container .card-image {
+  transition: var(--transition-slow);
+}
+
+.card:hover .card-image {
+  transform: scale(1.05);
+}
+
+/* =============================================================================
+   CARD LAYOUTS
+   ============================================================================= */
+
+/* Horizontal Card */
+.card-horizontal {
+  display: flex;
+  align-items: stretch;
+}
+
+.card-horizontal .card-image-container {
+  flex: 0 0 auto;
+  width: 200px;
+}
+
+.card-horizontal .card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Vertical Card */
+.card-vertical {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.card-vertical .card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Card Grid */
+.card-grid {
+  display: grid;
+  gap: var(--spacing-layout-md);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+@media (max-width: 768px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-layout-sm);
+  }
+}
+
+/* =============================================================================
+   INTERACTIVE CARD STATES
+   ============================================================================= */
+
+/* Clickable Card */
+.card-clickable {
+  cursor: pointer;
+  transition: var(--transition-all);
+}
+
+.card-clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--elevation-3);
+}
+
+.card-clickable:active {
+  transform: translateY(-1px);
+  box-shadow: var(--elevation-2);
+}
+
+/* Selected Card */
+.card-selected {
+  border-color: var(--color-border-accent);
+  box-shadow: var(--elevation-2);
+  background-color: var(--color-bg-accent);
+}
+
+/* Loading Card */
+.card-loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.card-loading::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-bg-overlay);
+  border-radius: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-loading::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid var(--color-border-primary);
+  border-top-color: var(--color-brand-primary);
+  border-radius: var(--radius-full);
+  animation: card-loading-spin 1s linear infinite;
+  z-index: 1;
+}
+
+@keyframes card-loading-spin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* =============================================================================
+   STATUS CARDS
+   ============================================================================= */
+
+.card-success {
+  border-left: 4px solid var(--color-success);
+  background-color: var(--color-success-bg);
+}
+
+.card-warning {
+  border-left: 4px solid var(--color-warning);
+  background-color: var(--color-warning-bg);
+}
+
+.card-error {
+  border-left: 4px solid var(--color-error);
+  background-color: var(--color-error-bg);
+}
+
+.card-info {
+  border-left: 4px solid var(--color-info);
+  background-color: var(--color-info-bg);
+}

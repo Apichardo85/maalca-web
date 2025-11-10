@@ -1,0 +1,88 @@
+/* =============================================================================
+   DESIGN TOKENS - TYPOGRAPHY SYSTEM
+   ============================================================================= */
+
+:root {
+  /* Font families */
+  --font-display: var(--font-playfair), 'Playfair Display', serif;
+  --font-body: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-luxury: 'Cormorant Garamond', serif;
+  --font-mono: 'JetBrains Mono', Consolas, Monaco, 'Courier New', monospace;
+
+  /* Font weights */
+  --font-weight-thin: 100;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --font-weight-black: 900;
+
+  /* Font sizes */
+  --font-size-xs: 0.75rem;      /* 12px */
+  --font-size-sm: 0.875rem;     /* 14px */
+  --font-size-base: 1rem;       /* 16px */
+  --font-size-lg: 1.125rem;     /* 18px */
+  --font-size-xl: 1.25rem;      /* 20px */
+  --font-size-2xl: 1.5rem;      /* 24px */
+  --font-size-3xl: 1.875rem;    /* 30px */
+  --font-size-4xl: 2.25rem;     /* 36px */
+  --font-size-5xl: 3rem;        /* 48px */
+  --font-size-6xl: 3.75rem;     /* 60px */
+  --font-size-7xl: 4.5rem;      /* 72px */
+  --font-size-8xl: 6rem;        /* 96px */
+  --font-size-9xl: 8rem;        /* 128px */
+
+  /* Line heights */
+  --line-height-none: 1;
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+
+  /* Letter spacing */
+  --letter-spacing-tighter: -0.05em;
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0em;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+  --letter-spacing-widest: 0.1em;
+
+  /* Semantic typography tokens */
+  --typography-heading-1-size: clamp(2.5rem, 8vw, 4.5rem);
+  --typography-heading-1-weight: var(--font-weight-light);
+  --typography-heading-1-line-height: var(--line-height-tight);
+  --typography-heading-1-letter-spacing: var(--letter-spacing-tight);
+
+  --typography-heading-2-size: clamp(2rem, 6vw, 3.75rem);
+  --typography-heading-2-weight: var(--font-weight-light);
+  --typography-heading-2-line-height: var(--line-height-tight);
+  --typography-heading-2-letter-spacing: var(--letter-spacing-tight);
+
+  --typography-heading-3-size: clamp(1.5rem, 4vw, 2.25rem);
+  --typography-heading-3-weight: var(--font-weight-normal);
+  --typography-heading-3-line-height: var(--line-height-snug);
+
+  --typography-heading-4-size: var(--font-size-xl);
+  --typography-heading-4-weight: var(--font-weight-medium);
+  --typography-heading-4-line-height: var(--line-height-snug);
+
+  --typography-body-large-size: var(--font-size-lg);
+  --typography-body-large-weight: var(--font-weight-normal);
+  --typography-body-large-line-height: var(--line-height-relaxed);
+
+  --typography-body-size: var(--font-size-base);
+  --typography-body-weight: var(--font-weight-normal);
+  --typography-body-line-height: var(--line-height-normal);
+
+  --typography-body-small-size: var(--font-size-sm);
+  --typography-body-small-weight: var(--font-weight-normal);
+  --typography-body-small-line-height: var(--line-height-normal);
+
+  --typography-caption-size: var(--font-size-xs);
+  --typography-caption-weight: var(--font-weight-medium);
+  --typography-caption-line-height: var(--line-height-normal);
+  --typography-caption-letter-spacing: var(--letter-spacing-wide);
+}

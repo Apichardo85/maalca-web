@@ -1,0 +1,8 @@
+/* =============================================================================
+   COMPONENT STYLES - MAIN INDEX
+   Import all component style files
+   ============================================================================= */
+
+@import './semantic.css';
+@import './buttons.css';
+@import './cards.css';

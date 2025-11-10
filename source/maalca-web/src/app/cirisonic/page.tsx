@@ -3,135 +3,178 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
-
-const services = [
-  {
-    id: "text-ai",
-    icon: "✍️",
-    title: "Textos IA",
-    subtitle: "Content Generation",
-    description: "Artículos, posts, newsletters y copy optimizado generado por IA avanzada con tu tono de marca.",
-    features: ["SEO optimizado", "Múltiples tonos", "Personalización", "Auto-planning"],
-    color: "blue",
-    gradient: "from-blue-500 to-cyan-400"
-  },
-  {
-    id: "image-ai", 
-    icon: "🎨",
-    title: "Imágenes & Logos",
-    subtitle: "Visual Creation",
-    description: "Diseños únicos, logos profesionales e imágenes para redes sociales creadas por IA.",
-    features: ["Marca consistente", "Formatos múltiples", "Estilos variados", "Templates"],
-    color: "purple",
-    gradient: "from-purple-500 to-pink-400"
-  },
-  {
-    id: "audio-ai",
-    icon: "🎧", 
-    title: "Audio Narrado",
-    subtitle: "Voice Synthesis",
-    description: "Convierte texto en audio profesional con voces sintéticas naturales para podcasts y contenido.",
-    features: ["Voces naturales", "Múltiples idiomas", "Emociones", "Música de fondo"],
-    color: "emerald",
-    gradient: "from-emerald-500 to-teal-400"
-  },
-  {
-    id: "video-ai",
-    icon: "🎬",
-    title: "Video Automatizado", 
-    subtitle: "Motion Graphics",
-    description: "Reels, presentaciones y videos promocionales generados automáticamente con IA.",
-    features: ["Templates pro", "Auto-subtitulado", "Transiciones", "Optimización"],
-    color: "orange",
-    gradient: "from-orange-500 to-red-400"
-  }
-];
-
-const useCases = [
-  {
-    title: "Startups",
-    description: "Marketing automatizado sin equipo grande",
-    icon: "🚀",
-    benefits: ["Reduce costos 80%", "Velocidad x10", "Marca consistente", "Escalabilidad"]
-  },
-  {
-    title: "Autores/Creadores",
-    description: "Contenido editorial profesional",
-    icon: "✨",
-    benefits: ["Más audiencia", "Engagement alto", "Contenido diario", "Monetización"]
-  },
-  {
-    title: "PYMEs",
-    description: "Presencia digital sin complicaciones",
-    icon: "🎯",
-    benefits: ["Setup rápido", "ROI medible", "Multi-plataforma", "Auto-gestión"]
-  },
-  {
-    title: "Corporativos",
-    description: "Análisis y escalabilidad empresarial",
-    icon: "📊",
-    benefits: ["Analytics profundo", "Multi-marca", "Compliance", "Integración API"]
-  }
-];
-
-const pricingPlans = [
-  {
-    name: "Starter",
-    price: "$29",
-    period: "mes",
-    description: "Para creadores individuales y startups pequeñas",
-    features: [
-      "50 textos IA/mes",
-      "20 imágenes/mes", 
-      "5 audios/mes",
-      "2 videos/mes",
-      "Plantillas básicas",
-      "Soporte por email"
-    ],
-    available: true,
-    popular: false
-  },
-  {
-    name: "Pro",
-    price: "$79", 
-    period: "mes",
-    description: "Para equipos y empresas en crecimiento",
-    features: [
-      "500 textos IA/mes",
-      "200 imágenes/mes",
-      "50 audios/mes", 
-      "20 videos/mes",
-      "Templates premium",
-      "Analytics avanzado",
-      "Colaboración en equipo",
-      "Soporte prioritario"
-    ],
-    available: false,
-    popular: true
-  },
-  {
-    name: "Enterprise",
-    price: "Custom",
-    period: "contacto",
-    description: "Para organizaciones con necesidades específicas",
-    features: [
-      "Generación ilimitada",
-      "Marca personalizada", 
-      "API dedicada",
-      "Integraciones custom",
-      "Soporte 24/7",
-      "Training personalizado",
-      "SLA garantizado"
-    ],
-    available: false,
-    popular: false
-  }
-];
+import { useTranslation } from "@/hooks/useSimpleLanguage";
 
 export default function CiriSonicPage() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [particleAnimation, setParticleAnimation] = useState(0);
+
+  // Services data - now using translation keys
+  const services = [
+    {
+      id: "text-ai",
+      icon: "✍️",
+      titleKey: "cirisonic.service.text.title",
+      subtitleKey: "cirisonic.service.text.subtitle",
+      descriptionKey: "cirisonic.service.text.description",
+      featureKeys: [
+        "cirisonic.service.text.feature1",
+        "cirisonic.service.text.feature2",
+        "cirisonic.service.text.feature3",
+        "cirisonic.service.text.feature4"
+      ],
+      color: "blue",
+      gradient: "from-blue-500 to-cyan-400"
+    },
+    {
+      id: "image-ai",
+      icon: "🎨",
+      titleKey: "cirisonic.service.image.title",
+      subtitleKey: "cirisonic.service.image.subtitle",
+      descriptionKey: "cirisonic.service.image.description",
+      featureKeys: [
+        "cirisonic.service.image.feature1",
+        "cirisonic.service.image.feature2",
+        "cirisonic.service.image.feature3",
+        "cirisonic.service.image.feature4"
+      ],
+      color: "purple",
+      gradient: "from-purple-500 to-pink-400"
+    },
+    {
+      id: "audio-ai",
+      icon: "🎧",
+      titleKey: "cirisonic.service.audio.title",
+      subtitleKey: "cirisonic.service.audio.subtitle",
+      descriptionKey: "cirisonic.service.audio.description",
+      featureKeys: [
+        "cirisonic.service.audio.feature1",
+        "cirisonic.service.audio.feature2",
+        "cirisonic.service.audio.feature3",
+        "cirisonic.service.audio.feature4"
+      ],
+      color: "emerald",
+      gradient: "from-emerald-500 to-teal-400"
+    },
+    {
+      id: "video-ai",
+      icon: "🎬",
+      titleKey: "cirisonic.service.video.title",
+      subtitleKey: "cirisonic.service.video.subtitle",
+      descriptionKey: "cirisonic.service.video.description",
+      featureKeys: [
+        "cirisonic.service.video.feature1",
+        "cirisonic.service.video.feature2",
+        "cirisonic.service.video.feature3",
+        "cirisonic.service.video.feature4"
+      ],
+      color: "orange",
+      gradient: "from-orange-500 to-red-400"
+    }
+  ];
+
+  const useCases = [
+    {
+      titleKey: "cirisonic.useCase.startups.title",
+      descriptionKey: "cirisonic.useCase.startups.description",
+      icon: "🚀",
+      benefitKeys: [
+        "cirisonic.useCase.startups.benefit1",
+        "cirisonic.useCase.startups.benefit2",
+        "cirisonic.useCase.startups.benefit3",
+        "cirisonic.useCase.startups.benefit4"
+      ]
+    },
+    {
+      titleKey: "cirisonic.useCase.creators.title",
+      descriptionKey: "cirisonic.useCase.creators.description",
+      icon: "✨",
+      benefitKeys: [
+        "cirisonic.useCase.creators.benefit1",
+        "cirisonic.useCase.creators.benefit2",
+        "cirisonic.useCase.creators.benefit3",
+        "cirisonic.useCase.creators.benefit4"
+      ]
+    },
+    {
+      titleKey: "cirisonic.useCase.pymes.title",
+      descriptionKey: "cirisonic.useCase.pymes.description",
+      icon: "🎯",
+      benefitKeys: [
+        "cirisonic.useCase.pymes.benefit1",
+        "cirisonic.useCase.pymes.benefit2",
+        "cirisonic.useCase.pymes.benefit3",
+        "cirisonic.useCase.pymes.benefit4"
+      ]
+    },
+    {
+      titleKey: "cirisonic.useCase.corporate.title",
+      descriptionKey: "cirisonic.useCase.corporate.description",
+      icon: "📊",
+      benefitKeys: [
+        "cirisonic.useCase.corporate.benefit1",
+        "cirisonic.useCase.corporate.benefit2",
+        "cirisonic.useCase.corporate.benefit3",
+        "cirisonic.useCase.corporate.benefit4"
+      ]
+    }
+  ];
+
+  const pricingPlans = [
+    {
+      nameKey: "cirisonic.pricing.starter.name",
+      priceKey: "cirisonic.pricing.starter.price",
+      periodKey: "cirisonic.pricing.starter.period",
+      descriptionKey: "cirisonic.pricing.starter.description",
+      featureKeys: [
+        "cirisonic.pricing.starter.feature1",
+        "cirisonic.pricing.starter.feature2",
+        "cirisonic.pricing.starter.feature3",
+        "cirisonic.pricing.starter.feature4",
+        "cirisonic.pricing.starter.feature5",
+        "cirisonic.pricing.starter.feature6"
+      ],
+      available: true,
+      popular: false
+    },
+    {
+      nameKey: "cirisonic.pricing.pro.name",
+      priceKey: "cirisonic.pricing.pro.price",
+      periodKey: "cirisonic.pricing.pro.period",
+      descriptionKey: "cirisonic.pricing.pro.description",
+      featureKeys: [
+        "cirisonic.pricing.pro.feature1",
+        "cirisonic.pricing.pro.feature2",
+        "cirisonic.pricing.pro.feature3",
+        "cirisonic.pricing.pro.feature4",
+        "cirisonic.pricing.pro.feature5",
+        "cirisonic.pricing.pro.feature6",
+        "cirisonic.pricing.pro.feature7",
+        "cirisonic.pricing.pro.feature8"
+      ],
+      available: false,
+      popular: true
+    },
+    {
+      nameKey: "cirisonic.pricing.enterprise.name",
+      priceKey: "cirisonic.pricing.enterprise.price",
+      periodKey: "cirisonic.pricing.enterprise.period",
+      descriptionKey: "cirisonic.pricing.enterprise.description",
+      featureKeys: [
+        "cirisonic.pricing.enterprise.feature1",
+        "cirisonic.pricing.enterprise.feature2",
+        "cirisonic.pricing.enterprise.feature3",
+        "cirisonic.pricing.enterprise.feature4",
+        "cirisonic.pricing.enterprise.feature5",
+        "cirisonic.pricing.enterprise.feature6",
+        "cirisonic.pricing.enterprise.feature7"
+      ],
+      available: false,
+      popular: false
+    }
+  ];
 
   // Particle animation effect
   useEffect(() => {
@@ -157,7 +200,7 @@ export default function CiriSonicPage() {
         {/* Animated Background */}
         <div className="absolute inset-0 overflow-hidden">
           {/* Grid Pattern */}
-          <div 
+          <div
             className="absolute inset-0 opacity-20"
             style={{
               backgroundImage: `
@@ -167,7 +210,7 @@ export default function CiriSonicPage() {
               backgroundSize: '50px 50px'
             }}
           />
-          
+
           {/* Floating Data Particles */}
           <div className="absolute inset-0">
             {[...Array(20)].map((_, i) => (
@@ -207,7 +250,7 @@ export default function CiriSonicPage() {
           >
             {/* Futuristic Logo */}
             <motion.div
-              animate={{ 
+              animate={{
                 rotateY: [0, 15, -15, 0],
                 scale: [1, 1.05, 1]
               }}
@@ -219,24 +262,24 @@ export default function CiriSonicPage() {
               </div>
             </motion.div>
 
-            <motion.h1 
+            <motion.h1
               className="text-6xl md:text-8xl lg:text-9xl font-black mb-8 leading-tight"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 1 }}
             >
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-purple-400">
-                CiriSonic
+                {t('cirisonic.hero.title')}
               </span>
             </motion.h1>
-            
+
             <motion.h2
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6, duration: 1 }}
               className="text-2xl md:text-4xl lg:text-5xl font-light mb-8 text-gray-300"
             >
-              Fábrica IA de Contenido
+              {t('cirisonic.hero.subtitle')}
             </motion.h2>
 
             <motion.p
@@ -245,9 +288,8 @@ export default function CiriSonicPage() {
               transition={{ delay: 0.9, duration: 1 }}
               className="text-xl md:text-2xl text-gray-400 mb-12 max-w-4xl mx-auto leading-relaxed"
             >
-              La plataforma de inteligencia artificial que genera textos, imágenes, audio y video 
-              con <span className="text-cyan-400 font-semibold">estrategia</span> y 
-              <span className="text-purple-400 font-semibold"> engagement aumentado</span>
+              {t('cirisonic.hero.description.part1')} <span className="text-cyan-400 font-semibold">{t('cirisonic.hero.description.strategy')}</span> {t('cirisonic.hero.description.and')}
+              <span className="text-purple-400 font-semibold"> {t('cirisonic.hero.description.engagement')}</span>
             </motion.p>
 
             <motion.div
@@ -262,7 +304,7 @@ export default function CiriSonicPage() {
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold px-12 py-4 text-xl border-0 shadow-lg shadow-blue-500/25"
                 onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
               >
-                🚀 Solicitar Demo
+                🚀 {t('cirisonic.hero.button.demo')}
               </Button>
               <Button
                 variant="outline"
@@ -270,7 +312,7 @@ export default function CiriSonicPage() {
                 className="border-2 border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black font-bold px-12 py-4 text-xl"
                 onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
               >
-                Ver Funciones
+                {t('cirisonic.hero.button.features')}
               </Button>
             </motion.div>
 
@@ -282,16 +324,16 @@ export default function CiriSonicPage() {
               className="grid grid-cols-3 gap-8 mt-16 max-w-2xl mx-auto"
             >
               {[
-                { value: "10x", label: "Más Rápido" },
-                { value: "80%", label: "Menos Costos" },
-                { value: "24/7", label: "Siempre Activo" }
+                { valueKey: "cirisonic.hero.stat1.value", labelKey: "cirisonic.hero.stat1.label" },
+                { valueKey: "cirisonic.hero.stat2.value", labelKey: "cirisonic.hero.stat2.label" },
+                { valueKey: "cirisonic.hero.stat3.value", labelKey: "cirisonic.hero.stat3.label" }
               ].map((stat, index) => (
                 <div key={index} className="text-center">
                   <div className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 mb-2">
-                    {stat.value}
+                    {t(stat.valueKey)}
                   </div>
                   <div className="text-gray-400 text-sm">
-                    {stat.label}
+                    {t(stat.labelKey)}
                   </div>
                 </div>
               ))}
@@ -306,7 +348,7 @@ export default function CiriSonicPage() {
           className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-blue-400"
         >
           <div className="flex flex-col items-center">
-            <span className="text-sm mb-2 font-medium">Descubrir</span>
+            <span className="text-sm mb-2 font-medium">{t('cirisonic.hero.scroll')}</span>
             <div className="w-0.5 h-16 bg-gradient-to-b from-blue-400 to-transparent rounded-full"></div>
           </div>
         </motion.div>
@@ -317,28 +359,28 @@ export default function CiriSonicPage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <span className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-              CiriSonic
+              {t('cirisonic.hero.title')}
             </span>
-            
+
             <div className="hidden md:flex items-center space-x-6">
               <a href="#features" className="text-gray-300 hover:text-blue-400 transition-colors text-sm">
-                Servicios
+                {t('cirisonic.nav.services')}
               </a>
               <a href="#how-it-works" className="text-gray-300 hover:text-blue-400 transition-colors text-sm">
-                Cómo Funciona
+                {t('cirisonic.nav.howItWorks')}
               </a>
               <a href="#demo" className="text-gray-300 hover:text-blue-400 transition-colors text-sm">
-                Demo
+                {t('cirisonic.nav.demo')}
               </a>
               <a href="#pricing" className="text-gray-300 hover:text-blue-400 transition-colors text-sm">
-                Precios
+                {t('cirisonic.nav.pricing')}
               </a>
               <Button
                 variant="primary"
                 size="sm"
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0"
               >
-                Solicitar Demo
+                {t('cirisonic.nav.requestDemo')}
               </Button>
             </div>
           </div>
@@ -355,11 +397,10 @@ export default function CiriSonicPage() {
             className="text-center mb-20"
           >
             <h2 className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 mb-6">
-              ¿Qué hace CiriSonic?
+              {t('cirisonic.services.title')}
             </h2>
             <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-              Una suite completa de herramientas de IA para crear contenido de nivel profesional 
-              en minutos, no horas.
+              {t('cirisonic.services.description')}
             </p>
           </motion.div>
 
@@ -381,26 +422,26 @@ export default function CiriSonicPage() {
                     </div>
                     <div className="flex-1">
                       <h3 className="text-3xl font-bold text-white mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400 transition-all">
-                        {service.title}
+                        {t(service.titleKey)}
                       </h3>
                       <p className={`text-sm font-medium text-${service.color}-400 mb-4`}>
-                        {service.subtitle}
+                        {t(service.subtitleKey)}
                       </p>
                     </div>
                   </div>
 
                   <p className="text-gray-400 leading-relaxed mb-6 text-lg">
-                    {service.description}
+                    {t(service.descriptionKey)}
                   </p>
 
                   <div className="grid grid-cols-2 gap-3">
-                    {service.features.map((feature, idx) => (
-                      <div 
+                    {service.featureKeys.map((featureKey, idx) => (
+                      <div
                         key={idx}
                         className="flex items-center gap-2 text-sm text-gray-300"
                       >
                         <span className="text-green-400">✓</span>
-                        <span>{feature}</span>
+                        <span>{t(featureKey)}</span>
                       </div>
                     ))}
                   </div>
@@ -410,7 +451,7 @@ export default function CiriSonicPage() {
                       variant="outline"
                       className={`border-2 border-${service.color}-500 text-${service.color}-400 hover:bg-${service.color}-500 hover:text-white font-medium`}
                     >
-                      Ver Demo
+                      {t('cirisonic.services.viewDemo')}
                     </Button>
                   </div>
                 </div>
@@ -430,43 +471,43 @@ export default function CiriSonicPage() {
             className="text-center mb-20"
           >
             <h2 className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 mb-6">
-              Cómo Funciona
+              {t('cirisonic.howItWorks.title')}
             </h2>
             <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-              Un proceso simple de 4 pasos que transforma tus ideas en contenido viral
+              {t('cirisonic.howItWorks.description')}
             </p>
           </motion.div>
 
           <div className="grid md:grid-cols-4 gap-8 relative">
             {/* Connection Lines */}
             <div className="hidden md:block absolute top-16 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-500 opacity-30"></div>
-            
+
             {[
               {
                 step: "1",
-                title: "Genera",
-                description: "Describe tu idea y la IA crea contenido optimizado",
+                titleKey: "cirisonic.howItWorks.step1.title",
+                descriptionKey: "cirisonic.howItWorks.step1.description",
                 icon: "🎯",
                 color: "blue"
               },
               {
-                step: "2", 
-                title: "Personaliza",
-                description: "Ajusta el tono, estilo y marca según tu audiencia",
+                step: "2",
+                titleKey: "cirisonic.howItWorks.step2.title",
+                descriptionKey: "cirisonic.howItWorks.step2.description",
                 icon: "🎨",
                 color: "purple"
               },
               {
                 step: "3",
-                title: "Publica",
-                description: "Programa y publica en múltiples plataformas",
+                titleKey: "cirisonic.howItWorks.step3.title",
+                descriptionKey: "cirisonic.howItWorks.step3.description",
                 icon: "🚀",
                 color: "cyan"
               },
               {
                 step: "4",
-                title: "Mide Impacto",
-                description: "Analiza métricas y optimiza el rendimiento",
+                titleKey: "cirisonic.howItWorks.step4.title",
+                descriptionKey: "cirisonic.howItWorks.step4.description",
                 icon: "📊",
                 color: "green"
               }
@@ -494,10 +535,10 @@ export default function CiriSonicPage() {
 
                 {/* Content */}
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  {item.title}
+                  {t(item.titleKey)}
                 </h3>
                 <p className="text-gray-400 leading-relaxed">
-                  {item.description}
+                  {t(item.descriptionKey)}
                 </p>
               </motion.div>
             ))}
@@ -515,10 +556,10 @@ export default function CiriSonicPage() {
             className="text-center mb-16"
           >
             <h2 className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 mb-6">
-              Dashboard CiriSonic
+              {t('cirisonic.dashboard.title')}
             </h2>
             <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-              Una interfaz intuitiva que pone el poder de la IA al alcance de todos
+              {t('cirisonic.dashboard.description')}
             </p>
           </motion.div>
 
@@ -547,12 +588,12 @@ export default function CiriSonicPage() {
               {/* Header */}
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h3 className="text-2xl font-bold text-white mb-2">¡Hola, Creator! 👋</h3>
-                  <p className="text-gray-400">Tienes 3 proyectos pendientes de publicar</p>
+                  <h3 className="text-2xl font-bold text-white mb-2">{t('cirisonic.dashboard.greeting')} 👋</h3>
+                  <p className="text-gray-400">{t('cirisonic.dashboard.pendingProjects')}</p>
                 </div>
                 <div className="flex gap-4">
                   <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0">
-                    + Crear Contenido
+                    {t('cirisonic.dashboard.createContent')}
                   </Button>
                 </div>
               </div>
@@ -560,10 +601,10 @@ export default function CiriSonicPage() {
               {/* Stats Cards */}
               <div className="grid md:grid-cols-4 gap-6 mb-8">
                 {[
-                  { title: "Engagement", value: "+247%", icon: "📈", color: "green" },
-                  { title: "Contenido Creado", value: "1,284", icon: "🎨", color: "blue" },
-                  { title: "Alcance Total", value: "94.2K", icon: "🌎", color: "purple" },
-                  { title: "ROI Promedio", value: "435%", icon: "💰", color: "yellow" }
+                  { titleKey: "cirisonic.dashboard.stat.engagement", value: "+247%", icon: "📈", color: "green" },
+                  { titleKey: "cirisonic.dashboard.stat.contentCreated", value: "1,284", icon: "🎨", color: "blue" },
+                  { titleKey: "cirisonic.dashboard.stat.totalReach", value: "94.2K", icon: "🌎", color: "purple" },
+                  { titleKey: "cirisonic.dashboard.stat.avgROI", value: "435%", icon: "💰", color: "yellow" }
                 ].map((stat, index) => (
                   <motion.div
                     key={index}
@@ -578,7 +619,7 @@ export default function CiriSonicPage() {
                       {stat.value}
                     </div>
                     <div className="text-gray-400 text-sm">
-                      {stat.title}
+                      {t(stat.titleKey)}
                     </div>
                   </motion.div>
                 ))}
@@ -588,24 +629,24 @@ export default function CiriSonicPage() {
               <div className="grid md:grid-cols-3 gap-6">
                 {[
                   {
-                    title: "Generar Texto",
-                    description: "Artículos, posts y copy optimizado",
+                    titleKey: "cirisonic.dashboard.tool.generateText.title",
+                    descriptionKey: "cirisonic.dashboard.tool.generateText.description",
                     icon: "✍️",
-                    status: "Activo",
+                    statusKey: "cirisonic.dashboard.tool.generateText.status",
                     color: "blue"
                   },
                   {
-                    title: "Crear Reel",
-                    description: "Videos virales para redes sociales", 
+                    titleKey: "cirisonic.dashboard.tool.createReel.title",
+                    descriptionKey: "cirisonic.dashboard.tool.createReel.description",
                     icon: "🎬",
-                    status: "Procesando...",
+                    statusKey: "cirisonic.dashboard.tool.createReel.status",
                     color: "purple"
                   },
                   {
-                    title: "Hacer VoiceOver",
-                    description: "Narración profesional en segundos",
-                    icon: "🎧", 
-                    status: "Disponible",
+                    titleKey: "cirisonic.dashboard.tool.voiceOver.title",
+                    descriptionKey: "cirisonic.dashboard.tool.voiceOver.description",
+                    icon: "🎧",
+                    statusKey: "cirisonic.dashboard.tool.voiceOver.status",
                     color: "emerald"
                   }
                 ].map((tool, index) => (
@@ -615,18 +656,18 @@ export default function CiriSonicPage() {
                     className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl p-6 border border-gray-700/50 backdrop-blur-sm"
                   >
                     <div className="text-4xl mb-4">{tool.icon}</div>
-                    <h4 className="text-xl font-bold text-white mb-2">{tool.title}</h4>
-                    <p className="text-gray-400 text-sm mb-4">{tool.description}</p>
+                    <h4 className="text-xl font-bold text-white mb-2">{t(tool.titleKey)}</h4>
+                    <p className="text-gray-400 text-sm mb-4">{t(tool.descriptionKey)}</p>
                     <div className="flex items-center justify-between">
                       <span className={`text-xs bg-${tool.color}-500/20 text-${tool.color}-400 px-3 py-1 rounded-full`}>
-                        {tool.status}
+                        {t(tool.statusKey)}
                       </span>
                       <Button
                         variant="outline"
                         size="sm"
                         className={`border-${tool.color}-500 text-${tool.color}-400 hover:bg-${tool.color}-500 hover:text-white text-xs`}
                       >
-                        Usar
+                        {t('cirisonic.dashboard.tool.use')}
                       </Button>
                     </div>
                   </motion.div>
@@ -651,7 +692,7 @@ export default function CiriSonicPage() {
               size="lg"
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold px-12 py-4 text-xl border-0 shadow-lg shadow-blue-500/25"
             >
-              🚀 Probar Dashboard Gratis
+              🚀 {t('cirisonic.dashboard.cta')}
             </Button>
           </motion.div>
         </div>
@@ -667,10 +708,10 @@ export default function CiriSonicPage() {
             className="text-center mb-20"
           >
             <h2 className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 mb-6">
-              Casos de Uso
+              {t('cirisonic.useCases.title')}
             </h2>
             <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-              CiriSonic se adapta a cualquier industria y tamaño de empresa
+              {t('cirisonic.useCases.description')}
             </p>
           </motion.div>
 
@@ -688,17 +729,17 @@ export default function CiriSonicPage() {
                 <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-3xl p-8 border border-gray-700/50 hover:border-blue-500/50 transition-all duration-500 text-center">
                   <div className="text-6xl mb-6">{useCase.icon}</div>
                   <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-400 group-hover:to-purple-400 transition-all">
-                    {useCase.title}
+                    {t(useCase.titleKey)}
                   </h3>
                   <p className="text-gray-400 mb-6 leading-relaxed">
-                    {useCase.description}
+                    {t(useCase.descriptionKey)}
                   </p>
-                  
+
                   <div className="space-y-3">
-                    {useCase.benefits.map((benefit, idx) => (
+                    {useCase.benefitKeys.map((benefitKey, idx) => (
                       <div key={idx} className="flex items-center gap-3 text-sm text-gray-300">
                         <span className="text-green-400">✓</span>
-                        <span>{benefit}</span>
+                        <span>{t(benefitKey)}</span>
                       </div>
                     ))}
                   </div>
@@ -719,10 +760,10 @@ export default function CiriSonicPage() {
             className="text-center mb-20"
           >
             <h2 className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 mb-6">
-              Planes y Precios
+              {t('cirisonic.pricing.title')}
             </h2>
             <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-              Elige el plan que mejor se adapte a tu nivel de creación de contenido
+              {t('cirisonic.pricing.description')}
             </p>
           </motion.div>
 
@@ -737,38 +778,38 @@ export default function CiriSonicPage() {
                 className={`relative ${plan.popular ? 'scale-105' : ''}`}
               >
                 <div className={`bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-3xl p-8 border-2 transition-all duration-500 ${
-                  plan.popular 
-                    ? 'border-blue-500 shadow-2xl shadow-blue-500/20' 
+                  plan.popular
+                    ? 'border-blue-500 shadow-2xl shadow-blue-500/20'
                     : 'border-gray-700/50 hover:border-blue-500/50'
                 }`}>
                   {plan.popular && (
                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                       <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-full text-sm font-bold">
-                        Más Popular
+                        {t('cirisonic.pricing.popular')}
                       </span>
                     </div>
                   )}
 
                   <div className="text-center mb-8">
                     <h3 className="text-3xl font-bold text-white mb-2">
-                      {plan.name}
+                      {t(plan.nameKey)}
                     </h3>
                     <p className="text-gray-400 mb-6 leading-relaxed">
-                      {plan.description}
+                      {t(plan.descriptionKey)}
                     </p>
                     <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 mb-2">
-                      {plan.price}
+                      {t(plan.priceKey)}
                     </div>
                     <div className="text-gray-500 text-sm">
-                      {plan.period}
+                      {t(plan.periodKey)}
                     </div>
                   </div>
 
                   <ul className="space-y-4 mb-8">
-                    {plan.features.map((feature, idx) => (
+                    {plan.featureKeys.map((featureKey, idx) => (
                       <li key={idx} className="flex items-start gap-3">
                         <span className="text-green-400 mt-1 flex-shrink-0">✓</span>
-                        <span className="text-gray-300">{feature}</span>
+                        <span className="text-gray-300">{t(featureKey)}</span>
                       </li>
                     ))}
                   </ul>
@@ -776,15 +817,15 @@ export default function CiriSonicPage() {
                   <Button
                     variant={plan.popular ? "primary" : "outline"}
                     className={`w-full font-bold text-lg py-3 ${
-                      plan.popular 
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0' 
+                      plan.popular
+                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0'
                         : plan.available
                           ? 'border-2 border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-white'
                           : 'border-2 border-gray-600 text-gray-500 cursor-not-allowed'
                     }`}
                     disabled={!plan.available}
                   >
-                    {plan.available ? `Elegir ${plan.name}` : 'Próximamente'}
+                    {plan.available ? `${t('cirisonic.pricing.button.choose')} ${t(plan.nameKey)}` : t('cirisonic.pricing.button.comingSoon')}
                   </Button>
                 </div>
               </motion.div>
@@ -802,11 +843,10 @@ export default function CiriSonicPage() {
             viewport={{ once: true }}
           >
             <h2 className="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 mb-6">
-              Sé de los Primeros
+              {t('cirisonic.leadCapture.title')}
             </h2>
             <p className="text-2xl text-gray-400 max-w-3xl mx-auto mb-12 leading-relaxed">
-              Únete a los pioneros que están transformando su creación de contenido 
-              con inteligencia artificial avanzada
+              {t('cirisonic.leadCapture.description')}
             </p>
 
             {/* Email Capture Form */}
@@ -816,11 +856,10 @@ export default function CiriSonicPage() {
             >
               <div className="text-6xl mb-8">🚀</div>
               <h3 className="text-3xl font-bold text-white mb-6">
-                Acceso Anticipado
+                {t('cirisonic.leadCapture.cardTitle')}
               </h3>
               <p className="text-gray-400 mb-8">
-                Obtén acceso prioritario al futuro del contenido inteligente. 
-                Sin spam, solo actualizaciones importantes.
+                {t('cirisonic.leadCapture.cardDescription')}
               </p>
 
               <AnimatePresence mode="wait">
@@ -837,7 +876,7 @@ export default function CiriSonicPage() {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="tu@email.com"
+                        placeholder={t('cirisonic.leadCapture.emailPlaceholder')}
                         required
                         className="flex-1 px-6 py-4 bg-gray-900 border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-white text-lg"
                       />
@@ -847,11 +886,11 @@ export default function CiriSonicPage() {
                         size="lg"
                         className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold px-8 py-4 text-lg border-0 whitespace-nowrap"
                       >
-                        Reservar Acceso
+                        {t('cirisonic.leadCapture.button')}
                       </Button>
                     </div>
                     <p className="text-gray-500 text-sm">
-                      Al suscribirte, aceptas recibir emails sobre CiriSonic. Puedes cancelar en cualquier momento.
+                      {t('cirisonic.leadCapture.disclaimer')}
                     </p>
                   </motion.form>
                 ) : (
@@ -863,10 +902,10 @@ export default function CiriSonicPage() {
                   >
                     <div className="text-6xl mb-6">✨</div>
                     <h4 className="text-2xl font-bold text-green-400 mb-4">
-                      ¡Perfecto!
+                      {t('cirisonic.leadCapture.success.title')}
                     </h4>
                     <p className="text-gray-400">
-                      Te contactaremos pronto con tu acceso prioritario a CiriSonic.
+                      {t('cirisonic.leadCapture.success.message')}
                     </p>
                   </motion.div>
                 )}
@@ -882,16 +921,16 @@ export default function CiriSonicPage() {
               className="mt-16 grid grid-cols-3 gap-8 max-w-xl mx-auto"
             >
               {[
-                { count: "500+", label: "En lista de espera" },
-                { count: "50+", label: "Beta testers" },
-                { count: "98%", label: "Satisfacción" }
+                { count: "500+", labelKey: "cirisonic.leadCapture.proof.waitlist" },
+                { count: "50+", labelKey: "cirisonic.leadCapture.proof.betaTesters" },
+                { count: "98%", labelKey: "cirisonic.leadCapture.proof.satisfaction" }
               ].map((item, index) => (
                 <div key={index} className="text-center">
                   <div className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 mb-2">
                     {item.count}
                   </div>
                   <div className="text-gray-500 text-sm">
-                    {item.label}
+                    {t(item.labelKey)}
                   </div>
                 </div>
               ))}
@@ -906,45 +945,44 @@ export default function CiriSonicPage() {
           <div className="grid md:grid-cols-4 gap-8 mb-12">
             <div className="md:col-span-2">
               <h3 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 mb-4">
-                CiriSonic
+                {t('cirisonic.hero.title')}
               </h3>
               <p className="text-gray-400 leading-relaxed max-w-md mb-6">
-                La fábrica de IA que transforma ideas en contenido viral. 
-                Parte del ecosistema MaalCa, construyendo el futuro del contenido inteligente.
+                {t('cirisonic.footer.description')}
               </p>
               <div className="text-gray-500 text-sm">
-                <p className="mb-2">🤖 Inteligencia Artificial Responsable</p>
-                <p>⚡ Creación de Contenido Ético</p>
+                <p className="mb-2">🤖 {t('cirisonic.footer.aiResponsible')}</p>
+                <p>⚡ {t('cirisonic.footer.ethicalContent')}</p>
               </div>
             </div>
-            
+
             <div>
-              <h4 className="font-bold text-white mb-4">Producto</h4>
+              <h4 className="font-bold text-white mb-4">{t('cirisonic.footer.product')}</h4>
               <div className="space-y-2 text-gray-400 text-sm">
-                <a href="#features" className="block hover:text-blue-400 transition-colors">Servicios</a>
-                <a href="#how-it-works" className="block hover:text-blue-400 transition-colors">Cómo Funciona</a>
-                <a href="#pricing" className="block hover:text-blue-400 transition-colors">Precios</a>
-                <a href="#" className="block hover:text-blue-400 transition-colors">API Docs</a>
+                <a href="#features" className="block hover:text-blue-400 transition-colors">{t('cirisonic.footer.services')}</a>
+                <a href="#how-it-works" className="block hover:text-blue-400 transition-colors">{t('cirisonic.footer.howItWorks')}</a>
+                <a href="#pricing" className="block hover:text-blue-400 transition-colors">{t('cirisonic.footer.pricing')}</a>
+                <a href="#" className="block hover:text-blue-400 transition-colors">{t('cirisonic.footer.apiDocs')}</a>
               </div>
             </div>
-            
+
             <div>
-              <h4 className="font-bold text-white mb-4">MaalCa Ecosystem</h4>
+              <h4 className="font-bold text-white mb-4">{t('cirisonic.footer.ecosystem')}</h4>
               <div className="space-y-2 text-gray-400 text-sm">
-                <a href="/" className="block hover:text-blue-400 transition-colors">MaalCa Home</a>
-                <a href="/ciriwhispers" className="block hover:text-blue-400 transition-colors">CiriWhispers</a>
-                <a href="/hablando-mierda" className="block hover:text-blue-400 transition-colors">Hablando Mierda</a>
-                <a href="/masa-tina" className="block hover:text-blue-400 transition-colors">Masa Tina</a>
+                <a href="/" className="block hover:text-blue-400 transition-colors">{t('cirisonic.footer.maalcaHome')}</a>
+                <a href="/ciriwhispers" className="block hover:text-blue-400 transition-colors">{t('cirisonic.footer.ciriwhispers')}</a>
+                <a href="/hablando-mierda" className="block hover:text-blue-400 transition-colors">{t('cirisonic.footer.hablandoMierda')}</a>
+                <a href="/masa-tina" className="block hover:text-blue-400 transition-colors">{t('cirisonic.footer.masaTina')}</a>
               </div>
             </div>
           </div>
-          
+
           <div className="text-center pt-8 border-t border-gray-800">
             <p className="text-gray-500 text-sm mb-2">
-              © 2024 CiriSonic - Parte del ecosistema MaalCa
+              {t('cirisonic.footer.copyright')}
             </p>
             <p className="text-gray-600 text-xs italic">
-              "El futuro del contenido es inteligente"
+              {t('cirisonic.footer.tagline')}
             </p>
           </div>
         </div>

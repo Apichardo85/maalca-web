@@ -1,0 +1,240 @@
+/* =============================================================================
+   MIGRATED GLOBAL STYLES
+   New unified theme system with design tokens
+   ============================================================================= */
+
+@import "tailwindcss";
+
+/* Import design tokens and semantic components */
+@import '../styles/tokens/index.css';
+@import '../styles/components/index.css';
+
+/* =============================================================================
+   BASE STYLES
+   ============================================================================= */
+
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  line-height: var(--line-height-normal);
+  transition: var(--transition-colors);
+}
+
+/* =============================================================================
+   FONT CLASSES (Migrated from original)
+   ============================================================================= */
+
+.font-display {
+  font-family: var(--font-display);
+  line-height: var(--line-height-tight);
+}
+
+.font-luxury {
+  font-family: var(--font-luxury);
+  line-height: var(--line-height-snug);
+}
+
+/* =============================================================================
+   PREMIUM TYPOGRAPHY (Migrated)
+   ============================================================================= */
+
+.text-hero {
+  font-family: var(--font-display);
+  font-size: var(--typography-heading-1-size);
+  font-weight: var(--font-weight-light);
+  line-height: var(--typography-heading-1-line-height);
+  letter-spacing: var(--typography-heading-1-letter-spacing);
+  color: var(--color-text-primary);
+}
+
+.text-display {
+  font-family: var(--font-display);
+  font-size: var(--typography-heading-2-size);
+  font-weight: var(--font-weight-light);
+  line-height: var(--typography-heading-2-line-height);
+  letter-spacing: var(--typography-heading-2-letter-spacing);
+  color: var(--color-text-primary);
+}
+
+.text-luxury-body {
+  font-family: var(--font-body);
+  font-size: var(--typography-body-large-size);
+  line-height: var(--typography-body-large-line-height);
+  color: var(--color-text-secondary);
+}
+
+/* =============================================================================
+   PREMIUM COMPONENTS (Migrated and Updated)
+   ============================================================================= */
+
+/* Premium Button Styles */
+.btn-primary-premium {
+  background: var(--gradient-sunset);
+  color: var(--color-pearl-900);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--spacing-layout-xs) var(--spacing-layout-md);
+  border-radius: var(--radius-card);
+  box-shadow: var(--elevation-3);
+  transition: var(--transition-all);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.btn-primary-premium:hover {
+  background: linear-gradient(135deg, var(--color-sunset-500), var(--color-sunset-600), var(--color-sunset-700));
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: var(--shadow-glow-amber);
+}
+
+.btn-secondary-premium {
+  background: var(--color-bg-glass);
+  backdrop-filter: var(--backdrop-blur-lg);
+  border: 2px solid var(--color-border-primary);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--spacing-layout-xs) var(--spacing-layout-md);
+  border-radius: var(--radius-card);
+  transition: var(--transition-all);
+}
+
+.btn-secondary-premium:hover {
+  background: var(--color-surface-primary);
+  color: var(--color-text-primary);
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* Premium Card Styles */
+.card-premium {
+  background: var(--color-surface-primary);
+  border-radius: var(--radius-premium);
+  overflow: hidden;
+  box-shadow: var(--shadow-luxury);
+  border: 1px solid var(--color-border-primary);
+  transition: var(--transition-slow);
+}
+
+.card-premium:hover {
+  transform: translateY(-12px) scale(1.02);
+  box-shadow: var(--shadow-premium);
+  border-color: var(--color-sunset-200);
+}
+
+/* Glass Effect */
+.glass-effect {
+  background: var(--color-bg-glass);
+  backdrop-filter: var(--backdrop-blur-lg);
+  border: 1px solid var(--color-border-primary);
+}
+
+/* Gradient Text */
+.text-gradient-caribbean {
+  background: var(--gradient-caribbean);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Premium Shadows - Now using design tokens */
+.shadow-luxury {
+  box-shadow: var(--shadow-luxury);
+}
+
+.shadow-premium {
+  box-shadow: var(--shadow-premium);
+}
+
+.shadow-glow {
+  box-shadow: var(--shadow-glow-blue);
+}
+
+.shadow-amber-glow {
+  box-shadow: var(--shadow-glow-amber);
+}
+
+/* =============================================================================
+   GRAIN TEXTURE (Updated for unified themes)
+   ============================================================================= */
+
+.grain::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.04;
+  background-image:
+    radial-gradient(circle at 25% 25%, var(--color-text-primary) 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, var(--color-text-primary) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+  pointer-events: none;
+}
+
+/* =============================================================================
+   LEGACY COMPATIBILITY
+   These classes ensure existing components continue to work
+   ============================================================================= */
+
+/* Tailwind dark mode compatibility */
+.dark {
+  /* This class is now handled by [data-theme="dark"] */
+}
+
+/* Next.js font variables compatibility */
+:root {
+  --font-playfair: var(--font-display);
+  --font-inter: var(--font-body);
+}
+
+/* Legacy gradient variables for existing components */
+:root {
+  --gradient-primary: var(--gradient-primary-light);
+  --gradient-secondary: var(--gradient-secondary-light);
+  --gradient-hero: var(--gradient-hero-light);
+}
+
+[data-theme="dark"] {
+  --gradient-primary: var(--gradient-primary-dark);
+  --gradient-secondary: var(--gradient-secondary-dark);
+  --gradient-hero: var(--gradient-hero-dark);
+}
+
+/* Legacy brand colors */
+:root {
+  --brand-primary: var(--color-brand-primary);
+  --brand-primary-hover: var(--color-brand-primary-hover);
+  --brand-secondary: var(--color-brand-secondary);
+}
+
+/* Legacy text color variables */
+:root {
+  --text-primary-light: var(--color-text-primary);
+  --text-primary-dark: var(--color-text-primary);
+  --text-secondary-light: var(--color-text-secondary);
+  --text-secondary-dark: var(--color-text-secondary);
+  --text-brand: var(--color-text-accent);
+  --text-muted-light: var(--color-text-muted);
+  --text-muted-dark: var(--color-text-muted);
+}
+
+/* =============================================================================
+   MIGRATION NOTES
+
+   This file replaces the problematic multi-theme system with:
+
+   1. ✅ Unified data-theme system (light, dark, paper)
+   2. ✅ Semantic design tokens
+   3. ✅ Centralized color management
+   4. ✅ Fixed blue text accessibility issues
+   5. ✅ Legacy compatibility for existing components
+   6. ✅ Smooth theme transitions
+
+   To complete migration:
+   1. Replace src/app/globals.css with this file
+   2. Update layout.tsx to use UnifiedThemeProvider
+   3. Replace theme switches with UnifiedThemeSwitch
+   4. Run migration script to update component classes
+   5. Test all three themes thoroughly
+
+   ============================================================================= */
