@@ -3,81 +3,92 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
+import { useCart } from "@/hooks/useCart";
+import { useWhatsAppContact } from "@/hooks/useWhatsAppContact";
+import { useToast } from "@/hooks/useToast";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { useTranslation } from "@/hooks/useSimpleLanguage";
+import { Toast } from "@/components/ui/Toast";
+import { MobileMenu } from "@/components/masa-tina/MobileMenu";
+import { CartSidebar } from "@/components/masa-tina/CartSidebar";
+import { LanguageToggle } from "@/components/ui/LanguageToggle";
 
-const menuItems = [
+// Menu items with translation keys
+const getMenuItems = (t: (key: string) => string) => [
   {
     id: "caja-picaderas",
-    name: "Caja de Picaderas",
-    description: "La mezcla perfecta de empanadas, pastelitos, quipes y croquetas. Ideal para compartir.",
+    name: t("cocinatina.items.picaderas.name"),
+    description: t("cocinatina.items.picaderas.description"),
     price: 45,
     image: "/images/masa-tina/caja-picaderas.jpg",
     category: "Combos",
     occasion: ["Reunión de amigos", "Merienda", "Oficina"],
     items: ["8 Empanadas mixtas", "6 Pastelitos de pollo", "4 Quipes", "4 Croquetas", "Salsas caseras"],
-    serves: "4-6 personas"
+    serves: t("cocinatina.items.picaderas.serves")
   },
   {
     id: "mini-catering",
-    name: "Mini Catering Familiar",
-    description: "Bandeja completa con nuestros mejores platillos dominicanos. Perfecto para eventos pequeños.",
+    name: t("cocinatina.items.catering.name"),
+    description: t("cocinatina.items.catering.description"),
     price: 85,
     image: "/images/masa-tina/mini-catering.jpg",
     category: "Catering",
     occasion: ["Eventos", "Reunión de amigos"],
     items: ["Pollo guisado", "Arroz blanco", "Habichuelas rojas", "Ensalada verde", "Plátanos maduros", "Yuca hervida"],
-    serves: "8-10 personas"
+    serves: t("cocinatina.items.catering.serves")
   },
   {
     id: "desayuno-dominicano",
-    name: "Desayuno Tradicional",
-    description: "Mangu con cebollitas, huevos fritos, salami y queso. Como en casa de abuela.",
+    name: t("cocinatina.items.breakfast.name"),
+    description: t("cocinatina.items.breakfast.description"),
     price: 25,
     image: "/images/masa-tina/desayuno.jpg",
     category: "Desayunos",
     occasion: ["Merienda"],
     items: ["Mangú de plátano verde", "Huevos fritos", "Salami dominicano", "Queso frito", "Cebollitas caramelizadas"],
-    serves: "2 personas"
+    serves: t("cocinatina.items.breakfast.serves")
   },
   {
     id: "dulces-tradicionales",
-    name: "Dulces de la Casa",
-    description: "Selección artesanal de nuestros dulces favoritos: majarete, tres golpes y flan de coco.",
+    name: t("cocinatina.items.desserts.name"),
+    description: t("cocinatina.items.desserts.description"),
     price: 30,
     image: "/images/masa-tina/dulces.jpg",
     category: "Postres",
     occasion: ["Merienda", "Eventos"],
     items: ["Majarete casero", "Tres golpes", "Flan de coco", "Dulce de leche cortada", "Galletas de jengibre"],
-    serves: "4-5 personas"
+    serves: t("cocinatina.items.desserts.serves")
   },
   {
     id: "caja-personalizada",
-    name: "Caja Personalizada",
-    description: "Arma tu propia selección con nuestros platillos favoritos. Tú decides qué va adentro.",
+    name: t("cocinatina.items.custom.name"),
+    description: t("cocinatina.items.custom.description"),
     price: 0,
     image: "/images/masa-tina/personalizada.jpg",
     category: "Personalizado",
     occasion: ["Reunión de amigos", "Eventos", "Merienda", "Oficina"],
     items: ["Selecciona tus favoritos", "Mínimo 6 items", "Máximo 15 items"],
-    serves: "Variable"
+    serves: t("cocinatina.items.custom.serves")
   },
   {
     id: "cafe-tertulia",
-    name: "Café y Tertulia",
-    description: "Café dominicano premium con selección de pastelitos dulces y salados para acompañar.",
+    name: t("cocinatina.items.cafe.name"),
+    description: t("cocinatina.items.cafe.description"),
     price: 35,
     image: "/images/masa-tina/cafe-tertulia.jpg",
     category: "Experiencias",
     occasion: ["Merienda"],
     items: ["Café dominicano especial", "Mini tres leches", "Pastelitos mixtos", "Galletas artesanales", "Conversación incluida"],
-    serves: "2-3 personas"
+    serves: t("cocinatina.items.cafe.serves")
   }
 ];
 
-const subscriptionPlans = [
+// Subscription plans with translation keys
+const getSubscriptionPlans = (t: (key: string) => string) => [
   {
     id: "basico",
-    name: "Plan Básico",
-    description: "Una caja de picaderas cada semana",
+    name: t("cocinatina.plans.basic.name"),
+    description: t("cocinatina.plans.basic.description"),
     price: 40,
     frequency: "semanal",
     items: ["1 Caja de picaderas", "Variedad rotativa", "Entrega gratuita"],
@@ -85,8 +96,8 @@ const subscriptionPlans = [
   },
   {
     id: "familiar",
-    name: "Plan Familiar",  
-    description: "Combinación perfecta para toda la familia",
+    name: t("cocinatina.plans.family.name"),
+    description: t("cocinatina.plans.family.description"),
     price: 70,
     frequency: "semanal",
     items: ["1 Mini catering", "1 Caja de dulces", "Menú personalizable", "Entrega premium"],
@@ -94,10 +105,10 @@ const subscriptionPlans = [
   },
   {
     id: "premium",
-    name: "Plan Premium",
-    description: "La experiencia completa Masa Tina",
+    name: t("cocinatina.plans.premium.name"),
+    description: t("cocinatina.plans.premium.description"),
     price: 120,
-    frequency: "semanal", 
+    frequency: "semanal",
     items: ["2 Mini caterings", "Dulces artesanales", "Café dominicano", "Acceso a eventos exclusivos", "Chef personal mensual"],
     popular: false
   }
@@ -108,7 +119,7 @@ const testimonials = [
     id: 1,
     name: "María González",
     location: "Elmira, NY",
-    text: "La comida sabe exactamente como la hacía mi abuela en Santiago. Masa Tina me transporta a casa con cada bocado.",
+    text: "La comida sabe exactamente como la hacía mi abuela en Santiago. Cocina Tina me transporta a casa con cada bocado.",
     rating: 5,
     image: "/images/masa-tina/testimonial-1.jpg"
   },
@@ -131,27 +142,94 @@ const testimonials = [
 ];
 
 export default function MasaTinaPage() {
+  // State
   const [selectedCategory, setSelectedCategory] = useState("Todos");
-  const [cart, setCart] = useState<any[]>([]);
   const [showCart, setShowCart] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
-  const categories = ["Todos", "Combos", "Catering", "Desayunos", "Postres", "Experiencias"];
+  // Hooks
+  const {
+    cart,
+    addItem,
+    removeItem,
+    incrementQuantity,
+    decrementQuantity,
+    clearCart,
+    getTotal,
+    getItemCount,
+  } = useCart();
+
+  const {
+    sendOrderMessage,
+    sendCartMessage,
+    sendInquiry,
+    sendSubscriptionMessage,
+    sendEventMessage,
+  } = useWhatsAppContact();
+
+  const { toasts, success, error, remove: removeToast } = useToast();
+  const prefersReducedMotion = useReducedMotion();
+  const { t } = useTranslation();
+
+  // Get translated data
+  const menuItems = getMenuItems(t);
+  const subscriptionPlans = getSubscriptionPlans(t);
+
+  const categories = [
+    { key: "Todos", label: t("cocinatina.menu.categories.all") },
+    { key: "Combos", label: t("cocinatina.menu.categories.combos") },
+    { key: "Catering", label: t("cocinatina.menu.categories.catering") },
+    { key: "Desayunos", label: t("cocinatina.menu.categories.breakfast") },
+    { key: "Postres", label: t("cocinatina.menu.categories.desserts") },
+    { key: "Experiencias", label: t("cocinatina.menu.categories.experiences") }
+  ];
   const occasions = ["Reunión de amigos", "Eventos", "Merienda", "Oficina"];
 
-  const filteredItems = selectedCategory === "Todos" 
-    ? menuItems 
+  const filteredItems = selectedCategory === "Todos"
+    ? menuItems
     : menuItems.filter(item => item.category === selectedCategory);
 
-  const addToCart = (item: any) => {
-    setCart([...cart, { ...item, quantity: 1, id: Date.now() }]);
+  // Add to cart with toast notification
+  const handleAddToCart = (item: any) => {
+    if (item.price === 0) {
+      error("Por favor contacta para personalizar este producto");
+      return;
+    }
+
+    addItem({
+      id: item.id,
+      name: item.name,
+      description: item.description,
+      price: item.price,
+      category: item.category,
+    });
+
+    success(`${item.name} agregado al carrito! 🎉`);
   };
 
-  const removeFromCart = (id: number) => {
-    setCart(cart.filter(item => item.id !== id));
+  // WhatsApp cart checkout
+  const handleWhatsAppCheckout = () => {
+    if (cart.length === 0) {
+      error("El carrito está vacío");
+      return;
+    }
+
+    sendCartMessage(cart, getTotal());
+    setShowCart(false);
   };
 
-  const getTotalPrice = () => {
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+  // Toggle expanded items
+  const toggleExpandItem = (itemId: string) => {
+    setExpandedItems((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
   };
 
   return (
@@ -176,13 +254,13 @@ export default function MasaTinaPage() {
             transition={{ duration: 1 }}
           >
             <h1 className="font-serif text-6xl md:text-8xl font-bold text-amber-900 mb-6">
-              Masa Tina
+              {t("cocinatina.hero.title")}
             </h1>
             <p className="font-script text-2xl text-amber-700 mb-6 italic">
-              "Como en casa, pero mejor"
+              {t("cocinatina.hero.tagline")}
             </p>
             <p className="text-xl text-amber-800 leading-relaxed mb-8 max-w-lg">
-              Comida dominicana hecha en casa, para compartir donde quieras. 
+              {t("cocinatina.hero.description")} 
               Cada plato lleva el sabor auténtico de nuestra tierra y el amor de nuestras manos.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
@@ -192,7 +270,7 @@ export default function MasaTinaPage() {
                 onClick={() => document.getElementById('menu')?.scrollIntoView({ behavior: 'smooth' })}
                 className="bg-amber-700 hover:bg-amber-800 text-amber-50 font-semibold"
               >
-                🍽️ Explorar el Menú
+                🍽️ {t("cocinatina.menu.exploreMenu")}
               </Button>
               <Button
                 variant="outline" 
@@ -217,10 +295,10 @@ export default function MasaTinaPage() {
                   <span className="text-8xl">🥘</span>
                 </div>
                 <div className="absolute top-4 right-4 bg-amber-600 text-amber-50 px-3 py-1 rounded-full text-sm font-bold">
-                  Hecho en casa
+                  {t("cocinatina.hero.badge.homemade")}
                 </div>
                 <div className="absolute bottom-4 left-4 bg-green-600 text-green-50 px-3 py-1 rounded-full text-sm font-bold">
-                  Ingredientes frescos
+                  {t("cocinatina.hero.badge.fresh")}
                 </div>
               </div>
             </div>
@@ -248,28 +326,46 @@ export default function MasaTinaPage() {
       <nav className="sticky top-0 z-50 bg-amber-50/90 backdrop-blur-sm border-b border-amber-200">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <div className="font-serif text-2xl font-bold text-amber-900">Masa Tina</div>
+            <div className="font-serif text-2xl font-bold text-amber-900">{t("cocinatina.hero.title")}</div>
             
             <div className="hidden md:flex items-center space-x-8">
               <a href="#menu" className="text-amber-800 hover:text-amber-600 transition-colors font-medium">
-                Menú
+                {t("cocinatina.nav.menu")}
               </a>
               <a href="#suscripciones" className="text-amber-800 hover:text-amber-600 transition-colors font-medium">
-                Suscripciones
+                {t("cocinatina.nav.subscriptions")}
               </a>
               <a href="#experiencias" className="text-amber-800 hover:text-amber-600 transition-colors font-medium">
-                Experiencias
+                {t("cocinatina.nav.experiences")}
               </a>
               <a href="#nosotros" className="text-amber-800 hover:text-amber-600 transition-colors font-medium">
-                Nosotros
+                {t("cocinatina.nav.about")}
               </a>
+              <LanguageToggle />
               <button
                 onClick={() => setShowCart(true)}
                 className="relative bg-amber-700 text-amber-50 px-4 py-2 rounded-lg hover:bg-amber-800 transition-colors"
+                aria-label={`${t("cocinatina.nav.cart")} - ${getItemCount()} items`}
               >
-                🛒 Carrito ({cart.length})
+                🛒 {t("cocinatina.nav.cart")} ({getItemCount()})
+                {getItemCount() > 0 && (
+                  <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center font-bold">
+                    {getItemCount()}
+                  </span>
+                )}
               </button>
             </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setShowMobileMenu(true)}
+              className="md:hidden p-2 rounded-lg bg-amber-200 hover:bg-amber-300 text-amber-900 transition-colors"
+              aria-label="Abrir menú"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
           </div>
         </div>
       </nav>
@@ -284,7 +380,7 @@ export default function MasaTinaPage() {
             className="text-center mb-16"
           >
             <h2 className="font-serif text-4xl md:text-6xl font-bold text-amber-900 mb-6">
-              Nuestro Menú
+              {t("cocinatina.menu.title")}
             </h2>
             <p className="text-xl text-amber-700 max-w-3xl mx-auto mb-8">
               Cada plato cuenta una historia. Desde las empanadas crujientes hasta los dulces que endulzan el alma.
@@ -294,15 +390,15 @@ export default function MasaTinaPage() {
             <div className="flex flex-wrap justify-center gap-3 mb-8">
               {categories.map((category) => (
                 <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
+                  key={category.key}
+                  onClick={() => setSelectedCategory(category.key)}
                   className={`px-6 py-3 rounded-full font-medium transition-all ${
-                    selectedCategory === category
+                    selectedCategory === category.key
                       ? 'bg-amber-700 text-amber-50 shadow-lg'
                       : 'bg-amber-200 text-amber-800 hover:bg-amber-300'
                   }`}
                 >
-                  {category}
+                  {category.label}
                 </button>
               ))}
             </div>
@@ -352,16 +448,26 @@ export default function MasaTinaPage() {
 
                   {/* Items List */}
                   <div className="mb-4">
-                    <h4 className="font-semibold text-amber-800 mb-2 text-sm">Incluye:</h4>
+                    <h4 className="font-semibold text-amber-800 mb-2 text-sm">{t("cocinatina.menu.includes")}</h4>
                     <ul className="text-sm text-amber-700 space-y-1">
-                      {item.items.slice(0, 3).map((ingredient, idx) => (
+                      {(expandedItems.has(item.id) ? item.items : item.items.slice(0, 3)).map((ingredient, idx) => (
                         <li key={idx} className="flex items-start gap-2">
                           <span className="text-green-600 mt-1">✓</span>
                           {ingredient}
                         </li>
                       ))}
                       {item.items.length > 3 && (
-                        <li className="text-amber-600 italic">+{item.items.length - 3} más...</li>
+                        <li>
+                          <button
+                            onClick={() => toggleExpandItem(item.id)}
+                            className="text-amber-600 hover:text-amber-800 italic font-medium transition-colors underline cursor-pointer"
+                            aria-label={expandedItems.has(item.id) ? "Ver menos items" : `Ver ${item.items.length - 3} items más`}
+                          >
+                            {expandedItems.has(item.id)
+                              ? t("cocinatina.menu.seeLess")
+                              : `+${item.items.length - 3} ${t("cocinatina.menu.seeMore")}`}
+                          </button>
+                        </li>
                       )}
                     </ul>
                   </div>
@@ -394,11 +500,11 @@ export default function MasaTinaPage() {
                     
                     <Button
                       variant="primary"
-                      onClick={() => addToCart(item)}
-                      disabled={item.price === 0}
+                      onClick={() => item.price > 0 ? handleAddToCart(item) : sendOrderMessage(item.name, 0, "Quiero personalizar este producto")}
                       className="bg-amber-700 hover:bg-amber-800 text-amber-50"
+                      aria-label={item.price > 0 ? `${t("cocinatina.menu.add")} ${item.name}` : `${t("cocinatina.menu.customize")} ${item.name}`}
                     >
-                      {item.price > 0 ? "Agregar" : "Personalizar"}
+                      {item.price > 0 ? `${t("cocinatina.menu.add")} 🛒` : `${t("cocinatina.menu.customize")} 📱`}
                     </Button>
                   </div>
                 </div>
@@ -418,10 +524,10 @@ export default function MasaTinaPage() {
             className="text-center mb-16"
           >
             <h2 className="font-serif text-4xl md:text-6xl font-bold text-amber-900 mb-6">
-              Suscripciones
+              {t("cocinatina.subscriptions.title")}
             </h2>
             <p className="text-xl text-amber-700 max-w-3xl mx-auto">
-              Recibe el sabor de casa cada semana. Elige el plan que mejor se adapte a tu familia.
+              {t("cocinatina.subscriptions.subtitle")}
             </p>
           </motion.div>
 
@@ -439,7 +545,7 @@ export default function MasaTinaPage() {
               >
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-amber-500 text-white px-6 py-2 rounded-full text-sm font-bold">
-                    Más Popular
+                    {t("cocinatina.subscriptions.popular")}
                   </div>
                 )}
 
@@ -454,7 +560,7 @@ export default function MasaTinaPage() {
                     ${plan.price}
                   </div>
                   <div className="text-amber-600 text-sm">
-                    por semana
+                    {t("cocinatina.menu.perWeek")}
                   </div>
                 </div>
 
@@ -469,13 +575,15 @@ export default function MasaTinaPage() {
 
                 <Button
                   variant={plan.popular ? "primary" : "outline"}
+                  onClick={() => sendSubscriptionMessage(plan.name, plan.price)}
                   className={`w-full ${
-                    plan.popular 
-                      ? 'bg-amber-700 hover:bg-amber-800 text-amber-50' 
+                    plan.popular
+                      ? 'bg-amber-700 hover:bg-amber-800 text-amber-50'
                       : 'border-2 border-amber-700 text-amber-700 hover:bg-amber-700 hover:text-amber-50'
                   }`}
+                  aria-label={`${t("cocinatina.subscriptions.choosePlan")} ${plan.name}`}
                 >
-                  Elegir Plan
+                  {t("cocinatina.subscriptions.choosePlan")} 📱
                 </Button>
               </motion.div>
             ))}
@@ -493,10 +601,10 @@ export default function MasaTinaPage() {
             className="text-center mb-16"
           >
             <h2 className="font-serif text-4xl md:text-6xl font-bold text-amber-900 mb-6">
-              Experiencias Especiales
+              {t("cocinatina.experiences.title")}
             </h2>
             <p className="text-xl text-amber-700 max-w-3xl mx-auto">
-              Más que comida, creamos momentos. Únete a nuestros eventos y vive la cultura dominicana.
+              {t("cocinatina.experiences.subtitle")}
             </p>
           </motion.div>
 
@@ -510,22 +618,23 @@ export default function MasaTinaPage() {
             >
               <div className="text-6xl mb-4">📚☕</div>
               <h3 className="font-serif text-3xl font-bold text-amber-900 mb-4">
-                Club de Lectura Chocolate
+                {t("cocinatina.experiences.bookClub.title")}
               </h3>
               <p className="text-amber-700 leading-relaxed mb-6">
-                Cada último sábado del mes nos reunimos para discutir un libro mientras disfrutamos 
-                de chocolate caliente dominicano y dulces tradicionales. Un espacio para el alma y el paladar.
+                {t("cocinatina.experiences.bookClub.description")}
               </p>
               <div className="mb-6">
-                <h4 className="font-semibold text-amber-800 mb-2">Próxima sesión:</h4>
-                <p className="text-amber-700">Sábado 28 de Enero, 3:00 PM</p>
-                <p className="text-amber-600">Libro: "La Mujer que Buceaba en los Sueños"</p>
+                <h4 className="font-semibold text-amber-800 mb-2">{t("cocinatina.experiences.bookClub.nextSession")}</h4>
+                <p className="text-amber-700">{t("cocinatina.experiences.bookClub.date")}</p>
+                <p className="text-amber-600">{t("cocinatina.experiences.bookClub.book")}</p>
               </div>
               <Button
                 variant="primary"
+                onClick={() => sendEventMessage("Club de Lectura Chocolate", "Sábado 28 de Enero, 3:00 PM")}
                 className="bg-amber-700 hover:bg-amber-800 text-amber-50"
+                aria-label="Reservar lugar en Club de Lectura Chocolate"
               >
-                Reservar mi lugar
+                {t("cocinatina.experiences.bookClub.reserve")}
               </Button>
             </motion.div>
 
@@ -538,22 +647,23 @@ export default function MasaTinaPage() {
             >
               <div className="text-6xl mb-4">👨‍🍳🥘</div>
               <h3 className="font-serif text-3xl font-bold text-amber-900 mb-4">
-                Talleres de Cocina Dominicana
+                {t("cocinatina.experiences.workshop.title")}
               </h3>
               <p className="text-amber-700 leading-relaxed mb-6">
-                Aprende los secretos de la cocina dominicana directo de nuestras manos a las tuyas. 
-                Talleres íntimos donde compartimos técnicas, historias y mucho sabor.
+                {t("cocinatina.experiences.workshop.description")}
               </p>
               <div className="mb-6">
-                <h4 className="font-semibold text-amber-800 mb-2">Próximo taller:</h4>
-                <p className="text-amber-700">Sábado 14 de Enero, 10:00 AM</p>
-                <p className="text-amber-600">Tema: "El Arte del Mangú Perfecto"</p>
+                <h4 className="font-semibold text-amber-800 mb-2">{t("cocinatina.experiences.workshop.nextWorkshop")}</h4>
+                <p className="text-amber-700">{t("cocinatina.experiences.workshop.date")}</p>
+                <p className="text-amber-600">{t("cocinatina.experiences.workshop.topic")}</p>
               </div>
               <Button
                 variant="outline"
+                onClick={() => sendEventMessage("Taller: El Arte del Mangú Perfecto", "Sábado 14 de Enero, 10:00 AM")}
                 className="border-2 border-amber-700 text-amber-700 hover:bg-amber-700 hover:text-amber-50"
+                aria-label="Inscribirse en Taller de Cocina"
               >
-                Inscribirse
+                {t("cocinatina.experiences.workshop.register")}
               </Button>
             </motion.div>
           </div>
@@ -570,10 +680,10 @@ export default function MasaTinaPage() {
             className="text-center mb-16"
           >
             <h2 className="font-serif text-4xl md:text-6xl font-bold text-amber-900 mb-6">
-              Historias de Nuestra Mesa
+              {t("cocinatina.testimonials.title")}
             </h2>
             <p className="text-xl text-amber-700 max-w-3xl mx-auto">
-              Cada cliente es parte de nuestra familia extendida. Estas son sus palabras de amor.
+              {t("cocinatina.testimonials.subtitle")}
             </p>
           </motion.div>
 
@@ -622,19 +732,17 @@ export default function MasaTinaPage() {
               viewport={{ once: true }}
             >
               <h2 className="font-serif text-4xl md:text-6xl font-bold text-amber-900 mb-6">
-                Nuestra Historia
+                {t("cocinatina.about.title")}
               </h2>
               <div className="space-y-6 text-lg text-amber-800 leading-relaxed">
                 <p>
-                  Masa Tina nació del amor por nuestra tierra y la nostalgia del sabor de casa. 
-                  Desde Elmira, NY, llevamos el corazón de República Dominicana a cada mesa americana.
+                  {t("cocinatina.about.paragraph1")}
                 </p>
                 <p>
-                  Somos una familia que cocina con las recetas de nuestras abuelas, pero con la 
-                  frescura de ingredientes locales y la pasión de quien extraña su hogar.
+                  {t("cocinatina.about.paragraph2")}
                 </p>
                 <p className="font-semibold text-amber-900">
-                  "Cada empanada es un abrazo, cada plato una historia, cada cliente un familiar más."
+                  {t("cocinatina.about.quote")}
                 </p>
               </div>
             </motion.div>
@@ -649,7 +757,7 @@ export default function MasaTinaPage() {
                 <div className="w-full h-full flex items-center justify-center">
                   <div className="text-center">
                     <div className="text-8xl mb-4">👩‍🍳👨‍🍳</div>
-                    <p className="text-amber-800 font-semibold">La Familia Masa Tina</p>
+                    <p className="text-amber-800 font-semibold">{t("cocinatina.about.familyLabel")}</p>
                   </div>
                 </div>
               </div>
@@ -667,11 +775,10 @@ export default function MasaTinaPage() {
             viewport={{ once: true }}
           >
             <h2 className="font-serif text-4xl md:text-6xl font-bold text-amber-900 mb-6">
-              ¡Hablemos!
+              {t("cocinatina.contact.title")}
             </h2>
             <p className="text-xl text-amber-700 max-w-2xl mx-auto mb-12">
-              ¿Tienes una ocasión especial? ¿Quieres probar nuestros platos? 
-              Contáctanos y hagamos magia culinaria juntos.
+              {t("cocinatina.contact.subtitle")}
             </p>
 
             <div className="grid md:grid-cols-2 gap-8 mb-12">
@@ -681,15 +788,17 @@ export default function MasaTinaPage() {
                 className="bg-white rounded-2xl p-8 shadow-lg border border-amber-200"
               >
                 <div className="text-6xl mb-4">📱</div>
-                <h3 className="text-2xl font-bold text-amber-900 mb-4">WhatsApp</h3>
+                <h3 className="text-2xl font-bold text-amber-900 mb-4">{t("cocinatina.contact.whatsapp.title")}</h3>
                 <p className="text-amber-700 mb-6">
-                  La forma más rápida de hacer tu pedido
+                  {t("cocinatina.contact.whatsapp.description")}
                 </p>
                 <Button
                   variant="primary"
+                  onClick={() => sendInquiry("Consulta General", "Hola, me gustaría obtener más información sobre sus productos y servicios.")}
                   className="bg-green-500 hover:bg-green-600 text-white"
+                  aria-label="Chatear por WhatsApp"
                 >
-                  Chatear Ahora
+                  {t("cocinatina.contact.whatsapp.button")}
                 </Button>
               </motion.div>
 
@@ -699,15 +808,17 @@ export default function MasaTinaPage() {
                 className="bg-white rounded-2xl p-8 shadow-lg border border-amber-200"
               >
                 <div className="text-6xl mb-4">📧</div>
-                <h3 className="text-2xl font-bold text-amber-900 mb-4">Email</h3>
+                <h3 className="text-2xl font-bold text-amber-900 mb-4">{t("cocinatina.contact.email.title")}</h3>
                 <p className="text-amber-700 mb-6">
-                  Para eventos especiales y catering
+                  {t("cocinatina.contact.email.description")}
                 </p>
                 <Button
                   variant="outline"
+                  onClick={() => sendInquiry("Evento Especial o Catering", "Me gustaría cotizar un evento especial.")}
                   className="border-2 border-amber-700 text-amber-700 hover:bg-amber-700 hover:text-amber-50"
+                  aria-label="Contactar para eventos"
                 >
-                  Enviar Email
+                  {t("cocinatina.contact.email.button")}
                 </Button>
               </motion.div>
             </div>
@@ -715,22 +826,22 @@ export default function MasaTinaPage() {
             {/* Newsletter */}
             <div className="bg-white rounded-3xl p-8 shadow-lg border border-amber-200">
               <h3 className="font-serif text-2xl font-bold text-amber-900 mb-4">
-                Newsletter Masa Tina
+                {t("cocinatina.newsletter.title")}
               </h3>
               <p className="text-amber-700 mb-6">
-                Recibe recetas secretas, promociones exclusivas y noticias de nuestros eventos.
+                {t("cocinatina.newsletter.description")}
               </p>
               <div className="flex gap-3 max-w-md mx-auto">
                 <input
                   type="email"
-                  placeholder="tu@email.com"
+                  placeholder={t("cocinatina.newsletter.placeholder")}
                   className="flex-1 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-amber-900"
                 />
                 <Button
                   variant="primary"
                   className="bg-amber-700 hover:bg-amber-800 text-amber-50"
                 >
-                  Suscribirse
+                  {t("cocinatina.newsletter.button")}
                 </Button>
               </div>
             </div>
@@ -743,14 +854,14 @@ export default function MasaTinaPage() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-8 mb-8">
             <div>
-              <h3 className="font-serif text-2xl font-bold mb-4">Masa Tina</h3>
+              <h3 className="font-serif text-2xl font-bold mb-4">{t("cocinatina.hero.title")}</h3>
               <p className="text-amber-200 leading-relaxed">
-                Comida dominicana hecha con amor, desde nuestro hogar hasta el tuyo.
+                {t("cocinatina.footer.tagline")}
               </p>
             </div>
-            
+
             <div>
-              <h4 className="font-bold mb-4">Síguenos</h4>
+              <h4 className="font-bold mb-4">{t("cocinatina.footer.follow")}</h4>
               <div className="flex gap-4">
                 {[
                   { platform: "Instagram", emoji: "📷" },
@@ -768,93 +879,49 @@ export default function MasaTinaPage() {
                 ))}
               </div>
             </div>
-            
+
             <div>
-              <h4 className="font-bold mb-4">Ubicación</h4>
+              <h4 className="font-bold mb-4">{t("cocinatina.footer.location")}</h4>
               <p className="text-amber-200">
-                Elmira, NY<br />
-                Servicio a toda la región<br />
+                {t("cocinatina.footer.locationText")}<br />
+                {t("cocinatina.footer.service")}<br />
                 📞 (607) XXX-XXXX
               </p>
             </div>
           </div>
-          
+
           <div className="text-center pt-8 border-t border-amber-700">
             <p className="text-amber-300">
-              © 2024 Masa Tina - Parte del ecosistema MaalCa ❤️
+              {t("cocinatina.footer.copyright")}
             </p>
           </div>
         </div>
       </footer>
 
+      {/* Toast Notifications */}
+      <Toast toasts={toasts} onRemove={removeToast} />
+
+      {/* Mobile Menu */}
+      <MobileMenu
+        isOpen={showMobileMenu}
+        onClose={() => setShowMobileMenu(false)}
+        cartCount={getItemCount()}
+        onCartClick={() => setShowCart(true)}
+        onWhatsAppClick={() => sendInquiry("Consulta", "Hola, me gustaría obtener más información.")}
+      />
+
       {/* Cart Sidebar */}
-      {showCart && (
-        <div className="fixed inset-0 z-50 overflow-hidden">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowCart(false)}></div>
-          <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            className="absolute right-0 top-0 h-full w-96 bg-white shadow-2xl overflow-y-auto"
-          >
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold text-amber-900">Tu Carrito</h3>
-                <button
-                  onClick={() => setShowCart(false)}
-                  className="text-amber-600 hover:text-amber-800"
-                >
-                  ✕
-                </button>
-              </div>
-              
-              {cart.length === 0 ? (
-                <p className="text-amber-700 text-center py-8">Tu carrito está vacío</p>
-              ) : (
-                <>
-                  <div className="space-y-4 mb-6">
-                    {cart.map((item) => (
-                      <div key={item.id} className="flex items-center gap-4 bg-amber-50 p-4 rounded-lg">
-                        <div className="flex-1">
-                          <h4 className="font-bold text-amber-900">{item.name}</h4>
-                          <p className="text-amber-700">${item.price}</p>
-                        </div>
-                        <button
-                          onClick={() => removeFromCart(item.id)}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div className="border-t border-amber-200 pt-4">
-                    <div className="flex justify-between text-xl font-bold text-amber-900 mb-6">
-                      <span>Total:</span>
-                      <span>${getTotalPrice()}</span>
-                    </div>
-                    
-                    <Button
-                      variant="primary"
-                      className="w-full bg-amber-700 hover:bg-amber-800 text-amber-50 mb-4"
-                    >
-                      Proceder al Pago
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      className="w-full border-2 border-amber-700 text-amber-700 hover:bg-amber-700 hover:text-amber-50"
-                    >
-                      Pedir por WhatsApp
-                    </Button>
-                  </div>
-                </>
-              )}
-            </div>
-          </motion.div>
-        </div>
-      )}
+      <CartSidebar
+        isOpen={showCart}
+        onClose={() => setShowCart(false)}
+        cart={cart}
+        onRemoveItem={removeItem}
+        onIncrementQuantity={incrementQuantity}
+        onDecrementQuantity={decrementQuantity}
+        onClearCart={clearCart}
+        onWhatsAppCheckout={handleWhatsAppCheckout}
+        getTotal={getTotal}
+      />
     </main>
   );
 }

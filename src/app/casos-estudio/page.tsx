@@ -57,7 +57,7 @@ const caseStudies = [
   },
   {
     id: "masa-tina-case",
-    title: "Masa Tina: Gastronomía Digital Dominicana",
+    title: "Cocina Tina: Gastronomía Digital Dominicana",
     category: "Catálogo + POS + Stripe",
     challenge: "Digitalizar experiencias gastronómicas tradicionales dominicanas",
     solution: "Plataforma completa con catálogo, POS y procesamiento de pagos integrado",
@@ -76,7 +76,7 @@ const caseStudies = [
     image: "/images/projects/masa-tina.svg",
     testimonial: {
       text: "La digitalización preservó la esencia de nuestra cocina tradicional mientras modernizó completamente el negocio",
-      author: "Equipo Masa Tina"
+      author: "Equipo Cocina Tina"
     },
     technologies: ["Stripe Integration", "Custom POS", "Digital Catalog", "Order Management"]
   },

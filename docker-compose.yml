@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  maalca-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://maalca:maalcapass@db:5432/maalcadb
+    depends_on:
+      - db
+    networks:
+      - maalca-network
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=maalca
+      - POSTGRES_PASSWORD=maalcapass
+      - POSTGRES_DB=maalcadb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - maalca-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  maalca-network:
+    driver: bridge

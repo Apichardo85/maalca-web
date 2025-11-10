@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Test</title>
+    <style>
+        /* Copy of our design tokens */
+        :root {
+          --color-text-primary: #0f172a;
+          --color-text-secondary: #475569;
+          --color-text-accent: #dc2626;
+          --color-text-link: #2563eb;
+          --color-text-muted: #94a3b8;
+
+          --color-bg-primary: #ffffff;
+          --color-bg-secondary: #f8fafc;
+
+          --color-surface-primary: #ffffff;
+          --color-border-primary: #e2e8f0;
+
+          --color-brand-primary: #dc2626;
+          --color-brand-primary-hover: #ef4444;
+        }
+
+        .dark {
+          --color-text-primary: #f8fafc;
+          --color-text-secondary: #cbd5e1;
+          --color-text-accent: #ef4444;
+          --color-text-link: #f8fafc; /* FIXED: Blue text readable! */
+          --color-text-muted: #64748b;
+
+          --color-bg-primary: #0f172a;
+          --color-bg-secondary: #1e293b;
+
+          --color-surface-primary: #1e293b;
+          --color-border-primary: #475569;
+
+          --color-brand-primary: #ef4444;
+          --color-brand-primary-hover: #f87171;
+        }
+
+        /* Semantic classes */
+        .text-primary { color: var(--color-text-primary); }
+        .text-secondary { color: var(--color-text-secondary); }
+        .text-accent { color: var(--color-text-accent); }
+        .text-link { color: var(--color-text-link); }
+        .text-muted { color: var(--color-text-muted); }
+
+        .bg-primary { background-color: var(--color-bg-primary); }
+        .bg-secondary { background-color: var(--color-bg-secondary); }
+
+        .surface-primary {
+          background-color: var(--color-surface-primary);
+          border: 1px solid var(--color-border-primary);
+        }
+
+        .btn-semantic {
+          background-color: var(--color-brand-primary);
+          color: white;
+          padding: 0.5rem 1rem;
+          border-radius: 0.375rem;
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body class="bg-primary">
+    <div class="container">
+        <h1 class="text-primary">🎨 Theme System Test</h1>
+
+        <button onclick="toggleTheme()" class="btn-semantic">
+            Toggle Dark Mode
+        </button>
+
+        <div class="surface-primary" style="padding: 2rem; margin: 2rem 0; border-radius: 0.5rem;">
+            <h2 class="text-primary">Design Token Tests</h2>
+            <p class="text-secondary">Secondary text - should be readable in both modes</p>
+            <p class="text-accent">Accent text (brand color)</p>
+            <p class="text-link">Link text - THIS WAS THE PROBLEMATIC BLUE TEXT!</p>
+            <p class="text-muted">Muted text</p>
+
+            <div class="bg-secondary" style="padding: 1rem; margin: 1rem 0; border-radius: 0.25rem;">
+                <p class="text-primary">Content in secondary background</p>
+            </div>
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <p class="text-primary">Current mode: <span id="current-mode">Light</span></p>
+            <p class="text-muted">Click the button above to test theme switching</p>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentMode = document.getElementById('current-mode');
+
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                currentMode.textContent = 'Light';
+            } else {
+                html.classList.add('dark');
+                currentMode.textContent = 'Dark';
+            }
+        }
+    </script>
+</body>
+</html>

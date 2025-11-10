@@ -7,50 +7,52 @@ import { TextAreaField } from "@/components/ui/TextAreaField";
 import { SelectField } from "@/components/ui/SelectField";
 import { useFormValidation, EMAIL_PATTERN, NAME_PATTERN, type ValidationRules } from "@/hooks/useFormValidation";
 import { useContactForm, type ContactFormData } from "@/hooks/useContactForm";
-
-// Form validation rules
-const validationRules: ValidationRules = {
-  name: {
-    required: true,
-    minLength: 2,
-    pattern: NAME_PATTERN,
-    custom: (value: string) => {
-      if (value.trim().split(' ').length < 2) {
-        return 'Por favor ingresa tu nombre completo';
-      }
-      return null;
-    }
-  },
-  email: {
-    required: true,
-    pattern: EMAIL_PATTERN
-  },
-  company: {
-    maxLength: 100
-  },
-  project: {
-    required: true
-  },
-  message: {
-    required: true,
-    minLength: 10,
-    maxLength: 1000
-  }
-};
-
-// Project type options
-const projectOptions = [
-  { value: "editorial", label: "Editorial y Publicaciones" },
-  { value: "tech", label: "Desarrollo Tecnológico" },
-  { value: "content", label: "Creación de Contenido" },
-  { value: "real-estate", label: "Bienes Raíces" },
-  { value: "catering", label: "Servicios de Catering" },
-  { value: "consulting", label: "Consultoría" },
-  { value: "collaboration", label: "Colaboración/Partnership" },
-  { value: "other", label: "Otro" }
-];
+import { useTranslation } from "@/hooks/useSimpleLanguage";
 
 export default function ContactoPage() {
+  const { t } = useTranslation();
+
+  // Form validation rules
+  const validationRules: ValidationRules = {
+    name: {
+      required: true,
+      minLength: 2,
+      pattern: NAME_PATTERN,
+      custom: (value: string) => {
+        if (value.trim().split(' ').length < 2) {
+          return t('validation.fullName');
+        }
+        return null;
+      }
+    },
+    email: {
+      required: true,
+      pattern: EMAIL_PATTERN
+    },
+    company: {
+      maxLength: 100
+    },
+    project: {
+      required: true
+    },
+    message: {
+      required: true,
+      minLength: 10,
+      maxLength: 1000
+    }
+  };
+
+  // Project type options
+  const projectOptions = [
+    { value: "editorial", label: t('contactPage.project.editorial') },
+    { value: "tech", label: t('contactPage.project.tech') },
+    { value: "content", label: t('contactPage.project.content') },
+    { value: "real-estate", label: t('contactPage.project.realEstate') },
+    { value: "catering", label: t('contactPage.project.catering') },
+    { value: "consulting", label: t('contactPage.project.consulting') },
+    { value: "collaboration", label: t('contactPage.project.collaboration') },
+    { value: "other", label: t('contactPage.project.other') }
+  ];
   const initialData: ContactFormData = {
     name: "",
     email: "",
@@ -114,12 +116,11 @@ export default function ContactoPage() {
               transition={{ duration: 0.8 }}
             >
               <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-text-primary mb-6">
-                Hablemos de tu
-                <span className="block text-brand-primary">Proyecto</span>
+                {t('contactPage.hero.title')}
+                <span className="block text-brand-primary">{t('contactPage.hero.subtitle')}</span>
               </h1>
               <p className="text-lg lg:text-xl text-text-secondary max-w-3xl mx-auto leading-relaxed">
-                Cada gran proyecto comienza con una conversación. 
-                Cuéntanos tu visión y exploremos juntos las posibilidades.
+                {t('contactPage.hero.description')}
               </p>
             </motion.div>
           </div>
@@ -138,17 +139,17 @@ export default function ContactoPage() {
             >
               <div className="bg-surface rounded-2xl p-8 border border-border shadow-lg">
                 <h2 className="text-2xl font-bold text-text-primary mb-6">
-                  Envíanos un mensaje
+                  {t('contactPage.form.title')}
                 </h2>
-                
+
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Name */}
                   <FormField
-                    label="Nombre"
+                    label={t('contactPage.form.name')}
                     name="name"
                     type="text"
                     required
-                    placeholder="Tu nombre completo"
+                    placeholder={t('contactPage.form.namePlaceholder')}
                     autoComplete="name"
                     error={errors.name}
                     {...getFieldProps('name')}
@@ -156,11 +157,11 @@ export default function ContactoPage() {
 
                   {/* Email */}
                   <FormField
-                    label="Email"
+                    label={t('contactPage.form.email')}
                     name="email"
                     type="email"
                     required
-                    placeholder="tu@email.com"
+                    placeholder={t('contactPage.form.emailPlaceholder')}
                     autoComplete="email"
                     error={errors.email}
                     {...getFieldProps('email')}
@@ -168,10 +169,10 @@ export default function ContactoPage() {
 
                   {/* Company */}
                   <FormField
-                    label="Empresa/Organización"
+                    label={t('contactPage.form.company')}
                     name="company"
                     type="text"
-                    placeholder="Nombre de tu empresa (opcional)"
+                    placeholder={t('contactPage.form.companyPlaceholder')}
                     autoComplete="organization"
                     error={errors.company}
                     {...getFieldProps('company')}
@@ -179,10 +180,10 @@ export default function ContactoPage() {
 
                   {/* Project Type */}
                   <SelectField
-                    label="Tipo de Proyecto"
+                    label={t('contactPage.form.projectType')}
                     name="project"
                     required
-                    placeholder="Selecciona un tipo de proyecto"
+                    placeholder={t('contactPage.form.projectPlaceholder')}
                     options={projectOptions}
                     error={errors.project}
                     {...getFieldProps('project')}
@@ -190,12 +191,12 @@ export default function ContactoPage() {
 
                   {/* Message */}
                   <TextAreaField
-                    label="Mensaje"
+                    label={t('contactPage.form.message')}
                     name="message"
                     required
                     rows={6}
                     maxLength={1000}
-                    placeholder="Cuéntanos sobre tu proyecto, ideas o cómo podemos colaborar..."
+                    placeholder={t('contactPage.form.messagePlaceholder')}
                     error={errors.message}
                     {...getFieldProps('message')}
                   />
@@ -244,17 +245,17 @@ export default function ContactoPage() {
                     {isLoading ? (
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        Enviando...
+                        {t('contactPage.form.submitting')}
                       </div>
                     ) : (
-                      "Enviar Mensaje"
+                      t('contactPage.form.submit')
                     )}
                   </Button>
-                  
+
                   {/* Form Footer */}
                   <div className="text-center">
                     <p className="text-sm text-text-muted">
-                      Al enviar este formulario, aceptas que podamos contactarte sobre tu consulta.
+                      {t('contactPage.form.disclaimer')}
                     </p>
                   </div>
                 </form>
@@ -272,9 +273,9 @@ export default function ContactoPage() {
               {/* Company Info */}
               <div className="bg-surface rounded-2xl p-8 border border-border">
                 <h3 className="text-xl font-bold text-text-primary mb-6">
-                  Información de Contacto
+                  {t('contactPage.info.title')}
                 </h3>
-                
+
                 <div className="space-y-6">
                   {/* Company */}
                   <div className="flex items-start gap-4">
@@ -284,9 +285,9 @@ export default function ContactoPage() {
                       </svg>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-text-primary">MaalCa LLC</h4>
-                      <p className="text-text-secondary">Ecosistema Creativo</p>
-                      <p className="text-sm text-text-muted">Elmira, NY • Estados Unidos</p>
+                      <h4 className="font-semibold text-text-primary">{t('contactPage.info.company')}</h4>
+                      <p className="text-text-secondary">{t('contactPage.info.ecosystem')}</p>
+                      <p className="text-sm text-text-muted">{t('contactPage.info.location')}</p>
                     </div>
                   </div>
 
@@ -299,7 +300,7 @@ export default function ContactoPage() {
                       </svg>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-text-primary">Email</h4>
+                      <h4 className="font-semibold text-text-primary">{t('contactPage.info.emailLabel')}</h4>
                       <a href="mailto:hola@maalca.com" className="text-brand-primary hover:underline">
                         hola@maalca.com
                       </a>
@@ -314,8 +315,8 @@ export default function ContactoPage() {
                       </svg>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-text-primary">Tiempo de Respuesta</h4>
-                      <p className="text-text-secondary">24-48 horas hábiles</p>
+                      <h4 className="font-semibold text-text-primary">{t('contactPage.info.responseTime')}</h4>
+                      <p className="text-text-secondary">{t('contactPage.info.responseTimeValue')}</p>
                     </div>
                   </div>
                 </div>
@@ -325,11 +326,10 @@ export default function ContactoPage() {
               <div className="bg-gradient-to-r from-brand-primary/10 to-brand-secondary/10 rounded-2xl p-8 border border-brand-primary/20">
                 <blockquote className="text-text-primary">
                   <p className="text-lg font-medium italic mb-4">
-                    &ldquo;Cada conversación es una oportunidad de crear algo extraordinario. 
-                    En MaalCa creemos que los mejores proyectos nacen del diálogo genuino y la conexión humana.&rdquo;
+                    &ldquo;{t('contactPage.quote.text')}&rdquo;
                   </p>
                   <cite className="text-sm text-text-secondary">
-                    — Filosofía MaalCa
+                    — {t('contactPage.quote.author')}
                   </cite>
                 </blockquote>
               </div>

@@ -7,26 +7,29 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/buttons";
 import { Logo } from "@/components/ui/Logo";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import SimpleLanguageToggle from "@/components/ui/SimpleLanguageToggle";
+import { useTranslation } from "@/hooks/useSimpleLanguage";
 import { NavigationItem, HeaderProps } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const navigationItems: NavigationItem[] = [
-  { label: "Inicio", href: "/" },
-  { label: "Ecosistema", href: "/ecosistema" },
-  { label: "Editorial", href: "/editorial" },
-  { label: "Servicios", href: "/servicios" },
-  { label: "Contacto", href: "/contacto" }
-];
-
-export default function Header({ 
+export default function Header({
   className = "",
   variant = "default",
   showLogo = true,
-  showActions = true 
+  showActions = true
 }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { t } = useTranslation();
+
+  const navigationItems: NavigationItem[] = [
+    { label: t('nav.home'), href: "/" },
+    { label: t('nav.ecosystem'), href: "/ecosistema" },
+    { label: t('nav.editorial'), href: "/editorial" },
+    { label: t('nav.services'), href: "/servicios" },
+    { label: t('nav.contact'), href: "/contacto" }
+  ];
 
   // Handle scroll effect
   useEffect(() => {
@@ -142,6 +145,15 @@ export default function Header({
 
             {/* Actions */}
             <div className="hidden lg:flex items-center space-x-4">
+              {/* Language Toggle */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+              >
+                <SimpleLanguageToggle />
+              </motion.div>
+
               {/* Theme Toggle */}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
@@ -165,7 +177,7 @@ export default function Header({
                         document.getElementById('ecosistema')?.scrollIntoView({ behavior: 'smooth' });
                       }}
                     >
-                      Explorar
+                      {t('nav.explore')}
                     </Button>
                   </motion.div>
 
@@ -178,7 +190,7 @@ export default function Header({
                       variant="primary"
                       size="sm"
                     >
-                      Únete al Ecosistema
+                      {t('nav.join')}
                     </Button>
                   </motion.div>
                 </>
@@ -288,8 +300,9 @@ export default function Header({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: 0.4 }}
                 >
-                  {/* Theme Toggle for Mobile */}
-                  <div className="flex justify-center">
+                  {/* Language & Theme Toggles for Mobile */}
+                  <div className="flex justify-center gap-4">
+                    <SimpleLanguageToggle />
                     <ThemeToggle />
                   </div>
 
@@ -304,7 +317,7 @@ export default function Header({
                           document.getElementById('ecosistema')?.scrollIntoView({ behavior: 'smooth' });
                         }}
                       >
-                        Explorar
+                        {t('nav.explore')}
                       </Button>
 
                       <Button
@@ -313,7 +326,7 @@ export default function Header({
                         className="w-full"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        Únete al Ecosistema
+                        {t('nav.join')}
                       </Button>
                     </>
                   )}

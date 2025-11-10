@@ -201,7 +201,7 @@ export default function HomePage() {
                 color: "red"
               },
               {
-                title: "Masa Tina",
+                title: "Cocina Tina",
                 description: "Experiencias gastronómicas y catering premium",
                 category: "Gastronomía",
                 color: "gray"

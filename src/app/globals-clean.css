@@ -1,0 +1,238 @@
+@import "tailwindcss";
+
+/* =============================================================================
+   UNIFIED DESIGN TOKENS SYSTEM
+   ============================================================================= */
+
+:root {
+  /* Semantic Text Colors */
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-accent: #dc2626;
+  --color-text-link: #2563eb;
+  --color-text-muted: #94a3b8;
+
+  /* Semantic Background Colors */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f8fafc;
+
+  /* Semantic Surface Colors */
+  --color-surface-primary: #ffffff;
+  --color-border-primary: #e2e8f0;
+
+  /* Brand Colors */
+  --color-brand-primary: #dc2626;
+  --color-brand-primary-hover: #ef4444;
+
+  /* Legacy HSL values for compatibility */
+  --background: 0 0% 100%;
+  --foreground: 0 0% 10%;
+  --primary: 0 72% 51%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 9%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 45%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 10%;
+  --border: 0 0% 90%;
+  --input: 0 0% 90%;
+  --ring: 0 72% 51%;
+}
+
+[data-theme="dark"] {
+  /* Semantic Text Colors - BLUE TEXT NOW READABLE! */
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-text-accent: #ef4444;
+  --color-text-link: #f8fafc; /* FIXED: No more invisible blue text! */
+  --color-text-muted: #64748b;
+
+  /* Semantic Background Colors */
+  --color-bg-primary: #0f172a;
+  --color-bg-secondary: #1e293b;
+
+  /* Semantic Surface Colors */
+  --color-surface-primary: #1e293b;
+  --color-border-primary: #475569;
+
+  /* Brand Colors */
+  --color-brand-primary: #ef4444;
+  --color-brand-primary-hover: #f87171;
+
+  /* Legacy HSL values */
+  --background: 222 84% 5%;
+  --foreground: 0 0% 98%;
+  --primary: 0 72% 51%;
+  --primary-foreground: 0 0% 9%;
+  --secondary: 215 28% 17%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 215 28% 17%;
+  --muted-foreground: 0 0% 65%;
+  --card: 222 84% 5%;
+  --card-foreground: 0 0% 98%;
+  --border: 215 28% 17%;
+  --input: 215 28% 17%;
+  --ring: 0 72% 51%;
+}
+
+[data-theme="paper"] {
+  /* Paper Theme for CiriWhispers */
+  --color-text-primary: #2b1810;
+  --color-text-secondary: #5d4e3d;
+  --color-text-accent: #8b1538;
+  --color-text-link: #8b1538;
+  --color-text-muted: #8a7860;
+
+  --color-bg-primary: #f7f1e3;
+  --color-bg-secondary: #f0e8d8;
+
+  --color-surface-primary: rgba(255, 255, 255, 0.7);
+  --color-border-primary: #e7dccc;
+
+  --color-brand-primary: #8b1538;
+  --color-brand-primary-hover: #6b1129;
+}
+
+/* =============================================================================
+   SEMANTIC CSS CLASSES
+   ============================================================================= */
+
+.text-primary { color: var(--color-text-primary); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-accent { color: var(--color-text-accent); }
+.text-link {
+  color: var(--color-text-link);
+  transition: color 0.2s ease;
+}
+.text-muted { color: var(--color-text-muted); }
+
+.bg-primary { background-color: var(--color-bg-primary); }
+.bg-secondary { background-color: var(--color-bg-secondary); }
+
+.surface-primary {
+  background-color: var(--color-surface-primary);
+  border: 1px solid var(--color-border-primary);
+}
+
+.border-primary { border-color: var(--color-border-primary); }
+
+.btn-semantic {
+  background-color: var(--color-brand-primary);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-semantic:hover {
+  background-color: var(--color-brand-primary-hover);
+  transform: translateY(-1px);
+}
+
+.heading-1 {
+  font-size: 3rem;
+  font-weight: 300;
+  line-height: 1.2;
+  color: var(--color-text-primary);
+}
+
+.heading-4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.body-large {
+  font-size: 1.125rem;
+  line-height: 1.75;
+  color: var(--color-text-secondary);
+}
+
+.radius-card {
+  border-radius: 0.75rem;
+}
+
+.elevation-1 {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.elevation-2 {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.bg-accent {
+  background-color: var(--color-text-accent);
+  opacity: 0.1;
+}
+
+/* Theme debugging */
+.debug-theme::after {
+  content: attr(data-theme);
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  padding: 4px 8px;
+  border: 1px solid var(--color-border-primary);
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+/* =============================================================================
+   LEGACY COMPATIBILITY SECTION
+   ============================================================================= */
+
+/* Legacy dark class for next-themes */
+.dark {
+  /* This now inherits from [data-theme="dark"] automatically */
+}
+
+/* Legacy CiriWhispers styles */
+html.light-theme body {
+  background: #f7f1e3 !important;
+  color: #2b1810 !important;
+}
+
+/* Body base styles */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.7;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Font families */
+.font-display {
+  font-family: var(--font-playfair), serif;
+  line-height: 1.2;
+}
+
+/* Smooth theme transitions */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Respect motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Fix for blue text contrast in dark mode */
+@media (prefers-color-scheme: dark) {
+  .text-blue-600,
+  .text-blue-700,
+  .text-blue-800,
+  .text-blue-900 {
+    color: #ffffff !important;
+  }
+}

@@ -947,7 +947,7 @@ export default function PegoteBarberPage() {
                 <a href="/" className="block hover:text-red-400 transition-colors">MaalCa Home</a>
                 <a href="/cirisonic" className="block hover:text-red-400 transition-colors">CiriSonic</a>
                 <a href="/ciriwhispers" className="block hover:text-red-400 transition-colors">CiriWhispers</a>
-                <a href="/masa-tina" className="block hover:text-red-400 transition-colors">Masa Tina</a>
+                <a href="/masa-tina" className="block hover:text-red-400 transition-colors">Cocina Tina</a>
               </div>
             </div>
           </div>
