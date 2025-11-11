@@ -1,0 +1,12 @@
+# robots.txt for MaalCa
+# Allow all search engines to crawl the site
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://maalca.com/sitemap.xml
+
+# Disallow admin or private paths (if any in the future)
+# Disallow: /admin/
+# Disallow: /api/private/
