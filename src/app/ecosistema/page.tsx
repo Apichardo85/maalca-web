@@ -276,24 +276,24 @@ export default function EcosistemaPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-text-primary mb-6">
+            <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6">
               {t('ecosystem.hero.title')}
               <span className="block text-brand-primary">{t('ecosystem.hero.subtitle')}</span>
             </h1>
-            <p className="text-lg lg:text-xl text-text-secondary max-w-3xl mx-auto leading-relaxed mb-8">
+            <p className="text-lg lg:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8">
               {t('ecosystem.hero.description')}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <div className="text-sm text-text-muted">
+              <div className="text-sm text-gray-400">
                 <span className="font-medium">6</span> {t('ecosystem.stats.projects')}
               </div>
-              <div className="hidden sm:block text-text-muted">•</div>
-              <div className="text-sm text-text-muted">
+              <div className="hidden sm:block text-gray-400">•</div>
+              <div className="text-sm text-gray-400">
                 <span className="font-medium">4</span> {t('ecosystem.stats.verticals')}
               </div>
-              <div className="hidden sm:block text-text-muted">•</div>
-              <div className="text-sm text-text-muted">
+              <div className="hidden sm:block text-gray-400">•</div>
+              <div className="text-sm text-gray-400">
                 {t('ecosystem.stats.founded')} <span className="font-medium">2020</span>
               </div>
             </div>
@@ -331,36 +331,36 @@ export default function EcosistemaPage() {
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(t(project.statusKey))}`}>
                         {t(project.statusKey)}
                       </span>
-                      <span className="text-xs text-text-muted">
+                      <span className="text-xs text-gray-400">
                         {t('ecosystem.launched')} {project.launched}
                       </span>
                     </div>
 
                     {/* Title and Category Badge */}
                     <div className="mb-4">
-                      <h3 className="text-2xl font-bold text-text-primary mb-2 group-hover:text-brand-primary transition-colors">
+                      <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-brand-primary transition-colors">
                         {t(project.titleKey)}
                       </h3>
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
                         project.color === 'red'
                           ? 'bg-brand-primary/20 text-brand-primary border border-brand-primary/30'
-                          : 'bg-surface-elevated text-text-secondary border border-border'
+                          : 'bg-surface-elevated text-gray-300 border border-border'
                       }`}>
                         {t(project.categoryKey)}
                       </span>
                     </div>
 
                     {/* Description */}
-                    <p className="text-text-secondary leading-relaxed mb-6">
+                    <p className="text-gray-300 leading-relaxed mb-6">
                       {t(project.descriptionKey)}
                     </p>
 
                     {/* Key Features */}
                     <div className="mb-6">
-                      <h4 className="text-sm font-semibold text-text-primary mb-3">{t('ecosystem.keyFeatures')}</h4>
+                      <h4 className="text-sm font-semibold text-white mb-3">{t('ecosystem.keyFeatures')}</h4>
                       <ul className="space-y-2">
                         {project.detailKeys.map((detailKey, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm text-text-secondary">
+                          <li key={idx} className="flex items-start gap-2 text-sm text-gray-300">
                             <div className="w-1.5 h-1.5 bg-brand-primary rounded-full mt-2 flex-shrink-0"></div>
                             {t(detailKey)}
                           </li>
@@ -408,10 +408,10 @@ export default function EcosistemaPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-6">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-6">
               {t('ecosystem.cta.title')}
             </h2>
-            <p className="text-lg text-text-secondary mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
               {t('ecosystem.cta.description')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -426,7 +426,7 @@ export default function EcosistemaPage() {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-text-primary text-text-primary hover:bg-text-primary hover:text-background"
+                className="border-text-primary text-white hover:bg-text-primary hover:text-background"
                 onClick={() => handleProjectClick("/servicios")}
               >
                 {t('ecosystem.cta.services')}
