@@ -115,11 +115,11 @@ export default function ContactoPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-text-primary mb-6">
+              <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6">
                 {t('contactPage.hero.title')}
                 <span className="block text-brand-primary">{t('contactPage.hero.subtitle')}</span>
               </h1>
-              <p className="text-lg lg:text-xl text-text-secondary max-w-3xl mx-auto leading-relaxed">
+              <p className="text-lg lg:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
                 {t('contactPage.hero.description')}
               </p>
             </motion.div>
@@ -138,7 +138,7 @@ export default function ContactoPage() {
               transition={{ duration: 0.8 }}
             >
               <div className="bg-surface rounded-2xl p-8 border border-border shadow-lg">
-                <h2 className="text-2xl font-bold text-text-primary mb-6">
+                <h2 className="text-2xl font-bold text-white mb-6">
                   {t('contactPage.form.title')}
                 </h2>
 
@@ -254,7 +254,7 @@ export default function ContactoPage() {
 
                   {/* Form Footer */}
                   <div className="text-center">
-                    <p className="text-sm text-text-muted">
+                    <p className="text-sm text-gray-400">
                       {t('contactPage.form.disclaimer')}
                     </p>
                   </div>
@@ -272,7 +272,7 @@ export default function ContactoPage() {
             >
               {/* Company Info */}
               <div className="bg-surface rounded-2xl p-8 border border-border">
-                <h3 className="text-xl font-bold text-text-primary mb-6">
+                <h3 className="text-xl font-bold text-white mb-6">
                   {t('contactPage.info.title')}
                 </h3>
 
@@ -285,9 +285,9 @@ export default function ContactoPage() {
                       </svg>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-text-primary">{t('contactPage.info.company')}</h4>
-                      <p className="text-text-secondary">{t('contactPage.info.ecosystem')}</p>
-                      <p className="text-sm text-text-muted">{t('contactPage.info.location')}</p>
+                      <h4 className="font-semibold text-white">{t('contactPage.info.company')}</h4>
+                      <p className="text-gray-300">{t('contactPage.info.ecosystem')}</p>
+                      <p className="text-sm text-gray-400">{t('contactPage.info.location')}</p>
                     </div>
                   </div>
 
@@ -300,7 +300,7 @@ export default function ContactoPage() {
                       </svg>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-text-primary">{t('contactPage.info.emailLabel')}</h4>
+                      <h4 className="font-semibold text-white">{t('contactPage.info.emailLabel')}</h4>
                       <a href="mailto:hola@maalca.com" className="text-brand-primary hover:underline">
                         hola@maalca.com
                       </a>
@@ -315,8 +315,8 @@ export default function ContactoPage() {
                       </svg>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-text-primary">{t('contactPage.info.responseTime')}</h4>
-                      <p className="text-text-secondary">{t('contactPage.info.responseTimeValue')}</p>
+                      <h4 className="font-semibold text-white">{t('contactPage.info.responseTime')}</h4>
+                      <p className="text-gray-300">{t('contactPage.info.responseTimeValue')}</p>
                     </div>
                   </div>
                 </div>
@@ -324,11 +324,11 @@ export default function ContactoPage() {
 
               {/* Philosophy Quote */}
               <div className="bg-gradient-to-r from-brand-primary/10 to-brand-secondary/10 rounded-2xl p-8 border border-brand-primary/20">
-                <blockquote className="text-text-primary">
+                <blockquote className="text-white">
                   <p className="text-lg font-medium italic mb-4">
                     &ldquo;{t('contactPage.quote.text')}&rdquo;
                   </p>
-                  <cite className="text-sm text-text-secondary">
+                  <cite className="text-sm text-gray-300">
                     — {t('contactPage.quote.author')}
                   </cite>
                 </blockquote>
