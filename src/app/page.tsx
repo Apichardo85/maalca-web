@@ -308,7 +308,7 @@ export default function HomePage() {
                   {t(project.descriptionKey)}
                 </p>
 
-                <div className="text-xs text-gray-500 dark:text-gray-400 mb-6 font-medium">
+                <div className="text-xs text-gray-400 dark:text-gray-300 mb-6 font-medium">
                   ✓ {t(project.outcomeKey)}
                 </div>
 
@@ -496,7 +496,7 @@ export default function HomePage() {
               <div className="space-y-8">
                 <div>
                   <h3 className="text-2xl font-bold text-white mb-4">MaalCa LLC</h3>
-                  <p className="text-gray-400 leading-relaxed">
+                  <p className="text-gray-300 leading-relaxed">
                     Elmira, NY<br />
                     {t('contact.location')}
                   </p>
