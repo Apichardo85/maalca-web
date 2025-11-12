@@ -166,11 +166,11 @@ export default function EditorialPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6">
+              <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-text-primary mb-6">
                 {t('editorial.hero.title')}
                 <span className="block text-brand-primary">{t('editorial.hero.brand')}</span>
               </h1>
-              <p className="text-lg lg:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-lg lg:text-xl text-text-secondary max-w-3xl mx-auto leading-relaxed">
                 {t('editorial.hero.description')}
               </p>
             </motion.div>
@@ -188,7 +188,7 @@ export default function EditorialPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-4">
               {t('editorial.featured.title')}
             </h2>
           </motion.div>
@@ -224,12 +224,12 @@ export default function EditorialPage() {
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-2xl font-extrabold text-white mb-4 group-hover:text-red-500 transition-colors leading-tight drop-shadow-sm">
+                    <h3 className="text-2xl font-bold text-text-primary mb-4 group-hover:text-brand-primary-hover transition-colors leading-tight">
                       {article.title}
                     </h3>
 
                     {/* Excerpt */}
-                    <p className="text-gray-300 leading-relaxed mb-6">
+                    <p className="text-text-secondary leading-relaxed mb-6">
                       {article.excerpt}
                     </p>
 
@@ -263,7 +263,7 @@ export default function EditorialPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-8">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-8">
               {t('editorial.all.title')}
             </h2>
 
@@ -276,7 +276,7 @@ export default function EditorialPage() {
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                     selectedCategory === categoryKey
                       ? 'bg-brand-primary text-white'
-                      : 'bg-surface-elevated text-gray-300 hover:bg-brand-primary/20 hover:text-brand-primary border border-border'
+                      : 'bg-surface-elevated text-text-secondary hover:bg-brand-primary/20 hover:text-brand-primary border border-border'
                   }`}
                 >
                   {t(`editorial.category.${categoryKey}`)}
@@ -303,18 +303,18 @@ export default function EditorialPage() {
                   <div className="bg-surface-elevated rounded-2xl p-6 h-full border border-border hover:border-brand-primary transition-all duration-300 hover:shadow-lg">
                   {/* Category */}
                   <div className="mb-4">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-surface text-gray-300 border border-border">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-surface text-text-secondary border border-border">
                       {article.category}
                     </span>
                   </div>
 
                   {/* Title */}
-                  <h3 className="text-lg font-extrabold text-white mb-3 group-hover:text-red-500 transition-colors leading-tight drop-shadow-sm">
+                  <h3 className="text-lg font-bold text-text-primary mb-3 group-hover:text-brand-primary-hover transition-colors leading-tight">
                     {article.title}
                   </h3>
 
                   {/* Excerpt */}
-                  <p className="text-gray-300 text-sm leading-relaxed mb-4">
+                  <p className="text-text-secondary text-sm leading-relaxed mb-4">
                     {article.excerpt.slice(0, 120)}...
                   </p>
 
@@ -354,10 +354,10 @@ export default function EditorialPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-6">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-6">
               {t('editorial.books.title')}
             </h2>
-            <p className="text-lg text-gray-300 max-w-2xl mx-auto">
+            <p className="text-lg text-text-secondary max-w-2xl mx-auto">
               {t('editorial.books.description')}
             </p>
           </motion.div>
@@ -377,12 +377,12 @@ export default function EditorialPage() {
                   <div className="text-6xl mb-6">{book.cover}</div>
 
                   {/* Title */}
-                  <h3 className="text-xl font-bold text-white mb-4">
+                  <h3 className="text-xl font-bold text-text-primary mb-4">
                     {book.title}
                   </h3>
 
                   {/* Description */}
-                  <p className="text-gray-300 leading-relaxed mb-6">
+                  <p className="text-text-secondary leading-relaxed mb-6">
                     {book.description}
                   </p>
 
@@ -426,10 +426,10 @@ export default function EditorialPage() {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-6">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-6">
               {t('editorial.newsletter.title')}
             </h2>
-            <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-text-secondary mb-8 max-w-2xl mx-auto">
               {t('editorial.newsletter.description')}
             </p>
 
@@ -443,7 +443,7 @@ export default function EditorialPage() {
                   placeholder={t('editorial.newsletter.placeholder')}
                   required
                   disabled={isSubmitting}
-                  className="flex-1 px-4 py-3 bg-surface-elevated border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-brand-primary transition-colors text-white placeholder-gray-400 disabled:opacity-50"
+                  className="flex-1 px-4 py-3 bg-surface-elevated border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-brand-primary transition-colors text-text-primary placeholder-gray-400 disabled:opacity-50"
                 />
                 <Button
                   type="submit"
