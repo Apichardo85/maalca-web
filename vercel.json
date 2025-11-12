@@ -1,5 +1,0 @@
-{
-  "buildCommand": "cd source/maalca-web && npm run build",
-  "outputDirectory": "source/maalca-web/.next",
-  "installCommand": "cd source/maalca-web && npm install"
-}
