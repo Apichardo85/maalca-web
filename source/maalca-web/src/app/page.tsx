@@ -352,6 +352,12 @@ export default function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
             {[
               {
+                nameKey: "affiliate.drpichardo.name",
+                descriptionKey: "affiliate.drpichardo.description",
+                href: "/dr-pichardo",
+                initials: "DP"
+              },
+              {
                 nameKey: "affiliate.pegote.name",
                 descriptionKey: "affiliate.pegote.description",
                 href: "/pegote-barber",

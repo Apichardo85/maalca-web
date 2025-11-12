@@ -95,6 +95,8 @@ const translations = {
     'project.properties.outcome': 'Propiedades vendidas a inversores globales',
 
     // Affiliates Section (detailed)
+    'affiliate.drpichardo.name': 'Dr. Pichardo',
+    'affiliate.drpichardo.description': 'Cirugía y medicina estética',
     'affiliate.pegote.name': 'Pegote Barbershop',
     'affiliate.pegote.description': 'Barbería dominicana en Elmira, NY',
     'affiliate.studioalpha.name': 'Studio Alpha',
@@ -1144,6 +1146,8 @@ const translations = {
     'project.properties.outcome': 'Properties sold to global investors',
 
     // Affiliates (individual items)
+    'affiliate.drpichardo.name': 'Dr. Pichardo',
+    'affiliate.drpichardo.description': 'Surgery and aesthetic medicine',
     'affiliate.pegote.name': 'Pegote Barbershop',
     'affiliate.pegote.description': 'Dominican barbershop in Elmira, NY',
     'affiliate.studioalpha.name': 'Studio Alpha',
