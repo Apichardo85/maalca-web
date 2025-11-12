@@ -18,6 +18,31 @@ const nextConfig: NextConfig = {
     domains: [],
     // Keep unoptimized for SVGs only (handled in ProjectImage component)
   },
+  // Performance optimizations
+  swcMinify: true, // Use SWC for minification (faster than Terser)
+  compress: true, // Enable Gzip compression
+  poweredByHeader: false, // Remove X-Powered-By header for security
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
+  },
+  experimental: {
+    optimizePackageImports: ['framer-motion'], // Tree-shake Framer Motion
+    // Optimize CSS
+    optimizeCss: true,
+  },
+  // Enable bundle analysis in production
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Optimize bundle size for client
+      config.optimization = {
+        ...config.optimization,
+        usedExports: true, // Tree shaking
+      };
+    }
+    return config;
+  },
 };
 
 export default nextConfig;
