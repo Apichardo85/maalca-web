@@ -224,7 +224,7 @@ export default function EditorialPage() {
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-brand-primary-hover transition-colors leading-tight">
+                    <h3 className="text-2xl font-extrabold text-white mb-4 group-hover:text-red-500 transition-colors leading-tight drop-shadow-sm">
                       {article.title}
                     </h3>
 
@@ -309,7 +309,7 @@ export default function EditorialPage() {
                   </div>
 
                   {/* Title */}
-                  <h3 className="text-lg font-bold text-white mb-3 group-hover:text-brand-primary-hover transition-colors leading-tight">
+                  <h3 className="text-lg font-extrabold text-white mb-3 group-hover:text-red-500 transition-colors leading-tight drop-shadow-sm">
                     {article.title}
                   </h3>
 
