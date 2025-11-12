@@ -58,6 +58,8 @@ export function ProjectImage({ src, alt, className = "" }: ProjectImageProps) {
         onLoad={handleImageLoad}
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         priority={false}
+        loading="lazy"
+        quality={isSVG ? 100 : 85}
         unoptimized={isSVG} // Disable optimization for SVGs to prevent quality issues
       />
       {/* Enhanced background for SVG visibility */}
