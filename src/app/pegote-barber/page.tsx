@@ -3,6 +3,19 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
+import {
+  ProductCard,
+  QuickShopModal,
+  ShoppingCartSidebar,
+  BeforeAfterSlider,
+  BundleCard,
+  LoyaltyPointsWidget,
+  FloatingCartButton
+} from "@/components/commerce";
+import { pegoteProducts, pegoteBundles, pegoteBeforeAfter } from "@/data/mock/pegote-products";
+import type { Product, ShoppingCart as IShoppingCart } from "@/lib/types/commerce.types";
+import { useSimpleLanguage } from "@/hooks/useSimpleLanguage";
+import SimpleLanguageToggle from "@/components/ui/SimpleLanguageToggle";
 
 const services = [
   {
@@ -126,7 +139,7 @@ const testimonials = [
 ];
 
 export default function PegoteBarberPage() {
-  const [language, setLanguage] = useState<'es' | 'en'>('es');
+  const { language, t } = useSimpleLanguage();
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [selectedBarber, setSelectedBarber] = useState<string>("pegote");
   const [selectedDate, setSelectedDate] = useState("");
@@ -140,9 +153,26 @@ export default function PegoteBarberPage() {
     email: ""
   });
 
-  const toggleLanguage = () => {
-    setLanguage(prev => prev === 'es' ? 'en' : 'es');
-  };
+  // E-commerce States
+  const [cart, setCart] = useState<IShoppingCart>({
+    items: [],
+    subtotal: 0,
+    tax: 0,
+    shipping: 0,
+    discount: 0,
+    total: 0
+  });
+  const [quickShopProduct, setQuickShopProduct] = useState<Product | null>(null);
+  const [isQuickShopOpen, setIsQuickShopOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [selectedProductCategory, setSelectedProductCategory] = useState<string>('all');
+  const [loyaltyPoints, setLoyaltyPoints] = useState({
+    currentBalance: 1250,
+    lifetimeEarned: 3500,
+    lifetimeRedeemed: 2250,
+    tier: 'silver' as const,
+    nextTierPoints: 1500
+  });
 
   const getText = (es: string, en: string) => language === 'es' ? es : en;
 
@@ -156,6 +186,86 @@ export default function PegoteBarberPage() {
       }, 2000);
     }
   };
+
+  // E-commerce Functions
+  const calculateCartTotals = (items: typeof cart.items) => {
+    const subtotal = items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+    const tax = subtotal * 0.08; // 8% tax
+    const shipping = subtotal >= 50 ? 0 : 5;
+    const discount = cart.discount; // Keep existing discount
+    const total = subtotal + tax + shipping - discount;
+
+    return {
+      items,
+      subtotal: Number(subtotal.toFixed(2)),
+      tax: Number(tax.toFixed(2)),
+      shipping,
+      discount,
+      total: Number(total.toFixed(2))
+    };
+  };
+
+  const handleAddToCart = (product: Product, quantity: number = 1) => {
+    const existingItem = cart.items.find(item => item.product.id === product.id);
+
+    let newItems;
+    if (existingItem) {
+      newItems = cart.items.map(item =>
+        item.product.id === product.id
+          ? { ...item, quantity: item.quantity + quantity }
+          : item
+      );
+    } else {
+      newItems = [...cart.items, { product, quantity }];
+    }
+
+    setCart(calculateCartTotals(newItems));
+    setIsCartOpen(true); // Auto-open cart
+  };
+
+  const handleQuickShop = (product: Product) => {
+    setQuickShopProduct(product);
+    setIsQuickShopOpen(true);
+  };
+
+  const handleUpdateQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      handleRemoveItem(productId);
+      return;
+    }
+
+    const newItems = cart.items.map(item =>
+      item.product.id === productId
+        ? { ...item, quantity }
+        : item
+    );
+    setCart(calculateCartTotals(newItems));
+  };
+
+  const handleRemoveItem = (productId: string) => {
+    const newItems = cart.items.filter(item => item.product.id !== productId);
+    setCart(calculateCartTotals(newItems));
+  };
+
+  const handleCheckout = () => {
+    alert(getText(
+      '¡Funcionalidad de pago próximamente! Por ahora, contacta por WhatsApp para completar tu compra.',
+      'Checkout functionality coming soon! For now, contact us via WhatsApp to complete your purchase.'
+    ));
+    // TODO: Integrate Stripe checkout
+  };
+
+  const filteredProducts = selectedProductCategory === 'all'
+    ? pegoteProducts
+    : pegoteProducts.filter(p => p.category === selectedProductCategory);
+
+  const productCategories = [
+    { id: 'all', label: getText('Todos', 'All') },
+    { id: 'hair-care', label: getText('Cuidado del Cabello', 'Hair Care') },
+    { id: 'beard-care', label: getText('Cuidado de Barba', 'Beard Care') },
+    { id: 'accessories', label: getText('Accesorios', 'Accessories') },
+    { id: 'merch', label: getText('Merchandising', 'Merch') }
+  ];
 
   const availableTimes = [
     "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM",
@@ -205,6 +315,9 @@ export default function PegoteBarberPage() {
                 <a href="#servicios" className="text-white hover:text-red-300 transition-colors font-medium">
                   {getText("Servicios", "Services")}
                 </a>
+                <a href="#tienda" className="text-white hover:text-red-300 transition-colors font-medium">
+                  🛒 {getText("Tienda", "Shop")}
+                </a>
                 <a href="#reservas" className="text-white hover:text-red-300 transition-colors font-medium">
                   {getText("Reservas", "Booking")}
                 </a>
@@ -214,12 +327,7 @@ export default function PegoteBarberPage() {
                 <a href="#contacto" className="text-white hover:text-red-300 transition-colors font-medium">
                   {getText("Contacto", "Contact")}
                 </a>
-                <button
-                  onClick={toggleLanguage}
-                  className="flex items-center gap-2 px-3 py-1 bg-white/20 rounded-lg text-white hover:bg-white/30 transition-colors text-sm"
-                >
-                  🇩🇴 {language.toUpperCase()}
-                </button>
+                <SimpleLanguageToggle variant="dark" />
               </div>
             </div>
           </div>
@@ -421,6 +529,140 @@ export default function PegoteBarberPage() {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* La Tienda del Tigueraje - Products Section */}
+      <section id="tienda" className="py-24 bg-gradient-to-br from-gray-900 to-gray-800">
+        <div className="max-w-7xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-20"
+          >
+            <h2 className="text-6xl font-black text-white mb-6">
+              🛒 {getText("LA TIENDA DEL TIGUERAJE", "THE TIGUERAJE SHOP")}
+            </h2>
+            <div className="w-24 h-1 bg-gradient-to-r from-red-600 to-yellow-500 mx-auto mb-6"></div>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              {getText(
+                "Productos profesionales para mantener tu estilo en casa",
+                "Professional products to maintain your style at home"
+              )}
+            </p>
+          </motion.div>
+
+          {/* Category Filters */}
+          <div className="flex flex-wrap gap-3 justify-center mb-12">
+            {productCategories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedProductCategory(category.id)}
+                className={`px-6 py-3 rounded-full font-medium transition-all ${
+                  selectedProductCategory === category.id
+                    ? 'bg-red-600 text-white'
+                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                }`}
+              >
+                {category.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Products Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredProducts.slice(0, 8).map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onQuickShop={handleQuickShop}
+                onAddToCart={handleAddToCart}
+                language={language}
+                brandColor="red-600"
+              />
+            ))}
+          </div>
+
+          {filteredProducts.length > 8 && (
+            <div className="text-center mt-12">
+              <p className="text-gray-400 text-sm">
+                {getText(
+                  `Mostrando 8 de ${filteredProducts.length} productos`,
+                  `Showing 8 of ${filteredProducts.length} products`
+                )}
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Bundles/Combos Section */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-20"
+          >
+            <h2 className="text-6xl font-black text-gray-900 mb-6">
+              🎁 {getText("PAQUETES ESPECIALES", "SPECIAL PACKAGES")}
+            </h2>
+            <div className="w-24 h-1 bg-gradient-to-r from-red-600 to-yellow-500 mx-auto mb-6"></div>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              {getText(
+                "Servicio + Productos. Ahorra con nuestros combos exclusivos",
+                "Service + Products. Save with our exclusive combos"
+              )}
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {pegoteBundles.map((bundle) => (
+              <BundleCard
+                key={bundle.id}
+                bundle={bundle}
+                onSelect={() => {
+                  alert(getText(
+                    `Bundle "${bundle.name}" agregado al carrito!`,
+                    `Bundle "${bundle.nameEn}" added to cart!`
+                  ));
+                }}
+                language={language}
+                brandColor="red-600"
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Before/After Gallery */}
+      <section className="py-24 bg-gradient-to-br from-gray-900 to-gray-800">
+        <div className="max-w-7xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-20"
+          >
+            <h2 className="text-6xl font-black text-white mb-6">
+              ✂️ {getText("NUESTRO TRABAJO", "OUR WORK")}
+            </h2>
+            <div className="w-24 h-1 bg-gradient-to-r from-red-600 to-yellow-500 mx-auto mb-6"></div>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              {getText(
+                "Antes y después de nuestros mejores cortes",
+                "Before and after our best cuts"
+              )}
+            </p>
+          </motion.div>
+
+          <BeforeAfterSlider
+            images={pegoteBeforeAfter}
+            language={language}
+            brandColor="red-600"
+          />
         </div>
       </section>
 
@@ -968,7 +1210,7 @@ export default function PegoteBarberPage() {
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ delay: 3 }}
-        className="fixed bottom-6 right-6 z-50"
+        className="fixed bottom-28 right-8 z-40"
       >
         <a
           href="https://wa.me/16071234567"
@@ -1204,6 +1446,35 @@ export default function PegoteBarberPage() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Floating Shopping Cart Button */}
+      <FloatingCartButton
+        itemCount={cart.items.reduce((sum, item) => sum + item.quantity, 0)}
+        onClick={() => setIsCartOpen(true)}
+        brandColor="red-600"
+      />
+
+      {/* Shopping Cart Sidebar */}
+      <ShoppingCartSidebar
+        cart={cart}
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        onUpdateQuantity={handleUpdateQuantity}
+        onRemoveItem={handleRemoveItem}
+        onCheckout={handleCheckout}
+        language={language}
+        brandColor="red-600"
+      />
+
+      {/* Quick Shop Modal */}
+      <QuickShopModal
+        product={quickShopProduct}
+        isOpen={isQuickShopOpen}
+        onClose={() => setIsQuickShopOpen(false)}
+        onAddToCart={handleAddToCart}
+        language={language}
+        brandColor="red-600"
+      />
     </main>
   );
 }
