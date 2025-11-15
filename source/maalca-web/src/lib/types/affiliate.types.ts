@@ -15,7 +15,7 @@ export interface Affiliate {
   socialMedia?: SocialMediaLinks;
 }
 
-export type AffiliateCategory = 
+export type AffiliateCategory =
   | "proveedor-ingredientes"
   | "equipamiento-cocina"
   | "decoracion-eventos"
@@ -27,7 +27,8 @@ export type AffiliateCategory =
   | "vinos-bebidas"
   | "tecnologia-eventos"
   | "limpieza-mantenimiento"
-  | "seguros-eventos";
+  | "seguros-eventos"
+  | "comunicacion-visual-diseno";
 
 export type AffiliateStatus = 
   | "active" 
