@@ -7,73 +7,132 @@ import MedicalConsultationBooking from "@/components/ui/MedicalConsultationBooki
 import WhatsAppIntegration from "@/components/ui/WhatsAppIntegration";
 import PropertyNewsletterSubscription from "@/components/ui/PropertyNewsletterSubscription";
 import { ProjectImage } from "@/components/ui/ProjectImage";
+import { useSimpleLanguage } from "@/hooks/useSimpleLanguage";
+import SimpleLanguageToggle from "@/components/ui/SimpleLanguageToggle";
 
 // Mock data for Dr. Pichardo
 const doctorInfo = {
   fullName: "Dr. José Francisco Pichardo Pantaleón",
-  specialty: "Medicina Interna",
-  title: "Médico Internista · Medicina Solidaria",
+  specialty: { es: "Medicina Interna", en: "Internal Medicine" },
+  title: { es: "Médico Internista · Medicina Solidaria", en: "Internal Medicine Physician · Solidarity Medicine" },
   license: "Exequátur #12345-MD",
   image: "/images/doctor/dr-pichardo-portrait.jpg",
-  bio: `Médico internista comprometido con la atención médica humanizada y accesible. 
-        Con más de 15 años de experiencia, el Dr. Pichardo ha dedicado su carrera a 
+  bio: {
+    es: `Médico internista comprometido con la atención médica humanizada y accesible.
+        Con más de 15 años de experiencia, el Dr. Pichardo ha dedicado su carrera a
         brindar atención de calidad independientemente de la capacidad económica del paciente.`,
-  philosophy: "La salud es un derecho, no un privilegio",
+    en: `Internal medicine physician committed to humanized and accessible medical care.
+        With over 15 years of experience, Dr. Pichardo has dedicated his career to
+        providing quality care regardless of the patient's economic capacity.`
+  },
+  philosophy: { es: "La salud es un derecho, no un privilegio", en: "Health is a right, not a privilege" },
   contact: {
     phone: "+1 (809) 555-0123",
     email: "consultas@drpichardo.com",
     whatsapp: "+18095550123",
-    address: "Av. Sarasota #45, Bella Vista, Santo Domingo"
+    address: { es: "Av. Sarasota #45, Bella Vista, Santo Domingo", en: "Av. Sarasota #45, Bella Vista, Santo Domingo" }
   }
 };
 
 const services = [
   {
     id: "consulta-presencial",
-    name: "Consulta Presencial",
-    description: "Evaluación médica completa en consultorio con examen físico detallado",
-    duration: "45-60 minutos",
+    name: { es: "Consulta Presencial", en: "In-Person Consultation" },
+    description: {
+      es: "Evaluación médica completa en consultorio con examen físico detallado",
+      en: "Complete medical evaluation at the office with detailed physical examination"
+    },
+    duration: { es: "45-60 minutos", en: "45-60 minutes" },
     suggestedDonation: "RD$ 800-1,500",
-    features: ["Examen físico completo", "Revisión de historial", "Diagnóstico", "Plan de tratamiento"]
+    features: [
+      { es: "Examen físico completo", en: "Complete physical examination" },
+      { es: "Revisión de historial", en: "Medical history review" },
+      { es: "Diagnóstico", en: "Diagnosis" },
+      { es: "Plan de tratamiento", en: "Treatment plan" }
+    ]
   },
   {
     id: "teleconsulta",
-    name: "Teleconsulta",
-    description: "Consulta médica virtual para seguimientos y evaluaciones iniciales",
-    duration: "30-45 minutos", 
+    name: { es: "Teleconsulta", en: "Telemedicine" },
+    description: {
+      es: "Consulta médica virtual para seguimientos y evaluaciones iniciales",
+      en: "Virtual medical consultation for follow-ups and initial evaluations"
+    },
+    duration: { es: "30-45 minutos", en: "30-45 minutes" },
     suggestedDonation: "RD$ 500-1,000",
-    features: ["Videollamada segura", "Revisión de síntomas", "Receta digital", "Seguimiento virtual"]
+    features: [
+      { es: "Videollamada segura", en: "Secure video call" },
+      { es: "Revisión de síntomas", en: "Symptom review" },
+      { es: "Receta digital", en: "Digital prescription" },
+      { es: "Seguimiento virtual", en: "Virtual follow-up" }
+    ]
   },
   {
     id: "consulta-urgente",
-    name: "Consulta de Urgencia",
-    description: "Atención inmediata para casos que requieren evaluación rápida",
-    duration: "30 minutos",
+    name: { es: "Consulta de Urgencia", en: "Urgent Consultation" },
+    description: {
+      es: "Atención inmediata para casos que requieren evaluación rápida",
+      en: "Immediate care for cases requiring rapid evaluation"
+    },
+    duration: { es: "30 minutos", en: "30 minutes" },
     suggestedDonation: "RD$ 1,000-2,000",
-    features: ["Disponibilidad 24/7", "Respuesta rápida", "Evaluación inmediata", "Derivación si necesario"]
+    features: [
+      { es: "Disponibilidad 24/7", en: "24/7 availability" },
+      { es: "Respuesta rápida", en: "Quick response" },
+      { es: "Evaluación inmediata", en: "Immediate evaluation" },
+      { es: "Derivación si necesario", en: "Referral if necessary" }
+    ]
   }
 ];
 
 const operatives = [
   {
     id: "community-health-nov",
-    title: "Jornada de Salud Comunitaria - Los Alcarrizos",
+    title: {
+      es: "Jornada de Salud Comunitaria - Los Alcarrizos",
+      en: "Community Health Day - Los Alcarrizos"
+    },
     date: "2025-02-15",
-    location: "Centro Comunitario Los Alcarrizos",
-    description: "Operativo médico gratuito con consultas generales, chequeos de presión y diabetes",
+    location: {
+      es: "Centro Comunitario Los Alcarrizos",
+      en: "Los Alcarrizos Community Center"
+    },
+    description: {
+      es: "Operativo médico gratuito con consultas generales, chequeos de presión y diabetes",
+      en: "Free medical outreach with general consultations, blood pressure and diabetes screenings"
+    },
     image: "/images/operatives/los-alcarrizos.jpg",
-    services: ["Consultas generales", "Control de presión arterial", "Glicemia", "Medicamentos básicos"],
+    services: [
+      { es: "Consultas generales", en: "General consultations" },
+      { es: "Control de presión arterial", en: "Blood pressure monitoring" },
+      { es: "Glicemia", en: "Blood glucose testing" },
+      { es: "Medicamentos básicos", en: "Basic medications" }
+    ],
     spots: 150,
     registered: 87
   },
   {
     id: "diabetes-screening-dec",
-    title: "Screening de Diabetes - Villa Mella",
+    title: {
+      es: "Screening de Diabetes - Villa Mella",
+      en: "Diabetes Screening - Villa Mella"
+    },
     date: "2025-03-10",
-    location: "Club de Diabéticos Villa Mella",
-    description: "Jornada especializada en prevención y control de diabetes mellitus",
+    location: {
+      es: "Club de Diabéticos Villa Mella",
+      en: "Villa Mella Diabetes Club"
+    },
+    description: {
+      es: "Jornada especializada en prevención y control de diabetes mellitus",
+      en: "Specialized day for diabetes mellitus prevention and control"
+    },
     image: "/images/operatives/villa-mella.jpg",
-    services: ["Pruebas de glucosa", "HbA1c rápida", "Educación nutricional", "Medicación gratuita"],
+    services: [
+      { es: "Pruebas de glucosa", en: "Glucose testing" },
+      { es: "HbA1c rápida", en: "Quick HbA1c" },
+      { es: "Educación nutricional", en: "Nutritional education" },
+      { es: "Medicación gratuita", en: "Free medication" }
+    ],
     spots: 100,
     registered: 45
   }
@@ -82,27 +141,39 @@ const operatives = [
 const testimonials = [
   {
     name: "María González",
-    condition: "Diabetes Tipo 2",
-    text: "El Dr. Pichardo me ha ayudado tremendamente con mi diabetes. Su enfoque humano y la opción de donar según mis posibilidades ha sido fundamental.",
+    condition: { es: "Diabetes Tipo 2", en: "Type 2 Diabetes" },
+    text: {
+      es: "El Dr. Pichardo me ha ayudado tremendamente con mi diabetes. Su enfoque humano y la opción de donar según mis posibilidades ha sido fundamental.",
+      en: "Dr. Pichardo has helped me tremendously with my diabetes. His human approach and the option to donate according to my means has been fundamental."
+    },
     rating: 5
   },
   {
-    name: "Roberto Martínez", 
-    condition: "Hipertensión",
-    text: "Excelente atención médica. El doctor se toma el tiempo necesario para explicar todo claramente. Recomiendo sus servicios completamente.",
+    name: "Roberto Martínez",
+    condition: { es: "Hipertensión", en: "Hypertension" },
+    text: {
+      es: "Excelente atención médica. El doctor se toma el tiempo necesario para explicar todo claramente. Recomiendo sus servicios completamente.",
+      en: "Excellent medical care. The doctor takes the necessary time to explain everything clearly. I completely recommend his services."
+    },
     rating: 5
   },
   {
     name: "Ana Rodríguez",
-    condition: "Chequeo General",
-    text: "La teleconsulta fue muy conveniente. El Dr. Pichardo es muy profesional y accesible. El sistema de donaciones es muy justo.",
+    condition: { es: "Chequeo General", en: "General Checkup" },
+    text: {
+      es: "La teleconsulta fue muy conveniente. El Dr. Pichardo es muy profesional y accesible. El sistema de donaciones es muy justo.",
+      en: "The telemedicine consultation was very convenient. Dr. Pichardo is very professional and accessible. The donation system is very fair."
+    },
     rating: 5
   }
 ];
 
 export default function DrPichardoPage() {
+  const { language } = useSimpleLanguage();
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedService, setSelectedService] = useState<string>("");
+
+  const getText = (es: string, en: string) => language === 'es' ? es : en;
 
   const handleBookConsultation = (serviceId?: string) => {
     if (serviceId) setSelectedService(serviceId);
@@ -117,6 +188,44 @@ export default function DrPichardoPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+      {/* Navigation Bar */}
+      <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">🩺</span>
+              <span className="font-bold text-slate-900">Dr. Pichardo</span>
+            </div>
+
+            <div className="hidden md:flex items-center gap-8">
+              <a href="#servicios" className="text-slate-700 hover:text-blue-600 transition-colors">
+                {getText('Servicios', 'Services')}
+              </a>
+              <a href="#operativos" className="text-slate-700 hover:text-blue-600 transition-colors">
+                {getText('Operativos', 'Medical Drives')}
+              </a>
+              <a href="#testimonios" className="text-slate-700 hover:text-blue-600 transition-colors">
+                {getText('Testimonios', 'Testimonials')}
+              </a>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => handleBookConsultation()}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                📅 {getText('Agendar', 'Book Now')}
+              </Button>
+              <SimpleLanguageToggle variant="light" />
+            </div>
+
+            {/* Mobile menu button - could be expanded later */}
+            <div className="md:hidden">
+              <SimpleLanguageToggle variant="light" />
+            </div>
+          </div>
+        </div>
+      </nav>
+
       {/* Hero Section */}
       <section className="relative py-16 md:py-24 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-green-600/10"></div>
@@ -129,24 +238,24 @@ export default function DrPichardoPage() {
             >
               <div className="mb-6">
                 <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800 mb-4">
-                  🩺 Medicina Solidaria · MaalCa Ecosystem
+                  🩺 {getText('Medicina Solidaria', 'Solidarity Medicine')} · MaalCa Ecosystem
                 </span>
               </div>
-              
+
               <h1 className="text-4xl md:text-6xl font-bold text-slate-900 mb-6">
                 <span className="block text-2xl md:text-3xl font-normal text-slate-600 mb-2">
-                  {doctorInfo.specialty}
+                  {getText(doctorInfo.specialty.es, doctorInfo.specialty.en)}
                 </span>
-                Dr. José Francisco 
+                Dr. José Francisco
                 <span className="block text-blue-600">Pichardo Pantaleón</span>
               </h1>
-              
+
               <p className="text-xl text-slate-600 mb-4 leading-relaxed">
-                {doctorInfo.philosophy}
+                {getText(doctorInfo.philosophy.es, doctorInfo.philosophy.en)}
               </p>
-              
+
               <p className="text-lg text-slate-700 mb-8 leading-relaxed">
-                {doctorInfo.bio}
+                {getText(doctorInfo.bio.es, doctorInfo.bio.en)}
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
@@ -156,25 +265,25 @@ export default function DrPichardoPage() {
                   onClick={() => handleBookConsultation()}
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  📅 Agendar Consulta
+                  📅 {getText('Agendar Consulta', 'Book Consultation')}
                 </Button>
-                
+
                 <Button
                   variant="outline"
                   size="lg"
                   onClick={() => document.getElementById('servicios')?.scrollIntoView({ behavior: 'smooth' })}
                   className="border-blue-600 text-blue-600 hover:bg-blue-50"
                 >
-                  Ver Servicios
+                  {getText('Ver Servicios', 'View Services')}
                 </Button>
               </div>
 
               <div className="mt-8 flex items-center gap-6 text-sm text-slate-600">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                  Disponible para consultas
+                  {getText('Disponible para consultas', 'Available for consultations')}
                 </div>
-                <div>📍 {doctorInfo.contact.address}</div>
+                <div>📍 {getText(doctorInfo.contact.address.es, doctorInfo.contact.address.en)}</div>
               </div>
             </motion.div>
 
@@ -192,7 +301,7 @@ export default function DrPichardoPage() {
                     className="w-32 h-32 mx-auto rounded-full mb-4"
                   />
                   <h3 className="text-xl font-bold text-slate-900">{doctorInfo.fullName}</h3>
-                  <p className="text-blue-600 font-medium">{doctorInfo.title}</p>
+                  <p className="text-blue-600 font-medium">{getText(doctorInfo.title.es, doctorInfo.title.en)}</p>
                   <p className="text-sm text-slate-500">{doctorInfo.license}</p>
                 </div>
 
@@ -209,7 +318,10 @@ export default function DrPichardoPage() {
 
                 <WhatsAppIntegration
                   phoneNumber={doctorInfo.contact.whatsapp}
-                  defaultMessage="Hola Dr. Pichardo, me gustaría agendar una consulta médica."
+                  defaultMessage={getText(
+                    'Hola Dr. Pichardo, me gustaría agendar una consulta médica.',
+                    'Hello Dr. Pichardo, I would like to schedule a medical consultation.'
+                  )}
                   businessName={doctorInfo.fullName}
                 />
               </div>
@@ -229,11 +341,13 @@ export default function DrPichardoPage() {
             className="text-center mb-16"
           >
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
-              Servicios Médicos
+              {getText('Servicios Médicos', 'Medical Services')}
             </h2>
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              Atención médica profesional con modelo de donación voluntaria. 
-              Todos reciben la misma calidad de atención, independientemente de su contribución.
+              {getText(
+                'Atención médica profesional con modelo de donación voluntaria. Todos reciben la misma calidad de atención, independientemente de su contribución.',
+                'Professional medical care with voluntary donation model. Everyone receives the same quality of care, regardless of their contribution.'
+              )}
             </p>
           </motion.div>
 
@@ -254,28 +368,34 @@ export default function DrPichardoPage() {
                        service.id === 'teleconsulta' ? '💻' : '🚨'}
                     </span>
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">{service.name}</h3>
-                  <p className="text-slate-600 mb-4">{service.description}</p>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">
+                    {getText(service.name.es, service.name.en)}
+                  </h3>
+                  <p className="text-slate-600 mb-4">
+                    {getText(service.description.es, service.description.en)}
+                  </p>
                 </div>
 
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Duración:</span>
-                    <span className="font-medium text-slate-700">{service.duration}</span>
+                    <span className="text-slate-500">{getText('Duración:', 'Duration:')}</span>
+                    <span className="font-medium text-slate-700">
+                      {getText(service.duration.es, service.duration.en)}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Donación sugerida:</span>
+                    <span className="text-slate-500">{getText('Donación sugerida:', 'Suggested donation:')}</span>
                     <span className="font-medium text-green-600">{service.suggestedDonation}</span>
                   </div>
                 </div>
 
                 <div className="mb-6">
-                  <h4 className="font-medium text-slate-900 mb-2">Incluye:</h4>
+                  <h4 className="font-medium text-slate-900 mb-2">{getText('Incluye:', 'Includes:')}</h4>
                   <ul className="space-y-1">
-                    {service.features.map((feature) => (
-                      <li key={feature} className="flex items-center text-sm text-slate-600">
+                    {service.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-center text-sm text-slate-600">
                         <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mr-2"></span>
-                        {feature}
+                        {getText(feature.es, feature.en)}
                       </li>
                     ))}
                   </ul>
@@ -286,7 +406,7 @@ export default function DrPichardoPage() {
                   className="w-full bg-blue-600 hover:bg-blue-700"
                   onClick={() => handleBookConsultation(service.id)}
                 >
-                  Agendar {service.name}
+                  {getText('Agendar', 'Book')} {getText(service.name.es, service.name.en)}
                 </Button>
               </motion.div>
             ))}
@@ -295,7 +415,7 @@ export default function DrPichardoPage() {
       </section>
 
       {/* Operatives Section */}
-      <section className="py-16 md:py-24 bg-gradient-to-br from-green-50 to-blue-50">
+      <section id="operativos" className="py-16 md:py-24 bg-gradient-to-br from-green-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -305,11 +425,13 @@ export default function DrPichardoPage() {
             className="text-center mb-16"
           >
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
-              Operativos Médicos Comunitarios
+              {getText('Operativos Médicos Comunitarios', 'Community Medical Outreach')}
             </h2>
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              Llevamos atención médica gratuita a comunidades que más la necesitan. 
-              Únete a nuestros operativos solidarios.
+              {getText(
+                'Llevamos atención médica gratuita a comunidades que más la necesitan. Únete a nuestros operativos solidarios.',
+                'We bring free medical care to communities that need it most. Join our solidarity outreach programs.'
+              )}
             </p>
           </motion.div>
 
@@ -325,44 +447,52 @@ export default function DrPichardoPage() {
               >
                 <ProjectImage
                   src={operative.image}
-                  alt={operative.title}
+                  alt={getText(operative.title.es, operative.title.en)}
                   className="w-full h-48"
                 />
-                
+
                 <div className="p-6">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                      📅 {new Date(operative.date).toLocaleDateString('es-ES', {
+                      📅 {new Date(operative.date).toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
                         year: 'numeric',
-                        month: 'long', 
+                        month: 'long',
                         day: 'numeric'
                       })}
                     </span>
                   </div>
-                  
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">{operative.title}</h3>
-                  <p className="text-slate-600 mb-4">{operative.description}</p>
-                  
+
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">
+                    {getText(operative.title.es, operative.title.en)}
+                  </h3>
+                  <p className="text-slate-600 mb-4">
+                    {getText(operative.description.es, operative.description.en)}
+                  </p>
+
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center gap-2 text-sm text-slate-600">
                       <span>📍</span>
-                      <span>{operative.location}</span>
+                      <span>{getText(operative.location.es, operative.location.en)}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm text-slate-600">
                       <span>👥</span>
-                      <span>{operative.registered}/{operative.spots} personas registradas</span>
+                      <span>
+                        {operative.registered}/{operative.spots} {getText('personas registradas', 'registered people')}
+                      </span>
                     </div>
                   </div>
 
                   <div className="mb-4">
-                    <h4 className="font-medium text-slate-900 mb-2">Servicios disponibles:</h4>
+                    <h4 className="font-medium text-slate-900 mb-2">
+                      {getText('Servicios disponibles:', 'Available services:')}
+                    </h4>
                     <div className="flex flex-wrap gap-2">
-                      {operative.services.map((service) => (
+                      {operative.services.map((service, idx) => (
                         <span
-                          key={service}
+                          key={idx}
                           className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800"
                         >
-                          {service}
+                          {getText(service.es, service.en)}
                         </span>
                       ))}
                     </div>
@@ -372,7 +502,7 @@ export default function DrPichardoPage() {
                     variant="outline"
                     className="w-full border-green-600 text-green-600 hover:bg-green-50"
                   >
-                    Pre-registrarme
+                    {getText('Pre-registrarme', 'Pre-register')}
                   </Button>
                 </div>
               </motion.div>
@@ -382,7 +512,7 @@ export default function DrPichardoPage() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-16 md:py-24 bg-white">
+      <section id="testimonios" className="py-16 md:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -392,10 +522,13 @@ export default function DrPichardoPage() {
             className="text-center mb-16"
           >
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
-              Lo que dicen nuestros pacientes
+              {getText('Lo que dicen nuestros pacientes', 'What our patients say')}
             </h2>
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              Testimonios reales de personas que han experimentado nuestra medicina solidaria.
+              {getText(
+                'Testimonios reales de personas que han experimentado nuestra medicina solidaria.',
+                'Real testimonials from people who have experienced our solidarity medicine.'
+              )}
             </p>
           </motion.div>
 
@@ -415,11 +548,15 @@ export default function DrPichardoPage() {
                   ))}
                 </div>
                 
-                <p className="text-slate-700 mb-4 italic">"{testimonial.text}"</p>
-                
+                <p className="text-slate-700 mb-4 italic">
+                  "{getText(testimonial.text.es, testimonial.text.en)}"
+                </p>
+
                 <div className="border-t border-blue-100 pt-4">
                   <h4 className="font-bold text-slate-900">{testimonial.name}</h4>
-                  <p className="text-sm text-slate-600">{testimonial.condition}</p>
+                  <p className="text-sm text-slate-600">
+                    {getText(testimonial.condition.es, testimonial.condition.en)}
+                  </p>
                 </div>
               </motion.div>
             ))}
@@ -431,9 +568,12 @@ export default function DrPichardoPage() {
       <section className="py-16 md:py-24 bg-gradient-to-r from-blue-600 to-green-600">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <PropertyNewsletterSubscription
-            title="Mantente informado sobre salud"
-            description="Recibe consejos de salud, información sobre operativos médicos y actualizaciones del Dr. Pichardo."
-            buttonText="Suscribirme"
+            title={getText('Mantente informado sobre salud', 'Stay informed about health')}
+            description={getText(
+              'Recibe consejos de salud, información sobre operativos médicos y actualizaciones del Dr. Pichardo.',
+              'Receive health tips, information about medical outreach programs, and updates from Dr. Pichardo.'
+            )}
+            buttonText={getText('Suscribirme', 'Subscribe')}
             className="bg-white/95 backdrop-blur-sm"
           />
         </div>
