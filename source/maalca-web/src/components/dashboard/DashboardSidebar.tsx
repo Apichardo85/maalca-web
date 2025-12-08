@@ -53,6 +53,18 @@ export function DashboardSidebar() {
       icon: "📅",
       module: 'appointments'
     },
+    hasModule('queue') && {
+      name: "Fila Virtual",
+      href: `/dashboard/${config?.id}/queue`,
+      icon: "⏳",
+      module: 'queue'
+    },
+    hasModule('salon') && {
+      name: "Salón Virtual",
+      href: `/dashboard/${config?.id}/salon`,
+      icon: "💈",
+      module: 'salon'
+    },
     hasModule('ecommerce') && {
       name: "Tienda",
       href: `/dashboard/${config?.id}/store`,
@@ -70,6 +82,12 @@ export function DashboardSidebar() {
       href: `/dashboard/${config?.id}/invoicing`,
       icon: "💰",
       module: 'invoicing'
+    },
+    hasModule('giftcards') && {
+      name: "Gift Cards",
+      href: `/dashboard/${config?.id}/giftcards`,
+      icon: "💳",
+      module: 'giftcards'
     },
     hasModule('team') && {
       name: "Equipo",

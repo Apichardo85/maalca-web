@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { MetricsModule } from "@/components/dashboard/modules/MetricsModule";
 import { QuickActionsModule } from "@/components/dashboard/modules/QuickActionsModule";
+import { BarbershopQuickStats } from "@/components/dashboard/modules/BarbershopQuickStats";
 
 /**
  * Dashboard principal del afiliado
@@ -12,9 +13,13 @@ import { QuickActionsModule } from "@/components/dashboard/modules/QuickActionsM
  * - Bienvenida personalizada
  * - Métricas clave si el módulo está habilitado
  * - Acciones rápidas según módulos activos
+ * - Quick stats específicos para barberías (si aplica)
  */
 export default function AffiliateDashboardPage() {
   const { config, hasModule, brandName } = useAffiliate();
+
+  // Detectar si es una barbería (tiene queue + salon)
+  const isBarbershop = hasModule('queue') && hasModule('salon');
 
   return (
     <div className="space-y-8">
@@ -32,8 +37,19 @@ export default function AffiliateDashboardPage() {
         </p>
       </motion.div>
 
-      {/* Módulo de métricas (si está habilitado) */}
-      {hasModule('metrics') && (
+      {/* Quick Stats para Barberías */}
+      {isBarbershop && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <BarbershopQuickStats />
+        </motion.div>
+      )}
+
+      {/* Módulo de métricas (si está habilitado y NO es barbería) */}
+      {hasModule('metrics') && !isBarbershop && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -43,14 +59,16 @@ export default function AffiliateDashboardPage() {
         </motion.div>
       )}
 
-      {/* Acciones rápidas */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-      >
-        <QuickActionsModule />
-      </motion.div>
+      {/* Acciones rápidas (solo si NO es barbería, porque ya tiene su propio componente) */}
+      {!isBarbershop && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <QuickActionsModule />
+        </motion.div>
+      )}
 
       {/* Resumen de actividad reciente */}
       <motion.div

@@ -6,9 +6,9 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 
 interface AffiliateDashboardLayoutProps {
   children: React.ReactNode;
-  params: {
+  params: Promise<{
     affiliateId: string;
-  };
+  }>;
 }
 
 /**
@@ -20,11 +20,12 @@ interface AffiliateDashboardLayoutProps {
  * - Sidebar con navegación de módulos
  * - Validación de afiliado existente
  */
-export default function AffiliateDashboardLayout({
+export default async function AffiliateDashboardLayout({
   children,
   params
 }: AffiliateDashboardLayoutProps) {
-  const config = getAffiliateConfig(params.affiliateId);
+  const { affiliateId } = await params;
+  const config = getAffiliateConfig(affiliateId);
 
   // Si el afiliado no existe, mostrar 404
   if (!config) {
@@ -60,9 +61,10 @@ export default function AffiliateDashboardLayout({
 export async function generateMetadata({
   params
 }: {
-  params: { affiliateId: string };
+  params: Promise<{ affiliateId: string }>;
 }) {
-  const config = getAffiliateConfig(params.affiliateId);
+  const { affiliateId } = await params;
+  const config = getAffiliateConfig(affiliateId);
 
   if (!config) {
     return {
