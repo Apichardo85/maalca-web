@@ -1,0 +1,403 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
+import { useAffiliate } from "@/contexts/AffiliateContext";
+import { DashboardCard, StatCard } from "@/components/dashboard/DashboardCard";
+import { Button } from "@/components/ui/buttons";
+import { Modal } from "@/components/ui/Modal";
+import { Pagination } from "@/components/ui/Pagination";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+
+interface InventoryItem {
+  id: string;
+  name: string;
+  category: string;
+  quantity: number;
+  minStock: number;
+  location: string;
+  lastUpdated: string;
+  status: "optimal" | "low" | "critical";
+}
+
+export default function InventoryPage() {
+  const { brandName } = useAffiliate();
+
+  // Estados para filtros
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
+
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  // Estado para modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newMovement, setNewMovement] = useState({
+    itemId: "",
+    type: "entrada",
+    quantity: "",
+    notes: ""
+  });
+
+  // Mock data expandido a 10 items
+  const allItems: InventoryItem[] = [
+    { id: "INV001", name: "Producto A", category: "Materiales", quantity: 150, minStock: 50, location: "Almacén 1", lastUpdated: "2025-12-07", status: "optimal" },
+    { id: "INV002", name: "Producto B", category: "Herramientas", quantity: 8, minStock: 15, location: "Almacén 2", lastUpdated: "2025-12-06", status: "low" },
+    { id: "INV003", name: "Producto C", category: "Insumos", quantity: 3, minStock: 20, location: "Almacén 1", lastUpdated: "2025-12-05", status: "critical" },
+    { id: "INV004", name: "Producto D", category: "Materiales", quantity: 89, minStock: 30, location: "Almacén 3", lastUpdated: "2025-12-08", status: "optimal" },
+    { id: "INV005", name: "Producto E", category: "Insumos", quantity: 12, minStock: 25, location: "Almacén 2", lastUpdated: "2025-12-07", status: "low" },
+    { id: "INV006", name: "Herramienta F", category: "Herramientas", quantity: 45, minStock: 20, location: "Almacén 1", lastUpdated: "2025-12-08", status: "optimal" },
+    { id: "INV007", name: "Material G", category: "Materiales", quantity: 5, minStock: 10, location: "Almacén 3", lastUpdated: "2025-12-04", status: "low" },
+    { id: "INV008", name: "Insumo H", category: "Insumos", quantity: 200, minStock: 100, location: "Almacén 2", lastUpdated: "2025-12-07", status: "optimal" },
+    { id: "INV009", name: "Producto I", category: "Materiales", quantity: 2, minStock: 15, location: "Almacén 1", lastUpdated: "2025-12-03", status: "critical" },
+    { id: "INV010", name: "Herramienta J", category: "Herramientas", quantity: 7, minStock: 12, location: "Almacén 2", lastUpdated: "2025-12-06", status: "low" }
+  ];
+
+  // Data para gráfico de distribución
+  const chartData = [
+    { name: "Stock Óptimo", value: 5, color: "#10B981" },
+    { name: "Stock Bajo", value: 3, color: "#F59E0B" },
+    { name: "Stock Crítico", value: 2, color: "#EF4444" }
+  ];
+
+  // Filtrado con useMemo
+  const filteredItems = useMemo(() => {
+    return allItems.filter(item => {
+      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           item.category.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = filterCategory === "all" || item.category === filterCategory;
+      const matchesStatus = filterStatus === "all" || item.status === filterStatus;
+      return matchesSearch && matchesCategory && matchesStatus;
+    });
+  }, [searchTerm, filterCategory, filterStatus]);
+
+  // Paginación con useMemo
+  const paginatedItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredItems.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredItems, currentPage]);
+
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+
+  // Handlers para filtros
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setFilterCategory(value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusChange = (value: string) => {
+    setFilterStatus(value);
+    setCurrentPage(1);
+  };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setFilterCategory("all");
+    setFilterStatus("all");
+    setCurrentPage(1);
+  };
+
+  const hasActiveFilters = searchTerm || filterCategory !== "all" || filterStatus !== "all";
+
+  const handleCreateMovement = () => {
+    console.log("Nuevo movimiento:", newMovement);
+    setIsModalOpen(false);
+    setNewMovement({ itemId: "", type: "entrada", quantity: "", notes: "" });
+  };
+
+  const getStatusBadge = (status: string, quantity: number, minStock: number) => {
+    const styles = {
+      optimal: "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
+      low: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400",
+      critical: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
+    };
+
+    const labels = {
+      optimal: "Stock Óptimo",
+      low: "Stock Bajo",
+      critical: "Stock Crítico"
+    };
+
+    return (
+      <div className="flex items-center gap-2">
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status as keyof typeof styles]}`}>
+          {labels[status as keyof typeof labels]}
+        </span>
+        <span className="text-xs text-gray-500">({quantity}/{minStock})</span>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between"
+      >
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Gestión de Inventario
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            Control de stock y movimientos de inventario de {brandName}
+          </p>
+        </div>
+        <Button variant="primary" size="lg" onClick={() => setIsModalOpen(true)}>
+          + Registrar Movimiento
+        </Button>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="grid grid-cols-1 md:grid-cols-4 gap-4"
+      >
+        <StatCard label="Items Totales" value="127" icon="📦" color="blue" />
+        <StatCard label="Stock Óptimo" value="89" icon="✅" color="green" />
+        <StatCard label="Stock Bajo" value="24" icon="⚠️" color="yellow" />
+        <StatCard label="Stock Crítico" value="14" icon="🚨" color="red" change={{ value: 2, type: "increase" }} />
+      </motion.div>
+
+      {/* Gráfico de Distribución de Stock */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <DashboardCard title="Distribución de Stock" icon="📊">
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </DashboardCard>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <DashboardCard>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <input
+                type="text"
+                placeholder="Buscar por nombre, ID o categoría..."
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <select
+                value={filterCategory}
+                onChange={(e) => handleCategoryChange(e.target.value)}
+                className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              >
+                <option value="all">Todas las categorías</option>
+                <option value="Materiales">Materiales</option>
+                <option value="Herramientas">Herramientas</option>
+                <option value="Insumos">Insumos</option>
+              </select>
+              <select
+                value={filterStatus}
+                onChange={(e) => handleStatusChange(e.target.value)}
+                className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              >
+                <option value="all">Todos los estados</option>
+                <option value="optimal">Stock Óptimo</option>
+                <option value="low">Stock Bajo</option>
+                <option value="critical">Stock Crítico</option>
+              </select>
+            </div>
+            {hasActiveFilters && (
+              <div className="flex justify-end">
+                <button
+                  onClick={clearFilters}
+                  className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                >
+                  Limpiar filtros
+                </button>
+              </div>
+            )}
+          </div>
+        </DashboardCard>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
+        <DashboardCard title="Control de Inventario" icon="📦">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-gray-800">
+                <tr>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">ID</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Producto</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Categoría</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Ubicación</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Cantidad</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Estado</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Última Act.</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {paginatedItems.length > 0 ? (
+                  paginatedItems.map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                      <td className="px-4 py-4 text-sm font-medium text-gray-900 dark:text-white">{item.id}</td>
+                      <td className="px-4 py-4 font-medium text-gray-900 dark:text-white">{item.name}</td>
+                      <td className="px-4 py-4 text-gray-600 dark:text-gray-400">{item.category}</td>
+                      <td className="px-4 py-4 text-gray-600 dark:text-gray-400">{item.location}</td>
+                      <td className="px-4 py-4">
+                        <span className={`font-semibold ${
+                          item.status === "critical" ? "text-red-600" :
+                          item.status === "low" ? "text-yellow-600" : "text-green-600"
+                        }`}>
+                          {item.quantity}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">{getStatusBadge(item.status, item.quantity, item.minStock)}</td>
+                      <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        {new Date(item.lastUpdated).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-4">
+                        <button className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium">
+                          Ajustar
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={8} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
+                      No se encontraron items de inventario
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </DashboardCard>
+      </motion.div>
+
+      {filteredItems.length > itemsPerPage && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          totalItems={filteredItems.length}
+          itemsPerPage={itemsPerPage}
+        />
+      )}
+
+      {/* Modal para Registrar Movimiento */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Registrar Movimiento de Inventario"
+        size="lg"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Seleccionar Item
+            </label>
+            <select
+              value={newMovement.itemId}
+              onChange={(e) => setNewMovement({ ...newMovement, itemId: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Seleccionar producto</option>
+              {allItems.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name} ({item.id}) - Stock actual: {item.quantity}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Tipo de Movimiento
+              </label>
+              <select
+                value={newMovement.type}
+                onChange={(e) => setNewMovement({ ...newMovement, type: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="entrada">Entrada</option>
+                <option value="salida">Salida</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Cantidad
+              </label>
+              <input
+                type="number"
+                value={newMovement.quantity}
+                onChange={(e) => setNewMovement({ ...newMovement, quantity: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                placeholder="0"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Notas (Opcional)
+            </label>
+            <textarea
+              value={newMovement.notes}
+              onChange={(e) => setNewMovement({ ...newMovement, notes: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+              rows={3}
+              placeholder="Detalles del movimiento..."
+            />
+          </div>
+          <div className="flex gap-3 pt-4">
+            <button
+              onClick={handleCreateMovement}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition"
+            >
+              Registrar Movimiento
+            </button>
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+}

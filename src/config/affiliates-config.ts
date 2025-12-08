@@ -25,6 +25,9 @@ export interface AffiliateConfig {
     inventory: boolean;        // Control de inventario
     invoicing: boolean;        // Facturación
     team: boolean;             // Gestión de equipo
+    queue: boolean;            // Fila virtual (barbería, clínicas)
+    salon: boolean;            // Vista de salón/sillas en tiempo real
+    giftcards: boolean;        // Sistema de gift cards
   };
   features: {
     multiLanguage: boolean;    // Soporte multi-idioma
@@ -61,7 +64,10 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
       appointments: true,       // Sistema de citas
       inventory: true,          // Stock de productos
       invoicing: true,
-      team: true
+      team: true,
+      queue: true,              // Fila virtual
+      salon: true,              // Vista de salón
+      giftcards: true           // Gift cards
     },
     features: {
       multiLanguage: true,      // ES/EN
@@ -93,7 +99,10 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
       appointments: false,      // No necesita citas
       inventory: true,          // Control de materiales
       invoicing: true,
-      team: true
+      team: true,
+      queue: false,             // No aplica
+      salon: false,             // No aplica
+      giftcards: false          // No habilitado aún
     },
     features: {
       multiLanguage: false,     // Solo español
@@ -125,7 +134,10 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
       appointments: true,       // Reservas de catering
       inventory: true,          // Ingredientes
       invoicing: true,
-      team: true
+      team: true,
+      queue: false,             // No aplica
+      salon: false,             // No aplica
+      giftcards: true           // Gift cards para catering
     },
     features: {
       multiLanguage: true,
@@ -157,7 +169,10 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
       appointments: true,       // Sistema de citas médicas
       inventory: false,         // No maneja inventario
       invoicing: true,          // Facturación por donaciones
-      team: false               // Práctica individual
+      team: false,              // Práctica individual
+      queue: true,              // Fila virtual para consultas
+      salon: false,             // No aplica
+      giftcards: false          // No aplica
     },
     features: {
       multiLanguage: true,
@@ -189,7 +204,10 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
       appointments: false,
       inventory: true,          // Merch inventory
       invoicing: false,
-      team: true                // Equipo de producción
+      team: true,               // Equipo de producción
+      queue: false,             // No aplica
+      salon: false,             // No aplica
+      giftcards: false          // No habilitado aún
     },
     features: {
       multiLanguage: false,

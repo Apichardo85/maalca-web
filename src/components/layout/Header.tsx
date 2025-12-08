@@ -147,6 +147,7 @@ export default function Header({
             <div className="hidden lg:flex items-center space-x-4">
               {/* Language Toggle */}
               <motion.div
+                className="flex-shrink-0"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
@@ -185,6 +186,21 @@ export default function Header({
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.6, delay: 0.6 }}
+                  >
+                    <Link href="/login">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                      >
+                        Iniciar sesión
+                      </Button>
+                    </Link>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6, delay: 0.7 }}
                   >
                     <Button
                       variant="primary"
@@ -319,6 +335,17 @@ export default function Header({
                       >
                         {t('nav.explore')}
                       </Button>
+
+                      <Link href="/login" className="w-full">
+                        <Button
+                          variant="outline"
+                          size="lg"
+                          className="w-full"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          Iniciar sesión
+                        </Button>
+                      </Link>
 
                       <Button
                         variant="primary"

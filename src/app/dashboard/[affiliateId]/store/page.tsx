@@ -1,0 +1,533 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
+import { useAffiliate } from "@/contexts/AffiliateContext";
+import { DashboardCard, StatCard } from "@/components/dashboard/DashboardCard";
+import { Button } from "@/components/ui/buttons";
+import { Modal } from "@/components/ui/Modal";
+import { Pagination } from "@/components/ui/Pagination";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+
+interface Product {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  stock: number;
+  sales: number;
+  image: string;
+  status: "active" | "inactive" | "low_stock";
+}
+
+export default function StorePage() {
+  const { brandName, config } = useAffiliate();
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const currency = config?.settings.currency === "USD" ? "$" : "RD$";
+
+  // Estados para filtros
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
+
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
+  // Estado para modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newProduct, setNewProduct] = useState({
+    name: "",
+    category: "",
+    price: "",
+    stock: ""
+  });
+
+  // Mock data de productos (expandido a 12 productos)
+  const allProducts: Product[] = [
+    { id: "P001", name: "Producto Premium", category: "Servicios", price: 45.00, stock: 23, sales: 145, image: "📦", status: "active" },
+    { id: "P002", name: "Pack Básico", category: "Paquetes", price: 25.00, stock: 8, sales: 89, image: "📦", status: "low_stock" },
+    { id: "P003", name: "Membresía Mensual", category: "Suscripciones", price: 99.00, stock: 999, sales: 234, image: "💳", status: "active" },
+    { id: "P004", name: "Producto Especial", category: "Servicios", price: 75.00, stock: 15, sales: 67, image: "⭐", status: "active" },
+    { id: "P005", name: "Kit Completo", category: "Paquetes", price: 120.00, stock: 5, sales: 34, image: "🎁", status: "low_stock" },
+    { id: "P006", name: "Servicio Express", category: "Servicios", price: 35.00, stock: 0, sales: 156, image: "⚡", status: "inactive" },
+    { id: "P007", name: "Plan Anual Premium", category: "Suscripciones", price: 999.00, stock: 999, sales: 456, image: "💎", status: "active" },
+    { id: "P008", name: "Curso Online", category: "Educación", price: 149.00, stock: 50, sales: 203, image: "🎓", status: "active" },
+    { id: "P009", name: "Consultoría", category: "Servicios", price: 250.00, stock: 10, sales: 78, image: "👨‍💼", status: "active" },
+    { id: "P010", name: "Pack Inicio", category: "Paquetes", price: 15.00, stock: 3, sales: 312, image: "🚀", status: "low_stock" },
+    { id: "P011", name: "E-book Guía", category: "Educación", price: 29.00, stock: 0, sales: 567, image: "📚", status: "inactive" },
+    { id: "P012", name: "Webinar VIP", category: "Educación", price: 79.00, stock: 25, sales: 145, image: "🎥", status: "active" }
+  ];
+
+  // Data para el gráfico
+  const chartData = [
+    { name: "Servicios", ventas: 545, ingresos: 18750 },
+    { name: "Paquetes", ventas: 435, ingresos: 14250 },
+    { name: "Suscripciones", ventas: 690, ingresos: 28450 },
+    { name: "Educación", ventas: 915, ingresos: 21340 }
+  ];
+
+  // Filtrado con useMemo
+  const filteredProducts = useMemo(() => {
+    return allProducts.filter(product => {
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           product.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           product.category.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = filterCategory === "all" || product.category === filterCategory;
+      const matchesStatus = filterStatus === "all" || product.status === filterStatus;
+      return matchesSearch && matchesCategory && matchesStatus;
+    });
+  }, [searchTerm, filterCategory, filterStatus]);
+
+  // Paginación con useMemo
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredProducts.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredProducts, currentPage]);
+
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
+  // Resetear página cuando cambien filtros
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setFilterCategory(value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusChange = (value: string) => {
+    setFilterStatus(value);
+    setCurrentPage(1);
+  };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setFilterCategory("all");
+    setFilterStatus("all");
+    setCurrentPage(1);
+  };
+
+  const hasActiveFilters = searchTerm || filterCategory !== "all" || filterStatus !== "all";
+
+  const handleCreateProduct = () => {
+    console.log("Nuevo producto:", newProduct);
+    setIsModalOpen(false);
+    setNewProduct({ name: "", category: "", price: "", stock: "" });
+  };
+
+  const getStatusBadge = (status: string) => {
+    const styles = {
+      active: "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
+      inactive: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400",
+      low_stock: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400"
+    };
+
+    const labels = {
+      active: "Activo",
+      inactive: "Sin Stock",
+      low_stock: "Stock Bajo"
+    };
+
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status as keyof typeof styles]}`}>
+        {labels[status as keyof typeof labels]}
+      </span>
+    );
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between"
+      >
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Tienda Online
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            Gestiona productos, pedidos y ventas de {brandName}
+          </p>
+        </div>
+        <Button variant="primary" size="lg" onClick={() => setIsModalOpen(true)}>
+          + Nuevo Producto
+        </Button>
+      </motion.div>
+
+      {/* KPIs */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="grid grid-cols-1 md:grid-cols-4 gap-4"
+      >
+        <StatCard
+          label="Ventas del Mes"
+          value={`${currency}12,450`}
+          icon="💰"
+          change={{ value: 18.5, type: "increase" }}
+          color="green"
+        />
+        <StatCard
+          label="Productos Activos"
+          value="24"
+          icon="📦"
+          change={{ value: 4, type: "increase" }}
+          color="blue"
+        />
+        <StatCard
+          label="Órdenes del Mes"
+          value="156"
+          icon="🛒"
+          change={{ value: 12.3, type: "increase" }}
+          color="purple"
+        />
+        <StatCard
+          label="Stock Bajo"
+          value="3"
+          icon="⚠️"
+          color="yellow"
+        />
+      </motion.div>
+
+      {/* Gráfico de Ventas por Categoría */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <DashboardCard title="Rendimiento por Categoría" icon="📊">
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.1} />
+              <XAxis dataKey="name" stroke="#6B7280" />
+              <YAxis stroke="#6B7280" />
+              <Tooltip
+                contentStyle={{ backgroundColor: "#1F2937", border: "none", borderRadius: "8px" }}
+                labelStyle={{ color: "#F9FAFB" }}
+              />
+              <Bar dataKey="ventas" fill="#3B82F6" radius={[8, 8, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </DashboardCard>
+      </motion.div>
+
+      {/* Filtros y Vista */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
+        <DashboardCard>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+              <div className="flex-1 w-full">
+                <input
+                  type="text"
+                  placeholder="Buscar productos por nombre, ID o categoría..."
+                  value={searchTerm}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div className="flex gap-2">
+                <select
+                  value={filterCategory}
+                  onChange={(e) => handleCategoryChange(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                >
+                  <option value="all">Todas las categorías</option>
+                  <option value="Servicios">Servicios</option>
+                  <option value="Paquetes">Paquetes</option>
+                  <option value="Suscripciones">Suscripciones</option>
+                  <option value="Educación">Educación</option>
+                </select>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                >
+                  <option value="all">Todos los estados</option>
+                  <option value="active">Activos</option>
+                  <option value="low_stock">Stock Bajo</option>
+                  <option value="inactive">Sin Stock</option>
+                </select>
+                <button
+                  onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-900 dark:text-white"
+                >
+                  {viewMode === "grid" ? "📋 Lista" : "⊞ Grid"}
+                </button>
+              </div>
+            </div>
+            {hasActiveFilters && (
+              <div className="flex justify-end">
+                <button
+                  onClick={clearFilters}
+                  className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                >
+                  Limpiar filtros
+                </button>
+              </div>
+            )}
+          </div>
+        </DashboardCard>
+      </motion.div>
+
+      {/* Grid de Productos */}
+      {viewMode === "grid" ? (
+        <>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {paginatedProducts.length > 0 ? (
+              paginatedProducts.map((product, index) => (
+                <motion.div
+                  key={product.id}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.4 + index * 0.05 }}
+                  className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden hover:shadow-lg transition-shadow"
+                >
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center text-4xl">
+                        {product.image}
+                      </div>
+                      {getStatusBadge(product.status)}
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+                      {product.name}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                      {product.category}
+                    </p>
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                          {currency}{product.price.toFixed(2)}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {product.sales} ventas
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className={`text-sm font-semibold ${
+                          product.stock === 0
+                            ? "text-red-600"
+                            : product.stock < 10
+                              ? "text-yellow-600"
+                              : "text-green-600"
+                        }`}>
+                          Stock: {product.stock}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button className="flex-1 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20 rounded-lg border border-blue-600 dark:border-blue-400 transition">
+                        Editar
+                      </button>
+                      <button className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-700 transition">
+                        Ver
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <p className="text-gray-500 dark:text-gray-400">No se encontraron productos</p>
+              </div>
+            )}
+          </motion.div>
+          {filteredProducts.length > itemsPerPage && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={filteredProducts.length}
+              itemsPerPage={itemsPerPage}
+            />
+          )}
+        </>
+      ) : (
+        /* Vista de Lista */
+        <>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <DashboardCard title="Catálogo de Productos" icon="🛍️">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-gray-800">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Producto</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Categoría</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Precio</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Stock</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Ventas</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Estado</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {paginatedProducts.length > 0 ? (
+                      paginatedProducts.map((product) => (
+                        <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                          <td className="px-4 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded flex items-center justify-center text-xl">
+                                {product.image}
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900 dark:text-white">{product.name}</p>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">{product.id}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 text-gray-600 dark:text-gray-400">
+                            {product.category}
+                          </td>
+                          <td className="px-4 py-4 font-semibold text-gray-900 dark:text-white">
+                            {currency}{product.price.toFixed(2)}
+                          </td>
+                          <td className="px-4 py-4">
+                            <span className={`font-medium ${
+                              product.stock === 0
+                                ? "text-red-600"
+                                : product.stock < 10
+                                  ? "text-yellow-600"
+                                  : "text-green-600"
+                            }`}>
+                              {product.stock}
+                            </span>
+                          </td>
+                          <td className="px-4 py-4 text-gray-600 dark:text-gray-400">
+                            {product.sales}
+                          </td>
+                          <td className="px-4 py-4">
+                            {getStatusBadge(product.status)}
+                          </td>
+                          <td className="px-4 py-4">
+                            <button className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium">
+                              Editar
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={7} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
+                          No se encontraron productos
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </DashboardCard>
+          </motion.div>
+          {filteredProducts.length > itemsPerPage && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              totalItems={filteredProducts.length}
+              itemsPerPage={itemsPerPage}
+            />
+          )}
+        </>
+      )}
+
+      {/* Modal para Nuevo Producto */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Nuevo Producto"
+        size="lg"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Nombre del Producto
+            </label>
+            <input
+              type="text"
+              value={newProduct.name}
+              onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+              placeholder="Ej: Producto Premium"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Categoría
+            </label>
+            <select
+              value={newProduct.category}
+              onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Seleccionar categoría</option>
+              <option value="Servicios">Servicios</option>
+              <option value="Paquetes">Paquetes</option>
+              <option value="Suscripciones">Suscripciones</option>
+              <option value="Educación">Educación</option>
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Precio ({currency})
+              </label>
+              <input
+                type="number"
+                value={newProduct.price}
+                onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                placeholder="0.00"
+                step="0.01"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Stock Inicial
+              </label>
+              <input
+                type="number"
+                value={newProduct.stock}
+                onChange={(e) => setNewProduct({ ...newProduct, stock: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                placeholder="0"
+              />
+            </div>
+          </div>
+          <div className="flex gap-3 pt-4">
+            <button
+              onClick={handleCreateProduct}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition"
+            >
+              Crear Producto
+            </button>
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+}
