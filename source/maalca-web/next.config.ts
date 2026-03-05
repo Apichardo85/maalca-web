@@ -29,8 +29,6 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     optimizePackageImports: ['framer-motion'], // Tree-shake Framer Motion
-    // Optimize CSS
-    optimizeCss: true,
   },
   // Enable bundle analysis in production
   webpack: (config, { isServer }) => {
