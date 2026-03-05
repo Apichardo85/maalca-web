@@ -28,6 +28,7 @@ export interface AffiliateConfig {
     queue: boolean;            // Fila virtual (barbería, clínicas)
     salon: boolean;            // Vista de salón/sillas en tiempo real
     giftcards: boolean;        // Sistema de gift cards
+    reports: boolean;          // Reportes y análisis
   };
   features: {
     multiLanguage: boolean;    // Soporte multi-idioma
@@ -67,7 +68,8 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
       team: true,
       queue: true,              // Fila virtual
       salon: true,              // Vista de salón
-      giftcards: true           // Gift cards
+      giftcards: true,          // Gift cards
+      reports: true             // Reportes y análisis
     },
     features: {
       multiLanguage: true,      // ES/EN

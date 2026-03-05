@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { DashboardCard, StatCard } from "@/components/dashboard/DashboardCard";
 import { Button } from "@/components/ui/buttons";
-import { Modal } from "@/components/ui/Modal";
 import { Pagination } from "@/components/ui/Pagination";
+import { ResponsiveTable, TableColumn } from "@/components/ui/ResponsiveTable";
+import { TableActionButton, TableActions } from "@/components/ui/TableActionButton";
+import { NewSalePanel } from "@/components/dashboard/NewSalePanel";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 interface Invoice {
@@ -31,13 +33,8 @@ export default function InvoicingPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // Estado para modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newInvoice, setNewInvoice] = useState({
-    customerName: "",
-    amount: "",
-    dueDate: ""
-  });
+  // Estado para panel Nueva Venta
+  const [showNewSalePanel, setShowNewSalePanel] = useState(false);
 
   // Mock data expandido a 12 facturas
   const allInvoices: Invoice[] = [
@@ -110,10 +107,9 @@ export default function InvoicingPage() {
 
   const hasActiveFilters = searchTerm || filterStatus !== "all" || filterMonth;
 
-  const handleCreateInvoice = () => {
-    console.log("Nueva factura:", newInvoice);
-    setIsModalOpen(false);
-    setNewInvoice({ customerName: "", amount: "", dueDate: "" });
+  const handleSaveInvoice = (invoiceData: any) => {
+    console.log("Factura guardada:", invoiceData);
+    // Aquí integrarías con tu backend
   };
 
   const getStatusBadge = (status: string) => {
@@ -126,6 +122,86 @@ export default function InvoicingPage() {
     return <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status as keyof typeof styles]}`}>{labels[status as keyof typeof labels]}</span>;
   };
 
+  // Definir columnas para ResponsiveTable
+  const columns: TableColumn<Invoice>[] = [
+    {
+      key: "id",
+      header: "ID Factura",
+      mobileLabel: "Factura",
+      render: (invoice) => (
+        <span className="font-medium">{invoice.id}</span>
+      )
+    },
+    {
+      key: "customer",
+      header: "Cliente",
+      mobileLabel: "Cliente",
+      render: (invoice) => (
+        <span>{invoice.customerName}</span>
+      )
+    },
+    {
+      key: "amount",
+      header: "Monto",
+      mobileLabel: "Monto",
+      render: (invoice) => (
+        <span className="font-semibold">{currency}{invoice.amount.toFixed(2)}</span>
+      )
+    },
+    {
+      key: "date",
+      header: "Fecha Emisión",
+      mobileLabel: "Emitida",
+      hideOnMobile: true,
+      render: (invoice) => (
+        <span className="text-gray-600 dark:text-gray-400">
+          {new Date(invoice.date).toLocaleDateString()}
+        </span>
+      )
+    },
+    {
+      key: "dueDate",
+      header: "Fecha Vencimiento",
+      mobileLabel: "Vence",
+      render: (invoice) => (
+        <span className="text-gray-600 dark:text-gray-400">
+          {new Date(invoice.dueDate).toLocaleDateString()}
+        </span>
+      )
+    },
+    {
+      key: "status",
+      header: "Estado",
+      mobileLabel: "Estado",
+      render: (invoice) => getStatusBadge(invoice.status)
+    },
+    {
+      key: "actions",
+      header: "Acciones",
+      mobileLabel: "Acciones",
+      render: (invoice) => (
+        <TableActions>
+          <TableActionButton
+            variant="primary"
+            onClick={() => console.log("Ver", invoice.id)}
+            icon="👁️"
+          >
+            Ver
+          </TableActionButton>
+          {invoice.status !== "paid" && (
+            <TableActionButton
+              variant="success"
+              onClick={() => console.log("Marcar pagada", invoice.id)}
+              icon="✅"
+            >
+              Cobrar
+            </TableActionButton>
+          )}
+        </TableActions>
+      )
+    }
+  ];
+
   return (
     <div className="space-y-8">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
@@ -133,7 +209,9 @@ export default function InvoicingPage() {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Sistema de Facturación</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">Gestiona facturas, pagos y reportes financieros de {brandName}</p>
         </div>
-        <Button variant="primary" size="lg" onClick={() => setIsModalOpen(true)}>+ Nueva Factura</Button>
+        <Button variant="primary" size="lg" onClick={() => setShowNewSalePanel(true)}>
+          + Nueva Venta
+        </Button>
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -205,47 +283,12 @@ export default function InvoicingPage() {
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
         <DashboardCard title="Registro de Facturas" icon="💰">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-800">
-                <tr>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">ID Factura</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Cliente</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Monto</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Fecha Emisión</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Fecha Vencimiento</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Estado</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {paginatedInvoices.length > 0 ? (
-                  paginatedInvoices.map((invoice) => (
-                    <tr key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                      <td className="px-4 py-4 font-medium text-gray-900 dark:text-white">{invoice.id}</td>
-                      <td className="px-4 py-4 text-gray-900 dark:text-white">{invoice.customerName}</td>
-                      <td className="px-4 py-4 font-semibold text-gray-900 dark:text-white">{currency}{invoice.amount.toFixed(2)}</td>
-                      <td className="px-4 py-4 text-gray-600 dark:text-gray-400">{new Date(invoice.date).toLocaleDateString()}</td>
-                      <td className="px-4 py-4 text-gray-600 dark:text-gray-400">{new Date(invoice.dueDate).toLocaleDateString()}</td>
-                      <td className="px-4 py-4">{getStatusBadge(invoice.status)}</td>
-                      <td className="px-4 py-4">
-                        <div className="flex gap-2">
-                          <button className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium">Ver</button>
-                          {invoice.status !== "paid" && <button className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 text-sm font-medium">Marcar Pagada</button>}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
-                      No se encontraron facturas
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <ResponsiveTable
+            data={paginatedInvoices}
+            columns={columns}
+            getRowKey={(invoice) => invoice.id}
+            emptyMessage="No se encontraron facturas"
+          />
         </DashboardCard>
       </motion.div>
 
@@ -259,68 +302,15 @@ export default function InvoicingPage() {
         />
       )}
 
-      {/* Modal para Nueva Factura */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Nueva Factura"
-        size="lg"
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Nombre del Cliente
-            </label>
-            <input
-              type="text"
-              value={newInvoice.customerName}
-              onChange={(e) => setNewInvoice({ ...newInvoice, customerName: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-              placeholder="Ej: Juan Pérez"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Monto ({currency})
-              </label>
-              <input
-                type="number"
-                value={newInvoice.amount}
-                onChange={(e) => setNewInvoice({ ...newInvoice, amount: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                placeholder="0.00"
-                step="0.01"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Fecha de Vencimiento
-              </label>
-              <input
-                type="date"
-                value={newInvoice.dueDate}
-                onChange={(e) => setNewInvoice({ ...newInvoice, dueDate: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-          <div className="flex gap-3 pt-4">
-            <button
-              onClick={handleCreateInvoice}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition"
-            >
-              Crear Factura
-            </button>
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition"
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
-      </Modal>
+      {/* Panel de Nueva Venta */}
+      <AnimatePresence>
+        {showNewSalePanel && (
+          <NewSalePanel
+            onClose={() => setShowNewSalePanel(false)}
+            onSave={handleSaveInvoice}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

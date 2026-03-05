@@ -1,14 +1,25 @@
-// Existing types
-export * from "./button.types";
-export * from "./property.types";
-export * from "./property";
-export * from "./gallery.types";
-export * from "./navigation.types";
-export * from "./project.types";
-export * from "./affiliate.types";
+/**
+ * Centralized exports for all API clients
+ * Import from here instead of individual files
+ */
 
-// API types - Common
+// Core API client
+export {
+  apiClient,
+  createApiClient,
+  createTenantApiClient,
+  ApiClientError,
+} from "./apiClient";
+
+// Module-specific API clients
+export { appointmentsApi } from "./appointmentsApi";
+export { campaignsApi } from "./campaignsApi";
+export { inventoryApi } from "./inventoryApi";
+export { billingApi } from "./billingApi";
+
+// Re-export types for convenience
 export type {
+  // Common types
   TenantScoped,
   BaseEntity,
   TenantEntity,
@@ -20,10 +31,10 @@ export type {
   Money,
   ContactInfo,
   AuditFields,
-} from "./common";
+} from "../types/common";
 
-// API types - Appointments
 export type {
+  // Appointments
   Appointment,
   CreateAppointmentDto,
   UpdateAppointmentDto,
@@ -33,10 +44,10 @@ export type {
   AppointmentStats,
   TimeSlot,
   AvailabilityResponse,
-} from "./appointments";
+} from "../types/appointments";
 
-// API types - Campaigns
 export type {
+  // Campaigns
   Campaign,
   CreateCampaignDto,
   UpdateCampaignDto,
@@ -50,10 +61,10 @@ export type {
   CampaignStats,
   CampaignTemplate,
   CampaignVariant,
-} from "./campaigns";
+} from "../types/campaigns";
 
-// API types - Inventory
 export type {
+  // Inventory
   InventoryItem,
   CreateInventoryItemDto,
   UpdateInventoryItemDto,
@@ -68,10 +79,10 @@ export type {
   InventoryStats,
   InventoryValuation,
   LowStockAlert,
-} from "./inventory";
+} from "../types/inventory";
 
-// API types - Billing
 export type {
+  // Billing
   Invoice,
   CreateInvoiceDto,
   UpdateInvoiceDto,
@@ -91,4 +102,4 @@ export type {
   Refund,
   TaxInfo,
   BillingAddress,
-} from "./billing";
+} from "../types/billing";
