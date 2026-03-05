@@ -13,6 +13,9 @@ export interface Affiliate {
   metrics?: AffiliateMetrics;
   certifications?: string[];
   socialMedia?: SocialMediaLinks;
+  // ⭐ Multi-tenant dashboard
+  dashboardEnabled?: boolean;    // Si tiene dashboard habilitado
+  dashboardUrl?: string;         // URL del dashboard (default: /dashboard/[id])
 }
 
 export type AffiliateCategory =

@@ -1,0 +1,211 @@
+"use client";
+
+import { useState } from "react";
+import { motion } from "framer-motion";
+
+export default function PegoteFila() {
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    service: ""
+  });
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [estimatedWait, setEstimatedWait] = useState(35); // Mock wait time
+
+  const services = [
+    "Corte Clásico",
+    "Fade",
+    "Corte + Barba",
+    "Barba",
+    "Afeitado Clásico",
+    "Diseño",
+    "Corte Niño"
+  ];
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Cliente agregado a la fila:", formData);
+    setIsSubmitted(true);
+  };
+
+  const handleReset = () => {
+    setFormData({ name: "", phone: "", service: "" });
+    setIsSubmitted(false);
+  };
+
+  if (isSubmitted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full bg-white dark:bg-gray-900 rounded-3xl shadow-2xl p-8 text-center border-2 border-red-600"
+        >
+          <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+            ¡Listo, {formData.name}!
+          </h1>
+
+          <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">
+            Has sido agregado a la fila virtual
+          </p>
+
+          <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl p-6 mb-6">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Tiempo estimado de espera</p>
+            <p className="text-5xl font-bold text-red-600 dark:text-red-500">{estimatedWait} min</p>
+          </div>
+
+          <div className="space-y-3 text-left mb-6">
+            <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-800">
+              <span className="text-gray-600 dark:text-gray-400">Servicio:</span>
+              <span className="font-semibold text-gray-900 dark:text-white">{formData.service}</span>
+            </div>
+            {formData.phone && (
+              <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-800">
+                <span className="text-gray-600 dark:text-gray-400">Teléfono:</span>
+                <span className="font-semibold text-gray-900 dark:text-white">{formData.phone}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 mb-6">
+            <p className="text-sm text-blue-800 dark:text-blue-300">
+              💡 Te llamaremos cuando sea tu turno. Puedes esperar cómodamente en el área de espera o dar una vuelta.
+            </p>
+          </div>
+
+          <button
+            onClick={handleReset}
+            className="w-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 py-4 rounded-xl font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
+          >
+            Agregar otra persona
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-md w-full"
+      >
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="inline-block bg-red-600 p-4 rounded-2xl mb-4">
+            <span className="text-5xl">💈</span>
+          </div>
+          <h1 className="text-4xl font-bold text-white mb-2">Pegote Barbershop</h1>
+          <p className="text-xl text-gray-400">Únete a la fila virtual</p>
+        </div>
+
+        {/* Current Wait Time */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6 mb-6 border border-gray-200 dark:border-gray-800"
+        >
+          <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-2">
+            Tiempo de espera aproximado
+          </p>
+          <p className="text-5xl font-bold text-red-600 dark:text-red-500 text-center">
+            {estimatedWait} min
+          </p>
+        </motion.div>
+
+        {/* Form */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800"
+        >
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Name */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Nombre *
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                placeholder="Tu nombre"
+              />
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Teléfono (opcional)
+              </label>
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                placeholder="809-555-1234"
+              />
+            </div>
+
+            {/* Service */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                Servicio *
+              </label>
+              <select
+                required
+                value={formData.service}
+                onChange={(e) => setFormData({ ...formData, service: e.target.value })}
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+              >
+                <option value="">Selecciona un servicio</option>
+                {services.map((service) => (
+                  <option key={service} value={service}>
+                    {service}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              className="w-full bg-red-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-red-700 transition-colors shadow-lg hover:shadow-xl"
+            >
+              Unirme a la fila
+            </button>
+          </form>
+
+          <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800">
+            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+              Al unirte, aceptas que podemos llamarte cuando sea tu turno. Sin cita previa necesaria.
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Info Footer */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="mt-6 text-center"
+        >
+          <p className="text-sm text-gray-400">
+            ¿Prefieres hacer una cita? <a href="/contacto" className="text-red-500 hover:text-red-400 font-semibold">Contáctanos</a>
+          </p>
+        </motion.div>
+      </motion.div>
+    </div>
+  );
+}
