@@ -1,0 +1,381 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
+import { useAffiliate } from "@/contexts/AffiliateContext";
+import { DashboardCard, StatCard } from "@/components/dashboard/DashboardCard";
+import { Button } from "@/components/ui/buttons";
+import { Modal } from "@/components/ui/Modal";
+import { Pagination } from "@/components/ui/Pagination";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+
+interface Campaign {
+  id: string;
+  name: string;
+  channel: string;
+  startDate: string;
+  endDate: string;
+  budget: number;
+  clicks: number;
+  leads: number;
+  status: "active" | "paused" | "completed" | "draft";
+}
+
+export default function CampaignsPage() {
+  const { brandName, config } = useAffiliate();
+  const currency = config?.settings.currency === "USD" ? "$" : "RD$";
+
+  // Estados para filtros
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterChannel, setFilterChannel] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
+
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  // Estado para modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newCampaign, setNewCampaign] = useState({
+    name: "",
+    channel: "",
+    budget: "",
+    startDate: "",
+    endDate: ""
+  });
+
+  // Mock data expandido a 12 campañas
+  const allCampaigns: Campaign[] = [
+    { id: "CAM001", name: "Promo Verano 2025", channel: "Facebook Ads", startDate: "2025-12-01", endDate: "2025-12-31", budget: 500, clicks: 1250, leads: 45, status: "active" },
+    { id: "CAM002", name: "Email Newsletter Diciembre", channel: "Email Marketing", startDate: "2025-12-05", endDate: "2025-12-20", budget: 150, clicks: 890, leads: 67, status: "active" },
+    { id: "CAM003", name: "Google Ads Navidad", channel: "Google Ads", startDate: "2025-11-25", endDate: "2025-12-25", budget: 800, clicks: 2340, leads: 123, status: "active" },
+    { id: "CAM004", name: "Instagram Stories", channel: "Instagram", startDate: "2025-11-20", endDate: "2025-11-30", budget: 300, clicks: 560, leads: 34, status: "completed" },
+    { id: "CAM005", name: "Campaña Q1 2026", channel: "Multi-canal", startDate: "2026-01-01", endDate: "2026-03-31", budget: 2000, clicks: 0, leads: 0, status: "draft" },
+    { id: "CAM006", name: "LinkedIn B2B", channel: "LinkedIn", startDate: "2025-12-10", endDate: "2025-12-24", budget: 600, clicks: 1120, leads: 89, status: "active" },
+    { id: "CAM007", name: "TikTok Viral", channel: "TikTok", startDate: "2025-11-15", endDate: "2025-12-15", budget: 400, clicks: 3450, leads: 156, status: "paused" },
+    { id: "CAM008", name: "YouTube Pre-roll", channel: "YouTube", startDate: "2025-11-01", endDate: "2025-11-30", budget: 900, clicks: 1890, leads: 78, status: "completed" },
+    { id: "CAM009", name: "Retargeting Black Friday", channel: "Facebook Ads", startDate: "2025-11-23", endDate: "2025-11-27", budget: 1200, clicks: 4560, leads: 234, status: "completed" },
+    { id: "CAM010", name: "SEO Content Campaign", channel: "Organic", startDate: "2025-10-01", endDate: "2025-12-31", budget: 0, clicks: 8900, leads: 345, status: "active" },
+    { id: "CAM011", name: "Influencer Partnership", channel: "Instagram", startDate: "2025-12-15", endDate: "2026-01-15", budget: 2500, clicks: 890, leads: 67, status: "active" },
+    { id: "CAM012", name: "Podcast Sponsorship", channel: "Podcast", startDate: "2026-01-01", endDate: "2026-06-30", budget: 5000, clicks: 0, leads: 0, status: "draft" }
+  ];
+
+  // Data para gráfico de rendimiento
+  const chartData = [
+    { semana: "Sem 1", clicks: 1200, leads: 45 },
+    { semana: "Sem 2", clicks: 1890, leads: 67 },
+    { semana: "Sem 3", clicks: 2340, leads: 89 },
+    { semana: "Sem 4", clicks: 3100, leads: 123 },
+    { semana: "Sem 5", clicks: 2850, leads: 102 },
+    { semana: "Sem 6", clicks: 4200, leads: 156 }
+  ];
+
+  // Filtrado con useMemo
+  const filteredCampaigns = useMemo(() => {
+    return allCampaigns.filter(campaign => {
+      const matchesSearch = campaign.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           campaign.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           campaign.channel.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesChannel = filterChannel === "all" || campaign.channel === filterChannel;
+      const matchesStatus = filterStatus === "all" || campaign.status === filterStatus;
+      return matchesSearch && matchesChannel && matchesStatus;
+    });
+  }, [searchTerm, filterChannel, filterStatus]);
+
+  // Paginación con useMemo
+  const paginatedCampaigns = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredCampaigns.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredCampaigns, currentPage]);
+
+  const totalPages = Math.ceil(filteredCampaigns.length / itemsPerPage);
+
+  // Handlers para filtros
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  const handleChannelChange = (value: string) => {
+    setFilterChannel(value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusChange = (value: string) => {
+    setFilterStatus(value);
+    setCurrentPage(1);
+  };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setFilterChannel("all");
+    setFilterStatus("all");
+    setCurrentPage(1);
+  };
+
+  const hasActiveFilters = searchTerm || filterChannel !== "all" || filterStatus !== "all";
+
+  const handleCreateCampaign = () => {
+    console.log("Nueva campaña:", newCampaign);
+    setIsModalOpen(false);
+    setNewCampaign({ name: "", channel: "", budget: "", startDate: "", endDate: "" });
+  };
+
+  const getStatusBadge = (status: string) => {
+    const styles = {
+      active: "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
+      paused: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400",
+      completed: "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400",
+      draft: "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400"
+    };
+    const labels = { active: "Activa", paused: "Pausada", completed: "Completada", draft: "Borrador" };
+    return <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status as keyof typeof styles]}`}>{labels[status as keyof typeof labels]}</span>;
+  };
+
+  return (
+    <div className="space-y-8">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Campañas de Marketing</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Gestiona tus campañas y promociones de {brandName}</p>
+        </div>
+        <Button variant="primary" size="lg" onClick={() => setIsModalOpen(true)}>+ Nueva Campaña</Button>
+      </motion.div>
+
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <StatCard label="Campañas Activas" value="8" icon="📢" color="green" />
+        <StatCard label="Total Clicks" value="12,540" icon="👆" change={{ value: 18.5, type: "increase" }} color="blue" />
+        <StatCard label="Leads Generados" value="456" icon="🎯" change={{ value: 23.4, type: "increase" }} color="purple" />
+        <StatCard label="Presupuesto Usado" value={`${currency}3,250`} icon="💰" color="orange" />
+      </motion.div>
+
+      {/* Gráfico de Rendimiento */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        <DashboardCard title="Rendimiento de Campañas" icon="📊">
+          <ResponsiveContainer width="100%" height={250}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.1} />
+              <XAxis dataKey="semana" stroke="#6B7280" />
+              <YAxis stroke="#6B7280" />
+              <Tooltip
+                contentStyle={{ backgroundColor: "#1F2937", border: "none", borderRadius: "8px" }}
+                labelStyle={{ color: "#F9FAFB" }}
+              />
+              <Legend />
+              <Line type="monotone" dataKey="clicks" stroke="#3B82F6" strokeWidth={2} dot={{ fill: "#3B82F6" }} />
+              <Line type="monotone" dataKey="leads" stroke="#10B981" strokeWidth={2} dot={{ fill: "#10B981" }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </DashboardCard>
+      </motion.div>
+
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+        <DashboardCard>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <input
+                type="text"
+                placeholder="Buscar por nombre o canal..."
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <select
+                value={filterChannel}
+                onChange={(e) => handleChannelChange(e.target.value)}
+                className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              >
+                <option value="all">Todos los canales</option>
+                <option value="Facebook Ads">Facebook Ads</option>
+                <option value="Google Ads">Google Ads</option>
+                <option value="Instagram">Instagram</option>
+                <option value="Email Marketing">Email Marketing</option>
+                <option value="LinkedIn">LinkedIn</option>
+                <option value="TikTok">TikTok</option>
+                <option value="YouTube">YouTube</option>
+              </select>
+              <select
+                value={filterStatus}
+                onChange={(e) => handleStatusChange(e.target.value)}
+                className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              >
+                <option value="all">Todos los estados</option>
+                <option value="active">Activas</option>
+                <option value="paused">Pausadas</option>
+                <option value="completed">Completadas</option>
+                <option value="draft">Borradores</option>
+              </select>
+            </div>
+            {hasActiveFilters && (
+              <div className="flex justify-end">
+                <button
+                  onClick={clearFilters}
+                  className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                >
+                  Limpiar filtros
+                </button>
+              </div>
+            )}
+          </div>
+        </DashboardCard>
+      </motion.div>
+
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+        <DashboardCard title="Campañas Activas" icon="📢">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-gray-800">
+                <tr>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Campaña</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Canal</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Fecha Inicio</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Fecha Fin</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Presupuesto</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Clicks</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Leads</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Estado</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {paginatedCampaigns.length > 0 ? (
+                  paginatedCampaigns.map((campaign) => (
+                    <tr key={campaign.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                      <td className="px-4 py-4">
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-white">{campaign.name}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{campaign.id}</p>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-gray-600 dark:text-gray-400">{campaign.channel}</td>
+                      <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400">{new Date(campaign.startDate).toLocaleDateString()}</td>
+                      <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400">{new Date(campaign.endDate).toLocaleDateString()}</td>
+                      <td className="px-4 py-4 font-semibold text-gray-900 dark:text-white">{currency}{campaign.budget}</td>
+                      <td className="px-4 py-4 text-blue-600 font-medium">{campaign.clicks.toLocaleString()}</td>
+                      <td className="px-4 py-4 text-green-600 font-medium">{campaign.leads}</td>
+                      <td className="px-4 py-4">{getStatusBadge(campaign.status)}</td>
+                      <td className="px-4 py-4">
+                        <button className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium">Ver</button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={9} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
+                      No se encontraron campañas
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </DashboardCard>
+      </motion.div>
+
+      {filteredCampaigns.length > itemsPerPage && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          totalItems={filteredCampaigns.length}
+          itemsPerPage={itemsPerPage}
+        />
+      )}
+
+      {/* Modal para Nueva Campaña */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Nueva Campaña de Marketing"
+        size="lg"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Nombre de la Campaña
+            </label>
+            <input
+              type="text"
+              value={newCampaign.name}
+              onChange={(e) => setNewCampaign({ ...newCampaign, name: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+              placeholder="Ej: Campaña Navidad 2025"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Canal de Marketing
+              </label>
+              <select
+                value={newCampaign.channel}
+                onChange={(e) => setNewCampaign({ ...newCampaign, channel: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Seleccionar canal</option>
+                <option value="Facebook Ads">Facebook Ads</option>
+                <option value="Google Ads">Google Ads</option>
+                <option value="Instagram">Instagram</option>
+                <option value="Email Marketing">Email Marketing</option>
+                <option value="LinkedIn">LinkedIn</option>
+                <option value="TikTok">TikTok</option>
+                <option value="YouTube">YouTube</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Presupuesto ({currency})
+              </label>
+              <input
+                type="number"
+                value={newCampaign.budget}
+                onChange={(e) => setNewCampaign({ ...newCampaign, budget: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                placeholder="0.00"
+                step="0.01"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Fecha de Inicio
+              </label>
+              <input
+                type="date"
+                value={newCampaign.startDate}
+                onChange={(e) => setNewCampaign({ ...newCampaign, startDate: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Fecha de Finalización
+              </label>
+              <input
+                type="date"
+                value={newCampaign.endDate}
+                onChange={(e) => setNewCampaign({ ...newCampaign, endDate: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          <div className="flex gap-3 pt-4">
+            <button
+              onClick={handleCreateCampaign}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition"
+            >
+              Crear Campaña
+            </button>
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+}
