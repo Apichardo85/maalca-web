@@ -171,27 +171,8 @@ export default function Header({
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.6, delay: 0.5 }}
                   >
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        document.getElementById('ecosistema')?.scrollIntoView({ behavior: 'smooth' });
-                      }}
-                    >
-                      {t('nav.explore')}
-                    </Button>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.6, delay: 0.6 }}
-                  >
                     <Link href="/login">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                      >
+                      <Button variant="outline" size="sm">
                         Iniciar sesión
                       </Button>
                     </Link>
@@ -200,12 +181,9 @@ export default function Header({
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.6, delay: 0.7 }}
+                    transition={{ duration: 0.6, delay: 0.6 }}
                   >
-                    <Button
-                      variant="primary"
-                      size="sm"
-                    >
+                    <Button variant="primary" size="sm">
                       {t('nav.join')}
                     </Button>
                   </motion.div>

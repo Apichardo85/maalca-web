@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/buttons";
-import { ThemeSwitch } from "@/components/ui/ThemeSwitch";
 import { ProjectImage } from "@/components/ui/ProjectImage";
 import { Counter } from "@/components/ui/Counter";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
@@ -20,9 +19,10 @@ export default function HomePage() {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const activeEcosystemProjects = getActiveEcosystemProjects();
+
   const handleProjectClick = (href: string) => {
     router.push(href);
-  const activeEcosystemProjects = getActiveEcosystemProjects();
   };
 
   return (
@@ -96,9 +96,6 @@ export default function HomePage() {
               >
                 {t('hero.cta.join')}
               </Button>
-              <div className="ml-4">
-                <ThemeSwitch />
-              </div>
             </motion.div>
           </motion.div>
         </div>

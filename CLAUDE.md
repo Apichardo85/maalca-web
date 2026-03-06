@@ -13,6 +13,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Stable Version:** Commit 8e9adb4 (2025-09-18) - This is the correct reference point.
 
+## ⚠️ DARK MODE — DECISIÓN FINAL (no cambiar)
+
+**Sistema elegido: `data-theme` manual. NO usar next-themes.**
+
+- El CSS usa `[data-theme="dark"]` en `globals.css`
+- `ThemeToggle` aplica `document.documentElement.setAttribute('data-theme', 'dark')` manualmente
+- `ThemeProvider` de next-themes fue **eliminado** de `layout.tsx` — NO volver a añadirlo
+- NO cambiar `[data-theme="dark"]` a `.dark` — rompe el ThemeToggle
+- NO añadir `attribute="class"` a ningún provider de tema
+
 ---
 
 ## Project Overview
@@ -127,9 +137,28 @@ npm run dev                   # Restart dev server
 
 ---
 
+## Skills System
+
+El proyecto tiene skills especializados en `.claude/skills/` para tareas comunes:
+
+| Skill | Uso | Descripción |
+|-------|-----|-------------|
+| `/dashboard-module` | Crear módulos dashboard | Páginas multi-tenant con validaciones |
+| `/api-endpoint` | Crear endpoints API | Patrón apiClient con tipos |
+| `/component` | Crear componentes | React + Tailwind (estilos correctos) |
+| `/affiliate` | Nuevo afiliado | Configurar negocio en sistema multi-tenant |
+| `/performance` | Optimizar código | Best practices Next.js 15 |
+
+**Cómo usar:** Los skills se activan automáticamente por contexto o invocando `/skill-name`.
+
+Ver `.claude/skills/README.md` para documentación completa.
+
+---
+
 ## Reference Files
 
 - `BRANDING.md` - Official branding and color guidelines
 - `src/app/(marketing)/page.tsx` - Homepage reference implementation
 - `src/data/index.ts` - Central data exports
 - `src/components/ui/buttons.tsx` - Button component reference
+- `.claude/skills/` - Skills para automatización
