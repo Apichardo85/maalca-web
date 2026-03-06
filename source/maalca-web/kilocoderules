@@ -1,0 +1,127 @@
+# Proyecto: Editorial MaalCa — maalca-web
+
+## Dev
+- Full-stack developer / arquitecto de soluciones
+- Alias creativo: CiriWhispers (Wattpad, audio/podcast branch)
+- Idioma de trabajo: español, código en inglés
+
+---
+
+## Stack Actual (MVP en Producción)
+
+```
+Next.js 15       App Router, RSC, ISR
+React 19         UI
+TypeScript       Strict mode siempre
+Tailwind CSS 4   Solo clases utilitarias, no CSS custom salvo globals.css
+Framer Motion    Animaciones — no over-engineer
+Vercel           Hosting + CI/CD (push to main = deploy)
+Resend           Email / newsletter
+GitHub           Version control
+```
+
+## Stack Futuro (roadmap activo)
+- **CMS:** Notion API o Sanity (webhooks → ISR rebuild)
+- **DB:** PostgreSQL / Supabase (users, comments, favorites)
+- **Pagos:** Stripe (premium tier)
+- **Umbraco:** CMS alternativo en evaluación (C# / .NET, headless)
+
+---
+
+## Estructura del Proyecto
+
+```
+src/
+├── app/
+│   ├── (marketing)/page.tsx       # Homepage
+│   ├── editorial/                 # Core del producto
+│   │   ├── page.tsx
+│   │   ├── articulos/[slug]/
+│   │   └── libros/[id]/
+│   └── api/newsletter/subscribe/
+├── components/
+│   ├── editorial/                 # ProfessionalReader, ArticleCard, CategoryFilter
+│   ├── ui/                        # Design system
+│   └── layout/                    # Header, Footer
+├── data/
+│   ├── editorialContent.ts        # HTML content de artículos (temporal, va a CMS)
+│   ├── books.ts
+│   └── index.ts
+├── hooks/                         # useAnalytics, useNewsletter, useArticles
+├── lib/                           # resend.ts, utils.ts
+└── types/                         # article.ts, book.ts, newsletter.ts
+```
+
+---
+
+## Convenciones
+
+### Componentes
+- Functional components + hooks, nunca class components
+- Props tipadas con `interface`, no `type` para objetos
+- Un componente por archivo, named export + default export
+- Animaciones con Framer Motion, no CSS transitions ad-hoc
+
+### Data / Content
+- Artículos en `editorialContent.ts` como HTML strings hasta integrar CMS
+- `getArticleContent(id)` es el único punto de acceso — no acceder al objeto directo
+- Metadata separada del contenido
+
+### API Routes (Next.js)
+- Validar input siempre antes de procesar
+- Respuesta uniforme: `{ message }` para éxito, `{ error }` para fallo
+- CORS headers en todas las rutas públicas
+
+### TypeScript
+- No usar `any` — si no conoces el tipo, inferir o usar `unknown`
+- Tipos en `/types/`, nunca inline en componentes grandes
+
+---
+
+## Branding (respetar siempre)
+
+```css
+/* Colores */
+--red-600: #DC2626;    /* Primary CTA */
+--red-700: #B91C1C;    /* Hover */
+--black:   #000000;    /* Backgrounds dark */
+--gray-900:#111827;
+--white:   #FFFFFF;
+--gray-300:#D1D5DB;    /* Body text */
+
+/* Tipografía */
+display: 'Playfair Display', serif;   /* Títulos */
+body:    'Inter', sans-serif;          /* Texto */
+```
+
+---
+
+## Filosofía de desarrollo
+
+- **Contenido primero** — el diseño sirve al texto, no al revés
+- Iterar rápido en MVP, no over-engineer para fases futuras
+- Si una feature no existe aún en el roadmap activo → no implementarla
+- Prefiero entender el *por qué*, no solo el *qué*
+- Respuestas concisas y accionables — código > explicaciones largas
+
+## Lo que NO hacer
+- No usar `localStorage` / `sessionStorage` en componentes de Next.js (SSR issues)
+- No hardcodear colores fuera de las variables de branding
+- No agregar dependencias nuevas sin evaluar si Tailwind o la lib existente ya lo resuelve
+- No crear endpoints sin validación de input
+- No mezclar lógica de negocio en componentes de UI
+- No asumir que el CMS ya existe — hasta Fase 2, todo es estático en `data/`
+
+---
+
+## Ecosistema MaalCa (contexto de producto)
+
+| Branch | Estado |
+|--------|--------|
+| Editorial MaalCa | ✅ MVP en producción |
+| CiriWhispers (audio/podcast) | 🔄 En desarrollo |
+| MaalCa Properties | 📋 Planeado |
+| Catering | 📋 Planeado |
+| Dr. Pichardo | 📋 Planeado |
+
+Editorial es el **core del ecosistema** — las decisiones aquí afectan la voz y credibilidad de toda la marca.
