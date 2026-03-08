@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
 import { authService } from "@/lib/auth/auth-service";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
@@ -21,14 +21,10 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      // Call the real authentication API
       const response = await authService.login({ email, password });
-      
-      // Redirect to dashboard or specified return URL
       const returnUrl = searchParams.get('redirect') || `/dashboard/${response.user.affiliateId}`;
       router.push(returnUrl);
     } catch (err) {
-      // Handle authentication errors
       const errorMessage = err instanceof Error ? err.message : 'Error de autenticación';
       setError(errorMessage);
     } finally {
@@ -44,9 +40,7 @@ export default function LoginPage() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
-        {/* Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-          {/* Logo y Header */}
           <div className="text-center mb-8">
             <Link href="/" className="inline-block mb-4">
               <Logo variant="full" size="sm" />
@@ -60,7 +54,6 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email Field */}
             <div>
               <label
                 htmlFor="email"
@@ -79,7 +72,6 @@ export default function LoginPage() {
               />
             </div>
 
-            {/* Password Field */}
             <div>
               <label
                 htmlFor="password"
@@ -98,7 +90,6 @@ export default function LoginPage() {
               />
             </div>
 
-            {/* Remember & Forgot */}
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center">
                 <input
@@ -117,14 +108,12 @@ export default function LoginPage() {
               </a>
             </div>
 
-            {/* Error Message */}
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                 <p className="text-sm text-red-600">{error}</p>
               </div>
             )}
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
@@ -144,14 +133,12 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Divider */}
           <div className="my-6 flex items-center">
             <div className="flex-1 border-t border-gray-200"></div>
             <span className="px-3 text-xs text-gray-500">o continúa con</span>
             <div className="flex-1 border-t border-gray-200"></div>
           </div>
 
-          {/* OAuth Options */}
           <div className="space-y-2">
             <button
               type="button"
@@ -177,7 +164,6 @@ export default function LoginPage() {
             </button>
           </div>
 
-          {/* Sign Up Link */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               ¿No tienes cuenta?{" "}
@@ -191,7 +177,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Back to Home */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -207,5 +192,24 @@ export default function LoginPage() {
         </motion.div>
       </motion.div>
     </div>
+  );
+}
+
+function LoginLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-red-50/20 to-slate-100 flex items-center justify-center p-4">
+      <div className="animate-pulse flex flex-col items-center">
+        <div className="h-8 w-48 bg-gray-200 rounded mb-4"></div>
+        <div className="h-4 w-64 bg-gray-200 rounded"></div>
+      </div>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginLoading />}>
+      <LoginForm />
+    </Suspense>
   );
 }
