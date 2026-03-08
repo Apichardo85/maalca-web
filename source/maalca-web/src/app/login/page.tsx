@@ -1,27 +1,39 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
+import { authService } from "@/lib/auth/auth-service";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
-    // Mock login - En el futuro aquí irá la lógica real
-    console.log("Mock login attempt:", { email, password });
-
-    // Simular delay de API
-    setTimeout(() => {
+    try {
+      // Call the real authentication API
+      const response = await authService.login({ email, password });
+      
+      // Redirect to dashboard or specified return URL
+      const returnUrl = searchParams.get('redirect') || `/dashboard/${response.user.affiliateId}`;
+      router.push(returnUrl);
+    } catch (err) {
+      // Handle authentication errors
+      const errorMessage = err instanceof Error ? err.message : 'Error de autenticación';
+      setError(errorMessage);
+    } finally {
       setIsLoading(false);
-      alert("Mock login - En el futuro esto conectará con el sistema de autenticación real");
-    }, 1000);
+    }
   };
 
   return (
@@ -105,6 +117,13 @@ export default function LoginPage() {
               </a>
             </div>
 
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
+
             {/* Submit Button */}
             <button
               type="submit"
@@ -185,20 +204,6 @@ export default function LoginPage() {
           >
             ← Volver al inicio
           </Link>
-        </motion.div>
-
-        {/* Info Note */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="mt-4"
-        >
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <p className="text-xs text-blue-700">
-              <strong>Nota:</strong> Este formulario es un mock. Más adelante lo conectaremos con el sistema de autenticación real.
-            </p>
-          </div>
         </motion.div>
       </motion.div>
     </div>
