@@ -1,6 +1,10 @@
-const nodepub = require('nodepub');
-const fs = require('fs').promises;
-const path = require('path');
+import nodepub from 'nodepub';
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 async function createWorkingEPUB() {
   const publicDir = path.join(__dirname, '..', 'public', 'books');

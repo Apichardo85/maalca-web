@@ -4,12 +4,13 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
+import Link from "next/link";
 
 export default function CiriSonicPage() {
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [particleAnimation, setParticleAnimation] = useState(0);
+  const [, setParticleAnimation] = useState(0);
 
   // Services data - now using translation keys
   const services = [
