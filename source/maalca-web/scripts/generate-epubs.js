@@ -1,6 +1,10 @@
-const EPub = require("epub-gen-memory").default || require("epub-gen-memory");
-const fs = require("fs").promises;
-const path = require("path");
+import EPub from "epub-gen-memory";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Contenido de Amaranta (primer capítulo + contenido adicional)
 const amarantaContent = [
