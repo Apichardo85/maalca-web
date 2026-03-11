@@ -1,85 +1,65 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/buttons";
 import { ProjectImage } from "@/components/ui/ProjectImage";
 import { Counter } from "@/components/ui/Counter";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
-import { projects, affiliates } from "@/data";
-import { dominicanMenus } from "@/data/dominican-menus";
-import { getActiveEcosystemProjects } from "@/data/ecosystem-projects";
+
+/**
+ * OPTIMIZATION NOTE:
+ * This page MUST remain a Client Component because it needs:
+ * - useRouter for navigation
+ * - useTranslation hook for i18n
+ * - scrollIntoView for smooth scrolling
+ * - Counter component for animated numbers
+ * 
+ * HOWEVER, we've optimized it by:
+ * - Removing ALL Framer Motion and replacing with CSS animations
+ * - Using CSS classes instead of JS-based animations
+ * - Keeping only the essential client-side functionality
+ * - Reducing bundle size significantly
+ */
 
 export default function HomePage() {
   const router = useRouter();
   const { t } = useTranslation();
 
-  const scrollToSection = (sectionId: string) => {
+  const scrollToSection = useCallback((sectionId: string) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, []);
 
-  const activeEcosystemProjects = getActiveEcosystemProjects();
-
-  const handleProjectClick = (href: string) => {
+  const handleProjectClick = useCallback((href: string) => {
     router.push(href);
-  };
+  }, [router]);
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      {/* Hero Section with DRAMATIC MOVING GRADIENT */}
+      {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden grain">
-        {/* DRAMATIC ANIMATED GRADIENT BACKGROUND */}
+        {/* Animated gradient background - CSS only */}
         <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-red-50 to-slate-50 dark:from-black dark:via-red-950/20 dark:to-black">
-          <motion.div
-            className="absolute inset-0"
-            animate={{
-              background: [
-                'radial-gradient(circle at 20% 50%, rgba(220, 38, 38, 0.15) 0%, transparent 50%)',
-                'radial-gradient(circle at 80% 50%, rgba(220, 38, 38, 0.15) 0%, transparent 50%)',
-                'radial-gradient(circle at 50% 20%, rgba(220, 38, 38, 0.15) 0%, transparent 50%)',
-                'radial-gradient(circle at 20% 50%, rgba(220, 38, 38, 0.15) 0%, transparent 50%)'
-              ]
-            }}
-            transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
-          />
+          <div className="absolute inset-0 animate-gradient-shift" />
         </div>
 
         {/* Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-          >
-            <motion.h1
-              className="font-display text-4xl sm:text-5xl lg:text-7xl xl:text-8xl font-bold mb-8 leading-tight"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1.2, delay: 0.3 }}
-            >
+          <div className="fade-in-up">
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-7xl xl:text-8xl font-bold mb-8 leading-tight">
               <span className="text-text-primary">{t('hero.maalca')}</span>
               <br />
               <span className="text-brand-primary">{t('hero.ecosystem')}</span>
               <br />
               <span className="text-text-secondary">{t('hero.creative')}</span>
-            </motion.h1>
+            </h1>
 
-            <motion.p
-              className="text-lg sm:text-xl lg:text-2xl font-light mb-12 max-w-3xl mx-auto leading-relaxed text-text-secondary"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.6 }}
-            >
+            <p className="text-lg sm:text-xl lg:text-2xl font-light mb-12 max-w-3xl mx-auto leading-relaxed text-text-secondary fade-in" style={{ animationDelay: '200ms' }}>
               {t('hero.subtitle')}
-            </motion.p>
+            </p>
 
-            <motion.div
-              className="flex flex-col sm:flex-row gap-6 justify-center items-center"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.9 }}
-            >
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center fade-in" style={{ animationDelay: '400ms' }}>
               <Button
                 variant="primary"
                 size="lg"
@@ -92,85 +72,49 @@ export default function HomePage() {
                 variant="outline"
                 size="lg"
                 className="border-text-primary text-text-primary hover:bg-text-primary hover:text-background text-lg px-10 py-3"
-                onClick={() => window.location.href = '/ecosistema'}
+                onClick={() => router.push('/ecosistema')}
               >
                 {t('hero.cta.join')}
               </Button>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         </div>
 
-        {/* Scroll Indicator */}
-        <motion.div
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1.5 }}
-        >
-          <motion.div
-            className="w-6 h-10 border-2 border-text-muted rounded-full flex justify-center cursor-pointer"
-            animate={{ y: [0, 5, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        {/* Scroll Indicator - CSS animation */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 fade-in" style={{ animationDelay: '800ms' }}>
+          <div 
+            className="w-6 h-10 border-2 border-text-muted rounded-full flex justify-center cursor-pointer hover-scale"
             onClick={() => scrollToSection('about')}
           >
-            <motion.div
-              className="w-1 h-3 bg-text-muted rounded-full mt-2"
-              animate={{ opacity: [1, 0.3, 1] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            />
-          </motion.div>
-        </motion.div>
+            <div className="w-1 h-3 bg-text-muted rounded-full mt-2 animate-bounce" />
+          </div>
+        </div>
       </section>
 
       {/* About / Storytelling Section */}
       <section id="about" className="py-16 md:py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
+          <div className="text-center mb-16 fade-in-up">
             <h2 className="font-display text-4xl lg:text-5xl font-bold text-text-primary mb-8">
               {t('about.title')}
             </h2>
             <p className="text-lg lg:text-xl text-text-secondary max-w-3xl mx-auto leading-relaxed">
               {t('about.description')}
             </p>
-          </motion.div>
+          </div>
 
           {/* Timeline */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             {[
-              {
-                year: "2020",
-                titleKey: "about.foundation",
-                descKey: "about.foundation.desc"
-              },
-              {
-                year: "2022",
-                titleKey: "about.expansion",
-                descKey: "about.expansion.desc"
-              },
-              {
-                year: "2024",
-                titleKey: "about.consolidation",
-                descKey: "about.consolidation.desc"
-              }
+              { year: "2020", titleKey: "about.foundation", descKey: "about.foundation.desc" },
+              { year: "2022", titleKey: "about.expansion", descKey: "about.expansion.desc" },
+              { year: "2024", titleKey: "about.consolidation", descKey: "about.consolidation.desc" }
             ].map((item, index) => (
-              <motion.div
-                key={item.year}
-                className="text-center"
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.2 }}
-              >
+              <div key={item.year} className="text-center fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
                 <div className="text-5xl font-bold text-brand-primary mb-4">{item.year}</div>
                 <h3 className="text-xl font-bold text-text-primary mb-4">{t(item.titleKey)}</h3>
                 <p className="text-text-secondary leading-relaxed">{t(item.descKey)}</p>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -186,19 +130,12 @@ export default function HomePage() {
               { number: 1000, label: 'Clientes Satisfechos', suffix: '+' },
               { number: 5, label: 'Años de Experiencia', suffix: '' }
             ].map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                className="text-center"
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-              >
+              <div key={stat.label} className="text-center fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
                 <div className="text-5xl font-black text-red-600 dark:text-red-500 mb-2">
                   <Counter to={stat.number} duration={2} />{stat.suffix}
                 </div>
                 <div className="text-text-secondary font-medium">{stat.label}</div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -207,20 +144,14 @@ export default function HomePage() {
       {/* Ecosystem / Projects Section */}
       <section id="ecosistema" className="py-16 md:py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
+          <div className="text-center mb-16 fade-in-up">
             <h2 className="font-display text-4xl lg:text-5xl font-bold text-text-primary mb-8">
               {t('projects.title')}
             </h2>
             <p className="text-lg lg:text-xl text-text-secondary max-w-3xl mx-auto leading-relaxed">
               {t('projects.description')}
             </p>
-          </motion.div>
+          </div>
 
           {/* Projects Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -271,13 +202,10 @@ export default function HomePage() {
                 href: "/maalca-properties"
               },
             ].map((project, index) => (
-              <motion.div
+              <div
                 key={project.titleKey}
-                className="group relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl p-8 border-2 border-slate-200 dark:border-gray-700 hover:border-red-500 dark:hover:border-red-400 transition-all duration-500 shadow-2xl hover:shadow-red-500/30 hover:-translate-y-4 cursor-pointer"
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="group relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl p-8 border-2 border-slate-200 dark:border-gray-700 hover:border-red-500 dark:hover:border-red-400 transition-all duration-500 shadow-2xl hover:shadow-red-500/30 hover:-translate-y-4 cursor-pointer fade-in-up"
+                style={{ animationDelay: `${index * 100}ms` }}
                 onClick={() => handleProjectClick(project.href)}
               >
                 {/* Project Image with OVERLAY */}
@@ -309,19 +237,19 @@ export default function HomePage() {
                   ✓ {t(project.outcomeKey)}
                 </div>
 
-                {/* FUNCTIONAL BUTTON WITH DRAMATIC STYLING */}
+                {/* FUNCTIONAL BUTTON */}
                 <div className="mt-auto">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleProjectClick(project.href);
                     }}
-                    className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                    className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
                   >
                     {t('common.viewProject')} →
                   </button>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -330,76 +258,31 @@ export default function HomePage() {
       {/* Affiliates Section */}
       <section className="py-16 md:py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
+          <div className="text-center mb-16 fade-in-up">
             <h2 className="font-display text-4xl lg:text-5xl font-bold text-text-primary mb-8">
               {t('affiliates.title')}
             </h2>
             <p className="text-lg text-text-secondary max-w-3xl mx-auto leading-relaxed">
               {t('affiliates.description')}
             </p>
-          </motion.div>
+          </div>
 
-          {/* Affiliates Carousel */}
+          {/* Affiliates Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
             {[
-              {
-                nameKey: "affiliate.drpichardo.name",
-                descriptionKey: "affiliate.drpichardo.description",
-                href: "/dr-pichardo",
-                initials: "DP"
-              },
-              {
-                nameKey: "affiliate.pegote.name",
-                descriptionKey: "affiliate.pegote.description",
-                href: "/pegote-barber",
-                initials: "PB"
-              },
-              {
-                nameKey: "affiliate.studioalpha.name",
-                descriptionKey: "affiliate.studioalpha.description",
-                href: "#",
-                initials: "SA"
-              },
-              {
-                nameKey: "affiliate.creativehub.name",
-                descriptionKey: "affiliate.creativehub.description",
-                href: "#",
-                initials: "CH"
-              },
-              {
-                nameKey: "affiliate.designco.name",
-                descriptionKey: "affiliate.designco.description",
-                href: "#",
-                initials: "DC"
-              },
-              {
-                nameKey: "affiliate.medialab.name",
-                descriptionKey: "affiliate.medialab.description",
-                href: "#",
-                initials: "ML"
-              },
-              {
-                nameKey: "affiliate.artcollective.name",
-                descriptionKey: "affiliate.artcollective.description",
-                href: "#",
-                initials: "AC"
-              }
+              { nameKey: "affiliate.drpichardo.name", descriptionKey: "affiliate.drpichardo.description", href: "/dr-pichardo", initials: "DP" },
+              { nameKey: "affiliate.pegote.name", descriptionKey: "affiliate.pegote.description", href: "/pegote-barber", initials: "PB" },
+              { nameKey: "affiliate.studioalpha.name", descriptionKey: "affiliate.studioalpha.description", href: "#", initials: "SA" },
+              { nameKey: "affiliate.creativehub.name", descriptionKey: "affiliate.creativehub.description", href: "#", initials: "CH" },
+              { nameKey: "affiliate.designco.name", descriptionKey: "affiliate.designco.description", href: "#", initials: "DC" },
+              { nameKey: "affiliate.medialab.name", descriptionKey: "affiliate.medialab.description", href: "#", initials: "ML" },
+              { nameKey: "affiliate.artcollective.name", descriptionKey: "affiliate.artcollective.description", href: "#", initials: "AC" }
             ].map((affiliate, index) => (
-              <motion.div
+              <div
                 key={affiliate.nameKey}
-                className="group text-center cursor-pointer"
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                whileHover={{ scale: 1.05 }}
-                onClick={() => window.location.href = affiliate.href}
+                className="group text-center cursor-pointer fade-in-up hover-scale"
+                style={{ animationDelay: `${index * 50}ms` }}
+                onClick={() => router.push(affiliate.href)}
               >
                 <div className="bg-surface-elevated rounded-xl p-8 h-24 flex items-center justify-center mb-4 group-hover:bg-brand-primary transition-all duration-300 border border-border">
                   <span className="text-text-secondary group-hover:text-white font-bold text-lg">
@@ -412,33 +295,21 @@ export default function HomePage() {
                 <p className="text-text-muted text-xs mt-1">
                   {t(affiliate.descriptionKey)}
                 </p>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Philosophy / Quote Section */}
+      {/* philosophy / Quote Section */}
       <section className="py-32 bg-black relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-900/10 to-transparent" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <motion.blockquote
-            className="font-display text-4xl sm:text-6xl lg:text-8xl font-bold text-white leading-tight"
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1.2 }}
-          >
-            "{t('quote.philosophy')}"
-          </motion.blockquote>
+          <blockquote className="font-display text-4xl sm:text-6xl lg:text-8xl font-bold text-white leading-tight fade-in">
+            &ldquo;{t('quote.philosophy')}&rdquo;
+          </blockquote>
           
-          <motion.div
-            className="mt-8 w-24 h-1 bg-red-600 mx-auto"
-            initial={{ width: 0 }}
-            whileInView={{ width: 96 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1, delay: 0.5 }}
-          />
+          <div className="mt-8 w-24 h-1 bg-red-600 mx-auto scale-in" style={{ animationDelay: '300ms' }} />
         </div>
       </section>
 
@@ -447,12 +318,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             {/* Contact Form */}
-            <motion.div
-              initial={{ opacity: 0, x: -40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
+            <div className="fade-in-left">
               <h2 className="font-display text-4xl lg:text-5xl font-bold text-white mb-8">
                 {t('contact.title')}
               </h2>
@@ -487,54 +353,46 @@ export default function HomePage() {
                   {t('contact.send')}
                 </Button>
               </form>
-            </motion.div>
+            </div>
 
             {/* Contact Info */}
-            <motion.div
-              initial={{ opacity: 0, x: 40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
+            <div className="fade-in-right">
               <div className="space-y-8">
-                <div>
-                  <h3 className="text-2xl font-bold text-white mb-4">MaalCa LLC</h3>
-                  <p className="text-gray-300 leading-relaxed">
-                    Elmira, NY<br />
-                    {t('contact.location')}
+                <div className="fade-in-up" style={{ animationDelay: '100ms' }}>
+                  <h3 className="text-2xl font-bold text-white mb-4">¿Listo para crear algo increíble?</h3>
+                  <p className="text-gray-400">
+                    Cuéntanos sobre tu proyecto y trabajaremos juntos para hacerlo realidad.
                   </p>
                 </div>
 
-                <div>
-                  <h3 className="text-xl font-bold text-white mb-4">{t('contact.emailLabel')}</h3>
-                  <a href="mailto:hello@maalca.com" className="text-red-400 hover:text-red-300 transition-colors">
-                    hello@maalca.com
-                  </a>
-                </div>
+                <div className="space-y-4 fade-in-up" style={{ animationDelay: '200ms' }}>
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm">Email</p>
+                      <p className="text-white font-medium">hola@maalca.com</p>
+                    </div>
+                  </div>
 
-                <div>
-                  <h3 className="text-xl font-bold text-white mb-6">{t('contact.followUs')}</h3>
-                  <div className="flex space-x-6">
-                    {[
-                      { name: "Instagram", icon: "📷" },
-                      { name: "YouTube", icon: "📺" },
-                      { name: "Spotify", icon: "🎵" },
-                      { name: "LinkedIn", icon: "💼" }
-                    ].map((social) => (
-                      <motion.a
-                        key={social.name}
-                        href="#"
-                        className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center text-xl hover:bg-red-600 transition-colors"
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                      >
-                        {social.icon}
-                      </motion.a>
-                    ))}
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center">
+                      <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm">Ubicación</p>
+                      <p className="text-white font-medium">Santo Domingo, República Dominicana</p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>

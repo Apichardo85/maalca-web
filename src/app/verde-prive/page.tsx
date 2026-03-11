@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 
 const products = [
@@ -215,20 +214,9 @@ export default function VerdePrivePage() {
             {/* Floating smoke particles */}
             <div className="absolute inset-0 opacity-20">
               {[...Array(5)].map((_, i) => (
-                <motion.div
+                <div
                   key={i}
-                  className="absolute w-32 h-32 bg-gradient-radial from-emerald-400/30 to-transparent rounded-full"
-                  animate={{
-                    x: [Math.random() * 100, Math.random() * 100 + 50],
-                    y: [Math.random() * 100, Math.random() * 100 - 30],
-                    scale: [0.5, 1, 0.3],
-                    opacity: [0.1, 0.3, 0],
-                  }}
-                  transition={{
-                    duration: 8 + i * 2,
-                    repeat: Infinity,
-                    delay: i * 1.5,
-                  }}
+                  className="absolute w-32 h-32 bg-gradient-radial from-emerald-400/30 to-transparent rounded-full fade-in"
                   style={{
                     left: `${10 + i * 20}%`,
                     top: `${20 + i * 15}%`,
@@ -242,21 +230,13 @@ export default function VerdePrivePage() {
 
         {/* Hero Content */}
         <div className="relative z-10 text-center max-w-5xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2 }}
-          >
+          <div className="fade-in-up">
             {/* Premium Logo/Symbol */}
-            <motion.div
-              animate={{ rotate: [0, 2, -2, 0] }}
-              transition={{ duration: 8, repeat: Infinity }}
-              className="mb-8"
-            >
+            <div className="mb-8 animate-bounce">
               <div className="w-32 h-32 mx-auto bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center border-4 border-amber-400/30 shadow-2xl">
                 <span className="text-4xl">🌿</span>
               </div>
-            </motion.div>
+            </div>
 
             <h1 className="font-serif text-6xl md:text-8xl lg:text-9xl font-light mb-8 leading-tight">
               <span className="text-emerald-300">Verde</span>
@@ -264,30 +244,15 @@ export default function VerdePrivePage() {
               <span className="text-amber-400">Privé</span>
             </h1>
             
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1, duration: 1 }}
-              className="text-xl md:text-2xl font-light mb-4 text-stone-300 max-w-3xl mx-auto italic"
-            >
+            <p className="fade-in delay-100 text-xl md:text-2xl font-light mb-4 text-stone-300 max-w-3xl mx-auto italic">
               Cannabis premium con privacidad absoluta
-            </motion.p>
+            </p>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.5, duration: 1 }}
-              className="text-lg text-stone-400 mb-12 max-w-2xl mx-auto"
-            >
+            <p className="fade-in delay-200 text-lg text-stone-400 mb-12 max-w-2xl mx-auto">
               Para adultos conscientes que buscan calidad artesanal, discreción total y un estilo de vida elevado
-            </motion.p>
+            </p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 2, duration: 0.8 }}
-              className="flex flex-col sm:flex-row gap-6 justify-center"
-            >
+            <div className="fade-in-up delay-300 flex flex-col sm:flex-row gap-6 justify-center">
               <Button
                 variant="primary"
                 size="lg"
@@ -304,31 +269,22 @@ export default function VerdePrivePage() {
               >
                 Unirse al Club
               </Button>
-            </motion.div>
+            </div>
 
             {/* Discrete age verification */}
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 3, duration: 1 }}
-              className="text-xs text-stone-500 mt-12"
-            >
+            <p className="fade-in delay-400 text-xs text-stone-500 mt-12">
               Solo para mayores de 21 años • Consumo responsable y consciente
-            </motion.p>
-          </motion.div>
+            </p>
+          </div>
         </div>
 
         {/* Scroll Indicator */}
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-emerald-400"
-        >
+        <div className="animate-bounce absolute bottom-8 left-1/2 transform -translate-x-1/2 text-emerald-400">
           <div className="flex flex-col items-center">
             <span className="text-sm mb-2 font-serif">Descubrir</span>
             <div className="w-0.5 h-12 bg-gradient-to-b from-emerald-400 to-transparent rounded-full"></div>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* Sticky Navigation */}
@@ -363,12 +319,7 @@ export default function VerdePrivePage() {
       {/* Collection Section */}
       <section id="collection" className="py-24 bg-stone-900">
         <div className="max-w-7xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
+          <div className="fade-in-up text-center mb-16">
             <h2 className="font-serif text-5xl md:text-6xl font-light text-emerald-300 mb-6">
               Colección Exclusiva
             </h2>
@@ -393,19 +344,15 @@ export default function VerdePrivePage() {
                 </button>
               ))}
             </div>
-          </motion.div>
+          </div>
 
           {/* Products Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredProducts.map((product, index) => (
-              <motion.div
+              <div
                 key={product.id}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: index * 0.1 }}
-                whileHover={{ y: -8 }}
-                className="group cursor-pointer"
+                className="fade-in-up hover-scale group cursor-pointer"
+                style={{ animationDelay: `${index * 100}ms` }}
                 onClick={() => setSelectedProduct(product.id)}
               >
                 <div className="bg-stone-800 rounded-3xl overflow-hidden border border-stone-700 hover:border-emerald-600/50 transition-all duration-500 shadow-lg hover:shadow-2xl">
@@ -519,17 +466,12 @@ export default function VerdePrivePage() {
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
 
           {/* Members Only Notice */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mt-16"
-          >
+          <div className="fade-in-up text-center mt-16">
             <div className="bg-gradient-to-r from-stone-800 to-emerald-900/20 rounded-3xl p-8 border border-amber-400/20">
               <h3 className="font-serif text-2xl text-amber-400 mb-4">Acceso Exclusivo</h3>
               <p className="text-stone-300 mb-6 max-w-2xl mx-auto">
@@ -544,19 +486,14 @@ export default function VerdePrivePage() {
                 Convertirse en Miembro
               </Button>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
       {/* Lifestyle Section */}
       <section id="lifestyle" className="py-24 bg-black">
         <div className="max-w-7xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
+          <div className="fade-in-up text-center mb-16">
             <h2 className="font-serif text-5xl md:text-6xl font-light text-emerald-300 mb-6">
               Lifestyle Consciente
             </h2>
@@ -564,18 +501,14 @@ export default function VerdePrivePage() {
               Cannabis como parte de un estilo de vida sofisticado, consciente y elevado. 
               Exploramos el arte de vivir con intención.
             </p>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {lifestyleContent.map((content, index) => (
-              <motion.div
+              <div
                 key={content.id}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: index * 0.2 }}
-                whileHover={{ scale: 1.02 }}
-                className="group cursor-pointer"
+                className="fade-in-up hover-scale group cursor-pointer"
+                style={{ animationDelay: `${index * 200}ms` }}
               >
                 <article className="bg-stone-900 rounded-3xl overflow-hidden border border-stone-800 hover:border-emerald-700/50 transition-all duration-500">
                   {/* Article Image */}
@@ -602,16 +535,11 @@ export default function VerdePrivePage() {
                     </p>
                     <div className="flex items-center text-emerald-400 text-sm font-medium">
                       <span className="mr-2">Leer más</span>
-                      <motion.span
-                        animate={{ x: [0, 5, 0] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      >
-                        →
-                      </motion.span>
+                      <span className="animate-bounce inline-block">→</span>
                     </div>
                   </div>
                 </article>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -620,30 +548,22 @@ export default function VerdePrivePage() {
       {/* Club Privé Section */}
       <section id="club" className="py-24 bg-stone-900">
         <div className="max-w-6xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
+          <div className="fade-in-up text-center mb-16">
             <h2 className="font-serif text-5xl md:text-6xl font-light text-emerald-300 mb-6">
               Club Verde Privé
             </h2>
             <p className="text-xl text-stone-400 max-w-3xl mx-auto">
-              Membresía exclusiva para conocedores que buscan lo excepcional. 
+              Membresía exclusiva para conocedores que buscan lo excepcional.
               Accede a productos únicos, experiencias privadas y un servicio sin igual.
             </p>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {membershipTiers.map((tier, index) => (
-              <motion.div
+              <div
                 key={tier.id}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: index * 0.2 }}
-                className={`relative group ${tier.popular ? 'scale-105' : ''}`}
+                className={`fade-in-up relative group ${tier.popular ? 'scale-105' : ''}`}
+                style={{ animationDelay: `${index * 200}ms` }}
               >
                 <div className={`bg-stone-800 rounded-3xl p-8 border-2 transition-all duration-500 ${
                   tier.popular 
@@ -694,36 +614,27 @@ export default function VerdePrivePage() {
                     Seleccionar {tier.name}
                   </Button>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
 
           {/* Exclusive Promise */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mt-16"
-          >
+          <div className="fade-in-up text-center mt-16">
             <div className="bg-gradient-to-r from-emerald-900/30 to-stone-800 rounded-3xl p-8 border border-emerald-800/50">
               <h3 className="font-serif text-2xl text-emerald-300 mb-4">Privacidad Garantizada</h3>
               <p className="text-stone-400 max-w-2xl mx-auto leading-relaxed">
-                Todos los envíos son completamente discretos, sin marcas identificatorias. 
+                Todos los envíos son completamente discretos, sin marcas identificatorias.
                 Tu privacidad es nuestra prioridad absoluta. Entrega en envases elegantes y neutros.
               </p>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
       {/* Contact/Join Section */}
       <section className="py-24 bg-black">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
+          <div className="fade-in-up">
             <h2 className="font-serif text-5xl md:text-6xl font-light text-emerald-300 mb-6">
               ¿Listo para Elevarte?
             </h2>
@@ -734,10 +645,7 @@ export default function VerdePrivePage() {
 
             <div className="grid md:grid-cols-2 gap-8 mb-12">
               {/* Join Club */}
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                className="bg-stone-900 rounded-3xl p-8 border border-emerald-800/50"
-              >
+              <div className="hover-scale bg-stone-900 rounded-3xl p-8 border border-emerald-800/50">
                 <div className="text-5xl mb-6">🌿</div>
                 <h3 className="font-serif text-2xl text-emerald-300 mb-4">
                   Unirse al Club
@@ -752,13 +660,10 @@ export default function VerdePrivePage() {
                 >
                   Convertirse en Miembro
                 </Button>
-              </motion.div>
+              </div>
 
               {/* Contact */}
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                className="bg-stone-900 rounded-3xl p-8 border border-amber-800/50"
-              >
+              <div className="hover-scale bg-stone-900 rounded-3xl p-8 border border-amber-800/50">
                 <div className="text-5xl mb-6">💬</div>
                 <h3 className="font-serif text-2xl text-amber-400 mb-4">
                   Consulta Privada
@@ -772,7 +677,7 @@ export default function VerdePrivePage() {
                 >
                   Consulta Discreta
                 </Button>
-              </motion.div>
+              </div>
             </div>
 
             {/* Newsletter */}
@@ -797,7 +702,7 @@ export default function VerdePrivePage() {
                 </Button>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -861,20 +766,14 @@ export default function VerdePrivePage() {
       </footer>
 
       {/* Modals */}
-      <AnimatePresence>
         {/* Login Modal */}
         {showLoginModal && (
           <div className="fixed inset-0 z-50 overflow-hidden">
-            <div 
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm" 
+            <div
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
               onClick={() => setShowLoginModal(false)}
             ></div>
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-stone-900 rounded-2xl p-8 shadow-2xl border border-emerald-800"
-            >
+            <div className="scale-in absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-stone-900 rounded-2xl p-8 shadow-2xl border border-emerald-800">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-serif text-2xl text-emerald-300">Acceso Miembro</h3>
                 <button
@@ -920,23 +819,18 @@ export default function VerdePrivePage() {
                   </button>
                 </div>
               </form>
-            </motion.div>
+            </div>
           </div>
         )}
 
         {/* Membership Modal */}
         {showMembershipModal && (
           <div className="fixed inset-0 z-50 overflow-y-auto">
-            <div 
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm" 
+            <div
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
               onClick={() => setShowMembershipModal(false)}
             ></div>
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
-              className="relative min-h-screen flex items-center justify-center p-4"
-            >
+            <div className="fade-in-up relative min-h-screen flex items-center justify-center p-4">
               <div className="w-full max-w-2xl bg-stone-900 rounded-2xl overflow-hidden shadow-2xl border border-emerald-800">
                 <div className="p-8">
                   <div className="flex items-center justify-between mb-6">
@@ -1008,23 +902,18 @@ export default function VerdePrivePage() {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
 
         {/* Product Detail Modal */}
         {selectedProduct && (
           <div className="fixed inset-0 z-50 overflow-y-auto">
-            <div 
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm" 
+            <div
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
               onClick={() => setSelectedProduct(null)}
             ></div>
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
-              className="relative min-h-screen flex items-center justify-center p-4"
-            >
+            <div className="fade-in-up relative min-h-screen flex items-center justify-center p-4">
               <div className="w-full max-w-4xl bg-stone-900 rounded-2xl overflow-hidden shadow-2xl border border-emerald-800">
                 {(() => {
                   const product = products.find(p => p.id === selectedProduct);
@@ -1138,25 +1027,19 @@ export default function VerdePrivePage() {
                   );
                 })()}
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
-      </AnimatePresence>
 
       {/* Floating WhatsApp */}
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ delay: 3 }}
-        className="fixed bottom-6 right-6 z-40"
-      >
+      <div className="scale-in fixed bottom-6 right-6 z-40">
         <a
           href="https://wa.me/16071234567"
           className="w-16 h-16 bg-emerald-700 hover:bg-emerald-600 rounded-full flex items-center justify-center text-white text-2xl shadow-lg hover:scale-110 transition-all duration-300 border-2 border-emerald-500"
         >
           💬
         </a>
-      </motion.div>
+      </div>
     </main>
   );
 }

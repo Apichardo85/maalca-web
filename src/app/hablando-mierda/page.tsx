@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import { ThemeSwitch } from "@/components/ui/ThemeSwitch";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
@@ -138,44 +137,24 @@ export default function HablandoMierdaPage() {
           {/* Sound waves animation */}
           <div className="absolute inset-0 flex items-center justify-center">
             {[...Array(5)].map((_, i) => (
-              <motion.div
+              <div
                 key={i}
-                className="absolute w-96 h-96 border border-brand-primary rounded-full"
-                animate={{
-                  scale: [1, 2, 1],
-                  opacity: [0.3, 0, 0.3],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  delay: i * 0.6,
-                }}
+                className="absolute w-96 h-96 border border-brand-primary rounded-full animate-ping"
+                style={{ animationDelay: `${i * 0.6}s`, animationDuration: "3s" }}
               />
             ))}
           </div>
         </div>
 
         <div className="relative z-10 text-center max-w-6xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1 }}
-          >
+          <div className="fade-in-up">
             {/* Logo Animado */}
-            <motion.div
-              className="mb-8"
-              animate={{ rotate: [0, 2, -2, 0] }}
-              transition={{ duration: 4, repeat: Infinity }}
-            >
+            <div className="mb-8 animate-bounce" style={{ animationDuration: "4s" }}>
               <div className="text-9xl md:text-[12rem] font-black text-brand-primary mb-4 font-sans tracking-tighter">
                 HBM
               </div>
-              <motion.div
-                className="w-24 h-1 bg-brand-primary mx-auto mb-4"
-                animate={{ scaleX: [1, 1.5, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
-            </motion.div>
+              <div className="w-24 h-1 bg-brand-primary mx-auto mb-4" />
+            </div>
 
             <h1 className="text-4xl md:text-6xl font-black mb-6 text-text-primary font-sans">
               {t('hbm.hero.title')}
@@ -188,7 +167,7 @@ export default function HablandoMierdaPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <div className="hover-scale">
                 <Button
                   variant="primary"
                   size="lg"
@@ -196,9 +175,9 @@ export default function HablandoMierdaPage() {
                 >
                   {t('hbm.hero.listenNow')}
                 </Button>
-              </motion.div>
+              </div>
 
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <div className="hover-scale">
                 <Button
                   variant="outline"
                   size="lg"
@@ -206,54 +185,36 @@ export default function HablandoMierdaPage() {
                 >
                   {t('hbm.hero.watchClips')}
                 </Button>
-              </motion.div>
+              </div>
             </div>
 
             {/* Live Indicator */}
-            <AnimatePresence>
-              {isLive && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  className="inline-flex items-center gap-3 bg-red-500 text-white px-6 py-3 rounded-full font-bold"
-                >
-                  <motion.div
-                    className="w-3 h-3 bg-white rounded-full"
-                    animate={{ opacity: [1, 0.3, 1] }}
-                    transition={{ duration: 1, repeat: Infinity }}
-                  />
-                  {t('hbm.hero.liveNow')}
-                  <span className="text-sm opacity-90">
-                    {currentTime.toLocaleTimeString()}
-                  </span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+            {isLive && (
+              <div className="scale-in inline-flex items-center gap-3 bg-red-500 text-white px-6 py-3 rounded-full font-bold">
+                <div className="w-3 h-3 bg-white rounded-full animate-pulse" />
+                {t('hbm.hero.liveNow')}
+                <span className="text-sm opacity-90">
+                  {currentTime.toLocaleTimeString()}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Scroll Indicator */}
-        <motion.div
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
           <div className="w-1 h-12 bg-gradient-to-b from-transparent via-brand-primary to-transparent rounded-full"></div>
-        </motion.div>
+        </div>
       </section>
 
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-background/90 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <motion.div
-              className="font-black text-xl text-brand-primary"
-              whileHover={{ scale: 1.1 }}
-            >
+            <div className="font-black text-xl text-brand-primary hover-scale">
               HBM
-            </motion.div>
-            
+            </div>
+
             <div className="hidden md:flex items-center space-x-8">
               <a href="#episodios" className="text-text-secondary hover:text-brand-primary transition-colors font-medium">
                 {t('hbm.nav.episodes')}
@@ -277,30 +238,21 @@ export default function HablandoMierdaPage() {
       {/* Episodios Section */}
       <section id="episodios" className="py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
+          <div className="fade-in-up text-center mb-16">
             <h2 className="text-4xl md:text-6xl font-black text-text-primary mb-6 font-sans">
               {t('hbm.episodes.title')}
             </h2>
             <p className="text-xl text-text-secondary max-w-3xl mx-auto">
               {t('hbm.episodes.subtitle')}
             </p>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-2 gap-8">
             {episodes.map((episode, index) => (
-              <motion.div
+              <div
                 key={episode.id}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                whileHover={{ y: -5 }}
-                className="group cursor-pointer"
+                className="fade-in-up group cursor-pointer"
+                style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className="bg-surface-elevated rounded-2xl overflow-hidden border border-border hover:border-brand-primary/50 transition-all duration-300 shadow-lg hover:shadow-2xl">
                   {/* Episode Image */}
@@ -323,10 +275,10 @@ export default function HablandoMierdaPage() {
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-3">
                       <time className="text-sm text-text-muted">
-                        {new Date(episode.date).toLocaleDateString('es-ES', { 
-                          year: 'numeric', 
-                          month: 'long', 
-                          day: 'numeric' 
+                        {new Date(episode.date).toLocaleDateString('es-ES', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
                         })}
                       </time>
                     </div>
@@ -334,7 +286,7 @@ export default function HablandoMierdaPage() {
                     <h3 className="text-xl font-bold text-text-primary mb-3 group-hover:text-brand-primary transition-colors">
                       {episode.title}
                     </h3>
-                    
+
                     <p className="text-text-secondary leading-relaxed mb-6">
                       {episode.description}
                     </p>
@@ -357,7 +309,7 @@ export default function HablandoMierdaPage() {
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
 
@@ -379,17 +331,13 @@ export default function HablandoMierdaPage() {
           {/* Equalizer Animation */}
           <div className="flex items-end justify-center h-full gap-1">
             {[...Array(20)].map((_, i) => (
-              <motion.div
+              <div
                 key={i}
-                className="bg-brand-primary w-4"
-                animate={{ 
-                  height: [20, 100, 60, 140, 80, 20],
-                }}
-                transition={{ 
-                  duration: 2,
-                  repeat: Infinity,
-                  delay: i * 0.1,
-                  ease: "easeInOut"
+                className="bg-brand-primary w-4 animate-pulse"
+                style={{
+                  height: `${20 + (i % 6) * 20}px`,
+                  animationDelay: `${i * 0.1}s`,
+                  animationDuration: "2s"
                 }}
               />
             ))}
@@ -397,11 +345,7 @@ export default function HablandoMierdaPage() {
         </div>
 
         <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-          >
+          <div className="scale-in">
             <h2 className="text-4xl md:text-6xl font-black text-text-primary mb-8 font-sans">
               {t('hbm.radio.title')}
             </h2>
@@ -409,10 +353,8 @@ export default function HablandoMierdaPage() {
             <div className="bg-surface-elevated rounded-3xl p-12 border border-border shadow-2xl">
               {/* Live Status */}
               <div className="flex items-center justify-center gap-4 mb-8">
-                <motion.div
-                  className={`w-4 h-4 rounded-full ${isLive ? 'bg-red-500' : 'bg-gray-400'}`}
-                  animate={isLive ? { opacity: [1, 0.3, 1] } : {}}
-                  transition={{ duration: 1, repeat: Infinity }}
+                <div
+                  className={`w-4 h-4 rounded-full ${isLive ? 'bg-red-500 animate-pulse' : 'bg-gray-400'}`}
                 />
                 <span className="text-xl font-bold">
                   {isLive ? t('hbm.hero.transmittingNow') : t('hbm.hero.offAir')}
@@ -425,16 +367,13 @@ export default function HablandoMierdaPage() {
               {/* Wave Visualizer */}
               <div className="flex items-center justify-center gap-1 mb-8">
                 {[...Array(10)].map((_, i) => (
-                  <motion.div
+                  <div
                     key={i}
-                    className="bg-gradient-to-t from-brand-primary to-brand-primary/50 w-3 rounded-full"
-                    animate={isLive ? { 
-                      height: [20, 80, 40, 60, 30, 70, 20],
-                    } : { height: 4 }}
-                    transition={{ 
-                      duration: 1.5,
-                      repeat: Infinity,
-                      delay: i * 0.1,
+                    className={`bg-gradient-to-t from-brand-primary to-brand-primary/50 w-3 rounded-full transition-all duration-300 ${isLive ? 'animate-pulse' : ''}`}
+                    style={{
+                      height: isLive ? `${20 + (i % 4) * 15}px` : '4px',
+                      animationDelay: `${i * 0.1}s`,
+                      animationDuration: "1.5s"
                     }}
                   />
                 ))}
@@ -455,50 +394,40 @@ export default function HablandoMierdaPage() {
                 </p>
               )}
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
       {/* Equipo Section */}
       <section id="equipo" className="py-24 bg-surface">
         <div className="max-w-6xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
+          <div className="fade-in-up text-center mb-16">
             <h2 className="text-4xl md:text-6xl font-black text-text-primary mb-6 font-sans">
               {t('hbm.hosts.title')}
             </h2>
             <p className="text-xl text-text-secondary max-w-3xl mx-auto">
               {t('hbm.hosts.subtitle')}
             </p>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-2 gap-12">
             {hosts.map((host, index) => (
-              <motion.div
+              <div
                 key={host.name}
-                initial={{ opacity: 0, x: index === 0 ? -50 : 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8 }}
-                whileHover={{ scale: 1.02 }}
-                className="group"
+                className={`hover-scale group ${index === 0 ? 'fade-in-left' : 'fade-in-right'}`}
               >
                 <div className="bg-surface-elevated rounded-3xl p-8 border border-border hover:border-brand-primary/50 transition-all duration-300 text-center relative overflow-hidden">
                   {/* Background Effect */}
-                  <div 
+                  <div
                     className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity"
-                    style={{ 
-                      background: `linear-gradient(45deg, ${host.color}20, transparent)` 
+                    style={{
+                      background: `linear-gradient(45deg, ${host.color}20, transparent)`
                     }}
                   />
 
                   {/* Avatar */}
                   <div className="relative z-10 mb-6">
-                    <div 
+                    <div
                       className="w-32 h-32 mx-auto rounded-full flex items-center justify-center text-6xl border-4 group-hover:scale-110 transition-transform"
                       style={{ borderColor: host.color }}
                     >
@@ -516,21 +445,17 @@ export default function HablandoMierdaPage() {
                     {host.description}
                   </p>
 
-                  {/* Iconic Phrase - appears on hover */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    className="group-hover:bg-background/50 rounded-xl p-4 transition-all duration-300"
-                  >
-                    <blockquote 
+                  {/* Iconic Phrase */}
+                  <div className="fade-in-up group-hover:bg-background/50 rounded-xl p-4 transition-all duration-300">
+                    <blockquote
                       className="font-bold italic text-lg"
                       style={{ color: host.color }}
                     >
                       {host.iconicPhrase}
                     </blockquote>
-                  </motion.div>
+                  </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -539,41 +464,29 @@ export default function HablandoMierdaPage() {
       {/* Clips Section */}
       <section id="clips" className="py-24 bg-background">
         <div className="max-w-7xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
+          <div className="fade-in-up text-center mb-16">
             <h2 className="text-4xl md:text-6xl font-black text-text-primary mb-6 font-sans">
               {t('hbm.clips.title')}
             </h2>
             <p className="text-xl text-text-secondary max-w-3xl mx-auto">
               {t('hbm.clips.subtitle')}
             </p>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {clips.map((clip, index) => (
-              <motion.div
+              <div
                 key={clip.id}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                whileHover={{ scale: 1.05 }}
-                className="group cursor-pointer"
+                className="fade-in-up hover-scale group cursor-pointer"
+                style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className="bg-surface-elevated rounded-2xl overflow-hidden border border-border hover:border-brand-primary/50 transition-all duration-300">
                   {/* Video Thumbnail */}
                   <div className="aspect-video bg-gradient-to-br from-brand-primary/30 to-surface flex items-center justify-center relative">
-                    <motion.div
-                      whileHover={{ scale: 1.2 }}
-                      className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center"
-                    >
+                    <div className="hover-scale w-16 h-16 bg-white/90 rounded-full flex items-center justify-center">
                       <div className="w-0 h-0 border-l-[12px] border-l-black border-y-[8px] border-y-transparent ml-1"></div>
-                    </motion.div>
-                    
+                    </div>
+
                     {/* Platform Badge */}
                     <div className="absolute top-4 left-4">
                       <span className="bg-black/70 text-white px-3 py-1 rounded-full text-sm font-bold">
@@ -595,7 +508,7 @@ export default function HablandoMierdaPage() {
                     </h3>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
 
@@ -614,19 +527,14 @@ export default function HablandoMierdaPage() {
       {/* Support/Merch Section */}
       <section className="py-24 bg-surface">
         <div className="max-w-6xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
+          <div className="fade-in-up text-center mb-16">
             <h2 className="text-4xl md:text-6xl font-black text-text-primary mb-6 font-sans">
               {t('hbm.support.title')}
             </h2>
             <p className="text-xl text-text-secondary max-w-3xl mx-auto">
               {t('hbm.support.subtitle')}
             </p>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
@@ -634,32 +542,28 @@ export default function HablandoMierdaPage() {
               { item: t('hbm.support.tshirt'), price: "$35", emoji: "👕" },
               { item: t('hbm.support.stickers'), price: "$10", emoji: "🏷️" }
             ].map((product, index) => (
-              <motion.div
+              <div
                 key={product.item}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                whileHover={{ scale: 1.05 }}
-                className="bg-surface-elevated rounded-2xl p-8 text-center border border-border hover:border-brand-primary/50 transition-all duration-300"
+                className="fade-in-up hover-scale bg-surface-elevated rounded-2xl p-8 text-center border border-border hover:border-brand-primary/50 transition-all duration-300"
+                style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className="text-6xl mb-4">{product.emoji}</div>
                 <h3 className="text-xl font-bold text-text-primary mb-2">{product.item}</h3>
                 <div className="text-2xl font-black text-brand-primary mb-6">{product.price}</div>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <div className="hover-scale">
                   <Button
                     variant="primary"
                     className="w-full bg-brand-primary hover:bg-brand-primary-hover text-white font-bold"
                   >
                     {t('hbm.support.buy')}
                   </Button>
-                </motion.div>
-              </motion.div>
+                </div>
+              </div>
             ))}
           </div>
 
           <div className="text-center mt-16">
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <div className="hover-scale inline-block">
               <Button
                 variant="outline"
                 size="lg"
@@ -667,7 +571,7 @@ export default function HablandoMierdaPage() {
               >
                 {t('hbm.support.donate')}
               </Button>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
@@ -675,11 +579,7 @@ export default function HablandoMierdaPage() {
       {/* Contacto Section */}
       <section id="contacto" className="py-24 bg-background">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
+          <div className="fade-in-up">
             <h2 className="text-4xl md:text-6xl font-black text-text-primary mb-6 font-sans">
               {t('hbm.contact.title')}
             </h2>
@@ -689,7 +589,7 @@ export default function HablandoMierdaPage() {
 
             <div className="grid md:grid-cols-2 gap-8 mb-12">
               {/* WhatsApp */}
-              <motion.div whileHover={{ scale: 1.02 }}>
+              <div className="hover-scale">
                 <div className="bg-surface-elevated rounded-2xl p-8 border border-border hover:border-green-500/50 transition-all duration-300">
                   <div className="text-6xl mb-4">📱</div>
                   <h3 className="text-2xl font-bold text-text-primary mb-4">{t('hbm.contact.whatsapp.title')}</h3>
@@ -703,10 +603,10 @@ export default function HablandoMierdaPage() {
                     {t('hbm.contact.whatsapp.button')}
                   </Button>
                 </div>
-              </motion.div>
+              </div>
 
               {/* Discord */}
-              <motion.div whileHover={{ scale: 1.02 }}>
+              <div className="hover-scale">
                 <div className="bg-surface-elevated rounded-2xl p-8 border border-border hover:border-blue-500/50 transition-all duration-300">
                   <div className="text-6xl mb-4">💬</div>
                   <h3 className="text-2xl font-bold text-text-primary mb-4">{t('hbm.contact.discord.title')}</h3>
@@ -720,7 +620,7 @@ export default function HablandoMierdaPage() {
                     {t('hbm.contact.discord.button')}
                   </Button>
                 </div>
-              </motion.div>
+              </div>
             </div>
 
             {/* Social Links */}
@@ -731,45 +631,33 @@ export default function HablandoMierdaPage() {
                 { platform: "YouTube", emoji: "📺", color: "from-red-500 to-red-600" },
                 { platform: "Spotify", emoji: "🎧", color: "from-green-400 to-green-500" }
               ].map((social) => (
-                <motion.a
+                <a
                   key={social.platform}
                   href="#"
-                  whileHover={{ scale: 1.2, rotate: 5 }}
-                  whileTap={{ scale: 0.9 }}
-                  className={`w-16 h-16 bg-gradient-to-br ${social.color} rounded-full flex items-center justify-center text-white text-2xl shadow-lg hover:shadow-xl transition-all duration-300`}
+                  className={`hover-scale w-16 h-16 bg-gradient-to-br ${social.color} rounded-full flex items-center justify-center text-white text-2xl shadow-lg hover:shadow-xl transition-all duration-300`}
                 >
                   {social.emoji}
-                </motion.a>
+                </a>
               ))}
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
       {/* Footer with Typewriter */}
       <footer className="py-16 bg-surface border-t border-border">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-          >
+          <div className="fade-in">
             <div className="text-3xl md:text-4xl font-bold text-text-primary mb-4 font-mono">
               {typewriterText}
-              <motion.span
-                animate={{ opacity: [1, 0, 1] }}
-                transition={{ duration: 1, repeat: Infinity }}
-                className="text-brand-primary"
-              >
-                |
-              </motion.span>
+              <span className="text-brand-primary animate-pulse">|</span>
             </div>
-            
+
             <div className="text-text-muted mt-8">
               <p>{t('hbm.footer.copyright')}</p>
               <p className="mt-2">{t('hbm.footer.location')}</p>
             </div>
-          </motion.div>
+          </div>
         </div>
       </footer>
     </main>

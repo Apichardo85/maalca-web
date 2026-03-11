@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { DashboardCard, StatCard } from "@/components/dashboard/DashboardCard";
 import { Button } from "@/components/ui/buttons";
@@ -138,11 +137,7 @@ export default function InventoryPage() {
 
   return (
     <div className="space-y-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
-      >
+      <div className="flex items-center justify-between fade-in-up">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Gestión de Inventario
@@ -154,19 +149,14 @@ export default function InventoryPage() {
         <Button variant="primary" size="lg" onClick={() => setIsModalOpen(true)}>
           + Registrar Movimiento
         </Button>
-      </motion.div>
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="grid grid-cols-1 md:grid-cols-4 gap-4"
-      >
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 fade-in-up delay-100">
         <StatCard label="Items Totales" value="127" icon="📦" color="blue" />
         <StatCard label="Stock Óptimo" value="89" icon="✅" color="green" />
         <StatCard label="Stock Bajo" value="24" icon="⚠️" color="yellow" />
         <StatCard label="Stock Crítico" value="14" icon="🚨" color="red" change={{ value: 2, type: "increase" }} />
-      </motion.div>
+      </div>
 
       {/* Gráfico de Distribución de Stock */}
       <motion.div
