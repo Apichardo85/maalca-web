@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { MetricsModule } from "@/components/dashboard/modules/MetricsModule";
 import { QuickActionsModule } from "@/components/dashboard/modules/QuickActionsModule";
@@ -24,59 +23,38 @@ export default function AffiliateDashboardPage() {
   return (
     <div className="space-y-8">
       {/* Header del dashboard */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+      <div className="fade-in-up">
         <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
           Dashboard - {brandName}
         </h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
           {config?.branding.description}
         </p>
-      </motion.div>
+      </div>
 
       {/* Quick Stats para Barberías */}
       {isBarbershop && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
+        <div className="fade-in-up delay-100">
           <BarbershopQuickStats />
-        </motion.div>
+        </div>
       )}
 
       {/* Módulo de métricas (si está habilitado y NO es barbería) */}
       {hasModule('metrics') && !isBarbershop && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
+        <div className="fade-in-up delay-100">
           <MetricsModule />
-        </motion.div>
+        </div>
       )}
 
       {/* Acciones rápidas (solo si NO es barbería, porque ya tiene su propio componente) */}
       {!isBarbershop && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
+        <div className="fade-in-up delay-200">
           <QuickActionsModule />
-        </motion.div>
+        </div>
       )}
 
       {/* Resumen de actividad reciente */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-        className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6"
-      >
+      <div className="fade-in-up delay-300 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
           Actividad Reciente
         </h2>
@@ -94,7 +72,7 @@ export default function AffiliateDashboardPage() {
             <p>Módulos disponibles: {Object.values(config?.modules || {}).filter(Boolean).length}</p>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

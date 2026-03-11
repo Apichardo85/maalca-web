@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { getAffiliatesWithDashboard } from "@/config/affiliates-config";
 
@@ -10,26 +9,21 @@ export default function DashboardSelector() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-4">
       <div className="max-w-6xl w-full">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
+        <div className="fade-in-up text-center mb-12">
           <h1 className="text-5xl font-bold text-white mb-4">
             Dashboard MaalCa
           </h1>
           <p className="text-xl text-gray-400">
             Selecciona tu negocio para continuar
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {affiliates.map((affiliate, index) => (
-            <motion.div
+            <div
               key={affiliate.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.1 }}
+              className="scale-in"
+              style={{ animationDelay: `${index * 100}ms` }}
             >
               <Link href={`/dashboard/${affiliate.id}`}>
                 <div className="bg-white dark:bg-gray-900 rounded-2xl border-2 border-gray-200 dark:border-gray-800 p-8 hover:border-red-600 dark:hover:border-red-600 transition-all hover:shadow-2xl group cursor-pointer">
@@ -102,16 +96,11 @@ export default function DashboardSelector() {
                   </div>
                 </div>
               </Link>
-            </motion.div>
+            </div>
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="mt-12 text-center"
-        >
+        <div className="fade-in delay-500 mt-12 text-center">
           <p className="text-gray-500 dark:text-gray-400 mb-4">
             ¿Necesitas ayuda?
           </p>
@@ -130,7 +119,7 @@ export default function DashboardSelector() {
               Contacto
             </a>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
