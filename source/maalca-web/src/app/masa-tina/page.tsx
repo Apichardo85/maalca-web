@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import { useCart } from "@/hooks/useCart";
 import { useWhatsAppContact } from "@/hooks/useWhatsAppContact";
@@ -247,7 +248,11 @@ export default function MasaTinaPage() {
 
         <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-12 items-center relative z-10">
           {/* Left Content */}
-          <div className="fade-in-left">
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 1 }}
+          >
             <h1 className="font-serif text-6xl md:text-8xl font-bold text-amber-900 mb-6">
               {t("cocinatina.hero.title")}
             </h1>
@@ -275,10 +280,15 @@ export default function MasaTinaPage() {
                 📱 Pedir por WhatsApp
               </Button>
             </div>
-          </div>
+          </motion.div>
 
           {/* Right Visual */}
-          <div className="fade-in-right delay-200 relative">
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 1, delay: 0.2 }}
+            className="relative"
+          >
             <div className="aspect-square bg-gradient-to-br from-amber-200 to-amber-300 rounded-3xl overflow-hidden border-4 border-amber-600/20 shadow-2xl">
               <div className="w-full h-full flex items-center justify-center relative">
                 <div className="absolute inset-4 bg-gradient-to-br from-amber-100 to-orange-100 rounded-2xl flex items-center justify-center">
@@ -294,13 +304,21 @@ export default function MasaTinaPage() {
             </div>
 
             {/* Floating Elements */}
-            <div className="animate-bounce absolute -top-6 -right-6 bg-orange-500 text-white p-4 rounded-2xl shadow-lg">
+            <motion.div
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 3, repeat: Infinity }}
+              className="absolute -top-6 -right-6 bg-orange-500 text-white p-4 rounded-2xl shadow-lg"
+            >
               <span className="text-2xl">🌶️</span>
-            </div>
-            <div className="animate-bounce delay-300 absolute -bottom-6 -left-6 bg-green-600 text-white p-4 rounded-2xl shadow-lg">
+            </motion.div>
+            <motion.div
+              animate={{ y: [0, -15, 0] }}
+              transition={{ duration: 4, repeat: Infinity, delay: 1 }}
+              className="absolute -bottom-6 -left-6 bg-green-600 text-white p-4 rounded-2xl shadow-lg"
+            >
               <span className="text-2xl">🥒</span>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
@@ -355,7 +373,12 @@ export default function MasaTinaPage() {
       {/* Menu Section */}
       <section id="menu" className="py-24 bg-amber-100/50">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="fade-in-up text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
             <h2 className="font-serif text-4xl md:text-6xl font-bold text-amber-900 mb-6">
               {t("cocinatina.menu.title")}
             </h2>
@@ -379,15 +402,19 @@ export default function MasaTinaPage() {
                 </button>
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Menu Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredItems.map((item, index) => (
-              <div
+              <motion.div
                 key={item.id}
-                className="fade-in-up bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-amber-200"
-                style={{ animationDelay: `${index * 100}ms` }}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                whileHover={{ y: -5 }}
+                className="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-amber-200"
               >
                 {/* Item Image */}
                 <div className="aspect-[4/3] bg-gradient-to-br from-orange-200 to-amber-200 flex items-center justify-center relative">
@@ -481,7 +508,7 @@ export default function MasaTinaPage() {
                     </Button>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -490,23 +517,31 @@ export default function MasaTinaPage() {
       {/* Subscriptions Section */}
       <section id="suscripciones" className="py-24 bg-amber-200/30">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="fade-in-up text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
             <h2 className="font-serif text-4xl md:text-6xl font-bold text-amber-900 mb-6">
               {t("cocinatina.subscriptions.title")}
             </h2>
             <p className="text-xl text-amber-700 max-w-3xl mx-auto">
               {t("cocinatina.subscriptions.subtitle")}
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {subscriptionPlans.map((plan, index) => (
-              <div
+              <motion.div
                 key={plan.id}
-                className={`fade-in-up relative bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border-2 ${
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                className={`relative bg-white rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border-2 ${
                   plan.popular ? 'border-amber-500 scale-105' : 'border-amber-200'
                 }`}
-                style={{ animationDelay: `${index * 200}ms` }}
               >
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-amber-500 text-white px-6 py-2 rounded-full text-sm font-bold">
@@ -550,7 +585,7 @@ export default function MasaTinaPage() {
                 >
                   {t("cocinatina.subscriptions.choosePlan")} 📱
                 </Button>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -559,18 +594,28 @@ export default function MasaTinaPage() {
       {/* Experiences Section */}
       <section id="experiencias" className="py-24 bg-amber-100/50">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="fade-in-up text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
             <h2 className="font-serif text-4xl md:text-6xl font-bold text-amber-900 mb-6">
               {t("cocinatina.experiences.title")}
             </h2>
             <p className="text-xl text-amber-700 max-w-3xl mx-auto">
               {t("cocinatina.experiences.subtitle")}
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Club de Lectura Chocolate */}
-            <div className="fade-in-left bg-white rounded-3xl p-8 shadow-lg border border-amber-200">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="bg-white rounded-3xl p-8 shadow-lg border border-amber-200"
+            >
               <div className="text-6xl mb-4">📚☕</div>
               <h3 className="font-serif text-3xl font-bold text-amber-900 mb-4">
                 {t("cocinatina.experiences.bookClub.title")}
@@ -591,10 +636,15 @@ export default function MasaTinaPage() {
               >
                 {t("cocinatina.experiences.bookClub.reserve")}
               </Button>
-            </div>
+            </motion.div>
 
             {/* Talleres de Cocina */}
-            <div className="fade-in-right bg-white rounded-3xl p-8 shadow-lg border border-amber-200">
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="bg-white rounded-3xl p-8 shadow-lg border border-amber-200"
+            >
               <div className="text-6xl mb-4">👨‍🍳🥘</div>
               <h3 className="font-serif text-3xl font-bold text-amber-900 mb-4">
                 {t("cocinatina.experiences.workshop.title")}
@@ -615,7 +665,7 @@ export default function MasaTinaPage() {
               >
                 {t("cocinatina.experiences.workshop.register")}
               </Button>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -623,21 +673,29 @@ export default function MasaTinaPage() {
       {/* Testimonials Section */}
       <section className="py-24 bg-amber-200/30">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="fade-in-up text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
             <h2 className="font-serif text-4xl md:text-6xl font-bold text-amber-900 mb-6">
               {t("cocinatina.testimonials.title")}
             </h2>
             <p className="text-xl text-amber-700 max-w-3xl mx-auto">
               {t("cocinatina.testimonials.subtitle")}
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <div
+              <motion.div
                 key={testimonial.id}
-                className="fade-in-up bg-white rounded-3xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-amber-200"
-                style={{ animationDelay: `${index * 200}ms` }}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                className="bg-white rounded-3xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-amber-200"
               >
                 <div className="flex items-center mb-4">
                   <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center text-2xl text-white mr-4">
@@ -658,7 +716,7 @@ export default function MasaTinaPage() {
                 <blockquote className="text-amber-800 leading-relaxed italic">
                   "{testimonial.text}"
                 </blockquote>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -668,7 +726,11 @@ export default function MasaTinaPage() {
       <section id="nosotros" className="py-24 bg-amber-100/50">
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div className="fade-in-left">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+            >
               <h2 className="font-serif text-4xl md:text-6xl font-bold text-amber-900 mb-6">
                 {t("cocinatina.about.title")}
               </h2>
@@ -683,9 +745,14 @@ export default function MasaTinaPage() {
                   {t("cocinatina.about.quote")}
                 </p>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="fade-in-right relative">
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="relative"
+            >
               <div className="aspect-square bg-gradient-to-br from-amber-300 to-orange-300 rounded-3xl overflow-hidden border-4 border-amber-600/20 shadow-2xl">
                 <div className="w-full h-full flex items-center justify-center">
                   <div className="text-center">
@@ -694,7 +761,7 @@ export default function MasaTinaPage() {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -702,7 +769,11 @@ export default function MasaTinaPage() {
       {/* Contact Section */}
       <section className="py-24 bg-amber-200/30">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <div className="fade-in-up">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
             <h2 className="font-serif text-4xl md:text-6xl font-bold text-amber-900 mb-6">
               {t("cocinatina.contact.title")}
             </h2>
@@ -712,7 +783,10 @@ export default function MasaTinaPage() {
 
             <div className="grid md:grid-cols-2 gap-8 mb-12">
               {/* WhatsApp */}
-              <div className="hover-scale bg-white rounded-2xl p-8 shadow-lg border border-amber-200">
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="bg-white rounded-2xl p-8 shadow-lg border border-amber-200"
+              >
                 <div className="text-6xl mb-4">📱</div>
                 <h3 className="text-2xl font-bold text-amber-900 mb-4">{t("cocinatina.contact.whatsapp.title")}</h3>
                 <p className="text-amber-700 mb-6">
@@ -726,10 +800,13 @@ export default function MasaTinaPage() {
                 >
                   {t("cocinatina.contact.whatsapp.button")}
                 </Button>
-              </div>
+              </motion.div>
 
               {/* Email */}
-              <div className="hover-scale bg-white rounded-2xl p-8 shadow-lg border border-amber-200">
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="bg-white rounded-2xl p-8 shadow-lg border border-amber-200"
+              >
                 <div className="text-6xl mb-4">📧</div>
                 <h3 className="text-2xl font-bold text-amber-900 mb-4">{t("cocinatina.contact.email.title")}</h3>
                 <p className="text-amber-700 mb-6">
@@ -743,7 +820,7 @@ export default function MasaTinaPage() {
                 >
                   {t("cocinatina.contact.email.button")}
                 </Button>
-              </div>
+              </motion.div>
             </div>
 
             {/* Newsletter */}
@@ -768,7 +845,7 @@ export default function MasaTinaPage() {
                 </Button>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 

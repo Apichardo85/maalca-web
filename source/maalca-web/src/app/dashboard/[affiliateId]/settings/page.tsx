@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 import { Button } from "@/components/ui/buttons";
@@ -13,14 +14,17 @@ export default function SettingsPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="fade-in-up">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
           Configuración
         </h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2">
           Administra la configuración de {brandName}
         </p>
-      </div>
+      </motion.div>
 
       {/* Información del negocio */}
       <DashboardCard title="Información del Negocio" icon="🏢">

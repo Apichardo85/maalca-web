@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { DashboardCard, StatCard } from "@/components/dashboard/DashboardCard";
 import { Button } from "@/components/ui/buttons";
@@ -129,23 +130,23 @@ export default function TeamPage() {
 
   return (
     <div className="space-y-8">
-      <div className="fade-in-up flex items-center justify-between">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gestión de Equipo</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">Administra empleados, roles y permisos de {brandName}</p>
         </div>
         <Button variant="primary" size="lg" onClick={() => setIsModalOpen(true)}>+ Nuevo Miembro</Button>
-      </div>
+      </motion.div>
 
-      <div className="fade-in-up delay-100 grid grid-cols-1 md:grid-cols-4 gap-4">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatCard label="Total Empleados" value="24" icon="👥" color="blue" />
         <StatCard label="Activos" value="18" icon="✅" color="green" />
         <StatCard label="Departamentos" value="6" icon="🏢" color="purple" />
         <StatCard label="Nuevos Este Mes" value="2" icon="🆕" color="orange" />
-      </div>
+      </motion.div>
 
       {/* Gráfico por Departamento */}
-      <div className="fade-in-up delay-200">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
         <DashboardCard title="Empleados por Departamento" icon="📊">
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={chartData}>
@@ -160,9 +161,9 @@ export default function TeamPage() {
             </BarChart>
           </ResponsiveContainer>
         </DashboardCard>
-      </div>
+      </motion.div>
 
-      <div className="fade-in-up delay-300">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
         <DashboardCard>
           <div className="flex flex-col gap-4">
             <div className="flex flex-col md:flex-row gap-4">
@@ -208,9 +209,9 @@ export default function TeamPage() {
             )}
           </div>
         </DashboardCard>
-      </div>
+      </motion.div>
 
-      <div className="fade-in-up delay-400">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
         <DashboardCard title="Miembros del Equipo" icon="👨‍💼">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -261,7 +262,7 @@ export default function TeamPage() {
             </table>
           </div>
         </DashboardCard>
-      </div>
+      </motion.div>
 
       {filteredMembers.length > itemsPerPage && (
         <Pagination
