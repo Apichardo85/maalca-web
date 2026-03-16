@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import { usePropertiesI18n, usePropertySearchI18n } from "@/hooks/usePropertiesI18n";
 import ConsultationBooking from "@/components/ui/ConsultationBooking";
@@ -11,6 +12,7 @@ import PropertyGallery from "@/components/ui/PropertyGallery";
 import LazyPropertyMap from "@/components/ui/LazyPropertyMap";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import PropertySkeleton from "@/components/ui/PropertySkeleton";
 import PropertyDetailModal from "@/components/ui/PropertyDetailModal";
 
@@ -18,6 +20,7 @@ import PropertyDetailModal from "@/components/ui/PropertyDetailModal";
 
 export default function MaalCaPropertiesPage() {
   const { t, language } = useTranslation();
+  const prefersReducedMotion = useReducedMotion();
   const [selectedProperty, setSelectedProperty] = useState<any | null>(null);
   const [showPropertyModal, setShowPropertyModal] = useState(false);
   const [filters, setFilters] = useState<PropertyFilter>({
@@ -169,15 +172,15 @@ export default function MaalCaPropertiesPage() {
       searchProperties(filters);
     }
   }, [filters, properties]);
-
+  
   const filteredProperties = (searchResult?.properties?.length > 0) ? searchResult.properties : properties;
   const featuredProperties = properties.filter(property => property.featured);
-
+  
   // Types dinámicos desde Umbraco o fallback (ya traducidos)
-  const propertyTypes = (searchResult.filters?.availableTypes?.length > 0)
-    ? searchResult.filters.availableTypes
+  const propertyTypes = (searchResult.filters?.availableTypes?.length > 0) 
+    ? searchResult.filters.availableTypes 
     : getPropertyTypes();
-
+    
   const priceRanges = (searchResult.filters?.priceRanges?.length > 0)
     ? searchResult.filters.priceRanges
     : getPriceRanges();
@@ -193,7 +196,15 @@ export default function MaalCaPropertiesPage() {
             <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-teal-500 to-blue-800">
               {/* Animated waves */}
               <div className="absolute bottom-0 left-0 w-full h-32 opacity-20">
-                <div
+                <motion.div
+                  animate={prefersReducedMotion ? {} : {
+                    backgroundPosition: ["0% 0%", "100% 0%"],
+                  }}
+                  transition={prefersReducedMotion ? {} : {
+                    duration: 20,
+                    repeat: Infinity,
+                    ease: "linear"
+                  }}
                   className="w-full h-full"
                   style={{
                     backgroundImage: "url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjMyIiB2aWV3Qm94PSIwIDAgMjAwIDMyIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNMCAyMEMyNSAxMCA3NSAzMCAxMDAgMjBDMTI1IDEwIDE3NSAzMCAyMDAgMjBWMzJIMFYyMFoiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=')",
@@ -209,28 +220,39 @@ export default function MaalCaPropertiesPage() {
 
         {/* Hero Content */}
         <div className="relative z-10 text-center text-white max-w-5xl mx-auto px-4">
-          <div className="fade-in-up">
+          <motion.div
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.2 }}
+          >
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-light mb-6 leading-tight">
               {t('properties.hero.title').split(" ").map((word, index) => (
-                <span
+                <motion.span
                   key={index}
-                  className="inline-block mr-4 fade-in-up"
-                  style={{ animationDelay: `${index * 200}ms` }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.2, duration: 0.8 }}
+                  className="inline-block mr-4"
                 >
                   {word}
-                </span>
+                </motion.span>
               ))}
             </h1>
 
-            <p
-              className="text-xl md:text-2xl font-light mb-12 text-blue-100 max-w-3xl mx-auto fade-in delay-800"
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1, duration: 1 }}
+              className="text-xl md:text-2xl font-light mb-12 text-blue-100 max-w-3xl mx-auto"
             >
               {t('properties.hero.subtitle')}
-            </p>
+            </motion.p>
 
-            <div
-              className="flex flex-col sm:flex-row gap-6 justify-center fade-in-up"
-              style={{ animationDelay: '500ms' }}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.5, duration: 0.8 }}
+              className="flex flex-col sm:flex-row gap-6 justify-center"
             >
               <Button
                 variant="primary"
@@ -248,19 +270,21 @@ export default function MaalCaPropertiesPage() {
               >
                 {t('properties.hero.contact')}
               </Button>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
 
         {/* Scroll Indicator */}
-        <div
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white animate-bounce"
+        <motion.div
+          animate={prefersReducedMotion ? {} : { y: [0, 10, 0] }}
+          transition={prefersReducedMotion ? {} : { duration: 2, repeat: Infinity }}
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white"
         >
           <div className="flex flex-col items-center">
             <span className="text-sm mb-2">{t('properties.hero.discover')}</span>
             <div className="w-0.5 h-12 bg-white/50 rounded-full"></div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Sticky Navigation */}
@@ -313,51 +337,62 @@ export default function MaalCaPropertiesPage() {
           </div>
 
           {/* Mobile Menu */}
-          {mobileMenuOpen && (
-            <div className="md:hidden overflow-hidden">
-              <div className="py-4 space-y-3">
-                <a
-                  href="#properties"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  {t('properties.nav.properties')}
-                </a>
-                <a
-                  href="#investment"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  {t('properties.nav.investment')}
-                </a>
-                <a
-                  href="#about"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  {t('properties.nav.about')}
-                </a>
-                <a
-                  href="#contact"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  {t('properties.nav.contact')}
-                </a>
-                <div className="px-4 pt-2">
-                  <LanguageToggle />
+          <AnimatePresence>
+            {mobileMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="md:hidden overflow-hidden"
+              >
+                <div className="py-4 space-y-3">
+                  <a
+                    href="#properties"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    {t('properties.nav.properties')}
+                  </a>
+                  <a
+                    href="#investment"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    {t('properties.nav.investment')}
+                  </a>
+                  <a
+                    href="#about"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    {t('properties.nav.about')}
+                  </a>
+                  <a
+                    href="#contact"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    {t('properties.nav.contact')}
+                  </a>
+                  <div className="px-4 pt-2">
+                    <LanguageToggle />
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </nav>
 
       {/* Featured Properties */}
       <section id="properties" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4">
-          <div
-            className="text-center mb-16 fade-in-up"
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-6xl font-light text-slate-900 mb-6">
               {t('properties.featured.title')}
@@ -365,23 +400,27 @@ export default function MaalCaPropertiesPage() {
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
               {t('properties.featured.subtitle')}
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid lg:grid-cols-3 gap-8">
             {loading ? (
               <PropertySkeleton count={3} />
             ) : featuredProperties.length > 0 ? (
               featuredProperties.map((property, index) => (
-              <div
+              <motion.div
                 key={property.id}
-                className="group cursor-pointer hover-scale fade-in-up"
-                style={{ animationDelay: `${index * 200}ms` }}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: index * 0.2 }}
+                whileHover={{ y: -8 }}
+                className="group cursor-pointer"
               >
                 <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-slate-200">
                   {/* Property Image */}
                   <div className="aspect-[4/3] relative overflow-hidden">
-                    <PropertyGallery
-                      images={property.images}
+                    <PropertyGallery 
+                      images={property.images} 
                       title={property.name}
                       className="w-full h-full"
                     />
@@ -481,7 +520,7 @@ export default function MaalCaPropertiesPage() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))
             ) : (
               <div className="col-span-3 text-center py-12">
@@ -495,8 +534,11 @@ export default function MaalCaPropertiesPage() {
       {/* Interactive Properties with Map */}
       <section className="py-24 bg-slate-100">
         <div className="max-w-7xl mx-auto px-4">
-          <div
-            className="text-center mb-12 fade-in-up"
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
           >
             <h2 className="text-4xl md:text-6xl font-light text-slate-900 mb-6">
               {t('properties.all.title')}
@@ -504,11 +546,14 @@ export default function MaalCaPropertiesPage() {
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
               Explore our exclusive properties with interactive map and detailed listings
             </p>
-          </div>
-
+          </motion.div>
+          
           {/* Enhanced Filters */}
-          <div
-            className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200 mb-8 fade-in-up"
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="bg-white rounded-2xl p-6 shadow-lg border border-slate-200 mb-8"
           >
             {/* Results Counter */}
             <div className="mb-4 text-sm text-slate-600">
@@ -553,7 +598,7 @@ export default function MaalCaPropertiesPage() {
                 </button>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Interactive List with Map */}
           <LazyPropertyMap
@@ -567,8 +612,11 @@ export default function MaalCaPropertiesPage() {
       {/* Investment Benefits */}
       <section id="investment" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4">
-          <div
-            className="text-center mb-16 fade-in-up"
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-6xl font-light text-slate-900 mb-6">
               {t('properties.investment.title')}
@@ -576,14 +624,18 @@ export default function MaalCaPropertiesPage() {
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
               Discover the compelling reasons why Caribbean real estate represents one of the most attractive investment opportunities today
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {investmentBenefits.map((benefit, index) => (
-              <div
+              <motion.div
                 key={benefit.title}
-                className="text-center p-8 bg-slate-50 rounded-2xl hover:bg-blue-50 transition-all duration-300 hover-scale fade-in-up"
-                style={{ animationDelay: `${index * 100}ms` }}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                whileHover={{ scale: 1.02 }}
+                className="text-center p-8 bg-slate-50 rounded-2xl hover:bg-blue-50 transition-all duration-300"
               >
                 <div className="flex justify-center mb-6">{benefit.icon}</div>
                 <h3 className="text-xl font-semibold text-slate-900 mb-4">
@@ -592,7 +644,7 @@ export default function MaalCaPropertiesPage() {
                 <p className="text-slate-600 leading-relaxed">
                   {benefit.description}
                 </p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -601,8 +653,11 @@ export default function MaalCaPropertiesPage() {
       {/* Testimonials Section */}
       <section className="py-24 bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4">
-          <div
-            className="text-center mb-16 fade-in-up"
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-6xl font-light text-slate-900 mb-6">
               {t('properties.testimonials.title')}
@@ -610,14 +665,17 @@ export default function MaalCaPropertiesPage() {
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
               {t('properties.testimonials.subtitle')}
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <div
+              <motion.div
                 key={testimonial.name}
-                className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 fade-in-up"
-                style={{ animationDelay: `${index * 150}ms` }}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.15 }}
+                className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300"
               >
                 {/* Rating Stars */}
                 <div className="flex gap-1 mb-4">
@@ -659,14 +717,17 @@ export default function MaalCaPropertiesPage() {
                     </p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
 
           {/* Trust Indicators */}
-          <div
-            className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-center fade-in-up"
-            style={{ animationDelay: '500ms' }}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.5 }}
+            className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-center"
           >
             <div>
               <div className="text-4xl font-light text-blue-600 mb-2">100+</div>
@@ -684,7 +745,7 @@ export default function MaalCaPropertiesPage() {
               <div className="text-4xl font-light text-orange-600 mb-2">98%</div>
               <div className="text-slate-600">{language === 'es' ? 'Tasa de Satisfacción' : 'Satisfaction Rate'}</div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -692,26 +753,28 @@ export default function MaalCaPropertiesPage() {
       <section id="about" className="py-24 bg-slate-900 text-white">
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div
-              className="fade-in-left"
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
             >
               <h2 className="text-4xl md:text-6xl font-light mb-8">
                 {t('properties.about.title')}
               </h2>
               <div className="space-y-6 text-lg text-slate-300 leading-relaxed">
                 <p>
-                  MaalCa Properties represents the pinnacle of Caribbean real estate excellence.
-                  As part of the innovative MaalCa ecosystem, we bridge the gap between global investors
+                  MaalCa Properties represents the pinnacle of Caribbean real estate excellence. 
+                  As part of the innovative MaalCa ecosystem, we bridge the gap between global investors 
                   and exclusive oceanfront opportunities.
                 </p>
                 <p>
-                  Our curated portfolio features only the most exceptional properties, each offering
-                  unparalleled access to pristine beaches, crystal-clear waters, and the Caribbean lifestyle
+                  Our curated portfolio features only the most exceptional properties, each offering 
+                  unparalleled access to pristine beaches, crystal-clear waters, and the Caribbean lifestyle 
                   that discerning clients worldwide seek.
                 </p>
                 <p>
-                  With deep local knowledge and a global perspective, we provide comprehensive support
-                  from initial consultation through property management, ensuring your investment
+                  With deep local knowledge and a global perspective, we provide comprehensive support 
+                  from initial consultation through property management, ensuring your investment 
                   delivers both financial returns and lifestyle fulfillment.
                 </p>
               </div>
@@ -734,10 +797,13 @@ export default function MaalCaPropertiesPage() {
                   <div className="text-slate-400">Client Satisfaction</div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            <div
-              className="relative fade-in-right"
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="relative"
             >
               <div className="aspect-square bg-gradient-to-br from-blue-600 to-teal-500 rounded-3xl overflow-hidden">
                 <div className="w-full h-full flex items-center justify-center opacity-70">
@@ -748,22 +814,25 @@ export default function MaalCaPropertiesPage() {
               </div>
 
               {/* Floating elements */}
-              <div
-                className="absolute -top-4 -right-4 bg-teal-500 text-white p-4 rounded-2xl shadow-lg animate-bounce"
+              <motion.div
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 3, repeat: Infinity }}
+                className="absolute -top-4 -right-4 bg-teal-500 text-white p-4 rounded-2xl shadow-lg"
               >
                 <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M3 12.95L5.5 11l5.5 4.5L21.5 3v18H2v-8.05zm1.47-7.45c2.13-1.07 4.45-1.97 6.74-2.5 2.29-.53 4.53-.7 6.73-.46 2.2.23 4.27.83 6.33 1.76v3.48c-2.06-.92-4.13-1.53-6.33-1.76-2.2-.24-4.44-.07-6.73.46-2.29.53-4.61 1.43-6.74 2.5V5.5z" />
                 </svg>
-              </div>
-              <div
-                className="absolute -bottom-4 -left-4 bg-blue-600 text-white p-4 rounded-2xl shadow-lg animate-bounce"
-                style={{ animationDelay: '1s' }}
+              </motion.div>
+              <motion.div
+                animate={{ y: [0, -15, 0] }}
+                transition={{ duration: 4, repeat: Infinity, delay: 1 }}
+                className="absolute -bottom-4 -left-4 bg-blue-600 text-white p-4 rounded-2xl shadow-lg"
               >
                 <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                 </svg>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -777,15 +846,20 @@ export default function MaalCaPropertiesPage() {
         </div>
 
         <div className="max-w-5xl mx-auto px-4 relative z-10">
-          <div
-            className="bg-white/10 backdrop-blur-lg rounded-3xl p-12 border border-white/20 shadow-2xl fade-in-up"
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="bg-white/10 backdrop-blur-lg rounded-3xl p-12 border border-white/20 shadow-2xl"
           >
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               {/* Left Column: Text & Features */}
               <div className="text-white">
-                <div
-                  className="fade-in-left"
-                  style={{ animationDelay: '200ms' }}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2 }}
                 >
                   <div className="inline-block bg-yellow-400 text-slate-900 px-4 py-2 rounded-full text-sm font-bold mb-6">
                     {language === 'es' ? '📚 DESCARGA GRATUITA' : '📚 FREE DOWNLOAD'}
@@ -807,16 +881,19 @@ export default function MaalCaPropertiesPage() {
                       t('properties.leadMagnet.feature3'),
                       t('properties.leadMagnet.feature4')
                     ].map((feature, index) => (
-                      <li
+                      <motion.li
                         key={index}
-                        className="flex items-start gap-3 fade-in-left"
-                        style={{ animationDelay: `${300 + index * 100}ms` }}
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.3 + index * 0.1 }}
+                        className="flex items-start gap-3"
                       >
                         <svg className="w-6 h-6 text-teal-300 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                         </svg>
                         <span className="text-lg">{feature}</span>
-                      </li>
+                      </motion.li>
                     ))}
                   </ul>
 
@@ -827,13 +904,16 @@ export default function MaalCaPropertiesPage() {
                   >
                     {t('properties.leadMagnet.cta')} →
                   </Button>
-                </div>
+                </motion.div>
               </div>
 
               {/* Right Column: Visual */}
-              <div
-                className="relative scale-in"
-                style={{ animationDelay: '400ms' }}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4 }}
+                className="relative"
               >
                 <div className="bg-white rounded-2xl p-8 shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500">
                   <div className="aspect-[3/4] bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex flex-col items-center justify-center p-6">
@@ -856,137 +936,148 @@ export default function MaalCaPropertiesPage() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Lead Magnet Modal */}
-      {showLeadMagnetModal && (
-        <>
-          {/* Overlay */}
-          <div
-            onClick={() => setShowLeadMagnetModal(false)}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 fade-in"
-          />
+      <AnimatePresence>
+        {showLeadMagnetModal && (
+          <>
+            {/* Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowLeadMagnetModal(false)}
+              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
+            />
 
-          {/* Modal Content */}
-          <div
-            className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-md z-50 scale-in"
-          >
-            <div className="bg-white rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
-              {/* Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-teal-600 text-white p-6 relative">
-                <button
-                  onClick={() => setShowLeadMagnetModal(false)}
-                  className="absolute top-4 right-4 w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-                <h3 className="text-2xl font-bold mb-2">
-                  {t('properties.leadMagnet.modal.title')}
-                </h3>
-                <p className="text-blue-100">
-                  {t('properties.leadMagnet.modal.subtitle')}
-                </p>
-              </div>
-
-              {/* Form */}
-              <form onSubmit={handleLeadMagnetSubmit} className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    {t('properties.leadMagnet.modal.name')} *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={leadFormData.name}
-                    onChange={(e) => setLeadFormData({ ...leadFormData, name: e.target.value })}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={language === 'es' ? 'Juan Pérez' : 'John Doe'}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    {t('properties.leadMagnet.modal.email')} *
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={leadFormData.email}
-                    onChange={(e) => setLeadFormData({ ...leadFormData, email: e.target.value })}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="juan@example.com"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    {t('properties.leadMagnet.modal.phone')}
-                  </label>
-                  <input
-                    type="tel"
-                    value={leadFormData.phone}
-                    onChange={(e) => setLeadFormData({ ...leadFormData, phone: e.target.value })}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="+1 (555) 000-0000"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    {t('properties.leadMagnet.modal.country')}
-                  </label>
-                  <input
-                    type="text"
-                    value={leadFormData.country}
-                    onChange={(e) => setLeadFormData({ ...leadFormData, country: e.target.value })}
-                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder={language === 'es' ? 'España' : 'United States'}
-                  />
-                </div>
-
-                <div className="pt-4">
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 text-lg"
+            {/* Modal Content */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="fixed inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-md z-50"
+            >
+              <div className="bg-white rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+                {/* Header */}
+                <div className="bg-gradient-to-r from-blue-600 to-teal-600 text-white p-6 relative">
+                  <button
+                    onClick={() => setShowLeadMagnetModal(false)}
+                    className="absolute top-4 right-4 w-8 h-8 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
                   >
-                    {t('properties.leadMagnet.modal.download')}
-                  </Button>
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                  <h3 className="text-2xl font-bold mb-2">
+                    {t('properties.leadMagnet.modal.title')}
+                  </h3>
+                  <p className="text-blue-100">
+                    {t('properties.leadMagnet.modal.subtitle')}
+                  </p>
                 </div>
 
-                <p className="text-xs text-slate-500 text-center pt-2">
-                  {t('properties.leadMagnet.modal.privacy')}
-                </p>
-              </form>
-            </div>
-          </div>
-        </>
-      )}
+                {/* Form */}
+                <form onSubmit={handleLeadMagnetSubmit} className="p-6 space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      {t('properties.leadMagnet.modal.name')} *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={leadFormData.name}
+                      onChange={(e) => setLeadFormData({ ...leadFormData, name: e.target.value })}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder={language === 'es' ? 'Juan Pérez' : 'John Doe'}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      {t('properties.leadMagnet.modal.email')} *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={leadFormData.email}
+                      onChange={(e) => setLeadFormData({ ...leadFormData, email: e.target.value })}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="juan@example.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      {t('properties.leadMagnet.modal.phone')}
+                    </label>
+                    <input
+                      type="tel"
+                      value={leadFormData.phone}
+                      onChange={(e) => setLeadFormData({ ...leadFormData, phone: e.target.value })}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="+1 (555) 000-0000"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      {t('properties.leadMagnet.modal.country')}
+                    </label>
+                    <input
+                      type="text"
+                      value={leadFormData.country}
+                      onChange={(e) => setLeadFormData({ ...leadFormData, country: e.target.value })}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder={language === 'es' ? 'España' : 'United States'}
+                    />
+                  </div>
+
+                  <div className="pt-4">
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 text-lg"
+                    >
+                      {t('properties.leadMagnet.modal.download')}
+                    </Button>
+                  </div>
+
+                  <p className="text-xs text-slate-500 text-center pt-2">
+                    {t('properties.leadMagnet.modal.privacy')}
+                  </p>
+                </form>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Contact Section */}
       <section id="contact" className="py-24 bg-slate-100">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <div
-            className="fade-in-up"
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
           >
             <h2 className="text-4xl md:text-6xl font-light text-slate-900 mb-6">
               {t('properties.contact.title')}
             </h2>
             <p className="text-xl text-slate-600 max-w-2xl mx-auto mb-12">
-              Our dedicated team of Caribbean real estate specialists is ready to help you
+              Our dedicated team of Caribbean real estate specialists is ready to help you 
               discover your perfect oceanfront sanctuary.
             </p>
 
             <div className="grid md:grid-cols-2 gap-8 mb-12">
               {/* Schedule Call */}
-              <div
-                className="bg-white rounded-2xl p-8 shadow-lg border border-slate-200 hover-scale"
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="bg-white rounded-2xl p-8 shadow-lg border border-slate-200"
               >
                 <div className="flex justify-center mb-6">
                   <svg className="w-16 h-16 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1006,11 +1097,12 @@ export default function MaalCaPropertiesPage() {
                 >
                   Book Consultation
                 </Button>
-              </div>
+              </motion.div>
 
               {/* WhatsApp */}
-              <div
-                className="bg-white rounded-2xl p-8 shadow-lg border border-slate-200 hover-scale"
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                className="bg-white rounded-2xl p-8 shadow-lg border border-slate-200"
               >
                 <div className="flex justify-center mb-6">
                   <svg className="w-16 h-16 text-green-600" fill="currentColor" viewBox="0 0 24 24">
@@ -1029,7 +1121,7 @@ export default function MaalCaPropertiesPage() {
                   defaultMessage="Hi! I'm interested in your Caribbean properties and would like more information."
                   className="w-full"
                 />
-              </div>
+              </motion.div>
             </div>
 
             {/* Newsletter */}
@@ -1038,7 +1130,7 @@ export default function MaalCaPropertiesPage() {
               description="Receive notifications about new listings and exclusive investment opportunities"
               buttonText="Subscribe"
             />
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -1096,7 +1188,7 @@ export default function MaalCaPropertiesPage() {
               </div>
             </div>
           </div>
-
+          
           <div className="text-center pt-8 border-t border-slate-700">
             <p className="text-slate-400">
               {t('properties.footer.copyright')}
@@ -1112,67 +1204,72 @@ export default function MaalCaPropertiesPage() {
       </footer>
 
       {/* Contact Form Modal */}
-      {showContactForm && (
-        <div className="fixed inset-0 z-50 overflow-hidden">
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setShowContactForm(false)}
-          ></div>
-          <div
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white rounded-2xl p-8 shadow-2xl scale-in"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-semibold text-slate-900">Get in Touch</h3>
-              <button
-                onClick={() => setShowContactForm(false)}
-                className="text-slate-400 hover:text-slate-600"
-              >
-                <span className="text-2xl">×</span>
-              </button>
-            </div>
-
-            <form className="space-y-4">
-              <div>
-                <input
-                  type="text"
-                  placeholder="Full Name"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+      <AnimatePresence>
+        {showContactForm && (
+          <div className="fixed inset-0 z-50 overflow-hidden">
+            <div 
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm" 
+              onClick={() => setShowContactForm(false)}
+            ></div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white rounded-2xl p-8 shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-semibold text-slate-900">Get in Touch</h3>
+                <button
+                  onClick={() => setShowContactForm(false)}
+                  className="text-slate-400 hover:text-slate-600"
+                >
+                  <span className="text-2xl">×</span>
+                </button>
               </div>
-              <div>
-                <input
-                  type="email"
-                  placeholder="Email Address"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <select className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option>Investment Range</option>
-                  <option>$400K - $700K</option>
-                  <option>$700K - $1M</option>
-                  <option>$1M - $2M</option>
-                  <option>$2M+</option>
-                </select>
-              </div>
-              <div>
-                <textarea
-                  placeholder="Tell us about your ideal Caribbean property..."
-                  rows={4}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
-                />
-              </div>
-              <Button
-                type="submit"
-                variant="primary"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                Send Message
-              </Button>
-            </form>
+              
+              <form className="space-y-4">
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Full Name"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="email"
+                    placeholder="Email Address"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <select className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option>Investment Range</option>
+                    <option>$400K - $700K</option>
+                    <option>$700K - $1M</option>
+                    <option>$1M - $2M</option>
+                    <option>$2M+</option>
+                  </select>
+                </div>
+                <div>
+                  <textarea
+                    placeholder="Tell us about your ideal Caribbean property..."
+                    rows={4}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Send Message
+                </Button>
+              </form>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
       {/* Property Detail Modal */}
       <PropertyDetailModal
@@ -1187,7 +1284,10 @@ export default function MaalCaPropertiesPage() {
       />
 
       {/* Floating WhatsApp */}
-      <div
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ delay: 2 }}
         className="fixed bottom-6 right-6 z-40"
       >
         <WhatsAppIntegration
@@ -1196,7 +1296,7 @@ export default function MaalCaPropertiesPage() {
           defaultMessage="Hi! I saw your website and I'm interested in Caribbean properties. Can you help me?"
           className="w-16 h-16"
         />
-      </div>
+      </motion.div>
 
       {/* Consultation Booking Modal */}
       <ConsultationBooking

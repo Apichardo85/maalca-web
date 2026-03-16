@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 import { Button } from "@/components/ui/buttons";
@@ -191,7 +192,11 @@ export default function CustomersPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between fade-in-up">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between"
+      >
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Gestión de Clientes
@@ -203,10 +208,15 @@ export default function CustomersPage() {
         <Button variant="primary" size="lg">
           + Nuevo Cliente
         </Button>
-      </div>
+      </motion.div>
 
       {/* Stats rápidas */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 fade-in-up delay-100">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="grid grid-cols-1 md:grid-cols-4 gap-4"
+      >
         <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-4">
           <p className="text-sm text-gray-600 dark:text-gray-400">Total Clientes</p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">1,248</p>
@@ -223,10 +233,14 @@ export default function CustomersPage() {
           <p className="text-sm text-gray-600 dark:text-gray-400">Valor Promedio</p>
           <p className="text-2xl font-bold text-blue-600 mt-1">$324</p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Filtros y búsqueda */}
-      <div className="fade-in-up delay-200">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
         <DashboardCard>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
@@ -252,10 +266,14 @@ export default function CustomersPage() {
             </div>
           </div>
         </DashboardCard>
-      </div>
+      </motion.div>
 
       {/* Tabla de clientes con ResponsiveTable */}
-      <div className="fade-in-up delay-300">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
         <DashboardCard title="Lista de Clientes" icon="👥">
           <ResponsiveTable
             data={filteredCustomers}
@@ -264,7 +282,7 @@ export default function CustomersPage() {
             emptyMessage="No se encontraron clientes"
           />
         </DashboardCard>
-      </div>
+      </motion.div>
     </div>
   );
 }

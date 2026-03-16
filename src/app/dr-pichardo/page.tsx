@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import MedicalConsultationBooking from "@/components/ui/MedicalConsultationBooking";
 import WhatsAppIntegration from "@/components/ui/WhatsAppIntegration";
@@ -230,7 +231,11 @@ export default function DrPichardoPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-green-600/10"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="fade-in-left">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+            >
               <div className="mb-6">
                 <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-blue-100 text-blue-800 mb-4">
                   🩺 {getText('Medicina Solidaria', 'Solidarity Medicine')} · MaalCa Ecosystem
@@ -280,9 +285,14 @@ export default function DrPichardoPage() {
                 </div>
                 <div>📍 {getText(doctorInfo.contact.address.es, doctorInfo.contact.address.en)}</div>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="fade-in-right delay-200 relative">
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="relative"
+            >
               <div className="relative bg-white rounded-3xl shadow-2xl p-8 border border-blue-100">
                 <div className="text-center mb-6">
                   <ProjectImage
@@ -315,7 +325,7 @@ export default function DrPichardoPage() {
                   businessName={doctorInfo.fullName}
                 />
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -323,7 +333,13 @@ export default function DrPichardoPage() {
       {/* Services Section */}
       <section id="servicios" className="py-16 md:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="fade-in-up text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
               {getText('Servicios Médicos', 'Medical Services')}
             </h2>
@@ -333,14 +349,17 @@ export default function DrPichardoPage() {
                 'Professional medical care with voluntary donation model. Everyone receives the same quality of care, regardless of their contribution.'
               )}
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {services.map((service, index) => (
-              <div
+              <motion.div
                 key={service.id}
-                className="fade-in-up bg-gradient-to-br from-blue-50 to-white rounded-2xl p-8 border border-blue-100 hover:shadow-lg transition-all duration-300 group"
-                style={{ animationDelay: `${index * 100}ms` }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                className="bg-gradient-to-br from-blue-50 to-white rounded-2xl p-8 border border-blue-100 hover:shadow-lg transition-all duration-300 group"
               >
                 <div className="text-center mb-6">
                   <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
@@ -389,7 +408,7 @@ export default function DrPichardoPage() {
                 >
                   {getText('Agendar', 'Book')} {getText(service.name.es, service.name.en)}
                 </Button>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -398,7 +417,13 @@ export default function DrPichardoPage() {
       {/* Operatives Section */}
       <section id="operativos" className="py-16 md:py-24 bg-gradient-to-br from-green-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="fade-in-up text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
               {getText('Operativos Médicos Comunitarios', 'Community Medical Outreach')}
             </h2>
@@ -408,14 +433,17 @@ export default function DrPichardoPage() {
                 'We bring free medical care to communities that need it most. Join our solidarity outreach programs.'
               )}
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid md:grid-cols-2 gap-8">
             {operatives.map((operative, index) => (
-              <div
+              <motion.div
                 key={operative.id}
-                className="fade-in-up bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
-                style={{ animationDelay: `${index * 100}ms` }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <ProjectImage
                   src={operative.image}
@@ -477,7 +505,7 @@ export default function DrPichardoPage() {
                     {getText('Pre-registrarme', 'Pre-register')}
                   </Button>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -486,7 +514,13 @@ export default function DrPichardoPage() {
       {/* Testimonials Section */}
       <section id="testimonios" className="py-16 md:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="fade-in-up text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-16"
+          >
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
               {getText('Lo que dicen nuestros pacientes', 'What our patients say')}
             </h2>
@@ -496,14 +530,17 @@ export default function DrPichardoPage() {
                 'Real testimonials from people who have experienced our solidarity medicine.'
               )}
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <div
+              <motion.div
                 key={testimonial.name}
-                className="fade-in-up bg-gradient-to-br from-blue-50 to-white rounded-2xl p-6 border border-blue-100"
-                style={{ animationDelay: `${index * 100}ms` }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                className="bg-gradient-to-br from-blue-50 to-white rounded-2xl p-6 border border-blue-100"
               >
                 <div className="flex items-center mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
@@ -521,7 +558,7 @@ export default function DrPichardoPage() {
                     {getText(testimonial.condition.es, testimonial.condition.en)}
                   </p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>

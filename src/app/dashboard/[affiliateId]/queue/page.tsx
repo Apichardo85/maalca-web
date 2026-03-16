@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { DashboardCard, StatCard } from "@/components/dashboard/DashboardCard";
 import { Button } from "@/components/ui/buttons";
@@ -167,7 +168,7 @@ export default function QueuePage() {
 
   return (
     <div className="space-y-8">
-      <div className="fade-in-up flex items-center justify-between">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Fila Virtual</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">Gestiona la cola de espera de {brandName}</p>
@@ -175,18 +176,18 @@ export default function QueuePage() {
         <Button variant="primary" size="lg" onClick={() => setIsModalOpen(true)}>
           + Agregar a Fila
         </Button>
-      </div>
+      </motion.div>
 
       {/* KPIs */}
-      <div className="fade-in-up delay-100 grid grid-cols-1 md:grid-cols-4 gap-4">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatCard label="En Espera" value={waitingCount.toString()} icon="⏳" color="yellow" />
         <StatCard label="Tiempo Medio Espera" value={`${avgWaitTime} min`} icon="⏱️" color="blue" />
         <StatCard label="No-shows Hoy" value={noShowsToday.toString()} icon="❌" color="red" />
         <StatCard label="Atendidos Hoy" value={servedToday.toString()} icon="✅" change={{ value: 15, type: "increase" }} color="green" />
-      </div>
+      </motion.div>
 
       {/* Filtros */}
-      <div className="fade-in-up delay-200">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
         <DashboardCard>
           <div className="flex flex-col gap-4">
             <div className="flex flex-col md:flex-row gap-4">
@@ -229,10 +230,10 @@ export default function QueuePage() {
             )}
           </div>
         </DashboardCard>
-      </div>
+      </motion.div>
 
       {/* Tabla de Fila */}
-      <div className="fade-in-up delay-300">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
         <DashboardCard title="Cola de Espera" icon="👥">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -325,7 +326,7 @@ export default function QueuePage() {
             </table>
           </div>
         </DashboardCard>
-      </div>
+      </motion.div>
 
       {filteredQueue.length > itemsPerPage && (
         <Pagination

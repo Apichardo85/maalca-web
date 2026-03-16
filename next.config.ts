@@ -19,6 +19,7 @@ const nextConfig: NextConfig = {
     // Keep unoptimized for SVGs only (handled in ProjectImage component)
   },
   // Performance optimizations
+  swcMinify: true, // Use SWC for minification (faster than Terser)
   compress: true, // Enable Gzip compression
   poweredByHeader: false, // Remove X-Powered-By header for security
   compiler: {

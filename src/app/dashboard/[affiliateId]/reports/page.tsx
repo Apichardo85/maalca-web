@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { DashboardCard, StatCard } from "@/components/dashboard/DashboardCard";
 import { ResponsiveTable, TableColumn } from "@/components/ui/ResponsiveTable";
@@ -112,7 +113,10 @@ export default function ReportsPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="fade-in-up">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Reportes y Análisis
@@ -121,10 +125,14 @@ export default function ReportsPage() {
             KPIs, métricas de ventas y rendimiento de {brandName}
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* KPIs principales */}
-      <div className="fade-in-up delay-100">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             label="Ventas Hoy"
@@ -155,10 +163,14 @@ export default function ReportsPage() {
             color="orange"
           />
         </div>
-      </div>
+      </motion.div>
 
       {/* Métricas adicionales */}
-      <div className="fade-in-up delay-200">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6">
             <div className="flex items-center justify-between mb-4">
@@ -187,10 +199,14 @@ export default function ReportsPage() {
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Promedio de reseñas</p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Placeholder para gráfico de ventas */}
-      <div className="fade-in-up delay-300">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
         <DashboardCard title="Ventas por Día" icon="📈">
           <div className="h-64 flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/10 dark:to-purple-900/10 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
             <div className="text-center">
@@ -207,10 +223,14 @@ export default function ReportsPage() {
             </div>
           </div>
         </DashboardCard>
-      </div>
+      </motion.div>
 
       {/* Placeholder para gráfico de categorías */}
-      <div className="fade-in-up delay-400">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
         <DashboardCard title="Ventas por Categoría" icon="🏷️">
           <div className="h-64 flex items-center justify-center bg-gradient-to-br from-green-50 to-teal-50 dark:from-green-900/10 dark:to-teal-900/10 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700">
             <div className="text-center">
@@ -227,10 +247,14 @@ export default function ReportsPage() {
             </div>
           </div>
         </DashboardCard>
-      </div>
+      </motion.div>
 
       {/* Tabla de Top 5 Productos/Servicios */}
-      <div className="fade-in-up delay-500">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+      >
         <DashboardCard title="Top 5 Productos/Servicios" icon="🏆">
           <ResponsiveTable
             data={topProducts}
@@ -239,10 +263,14 @@ export default function ReportsPage() {
             emptyMessage="No hay datos disponibles"
           />
         </DashboardCard>
-      </div>
+      </motion.div>
 
       {/* Comparativa de períodos */}
-      <div className="fade-in-up delay-500">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+      >
         <DashboardCard title="Comparativa de Períodos" icon="📊">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
@@ -262,7 +290,7 @@ export default function ReportsPage() {
             </div>
           </div>
         </DashboardCard>
-      </div>
+      </motion.div>
     </div>
   );
 }

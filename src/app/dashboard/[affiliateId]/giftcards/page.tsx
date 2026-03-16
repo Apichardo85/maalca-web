@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { DashboardCard, StatCard } from "@/components/dashboard/DashboardCard";
 import { Button } from "@/components/ui/buttons";
@@ -307,7 +308,7 @@ export default function GiftCardsPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between fade-in-up">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gift Cards</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">Gestiona tarjetas de regalo de {brandName}</p>
@@ -320,18 +321,18 @@ export default function GiftCardsPage() {
             + Nueva Gift Card
           </Button>
         </div>
-      </div>
+      </motion.div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 fade-in-up delay-100">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatCard label="Tarjetas Activas" value={totalActive.toString()} icon="💳" color="green" />
         <StatCard label="Valor Total" value={`${currency}${totalValue.toLocaleString()}`} icon="💰" color="blue" />
         <StatCard label="Canjeadas Este Mes" value={redeemedThisMonth.toString()} icon="🎁" change={{ value: 20, type: "increase" }} color="purple" />
         <StatCard label="Por Expirar" value={expiringThisMonth.toString()} icon="⚠️" color="orange" />
-      </div>
+      </motion.div>
 
       {/* Gráfico */}
-      <div className="fade-in-up delay-200">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
         <DashboardCard title="Actividad de Gift Cards" icon="📊">
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={chartData}>
@@ -347,10 +348,10 @@ export default function GiftCardsPage() {
             </BarChart>
           </ResponsiveContainer>
         </DashboardCard>
-      </div>
+      </motion.div>
 
       {/* Filtros */}
-      <div className="fade-in-up delay-300">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
         <DashboardCard>
           <div className="flex flex-col gap-4">
             <div className="flex flex-col md:flex-row gap-4">
@@ -382,16 +383,18 @@ export default function GiftCardsPage() {
             )}
           </div>
         </DashboardCard>
-      </div>
+      </motion.div>
 
       {/* Grid de Gift Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 fade-in-up delay-400">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {paginatedCards.length > 0 ? (
           paginatedCards.map((card, index) => (
-            <div
+            <motion.div
               key={card.id}
-              className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-6 text-white shadow-xl hover:shadow-2xl transition-shadow cursor-pointer scale-in hover-scale"
-              style={{ animationDelay: `${index * 100}ms` }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.4 + index * 0.05 }}
+              className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-6 text-white shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
               onClick={() => handleViewCard(card)}
             >
               <div className="flex items-start justify-between mb-4">
@@ -431,14 +434,14 @@ export default function GiftCardsPage() {
                   </p>
                 </div>
               )}
-            </div>
+            </motion.div>
           ))
         ) : (
           <div className="col-span-full text-center py-12">
             <p className="text-gray-500 dark:text-gray-400">No se encontraron gift cards</p>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {filteredCards.length > itemsPerPage && (
         <Pagination

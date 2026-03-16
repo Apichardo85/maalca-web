@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { DashboardCard, StatCard } from "@/components/dashboard/DashboardCard";
 
@@ -12,14 +13,17 @@ export default function MetricsPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="fade-in-up">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
           Métricas y Analytics
         </h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2">
           Análisis detallado del rendimiento de {brandName}
         </p>
-      </div>
+      </motion.div>
 
       {/* KPIs principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

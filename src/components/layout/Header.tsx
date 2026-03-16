@@ -12,19 +12,6 @@ import { useTranslation } from "@/hooks/useSimpleLanguage";
 import { NavigationItem, HeaderProps } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-/**
- * OPTIMIZATION NOTE:
- * This Header must remain a Client Component because it needs:
- * - Scroll state for transparent/solid effect
- * - Mobile menu toggle state
- * - Body scroll lock
- * 
- * HOWEVER, we've optimized it by:
- * - Removing entrance animations from most elements
- * - Using CSS for hover effects
- * - Keeping Framer Motion ONLY for mobile menu hamburger animation
- * - Adding passive scroll listener for performance
- */
 export default function Header({
   className = "",
   variant = "default",
@@ -44,16 +31,13 @@ export default function Header({
     { label: t('nav.contact'), href: "/contacto" }
   ];
 
-  // Handle scroll effect - OPTIMIZED with passive listener
+  // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
 
-    // Use passive listener for better scroll performance
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll(); // Check initial position
-    
+    window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -67,11 +51,11 @@ export default function Header({
     if (isMobileMenuOpen) {
       document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = "";
+      document.body.style.overflow = "unset";
     }
 
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = "unset";
     };
   }, [isMobileMenuOpen]);
 
@@ -97,74 +81,125 @@ export default function Header({
 
   return (
     <>
-      <header
+      <motion.header
         className={cn(getHeaderStyle(), className)}
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-20">
             {/* Logo */}
             {showLogo && (
-              <div className="flex-shrink-0">
+              <motion.div
+                className="flex-shrink-0"
+                whileHover={{ scale: 1.05 }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
                 <Link href="/" className="flex items-center">
                   <Logo variant="full" size="md" />
                 </Link>
-              </div>
+              </motion.div>
             )}
 
-            {/* Desktop Navigation - CSS animations instead of Framer Motion */}
+            {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center space-x-8">
-              {navigationItems.map((item) => (
-                <Link
+              {navigationItems.map((item, index) => (
+                <motion.div
                   key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "relative px-3 py-2 text-sm font-medium transition-colors duration-300 group",
-                    isActive(item.href)
-                      ? "text-brand-primary"
-                      : "text-text-primary hover:text-brand-primary"
-                  )}
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.1 * index + 0.3 }}
                 >
-                  {item.label}
-                  
-                  {/* Active indicator - CSS only */}
-                  {isActive(item.href) && (
-                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-full" />
-                  )}
-                  
-                  {/* Hover indicator - CSS only */}
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-primary/60 to-brand-secondary/60 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-300" />
-                </Link>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "relative px-3 py-2 text-sm font-medium transition-colors duration-300 group",
+                      isActive(item.href)
+                        ? "text-brand-primary"
+                        : "text-text-primary hover:text-brand-primary"
+                    )}
+                  >
+                    {item.label}
+                    
+                    {/* Active indicator */}
+                    {isActive(item.href) && (
+                      <motion.div
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-full"
+                        layoutId="activeTab"
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      />
+                    )}
+                    
+                    {/* Hover indicator */}
+                    <motion.div
+                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-primary/60 to-brand-secondary/60 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-300"
+                      initial={false}
+                    />
+                  </Link>
+                </motion.div>
               ))}
             </nav>
 
-            {/* Actions - Removed entrance animations */}
+            {/* Actions */}
             <div className="hidden lg:flex items-center space-x-4">
-              <SimpleLanguageToggle />
-              <ThemeToggle />
+              {/* Language Toggle */}
+              <motion.div
+                className="flex-shrink-0"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+              >
+                <SimpleLanguageToggle />
+              </motion.div>
+
+              {/* Theme Toggle */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                <ThemeToggle />
+              </motion.div>
 
               {showActions && (
                 <>
-                  <Link href="/login">
-                    <Button variant="outline" size="sm">
-                      Iniciar sesión
-                    </Button>
-                  </Link>
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6, delay: 0.5 }}
+                  >
+                    <Link href="/login">
+                      <Button variant="outline" size="sm">
+                        Iniciar sesión
+                      </Button>
+                    </Link>
+                  </motion.div>
 
-                  <Button variant="primary" size="sm">
-                    {t('nav.join')}
-                  </Button>
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6, delay: 0.6 }}
+                  >
+                    <Button variant="primary" size="sm">
+                      {t('nav.join')}
+                    </Button>
+                  </motion.div>
                 </>
               )}
             </div>
 
-            {/* Mobile menu button - Framer Motion kept for complex hamburger animation */}
+            {/* Mobile menu button */}
             <motion.button
               className="lg:hidden p-2 rounded-lg hover:bg-surface-elevated transition-colors text-text-primary"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               whileTap={{ scale: 0.95 }}
-              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
             >
-              {/* Complex hamburger animation kept as Framer Motion */}
               <motion.div
                 animate={isMobileMenuOpen ? "open" : "closed"}
                 className="w-6 h-6 flex flex-col justify-center items-center"
@@ -197,9 +232,9 @@ export default function Header({
             </motion.button>
           </div>
         </div>
-      </header>
+      </motion.header>
 
-      {/* Mobile Menu - Simplified animations */}
+      {/* Mobile Menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -207,7 +242,7 @@ export default function Header({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.3 }}
           >
             {/* Backdrop */}
             <motion.div
@@ -218,36 +253,47 @@ export default function Header({
               onClick={() => setIsMobileMenuOpen(false)}
             />
 
-            {/* Menu Panel - CSS animation for slide */}
+            {/* Menu Panel */}
             <motion.div
               className="absolute top-16 left-0 right-0 bg-surface shadow-2xl border-t border-border"
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -20, opacity: 0 }}
-              transition={{ type: "tween", duration: 0.2 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
               <div className="max-w-7xl mx-auto px-4 py-6">
-                {/* Navigation Items - CSS animations */}
+                {/* Navigation Items */}
                 <nav className="space-y-4">
-                  {navigationItems.map((item) => (
-                    <Link
+                  {navigationItems.map((item, index) => (
+                    <motion.div
                       key={item.href}
-                      href={item.href}
-                      className={cn(
-                        "block px-4 py-3 rounded-xl text-lg font-medium transition-all duration-300",
-                        isActive(item.href)
-                          ? "bg-gradient-to-r from-brand-primary/10 to-brand-primary/20 text-brand-primary border-l-4 border-brand-primary"
-                          : "text-text-primary hover:bg-surface-elevated hover:text-brand-primary"
-                      )}
-                      onClick={() => setIsMobileMenuOpen(false)}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
                     >
-                      {item.label}
-                    </Link>
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          "block px-4 py-3 rounded-xl text-lg font-medium transition-all duration-300",
+                          isActive(item.href)
+                            ? "bg-gradient-to-r from-brand-primary/10 to-brand-primary/20 text-brand-primary border-l-4 border-brand-primary"
+                            : "text-text-primary hover:bg-surface-elevated hover:text-brand-primary"
+                        )}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        {item.label}
+                      </Link>
+                    </motion.div>
                   ))}
                 </nav>
 
                 {/* Mobile Actions */}
-                <div className="mt-8 pt-6 border-t border-border space-y-4">
+                <motion.div
+                  className="mt-8 pt-6 border-t border-border space-y-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.4 }}
+                >
                   {/* Language & Theme Toggles for Mobile */}
                   <div className="flex justify-center gap-4">
                     <SimpleLanguageToggle />
@@ -289,7 +335,7 @@ export default function Header({
                       </Button>
                     </>
                   )}
-                </div>
+                </motion.div>
               </div>
             </motion.div>
           </motion.div>
