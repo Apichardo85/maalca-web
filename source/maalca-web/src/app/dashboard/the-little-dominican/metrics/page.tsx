@@ -59,7 +59,7 @@ export default function Analytics() {
       </div>
 
       {/* ── KPI ROW ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1rem' }}>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-[1rem]">
         {[
           { icon: 'payments',     label: 'Ingresos Brutos',   value: '$42,850',  badge: '+12.4%', badgeBg: '#dcfce7', badgeColor: '#15803d' },
           { icon: 'shopping_bag', label: 'Ticket Promedio',   value: '$34.20',   badge: '-2.1%',  badgeBg: '#fecdd3', badgeColor: '#be123c' },
@@ -84,7 +84,7 @@ export default function Analytics() {
       </div>
 
       {/* ── MAIN CHARTS GRID ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-[1.5rem]">
 
         {/* Financial Trajectory */}
         <div style={{ background: '#fff', borderRadius: '14px', padding: '2rem', boxShadow: '0 1px 6px rgba(0,0,0,.05)', overflow: 'hidden' }}>
@@ -174,7 +174,7 @@ export default function Analytics() {
       </div>
 
       {/* ── BOTTOM ROW ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '7fr 5fr', gap: '1.5rem' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-[7fr_5fr] gap-[1.5rem]">
 
         {/* Inventory Insights */}
         <div style={{ background: '#f3f4f5', borderRadius: '14px', padding: '2rem' }}>
@@ -231,7 +231,7 @@ export default function Analytics() {
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px' }}>
+          <div className="grid grid-cols-3 gap-[8px]">
             {[
               { value: '98%', label: 'Positivo',  bg: 'rgba(142,250,158,.2)', color: '#002109' },
               { value: '2%',  label: 'Neutral',   bg: '#f3f4f5',              color: '#6b7280' },

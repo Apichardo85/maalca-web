@@ -195,8 +195,8 @@ export default function TLDDashboardLayout({ children }: { children: ReactNode }
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-              {/* Search */}
-              <div style={{ position: 'relative' }}>
+              {/* Search — hidden on mobile */}
+              <div className="hidden sm:block" style={{ position: 'relative' }}>
                 <span className="ms ms-sm" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}>search</span>
                 <input
                   type="text"
@@ -211,13 +211,13 @@ export default function TLDDashboardLayout({ children }: { children: ReactNode }
                 />
               </div>
 
-              {/* Icon buttons */}
-              <div style={{ display: 'flex', gap: '4px' }}>
+              {/* Icon buttons — settings/help hidden on mobile */}
+              <div className="flex gap-[4px]">
                 {['notifications', 'settings', 'help'].map(icon => (
-                  <button key={icon} style={{
+                  <button key={icon} className={icon !== 'notifications' ? 'hidden sm:flex' : 'flex'} style={{
                     background: 'none', border: 'none', cursor: 'pointer',
                     padding: '6px', borderRadius: '8px', color: '#9ca3af',
-                    display: 'flex', transition: 'color .15s',
+                    alignItems: 'center', transition: 'color .15s',
                   }}>
                     <span className="ms">{icon}</span>
                   </button>

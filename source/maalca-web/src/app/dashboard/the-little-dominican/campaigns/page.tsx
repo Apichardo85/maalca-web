@@ -106,11 +106,10 @@ export default function Campaigns() {
         </div>
 
         {/* ── BENTO GRID ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gridTemplateRows: 'auto auto', gap: '1.5rem' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-12 lg:[grid-template-rows:auto_auto] gap-[1.5rem]">
 
           {/* Feature campaign card — spans 8 cols × 2 rows */}
-          <div style={{
-            gridColumn: 'span 8', gridRow: 'span 2',
+          <div className="lg:col-span-8 lg:row-span-2" style={{
             background: '#f3f4f5', borderRadius: '14px', overflow: 'hidden',
             display: 'flex', position: 'relative', minHeight: '340px',
           }}>
@@ -165,8 +164,7 @@ export default function Campaigns() {
           </div>
 
           {/* Top channel — navy card */}
-          <div style={{
-            gridColumn: 'span 4',
+          <div className="lg:col-span-4" style={{
             background: '#00193c', color: '#fff', borderRadius: '14px', padding: '2rem',
             display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
             position: 'relative', overflow: 'hidden',
@@ -186,8 +184,7 @@ export default function Campaigns() {
           </div>
 
           {/* Next launch — red card */}
-          <div style={{
-            gridColumn: 'span 4',
+          <div className="lg:col-span-4" style={{
             background: '#e12531', borderRadius: '14px', padding: '2rem',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             cursor: 'pointer',
@@ -236,7 +233,7 @@ export default function Campaigns() {
           {filtered.map(camp => (
             <div key={camp.id} style={{
               background: '#fff', borderRadius: '12px', padding: '1.25rem 1.5rem',
-              display: 'flex', alignItems: 'center', gap: '1.5rem',
+              display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap',
               border: '1px solid transparent', boxShadow: '0 1px 4px rgba(0,0,0,.04)',
               cursor: 'pointer',
             }}
