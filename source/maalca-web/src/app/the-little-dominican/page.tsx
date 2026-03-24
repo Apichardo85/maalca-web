@@ -5,6 +5,7 @@
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import TLDNav from './TLDNav'
 import ReservationForm from './ReservationForm'
 import { MOCK_DISHES, MOCK_EVENTS, HOURS, GALLERY_IMAGES, FEATURED_DISHES } from './_data'
 
@@ -283,6 +284,31 @@ const TLD_CSS = `
   box-shadow:0 16px 40px rgba(25,28,29,.1);
 }
 
+/* ── Hamburger + Mobile Menu ── */
+.tld-hamburger {
+  display:none;background:none;border:none;cursor:pointer;
+  font-size:1.4rem;color:var(--p);padding:6px 8px;line-height:1;
+}
+.tld-mobile-nav {
+  position:fixed;top:60px;left:0;right:0;z-index:99;
+  background:rgba(248,249,250,.97);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(0,25,60,.08);
+  display:flex;flex-direction:column;padding:1rem 1.5rem 1.25rem;gap:.25rem;
+  transform:translateY(-110%);opacity:0;
+  transition:transform .22s ease,opacity .18s ease;
+  pointer-events:none;
+}
+.tld-mobile-nav-open {
+  transform:translateY(0);opacity:1;pointer-events:auto;
+}
+.tld-mobile-link {
+  padding:11px 14px;border-radius:.625rem;
+  font-size:.9rem;font-weight:500;color:var(--tx);
+  text-decoration:none;transition:background .15s;
+}
+.tld-mobile-link:hover { background:var(--l2); }
+
 /* ── Responsive ── */
 @media(max-width:1024px) {
   .tld-footer-grid { grid-template-columns:1fr 1fr;gap:2rem; }
@@ -295,6 +321,8 @@ const TLD_CSS = `
 }
 @media(max-width:640px) {
   .tld-nav-links { display:none; }
+  .tld-hamburger { display:block; }
+  .story-badge { display:none; }
   .gallery-teaser { grid-template-columns:1fr;grid-template-rows:auto; }
   .gallery-item.span-2 { grid-column:span 1; }
   .tld-footer-grid { grid-template-columns:1fr;gap:1.5rem; }
@@ -317,23 +345,7 @@ export default function TheLittleDominicanPage() {
       <div className="tld" style={{ paddingTop: '60px' }}>
 
         {/* ── FIXED NAV ─────────────────────────────────────────── */}
-        <nav className="tld-nav">
-          <a href="#" className="tld-nav-brand">The Little Dominican</a>
-          <div className="tld-nav-links">
-            {[
-              { href: '#',                                    label: 'Inicio'   },
-              { href: '/the-little-dominican/menu',          label: 'Menú'     },
-              { href: '/the-little-dominican/gallery',       label: 'Galería'  },
-              { href: '#reservar',                           label: 'Reservar' },
-              { href: 'tel:6072150990',                      label: '📞 Llamar' },
-            ].map(item => (
-              <a key={item.label} href={item.href} className="tld-nav-link">{item.label}</a>
-            ))}
-            <a href="/the-little-dominican/menu" className="btn-s" style={{ padding:'8px 18px', fontSize:'.76rem', marginLeft:'6px' }}>
-              Ordenar →
-            </a>
-          </div>
-        </nav>
+        <TLDNav />
 
         {/* ── HERO ─────────────────────────────────────────────────── */}
         <section className="tld-hero">
