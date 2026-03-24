@@ -5,144 +5,7 @@ import { Button } from "@/components/ui/buttons";
 import { ProjectImage } from "@/components/ui/ProjectImage";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
-
-const projects = [
-  {
-    id: "editorial-maalca",
-    title: "Editorial MaalCa",
-    description: "Publicaciones que exploran cultura, creatividad y sociedad con distribución global en Amazon KDP",
-    category: "Editorial + KDP",
-    outcome: "Libros publicados y distribuidos globalmente",
-    color: "red",
-    image: "/images/projects/editorial-maalca.svg",
-    href: "/editorial",
-    details: [
-      "Filosofía contemporánea y pensamiento crítico",
-      "Análisis cultural desde perspectiva caribeña",
-      "Distribución global a través de Amazon KDP",
-      "Formato digital y físico disponible"
-    ],
-    status: "Activo",
-    launched: "2022",
-    active: true
-  },
-  {
-    id: "ciriwhispers",
-    title: "CiriWhispers",
-    description: "Autor y escritor creativo especializado en narrativas íntimas y conversaciones profundas",
-    category: "Autor + Escritor Creativo",
-    outcome: "Contenido auténtico y conexiones humanas genuinas",
-    color: "gray",
-    image: "/images/projects/ciriwhispers.png",
-    href: "/ciriwhispers",
-    details: [
-      "Narrativas íntimas y personales auténticas",
-      "Escritura creativa con perspectiva única",
-      "Conversaciones profundas y reflexivas",
-      "Conexión genuina con audiencias"
-    ],
-    status: "Activo",
-    launched: "2024",
-    active: true
-  },
-  {
-    id: "cirisonic",
-    title: "CiriSonic",
-    description: "Fábrica de contenido IA con automatización inteligente y estrategia de engagement optimizada",
-    category: "Fábrica IA",
-    outcome: "Contenido automatizado y engagement aumentado",
-    color: "red",
-    image: "/images/projects/cirisonic.svg",
-    href: "/cirisonic",
-    details: [
-      "Sistema IA para generación de contenido personalizado",
-      "Automatización de calendario de publicaciones",
-      "Engagement analytics en tiempo real",
-      "A/B testing automatizado para optimización"
-    ],
-    status: "Beta",
-    launched: "2024",
-    active: true
-  },
-  {
-    id: "hbm-podcast",
-    title: "Hablando Mierda (HBM)",
-    description: "Podcast y plataforma de conversaciones sin filtros",
-    category: "Podcast + Media",
-    outcome: "Comunidad activa y monetización por episodio",
-    color: "red",
-    image: "/images/projects/hbm-podcast.svg",
-    href: "/hbm",
-    details: [
-      "Conversaciones auténticas sin censura",
-      "Filosofía callejera con sentido humano",
-      "Comunidad comprometida de oyentes",
-      "Monetización directa por episodio"
-    ],
-    status: "Activo",
-    launched: "2023",
-    active: false
-  },
-  {
-    id: "masa-tina",
-    title: "Cocina Tina",
-    description: "Experiencias gastronómicas con catálogo, POS y procesamiento Stripe integrado",
-    category: "Catálogo + POS + Stripe",
-    outcome: "Ventas procesadas y experiencias entregadas",
-    color: "gray",
-    image: "/images/projects/masa-tina.svg",
-    href: "/masa-tina",
-    details: [
-      "Gastronomía dominicana auténtica",
-      "Sistema POS integrado con Stripe",
-      "Catálogo digital de productos",
-      "Experiencias culinarias personalizadas"
-    ],
-    status: "Activo",
-    launched: "2022",
-    active: true
-  },
-  {
-    id: "verde-prive",
-    title: "Verde Privé",
-    description: "Lifestyle cannabis premium con máxima privacidad y calidad artesanal para adultos conscientes",
-    category: "Cannabis + Lifestyle",
-    outcome: "Experiencias premium y bienestar entregados discretamente",
-    color: "red",
-    image: "/images/projects/verde-prive.svg",
-    href: "/verde-prive",
-    details: [
-      "Cannabis artesanal de máxima calidad",
-      "Privacidad y discreción garantizada",
-      "Lifestyle premium para adultos conscientes",
-      "Productos wellness y bienestar integral"
-    ],
-    status: "Desarrollo",
-    launched: "2025",
-    active: false
-  },
-  {
-    id: "maalca-properties",
-    title: "MaalCa Properties",
-    description: "Propiedades turísticas frente al océano en República Dominicana, conectando clientes globales con el paraíso caribeño",
-    category: "Turismo + Real Estate",
-    outcome: "Propiedades vendidas a inversores globales",
-    color: "gray",
-    image: "/images/projects/maalca-properties.svg",
-    href: "/maalca-properties",
-    details: [
-      "Propiedades frente al océano en RD",
-      "Inversión turística para clientes globales",
-      "Gestión completa de propiedades",
-      "ROI optimizado para inversores internacionales"
-    ],
-    status: "Activo",
-    launched: "2023",
-    active: true
-  }
-];
-
-const categories = ["Todos", "Editorial + KDP", "Autor + Escritor Creativo", "Fábrica IA", "Podcast + Media", "Catálogo + POS + Stripe", "Cannabis + Lifestyle", "Turismo + Real Estate"];
+import { getActiveEcosystemProjects } from "@/data/ecosystem-projects";
 
 export default function EcosistemaPage() {
   const router = useRouter();
@@ -250,8 +113,9 @@ export default function EcosistemaPage() {
     }
   ];
 
-  // Filter only active projects
-  const translatedProjects = allTranslatedProjects.filter(project => project.active !== false);
+  // Filter by active field in ecosystem-projects.ts (single source of truth)
+  const activeIds = new Set(getActiveEcosystemProjects().map(p => p.id));
+  const translatedProjects = allTranslatedProjects.filter(p => activeIds.has(p.id));
 
   const handleProjectClick = (href: string) => {
     router.push(href);
@@ -286,11 +150,11 @@ export default function EcosistemaPage() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <div className="text-sm text-gray-400">
-                <span className="font-medium">6</span> {t('ecosystem.stats.projects')}
+                <span className="font-medium">{translatedProjects.length}</span> {t('ecosystem.stats.projects')}
               </div>
               <div className="hidden sm:block text-gray-400">•</div>
               <div className="text-sm text-gray-400">
-                <span className="font-medium">4</span> {t('ecosystem.stats.verticals')}
+                <span className="font-medium">{new Set(translatedProjects.map(p => p.categoryKey)).size}</span> {t('ecosystem.stats.verticals')}
               </div>
               <div className="hidden sm:block text-gray-400">•</div>
               <div className="text-sm text-gray-400">

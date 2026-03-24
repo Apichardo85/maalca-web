@@ -22,7 +22,7 @@ export const ecosystemProjects: EcosystemProject[] = [
     description: "Proyecto de contenido íntimo y conversaciones profundas",
     category: "Contenido",
     color: "gray",
-    active: true
+    active: false
   },
   {
     id: "cirisonic",
@@ -30,7 +30,7 @@ export const ecosystemProjects: EcosystemProject[] = [
     description: "Fábrica de contenido IA con automatización inteligente",
     category: "Fábrica IA",
     color: "red",
-    active: true
+    active: false
   },
   {
     id: "hbm-podcast",
@@ -46,7 +46,7 @@ export const ecosystemProjects: EcosystemProject[] = [
     description: "Experiencias gastronómicas y catering premium",
     category: "Gastronomía",
     color: "gray",
-    active: true
+    active: false
   },
   {
     id: "verde-prive",
@@ -62,7 +62,7 @@ export const ecosystemProjects: EcosystemProject[] = [
     description: "Desarrollos inmobiliarios con visión creativa",
     category: "Real Estate",
     color: "gray",
-    active: true
+    active: false
   }
 ];
 
