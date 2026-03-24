@@ -9,6 +9,7 @@ export interface MenuItem {
   image: string
   category: string
   flags: { vegetarian?: boolean; spicy?: boolean; glutenFree?: boolean }
+  popular?: boolean
   available: boolean
 }
 
@@ -42,14 +43,14 @@ export const MOCK_DISHES: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1562967914-608f82629710?w=600&h=400&fit=crop&q=80',
     description: 'Pollo desmenuzado con papas o plátano y queso fundido.' },
   // Fritura
-  { id: 'pica-pollo',  name: 'Pica Pollo',          price: 14,   category: 'Fritura',    flags: {},                   available: true,
+  { id: 'pica-pollo',  name: 'Pica Pollo',          price: 14,   category: 'Fritura',    flags: {},                   popular: true, available: true,
     image: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=600&h=400&fit=crop&q=80',
     description: 'Pollo frito al estilo dominicano, crujiente y bien sazonado.' },
-  { id: 'chicharron',  name: 'Chicharrón',          price: 14,   category: 'Fritura',    flags: {},                   available: true,
-    image: 'https://images.unsplash.com/photo-1544025162-d76538b2a681?w=600&h=400&fit=crop&q=80',
+  { id: 'chicharron',  name: 'Chicharrón',          price: 14,   category: 'Fritura',    flags: {},                   popular: true, available: true,
+    image: 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=600&h=400&fit=crop&q=80',
     description: 'Nuestra especialidad: carne de cerdo frita a la perfección.' },
   { id: 'queso-frito', name: 'Queso Frito',         price: 10,   category: 'Fritura',    flags: { vegetarian: true }, available: true,
-    image: 'https://images.unsplash.com/photo-1588080936-c9a04d8cd89e?w=600&h=400&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1531749668029-2db88e4276c7?w=600&h=400&fit=crop&q=80',
     description: 'Queso tropical frito, dorado por fuera y suave por dentro.' },
   // Carnes
   { id: 'pernil',      name: 'Pernil / Pork',       price: 14,   category: 'Carnes',     flags: { glutenFree: true }, available: true,
@@ -58,14 +59,14 @@ export const MOCK_DISHES: MenuItem[] = [
   { id: 'pollo-guisado', name: 'Pollo Guisado',     price: 8,    category: 'Carnes',     flags: { glutenFree: true }, available: true,
     image: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=600&h=400&fit=crop&q=80',
     description: 'Pollo estofado en salsa criolla con especias tradicionales.' },
-  { id: 'churrasco',   name: 'Churrasco',           price: 18,   category: 'Carnes',     flags: { glutenFree: true }, available: true,
+  { id: 'churrasco',   name: 'Churrasco',           price: 18,   category: 'Carnes',     flags: { glutenFree: true }, popular: true, available: true,
     image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop&q=80',
     description: 'Skirt steak tierno a la parrilla. Servido con chimichurri de la casa.' },
   { id: 'rabo',        name: 'Rabo Guisado',        price: 17,   category: 'Carnes',     flags: { glutenFree: true }, available: true,
-    image: 'https://images.unsplash.com/photo-1504544750208-dc0358e1c346?w=600&h=400&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1534939561126-855b8675edd7?w=600&h=400&fit=crop&q=80',
     description: 'Cola de res estofada por cuatro horas. Con arroz blanco y tostones.' },
   // Mariscos
-  { id: 'camarones',   name: 'Camarones al Ajillo', price: 18,   category: 'Mariscos',   flags: { glutenFree: true }, available: true,
+  { id: 'camarones',   name: 'Camarones al Ajillo', price: 18,   category: 'Mariscos',   flags: { glutenFree: true }, popular: true, available: true,
     image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=600&h=400&fit=crop&q=80',
     description: 'Camarones frescos en salsa de ajo, mantequilla y vino blanco.' },
   { id: 'pescado',     name: 'Pescado Frito',       price: 18,   category: 'Mariscos',   flags: { glutenFree: true }, available: true,
@@ -75,7 +76,7 @@ export const MOCK_DISHES: MenuItem[] = [
   { id: 'empanadas',   name: 'Empanadas',           price: 3.50, category: 'Appetizers', flags: {},                   available: true,
     image: 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=600&h=400&fit=crop&q=80',
     description: 'Pollo, Res o Queso — con nuestra famosa salsa rosada.' },
-  { id: 'mofongo',     name: 'Mofongo Bowl',        price: 12,   category: 'Sides',      flags: { glutenFree: true }, available: true,
+  { id: 'mofongo',     name: 'Mofongo Bowl',        price: 12,   category: 'Sides',      flags: { glutenFree: true }, popular: true, available: true,
     image: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=600&h=400&fit=crop&q=80',
     description: 'Plátano frito majado con ajo y chicharrón. Comfort food quisqueyano.' },
 ]
@@ -100,7 +101,7 @@ export const HOURS: HourEntry[] = [
 ]
 
 export const GALLERY_IMAGES: GalleryImage[] = [
-  { id: 'g1',  src: 'https://images.unsplash.com/photo-1544025162-d76538b2a681?w=800&h=600&fit=crop&q=80',  alt: 'Chicharrón crujiente',        category: 'Platos', tall: true },
+  { id: 'g1',  src: 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=800&h=600&fit=crop&q=80',  alt: 'Chicharrón crujiente',        category: 'Platos', tall: true },
   { id: 'g2',  src: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800&h=500&fit=crop&q=80',  alt: 'Camarones al ajillo',      category: 'Platos', wide: true },
   { id: 'g3',  src: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=500&fit=crop&q=80',  alt: 'Churrasco a la parrilla',     category: 'Platos' },
   { id: 'g4',  src: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800&h=600&fit=crop&q=80',  alt: 'Pescado frito entero',      category: 'Platos', tall: true },
@@ -111,5 +112,5 @@ export const GALLERY_IMAGES: GalleryImage[] = [
   { id: 'g9',  src: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=500&fit=crop&q=80',  alt: 'Mesa preparada',            category: 'Ambiente' },
   { id: 'g10', src: 'https://images.unsplash.com/photo-1562967914-608f82629710?w=800&h=500&fit=crop&q=80',  alt: 'Yaroa de pollo',              category: 'Especiales' },
   { id: 'g11', src: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800&h=600&fit=crop&q=80', alt: 'Mofongo bowl',               category: 'Especiales', tall: true },
-  { id: 'g12', src: 'https://images.unsplash.com/photo-1504544750208-dc0358e1c346?w=800&h=500&fit=crop&q=80', alt: 'Rabo guisado',               category: 'Especiales', wide: true },
+  { id: 'g12', src: 'https://images.unsplash.com/photo-1534939561126-855b8675edd7?w=800&h=500&fit=crop&q=80', alt: 'Rabo guisado',               category: 'Especiales', wide: true },
 ]
