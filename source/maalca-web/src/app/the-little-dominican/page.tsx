@@ -413,7 +413,7 @@ export default function TheLittleDominicanPage() {
 
             {/* Service badges */}
             <div style={{ display:'flex', flexWrap:'wrap', gap:'7px', marginTop:'1.75rem' }}>
-              {['Dine-in','Pickup','Delivery','Música en vivo','$10–20'].map(s => (
+              {['Dine-in','Pickup','Delivery','Dominó & Cocidos','$10–20'].map(s => (
                 <span key={s} style={{ padding:'5px 14px', background:'rgba(255,255,255,.12)', backdropFilter:'blur(8px)', borderRadius:'9999px', fontSize:'.74rem', fontWeight:500, color:'rgba(255,255,255,.85)', border:'1px solid rgba(255,255,255,.15)' }}>
                   {s}
                 </span>
@@ -589,7 +589,7 @@ export default function TheLittleDominicanPage() {
                 <em style={{ fontStyle:'italic' }}>la isla</em> en Elmira
               </h2>
               <p style={{ fontSize:'.95rem', fontWeight:300, lineHeight:1.7, color:'rgba(255,255,255,.75)', marginBottom:'2.5rem' }}>
-                Música en vivo los fines de semana, un ambiente familiar y auténtico, y
+                Juego de dominó y cocidos los fines de semana, un ambiente familiar y auténtico, y
                 la mejor cocina dominicana de Elmira, NY. Ven a vivir la experiencia.
               </p>
             </div>
@@ -597,7 +597,7 @@ export default function TheLittleDominicanPage() {
             {/* Stats row */}
             <div style={{ display:'flex', flexWrap:'wrap', gap:'1rem', marginTop:'.5rem' }}>
               {[
-                { icon:'🎵', label:'Música en vivo', sub:'Viernes y Sábados' },
+                { icon:'🁣', label:'Dominó & Cocidos', sub:'Viernes y Sábados' },
                 { icon:'🏠', label:'Ambiente familiar', sub:'Bienvenidos todos' },
                 { icon:'📍', label:'Elmira, NY', sub:'315 E Water St' },
                 { icon:'⏰', label:'Martes–Domingo', sub:'Desde 11:00 AM' },
@@ -657,7 +657,7 @@ export default function TheLittleDominicanPage() {
         <section style={{ background:'var(--l1)', padding:'clamp(3rem,6vw,6rem) clamp(1.5rem,5vw,5rem)' }}>
           <div style={{ maxWidth:'1280px', margin:'0 auto' }}>
             <div className="tld-label" style={{ marginBottom:'.5rem' }}>Entretenimiento</div>
-            <h2 className="tld-serif-lg" style={{ marginBottom:'clamp(1.5rem,3vw,2.5rem)' }}>Música en vivo</h2>
+            <h2 className="tld-serif-lg" style={{ marginBottom:'clamp(1.5rem,3vw,2.5rem)' }}>Juego de Dominó y Cocidos</h2>
 
             <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))', gap:'1rem' }}>
               {MOCK_EVENTS.map(event => (
