@@ -41,19 +41,22 @@ export default function Analytics() {
             Visión General<br /><span style={{ fontWeight: 700 }}>Operacional</span>
           </h2>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', flexShrink: 0 }}>
           <button style={{
-            padding: '10px 20px', borderRadius: '9999px', border: '1px solid #e4e5e7',
+            padding: '10px 18px', borderRadius: '9999px', border: '1px solid #e4e5e7',
             background: '#f3f4f5', fontSize: '.76rem', fontWeight: 600, color: '#374151', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: '6px',
           }}>
-            Exportar PDF
+            <span className="ms ms-sm">download</span>
+            <span className="hidden sm:inline">Exportar PDF</span>
           </button>
           <button style={{
             padding: '10px 20px', borderRadius: '9999px', border: 'none',
             background: '#00193c', color: '#fff', fontSize: '.76rem', fontWeight: 600, cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: '6px',
           }}>
-            <span className="ms ms-sm">calendar_today</span> Oct 1 – Oct 31
+            <span className="ms ms-sm">calendar_today</span>
+            <span className="hidden sm:inline">Oct 1 – Oct 31</span>
           </button>
         </div>
       </div>

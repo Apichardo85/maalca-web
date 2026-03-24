@@ -98,7 +98,7 @@ export default function MenuManagement() {
     <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
       {/* ── EDITORIAL HEADER ── */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <p style={{ fontSize: '.62rem', fontWeight: 600, letterSpacing: '.25em', textTransform: 'uppercase', color: '#9ca3af', marginBottom: '6px' }}>
             Gestión de Carta
@@ -108,13 +108,14 @@ export default function MenuManagement() {
             <span style={{ fontWeight: 700 }}>Dominicana</span>
           </h2>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', flexShrink: 0 }}>
           <button style={{
             padding: '10px 18px', borderRadius: '9999px', border: '1px solid #e4e5e7',
             background: '#fff', fontSize: '.78rem', fontWeight: 600, color: '#374151', cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: '6px',
           }}>
-            <span className="ms ms-sm">upload</span> Importar CSV
+            <span className="ms ms-sm">upload</span>
+            <span className="hidden sm:inline">Importar CSV</span>
           </button>
           <button style={{
             padding: '10px 20px', borderRadius: '9999px', border: 'none',
@@ -149,7 +150,7 @@ export default function MenuManagement() {
             style={{
               background: '#f3f4f5', border: 'none', borderRadius: '9999px',
               padding: '8px 16px 8px 34px', fontFamily: 'Manrope,sans-serif',
-              fontSize: '.78rem', color: '#374151', outline: 'none', width: '220px',
+              fontSize: '.78rem', color: '#374151', outline: 'none', width: '100%', maxWidth: '220px',
             }}
           />
         </div>
@@ -303,7 +304,7 @@ export default function MenuManagement() {
           </div>
 
           {/* Quick stats */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          <div className="grid grid-cols-2 gap-[10px]">
             {[
               { label: 'Platos Activos', value: MENU_ITEMS.filter(i => i.available).length, icon: 'check_circle', color: '#15803d' },
               { label: 'Inactivos',      value: MENU_ITEMS.filter(i => !i.available).length, icon: 'cancel',       color: '#be123c' },
