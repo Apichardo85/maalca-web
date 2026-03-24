@@ -319,3 +319,9 @@ html.light-theme .from-green-500 {
 html.light-theme .from-gray-500 {
   background: linear-gradient(to right, #6b7280, #4b5563) !important;
 }
+
+/* ── Shared utility animations (no Framer Motion) ──────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

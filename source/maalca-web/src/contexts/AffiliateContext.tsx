@@ -3,12 +3,10 @@
 import { createContext, useContext, ReactNode } from "react";
 import { AffiliateConfig } from "@/config/affiliates-config";
 
-/**
- * Context type para el afiliado activo
- */
 interface AffiliateContextType {
   config: AffiliateConfig | null;
   affiliateId: string | null;
+  isAdmin: boolean;
   hasModule: (module: keyof AffiliateConfig['modules']) => boolean;
   hasFeature: (feature: keyof AffiliateConfig['features']) => boolean;
   primaryColor: string;
@@ -16,21 +14,15 @@ interface AffiliateContextType {
   brandName: string;
 }
 
-/**
- * Context para el afiliado activo en el dashboard
- */
 const AffiliateContext = createContext<AffiliateContextType | null>(null);
 
 interface AffiliateProviderProps {
   children: ReactNode;
   config: AffiliateConfig | null;
+  isAdmin?: boolean;
 }
 
-/**
- * Provider que envuelve el dashboard de cada afiliado
- * Provee acceso a la configuración del afiliado activo
- */
-export function AffiliateProvider({ children, config }: AffiliateProviderProps) {
+export function AffiliateProvider({ children, config, isAdmin = false }: AffiliateProviderProps) {
   const hasModule = (module: keyof AffiliateConfig['modules']): boolean => {
     return config?.modules[module] ?? false;
   };
@@ -42,6 +34,7 @@ export function AffiliateProvider({ children, config }: AffiliateProviderProps) 
   const value: AffiliateContextType = {
     config,
     affiliateId: config?.id ?? null,
+    isAdmin,
     hasModule,
     hasFeature,
     primaryColor: config?.branding.primaryColor ?? "red-600",
@@ -56,16 +49,6 @@ export function AffiliateProvider({ children, config }: AffiliateProviderProps) 
   );
 }
 
-/**
- * Hook para acceder a la configuración del afiliado activo
- *
- * @example
- * const { config, hasModule, primaryColor } = useAffiliate();
- *
- * if (hasModule('metrics')) {
- *   // Mostrar módulo de métricas
- * }
- */
 export function useAffiliate() {
   const context = useContext(AffiliateContext);
 
@@ -79,10 +62,6 @@ export function useAffiliate() {
   return context;
 }
 
-/**
- * Hook seguro que no lanza error si se usa fuera del provider
- * Útil para componentes compartidos que pueden estar dentro o fuera del dashboard
- */
 export function useAffiliateOptional() {
   return useContext(AffiliateContext);
 }

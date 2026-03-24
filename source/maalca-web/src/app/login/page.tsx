@@ -2,7 +2,6 @@
 
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
 import { authService } from "@/lib/auth/auth-service";
@@ -34,12 +33,7 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-red-50/20 to-slate-100 flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
+      <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
           <div className="text-center mb-8">
             <Link href="/" className="inline-block mb-4">
@@ -51,6 +45,24 @@ function LoginForm() {
             <p className="text-sm text-gray-600">
               Accede a tu dashboard del ecosistema
             </p>
+          </div>
+
+          {/* Demo credentials hint */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6 text-xs text-blue-700">
+            <p className="font-semibold mb-1">Credenciales de demo (contraseña: <code>demo</code>)</p>
+            <div className="space-y-0.5 font-mono">
+              {[
+                ['tld@maalca.com',       'The Little Dominican'],
+                ['pegote@maalca.com',    'Pegote Barbershop'],
+                ['britocolor@maalca.com','BritoColor'],
+                ['admin@maalca.com',     'Admin MaalCa'],
+              ].map(([e, l]) => (
+                <button key={e} type="button" onClick={() => { setEmail(e); setPassword('demo') }}
+                  className="block w-full text-left hover:bg-blue-100 px-1 rounded transition-colors">
+                  {e} <span className="text-blue-500">— {l}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -177,20 +189,15 @@ function LoginForm() {
           </div>
         </div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="mt-4 text-center"
-        >
+        <div className="mt-4 text-center">
           <Link
             href="/"
             className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
           >
             ← Volver al inicio
           </Link>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </div>
   );
 }

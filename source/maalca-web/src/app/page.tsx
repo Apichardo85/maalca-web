@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/buttons";
 import { ProjectImage } from "@/components/ui/ProjectImage";
 import { Counter } from "@/components/ui/Counter";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
-import { projects, affiliates } from "@/data";
+import { projects, getActiveAffiliates } from "@/data";
 import { dominicanMenus } from "@/data/dominican-menus";
 import { getActiveEcosystemProjects } from "@/data/ecosystem-projects";
 
@@ -222,10 +222,11 @@ export default function HomePage() {
             </p>
           </motion.div>
 
-          {/* Projects Grid */}
+          {/* Projects Grid — visibility controlled by active field in ecosystem-projects.ts */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
+                id: "editorial-maalca",
                 titleKey: "project.editorial.title",
                 descriptionKey: "project.editorial.description",
                 categoryKey: "project.editorial.category",
@@ -235,6 +236,7 @@ export default function HomePage() {
                 href: "/editorial"
               },
               {
+                id: "ciriwhispers",
                 titleKey: "project.ciriwhispers.title",
                 descriptionKey: "project.ciriwhispers.description",
                 categoryKey: "project.ciriwhispers.category",
@@ -244,6 +246,7 @@ export default function HomePage() {
                 href: "/ciriwhispers"
               },
               {
+                id: "cirisonic",
                 titleKey: "project.cirisonic.title",
                 descriptionKey: "project.cirisonic.description",
                 categoryKey: "project.cirisonic.category",
@@ -253,6 +256,7 @@ export default function HomePage() {
                 href: "/cirisonic"
               },
               {
+                id: "masa-tina",
                 titleKey: "project.cocinatina.title",
                 descriptionKey: "project.cocinatina.description",
                 categoryKey: "project.cocinatina.category",
@@ -262,6 +266,7 @@ export default function HomePage() {
                 href: "/masa-tina"
               },
               {
+                id: "maalca-properties",
                 titleKey: "project.properties.title",
                 descriptionKey: "project.properties.description",
                 categoryKey: "project.properties.category",
@@ -270,7 +275,9 @@ export default function HomePage() {
                 image: "/images/projects/maalca-properties.svg",
                 href: "/maalca-properties"
               },
-            ].map((project, index) => (
+            ]
+            .filter(p => activeEcosystemProjects.some(ep => ep.id === p.id))
+            .map((project, index) => (
               <motion.div
                 key={project.titleKey}
                 className="group relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl p-8 border-2 border-slate-200 dark:border-gray-700 hover:border-red-500 dark:hover:border-red-400 transition-all duration-500 shadow-2xl hover:shadow-red-500/30 hover:-translate-y-4 cursor-pointer"
@@ -345,72 +352,29 @@ export default function HomePage() {
             </p>
           </motion.div>
 
-          {/* Affiliates Carousel */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8">
-            {[
-              {
-                nameKey: "affiliate.drpichardo.name",
-                descriptionKey: "affiliate.drpichardo.description",
-                href: "/dr-pichardo",
-                initials: "DP"
-              },
-              {
-                nameKey: "affiliate.pegote.name",
-                descriptionKey: "affiliate.pegote.description",
-                href: "/pegote-barber",
-                initials: "PB"
-              },
-              {
-                nameKey: "affiliate.studioalpha.name",
-                descriptionKey: "affiliate.studioalpha.description",
-                href: "#",
-                initials: "SA"
-              },
-              {
-                nameKey: "affiliate.creativehub.name",
-                descriptionKey: "affiliate.creativehub.description",
-                href: "#",
-                initials: "CH"
-              },
-              {
-                nameKey: "affiliate.designco.name",
-                descriptionKey: "affiliate.designco.description",
-                href: "#",
-                initials: "DC"
-              },
-              {
-                nameKey: "affiliate.medialab.name",
-                descriptionKey: "affiliate.medialab.description",
-                href: "#",
-                initials: "ML"
-              },
-              {
-                nameKey: "affiliate.artcollective.name",
-                descriptionKey: "affiliate.artcollective.description",
-                href: "#",
-                initials: "AC"
-              }
-            ].map((affiliate, index) => (
+          {/* Affiliates — active partners only (controlled by active field in affiliates.ts) */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto">
+            {getActiveAffiliates().map((affiliate, index) => (
               <motion.div
-                key={affiliate.nameKey}
+                key={affiliate.id}
                 className="group text-center cursor-pointer"
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 whileHover={{ scale: 1.05 }}
-                onClick={() => window.location.href = affiliate.href}
+                onClick={() => window.location.href = affiliate.website ?? '/'}
               >
                 <div className="bg-surface-elevated rounded-xl p-8 h-24 flex items-center justify-center mb-4 group-hover:bg-brand-primary transition-all duration-300 border border-border">
                   <span className="text-text-secondary group-hover:text-white font-bold text-lg">
-                    {affiliate.initials}
+                    {affiliate.displayInitials ?? affiliate.name.slice(0, 2).toUpperCase()}
                   </span>
                 </div>
                 <p className="text-text-primary text-sm group-hover:text-brand-primary transition-colors font-medium">
-                  {t(affiliate.nameKey)}
+                  {affiliate.name}
                 </p>
                 <p className="text-text-muted text-xs mt-1">
-                  {t(affiliate.descriptionKey)}
+                  {affiliate.description}
                 </p>
               </motion.div>
             ))}

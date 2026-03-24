@@ -104,7 +104,8 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
       team: true,
       queue: false,             // No aplica
       salon: false,             // No aplica
-      giftcards: false          // No habilitado aún
+      giftcards: false,         // No habilitado aún
+      reports: false
     },
     features: {
       multiLanguage: false,     // Solo español
@@ -139,7 +140,8 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
       team: true,
       queue: false,             // No aplica
       salon: false,             // No aplica
-      giftcards: true           // Gift cards para catering
+      giftcards: true,          // Gift cards para catering
+      reports: false
     },
     features: {
       multiLanguage: true,
@@ -174,7 +176,8 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
       team: false,              // Práctica individual
       queue: true,              // Fila virtual para consultas
       salon: false,             // No aplica
-      giftcards: false          // No aplica
+      giftcards: false,         // No aplica
+      reports: false
     },
     features: {
       multiLanguage: true,
@@ -186,6 +189,42 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
       currency: "DOP",
       timezone: "America/Santo_Domingo",
       dateFormat: "DD/MM/YYYY"
+    }
+  },
+
+  "the-little-dominican": {
+    id: "the-little-dominican",
+    branding: {
+      primaryColor: "red-600",
+      secondaryColor: "orange-400",
+      logo: "/images/affiliates/the-little-dominican-logo.svg",
+      name: "The Little Dominican",
+      description: "Restaurante dominicano en Nyack, NY"
+    },
+    modules: {
+      metrics: true,
+      campaigns: true,
+      customers: true,
+      ecommerce: false,
+      appointments: true,
+      inventory: false,
+      invoicing: false,
+      team: false,
+      queue: false,
+      salon: false,
+      giftcards: false,
+      reports: false
+    },
+    features: {
+      multiLanguage: true,
+      darkMode: true,
+      notifications: true,
+      analytics: false
+    },
+    settings: {
+      currency: "USD",
+      timezone: "America/New_York",
+      dateFormat: "MM/DD/YYYY"
     }
   },
 
@@ -209,7 +248,8 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
       team: true,               // Equipo de producción
       queue: false,             // No aplica
       salon: false,             // No aplica
-      giftcards: false          // No habilitado aún
+      giftcards: false,         // No habilitado aún
+      reports: false
     },
     features: {
       multiLanguage: false,
