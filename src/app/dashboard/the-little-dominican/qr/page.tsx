@@ -7,7 +7,7 @@ import QRCode from 'qrcode'
 
 const P = '#00193c'   // navy
 const S = '#e12531'   // red
-const BASE = 'https://thelittledominican.com'
+const BASE = 'https://maalca.com/the-little-dominican'
 const TABLES = 12
 
 type Tab = 'mesas' | 'redes' | 'imprimir'
