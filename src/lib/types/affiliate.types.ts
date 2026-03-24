@@ -16,6 +16,9 @@ export interface Affiliate {
   // ⭐ Multi-tenant dashboard
   dashboardEnabled?: boolean;    // Si tiene dashboard habilitado
   dashboardUrl?: string;         // URL del dashboard (default: /dashboard/[id])
+  // ⭐ Visibility
+  active?: boolean;              // Si aparece en homepage y listados públicos
+  displayInitials?: string;      // Siglas para mostrar en cards (ej: "DP", "PB", "TLD")
 }
 
 export type AffiliateCategory =

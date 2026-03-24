@@ -1,23 +1,13 @@
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { getAffiliateConfig } from "@/config/affiliates-config";
 import { DashboardLayoutClient } from "@/components/dashboard/DashboardLayoutClient";
 
 interface AffiliateDashboardLayoutProps {
   children: React.ReactNode;
-  params: Promise<{
-    affiliateId: string;
-  }>;
+  params: Promise<{ affiliateId: string }>;
 }
 
-/**
- * Layout principal para los dashboards de afiliados
- *
- * Provee:
- * - Configuración del afiliado vía AffiliateProvider
- * - Header con branding personalizado
- * - Sidebar con navegación de módulos
- * - Validación de afiliado existente
- */
 export default async function AffiliateDashboardLayout({
   children,
   params
@@ -25,21 +15,19 @@ export default async function AffiliateDashboardLayout({
   const { affiliateId } = await params;
   const config = getAffiliateConfig(affiliateId);
 
-  // Si el afiliado no existe, mostrar 404
-  if (!config) {
-    notFound();
-  }
+  if (!config) notFound();
+
+  const cookieStore = await cookies();
+  const userRole = cookieStore.get('user_role')?.value ?? 'owner';
+  const isAdmin = userRole === 'admin';
 
   return (
-    <DashboardLayoutClient config={config}>
+    <DashboardLayoutClient config={config} isAdmin={isAdmin}>
       {children}
     </DashboardLayoutClient>
   );
 }
 
-/**
- * Metadata dinámica para SEO
- */
 export async function generateMetadata({
   params
 }: {
@@ -48,11 +36,7 @@ export async function generateMetadata({
   const { affiliateId } = await params;
   const config = getAffiliateConfig(affiliateId);
 
-  if (!config) {
-    return {
-      title: "Dashboard no encontrado"
-    };
-  }
+  if (!config) return { title: "Dashboard no encontrado" };
 
   return {
     title: `Dashboard - ${config.branding.name} | MaalCa`,

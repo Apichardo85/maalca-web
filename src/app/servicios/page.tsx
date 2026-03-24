@@ -9,10 +9,11 @@ export default function ServiciosPage() {
   const router = useRouter();
   const { t } = useTranslation();
 
-  // Define services with translation keys
-  const services = [
+  // Define services — active: false to hide without deleting
+  const allServices = [
     {
       id: "editorial-kdp",
+      active: true,
       icon: "📚",
       titleKey: "services.editorial-kdp.title",
       descriptionKey: "services.editorial-kdp.description",
@@ -29,6 +30,7 @@ export default function ServiciosPage() {
     },
     {
       id: "fabrica-ia",
+      active: false,
       icon: "🤖",
       titleKey: "services.fabrica-ia.title",
       descriptionKey: "services.fabrica-ia.description",
@@ -45,6 +47,7 @@ export default function ServiciosPage() {
     },
     {
       id: "podcast-media",
+      active: false,
       icon: "🎙️",
       titleKey: "services.podcast-media.title",
       descriptionKey: "services.podcast-media.description",
@@ -61,6 +64,7 @@ export default function ServiciosPage() {
     },
     {
       id: "pos-ecommerce",
+      active: true,
       icon: "💳",
       titleKey: "services.pos-ecommerce.title",
       descriptionKey: "services.pos-ecommerce.description",
@@ -77,6 +81,7 @@ export default function ServiciosPage() {
     },
     {
       id: "proptech-real-estate",
+      active: false,
       icon: "🏝️",
       titleKey: "services.proptech.title",
       descriptionKey: "services.proptech.description",
@@ -93,6 +98,7 @@ export default function ServiciosPage() {
     },
     {
       id: "consultoria-integral",
+      active: true,
       icon: "💡",
       titleKey: "services.consultoria.title",
       descriptionKey: "services.consultoria.description",
@@ -108,6 +114,7 @@ export default function ServiciosPage() {
       timelineKey: "services.consultoria.timeline"
     }
   ];
+  const services = allServices.filter(s => s.active);
 
   const process = [
     {

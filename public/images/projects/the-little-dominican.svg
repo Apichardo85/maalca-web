@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="800" height="450">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00193c"/>
+      <stop offset="60%" style="stop-color:#001830"/>
+      <stop offset="100%" style="stop-color:#e12531;stop-opacity:0.15"/>
+    </linearGradient>
+    <linearGradient id="plate" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.12"/>
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.04"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="450" fill="url(#bg)"/>
+
+  <!-- Subtle grid lines -->
+  <line x1="0" y1="150" x2="800" y2="150" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+  <line x1="0" y1="300" x2="800" y2="300" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+  <line x1="200" y1="0" x2="200" y2="450" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+  <line x1="400" y1="0" x2="400" y2="450" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+  <line x1="600" y1="0" x2="600" y2="450" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+
+  <!-- Large decorative plate -->
+  <ellipse cx="580" cy="225" rx="180" ry="180" fill="url(#plate)" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <ellipse cx="580" cy="225" rx="140" ry="140" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+  <ellipse cx="580" cy="225" rx="90" ry="90" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+
+  <!-- Fork decoration -->
+  <g transform="translate(530, 145)" opacity="0.2">
+    <line x1="0" y1="0" x2="0" y2="80" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    <line x1="-8" y1="0" x2="-8" y2="30" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    <line x1="8" y1="0" x2="8" y2="30" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    <path d="M-8 30 Q0 38 8 30" fill="none" stroke="white" stroke-width="3"/>
+  </g>
+
+  <!-- Knife decoration -->
+  <g transform="translate(630, 145)" opacity="0.2">
+    <line x1="0" y1="0" x2="0" y2="80" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    <path d="M0 0 L8 20 L0 30" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Flag stripe left accent -->
+  <rect x="0" y="0" width="6" height="225" fill="#0038A8" opacity="0.7"/>
+  <rect x="0" y="225" width="6" height="225" fill="#CE1126" opacity="0.7"/>
+
+  <!-- THE LITTLE DOMINICAN text -->
+  <text x="80" y="178" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="6" fill="rgba(255,255,255,0.45)" text-transform="uppercase">THE LITTLE</text>
+  <text x="78" y="258" font-family="Georgia, 'Times New Roman', serif" font-size="72" font-weight="300" font-style="italic" fill="#ffffff" letter-spacing="-2">Dominican</text>
+  <rect x="80" y="272" width="200" height="2.5" fill="#e12531" rx="1"/>
+
+  <!-- Tagline -->
+  <text x="80" y="305" font-family="'Helvetica Neue', Arial, sans-serif" font-size="13" font-weight="300" letter-spacing="1" fill="rgba(255,255,255,0.5)">Cocina dominicana auténtica · Elmira, NY</text>
+
+  <!-- Info pills -->
+  <rect x="80" y="330" width="110" height="28" rx="14" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+  <text x="135" y="349" font-family="'Helvetica Neue', Arial, sans-serif" font-size="10" font-weight="600" letter-spacing="1" fill="rgba(255,255,255,0.7)" text-anchor="middle">Dine-in</text>
+
+  <rect x="202" y="330" width="100" height="28" rx="14" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+  <text x="252" y="349" font-family="'Helvetica Neue', Arial, sans-serif" font-size="10" font-weight="600" letter-spacing="1" fill="rgba(255,255,255,0.7)" text-anchor="middle">Pickup</text>
+
+  <rect x="314" y="330" width="110" height="28" rx="14" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+  <text x="369" y="349" font-family="'Helvetica Neue', Arial, sans-serif" font-size="10" font-weight="600" letter-spacing="1" fill="rgba(255,255,255,0.7)" text-anchor="middle">Delivery</text>
+
+  <!-- Stars + rating -->
+  <text x="80" y="410" font-family="'Helvetica Neue', Arial, sans-serif" font-size="12" fill="#e12531" letter-spacing="3">★★★★★</text>
+  <text x="160" y="410" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="300" fill="rgba(255,255,255,0.4)" letter-spacing="1">Google Reviews · (607) 215-0990</text>
+</svg>

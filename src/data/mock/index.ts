@@ -8,13 +8,14 @@ export {
 } from "./projects";
 
 // Affiliates
-export { 
-  affiliates, 
-  getAffiliatesByCategory, 
-  getAffiliatesByStatus, 
-  getPremiumAffiliates, 
-  getAffiliateById, 
-  getTopRatedAffiliates 
+export {
+  affiliates,
+  getAffiliatesByCategory,
+  getAffiliatesByStatus,
+  getPremiumAffiliates,
+  getAffiliateById,
+  getTopRatedAffiliates,
+  getActiveAffiliates
 } from "./affiliates";
 
 // Services

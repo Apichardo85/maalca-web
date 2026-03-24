@@ -7,6 +7,8 @@ export const affiliates: Affiliate[] = [
     description: "Médico internista comprometido con la atención médica humanizada y accesible. Medicina solidaria basada en donaciones según capacidad económica.",
     category: "comunicacion-visual-diseno",
     status: "active",
+    active: true,
+    displayInitials: "DP",
     logo: "/images/affiliates/dr-pichardo-logo.png",
     website: "/dr-pichardo",
     contact: {
@@ -51,6 +53,8 @@ export const affiliates: Affiliate[] = [
     description: "Barbería dominicana en Elmira, NY. Cortes modernos con técnicas tradicionales, ambiente familiar y atención de primera clase.",
     category: "comunicacion-visual-diseno",
     status: "active",
+    active: true,
+    displayInitials: "PB",
     logo: "/images/affiliates/pegote-logo.png",
     website: "/pegote-barber",
     contact: {
@@ -97,6 +101,8 @@ export const affiliates: Affiliate[] = [
     description: "Taller dominicano especializado en comunicación visual, impresión digital y pintura artesanal para madera. Transformamos espacios comerciales con color, diseño y acabados personalizados de alta calidad.",
     category: "comunicacion-visual-diseno",
     status: "active",
+    active: false,
+    displayInitials: "BC",
     logo: "/images/affiliates/britocolor-logo.png",
     website: "https://www.instagram.com/britocolor",
     contact: {
@@ -176,6 +182,8 @@ export const ecosystemAffiliates: Affiliate[] = [
     description: "Barbería dominicana en Elmira, NY. Cortes modernos con técnicas tradicionales, ambiente familiar y atención de primera clase.",
     category: "comunicacion-visual-diseno",
     status: "active",
+    active: true,
+    displayInitials: "PB",
     logo: "/images/affiliates/pegote-logo.png",
     website: "/pegote-barber",
     contact: {
@@ -224,6 +232,8 @@ export const ecosystemAffiliates: Affiliate[] = [
     description: "Taller dominicano especializado en comunicación visual, impresión digital y pintura artesanal para madera.",
     category: "comunicacion-visual-diseno",
     status: "active",
+    active: false,
+    displayInitials: "BC",
     logo: "/images/affiliates/britocolor-logo.png",
     website: "/britocolor",
     contact: {
@@ -270,6 +280,8 @@ export const ecosystemAffiliates: Affiliate[] = [
     description: "Médico internista comprometido con la atención médica humanizada y accesible. Medicina solidaria basada en donaciones.",
     category: "comunicacion-visual-diseno",
     status: "active",
+    active: true,
+    displayInitials: "DP",
     logo: "/images/affiliates/dr-pichardo-logo.png",
     website: "/dr-pichardo",
     contact: {
@@ -316,6 +328,8 @@ export const ecosystemAffiliates: Affiliate[] = [
     description: "Catering y cocina dominicana. Menús auténticos y servicio personalizado para eventos.",
     category: "proveedor-ingredientes",
     status: "active",
+    active: false,
+    displayInitials: "MT",
     logo: "/images/projects/masa-tina.svg",
     website: "/masa-tina",
     contact: {
@@ -357,11 +371,52 @@ export const ecosystemAffiliates: Affiliate[] = [
     dashboardUrl: "/dashboard/masa-tina"
   },
   {
+    id: "the-little-dominican",
+    name: "The Little Dominican",
+    description: "Restaurante dominicano en Elmira, NY. Cocina tradicional con un toque moderno.",
+    category: "proveedor-ingredientes",
+    status: "active",
+    active: true,
+    displayInitials: "TLD",
+    logo: "/images/affiliates/the-little-dominican-logo.svg",
+    website: "/the-little-dominican",
+    contact: {
+      name: "The Little Dominican Team",
+      email: "info@thelittledominican.com",
+      phone: "+1 845 480 5737",
+      address: "4 Waldron Ave",
+      city: "Elmira, NY",
+      country: "Estados Unidos"
+    },
+    services: ["Dine-in", "Pickup", "Delivery", "Catering", "Música en vivo"],
+    locations: ["Elmira, NY"],
+    partnership: {
+      type: "strategic",
+      since: new Date("2026-01-01"),
+      contractType: "non-exclusive",
+      commissionRate: 0,
+      paymentTerms: "Según proyecto"
+    },
+    metrics: {
+      projectsCompleted: 0,
+      averageRating: 5.0,
+      responseTime: 24,
+      reliabilityScore: 100,
+      costEfficiency: 95
+    },
+    certifications: ["Restaurante certificado", "Manipulación de alimentos"],
+    socialMedia: {},
+    dashboardEnabled: true,
+    dashboardUrl: "/dashboard/the-little-dominican"
+  },
+  {
     id: "hablando-mierda",
     name: "Hablando Mierda (HBM)",
     description: "Podcast y contenido digital. Conversaciones sin filtro sobre cultura, negocios y vida.",
     category: "comunicacion-visual-diseno",
     status: "active",
+    active: false,
+    displayInitials: "HBM",
     logo: "/images/projects/hablando-mierda.svg",
     website: "/hablando-mierda",
     contact: {
@@ -406,3 +461,14 @@ export const ecosystemAffiliates: Affiliate[] = [
 
 // Agregar ecosystemAffiliates al array principal
 affiliates.push(...ecosystemAffiliates);
+
+export const getActiveAffiliates = () => {
+  // Dedup by id (last occurrence wins = ecosystemAffiliates takes precedence)
+  const seen = new Set<string>();
+  const deduped = [...affiliates].reverse().filter(a => {
+    if (seen.has(a.id)) return false;
+    seen.add(a.id);
+    return true;
+  }).reverse();
+  return deduped.filter(a => a.active === true);
+};

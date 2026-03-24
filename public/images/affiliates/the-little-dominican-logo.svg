@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00193c"/>
+      <stop offset="100%" style="stop-color:#002d62"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="400" height="400" fill="url(#bg)" rx="32"/>
+
+  <!-- Dominican flag stripe accent (top-left corner) -->
+  <rect x="0" y="0" width="12" height="200" fill="#0038A8" rx="0" opacity="0.6"/>
+  <rect x="0" y="200" width="12" height="200" fill="#CE1126" rx="0" opacity="0.6"/>
+  <rect x="0" y="0" width="200" height="12" fill="#0038A8" rx="0" opacity="0.6"/>
+  <rect x="200" y="0" width="200" height="12" fill="#CE1126" rx="0" opacity="0.6"/>
+
+  <!-- Cross at top-left -->
+  <rect x="0" y="0" width="12" height="24" fill="#ffffff" opacity="0.25"/>
+  <rect x="0" y="0" width="24" height="12" fill="#ffffff" opacity="0.25"/>
+
+  <!-- Plate / dish icon -->
+  <ellipse cx="200" cy="155" rx="72" ry="10" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+  <circle cx="200" cy="148" r="56" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+  <path d="M200 118 C218 118 232 130 232 148 C232 160 226 170 216 175 L200 180 L184 175 C174 170 168 160 168 148 C168 130 182 118 200 118Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.18)" stroke-width="1.5"/>
+
+  <!-- Fork & knife -->
+  <line x1="168" y1="110" x2="168" y2="188" stroke="rgba(255,255,255,0.22)" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M162 110 L162 134 Q162 140 168 140 Q174 140 174 134 L174 110" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="232" y1="110" x2="232" y2="188" stroke="rgba(255,255,255,0.22)" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M228 110 L228 126 Q228 134 232 136 L232 110" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- "THE LITTLE" label -->
+  <text x="200" y="230" font-family="Georgia, serif" font-size="13" font-weight="400" letter-spacing="5" fill="rgba(255,255,255,0.55)" text-anchor="middle" text-transform="uppercase">THE LITTLE</text>
+
+  <!-- "Dominican" main wordmark -->
+  <text x="200" y="282" font-family="Georgia, 'Times New Roman', serif" font-size="46" font-weight="300" font-style="italic" fill="#ffffff" text-anchor="middle" letter-spacing="-1">Dominican</text>
+
+  <!-- Red accent line -->
+  <rect x="130" y="295" width="140" height="2" fill="#e12531" rx="1" opacity="0.9"/>
+
+  <!-- "RESTAURANT · ELMIRA, NY" tagline -->
+  <text x="200" y="318" font-family="'Helvetica Neue', Arial, sans-serif" font-size="9.5" font-weight="600" letter-spacing="3.5" fill="rgba(255,255,255,0.4)" text-anchor="middle">RESTAURANT · ELMIRA, NY</text>
+
+  <!-- Bottom: phone -->
+  <text x="200" y="350" font-family="'Helvetica Neue', Arial, sans-serif" font-size="11" font-weight="400" letter-spacing="1" fill="rgba(255,255,255,0.35)" text-anchor="middle">(607) 215-0990</text>
+</svg>
