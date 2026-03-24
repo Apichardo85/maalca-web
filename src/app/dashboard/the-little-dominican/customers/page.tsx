@@ -77,7 +77,7 @@ export default function CustomerDirectory() {
     <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
       {/* ── EDITORIAL HEADER ── */}
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <p style={{ fontSize: '.62rem', fontWeight: 600, letterSpacing: '.25em', textTransform: 'uppercase', color: '#9ca3af', marginBottom: '6px' }}>
             CRM — Directorio
@@ -87,20 +87,22 @@ export default function CustomerDirectory() {
             <span style={{ fontWeight: 700 }}>de Comensales</span>
           </h2>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', flexShrink: 0 }}>
           <button style={{
             padding: '10px 18px', borderRadius: '9999px', border: '1px solid #e4e5e7',
             background: '#fff', fontSize: '.78rem', fontWeight: 600, color: '#374151', cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: '6px',
           }}>
-            <span className="ms ms-sm">download</span> Exportar
+            <span className="ms ms-sm">download</span>
+            <span className="hidden sm:inline">Exportar</span>
           </button>
           <button style={{
             padding: '10px 20px', borderRadius: '9999px', border: 'none',
             background: '#00193c', color: '#fff', fontSize: '.78rem', fontWeight: 700, cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: '6px',
           }}>
-            <span className="ms ms-sm">person_add</span> Nuevo Cliente
+            <span className="ms ms-sm">person_add</span>
+            <span className="hidden sm:inline">Nuevo Cliente</span>
           </button>
         </div>
       </div>
@@ -134,7 +136,7 @@ export default function CustomerDirectory() {
                 style={{
                   background: '#f3f4f5', border: 'none', borderRadius: '9999px',
                   padding: '8px 16px 8px 34px', fontFamily: 'Manrope,sans-serif',
-                  fontSize: '.78rem', color: '#374151', outline: 'none', width: '240px',
+                  fontSize: '.78rem', color: '#374151', outline: 'none', width: '100%', maxWidth: '240px',
                 }}
               />
             </div>

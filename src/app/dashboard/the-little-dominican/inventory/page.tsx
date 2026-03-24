@@ -150,7 +150,7 @@ export default function InventoryManagement() {
               </button>
             ))}
           </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <div style={{ position: 'relative' }}>
               <span className="ms ms-sm" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}>search</span>
               <input
@@ -159,7 +159,7 @@ export default function InventoryManagement() {
                 style={{
                   background: '#f3f4f5', border: 'none', borderRadius: '9999px',
                   padding: '8px 14px 8px 32px', fontFamily: 'Manrope,sans-serif',
-                  fontSize: '.76rem', color: '#374151', outline: 'none', width: '180px',
+                  fontSize: '.76rem', color: '#374151', outline: 'none', width: '100%', maxWidth: '180px',
                 }}
               />
             </div>
@@ -168,7 +168,8 @@ export default function InventoryManagement() {
               background: '#fff', fontSize: '.72rem', fontWeight: 600, color: '#374151', cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: '5px',
             }}>
-              <span className="ms ms-sm">download</span> Exportar
+              <span className="ms ms-sm">download</span>
+              <span className="hidden sm:inline">Exportar</span>
             </button>
           </div>
         </div>
@@ -279,8 +280,9 @@ export default function InventoryManagement() {
             padding: '10px 28px', borderRadius: '9999px', border: '1px solid #e4e5e7',
             background: '#fff', color: '#00193c', fontSize: '.74rem', fontWeight: 700,
             letterSpacing: '.08em', textTransform: 'uppercase', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: '6px',
           }}>
-            Activar Cámara
+            <span className="ms ms-sm">photo_camera</span> Activar Cámara
           </button>
         </div>
       </section>
