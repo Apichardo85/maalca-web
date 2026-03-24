@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import type { MenuItem } from '../_data'
 import { MENU_CATEGORIES } from '../_data'
 
@@ -14,6 +14,33 @@ interface MenuPageClientProps {
   dishes: MenuItem[]
 }
 
+// ─── Fallback image placeholder ──────────────────────────────────────────────
+
+const FALLBACK_IMG = 'data:image/svg+xml;base64,' + btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" fill="#e4e5e7"><rect width="600" height="400"/><text x="300" y="210" text-anchor="middle" fill="#74777f" font-family="sans-serif" font-size="18">Imagen no disponible</text></svg>`)
+
+// ─── Toast Component ─────────────────────────────────────────────────────────
+
+function Toast({ message, visible }: { message: string; visible: boolean }) {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      style={{
+        position: 'fixed', bottom: '5.5rem', left: '50%', transform: `translateX(-50%) translateY(${visible ? '0' : '20px'})`,
+        zIndex: 300, background: 'var(--p)', color: '#fff',
+        padding: '12px 24px', borderRadius: '9999px',
+        fontFamily: 'Manrope,sans-serif', fontSize: '.85rem', fontWeight: 600,
+        boxShadow: '0 12px 32px rgba(0,25,60,.3)',
+        opacity: visible ? 1 : 0,
+        transition: 'opacity .25s, transform .25s',
+        pointerEvents: 'none', whiteSpace: 'nowrap',
+      }}
+    >
+      {message}
+    </div>
+  )
+}
+
 // ─── Client Component ────────────────────────────────────────────────────────
 
 export default function MenuPageClient({ dishes }: MenuPageClientProps) {
@@ -22,8 +49,10 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
   const [dietFilters, setDietFilters] = useState<Set<string>>(new Set())
   const [cart, setCart] = useState<CartItem[]>([])
   const [cartOpen, setCartOpen] = useState(false)
+  const [toast, setToast] = useState({ message: '', visible: false })
+  const [showFilters, setShowFilters] = useState(false)
 
-  const categories = ['Todos', ...MENU_CATEGORIES]
+  const categories = ['Todos', 'Popular', ...MENU_CATEGORIES]
 
   const toggleDiet = (f: string) => {
     setDietFilters(prev => {
@@ -36,7 +65,8 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
   const filtered = useMemo(() => {
     return dishes.filter(d => {
       if (!d.available) return false
-      if (activeCategory !== 'Todos' && d.category !== activeCategory) return false
+      if (activeCategory === 'Popular' && !d.popular) return false
+      if (activeCategory !== 'Todos' && activeCategory !== 'Popular' && d.category !== activeCategory) return false
       if (search && !d.name.toLowerCase().includes(search.toLowerCase()) &&
           !d.description.toLowerCase().includes(search.toLowerCase())) return false
       if (dietFilters.has('vegetarian') && !d.flags.vegetarian) return false
@@ -46,6 +76,11 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
     })
   }, [dishes, activeCategory, search, dietFilters])
 
+  const showToast = useCallback((msg: string) => {
+    setToast({ message: msg, visible: true })
+    setTimeout(() => setToast(t => ({ ...t, visible: false })), 2000)
+  }, [])
+
   const addToCart = (dish: MenuItem) => {
     setCart(prev => {
       const existing = prev.find(i => i.dish.id === dish.id)
@@ -53,6 +88,7 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
         ? prev.map(i => i.dish.id === dish.id ? { ...i, qty: i.qty + 1 } : i)
         : [...prev, { dish, qty: 1 }]
     })
+    showToast(`${dish.name} agregado`)
   }
 
   const removeFromCart = (id: string) => {
@@ -69,21 +105,47 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
   const tax = cartTotal * 0.08875
   const totalWithTax = cartTotal + tax
 
+  // Build WhatsApp message
+  const buildWhatsAppUrl = () => {
+    const phone = '16078574226'
+    const lines = cart.map(i => `• ${i.qty}x ${i.dish.name} — $${(i.dish.price * i.qty).toFixed(2)}`)
+    const msg = [
+      '🍽 *Nueva Orden — The Little Dominican*',
+      '',
+      ...lines,
+      '',
+      `Subtotal: $${cartTotal.toFixed(2)}`,
+      `Tax (8.875%): $${tax.toFixed(2)}`,
+      `*Total: $${totalWithTax.toFixed(2)}*`,
+      '',
+      'Nombre: ',
+      'Pickup / Delivery: ',
+    ].join('\n')
+    return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
+  }
+
+  // Close cart on Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setCartOpen(false) }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
+
   return (
     <>
-      {/* ── SEARCH HERO ──────────────────────────────────────────── */}
-      <section style={{ background:'var(--p)', padding:'clamp(3rem,6vw,5rem) clamp(1.5rem,5vw,5rem)' }}>
-        <div style={{ maxWidth:'760px', margin:'0 auto', textAlign:'center' }}>
-          <div style={{ fontFamily:'Newsreader,Georgia,serif', fontSize:'clamp(2rem,5vw,3rem)', fontWeight:300, color:'#fff', lineHeight:1.1, marginBottom:'1rem' }}>
+      {/* ── SEARCH HERO (compact) ──────────────────────────────────── */}
+      <section style={{ background: 'var(--p)', padding: 'clamp(2rem,4vw,3.5rem) clamp(1.5rem,5vw,5rem)' }}>
+        <div style={{ maxWidth: '760px', margin: '0 auto', textAlign: 'center' }}>
+          <div style={{ fontFamily: 'Newsreader,Georgia,serif', fontSize: 'clamp(1.8rem,4.5vw,2.8rem)', fontWeight: 300, color: '#fff', lineHeight: 1.1, marginBottom: '.6rem' }}>
             Nuestro Menú
           </div>
-          <p style={{ fontSize:'.9rem', fontWeight:300, color:'rgba(255,255,255,.7)', marginBottom:'2rem' }}>
+          <p style={{ fontSize: '.85rem', fontWeight: 300, color: 'rgba(255,255,255,.7)', marginBottom: '1.5rem' }}>
             Cocina dominicana auténtica — Elmira, NY
           </p>
 
           {/* Search bar */}
-          <div style={{ position:'relative', maxWidth:'520px', margin:'0 auto' }}>
-            <span style={{ position:'absolute', left:'16px', top:'50%', transform:'translateY(-50%)', color:'rgba(0,0,0,.4)', pointerEvents:'none' }}>
+          <div style={{ position: 'relative', maxWidth: '520px', margin: '0 auto' }}>
+            <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(0,0,0,.4)', pointerEvents: 'none' }}>
               <SearchIcon />
             </span>
             <input
@@ -92,105 +154,137 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
               onChange={e => setSearch(e.target.value)}
               placeholder="Buscar platos..."
               style={{
-                width:'100%', boxSizing:'border-box',
-                background:'#fff', border:'none', borderRadius:'9999px',
-                padding:'14px 20px 14px 46px',
-                fontFamily:'Manrope,sans-serif', fontSize:'.9rem', color:'var(--tx)',
-                outline:'none', boxShadow:'0 8px 32px rgba(0,0,0,.15)',
+                width: '100%', boxSizing: 'border-box',
+                background: '#fff', border: 'none', borderRadius: '9999px',
+                padding: '14px 20px 14px 46px',
+                fontFamily: 'Manrope,sans-serif', fontSize: '.9rem', color: 'var(--tx)',
+                outline: 'none', boxShadow: '0 8px 32px rgba(0,0,0,.15)',
               }}
             />
           </div>
         </div>
       </section>
 
-      {/* ── FILTER BAR (sticky) ───────────────────────────────────── */}
+      {/* ── FILTER BAR (sticky, single row scrollable) ──────────────── */}
       <div style={{
-        position:'sticky', top:'60px', zIndex:50,
-        background:'rgba(248,249,250,.95)', backdropFilter:'blur(16px)',
-        borderBottom:'1px solid var(--l3)',
-        padding:'.875rem clamp(1.5rem,5vw,5rem)',
+        position: 'sticky', top: '60px', zIndex: 50,
+        background: 'rgba(248,249,250,.95)', backdropFilter: 'blur(16px)',
+        borderBottom: '1px solid var(--l3)',
+        padding: '.625rem clamp(1rem,3vw,5rem)',
       }}>
-        <div style={{ maxWidth:'1280px', margin:'0 auto', display:'flex', flexWrap:'wrap', gap:'.75rem', alignItems:'center' }}>
-
-          {/* Category pills */}
-          <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          {/* Category pills — single row, horizontal scroll on mobile */}
+          <div style={{
+            display: 'flex', gap: '6px', alignItems: 'center',
+            overflowX: 'auto', WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none', msOverflowStyle: 'none',
+            paddingBottom: '2px',
+          }}>
             {categories.map(cat => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
                 style={{
-                  padding:'6px 14px', borderRadius:'9999px', border:'none', cursor:'pointer',
-                  fontFamily:'Manrope,sans-serif', fontSize:'.78rem', fontWeight:600,
-                  transition:'all .15s',
+                  padding: '10px 16px', borderRadius: '9999px', border: 'none', cursor: 'pointer',
+                  fontFamily: 'Manrope,sans-serif', fontSize: '.8rem', fontWeight: 600,
+                  transition: 'all .15s', whiteSpace: 'nowrap', flexShrink: 0,
+                  minHeight: '40px',
                   background: activeCategory === cat ? 'var(--p)' : 'var(--l2)',
                   color: activeCategory === cat ? '#fff' : 'var(--tm)',
                 }}
               >
-                {cat}
+                {cat === 'Popular' ? '🔥 Popular' : cat}
               </button>
             ))}
+
+            {/* Separator */}
+            <div style={{ width: '1px', height: '24px', background: 'var(--l3)', flexShrink: 0 }} />
+
+            {/* Diet filter toggle */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              style={{
+                padding: '10px 14px', borderRadius: '9999px', cursor: 'pointer',
+                fontFamily: 'Manrope,sans-serif', fontSize: '.78rem', fontWeight: 500,
+                flexShrink: 0, minHeight: '40px', whiteSpace: 'nowrap',
+                background: showFilters || dietFilters.size > 0 ? 'var(--t)' : 'transparent',
+                color: showFilters || dietFilters.size > 0 ? '#fff' : 'var(--tl)',
+                border: showFilters || dietFilters.size > 0 ? '1.5px solid var(--t)' : '1.5px solid var(--l3)',
+                transition: 'all .15s',
+              }}
+            >
+              <FilterIcon /> Filtros{dietFilters.size > 0 ? ` (${dietFilters.size})` : ''}
+            </button>
+
+            {/* Results count */}
+            <span style={{ marginLeft: 'auto', fontSize: '.75rem', color: 'var(--tl)', fontWeight: 500, whiteSpace: 'nowrap', flexShrink: 0 }}>
+              {filtered.length} platos
+            </span>
           </div>
 
-          {/* Separator */}
-          <div style={{ width:'1px', height:'24px', background:'var(--l3)' }} />
-
-          {/* Dietary filters */}
-          <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }}>
-            {[
-              { key:'vegetarian', label:'🌿 Vegetariano' },
-              { key:'glutenFree', label:'🌾 Sin Gluten' },
-              { key:'spicy',      label:'🌶 Picante' },
-            ].map(f => (
-              <button
-                key={f.key}
-                onClick={() => toggleDiet(f.key)}
-                style={{
-                  padding:'6px 13px', borderRadius:'9999px', cursor:'pointer',
-                  fontFamily:'Manrope,sans-serif', fontSize:'.76rem', fontWeight:500,
-                  transition:'all .15s',
-                  background: dietFilters.has(f.key) ? 'var(--t)' : 'transparent',
-                  color: dietFilters.has(f.key) ? '#fff' : 'var(--tl)',
-                  border: dietFilters.has(f.key) ? '1.5px solid var(--t)' : '1.5px solid var(--l3)',
-                }}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Results count */}
-          <span style={{ marginLeft:'auto', fontSize:'.75rem', color:'var(--tl)', fontWeight:500, whiteSpace:'nowrap' }}>
-            {filtered.length} platos
-          </span>
+          {/* Dietary filters — collapsible */}
+          {showFilters && (
+            <div style={{
+              display: 'flex', gap: '6px', flexWrap: 'wrap', paddingTop: '.5rem',
+              borderTop: '1px solid var(--l3)', marginTop: '.5rem',
+            }}>
+              {[
+                { key: 'vegetarian', label: '🌿 Vegetariano' },
+                { key: 'glutenFree', label: '🌾 Sin Gluten' },
+                { key: 'spicy', label: '🌶 Picante' },
+              ].map(f => (
+                <button
+                  key={f.key}
+                  onClick={() => toggleDiet(f.key)}
+                  style={{
+                    padding: '10px 14px', borderRadius: '9999px', cursor: 'pointer',
+                    fontFamily: 'Manrope,sans-serif', fontSize: '.78rem', fontWeight: 500,
+                    transition: 'all .15s', minHeight: '40px',
+                    background: dietFilters.has(f.key) ? 'var(--t)' : 'transparent',
+                    color: dietFilters.has(f.key) ? '#fff' : 'var(--tl)',
+                    border: dietFilters.has(f.key) ? '1.5px solid var(--t)' : '1.5px solid var(--l3)',
+                  }}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
+      {/* ── Utility CSS ─────────────────────────────────────────────── */}
+      <style>{`
+        div::-webkit-scrollbar { display: none; }
+        ${cartOpen ? '.tld-bottom-nav { display: none !important; }' : ''}
+      `}</style>
+
       {/* ── DISH GRID ─────────────────────────────────────────────── */}
-      <section style={{ background:'var(--bg)', padding:'clamp(2.5rem,5vw,4rem) clamp(1.5rem,5vw,5rem)', minHeight:'50vh' }}>
-        <div style={{ maxWidth:'1280px', margin:'0 auto' }}>
+      <section style={{ background: 'var(--bg)', padding: 'clamp(2rem,4vw,3.5rem) clamp(1.5rem,5vw,5rem)', minHeight: '50vh' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
 
           {filtered.length === 0 ? (
-            <div style={{ textAlign:'center', padding:'4rem 0', color:'var(--tl)' }}>
-              <div style={{ fontSize:'2rem', marginBottom:'1rem' }}>🍽</div>
-              <p style={{ fontFamily:'Newsreader,Georgia,serif', fontSize:'1.2rem', color:'var(--p)' }}>
+            <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--tl)' }}>
+              <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>🍽</div>
+              <p style={{ fontFamily: 'Newsreader,Georgia,serif', fontSize: '1.2rem', color: 'var(--p)' }}>
                 No encontramos ese plato
               </p>
-              <p className="tld-body" style={{ marginTop:'.5rem' }}>Prueba con otra búsqueda o categoría</p>
+              <p className="tld-body" style={{ marginTop: '.5rem' }}>Prueba con otra búsqueda o categoría</p>
             </div>
           ) : (
             /* Group by category when showing all */
             activeCategory === 'Todos' ? (
-              <div style={{ display:'flex', flexDirection:'column', gap:'3rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
                 {MENU_CATEGORIES.map(cat => {
                   const catDishes = filtered.filter(d => d.category === cat)
                   if (!catDishes.length) return null
                   return (
                     <div key={cat}>
                       <div style={{
-                        fontFamily:'Newsreader,Georgia,serif',
-                        fontSize:'1.1rem', fontWeight:400, color:'var(--p)',
-                        marginBottom:'1.1rem', paddingBottom:'.5rem',
-                        borderBottom:'1px solid var(--l3)',
+                        fontFamily: 'Newsreader,Georgia,serif',
+                        fontSize: '1.1rem', fontWeight: 400, color: 'var(--p)',
+                        marginBottom: '1rem', paddingBottom: '.5rem',
+                        borderBottom: '1px solid var(--l3)',
                       }}>
                         {cat}
                       </div>
@@ -206,25 +300,30 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
         </div>
       </section>
 
-      {/* ── CART BUTTON (floating) ────────────────────────────────── */}
-      {cartCount > 0 && (
+      {/* ── TOAST NOTIFICATION ──────────────────────────────────────── */}
+      <Toast message={toast.message} visible={toast.visible} />
+
+      {/* ── FLOATING CART BUTTON ────────────────────────────────────── */}
+      {cartCount > 0 && !cartOpen && (
         <button
           onClick={() => setCartOpen(true)}
+          aria-label={`Ver orden: ${cartCount} platos`}
           style={{
-            position:'fixed', bottom:'2rem', right:'2rem', zIndex:90,
-            background:'var(--p)', color:'#fff', border:'none',
-            borderRadius:'9999px', padding:'14px 24px',
-            fontFamily:'Manrope,sans-serif', fontWeight:600, fontSize:'.9rem',
-            cursor:'pointer', display:'flex', alignItems:'center', gap:'10px',
-            boxShadow:'0 16px 40px rgba(0,25,60,.3)',
-            transition:'transform .15s',
+            position: 'fixed', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 5rem)', right: '1.25rem', zIndex: 90,
+            background: 'var(--p)', color: '#fff', border: 'none',
+            borderRadius: '9999px', padding: '14px 22px',
+            fontFamily: 'Manrope,sans-serif', fontWeight: 600, fontSize: '.88rem',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px',
+            boxShadow: '0 16px 40px rgba(0,25,60,.3)',
+            transition: 'transform .15s',
+            minHeight: '48px',
           }}
         >
           <CartIcon />
           Ver orden
           <span style={{
-            background:'var(--s)', borderRadius:'9999px',
-            padding:'2px 8px', fontSize:'.78rem', fontWeight:700,
+            background: 'var(--s)', borderRadius: '9999px',
+            padding: '2px 9px', fontSize: '.78rem', fontWeight: 700,
           }}>
             {cartCount}
           </span>
@@ -235,104 +334,130 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
       {cartOpen && (
         <div
           style={{
-            position:'fixed', inset:0, zIndex:200,
-            background:'rgba(0,0,0,.4)', backdropFilter:'blur(4px)',
+            position: 'fixed', inset: 0, zIndex: 200,
+            background: 'rgba(0,0,0,.4)', backdropFilter: 'blur(4px)',
           }}
           onClick={() => setCartOpen(false)}
         >
           <div
             style={{
-              position:'absolute', right:0, top:0, bottom:0,
-              width:'min(420px, 95vw)',
-              background:'var(--bg)', boxShadow:'-20px 0 60px rgba(0,0,0,.15)',
-              display:'flex', flexDirection:'column', overflow:'hidden',
+              position: 'absolute', right: 0, top: 0, bottom: 0,
+              width: 'min(420px, 95vw)',
+              background: 'var(--bg)', boxShadow: '-20px 0 60px rgba(0,0,0,.15)',
+              display: 'flex', flexDirection: 'column', overflow: 'hidden',
             }}
             onClick={e => e.stopPropagation()}
           >
             {/* Drawer header */}
-            <div style={{ padding:'1.5rem', borderBottom:'1px solid var(--l3)', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--l3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div className="tld-label">Mi orden</div>
-                <div style={{ fontFamily:'Newsreader,Georgia,serif', fontSize:'1.2rem', color:'var(--p)', marginTop:'2px' }}>
+                <div style={{ fontFamily: 'Newsreader,Georgia,serif', fontSize: '1.2rem', color: 'var(--p)', marginTop: '2px' }}>
                   {cartCount} {cartCount === 1 ? 'plato' : 'platos'}
                 </div>
               </div>
-              <button onClick={() => setCartOpen(false)} style={{
-                background:'var(--l2)', border:'none', borderRadius:'50%',
-                width:'36px', height:'36px', cursor:'pointer',
-                fontSize:'1.1rem', display:'flex', alignItems:'center', justifyContent:'center',
-              }}>×</button>
+              <button
+                onClick={() => setCartOpen(false)}
+                aria-label="Cerrar"
+                style={{
+                  background: 'var(--l2)', border: 'none', borderRadius: '50%',
+                  width: '44px', height: '44px', cursor: 'pointer',
+                  fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                ×
+              </button>
             </div>
 
             {/* Cart items */}
-            <div style={{ flex:1, overflowY:'auto', padding:'1rem 1.5rem' }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '1rem 1.5rem' }}>
               {cart.map(item => (
                 <div key={item.dish.id} style={{
-                  display:'flex', alignItems:'center', gap:'12px',
-                  padding:'12px 0', borderBottom:'1px solid var(--l3)',
+                  display: 'flex', alignItems: 'center', gap: '12px',
+                  padding: '12px 0', borderBottom: '1px solid var(--l3)',
                 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={item.dish.image}
                     alt={item.dish.name}
-                    style={{ width:'52px', height:'52px', borderRadius:'.5rem', objectFit:'cover', flexShrink:0 }}
+                    loading="lazy"
+                    onError={e => { (e.target as HTMLImageElement).src = FALLBACK_IMG }}
+                    style={{ width: '52px', height: '52px', borderRadius: '.5rem', objectFit: 'cover', flexShrink: 0 }}
                   />
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontWeight:600, fontSize:'.85rem', color:'var(--p)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: '.85rem', color: 'var(--p)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {item.dish.name}
                     </div>
-                    <div style={{ fontFamily:'Newsreader,Georgia,serif', fontSize:'.95rem', color:'var(--tm)', marginTop:'2px' }}>
+                    <div style={{ fontFamily: 'Newsreader,Georgia,serif', fontSize: '.95rem', color: 'var(--tm)', marginTop: '2px' }}>
                       ${(item.dish.price * item.qty).toFixed(2)}
                     </div>
                   </div>
-                  <div style={{ display:'flex', alignItems:'center', gap:'8px', flexShrink:0 }}>
-                    <button onClick={() => removeFromCart(item.dish.id)} style={{
-                      width:'28px', height:'28px', borderRadius:'50%', border:'none',
-                      background:'var(--l2)', cursor:'pointer', fontWeight:700, fontSize:'.9rem',
-                      display:'flex', alignItems:'center', justifyContent:'center', color:'var(--p)',
-                    }}>−</button>
-                    <span style={{ fontWeight:600, fontSize:'.88rem', minWidth:'16px', textAlign:'center' }}>{item.qty}</span>
-                    <button onClick={() => addToCart(item.dish)} style={{
-                      width:'28px', height:'28px', borderRadius:'50%', border:'none',
-                      background:'var(--p)', cursor:'pointer', fontWeight:700, fontSize:'.9rem',
-                      display:'flex', alignItems:'center', justifyContent:'center', color:'#fff',
-                    }}>+</button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                    <button
+                      onClick={() => removeFromCart(item.dish.id)}
+                      aria-label={`Quitar ${item.dish.name}`}
+                      style={{
+                        width: '36px', height: '36px', borderRadius: '50%', border: 'none',
+                        background: 'var(--l2)', cursor: 'pointer',
+                        fontWeight: 700, fontSize: '1rem', color: 'var(--p)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}
+                    >−</button>
+                    <span style={{ fontWeight: 600, fontSize: '.9rem', minWidth: '18px', textAlign: 'center' }}>{item.qty}</span>
+                    <button
+                      onClick={() => addToCart(item.dish)}
+                      aria-label={`Agregar ${item.dish.name}`}
+                      style={{
+                        width: '36px', height: '36px', borderRadius: '50%', border: 'none',
+                        background: 'var(--p)', cursor: 'pointer',
+                        fontWeight: 700, fontSize: '1rem', color: '#fff',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}
+                    >+</button>
                   </div>
                 </div>
               ))}
             </div>
 
             {/* Totals + CTA */}
-            <div style={{ padding:'1.25rem 1.5rem', borderTop:'1px solid var(--l3)', background:'var(--l1)' }}>
-              <div style={{ display:'flex', flexDirection:'column', gap:'6px', marginBottom:'1rem' }}>
-                <div style={{ display:'flex', justifyContent:'space-between', fontSize:'.85rem' }}>
-                  <span style={{ color:'var(--tm)' }}>Subtotal</span>
-                  <span style={{ color:'var(--p)', fontWeight:500 }}>${cartTotal.toFixed(2)}</span>
+            <div style={{ padding: '1.25rem 1.5rem calc(1.25rem + env(safe-area-inset-bottom, 0px))', borderTop: '1px solid var(--l3)', background: 'var(--l1)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.85rem' }}>
+                  <span style={{ color: 'var(--tm)' }}>Subtotal</span>
+                  <span style={{ color: 'var(--p)', fontWeight: 500 }}>${cartTotal.toFixed(2)}</span>
                 </div>
-                <div style={{ display:'flex', justifyContent:'space-between', fontSize:'.82rem' }}>
-                  <span style={{ color:'var(--tl)' }}>Tax NY (8.875%)</span>
-                  <span style={{ color:'var(--tl)' }}>${tax.toFixed(2)}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.82rem' }}>
+                  <span style={{ color: 'var(--tl)' }}>Tax NY (8.875%)</span>
+                  <span style={{ color: 'var(--tl)' }}>${tax.toFixed(2)}</span>
                 </div>
-                <div style={{ display:'flex', justifyContent:'space-between', fontSize:'.95rem', paddingTop:'6px', borderTop:'1px solid var(--l3)' }}>
-                  <span style={{ fontWeight:700, color:'var(--p)' }}>Total</span>
-                  <span style={{ fontFamily:'Newsreader,Georgia,serif', fontSize:'1.2rem', fontWeight:400, color:'var(--p)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.95rem', paddingTop: '6px', borderTop: '1px solid var(--l3)' }}>
+                  <span style={{ fontWeight: 700, color: 'var(--p)' }}>Total</span>
+                  <span style={{ fontFamily: 'Newsreader,Georgia,serif', fontSize: '1.2rem', fontWeight: 400, color: 'var(--p)' }}>
                     ${totalWithTax.toFixed(2)}
                   </span>
                 </div>
               </div>
-              <button
+
+              {/* WhatsApp CTA */}
+              <a
+                href={buildWhatsAppUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{
-                  width:'100%', background:'var(--p)', color:'#fff', border:'none',
-                  borderRadius:'9999px', padding:'14px', cursor:'pointer',
-                  fontFamily:'Manrope,sans-serif', fontWeight:600, fontSize:'.9rem',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  width: '100%', background: '#25D366', color: '#fff', border: 'none',
+                  borderRadius: '9999px', padding: '14px', cursor: 'pointer',
+                  fontFamily: 'Manrope,sans-serif', fontWeight: 600, fontSize: '.9rem',
+                  textDecoration: 'none', minHeight: '48px',
                 }}
               >
-                Confirmar Orden →
-              </button>
-              <p style={{ textAlign:'center', fontSize:'.73rem', color:'var(--tl)', marginTop:'.75rem' }}>
+                <WhatsAppIcon /> Confirmar por WhatsApp
+              </a>
+
+              <p style={{ textAlign: 'center', fontSize: '.73rem', color: 'var(--tl)', marginTop: '.75rem' }}>
                 O llama al{' '}
-                <a href="tel:6072150990" style={{ color:'var(--p)', fontWeight:600, textDecoration:'none' }}>
-                  (607) 215-0990
+                <a href="tel:6078574226" style={{ color: 'var(--p)', fontWeight: 600, textDecoration: 'none' }}>
+                  (607) 857-4226
                 </a>
               </p>
             </div>
@@ -353,76 +478,93 @@ function DishGrid({ dishes, cart, onAdd, onRemove }: {
 }) {
   return (
     <div style={{
-      display:'grid',
-      gridTemplateColumns:'repeat(auto-fill,minmax(240px,1fr))',
-      gap:'1rem',
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))',
+      gap: '1rem',
     }}>
       {dishes.map(dish => {
         const cartItem = cart.find(i => i.dish.id === dish.id)
         return (
           <div key={dish.id} style={{
-            background:'var(--l1)', borderRadius:'.875rem', overflow:'hidden',
-            display:'flex', flexDirection:'column',
-            transition:'box-shadow .2s',
+            background: 'var(--l1)', borderRadius: '.875rem', overflow: 'hidden',
+            display: 'flex', flexDirection: 'column',
+            transition: 'box-shadow .2s',
           }}>
             {/* Photo */}
-            <div style={{ aspectRatio:'4/3', overflow:'hidden', background:'var(--l3)' }}>
+            <div style={{ aspectRatio: '4/3', overflow: 'hidden', background: 'var(--l3)', position: 'relative' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={dish.image}
                 alt={dish.name}
-                style={{ width:'100%', height:'100%', objectFit:'cover', display:'block', transition:'transform .5s ease' }}
+                loading="lazy"
+                onError={e => { (e.target as HTMLImageElement).src = FALLBACK_IMG }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform .5s ease' }}
               />
+              {/* Popular badge */}
+              {dish.popular && (
+                <span style={{
+                  position: 'absolute', top: '10px', left: '10px',
+                  background: 'var(--s)', color: '#fff',
+                  padding: '4px 10px', borderRadius: '9999px',
+                  fontSize: '.65rem', fontWeight: 700, letterSpacing: '.04em',
+                  textTransform: 'uppercase',
+                  boxShadow: '0 4px 12px rgba(225,37,49,.3)',
+                }}>
+                  🔥 Popular
+                </span>
+              )}
             </div>
 
             {/* Body */}
-            <div style={{ padding:'1rem 1.1rem', display:'flex', flexDirection:'column', gap:'.5rem', flex:1 }}>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'6px' }}>
-                <span style={{ fontFamily:'Newsreader,Georgia,serif', fontSize:'1rem', fontWeight:400, color:'var(--p)', lineHeight:1.2 }}>
+            <div style={{ padding: '1rem 1.1rem', display: 'flex', flexDirection: 'column', gap: '.5rem', flex: 1 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '6px' }}>
+                <span style={{ fontFamily: 'Newsreader,Georgia,serif', fontSize: '1rem', fontWeight: 400, color: 'var(--p)', lineHeight: 1.2 }}>
                   {dish.name}
                 </span>
-                <span style={{ fontFamily:'Newsreader,Georgia,serif', fontSize:'1rem', fontWeight:400, color:'var(--p)', whiteSpace:'nowrap', flexShrink:0 }}>
+                <span style={{ fontFamily: 'Newsreader,Georgia,serif', fontSize: '1.05rem', fontWeight: 500, color: 'var(--s)', whiteSpace: 'nowrap', flexShrink: 0 }}>
                   ${dish.price % 1 === 0 ? dish.price : dish.price.toFixed(2)}
                 </span>
               </div>
-              <p style={{ fontSize:'.78rem', fontWeight:300, lineHeight:1.55, color:'var(--tm)', flex:1 }}>
+              <p style={{ fontSize: '.78rem', fontWeight: 300, lineHeight: 1.55, color: 'var(--tm)', flex: 1 }}>
                 {dish.description}
               </p>
 
               {/* Chips */}
               {(dish.flags.vegetarian || dish.flags.glutenFree || dish.flags.spicy) && (
-                <div style={{ display:'flex', flexWrap:'wrap', gap:'4px' }}>
-                  {dish.flags.vegetarian && <span style={{ padding:'2px 8px', background:'#dcfce7', color:'#166534', fontSize:'.6rem', fontWeight:600, letterSpacing:'.06em', textTransform:'uppercase', borderRadius:'9999px' }}>Vegetariano</span>}
-                  {dish.flags.glutenFree  && <span style={{ padding:'2px 8px', background:'#e0f2fe', color:'#0c4a6e', fontSize:'.6rem', fontWeight:600, letterSpacing:'.06em', textTransform:'uppercase', borderRadius:'9999px' }}>Sin Gluten</span>}
-                  {dish.flags.spicy       && <span style={{ padding:'2px 8px', background:'#ffe8d6', color:'#7c2d12', fontSize:'.6rem', fontWeight:600, letterSpacing:'.06em', textTransform:'uppercase', borderRadius:'9999px' }}>Picante</span>}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                  {dish.flags.vegetarian && <span style={{ padding: '2px 8px', background: '#dcfce7', color: '#166534', fontSize: '.6rem', fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', borderRadius: '9999px' }}>Vegetariano</span>}
+                  {dish.flags.glutenFree && <span style={{ padding: '2px 8px', background: '#e0f2fe', color: '#0c4a6e', fontSize: '.6rem', fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', borderRadius: '9999px' }}>Sin Gluten</span>}
+                  {dish.flags.spicy && <span style={{ padding: '2px 8px', background: '#ffe8d6', color: '#7c2d12', fontSize: '.6rem', fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', borderRadius: '9999px' }}>Picante</span>}
                 </div>
               )}
 
               {/* Cart controls */}
-              <div style={{ marginTop:'auto', paddingTop:'8px' }}>
+              <div style={{ marginTop: 'auto', paddingTop: '8px' }}>
                 {cartItem ? (
-                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                    <span style={{ fontSize:'.78rem', color:'var(--tl)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '.78rem', color: 'var(--tl)' }}>
                       ${(dish.price * cartItem.qty).toFixed(2)}
                     </span>
-                    <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <button
                         onClick={() => onRemove(dish.id)}
+                        aria-label={`Quitar ${dish.name}`}
                         style={{
-                          width:'30px', height:'30px', borderRadius:'50%', border:'none',
-                          background:'var(--l3)', cursor:'pointer',
-                          fontWeight:700, fontSize:'1rem', color:'var(--p)',
-                          display:'flex', alignItems:'center', justifyContent:'center',
+                          width: '36px', height: '36px', borderRadius: '50%', border: 'none',
+                          background: 'var(--l3)', cursor: 'pointer',
+                          fontWeight: 700, fontSize: '1rem', color: 'var(--p)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}
                       >−</button>
-                      <span style={{ fontWeight:600, fontSize:'.9rem', minWidth:'18px', textAlign:'center' }}>{cartItem.qty}</span>
+                      <span style={{ fontWeight: 600, fontSize: '.9rem', minWidth: '18px', textAlign: 'center' }}>{cartItem.qty}</span>
                       <button
                         onClick={() => onAdd(dish)}
+                        aria-label={`Agregar ${dish.name}`}
                         style={{
-                          width:'30px', height:'30px', borderRadius:'50%', border:'none',
-                          background:'var(--p)', cursor:'pointer',
-                          fontWeight:700, fontSize:'1rem', color:'#fff',
-                          display:'flex', alignItems:'center', justifyContent:'center',
+                          width: '36px', height: '36px', borderRadius: '50%', border: 'none',
+                          background: 'var(--p)', cursor: 'pointer',
+                          fontWeight: 700, fontSize: '1rem', color: '#fff',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}
                       >+</button>
                     </div>
@@ -431,10 +573,10 @@ function DishGrid({ dishes, cart, onAdd, onRemove }: {
                   <button
                     onClick={() => onAdd(dish)}
                     style={{
-                      width:'100%', background:'var(--p)', color:'#fff', border:'none',
-                      borderRadius:'9999px', padding:'9px 16px', cursor:'pointer',
-                      fontFamily:'Manrope,sans-serif', fontWeight:600, fontSize:'.78rem',
-                      transition:'opacity .15s',
+                      width: '100%', background: 'var(--p)', color: '#fff', border: 'none',
+                      borderRadius: '9999px', padding: '12px 16px', cursor: 'pointer',
+                      fontFamily: 'Manrope,sans-serif', fontWeight: 600, fontSize: '.82rem',
+                      transition: 'opacity .15s', minHeight: '44px',
                     }}
                   >
                     + Agregar
@@ -465,6 +607,23 @@ function CartIcon() {
     <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
         d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+    </svg>
+  )
+}
+
+function FilterIcon() {
+  return (
+    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ marginRight: '4px', verticalAlign: 'middle' }}>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+    </svg>
+  )
+}
+
+function WhatsAppIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
     </svg>
   )
 }

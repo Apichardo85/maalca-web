@@ -8,7 +8,7 @@ import { MOCK_DISHES, HOURS } from '../_data'
 
 export const metadata: Metadata = {
   title: 'Menú | The Little Dominican · Elmira, NY',
-  description: 'Cocina dominicana auténtica — Yaroa, Pica Pollo, Chicharrón, Churrasco, Camarones y más. Ordena online o llama al (607) 215-0990.',
+  description: 'Cocina dominicana auténtica — Yaroa, Pica Pollo, Chicharrón, Churrasco, Camarones y más. Ordena online o llama al (607) 857-4226.',
 }
 
 const MENU_CSS = `
@@ -44,7 +44,7 @@ const MENU_CSS = `
   background:rgba(248,249,250,.90);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-bottom:1px solid rgba(0,25,60,.06);
-  height:60px;padding:0 clamp(1.5rem,5vw,5rem);
+  height:60px;padding:0 clamp(1rem,3vw,5rem);
   display:flex;align-items:center;justify-content:space-between;
 }
 .tld-nav-brand {
@@ -55,9 +55,10 @@ const MENU_CSS = `
   display:flex;align-items:center;gap:2px;
 }
 .tld-nav-link {
-  padding:7px 13px;border-radius:9999px;
+  padding:8px 14px;border-radius:9999px;
   font-size:.78rem;font-weight:500;color:var(--tm);
   text-decoration:none;transition:background .15s,color .15s;
+  min-height:36px;display:inline-flex;align-items:center;
 }
 .tld-nav-link:hover { background:var(--l2);color:var(--p); }
 
@@ -68,8 +69,36 @@ const MENU_CSS = `
   display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem;
 }
 
+/* ── Mobile Bottom Nav ──────────────────────────────────── */
+.tld-bottom-nav {
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:rgba(248,249,250,.95);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-top:1px solid rgba(0,25,60,.08);
+  padding:6px 0 calc(6px + env(safe-area-inset-bottom, 0px));
+}
+.tld-bottom-nav-inner {
+  display:flex;justify-content:space-around;align-items:center;
+  max-width:480px;margin:0 auto;
+}
+.tld-bottom-link {
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:6px 12px;border-radius:12px;
+  font-size:.62rem;font-weight:600;color:var(--tm);
+  text-decoration:none;transition:background .15s,color .15s;
+  letter-spacing:.02em;
+  min-width:56px;min-height:44px;justify-content:center;
+}
+.tld-bottom-link:hover,.tld-bottom-link:active { background:var(--l2);color:var(--p); }
+.tld-bottom-link svg { width:20px;height:20px; }
+
+/* Mobile: add padding-bottom for bottom nav, hide desktop nav links */
 @media(max-width:640px) {
   .tld-nav-links { display:none; }
+  .tld-bottom-nav { display:block; }
+  .tld { padding-bottom:72px; }
+  .tld-info-strip { flex-direction:column; }
 }
 `
 
@@ -78,7 +107,7 @@ export default function MenuPage() {
     <>
       <style>{MENU_CSS}</style>
 
-      <div className="tld" style={{ minHeight:'100vh', paddingTop:'60px' }}>
+      <div className="tld" style={{ minHeight: '100vh', paddingTop: '60px' }}>
 
         {/* ── FIXED NAV ─────────────────────────────────────────── */}
         <nav className="tld-nav">
@@ -87,10 +116,10 @@ export default function MenuPage() {
           </a>
           <div className="tld-nav-links">
             {[
-              { href: '/the-little-dominican',          label: 'Inicio'   },
-              { href: '/the-little-dominican/gallery',  label: 'Galería'  },
+              { href: '/the-little-dominican', label: 'Inicio' },
+              { href: '/the-little-dominican/gallery', label: 'Galería' },
               { href: '/the-little-dominican#reservar', label: 'Reservar' },
-              { href: 'tel:6072150990',                 label: '📞 (607) 215-0990' },
+              { href: 'tel:6078574226', label: '📞 (607) 857-4226' },
             ].map(item => (
               <a key={item.label} href={item.href} className="tld-nav-link">{item.label}</a>
             ))}
@@ -101,16 +130,16 @@ export default function MenuPage() {
         <MenuPageClient dishes={MOCK_DISHES} />
 
         {/* ── MINI INFO STRIP ───────────────────────────────────── */}
-        <section style={{ background:'var(--l1)', padding:'2.5rem clamp(1.5rem,5vw,5rem)', borderTop:'1px solid var(--l3)' }}>
-          <div style={{ maxWidth:'1280px', margin:'0 auto', display:'flex', flexWrap:'wrap', gap:'2rem', justifyContent:'space-between', alignItems:'start' }}>
+        <section style={{ background: 'var(--l1)', padding: '2.5rem clamp(1.5rem,5vw,5rem)', borderTop: '1px solid var(--l3)' }}>
+          <div className="tld-info-strip" style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: '2rem', justifyContent: 'space-between', alignItems: 'start' }}>
 
             <div>
-              <div className="tld-label" style={{ marginBottom:'.5rem' }}>Horario</div>
-              <div style={{ display:'flex', flexDirection:'column', gap:'4px' }}>
+              <div className="tld-label" style={{ marginBottom: '.5rem' }}>Horario</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {HOURS.map(h => (
-                  <div key={h.day} style={{ display:'flex', gap:'1.5rem', fontSize:'.82rem' }}>
-                    <span style={{ color:'var(--tm)', fontWeight:300, minWidth:'90px' }}>{h.day}</span>
-                    <span style={{ color: h.closed ? 'var(--s)' : 'var(--p)', fontWeight:500 }}>
+                  <div key={h.day} style={{ display: 'flex', gap: '1.5rem', fontSize: '.82rem' }}>
+                    <span style={{ color: 'var(--tm)', fontWeight: 300, minWidth: '90px' }}>{h.day}</span>
+                    <span style={{ color: h.closed ? 'var(--s)' : 'var(--p)', fontWeight: 500 }}>
                       {h.closed ? 'Cerrado' : `${h.open} – ${h.close}`}
                     </span>
                   </div>
@@ -119,18 +148,18 @@ export default function MenuPage() {
             </div>
 
             <div>
-              <div className="tld-label" style={{ marginBottom:'.5rem' }}>Contacto</div>
-              <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
-                <a href="tel:6072150990" style={{ fontSize:'.88rem', color:'var(--p)', textDecoration:'none', fontWeight:500 }}>📞 (607) 215-0990</a>
-                <p style={{ fontSize:'.82rem', color:'var(--tm)', fontWeight:300 }}>📍 315 E Water St, Elmira, NY 14901</p>
+              <div className="tld-label" style={{ marginBottom: '.5rem' }}>Contacto</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <a href="tel:6078574226" style={{ fontSize: '.88rem', color: 'var(--p)', textDecoration: 'none', fontWeight: 500 }}>📞 (607) 857-4226</a>
+                <p style={{ fontSize: '.82rem', color: 'var(--tm)', fontWeight: 300 }}>📍 315 E Water St, Elmira, NY 14901</p>
               </div>
             </div>
 
             <div>
-              <div className="tld-label" style={{ marginBottom:'.5rem' }}>Servicios</div>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:'6px' }}>
-                {['Dine-in','Pickup','Delivery','Catering','Música en vivo'].map(s => (
-                  <span key={s} style={{ padding:'4px 12px', background:'var(--l2)', borderRadius:'9999px', fontSize:'.76rem', fontWeight:500, color:'var(--tm)' }}>
+              <div className="tld-label" style={{ marginBottom: '.5rem' }}>Servicios</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {['Dine-in', 'Pickup', 'Delivery', 'Catering'].map(s => (
+                  <span key={s} style={{ padding: '4px 12px', background: 'var(--l2)', borderRadius: '9999px', fontSize: '.76rem', fontWeight: 500, color: 'var(--tm)' }}>
                     {s}
                   </span>
                 ))}
@@ -141,12 +170,34 @@ export default function MenuPage() {
 
         {/* ── FOOTER ───────────────────────────────────────────────── */}
         <footer className="tld-menu-footer">
-          <p style={{ fontSize:'.78rem' }}>© 2026 The Little Dominican — Elmira, NY</p>
-          <p style={{ fontSize:'.78rem' }}>
+          <p style={{ fontSize: '.78rem' }}>© 2026 The Little Dominican — Elmira, NY</p>
+          <p style={{ fontSize: '.78rem' }}>
             Powered by{' '}
-            <Link href="/" style={{ color:'rgba(255,255,255,.8)', fontWeight:600, textDecoration:'none' }}>MaalCa Ecosistema</Link>
+            <Link href="/" style={{ color: 'rgba(255,255,255,.8)', fontWeight: 600, textDecoration: 'none' }}>MaalCa Ecosistema</Link>
           </p>
         </footer>
+
+        {/* ── MOBILE BOTTOM NAV ────────────────────────────────────── */}
+        <nav className="tld-bottom-nav" aria-label="Navegación móvil">
+          <div className="tld-bottom-nav-inner">
+            <a href="/the-little-dominican" className="tld-bottom-link">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z" /></svg>
+              Inicio
+            </a>
+            <a href="/the-little-dominican/gallery" className="tld-bottom-link">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              Galería
+            </a>
+            <a href="tel:6078574226" className="tld-bottom-link" style={{ color: 'var(--p)' }}>
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+              Llamar
+            </a>
+            <a href="/the-little-dominican#reservar" className="tld-bottom-link">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              Reservar
+            </a>
+          </div>
+        </nav>
       </div>
     </>
   )
