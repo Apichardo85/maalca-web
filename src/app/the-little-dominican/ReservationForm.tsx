@@ -5,11 +5,11 @@ export default function ReservationForm({ phone }: { phone: string }) {
     <form style={{ display:'flex', flexDirection:'column', gap:'1rem' }}
       onSubmit={e => e.preventDefault()}>
 
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px' }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[10px]">
         <FormField label="Nombre"   placeholder="Tu nombre"      type="text" />
         <FormField label="Teléfono" placeholder="(845) 000-0000" type="tel"  />
       </div>
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px' }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[10px]">
         <FormField label="Fecha" type="date" />
         <FormField label="Hora"  type="time" />
       </div>
