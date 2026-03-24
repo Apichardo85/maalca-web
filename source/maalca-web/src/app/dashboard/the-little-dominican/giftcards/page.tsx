@@ -42,7 +42,7 @@ export default function GiftCards() {
     <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
       {/* ── HERO BENTO ── */}
-      <section style={{ display: 'grid', gridTemplateColumns: '8fr 4fr', gap: '1.5rem' }}>
+      <section className="grid grid-cols-1 lg:grid-cols-[8fr_4fr] gap-[1.5rem]">
 
         {/* Main balance card */}
         <div style={{
@@ -152,7 +152,8 @@ export default function GiftCards() {
         </div>
 
         {/* Table */}
-        <div style={{ background: '#fff', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,.05)' }}>
+        <div style={{ overflowX: 'auto' }}>
+        <div style={{ background: '#fff', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,.05)', minWidth: '680px' }}>
 
           {/* Header row */}
           <div style={{
@@ -266,10 +267,11 @@ export default function GiftCards() {
             </div>
           </div>
         </div>
+        </div>
       </section>
 
       {/* ── BOTTOM EDITORIAL ── */}
-      <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', paddingBottom: '2rem' }}>
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-[1.5rem]" style={{ paddingBottom: '2rem' }}>
 
         {/* Incentive campaigns */}
         <div style={{

@@ -105,11 +105,11 @@ export default function LiveOrders() {
       </div>
 
       {/* ── MAIN GRID ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem', alignItems: 'start' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-[2rem] items-start">
 
         {/* Table grid */}
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[1rem]">
             {TABLES.map(table => {
               const s = LEGEND.find(l => l.status === table.status)!
               const isSelected = selected === table.id
@@ -292,7 +292,7 @@ export default function LiveOrders() {
       </div>
 
       {/* ── BOTTOM STATS ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem' }}>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-[1rem]">
         {[
           { label: 'Ventas del Turno',   value: '$634.25', icon: 'attach_money',  color: '#15803d' },
           { label: 'Mesas Ocupadas',     value: `${counts.occupied + counts.attention + counts.bill}/12`, icon: 'table_restaurant', color: '#00193c' },

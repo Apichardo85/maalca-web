@@ -99,7 +99,7 @@ export default function TLDDashboard() {
       </section>
 
       {/* ── MAIN GRID ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-[2rem]">
 
         {/* Left */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -115,7 +115,7 @@ export default function TLDDashboard() {
           </div>
 
           {/* Metrics */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-[1rem]">
 
             {/* Kitchen Velocity */}
             <div style={{ padding: '1.5rem', background: '#edeeef', borderRadius: '12px' }}>

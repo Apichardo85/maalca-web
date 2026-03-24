@@ -79,11 +79,11 @@ export default function InventoryManagement() {
     <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
       {/* ── BENTO STATS ── */}
-      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1.25rem' }}>
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[1.25rem]">
 
         {/* Total Valuation */}
-        <div style={{
-          gridColumn: 'span 2', padding: '2rem', borderRadius: '12px',
+        <div className="col-span-1 sm:col-span-2" style={{
+          padding: '2rem', borderRadius: '12px',
           background: '#002d62', position: 'relative', overflow: 'hidden',
         }}>
           <p style={{ fontSize: '.62rem', fontWeight: 600, letterSpacing: '.2em', textTransform: 'uppercase', color: 'rgba(119,150,209,.9)', marginBottom: '8px' }}>
@@ -150,7 +150,7 @@ export default function InventoryManagement() {
               </button>
             ))}
           </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <div style={{ position: 'relative' }}>
               <span className="ms ms-sm" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }}>search</span>
               <input
@@ -159,7 +159,7 @@ export default function InventoryManagement() {
                 style={{
                   background: '#f3f4f5', border: 'none', borderRadius: '9999px',
                   padding: '8px 14px 8px 32px', fontFamily: 'Manrope,sans-serif',
-                  fontSize: '.76rem', color: '#374151', outline: 'none', width: '180px',
+                  fontSize: '.76rem', color: '#374151', outline: 'none', width: '100%', maxWidth: '180px',
                 }}
               />
             </div>
@@ -168,13 +168,15 @@ export default function InventoryManagement() {
               background: '#fff', fontSize: '.72rem', fontWeight: 600, color: '#374151', cursor: 'pointer',
               display: 'flex', alignItems: 'center', gap: '5px',
             }}>
-              <span className="ms ms-sm">download</span> Exportar
+              <span className="ms ms-sm">download</span>
+              <span className="hidden sm:inline">Exportar</span>
             </button>
           </div>
         </div>
 
         {/* Table */}
-        <div style={{ background: '#fff', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,.05)' }}>
+        <div style={{ overflowX: 'auto' }}>
+        <div style={{ background: '#fff', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,.05)', minWidth: '580px' }}>
           {/* Header */}
           <div style={{
             display: 'grid', gridTemplateColumns: '3fr 1.2fr 1.2fr 1.2fr 1.2fr',
@@ -234,10 +236,11 @@ export default function InventoryManagement() {
             </div>
           )}
         </div>
+        </div>
       </section>
 
       {/* ── SECONDARY CARDS ── */}
-      <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-[1.5rem]">
 
         {/* Incoming Shipments */}
         <div style={{ background: '#f3f4f5', borderRadius: '14px', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -277,8 +280,9 @@ export default function InventoryManagement() {
             padding: '10px 28px', borderRadius: '9999px', border: '1px solid #e4e5e7',
             background: '#fff', color: '#00193c', fontSize: '.74rem', fontWeight: 700,
             letterSpacing: '.08em', textTransform: 'uppercase', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: '6px',
           }}>
-            Activar Cámara
+            <span className="ms ms-sm">photo_camera</span> Activar Cámara
           </button>
         </div>
       </section>
