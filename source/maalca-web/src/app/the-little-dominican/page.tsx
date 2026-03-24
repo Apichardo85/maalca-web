@@ -672,7 +672,7 @@ export default function TheLittleDominicanPage() {
 
         {/* ── RESERVATION + INFO ───────────────────────────────────── */}
         <section id="reservar" style={{ background:'var(--bg)', padding:'clamp(4rem,7vw,7rem) clamp(1.5rem,5vw,5rem)' }}>
-          <div style={{ maxWidth:'1280px', margin:'0 auto', display:'grid', gridTemplateColumns:'1fr 1fr', gap:'clamp(2rem,5vw,5rem)', alignItems:'start' }}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 items-start" style={{ maxWidth:'1280px', margin:'0 auto', gap:'clamp(2rem,5vw,5rem)' }}>
 
             {/* Info + Hours */}
             <div>
