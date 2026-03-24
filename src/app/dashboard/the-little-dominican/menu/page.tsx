@@ -156,11 +156,11 @@ export default function MenuManagement() {
       </div>
 
       {/* ── MAIN GRID ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem', alignItems: 'start' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-[2rem] items-start">
 
         {/* Menu items grid */}
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-[1rem]">
             {filtered.map(item => (
               <div key={item.id} style={{
                 background: '#fff', borderRadius: '14px', overflow: 'hidden',

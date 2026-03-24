@@ -31,7 +31,7 @@ export default function Invoicing() {
     <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
       {/* ── HERO BENTO ── */}
-      <section style={{ display: 'grid', gridTemplateColumns: '8fr 4fr', gap: '1.5rem' }}>
+      <section className="grid grid-cols-1 lg:grid-cols-[8fr_4fr] gap-[1.5rem]">
 
         {/* Revenue card */}
         <div style={{ background: '#f3f4f5', borderRadius: '14px', padding: '2.5rem', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '280px' }}>
@@ -133,7 +133,8 @@ export default function Invoicing() {
           </div>
         </div>
 
-        <div style={{ background: '#fff', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,.05)' }}>
+        <div style={{ overflowX: 'auto' }}>
+        <div style={{ background: '#fff', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,.05)', minWidth: '700px' }}>
           {/* Header */}
           <div style={{
             display: 'grid', gridTemplateColumns: '1fr 2.5fr 1.2fr 1fr 1fr 1.2fr auto',
@@ -216,10 +217,11 @@ export default function Invoicing() {
             </div>
           </div>
         </div>
+        </div>
       </section>
 
       {/* ── EDITORIAL BREAK ── */}
-      <section style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center', padding: '2rem 0 4rem' }}>
+      <section className="grid grid-cols-1 md:grid-cols-2 items-center gap-[4rem]" style={{ padding: '2rem 0 4rem' }}>
         <div style={{ position: 'relative' }}>
           <div style={{ borderRadius: '14px', overflow: 'hidden', aspectRatio: '4/3', position: 'relative', zIndex: 1 }}>
             <img

@@ -106,7 +106,7 @@ export default function CustomerDirectory() {
       </div>
 
       {/* ── MAIN GRID ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem', alignItems: 'start' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-[2rem] items-start">
 
         {/* Left — CRM table */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -141,7 +141,8 @@ export default function CustomerDirectory() {
           </div>
 
           {/* Table */}
-          <div style={{ background: '#fff', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,.05)' }}>
+          <div style={{ overflowX: 'auto' }}>
+          <div style={{ background: '#fff', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,.05)', minWidth: '600px' }}>
             {/* Header row */}
             <div style={{
               display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr',
@@ -267,6 +268,7 @@ export default function CustomerDirectory() {
                 </button>
               </div>
             </div>
+          </div>
           </div>
         </div>
 
