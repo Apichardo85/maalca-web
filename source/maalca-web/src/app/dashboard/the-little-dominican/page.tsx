@@ -38,11 +38,11 @@ export default function TLDDashboard() {
     <div style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '2rem', flex: 1 }}>
 
       {/* ── BENTO STATS ── */}
-      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1.25rem' }}>
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[1.25rem]">
 
         {/* Gross Revenue */}
-        <div style={{
-          gridColumn: 'span 2', padding: '2rem', borderRadius: '12px',
+        <div className="col-span-1 sm:col-span-2" style={{
+          padding: '2rem', borderRadius: '12px',
           background: '#fff', position: 'relative', overflow: 'hidden',
           boxShadow: '0 1px 4px rgba(0,0,0,.04)',
         }}>

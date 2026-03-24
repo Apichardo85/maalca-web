@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
@@ -44,9 +45,16 @@ const TLD_CSS = `
   /* Table row hover */
   .tld-tr:hover td { background: rgba(0,25,60,.025); }
 
+  .tld-db-hamburger {
+    display: none; background: none; border: none; cursor: pointer;
+    padding: 4px 8px; font-size: 1.3rem; color: #00193c; line-height: 1;
+    align-items: center;
+  }
   @media(max-width: 768px) {
-    .tld-sidebar { transform: translateX(-100%); }
+    .tld-sidebar { transform: translateX(-100%); transition: transform .25s ease; }
+    .tld-sidebar-open { transform: translateX(0); }
     .tld-main    { margin-left: 0 !important; }
+    .tld-db-hamburger { display: flex; }
   }
 `
 
@@ -83,6 +91,7 @@ const PAGE_TITLES: Record<string, { title: string; live?: boolean }> = {
 export default function TLDDashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const page = PAGE_TITLES[pathname] ?? { title: 'Admin Suite' }
+  const [navOpen, setNavOpen] = useState(false)
 
   return (
     <>
@@ -90,8 +99,20 @@ export default function TLDDashboardLayout({ children }: { children: ReactNode }
 
       <div className="tld-db" style={{ display: 'flex', minHeight: '100vh', background: '#f8f9fa' }}>
 
+        {/* ── SIDEBAR BACKDROP (mobile) ───────────────────────────── */}
+        {navOpen && (
+          <div
+            onClick={() => setNavOpen(false)}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 39,
+              background: 'rgba(0,15,35,.35)',
+              backdropFilter: 'blur(2px)',
+            }}
+          />
+        )}
+
         {/* ── SIDEBAR ─────────────────────────────────────────────── */}
-        <aside className="tld-sidebar" style={{
+        <aside className={`tld-sidebar${navOpen ? ' tld-sidebar-open' : ''}`} style={{
           position: 'fixed', left: 0, top: 0, height: '100%', zIndex: 40,
           width: '280px', background: '#f9fafb',
           borderRight: '1px solid #f0f0f0',
@@ -117,6 +138,7 @@ export default function TLDDashboardLayout({ children }: { children: ReactNode }
                 <Link
                   key={item.label}
                   href={item.href}
+                  onClick={() => setNavOpen(false)}
                   className={`tld-nav-item ${isActive ? 'tld-nav-active' : ''}`}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '12px',
@@ -161,6 +183,9 @@ export default function TLDDashboardLayout({ children }: { children: ReactNode }
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <button className="tld-db-hamburger" onClick={() => setNavOpen(o => !o)} aria-label="Abrir menú">
+                {navOpen ? '✕' : '☰'}
+              </button>
               <span className="tld-serif" style={{ fontSize: '1.1rem', fontWeight: 700, color: '#00193c', fontStyle: 'italic' }}>
                 {page.title}
               </span>
@@ -181,7 +206,7 @@ export default function TLDDashboardLayout({ children }: { children: ReactNode }
                     padding: '7px 16px 7px 34px',
                     fontFamily: 'Manrope,sans-serif', fontSize: '.7rem',
                     fontWeight: 600, letterSpacing: '.1em', color: '#374151',
-                    outline: 'none', width: '200px',
+                    outline: 'none', width: '100%', maxWidth: '200px',
                   }}
                 />
               </div>
