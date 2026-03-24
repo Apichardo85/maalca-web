@@ -6,7 +6,7 @@ import QRCode from 'qrcode'
 // ─── Config ──────────────────────────────────────────────────────────────────
 
 const BRAND = { name: 'The Little Dominican', primary: '#00193c', accent: '#e12531' }
-const BASE_URL = 'https://thelittledominican.com'
+const BASE_URL = 'https://maalca.com/the-little-dominican'
 const TABLE_COUNT = 12
 
 type QRTab = 'mesas' | 'redes' | 'impresion'
@@ -33,7 +33,7 @@ const SOCIAL_QRS: QRItem[] = [
   {
     id: 'main-menu',
     label: 'Menú Digital',
-    sublabel: 'thelittledominican.com/menu',
+    sublabel: 'maalca.com/the-little-dominican/menu',
     url: `${BASE_URL}/menu`,
     icon: '📋',
   },
