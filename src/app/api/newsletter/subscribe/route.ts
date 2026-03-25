@@ -95,6 +95,16 @@ export async function POST(request: NextRequest) {
     //   });
     // }
 
+    // Forward to n8n for email automation (non-blocking)
+    import('@/lib/services/n8n-service').then(({ n8nService }) => {
+      n8nService.sendNewsletterSubscription('maalca', {
+        email: normalizedEmail,
+        source: 'editorial',
+      }).catch((err) => {
+        console.error('[Newsletter] n8n forwarding failed:', err);
+      });
+    });
+
     // Success response
     return NextResponse.json(
       {

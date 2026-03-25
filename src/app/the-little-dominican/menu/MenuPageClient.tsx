@@ -124,6 +124,28 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
     return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
   }
 
+  // Send order to n8n (fire-and-forget alongside WhatsApp)
+  const sendOrderToN8n = () => {
+    fetch('/api/orders/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tenantId: 'the-little-dominican',
+        items: cart.map(i => ({
+          id: i.dish.id,
+          name: i.dish.name,
+          quantity: i.qty,
+          unitPrice: i.dish.price,
+          subtotal: i.dish.price * i.qty,
+        })),
+        subtotal: cartTotal,
+        tax,
+        total: totalWithTax,
+        whatsappNumber: '16078574226',
+      }),
+    }).catch(() => { /* non-blocking */ })
+  }
+
   // Close cart on Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setCartOpen(false) }
@@ -443,6 +465,7 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
                 href={buildWhatsAppUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => sendOrderToN8n()}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                   width: '100%', background: '#25D366', color: '#fff', border: 'none',
