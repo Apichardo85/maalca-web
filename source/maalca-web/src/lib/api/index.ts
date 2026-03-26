@@ -6,6 +6,7 @@
 // Core API client
 export {
   apiClient,
+  affiliateUrl,
   createApiClient,
   createTenantApiClient,
   ApiClientError,

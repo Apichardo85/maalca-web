@@ -10,6 +10,7 @@ export async function POST() {
 
   response.cookies.set('auth_token', '', cookieOpts)
   response.cookies.set('refresh_token', '', cookieOpts)
+  response.cookies.set('affiliate_guid', '', cookieOpts)
   response.cookies.set('user_role', '', cookieOpts)
 
   return response
