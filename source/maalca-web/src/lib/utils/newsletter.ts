@@ -1,112 +1,84 @@
 // Newsletter configuration and utilities
 
 export interface NewsletterConfig {
-  formspreeId?: string;
-  source: string;
-  successMessage?: string;
-  errorMessage?: string;
+  source: string
+  successMessage: string
+  errorMessage?: string
 }
 
 export const defaultNewsletterConfig: NewsletterConfig = {
-  source: 'MaalCa Newsletter',
+  source: 'ecosystem',
   successMessage: '¡Gracias! Te has suscrito exitosamente.',
-  errorMessage: 'Hubo un error. Por favor intenta de nuevo.'
-};
+  errorMessage: 'Hubo un error. Por favor intenta de nuevo.',
+}
 
 // Project-specific configurations
 export const newsletterConfigs = {
   ciriwhispers: {
-    source: 'CiriWhispers Newsletter',
+    source: 'ciriwhispers',
     successMessage: '¡Gracias! Te has suscrito a las cartas de CiriWhispers.',
-    formspreeId: 'xwperrry' // Replace with actual Formspree form ID
   },
   editorial: {
-    source: 'Editorial MaalCa',
+    source: 'editorial',
     successMessage: '¡Gracias! Recibirás nuestras últimas publicaciones.',
-    formspreeId: 'xwperrry' // Replace with actual Formspree form ID
   },
   ecosystem: {
-    source: 'MaalCa Ecosystem',
+    source: 'ecosystem',
     successMessage: '¡Gracias! Te mantendremos al día sobre nuestros proyectos.',
-    formspreeId: 'xwperrry' // Replace with actual Formspree form ID
-  }
-} as const;
+  },
+  properties: {
+    source: 'properties',
+    successMessage: '¡Gracias! Te enviaremos las mejores oportunidades.',
+  },
+  'dr-pichardo': {
+    source: 'dr-pichardo',
+    successMessage: '¡Suscripción confirmada! Recibirás actualizaciones.',
+  },
+} as const
 
-export type NewsletterSource = keyof typeof newsletterConfigs;
+export type NewsletterSource = keyof typeof newsletterConfigs
 
+/**
+ * Submit newsletter subscription to our API route.
+ * Works for all sources — Resend handles welcome emails server-side.
+ */
 export async function submitNewsletter(
-  email: string, 
+  email: string,
   config: NewsletterConfig = defaultNewsletterConfig
 ): Promise<{ success: boolean; message: string }> {
-  
-  // Validate email
   if (!email || !email.includes('@')) {
-    return {
-      success: false,
-      message: 'Por favor ingresa un email válido'
-    };
+    return { success: false, message: 'Por favor ingresa un email válido' }
   }
 
   try {
-    if (config.formspreeId) {
-      // Real Formspree submission
-      const response = await fetch(`https://formspree.io/f/${config.formspreeId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          source: config.source,
-          timestamp: new Date().toISOString()
-        }),
-      });
+    const response = await fetch('/api/newsletter/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, source: config.source }),
+    })
 
-      if (response.ok) {
-        return {
-          success: true,
-          message: config.successMessage || defaultNewsletterConfig.successMessage!
-        };
-      } else {
-        throw new Error('Formspree submission failed');
-      }
-    } else {
-      // Demo mode - simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Simulate 95% success rate
-      if (Math.random() > 0.05) {
-        // Store locally for demo
-        const subscribers = JSON.parse(localStorage.getItem('newsletter-subscribers') || '[]');
-        subscribers.push({
-          email,
-          source: config.source,
-          timestamp: new Date().toISOString()
-        });
-        localStorage.setItem('newsletter-subscribers', JSON.stringify(subscribers));
-        
-        return {
-          success: true,
-          message: config.successMessage || defaultNewsletterConfig.successMessage!
-        };
-      } else {
-        throw new Error('Simulated error');
+    const data = await response.json()
+
+    if (response.ok) {
+      return {
+        success: true,
+        message: config.successMessage || defaultNewsletterConfig.successMessage,
       }
     }
-  } catch (error) {
+
+    // 409 = already subscribed
+    if (response.status === 409) {
+      return { success: false, message: data.error || 'Este email ya está suscrito.' }
+    }
+
     return {
       success: false,
-      message: config.errorMessage || defaultNewsletterConfig.errorMessage!
-    };
+      message: data.error || config.errorMessage || defaultNewsletterConfig.errorMessage!,
+    }
+  } catch {
+    return {
+      success: false,
+      message: config.errorMessage || defaultNewsletterConfig.errorMessage!,
+    }
   }
-}
-
-// Utility to get stored subscribers (demo mode only)
-export function getStoredSubscribers(): Array<{
-  email: string;
-  source: string;
-  timestamp: string;
-}> {
-  if (typeof window === 'undefined') return [];
-  return JSON.parse(localStorage.getItem('newsletter-subscribers') || '[]');
 }
