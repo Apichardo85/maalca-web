@@ -33,7 +33,7 @@ export default function DigitalReader({
   const [showControls, setShowControls] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const renditionRef = useRef<any>(null);
+  const renditionRef = useRef<unknown>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout>();
   const { trackEvent } = useAnalytics("ciriwhispers");
 
@@ -65,7 +65,7 @@ export default function DigitalReader({
     localStorage.setItem(`reader_progress_${bookId}`, loc);
   };
 
-  const getRendition = (rendition: any) => {
+  const getRendition = (rendition: Record<string, unknown> & { themes: { register: (name: string, styles: Record<string, Record<string, string>>) => void; select: (name: string) => void } }) => {
     renditionRef.current = rendition;
     rendition.themes.register("ciri-light", {
       body: { background: "#FAFAFA", color: "#2D3748", "font-family": "Georgia, serif", "line-height": "1.6" },

@@ -119,7 +119,7 @@ export default function PropertyMap({
   const [hoveredProperty, setHoveredProperty] = useState<string | null>(null);
   const [popupInfo, setPopupInfo] = useState<Property | null>(null);
   const [mapStyle, setMapStyle] = useState(style);
-  const mapRef = useRef<any>(null);
+  const mapRef = useRef<unknown>(null);
 
   // Filter properties that have coordinates
   const mappableProperties = useMemo(() => {

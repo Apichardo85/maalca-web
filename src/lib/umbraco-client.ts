@@ -173,7 +173,7 @@ export class UmbracoClient {
   /**
    * Mapea datos de Umbraco al formato Property
    */
-  private mapUmbracoProperty(umbracoData: any): Property {
+  private mapUmbracoProperty(umbracoData: Record<string, unknown> & { properties?: Record<string, unknown>; name?: string; route?: { path?: string } }): Property {
     const properties = umbracoData.properties || {};
     
     return {
@@ -197,11 +197,11 @@ export class UmbracoClient {
     };
   }
 
-  private mapUmbracoProperties(umbracoData: any[]): Property[] {
+  private mapUmbracoProperties(umbracoData: Array<Record<string, unknown> & { properties?: Record<string, unknown>; name?: string; route?: { path?: string } }>): Property[] {
     return umbracoData.map(item => this.mapUmbracoProperty(item));
   }
 
-  private parseAmenities(amenitiesData: any): string[] {
+  private parseAmenities(amenitiesData: unknown): string[] {
     if (!amenitiesData) return [];
     if (Array.isArray(amenitiesData)) return amenitiesData;
     if (typeof amenitiesData === 'string') {
@@ -210,7 +210,7 @@ export class UmbracoClient {
     return [];
   }
 
-  private parseGallery(galleryData: any): string[] {
+  private parseGallery(galleryData: unknown): string[] {
     if (!galleryData) return [];
     if (Array.isArray(galleryData)) {
       return galleryData.map(item => this.getMediaUrl(item.url || item.mediaUrl || ''));
@@ -218,7 +218,7 @@ export class UmbracoClient {
     return [];
   }
 
-  private parseCoordinates(coordsData: any): { lat: number; lng: number } | null {
+  private parseCoordinates(coordsData: unknown): { lat: number; lng: number } | null {
     if (!coordsData || typeof coordsData !== 'string') return null;
     
     const parts = coordsData.split(',').map(p => parseFloat(p.trim()));

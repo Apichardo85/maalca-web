@@ -854,7 +854,7 @@ export default function VerdePrivePage() {
               © 2024 Verde Privé - Parte del ecosistema MaalCa
             </p>
             <p className="text-stone-600 text-xs italic font-serif">
-              "Para pocos, para siempre"
+              {`"Para pocos, para siempre"`}
             </p>
           </div>
         </div>

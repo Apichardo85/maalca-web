@@ -274,7 +274,7 @@ export default function CasosEstudioPage() {
                     {/* Testimonial */}
                     <div className="bg-brand-primary/5 rounded-xl p-6 border border-brand-primary/20">
                       <blockquote className="text-text-primary italic mb-3">
-                        "{study.testimonial.text}"
+                        {`"${study.testimonial.text}"`}
                       </blockquote>
                       <cite className="text-sm text-brand-primary font-medium">
                         — {study.testimonial.author}

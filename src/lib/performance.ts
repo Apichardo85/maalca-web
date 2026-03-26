@@ -53,9 +53,9 @@ class PerformanceMonitor {
       let clsValue = 0;
       const clsObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach((entry: any) => {
+        entries.forEach((entry: PerformanceEntry & { hadRecentInput?: boolean; value?: number }) => {
           if (!entry.hadRecentInput) {
-            clsValue += entry.value;
+            clsValue += entry.value ?? 0;
           }
         });
         console.log('CLS:', clsValue);
@@ -69,9 +69,9 @@ class PerformanceMonitor {
       // Navigation timing
       const navigationObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach((entry: any) => {
+        entries.forEach((entry: PerformanceEntry & { domContentLoadedEventEnd?: number; domContentLoadedEventStart?: number; loadEventEnd?: number; loadEventStart?: number }) => {
           console.log('Navigation:', {
-            domContentLoaded: entry.domContentLoadedEventEnd - entry.domContentLoadedEventStart,
+            domContentLoaded: (entry.domContentLoadedEventEnd ?? 0) - (entry.domContentLoadedEventStart ?? 0),
             loadComplete: entry.loadEventEnd - entry.loadEventStart,
             firstByte: entry.responseStart - entry.requestStart
           });

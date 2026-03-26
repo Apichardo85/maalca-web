@@ -307,7 +307,7 @@ export default function WhatsAppIntegration({
                 <div className="mt-6 pt-6 border-t border-slate-200">
                   <div className="text-center">
                     <div className="text-sm text-slate-600">
-                      You'll be redirected to WhatsApp to chat with
+                      {`You'll be redirected to WhatsApp to chat with`}
                     </div>
                     <div className="font-medium text-slate-900 mt-1">{businessName}</div>
                     <div className="text-sm text-slate-500 mt-1">{phoneNumber}</div>

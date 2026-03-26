@@ -457,7 +457,7 @@ export default function BritoColorPage() {
               © 2024 BritoColor - Parte del ecosistema MaalCa
             </p>
             <p className="text-gray-600 text-xs italic">
-              "El color tiene el poder de transformar"
+              {`"El color tiene el poder de transformar"`}
             </p>
           </div>
         </div>

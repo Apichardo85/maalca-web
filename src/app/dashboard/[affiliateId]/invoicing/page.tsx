@@ -107,7 +107,7 @@ export default function InvoicingPage() {
 
   const hasActiveFilters = searchTerm || filterStatus !== "all" || filterMonth;
 
-  const handleSaveInvoice = (invoiceData: any) => {
+  const handleSaveInvoice = (invoiceData: Record<string, unknown>) => {
     console.log("Factura guardada:", invoiceData);
     // Aquí integrarías con tu backend
   };

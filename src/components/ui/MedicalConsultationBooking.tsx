@@ -133,10 +133,10 @@ export default function MedicalConsultationBooking({
         break;
 
       case 3: // Consents
-        if (!formData.medicalConsent) newErrors.medicalConsent = 'Debe aceptar el consentimiento médico' as any;
-        if (!formData.dataConsent) newErrors.dataConsent = 'Debe aceptar el tratamiento de datos' as any;
+        if (!formData.medicalConsent) newErrors.medicalConsent = 'Debe aceptar el consentimiento médico' as string;
+        if (!formData.dataConsent) newErrors.dataConsent = 'Debe aceptar el tratamiento de datos' as string;
         if (formData.modalidad === 'teleconsulta' && !formData.teleconsultConsent) {
-          newErrors.teleconsultConsent = 'Debe aceptar el consentimiento de teleconsulta' as any;
+          newErrors.teleconsultConsent = 'Debe aceptar el consentimiento de teleconsulta' as string;
         }
         break;
     }

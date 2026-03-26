@@ -123,8 +123,8 @@ function HeroSection({ language, onExplore, onContact }: {
 // Property filters component
 function PropertyFilters({ language, filters, updateFilter, availableTypes, availablePriceRanges, onReset }: {
   language: 'en' | 'es';
-  filters: any;
-  updateFilter: any;
+  filters: Record<string, string>;
+  updateFilter: (key: string, value: string) => void;
   availableTypes: string[];
   availablePriceRanges: string[];
   onReset: () => void;
@@ -239,12 +239,12 @@ export default function MaalCaPropertiesPageOptimized() {
   });
 
   // Memoized callbacks
-  const handlePropertySelect = useCallback((property: any) => {
+  const handlePropertySelect = useCallback((property: { id: string }) => {
     setSelectedProperty(property.id);
     updateFilter('selectedId', property.id);
   }, [updateFilter]);
 
-  const handlePropertyHover = useCallback((property: any) => {
+  const handlePropertyHover = useCallback((property: { id: string } | null) => {
     setHoveredProperty(property?.id || null);
   }, []);
 

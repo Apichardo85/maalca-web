@@ -230,7 +230,7 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit, languag
     if (!formData.budget) newErrors.budget = t.budgetRequired;
     if (!formData.timeline) newErrors.timeline = t.timelineRequired;
     if (!formData.preferredTime) newErrors.preferredTime = t.preferredTimeRequired;
-    if (!formData.consent) newErrors.consent = t.consentRequired as any;
+    if (!formData.consent) newErrors.consent = t.consentRequired as string;
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
