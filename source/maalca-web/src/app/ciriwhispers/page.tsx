@@ -10,6 +10,7 @@ import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import NewsletterSignup from "@/components/ui/NewsletterSignup";
 import SocialShare from "@/components/ui/SocialShare";
 import ProfessionalReader from "@/components/ui/ProfessionalReader";
+import DigitalReader from "@/components/ui/DigitalReader";
 import { amarantaContent, lucesSombrasContent } from "@/data/bookContent";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
@@ -18,6 +19,7 @@ export default function CiriWhispersPage() {
   const [selectedBook, setSelectedBook] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState("home");
   const [readerOpen, setReaderOpen] = useState(false);
+  const [readerMode, setReaderMode] = useState<'epub' | 'html'>('html');
   const [currentReaderBook, setCurrentReaderBook] = useState<any | null>(null);
   const { t, language } = useTranslation();
   const { trackBookInteraction } = useAnalytics('ciriwhispers');
@@ -33,6 +35,7 @@ export default function CiriWhispersPage() {
       status: t('ciriwhispers.works.status.available'),
       amazonLink: "https://www.amazon.com/Amaranta-Ciriaco-Alejandro-Pichardo-Santana/dp/841915122X",
       hasEpub: true,
+      epubUrl: "/books/amaranta.epub",
       hasSimpleReader: true,
       excerpt: t('ciriwhispers.book.amaranta.excerpt'),
       year: "2024",
@@ -48,6 +51,7 @@ export default function CiriWhispersPage() {
       status: t('ciriwhispers.works.status.available'),
       amazonLink: "https://www.amazon.com/Luces-Sombras-Spanish-ebook/dp/B084M8356R",
       hasEpub: true,
+      epubUrl: "/books/luces-sombras.epub",
       hasSimpleReader: true,
       excerpt: t('ciriwhispers.book.luzsombras.excerpt'),
       year: "2023",
@@ -130,8 +134,9 @@ export default function CiriWhispersPage() {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const openReader = (book: typeof books[0]) => {
+  const openReader = (book: typeof books[0], mode: 'epub' | 'html' = 'epub') => {
     setCurrentReaderBook(book);
+    setReaderMode(book.hasEpub && book.epubUrl ? 'epub' : 'html');
     setReaderOpen(true);
     trackBookInteraction(book.id, 'reader_open');
   };
@@ -686,8 +691,16 @@ export default function CiriWhispersPage() {
       </section>
 
       {/* Digital Reader Modal */}
-      <AnimatePresence>
-        {readerOpen && currentReaderBook && (
+      {readerOpen && currentReaderBook && (
+        readerMode === 'epub' && currentReaderBook.epubUrl ? (
+          <DigitalReader
+            bookId={currentReaderBook.id}
+            title={currentReaderBook.title}
+            author="Ciriaco A. Pichardo (CiriWhispers)"
+            url={currentReaderBook.epubUrl}
+            onClose={closeReader}
+          />
+        ) : (
           <ProfessionalReader
             bookId={currentReaderBook.id}
             title={currentReaderBook.title}
@@ -695,8 +708,8 @@ export default function CiriWhispersPage() {
             content={getBookContent(currentReaderBook.id)}
             onClose={closeReader}
           />
-        )}
-      </AnimatePresence>
+        )
+      )}
     </main>
   );
 }
