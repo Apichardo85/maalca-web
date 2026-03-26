@@ -1,0 +1,16 @@
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Contacto | MaalCa',
+  description: 'Contáctanos para colaboraciones, proyectos o información sobre el ecosistema MaalCa.',
+  openGraph: {
+    title: 'Contacto | MaalCa',
+    description: 'Contáctanos para colaboraciones, proyectos o información.',
+    url: 'https://maalca.com/contacto',
+    type: 'website',
+  },
+}
+
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>
+}

@@ -1,0 +1,120 @@
+/**
+ * JSON-LD structured data components for SEO.
+ * Server components — render <script type="application/ld+json"> in page head.
+ */
+
+interface OrganizationProps {
+  name?: string
+  url?: string
+  logo?: string
+  description?: string
+  sameAs?: string[]
+}
+
+export function OrganizationJsonLd({
+  name = 'MaalCa LLC',
+  url = 'https://maalca.com',
+  logo = 'https://maalca.com/logo-icon.svg',
+  description = 'Ecosistema creativo y empresarial que conecta ideas, personas y proyectos desde República Dominicana hacia el mundo',
+  sameAs = [
+    'https://www.instagram.com/maalca_llc',
+    'https://www.facebook.com/maalca',
+  ],
+}: OrganizationProps) {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name,
+    url,
+    logo,
+    description,
+    sameAs,
+    address: {
+      '@type': 'PostalAddress',
+      addressCountry: 'DO',
+    },
+  }
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
+
+interface LocalBusinessProps {
+  name: string
+  url: string
+  description: string
+  image?: string
+  phone?: string
+  address?: string
+  type?: string
+  priceRange?: string
+}
+
+export function LocalBusinessJsonLd({
+  name,
+  url,
+  description,
+  image,
+  phone,
+  address,
+  type = 'LocalBusiness',
+  priceRange,
+}: LocalBusinessProps) {
+  const schema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': type,
+    name,
+    url,
+    description,
+  }
+  if (image) schema.image = image
+  if (phone) schema.telephone = phone
+  if (priceRange) schema.priceRange = priceRange
+  if (address) {
+    schema.address = {
+      '@type': 'PostalAddress',
+      streetAddress: address,
+      addressCountry: 'DO',
+    }
+  }
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
+
+interface WebSiteProps {
+  name?: string
+  url?: string
+}
+
+export function WebSiteJsonLd({
+  name = 'MaalCa',
+  url = 'https://maalca.com',
+}: WebSiteProps) {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name,
+    url,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${url}/search?q={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
+  }
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}
