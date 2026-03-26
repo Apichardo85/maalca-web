@@ -39,6 +39,25 @@ const getAuthToken = (): string | undefined => {
 };
 
 /**
+ * Read affiliate GUID from cookie (client-side only)
+ */
+const getAffiliateGuid = (): string | undefined => {
+  if (typeof document === "undefined") return undefined;
+  const match = document.cookie.match(/(?:^|;\s*)affiliate_guid=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : undefined;
+};
+
+/**
+ * Build tenant-scoped API path
+ * Transforms "/appointments" → "/api/affiliates/{guid}/appointments"
+ */
+export const affiliateUrl = (path: string, affiliateId?: string): string => {
+  const guid = affiliateId || getAffiliateGuid();
+  if (!guid) return `/api${path}`;
+  return `/api/affiliates/${guid}${path}`;
+};
+
+/**
  * Custom error class for API errors
  */
 export class ApiClientError extends Error {

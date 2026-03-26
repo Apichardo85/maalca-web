@@ -15,8 +15,15 @@ const AFFILIATE_GUID_TO_SLUG: Record<string, string> = {
   'a1000000-0000-0000-0000-000000000006': 'maalca-llc',
 }
 
+const AFFILIATE_SLUG_TO_GUID: Record<string, string> = Object.fromEntries(
+  Object.entries(AFFILIATE_GUID_TO_SLUG).map(([k, v]) => [v, k])
+)
+
 const resolveAffiliateSlug = (affiliateId: string): string =>
   AFFILIATE_GUID_TO_SLUG[affiliateId] || affiliateId
+
+const resolveAffiliateGuid = (slug: string): string =>
+  AFFILIATE_SLUG_TO_GUID[slug] || slug
 
 // Fallback mock users for when maalca-api is down
 const MOCK_USERS: Record<string, { password: string; affiliateId: string; name: string; role: string }> = {
@@ -53,10 +60,19 @@ export async function POST(request: Request) {
         const data = await apiRes.json()
         // data shape: { token, refreshToken, user: { id, email, affiliateId, role } }
 
-        // Translate GUID affiliateId to dashboard slug
+        // Store raw GUID for API calls, translate to slug for dashboard routing
+        const affiliateGuid = data.user.affiliateId
         data.user.affiliateId = resolveAffiliateSlug(data.user.affiliateId)
 
         const response = NextResponse.json(data)
+
+        response.cookies.set('affiliate_guid', affiliateGuid, {
+          httpOnly: false,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 60 * 60 * 24,
+        })
 
         response.cookies.set('auth_token', data.token, {
           httpOnly: false,
@@ -106,6 +122,7 @@ export async function POST(request: Request) {
       )
     }
 
+    const affiliateGuid = resolveAffiliateGuid(user.affiliateId)
     const mockToken = `mock-jwt-${user.affiliateId}-${Date.now()}`
     const mockRefreshToken = `mock-refresh-${user.affiliateId}-${Date.now()}`
 
@@ -135,6 +152,14 @@ export async function POST(request: Request) {
       sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 24 * 7,
+    })
+
+    response.cookies.set('affiliate_guid', affiliateGuid, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24,
     })
 
     response.cookies.set('user_role', user.role, {
