@@ -21,7 +21,7 @@ import PropertyDetailModal from "@/components/ui/PropertyDetailModal";
 export default function MaalCaPropertiesPage() {
   const { t, language } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
-  const [selectedProperty, setSelectedProperty] = useState<any | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<Record<string, unknown> | null>(null);
   const [showPropertyModal, setShowPropertyModal] = useState(false);
   const [filters, setFilters] = useState<PropertyFilter>({
     type: "All Properties",
@@ -139,7 +139,7 @@ export default function MaalCaPropertiesPage() {
   };
 
   // Handle property detail view
-  const handleViewDetails = (property: any) => {
+  const handleViewDetails = (property: Record<string, unknown>) => {
     setSelectedProperty(property);
     setShowPropertyModal(true);
   };
@@ -693,7 +693,7 @@ export default function MaalCaPropertiesPage() {
 
                 {/* Testimonial Text */}
                 <p className="text-slate-700 leading-relaxed mb-6 italic">
-                  "{testimonial.text}"
+                  {`"${testimonial.text}"`}
                 </p>
 
                 {/* Client Info */}

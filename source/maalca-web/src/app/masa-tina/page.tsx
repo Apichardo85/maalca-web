@@ -191,7 +191,7 @@ export default function MasaTinaPage() {
     : menuItems.filter(item => item.category === selectedCategory);
 
   // Add to cart with toast notification
-  const handleAddToCart = (item: any) => {
+  const handleAddToCart = (item: { price: number; name: string; id: string }) => {
     if (item.price === 0) {
       error("Por favor contacta para personalizar este producto");
       return;
@@ -714,7 +714,7 @@ export default function MasaTinaPage() {
                 </div>
                 
                 <blockquote className="text-amber-800 leading-relaxed italic">
-                  "{testimonial.text}"
+                  {`"${testimonial.text}"`}
                 </blockquote>
               </motion.div>
             ))}

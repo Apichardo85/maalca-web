@@ -130,7 +130,7 @@ export default function TestimonialsSection() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
                   >
-                    "{testimonials[activeTestimonial].content}"
+                    {`"${testimonials[activeTestimonial].content}"`}
                   </motion.blockquote>
 
                   <motion.div

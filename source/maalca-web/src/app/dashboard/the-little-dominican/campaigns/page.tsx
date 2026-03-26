@@ -305,7 +305,7 @@ export default function Campaigns() {
       <footer style={{ borderTop: '1px solid rgba(196,198,209,.2)', paddingTop: '3rem', textAlign: 'center', maxWidth: '640px', margin: '0 auto', width: '100%' }}>
         <span className="ms ms-fill" style={{ fontSize: '36px', color: 'rgba(225,37,49,.25)', display: 'block', marginBottom: '12px' }}>format_quote</span>
         <p className="tld-serif" style={{ fontSize: '1.3rem', fontStyle: 'italic', fontWeight: 400, color: '#00193c', lineHeight: 1.6 }}>
-          "La autenticidad no es una estrategia de marketing, es el alma de nuestra cocina. Cada campaña cuenta una historia que comenzó hace generaciones."
+          {`"La autenticidad no es una estrategia de marketing, es el alma de nuestra cocina. Cada campaña cuenta una historia que comenzó hace generaciones."`}
         </p>
         <p style={{ fontFamily: 'Manrope,sans-serif', fontSize: '.62rem', fontWeight: 600, letterSpacing: '.3em', textTransform: 'uppercase', color: '#9ca3af', marginTop: '1.5rem' }}>
           — Little Dominicana Creative House

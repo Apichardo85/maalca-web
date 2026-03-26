@@ -198,7 +198,7 @@ export default function MedicalServicesPage() {
     setShowBookingModal(true);
   };
 
-  const handleBookingSubmit = async (formData: any) => {
+  const handleBookingSubmit = async (formData: Record<string, unknown>) => {
     console.log('Medical service booking:', formData);
     // TODO: Implement actual booking logic
   };

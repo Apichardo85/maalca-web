@@ -121,7 +121,7 @@ export const trackPageView = (page: string, project?: string) => {
   trackEvent({
     ...ANALYTICS_EVENTS.PAGE_VIEW,
     label: page,
-    project: project as any
+    project: project as string
   });
 };
 
@@ -130,7 +130,7 @@ export const trackNewsletterSignup = (source: string, project?: string) => {
   trackEvent({
     ...ANALYTICS_EVENTS.NEWSLETTER_SIGNUP,
     label: source,
-    project: project as any
+    project: project as string
   });
 };
 
@@ -138,7 +138,7 @@ export const trackSocialShare = (platform: string, content: string, project?: st
   trackEvent({
     ...ANALYTICS_EVENTS.SOCIAL_SHARE,
     label: `${platform}:${content}`,
-    project: project as any
+    project: project as string
   });
 };
 
@@ -204,8 +204,8 @@ declare global {
     gtag: (
       command: 'config' | 'event' | 'js',
       targetId: string | Date,
-      config?: Record<string, any>
+      config?: Record<string, unknown>
     ) => void;
-    dataLayer: any[];
+    dataLayer: unknown[];
   }
 }

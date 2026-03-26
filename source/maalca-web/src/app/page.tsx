@@ -393,7 +393,7 @@ export default function HomePage() {
             viewport={{ once: true }}
             transition={{ duration: 1.2 }}
           >
-            "{t('quote.philosophy')}"
+            {`"${t('quote.philosophy')}"`}
           </motion.blockquote>
           
           <motion.div

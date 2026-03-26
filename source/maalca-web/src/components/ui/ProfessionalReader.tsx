@@ -613,7 +613,7 @@ export default function ProfessionalReader({
                             ✕
                           </button>
                         </div>
-                        <p className="text-sm mb-2 italic">"{highlight.text}"</p>
+                        <p className="text-sm mb-2 italic">{`"${highlight.text}"`}</p>
                         <div className="text-xs text-slate-400">
                           {highlight.timestamp.toLocaleDateString()}
                         </div>

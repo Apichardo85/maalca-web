@@ -116,12 +116,12 @@ export default function DashboardSelector() {
             ¿Necesitas ayuda?
           </p>
           <div className="flex items-center justify-center gap-4">
-            <a
+            <Link
               href="/"
               className="text-gray-400 hover:text-white transition-colors"
             >
               ← Volver al inicio
-            </a>
+            </Link>
             <span className="text-gray-700">|</span>
             <a
               href="/contacto"

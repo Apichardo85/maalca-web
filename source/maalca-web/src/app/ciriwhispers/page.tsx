@@ -20,7 +20,7 @@ export default function CiriWhispersPage() {
   const [activeSection, setActiveSection] = useState("home");
   const [readerOpen, setReaderOpen] = useState(false);
   const [readerMode, setReaderMode] = useState<'epub' | 'html'>('html');
-  const [currentReaderBook, setCurrentReaderBook] = useState<any | null>(null);
+  const [currentReaderBook, setCurrentReaderBook] = useState<Record<string, unknown> | null>(null);
   const { t, language } = useTranslation();
   const { trackBookInteraction } = useAnalytics('ciriwhispers');
 
@@ -204,7 +204,7 @@ export default function CiriWhispersPage() {
             </h1>
 
             <p className="text-2xl md:text-3xl font-light text-stone-200 mb-8 italic font-serif">
-              "{t('ciriwhispers.hero.subtitle')}"
+              {`"${t('ciriwhispers.hero.subtitle')}"`}
             </p>
 
             <div className="text-lg text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed space-y-4">
@@ -443,7 +443,7 @@ export default function CiriWhispersPage() {
                         className="border-t border-slate-700/50 pt-4"
                       >
                         <blockquote className="font-serif italic text-slate-300 text-sm leading-relaxed mb-4">
-                          "{book.excerpt}"
+                          {`"${book.excerpt}"`}
                         </blockquote>
 
                         {book.status === t('ciriwhispers.works.status.available') && (

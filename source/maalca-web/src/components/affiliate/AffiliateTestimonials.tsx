@@ -67,7 +67,7 @@ export function AffiliateTestimonials({
               </div>
 
               <p className="text-gray-600 mb-6 leading-relaxed italic text-sm md:text-base">
-                "{getText(testimonial.text, testimonial.textEn)}"
+                {`"${getText(testimonial.text, testimonial.textEn)}"`}
               </p>
 
               <div className="border-t pt-4">

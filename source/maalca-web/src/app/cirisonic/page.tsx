@@ -970,7 +970,7 @@ export default function CiriSonicPage() {
             <div>
               <h4 className="font-bold text-white mb-4">{t('cirisonic.footer.ecosystem')}</h4>
               <div className="space-y-2 text-gray-400 text-sm">
-                <a href="/" className="block hover:text-blue-400 transition-colors">{t('cirisonic.footer.maalcaHome')}</a>
+                <Link href="/" className="block hover:text-blue-400 transition-colors">{t('cirisonic.footer.maalcaHome')}</Link>
                 <a href="/ciriwhispers" className="block hover:text-blue-400 transition-colors">{t('cirisonic.footer.ciriwhispers')}</a>
                 <a href="/hablando-mierda" className="block hover:text-blue-400 transition-colors">{t('cirisonic.footer.hablandoMierda')}</a>
                 <a href="/masa-tina" className="block hover:text-blue-400 transition-colors">{t('cirisonic.footer.masaTina')}</a>

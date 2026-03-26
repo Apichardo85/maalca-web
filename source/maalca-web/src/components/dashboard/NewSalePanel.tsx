@@ -18,7 +18,7 @@ import {
 
 interface NewSalePanelProps {
   onClose: () => void;
-  onSave?: (invoiceData: any) => void;
+  onSave?: (invoiceData: Record<string, unknown>) => void;
 }
 
 /**
@@ -258,7 +258,7 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
                                 <p className="text-sm text-gray-600 dark:text-gray-400">SKU: {product.sku}</p>
                               </div>
                               <p className="font-semibold text-gray-900 dark:text-white">
-                                {formatCurrency(product.unitPrice, currency as any)}
+                                {formatCurrency(product.unitPrice, currency as string)}
                               </p>
                             </div>
                           </button>
@@ -286,7 +286,7 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
                           <div className="flex-1">
                             <p className="font-medium text-gray-900 dark:text-white">{line.description}</p>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                              {formatCurrency(line.unitPrice, currency as any)} × {line.quantity}
+                              {formatCurrency(line.unitPrice, currency as string)} × {line.quantity}
                             </p>
                           </div>
                           <div className="flex items-center gap-2">
@@ -307,7 +307,7 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
                             </button>
                           </div>
                           <div className="w-24 text-right font-semibold text-gray-900 dark:text-white">
-                            {formatCurrency(line.lineTotal, currency as any)}
+                            {formatCurrency(line.lineTotal, currency as string)}
                           </div>
                           <button
                             onClick={() => removeLine(line.id)}
@@ -331,23 +331,23 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-400">Subtotal:</span>
-                    <span className="text-gray-900 dark:text-white">{formatCurrency(totals.subtotal, currency as any)}</span>
+                    <span className="text-gray-900 dark:text-white">{formatCurrency(totals.subtotal, currency as string)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-400">Impuestos:</span>
-                    <span className="text-gray-900 dark:text-white">{formatCurrency(totals.taxTotal, currency as any)}</span>
+                    <span className="text-gray-900 dark:text-white">{formatCurrency(totals.taxTotal, currency as string)}</span>
                   </div>
                   {totals.discountTotal > 0 && (
                     <div className="flex justify-between text-sm text-green-600">
                       <span>Descuentos:</span>
-                      <span>-{formatCurrency(totals.discountTotal, currency as any)}</span>
+                      <span>-{formatCurrency(totals.discountTotal, currency as string)}</span>
                     </div>
                   )}
                   <div className="border-t border-gray-300 dark:border-gray-700 pt-2 mt-2">
                     <div className="flex justify-between">
                       <span className="font-bold text-gray-900 dark:text-white">Total:</span>
                       <span className="font-bold text-xl text-gray-900 dark:text-white">
-                        {formatCurrency(totals.total, currency as any)}
+                        {formatCurrency(totals.total, currency as string)}
                       </span>
                     </div>
                   </div>

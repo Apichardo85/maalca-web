@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import {
@@ -900,7 +901,7 @@ export default function PegoteBarberPage() {
                 </div>
                 
                 <p className="text-gray-600 mb-6 leading-relaxed italic">
-                  "{getText(testimonial.text, testimonial.textEn)}"
+                  {`"${getText(testimonial.text, testimonial.textEn)}"`}
                 </p>
                 
                 <div className="border-t pt-4">
@@ -1186,7 +1187,7 @@ export default function PegoteBarberPage() {
             <div>
               <h4 className="font-bold text-white mb-4">{getText("MaalCa Ecosystem", "MaalCa Ecosystem")}</h4>
               <div className="space-y-2 text-gray-400 text-sm">
-                <a href="/" className="block hover:text-red-400 transition-colors">MaalCa Home</a>
+                <Link href="/" className="block hover:text-red-400 transition-colors">MaalCa Home</Link>
                 <a href="/cirisonic" className="block hover:text-red-400 transition-colors">CiriSonic</a>
                 <a href="/ciriwhispers" className="block hover:text-red-400 transition-colors">CiriWhispers</a>
                 <a href="/masa-tina" className="block hover:text-red-400 transition-colors">Cocina Tina</a>
@@ -1199,7 +1200,7 @@ export default function PegoteBarberPage() {
               © 2024 Pegote Barber Shop - {getText("Parte del ecosistema MaalCa", "Part of MaalCa ecosystem")}
             </p>
             <p className="text-gray-600 text-xs italic">
-              "{getText("Tu estilo, nuestra tradición", "Your style, our tradition")}"
+              {`"${getText("Tu estilo, nuestra tradición", "Your style, our tradition")}"`}
             </p>
           </div>
         </div>

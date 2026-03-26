@@ -180,7 +180,7 @@ export default function DrPichardoPage() {
     setShowBookingModal(true);
   };
 
-  const handleBookingSubmit = async (formData: any) => {
+  const handleBookingSubmit = async (formData: Record<string, unknown>) => {
     // Integrate with booking system
     console.log('Booking submitted:', formData);
     // TODO: Implement actual booking logic
@@ -549,7 +549,7 @@ export default function DrPichardoPage() {
                 </div>
                 
                 <p className="text-slate-700 mb-4 italic">
-                  "{getText(testimonial.text.es, testimonial.text.en)}"
+                  {`"${getText(testimonial.text.es, testimonial.text.en)}"`}
                 </p>
 
                 <div className="border-t border-blue-100 pt-4">
