@@ -1,23 +1,37 @@
 // src/app/api/auth/login/route.ts
-// Mock auth endpoint — sustituir con llamada a maalca-api cuando API-REQ-001 esté listo
-// TODO: API-REQ-001: replace with real POST /api/auth/login from maalca-api
+// Proxies login to maalca-api, falls back to mock if API is unavailable
 
 import { NextResponse } from 'next/server'
 
-// Demo credentials → affiliateId mapping
-// En producción esto vendrá de la DB via maalca-api
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000'
+
+// Map API GUIDs to dashboard slugs
+const AFFILIATE_GUID_TO_SLUG: Record<string, string> = {
+  'a1000000-0000-0000-0000-000000000001': 'pegote-barbershop',
+  'a1000000-0000-0000-0000-000000000002': 'britocolor',
+  'a1000000-0000-0000-0000-000000000003': 'the-little-dominican',
+  'a1000000-0000-0000-0000-000000000004': 'dr-pichardo',
+  'a1000000-0000-0000-0000-000000000005': 'masa-tina',
+  'a1000000-0000-0000-0000-000000000006': 'maalca-llc',
+}
+
+const resolveAffiliateSlug = (affiliateId: string): string =>
+  AFFILIATE_GUID_TO_SLUG[affiliateId] || affiliateId
+
+// Fallback mock users for when maalca-api is down
 const MOCK_USERS: Record<string, { password: string; affiliateId: string; name: string; role: string }> = {
-  'admin@maalca.com':               { password: 'demo',   affiliateId: 'pegote-barbershop',    name: 'Admin MaalCa',       role: 'admin'  },
-  'pegote@maalca.com':              { password: 'demo',   affiliateId: 'pegote-barbershop',    name: 'Pegote Team',        role: 'owner'  },
-  'britocolor@maalca.com':          { password: 'demo',   affiliateId: 'britocolor',           name: 'BritoColor Team',    role: 'owner'  },
-  'tld@maalca.com':                 { password: 'demo',   affiliateId: 'the-little-dominican', name: 'TLD Team',           role: 'owner'  },
-  'drpichardo@maalca.com':          { password: 'demo',   affiliateId: 'dr-pichardo',          name: 'Dr. Pichardo',       role: 'owner'  },
-  'masatina@maalca.com':            { password: 'demo',   affiliateId: 'masa-tina',            name: 'Masa Tina',          role: 'owner'  },
+  'admin@maalca.com':      { password: 'demo', affiliateId: 'pegote-barbershop',    name: 'Admin MaalCa',    role: 'admin' },
+  'pegote@maalca.com':     { password: 'demo', affiliateId: 'pegote-barbershop',    name: 'Pegote Team',     role: 'owner' },
+  'britocolor@maalca.com': { password: 'demo', affiliateId: 'britocolor',           name: 'BritoColor Team', role: 'owner' },
+  'tld@maalca.com':        { password: 'demo', affiliateId: 'the-little-dominican', name: 'TLD Team',        role: 'owner' },
+  'drpichardo@maalca.com': { password: 'demo', affiliateId: 'dr-pichardo',          name: 'Dr. Pichardo',    role: 'owner' },
+  'masatina@maalca.com':   { password: 'demo', affiliateId: 'masa-tina',            name: 'Masa Tina',       role: 'owner' },
 }
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json()
+    const body = await request.json()
+    const { email, password } = body
 
     if (!email || !password) {
       return NextResponse.json(
@@ -26,8 +40,65 @@ export async function POST(request: Request) {
       )
     }
 
-    const user = MOCK_USERS[email.toLowerCase()]
+    // Try maalca-api first
+    try {
+      const apiRes = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+        signal: AbortSignal.timeout(5000),
+      })
 
+      if (apiRes.ok) {
+        const data = await apiRes.json()
+        // data shape: { token, refreshToken, user: { id, email, affiliateId, role } }
+
+        // Translate GUID affiliateId to dashboard slug
+        data.user.affiliateId = resolveAffiliateSlug(data.user.affiliateId)
+
+        const response = NextResponse.json(data)
+
+        response.cookies.set('auth_token', data.token, {
+          httpOnly: false,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 60 * 60 * 24,
+        })
+
+        response.cookies.set('refresh_token', data.refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 60 * 60 * 24 * 7, // 7 days
+        })
+
+        response.cookies.set('user_role', data.user.role, {
+          httpOnly: false,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 60 * 60 * 24,
+        })
+
+        return response
+      }
+
+      // 401 from API = invalid credentials — don't fall back to mock
+      if (apiRes.status === 401) {
+        return NextResponse.json(
+          { error: { code: 'INVALID_CREDENTIALS', message: 'Credenciales incorrectas' } },
+          { status: 401 }
+        )
+      }
+    } catch {
+      // API unreachable — fall through to mock
+      console.warn('[auth/login] maalca-api unreachable, using mock auth')
+    }
+
+    // Fallback: mock auth (development only)
+    const user = MOCK_USERS[email.toLowerCase()]
     if (!user || user.password !== password) {
       return NextResponse.json(
         { error: { code: 'INVALID_CREDENTIALS', message: 'Credenciales incorrectas' } },
@@ -35,7 +106,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Mock JWT token — in production this comes from maalca-api
     const mockToken = `mock-jwt-${user.affiliateId}-${Date.now()}`
     const mockRefreshToken = `mock-refresh-${user.affiliateId}-${Date.now()}`
 
@@ -51,16 +121,22 @@ export async function POST(request: Request) {
       },
     })
 
-    // Set HttpOnly cookie so middleware can read it
     response.cookies.set('auth_token', mockToken, {
-      httpOnly: false,   // false so client JS can also read if needed
+      httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60 * 24, // 24 hours
+      maxAge: 60 * 60 * 24,
     })
 
-    // Role cookie — readable by server components (layout.tsx) for admin gating
+    response.cookies.set('refresh_token', mockRefreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    })
+
     response.cookies.set('user_role', user.role, {
       httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
