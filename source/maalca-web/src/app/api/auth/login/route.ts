@@ -5,6 +5,19 @@ import { NextResponse } from 'next/server'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000'
 
+// Map API GUIDs to dashboard slugs
+const AFFILIATE_GUID_TO_SLUG: Record<string, string> = {
+  'a1000000-0000-0000-0000-000000000001': 'pegote-barbershop',
+  'a1000000-0000-0000-0000-000000000002': 'britocolor',
+  'a1000000-0000-0000-0000-000000000003': 'the-little-dominican',
+  'a1000000-0000-0000-0000-000000000004': 'dr-pichardo',
+  'a1000000-0000-0000-0000-000000000005': 'masa-tina',
+  'a1000000-0000-0000-0000-000000000006': 'maalca-llc',
+}
+
+const resolveAffiliateSlug = (affiliateId: string): string =>
+  AFFILIATE_GUID_TO_SLUG[affiliateId] || affiliateId
+
 // Fallback mock users for when maalca-api is down
 const MOCK_USERS: Record<string, { password: string; affiliateId: string; name: string; role: string }> = {
   'admin@maalca.com':      { password: 'demo', affiliateId: 'pegote-barbershop',    name: 'Admin MaalCa',    role: 'admin' },
@@ -39,6 +52,9 @@ export async function POST(request: Request) {
       if (apiRes.ok) {
         const data = await apiRes.json()
         // data shape: { token, refreshToken, user: { id, email, affiliateId, role } }
+
+        // Translate GUID affiliateId to dashboard slug
+        data.user.affiliateId = resolveAffiliateSlug(data.user.affiliateId)
 
         const response = NextResponse.json(data)
 
