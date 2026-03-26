@@ -1,0 +1,506 @@
+{
+  "name": "Architect Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "architect-agent",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "webhook-trigger",
+      "name": "GitHub Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 300],
+      "webhookId": "architect-agent"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "label-filter",
+              "leftValue": "={{ $json.body.action }}",
+              "rightValue": "labeled",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "label-name",
+              "leftValue": "={{ $json.body.label.name }}",
+              "rightValue": "agent:architect",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "filter-label",
+      "name": "Filter: agent:architect label",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "repo",
+              "name": "repo",
+              "value": "={{ $json.body.repository.full_name }}",
+              "type": "string"
+            },
+            {
+              "id": "issue_number",
+              "name": "issueNumber",
+              "value": "={{ $json.body.issue.number }}",
+              "type": "number"
+            },
+            {
+              "id": "issue_title",
+              "name": "issueTitle",
+              "value": "={{ $json.body.issue.title }}",
+              "type": "string"
+            },
+            {
+              "id": "issue_body",
+              "name": "issueBody",
+              "value": "={{ $json.body.issue.body }}",
+              "type": "string"
+            },
+            {
+              "id": "issue_author",
+              "name": "issueAuthor",
+              "value": "={{ $json.body.issue.user.login }}",
+              "type": "string"
+            },
+            {
+              "id": "issue_labels",
+              "name": "issueLabels",
+              "value": "={{ $json.body.issue.labels.map(l => l.name).join(', ') }}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "extract-issue",
+      "name": "Extract Issue Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://localhost:5011/umbraco/delivery/api/v2/content",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "filter",
+              "value": "contentType:article"
+            },
+            {
+              "name": "sort",
+              "value": "updateDate:desc"
+            },
+            {
+              "name": "take",
+              "value": "50"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "fetch-adrs",
+      "name": "Fetch ADRs from Umbraco",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "adr-summary",
+              "name": "adrSummary",
+              "value": "={{ $json.items ? $json.items.map(a => `- ${a.name}: ${a.properties?.summary || 'No summary'}`).join('\\n') : 'No ADRs found in CMS' }}",
+              "type": "string"
+            },
+            {
+              "id": "adr-count",
+              "name": "adrCount",
+              "value": "={{ $json.total || 0 }}",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "id": "format-adrs",
+      "name": "Format ADR Context",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1100, 300]
+    },
+    {
+      "parameters": {
+        "model": "claude-sonnet-4-20250514",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are the MaalCa Architect Agent. You evaluate GitHub issues for architectural coherence across the MaalCa ecosystem.\n\n## Stack Context\n- **maalca-web**: Next.js 15, TypeScript, Tailwind CSS 4, App Router, Turbopack. Deployed on Vercel.\n- **maalca-cms**: Umbraco 17.2.1, .NET 10, Delivery API v2. SQL Server local, migrating to Railway PostgreSQL.\n- **maalca-api**: .NET 8 Minimal APIs, PostgreSQL, multi-tenant architecture. Deployed on Railway.\n- **n8n**: Workflow automation on Railway (maalca-agents.up.railway.app). ~28 agents across 4 domains.\n- **Infrastructure**: Vercel (frontend), Railway (backend/n8n/DB), GitHub Actions (CI/CD).\n\n## Architectural Principles\n1. Multi-tenant SaaS: all features must respect tenant isolation.\n2. CMS-driven content: Umbraco Delivery API is the content source of truth.\n3. API-first: maalca-api mediates all backend logic; frontend never hits DB directly.\n4. n8n for orchestration: business workflows run in n8n, not in application code.\n5. ADRs document all significant decisions in `docs/adr/` using the format: Title, Estado, Fecha, Contexto, Decision, Razones, Alternativa rechazada, Consecuencias.\n\n## Your Task\nAnalyze the issue below against the existing ADRs and stack. Determine if the proposed change/feature is architecturally sound.\n\nRespond with a JSON object (no markdown fences):\n{\n  \"decision\": \"approved\" | \"rejected\",\n  \"reasoning\": \"Brief explanation of why\",\n  \"adrTitle\": \"ADR-NNN-slug (only if approved, use next available number)\",\n  \"adrContent\": \"Full ADR markdown content (only if approved)\",\n  \"alternative\": \"Suggested alternative approach (only if rejected)\",\n  \"risks\": [\"List of risks or concerns\"],\n  \"affectedRepos\": [\"repos impacted by this change\"]\n}"
+            },
+            {
+              "role": "user",
+              "content": "## Issue to evaluate\n\n**Repository:** {{ $('Extract Issue Data').item.json.repo }}\n**Issue #{{ $('Extract Issue Data').item.json.issueNumber }}:** {{ $('Extract Issue Data').item.json.issueTitle }}\n**Author:** {{ $('Extract Issue Data').item.json.issueAuthor }}\n**Labels:** {{ $('Extract Issue Data').item.json.issueLabels }}\n\n### Description\n{{ $('Extract Issue Data').item.json.issueBody }}\n\n## Existing ADRs ({{ $('Format ADR Context').item.json.adrCount }} total)\n{{ $('Format ADR Context').item.json.adrSummary }}"
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 4096,
+          "temperature": 0.3
+        }
+      },
+      "id": "claude-analyze",
+      "name": "Claude: Analyze Architecture",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.3,
+      "position": [1320, 300],
+      "credentials": {
+        "anthropicApi": {
+          "id": "anthropic-credential",
+          "name": "Anthropic API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.message?.content || $input.first().json.text || $input.first().json.output || '';\n\nlet parsed;\ntry {\n  // Handle potential markdown code fences\n  const cleaned = raw.replace(/^```json\\n?/, '').replace(/\\n?```$/, '').trim();\n  parsed = JSON.parse(cleaned);\n} catch (e) {\n  parsed = {\n    decision: 'rejected',\n    reasoning: 'Failed to parse Claude response: ' + e.message,\n    alternative: 'Please re-run the architect agent.',\n    risks: ['Agent parse failure'],\n    affectedRepos: []\n  };\n}\n\nreturn [{\n  json: {\n    ...parsed,\n    repo: $('Extract Issue Data').first().json.repo,\n    issueNumber: $('Extract Issue Data').first().json.issueNumber,\n    issueTitle: $('Extract Issue Data').first().json.issueTitle\n  }\n}];"
+      },
+      "id": "parse-response",
+      "name": "Parse Claude Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1540, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-approved",
+              "leftValue": "={{ $json.decision }}",
+              "rightValue": "approved",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "decision-switch",
+      "name": "IF Approved",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1760, 300]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://api.github.com/repos/{{ $json.repo }}/contents/docs/adr/{{ $json.adrTitle }}.md",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.v3+json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"message\": \"docs: add {{ $json.adrTitle }} (architect-agent)\",\n  \"content\": \"{{ Buffer.from($json.adrContent || '').toString('base64') }}\",\n  \"branch\": \"main\"\n}",
+        "options": {}
+      },
+      "id": "create-adr-file",
+      "name": "Create ADR via GitHub API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2020, 160],
+      "credentials": {
+        "githubApi": {
+          "id": "github-credential",
+          "name": "GitHub API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.github.com/repos/{{ $('Parse Claude Response').item.json.repo }}/issues/{{ $('Parse Claude Response').item.json.issueNumber }}/comments",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.v3+json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"body\": \"## Architect Agent: Approved\\n\\n{{ $('Parse Claude Response').item.json.reasoning }}\\n\\n### ADR Created\\n- **File:** `docs/adr/{{ $('Parse Claude Response').item.json.adrTitle }}.md`\\n- **Affected repos:** {{ ($('Parse Claude Response').item.json.affectedRepos || []).join(', ') }}\\n\\n### Risks\\n{{ ($('Parse Claude Response').item.json.risks || []).map(r => '- ' + r).join('\\n') }}\\n\\n---\\n_Automated by MaalCa Architect Agent_\"\n}",
+        "options": {}
+      },
+      "id": "comment-approved",
+      "name": "Comment: Approved",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2260, 160],
+      "credentials": {
+        "githubApi": {
+          "id": "github-credential",
+          "name": "GitHub API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.github.com/repos/{{ $json.repo }}/issues/{{ $json.issueNumber }}/comments",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.v3+json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"body\": \"## Architect Agent: Rejected\\n\\n{{ $json.reasoning }}\\n\\n### Suggested Alternative\\n{{ $json.alternative }}\\n\\n### Risks Identified\\n{{ ($json.risks || []).map(r => '- ' + r).join('\\n') }}\\n\\n### Affected Repos\\n{{ ($json.affectedRepos || []).map(r => '- ' + r).join('\\n') }}\\n\\n---\\n_Automated by MaalCa Architect Agent — please address the concerns above and remove `needs-decision` when resolved._\"\n}",
+        "options": {}
+      },
+      "id": "comment-rejected",
+      "name": "Comment: Rejected",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2020, 460],
+      "credentials": {
+        "githubApi": {
+          "id": "github-credential",
+          "name": "GitHub API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.github.com/repos/{{ $json.repo }}/issues/{{ $json.issueNumber }}/labels",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.v3+json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"labels\": [\"needs-decision\"]\n}",
+        "options": {}
+      },
+      "id": "add-label-rejected",
+      "name": "Add needs-decision Label",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2260, 460],
+      "credentials": {
+        "githubApi": {
+          "id": "github-credential",
+          "name": "GitHub API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "GitHub Webhook": {
+      "main": [
+        [
+          {
+            "node": "Filter: agent:architect label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter: agent:architect label": {
+      "main": [
+        [
+          {
+            "node": "Extract Issue Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Issue Data": {
+      "main": [
+        [
+          {
+            "node": "Fetch ADRs from Umbraco",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch ADRs from Umbraco": {
+      "main": [
+        [
+          {
+            "node": "Format ADR Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format ADR Context": {
+      "main": [
+        [
+          {
+            "node": "Claude: Analyze Architecture",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude: Analyze Architecture": {
+      "main": [
+        [
+          {
+            "node": "Parse Claude Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Claude Response": {
+      "main": [
+        [
+          {
+            "node": "IF Approved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Approved": {
+      "main": [
+        [
+          {
+            "node": "Create ADR via GitHub API",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Comment: Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create ADR via GitHub API": {
+      "main": [
+        [
+          {
+            "node": "Comment: Approved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Comment: Rejected": {
+      "main": [
+        [
+          {
+            "node": "Add needs-decision Label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "architect",
+      "createdAt": "2026-03-26T00:00:00.000Z",
+      "updatedAt": "2026-03-26T00:00:00.000Z"
+    },
+    {
+      "name": "github",
+      "createdAt": "2026-03-26T00:00:00.000Z",
+      "updatedAt": "2026-03-26T00:00:00.000Z"
+    },
+    {
+      "name": "ai-agent",
+      "createdAt": "2026-03-26T00:00:00.000Z",
+      "updatedAt": "2026-03-26T00:00:00.000Z"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-03-26T00:00:00.000Z",
+  "versionId": "1"
+}
