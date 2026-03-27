@@ -1,5 +1,19 @@
 import { Property, PropertyFilter } from '@/lib/types/property';
 
+export interface Article {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  category: string;
+  publishDate: string;
+  featured: boolean;
+  tags: string[];
+  author: string;
+  image: string;
+}
+
 const UMBRACO_API_URL = process.env.UMBRACO_API_URL;
 const UMBRACO_MEDIA_URL = process.env.NEXT_PUBLIC_UMBRACO_MEDIA_URL;
 
@@ -159,6 +173,90 @@ export class UmbracoClient {
    */
   getAvailablePriceRanges(): string[] {
     return ['All Prices', '$400K - $700K', '$700K - $1M', '$1M - $2M', '$2M+'];
+  }
+
+  // ── Articles (Editorial) ──────────────────────────────────────────────
+
+  /**
+   * Obtiene todos los artículos del CMS
+   */
+  async getArticles(): Promise<Article[]> {
+    const fallbackData = await import('@/data/editorialContent').then(m => {
+      // Build fallback articles from mock data keys
+      const ids = Object.keys(m.editorialArticles);
+      return ids.map(id => ({
+        id,
+        title: id,
+        slug: id,
+        excerpt: '',
+        content: m.editorialArticles[id as keyof typeof m.editorialArticles],
+        category: '',
+        publishDate: '',
+        featured: false,
+        tags: [],
+        author: 'Editorial MaalCa',
+        image: ''
+      }));
+    });
+
+    const endpoint = '/umbraco/delivery/api/v2/content?filter=contentType:article&sort=publishedDate:desc';
+    const response = await this.fetchWithFallback<{ items?: unknown[] }>(endpoint, { items: undefined });
+
+    if (response.items) {
+      return this.mapUmbracoArticles(response.items as Array<Record<string, unknown>>);
+    }
+
+    return fallbackData;
+  }
+
+  /**
+   * Obtiene artículos destacados
+   */
+  async getFeaturedArticles(): Promise<Article[]> {
+    const allArticles = await this.getArticles();
+    return allArticles.filter(a => a.featured);
+  }
+
+  /**
+   * Obtiene un artículo por slug
+   */
+  async getArticleBySlug(slug: string): Promise<Article | null> {
+    const articles = await this.getArticles();
+    return articles.find(a => a.slug === slug || a.id === slug) || null;
+  }
+
+  /**
+   * Mapea datos de artículo de Umbraco al formato Article
+   */
+  private mapUmbracoArticle(data: Record<string, unknown>): Article {
+    const props = (data.properties || {}) as Record<string, { value?: unknown }>;
+
+    return {
+      id: (data.id || data.key || '') as string,
+      title: (props.articleTitle?.value || (data as Record<string, unknown>).name || '') as string,
+      slug: (props.slug?.value || '') as string,
+      excerpt: (props.excerpt?.value || '') as string,
+      content: (props.body?.value || '') as string,
+      category: (props.articleCategory?.value || '') as string,
+      publishDate: (props.publishedDate?.value || '') as string,
+      featured: props.isFeatured?.value === true,
+      tags: this.parseTags(props.articleTags?.value),
+      author: (props.author?.value || 'Editorial MaalCa') as string,
+      image: this.getMediaUrl((props.heroImage?.value as string) || '')
+    };
+  }
+
+  private mapUmbracoArticles(data: Array<Record<string, unknown>>): Article[] {
+    return data.map(item => this.mapUmbracoArticle(item));
+  }
+
+  private parseTags(tagsData: unknown): string[] {
+    if (!tagsData) return [];
+    if (Array.isArray(tagsData)) return tagsData.map(String);
+    if (typeof tagsData === 'string') {
+      return tagsData.split(',').map(t => t.trim()).filter(Boolean);
+    }
+    return [];
   }
 
   /**

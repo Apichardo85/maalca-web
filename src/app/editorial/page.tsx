@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
@@ -161,11 +160,7 @@ export default function EditorialPage() {
       <section className="py-16 md:py-24 bg-surface relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-            >
+            <div className="animate-fade-in-up">
               <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-text-primary mb-6">
                 {t('editorial.hero.title')}
                 <span className="block text-brand-primary">{t('editorial.hero.brand')}</span>
@@ -173,7 +168,7 @@ export default function EditorialPage() {
               <p className="text-lg lg:text-xl text-text-secondary max-w-3xl mx-auto leading-relaxed">
                 {t('editorial.hero.description')}
               </p>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
@@ -181,27 +176,18 @@ export default function EditorialPage() {
       {/* Featured Articles */}
       <section className="py-16 md:py-24 bg-surface-elevated">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="mb-12"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
+          <div className="mb-12 animate-fade-in-up">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-4">
               {t('editorial.featured.title')}
             </h2>
-          </motion.div>
+          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {featuredArticles.map((article, index) => (
-              <motion.article
+              <article
                 key={article.id}
-                className="group cursor-pointer"
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.2 }}
+                className="group cursor-pointer animate-fade-in-up"
+                style={{ animationDelay: `${index * 150}ms` }}
                 onClick={() => {
                   trackArticleClick(article.id);
                   setSelectedArticle(article.id);
@@ -246,7 +232,7 @@ export default function EditorialPage() {
                     </div>
                   </div>
                 </div>
-              </motion.article>
+              </article>
             ))}
           </div>
         </div>
@@ -256,13 +242,7 @@ export default function EditorialPage() {
       <section className="py-16 md:py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header with Filters */}
-          <motion.div
-            className="mb-12"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
+          <div className="mb-12 animate-fade-in-up">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-8">
               {t('editorial.all.title')}
             </h2>
@@ -283,18 +263,15 @@ export default function EditorialPage() {
                 </button>
               ))}
             </div>
-          </motion.div>
+          </div>
 
           {/* Articles Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredArticles.map((article, index) => (
-              <motion.article
+              <article
                 key={article.id}
-                className="group cursor-pointer"
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="group cursor-pointer animate-fade-in-up"
+                style={{ animationDelay: `${index * 100}ms` }}
                 onClick={() => {
                   trackArticleClick(article.id);
                   setSelectedArticle(article.id);
@@ -338,7 +315,7 @@ export default function EditorialPage() {
                     </time>
                   </div>
                 </div>
-              </motion.article>
+              </article>
             ))}
           </div>
         </div>
@@ -347,12 +324,8 @@ export default function EditorialPage() {
       {/* Books Section */}
       <section className="py-16 md:py-24 bg-surface-elevated">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="text-center mb-12"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
+          <div
+            className="text-center mb-12 animate-fade-in-up"
           >
             <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-6">
               {t('editorial.books.title')}
@@ -360,17 +333,14 @@ export default function EditorialPage() {
             <p className="text-lg text-text-secondary max-w-2xl mx-auto">
               {t('editorial.books.description')}
             </p>
-          </motion.div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {books.map((book, index) => (
-              <motion.div
+              <div
                 key={book.title}
-                className="group"
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.2 }}
+                className="group animate-fade-in-up"
+                style={{ animationDelay: `${index * 150}ms` }}
               >
                 <div className="bg-surface rounded-2xl p-8 text-center border border-border hover:border-brand-primary transition-all duration-300 shadow-sm hover:shadow-xl h-full">
                   {/* Book Cover */}
@@ -411,7 +381,7 @@ export default function EditorialPage() {
                     {book.statusType === 'available' ? t('editorial.book.cta.buy') : t('editorial.book.cta.comingSoon')}
                   </Button>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -420,12 +390,7 @@ export default function EditorialPage() {
       {/* Newsletter Section */}
       <section className="py-16 md:py-24 bg-surface">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
+          <div className="animate-fade-in-up">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-6">
               {t('editorial.newsletter.title')}
             </h2>
@@ -467,22 +432,20 @@ export default function EditorialPage() {
                 {t('editorial.newsletter.disclaimer')}
               </p>
             </form>
-          </motion.div>
+          </div>
         </div>
       </section>
 
       {/* Reader Modal */}
-      <AnimatePresence>
-        {selectedArticle && (
-          <ProfessionalReader
-            articleId={selectedArticle}
-            title={articles.find(a => a.id === selectedArticle)?.title || t('editorial.hero.title')}
-            author={t('editorial.author')}
-            content={getArticleContent(selectedArticle)}
-            onClose={() => setSelectedArticle(null)}
-          />
-        )}
-      </AnimatePresence>
+      {selectedArticle && (
+        <ProfessionalReader
+          articleId={selectedArticle}
+          title={articles.find(a => a.id === selectedArticle)?.title || t('editorial.hero.title')}
+          author={t('editorial.author')}
+          content={getArticleContent(selectedArticle)}
+          onClose={() => setSelectedArticle(null)}
+        />
+      )}
     </main>
   );
 }
