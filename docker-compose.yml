@@ -1,39 +1,106 @@
-version: '3.8'
-
 services:
+  # ──────────────────────────────────────────
+  # PostgreSQL — Base de datos para maalca-api
+  # ──────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: maalca-postgres
+    environment:
+      POSTGRES_DB: maalcadb
+      POSTGRES_USER: maalca
+      POSTGRES_PASSWORD: maalcapass
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U maalca -d maalcadb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - maalca-network
+
+  # ──────────────────────────────────────────
+  # maalca-api — .NET 8 Backend
+  # ──────────────────────────────────────────
+  maalca-api:
+    build:
+      context: ./maalca-api
+      dockerfile: Dockerfile
+    container_name: maalca-api
+    ports:
+      - "5000:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=maalcadb;Username=maalca;Password=maalcapass"
+      Jwt__Key: "MaalCa-Dev-Secret-Key-2026-SuperSecure-256bits!!"
+      Jwt__Issuer: "maalca-api"
+      Jwt__Audience: "maalca-web"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - maalca-network
+
+  # ──────────────────────────────────────────
+  # maalca-cms — Umbraco 17 (SQLite para dev)
+  # ──────────────────────────────────────────
+  maalca-cms:
+    build:
+      context: ./UMBRACO/MiSitioUmbraco
+      dockerfile: Dockerfile
+    container_name: maalca-cms
+    ports:
+      - "5011:8080"
+      - "5012:8443"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__umbracoDbDSN: "Data Source=/app/umbraco/Data/umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True"
+      ConnectionStrings__umbracoDbDSN_ProviderName: "Microsoft.Data.Sqlite"
+    volumes:
+      - umbraco-data:/app/umbraco/Data
+      - umbraco-media:/app/wwwroot/media
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - maalca-network
+
+  # ──────────────────────────────────────────
+  # maalca-web — Next.js 15 Frontend
+  # ──────────────────────────────────────────
   maalca-web:
     build:
-      context: .
+      context: ./maalca-web
       dockerfile: Dockerfile
+    container_name: maalca-web
     ports:
-      - "8080:3000"
+      - "3000:3000"
     environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://maalca:maalcapass@db:5432/maalcadb
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://localhost:5000
+      UMBRACO_API_URL: http://maalca-cms:8080
+      NEXT_PUBLIC_UMBRACO_MEDIA_URL: http://localhost:5011
     depends_on:
-      - db
+      maalca-api:
+        condition: service_healthy
     networks:
       - maalca-network
-    restart: unless-stopped
-
-  db:
-    image: postgres:15-alpine
-    environment:
-      - POSTGRES_USER=maalca
-      - POSTGRES_PASSWORD=maalcapass
-      - POSTGRES_DB=maalcadb
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    networks:
-      - maalca-network
-    restart: unless-stopped
 
 volumes:
-  postgres_data:
-    driver: local
+  pgdata:
+  umbraco-data:
+  umbraco-media:
 
 networks:
   maalca-network:
