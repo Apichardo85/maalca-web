@@ -1,7 +1,5 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
-
 interface FloatingCartButtonProps {
   itemCount: number;
   onClick: () => void;
@@ -14,7 +12,7 @@ export function FloatingCartButton({
   brandColor = 'red-600'
 }: FloatingCartButtonProps) {
   return (
-    <motion.button
+    <button
       initial={{ scale: 0 }}
       animate={{ scale: 1 }}
       whileHover={{ scale: 1.1 }}
@@ -28,18 +26,18 @@ export function FloatingCartButton({
       </svg>
 
       {/* Item Count Badge */}
-      <AnimatePresence>
+      
         {itemCount > 0 && (
-          <motion.div
+          <div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0 }}
             className="absolute -top-1 -right-1 bg-white text-black w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
           >
             {itemCount > 99 ? '99+' : itemCount}
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
-    </motion.button>
+      
+    </button>
   );
 }

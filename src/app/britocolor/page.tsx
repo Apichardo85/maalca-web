@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import {
   AffiliateServiceCard,
@@ -191,66 +190,45 @@ export default function BritoColorPage() {
 
         {/* Content */}
         <div className="relative z-10 text-center max-w-6xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2 }}
-          >
+          <div className="animate-fade-in-up">
             {/* Logo/Icon */}
-            <motion.div
-              animate={{
-                scale: [1, 1.05, 1],
-                rotate: [0, 5, -5, 0],
-              }}
-              transition={{ duration: 4, repeat: Infinity }}
-              className="mb-8"
-            >
+            <div className="mb-8 animate-pulse-slow">
               <div className="w-32 h-32 mx-auto bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center border-4 border-white/30 shadow-2xl">
                 <span className="text-6xl">🎨</span>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.h1
-              className="text-7xl md:text-9xl font-black mb-6 leading-tight text-white drop-shadow-2xl"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 1 }}
+            <h1
+              className="text-7xl md:text-9xl font-black mb-6 leading-tight text-white drop-shadow-2xl animate-fade-in-up"
+              style={{ animationDelay: '0.3s' }}
             >
               BritoColor
-            </motion.h1>
+            </h1>
 
-            <motion.h2
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6, duration: 1 }}
-              className="text-3xl md:text-5xl font-bold mb-8 text-pink-300"
+            <h2
+              className="text-3xl md:text-5xl font-bold mb-8 text-pink-300 animate-fade-in"
+              style={{ animationDelay: '0.6s' }}
             >
               Donde el color se convierte en arte
-            </motion.h2>
+            </h2>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.9, duration: 1 }}
-              className="text-xl md:text-2xl text-white/90 mb-4 font-medium max-w-3xl mx-auto"
+            <p
+              className="text-xl md:text-2xl text-white/90 mb-4 font-medium max-w-3xl mx-auto animate-fade-in"
+              style={{ animationDelay: '0.9s' }}
             >
               Comunicación visual, impresión digital y pintura artesanal para madera
-            </motion.p>
+            </p>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.1, duration: 1 }}
-              className="text-lg text-white/70 mb-12 max-w-3xl mx-auto leading-relaxed"
+            <p
+              className="text-lg text-white/70 mb-12 max-w-3xl mx-auto leading-relaxed animate-fade-in"
+              style={{ animationDelay: '1.1s' }}
             >
               Transformamos espacios comerciales con diseño, color y acabados personalizados de alta calidad
-            </motion.p>
+            </p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.4, duration: 0.8 }}
-              className="flex flex-col sm:flex-row gap-6 justify-center"
+            <div
+              className="flex flex-col sm:flex-row gap-6 justify-center animate-fade-in-up"
+              style={{ animationDelay: '1.4s' }}
             >
               <Button
                 variant="primary"
@@ -268,14 +246,12 @@ export default function BritoColorPage() {
               >
                 📸 Ver Galería
               </Button>
-            </motion.div>
+            </div>
 
             {/* Quick Stats */}
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.8, duration: 1 }}
-              className="grid grid-cols-3 gap-8 mt-16 max-w-2xl mx-auto"
+            <div
+              className="grid grid-cols-3 gap-8 mt-16 max-w-2xl mx-auto animate-fade-in-up"
+              style={{ animationDelay: '1.8s' }}
             >
               {[
                 { value: "15+", label: "Años de Experiencia" },
@@ -289,38 +265,31 @@ export default function BritoColorPage() {
                   <div className="text-white/80 text-sm font-medium">{stat.label}</div>
                 </div>
               ))}
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         </div>
 
         {/* Scroll Indicator */}
-        <motion.div
-          animate={{ y: [0, 15, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white"
+        <div
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white animate-bounce-slow"
         >
           <div className="flex flex-col items-center">
             <span className="text-sm mb-2 font-medium">Descubrir</span>
             <div className="w-0.5 h-16 bg-gradient-to-b from-white to-transparent rounded-full"></div>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* Services Section */}
       <section id="servicios" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-20"
-          >
+          <div className="text-center mb-20 animate-fade-in-up">
             <h2 className="text-6xl font-black text-gray-900 mb-6">SERVICIOS</h2>
             <div className="w-24 h-1 bg-gradient-to-r from-purple-600 to-pink-600 mx-auto mb-6"></div>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Soluciones integrales de comunicación visual y diseño para tu negocio
             </p>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {services.map((service, index) => (
@@ -359,22 +328,13 @@ export default function BritoColorPage() {
       {/* About Section */}
       <section className="py-24 bg-gradient-to-br from-purple-900 to-pink-900 text-white">
         <div className="max-w-6xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
+          <div className="text-center mb-16 animate-fade-in-up">
             <h2 className="text-5xl font-black mb-6">NUESTRA HISTORIA</h2>
             <div className="w-24 h-1 bg-white mx-auto mb-8"></div>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-2 gap-16 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-            >
+            <div className="animate-fade-in-left">
               <div className="space-y-6 text-lg leading-relaxed">
                 <p>
                   BritoColor nació del amor por el diseño y la pasión por transformar espacios comerciales.
@@ -391,14 +351,9 @@ export default function BritoColorPage() {
                   sino también experiencias.
                 </p>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="text-center"
-            >
+            <div className="text-center animate-fade-in-right">
               <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
                 <div className="text-8xl mb-6">🎨</div>
                 <h3 className="text-3xl font-bold mb-4">Más que Diseño</h3>
@@ -421,7 +376,7 @@ export default function BritoColorPage() {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
@@ -464,12 +419,7 @@ export default function BritoColorPage() {
       </footer>
 
       {/* Floating WhatsApp */}
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ delay: 3 }}
-        className="fixed bottom-6 right-6 z-50"
-      >
+      <div className="fixed bottom-6 right-6 z-50 animate-fade-in-scale" style={{ animationDelay: '3s', animationFillMode: 'backwards' }}>
         <a
           href={`https://wa.me/${contactInfo.whatsapp.replace(/\D/g, '')}`}
           target="_blank"
@@ -478,7 +428,7 @@ export default function BritoColorPage() {
         >
           💬
         </a>
-      </motion.div>
+      </div>
     </main>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
-import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 interface CounterProps {
   from?: number;
@@ -10,13 +9,29 @@ interface CounterProps {
 }
 
 export function Counter({ from = 0, to, duration = 2 }: CounterProps) {
-  const count = useMotionValue(from);
-  const rounded = useTransform(count, (latest) => Math.round(latest));
+  const [value, setValue] = useState(from);
+  const rafRef = useRef<number>(0);
 
   useEffect(() => {
-    const controls = animate(count, to, { duration });
-    return controls.stop;
-  }, [count, to, duration]);
+    const startTime = performance.now();
+    const startValue = from;
+    const endValue = to;
 
-  return <motion.span>{rounded}</motion.span>;
+    const step = (currentTime: number) => {
+      const elapsed = (currentTime - startTime) / 1000;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(startValue + (endValue - startValue) * eased));
+
+      if (progress < 1) {
+        rafRef.current = requestAnimationFrame(step);
+      }
+    };
+
+    rafRef.current = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [from, to, duration]);
+
+  return <span>{value}</span>;
 }

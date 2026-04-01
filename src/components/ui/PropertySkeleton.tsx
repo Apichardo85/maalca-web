@@ -1,5 +1,3 @@
-import { motion } from "framer-motion";
-
 interface PropertySkeletonProps {
   count?: number;
 }
@@ -8,12 +6,10 @@ export default function PropertySkeleton({ count = 6 }: PropertySkeletonProps) {
   return (
     <>
       {[...Array(count)].map((_, index) => (
-        <motion.div
+        <div
           key={index}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: index * 0.1 }}
-          className="bg-white rounded-2xl overflow-hidden shadow-lg border border-slate-200"
+          className="bg-white rounded-2xl overflow-hidden shadow-lg border border-slate-200 animate-fade-in"
+          style={{ animationDelay: `${index * 0.1}s` }}
         >
           {/* Image Skeleton */}
           <div className="aspect-[4/3] bg-slate-200 animate-pulse relative">
@@ -66,7 +62,7 @@ export default function PropertySkeleton({ count = 6 }: PropertySkeletonProps) {
               <div className="flex-1 bg-slate-100 h-10 rounded-lg animate-pulse" />
             </div>
           </div>
-        </motion.div>
+        </div>
       ))}
     </>
   );

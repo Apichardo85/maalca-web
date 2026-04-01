@@ -1,7 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
-
 export interface Testimonial {
   name: string;
   location?: string;
@@ -37,28 +35,19 @@ export function AffiliateTestimonials({
   return (
     <section className={`py-16 md:py-24 ${bgColor}`}>
       <div className="max-w-6xl mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
+        <div className="text-center mb-16 animate-fade-in-up">
           <h2 className={`text-4xl md:text-5xl font-black ${headingColor} mb-6`}>
             {getText('LO QUE DICEN NUESTROS CLIENTES', 'WHAT OUR CLIENTS SAY')}
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-blue-400 to-red-400 mx-auto"></div>
-        </motion.div>
+        </div>
 
         <div className="grid md:grid-cols-3 gap-6 md:gap-8">
           {testimonials.map((testimonial, index) => (
-            <motion.div
+            <div
               key={index}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: index * 0.2 }}
-              whileHover={{ y: -5 }}
-              className={`${cardBg} rounded-2xl p-6 md:p-8 shadow-xl`}
+              className={`${cardBg} rounded-2xl p-6 md:p-8 shadow-xl hover:-translate-y-1 transition-transform duration-300 animate-fade-in-up`}
+              style={{ animationDelay: `${index * 0.2}s` }}
             >
               <div className="flex items-center gap-1 mb-4">
                 {[...Array(testimonial.rating)].map((_, i) => (
@@ -81,7 +70,7 @@ export function AffiliateTestimonials({
                   </div>
                 )}
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

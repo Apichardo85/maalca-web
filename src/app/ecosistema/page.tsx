@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import { ProjectImage } from "@/components/ui/ProjectImage";
 import { useRouter } from "next/navigation";
@@ -135,11 +134,7 @@ export default function EcosistemaPage() {
       {/* Hero Section */}
       <section className="py-16 md:py-24 bg-surface relative overflow-hidden grain">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
+          <div className="animate-fade-in-up">
             <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6">
               {t('ecosystem.hero.title')}
               <span className="block text-brand-primary">{t('ecosystem.hero.subtitle')}</span>
@@ -161,7 +156,7 @@ export default function EcosistemaPage() {
                 {t('ecosystem.stats.founded')} <span className="font-medium">2020</span>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -170,13 +165,10 @@ export default function EcosistemaPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {translatedProjects.map((project, index) => (
-              <motion.div
+              <div
                 key={project.id}
-                className="group"
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="group animate-fade-in-up"
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div className="bg-surface rounded-2xl overflow-hidden border border-border hover:border-brand-primary/30 transition-all duration-300 shadow-sm hover:shadow-xl">
                   {/* Project Image */}
@@ -247,17 +239,11 @@ export default function EcosistemaPage() {
                       onClick={() => handleProjectClick(project.href)}
                     >
                       {t('ecosystem.exploreProject')} {t(project.titleKey)}
-                      <motion.span
-                        className="ml-2"
-                        animate={{ x: [0, 3, 0] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                      >
-                        →
-                      </motion.span>
+                      <span className="ml-2 animate-bounce-x inline-block">→</span>
                     </Button>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -266,12 +252,7 @@ export default function EcosistemaPage() {
       {/* CTA Section */}
       <section className="py-16 md:py-24 bg-surface">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
+          <div className="animate-fade-in-up">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-6">
               {t('ecosystem.cta.title')}
             </h2>
@@ -296,7 +277,7 @@ export default function EcosistemaPage() {
                 {t('ecosystem.cta.services')}
               </Button>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
     </main>

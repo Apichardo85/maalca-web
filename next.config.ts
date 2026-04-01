@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   eslint: {
     // Warning: This allows production builds to complete even with ESLint errors
     ignoreDuringBuilds: true,
@@ -28,7 +29,7 @@ const nextConfig: NextConfig = {
     } : false,
   },
   experimental: {
-    optimizePackageImports: ['framer-motion'], // Tree-shake Framer Motion
+    optimizePackageImports: [], // framer-motion removed from most pages
   },
   // Enable bundle analysis in production
   webpack: (config, { isServer }) => {

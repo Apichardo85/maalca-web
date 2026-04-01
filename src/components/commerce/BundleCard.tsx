@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import type { Bundle } from '@/lib/types/commerce.types';
 
 interface BundleCardProps {
@@ -21,7 +20,7 @@ export function BundleCard({
   const savingsPercent = Math.round((bundle.savings / bundle.regularPrice) * 100);
 
   return (
-    <motion.div
+    <div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -5 }}
@@ -92,6 +91,6 @@ export function BundleCard({
           {language === 'es' ? 'Agregar Bundle' : 'Add Bundle'}
         </button>
       </div>
-    </motion.div>
+    </div>
   );
 }

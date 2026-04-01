@@ -1,17 +1,14 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 
 /**
  * Quick Stats específico para barberías
- * Muestra resumen de Queue, Salon y Gift Cards
  */
 export function BarbershopQuickStats() {
   const { config } = useAffiliate();
 
-  // Mock data - en producción vendría de API
   const queueStats = {
     waiting: 7,
     averageWaitTime: 35,
@@ -45,11 +42,7 @@ export function BarbershopQuickStats() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Queue Card */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
-        >
+        <div className="animate-fade-in-scale" style={{ animationDelay: '0.1s' }}>
           <Link href={`/dashboard/${config?.id}/queue`}>
             <div className="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/10 dark:to-orange-900/10 rounded-2xl border-2 border-yellow-200 dark:border-yellow-800 p-6 hover:shadow-xl hover:scale-105 transition-all cursor-pointer group">
               <div className="flex items-start justify-between mb-4">
@@ -87,14 +80,10 @@ export function BarbershopQuickStats() {
               </div>
             </div>
           </Link>
-        </motion.div>
+        </div>
 
         {/* Salon Card */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
-        >
+        <div className="animate-fade-in-scale" style={{ animationDelay: '0.2s' }}>
           <Link href={`/dashboard/${config?.id}/salon`}>
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-2xl border-2 border-blue-200 dark:border-blue-800 p-6 hover:shadow-xl hover:scale-105 transition-all cursor-pointer group">
               <div className="flex items-start justify-between mb-4">
@@ -132,14 +121,10 @@ export function BarbershopQuickStats() {
               </div>
             </div>
           </Link>
-        </motion.div>
+        </div>
 
         {/* Gift Cards Card */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.3 }}
-        >
+        <div className="animate-fade-in-scale" style={{ animationDelay: '0.3s' }}>
           <Link href={`/dashboard/${config?.id}/giftcards`}>
             <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/10 dark:to-pink-900/10 rounded-2xl border-2 border-purple-200 dark:border-purple-800 p-6 hover:shadow-xl hover:scale-105 transition-all cursor-pointer group">
               <div className="flex items-start justify-between mb-4">
@@ -177,15 +162,13 @@ export function BarbershopQuickStats() {
               </div>
             </div>
           </Link>
-        </motion.div>
+        </div>
       </div>
 
       {/* Quick Actions Bar */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="bg-white dark:bg-gray-900 rounded-2xl border-2 border-gray-200 dark:border-gray-800 p-6"
+      <div
+        className="bg-white dark:bg-gray-900 rounded-2xl border-2 border-gray-200 dark:border-gray-800 p-6 animate-fade-in-up"
+        style={{ animationDelay: '0.4s' }}
       >
         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
           Acciones Rápidas
@@ -212,7 +195,7 @@ export function BarbershopQuickStats() {
             </button>
           </Link>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

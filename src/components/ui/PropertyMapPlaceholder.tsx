@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Property } from '@/lib/types/property';
 import { Button } from './buttons';
 
@@ -86,7 +85,7 @@ export default function PropertyMapPlaceholder({
         const isHovered = hoveredProperty === property.id;
         
         return (
-          <motion.div
+          <div
             key={property.id}
             className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10"
             style={{
@@ -95,7 +94,6 @@ export default function PropertyMapPlaceholder({
             }}
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ delay: 0.5, type: "spring" }}
             whileHover={{ scale: 1.1 }}
             onMouseEnter={() => setHoveredProperty(property.id)}
             onMouseLeave={() => setHoveredProperty(null)}
@@ -136,7 +134,7 @@ export default function PropertyMapPlaceholder({
 
             {/* Property popup on hover */}
             {isHovered && (
-              <motion.div
+              <div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 p-4 z-20"
@@ -151,9 +149,9 @@ export default function PropertyMapPlaceholder({
                   <span className="font-bold text-blue-600">{formatPrice(property.priceFrom)}</span>
                   <span className="text-gray-500">{property.bedrooms}bed • {property.bathrooms}bath</span>
                 </div>
-              </motion.div>
+              </div>
             )}
-          </motion.div>
+          </div>
         );
       })}
 

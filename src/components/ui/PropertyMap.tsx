@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import Map, { Marker, Popup, NavigationControl, FullscreenControl, ScaleControl } from 'react-map-gl';
 import { Property } from '@/lib/types/property';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './buttons';
 
 // MapBox styles

@@ -1,7 +1,6 @@
 "use client";
 
 import { lazy, Suspense } from 'react';
-import { motion } from 'framer-motion';
 import { GalleryProps } from '@/lib/types';
 
 // Lazy load the heavy ProductGallery component
@@ -27,11 +26,10 @@ const GallerySkeleton = () => (
       {/* Gallery Grid Skeleton */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {Array.from({ length: 12 }).map((_, i) => (
-          <motion.div
+          <div
             key={i}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
             className="bg-white rounded-xl shadow-lg overflow-hidden"
           >
             <div className="aspect-[4/5] bg-gray-200 relative">
@@ -50,15 +48,14 @@ const GallerySkeleton = () => (
                 ))}
               </div>
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
 
       {/* Loading indicator */}
       <div className="text-center mt-12">
-        <motion.div
+        <div
           animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           className="inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"
         />
         <p className="mt-4 text-gray-600">Loading gallery...</p>

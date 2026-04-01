@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './buttons';
 
 interface ConsultationBookingProps {
@@ -291,15 +290,15 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit, languag
   if (!isOpen) return null;
 
   return (
-    <AnimatePresence>
-      <motion.div
+    
+      <div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-start sm:items-center justify-center p-2 sm:p-4"
         onClick={handleClose}
       >
-        <motion.div
+        <div
           initial={{ scale: 0.9, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -575,8 +574,8 @@ export default function ConsultationBooking({ isOpen, onClose, onSubmit, languag
               </Button>
             </div>
           </form>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+        </div>
+      </div>
+    
   );
 }

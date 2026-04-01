@@ -2,8 +2,6 @@
 
 import React, { useState, useRef, useCallback } from 'react';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
-
 interface OptimizedImageProps {
   src: string;
   alt: string;
@@ -116,7 +114,7 @@ export default function OptimizedImage({
     <div ref={containerRef} className={`relative overflow-hidden ${className}`}>
       {/* Loading skeleton */}
       {isLoading && isInView && (
-        <motion.div
+        <div
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200"

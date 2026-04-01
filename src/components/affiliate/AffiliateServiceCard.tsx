@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 
 export interface AffiliateService {
@@ -83,13 +82,9 @@ export function AffiliateServiceCard({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6, delay: index * 0.1 }}
-      whileHover={{ y: -5, scale: 1.02 }}
-      className="group cursor-pointer relative"
+    <div
+      className="group cursor-pointer relative hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 animate-fade-in-up"
+      style={{ animationDelay: `${index * 0.1}s` }}
     >
       <div className={`bg-gradient-to-br ${variantStyles[variant]} rounded-3xl p-6 md:p-8 border-2 transition-all duration-500 shadow-lg hover:shadow-2xl h-full flex flex-col`}>
         {service.popular && (
@@ -134,6 +129,6 @@ export function AffiliateServiceCard({
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

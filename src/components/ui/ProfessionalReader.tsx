@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './buttons';
 
 interface ProfessionalReaderProps {
@@ -245,7 +244,7 @@ export default function ProfessionalReader({
   }, [currentChapter, chapters.length]);
 
   return (
-    <motion.div
+    <div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -435,10 +434,10 @@ export default function ProfessionalReader({
           </main>
 
           {/* Sidebar Panels */}
-          <AnimatePresence>
+          
             {/* Settings Panel */}
             {showSettings && (
-              <motion.div
+              <div
                 initial={{ x: 300, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: 300, opacity: 0 }}
@@ -539,12 +538,12 @@ export default function ProfessionalReader({
                     className="w-full"
                   />
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* Bookmarks Panel */}
             {showBookmarks && (
-              <motion.div
+              <div
                 initial={{ x: 300, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: 300, opacity: 0 }}
@@ -579,12 +578,12 @@ export default function ProfessionalReader({
                     ))}
                   </div>
                 )}
-              </motion.div>
+              </div>
             )}
 
             {/* Highlights Panel */}
             {showHighlights && (
-              <motion.div
+              <div
                 initial={{ x: 300, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: 300, opacity: 0 }}
@@ -621,15 +620,15 @@ export default function ProfessionalReader({
                     ))}
                   </div>
                 )}
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
+          
         </div>
 
         {/* Highlight Menu */}
-        <AnimatePresence>
+        
           {showHighlightMenu && (
-            <motion.div
+            <div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
@@ -649,10 +648,10 @@ export default function ProfessionalReader({
                   />
                 ))}
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        
       </div>
-    </motion.div>
+    </div>
   );
 }

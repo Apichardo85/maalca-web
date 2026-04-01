@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import { ProjectImage } from "@/components/ui/ProjectImage";
 
@@ -144,7 +143,7 @@ export default function PatientPortalPage() {
   if (!isAuthenticated) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center p-4">
-        <motion.div
+        <div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md"
@@ -200,7 +199,7 @@ export default function PatientPortalPage() {
               Demo: use cualquier email y contraseña para acceder
             </p>
           </div>
-        </motion.div>
+        </div>
       </main>
     );
   }
@@ -258,7 +257,7 @@ export default function PatientPortalPage() {
 
         {/* Dashboard Tab */}
         {activeTab === 'dashboard' && (
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-6"
@@ -353,12 +352,12 @@ export default function PatientPortalPage() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Appointments Tab */}
         {activeTab === 'appointments' && (
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-white rounded-xl shadow-sm border border-slate-200"
@@ -441,12 +440,12 @@ export default function PatientPortalPage() {
                 ))}
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Prescriptions Tab */}
         {activeTab === 'prescriptions' && (
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-white rounded-xl shadow-sm border border-slate-200"
@@ -496,12 +495,12 @@ export default function PatientPortalPage() {
                 ))}
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Lab Results Tab */}
         {activeTab === 'lab-results' && (
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-white rounded-xl shadow-sm border border-slate-200"
@@ -546,12 +545,12 @@ export default function PatientPortalPage() {
                 ))}
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Profile Tab */}
         {activeTab === 'profile' && (
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-white rounded-xl shadow-sm border border-slate-200"
@@ -623,7 +622,7 @@ export default function PatientPortalPage() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
       </div>
     </main>

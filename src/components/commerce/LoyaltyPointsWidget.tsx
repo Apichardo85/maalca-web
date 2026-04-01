@@ -1,6 +1,5 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import type { LoyaltyPoints } from '@/lib/types/commerce.types';
 
 interface LoyaltyPointsWidgetProps {
@@ -37,7 +36,7 @@ export function LoyaltyPointsWidget({
     : 100;
 
   return (
-    <motion.div
+    <div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-6 border border-gray-700"
@@ -88,10 +87,9 @@ export function LoyaltyPointsWidget({
             </span>
           </div>
           <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
-            <motion.div
+            <div
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
-              transition={{ duration: 1, ease: 'easeOut' }}
               className={`bg-${tierColor} h-3 rounded-full`}
             />
           </div>
@@ -136,6 +134,6 @@ export function LoyaltyPointsWidget({
           {language === 'es' ? 'Ver Historial' : 'View History'}
         </button>
       )}
-    </motion.div>
+    </div>
   );
 }

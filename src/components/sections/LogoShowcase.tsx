@@ -1,36 +1,13 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Logo } from "@/components/ui/Logo";
 
 export function LogoShowcase() {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.3
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0
-    }
-  };
-
   return (
     <section className="py-20 bg-gradient-to-b from-maalca-black to-maalca-dark-gray">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+        <div
+          className="text-center mb-16 animate-fade-in-up"
         >
           <h2 className="text-4xl md:text-5xl font-bold text-maalca-white mb-6">
             Identidad Visual de
@@ -39,18 +16,13 @@ export function LogoShowcase() {
           <p className="text-xl text-maalca-light-gray max-w-3xl mx-auto">
             Nuestro logo representa la conexión humana y el sentido de pertenencia que impulsa nuestro ecosistema creativo.
           </p>
-        </motion.div>
+        </div>
 
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
           {/* Full Logo Dark */}
-          <motion.div
-            className="flex flex-col items-center p-8 bg-maalca-black border border-maalca-gray rounded-2xl"
-            variants={itemVariants}
+          <div
+            className="flex flex-col items-center p-8 bg-maalca-black border border-maalca-gray rounded-2xl animate-fade-in-up"
+            style={{ animationDelay: '0.3s' }}
           >
             <div className="mb-6">
               <Logo variant="full" size="lg" />
@@ -59,12 +31,12 @@ export function LogoShowcase() {
             <p className="text-maalca-light-gray text-center text-sm">
               Versión principal para fondos oscuros
             </p>
-          </motion.div>
+          </div>
 
           {/* Icon Only */}
-          <motion.div
-            className="flex flex-col items-center p-8 bg-maalca-dark-gray border border-maalca-gray rounded-2xl"
-            variants={itemVariants}
+          <div
+            className="flex flex-col items-center p-8 bg-maalca-dark-gray border border-maalca-gray rounded-2xl animate-fade-in-up"
+            style={{ animationDelay: '0.5s' }}
           >
             <div className="mb-6">
               <Logo variant="icon" size="xl"  />
@@ -73,12 +45,12 @@ export function LogoShowcase() {
             <p className="text-maalca-light-gray text-center text-sm">
               Símbolo independiente para aplicaciones compactas
             </p>
-          </motion.div>
+          </div>
 
           {/* Text Only */}
-          <motion.div
-            className="flex flex-col items-center p-8 bg-maalca-gray border border-maalca-light-gray rounded-2xl"
-            variants={itemVariants}
+          <div
+            className="flex flex-col items-center p-8 bg-maalca-gray border border-maalca-light-gray rounded-2xl animate-fade-in-up"
+            style={{ animationDelay: '0.7s' }}
           >
             <div className="mb-6">
               <Logo variant="text" size="lg"  />
@@ -87,12 +59,12 @@ export function LogoShowcase() {
             <p className="text-maalca-light-gray text-center text-sm">
               Solo texto para usos específicos
             </p>
-          </motion.div>
+          </div>
 
           {/* Full Logo Light */}
-          <motion.div
-            className="flex flex-col items-center p-8 bg-maalca-white rounded-2xl"
-            variants={itemVariants}
+          <div
+            className="flex flex-col items-center p-8 bg-maalca-white rounded-2xl animate-fade-in-up"
+            style={{ animationDelay: '0.9s' }}
           >
             <div className="mb-6">
               <Logo variant="full" size="lg"  />
@@ -101,12 +73,12 @@ export function LogoShowcase() {
             <p className="text-maalca-gray text-center text-sm">
               Para fondos claros y aplicaciones especiales
             </p>
-          </motion.div>
+          </div>
 
           {/* Icon Light */}
-          <motion.div
-            className="flex flex-col items-center p-8 bg-gray-100 rounded-2xl"
-            variants={itemVariants}
+          <div
+            className="flex flex-col items-center p-8 bg-gray-100 rounded-2xl animate-fade-in-up"
+            style={{ animationDelay: '1.1s' }}
           >
             <div className="mb-6">
               <Logo variant="icon" size="xl"  />
@@ -115,12 +87,12 @@ export function LogoShowcase() {
             <p className="text-maalca-gray text-center text-sm">
               Símbolo para fondos claros
             </p>
-          </motion.div>
+          </div>
 
           {/* Different Sizes */}
-          <motion.div
-            className="flex flex-col items-center p-8 bg-gradient-to-br from-maalca-red/20 to-maalca-red-dark/20 border border-maalca-red/30 rounded-2xl"
-            variants={itemVariants}
+          <div
+            className="flex flex-col items-center p-8 bg-gradient-to-br from-maalca-red/20 to-maalca-red-dark/20 border border-maalca-red/30 rounded-2xl animate-fade-in-up"
+            style={{ animationDelay: '1.3s' }}
           >
             <div className="flex flex-col items-center space-y-4 mb-6">
               <Logo variant="full" size="sm"  />
@@ -131,15 +103,13 @@ export function LogoShowcase() {
             <p className="text-maalca-light-gray text-center text-sm">
               Funciona en múltiples tamaños
             </p>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         {/* Design Philosophy */}
-        <motion.div
-          className="mt-20 text-center"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
+        <div
+          className="mt-20 text-center animate-fade-in-up"
+          style={{ animationDelay: '0.5s' }}
         >
           <div className="max-w-4xl mx-auto">
             <h3 className="text-2xl font-bold text-maalca-white mb-6">Filosofía del Diseño</h3>
@@ -181,7 +151,7 @@ export function LogoShowcase() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

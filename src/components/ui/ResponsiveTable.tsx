@@ -1,14 +1,13 @@
 "use client";
 
 import { ReactNode } from "react";
-import { motion } from "framer-motion";
 
 export interface TableColumn<T> {
   key: string;
   header: string;
   render: (item: T) => ReactNode;
-  mobileLabel?: string; // Label override para mobile
-  hideOnMobile?: boolean; // Ocultar en mobile
+  mobileLabel?: string;
+  hideOnMobile?: boolean;
 }
 
 interface ResponsiveTableProps<T> {
@@ -21,9 +20,6 @@ interface ResponsiveTableProps<T> {
 
 /**
  * Tabla responsive que se adapta a mobile y desktop
- *
- * Desktop: Tabla tradicional con columnas
- * Mobile: Cards apiladas con información clave
  */
 export function ResponsiveTable<T>({
   data,
@@ -65,14 +61,12 @@ export function ResponsiveTable<T>({
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {data.map((item, index) => (
-              <motion.tr
+              <tr
                 key={getRowKey(item)}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
+                className={`hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors animate-fade-in ${
                   onRowClick ? "cursor-pointer" : ""
                 }`}
+                style={{ animationDelay: `${index * 0.05}s` }}
                 onClick={() => onRowClick?.(item)}
               >
                 {columns.map((column) => (
@@ -83,7 +77,7 @@ export function ResponsiveTable<T>({
                     {column.render(item)}
                   </td>
                 ))}
-              </motion.tr>
+              </tr>
             ))}
           </tbody>
         </table>
@@ -92,14 +86,12 @@ export function ResponsiveTable<T>({
       {/* Mobile Cards */}
       <div className="md:hidden space-y-4">
         {data.map((item, index) => (
-          <motion.div
+          <div
             key={getRowKey(item)}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-            className={`bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 space-y-3 ${
+            className={`bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 space-y-3 animate-fade-in ${
               onRowClick ? "cursor-pointer active:scale-[0.98]" : ""
             }`}
+            style={{ animationDelay: `${index * 0.05}s` }}
             onClick={() => onRowClick?.(item)}
           >
             {mobileColumns.map((column) => (
@@ -112,7 +104,7 @@ export function ResponsiveTable<T>({
                 </div>
               </div>
             ))}
-          </motion.div>
+          </div>
         ))}
       </div>
     </>

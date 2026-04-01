@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { GalleryItem, GalleryCategory, CategoryFilter as CategoryFilterType, GalleryProps } from "@/lib/types";
 import { useLazyLoading } from "@/hooks/useLazyLoading";
 import CategoryFilter from "./CategoryFilter";
@@ -113,7 +112,7 @@ export default function ProductGallery({
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-  
+
   const galleryRef = useRef<HTMLDivElement>(null);
   const { observeImage, unobserveImage, handleImageLoad, handleImageError, shouldLoadImage, getImageState } = useLazyLoading();
 
@@ -127,7 +126,7 @@ export default function ProductGallery({
 
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(item => 
+      filtered = filtered.filter(item =>
         item.title.toLowerCase().includes(term) ||
         item.description?.toLowerCase().includes(term) ||
         item.tags?.some(tag => tag.toLowerCase().includes(term))
@@ -164,7 +163,7 @@ export default function ProductGallery({
   // Masonry grid calculation
   const getMasonryColumns = () => {
     if (typeof window === "undefined") return Array(columns).fill([]);
-    
+
     const cols = Array(columns).fill(null).map(() => [] as GalleryItem[]);
     const colHeights = Array(columns).fill(0);
 
@@ -183,31 +182,22 @@ export default function ProductGallery({
     <div className={`w-full ${className}`}>
       {/* Header */}
       <div className="text-center mb-12">
-        <motion.h2
-          className="font-display text-4xl lg:text-5xl font-bold text-gray-900 mb-6"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
+        <h2 className="font-display text-4xl lg:text-5xl font-bold text-gray-900 mb-6 animate-fade-in-up">
           Galería de Productos
-        </motion.h2>
-        <motion.p
-          className="text-xl text-gray-600 max-w-3xl mx-auto"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+        </h2>
+        <p
+          className="text-xl text-gray-600 max-w-3xl mx-auto animate-fade-in-up"
+          style={{ animationDelay: '0.2s' }}
         >
           Descubre nuestra colección de creaciones gastronómicas que han conquistado los paladares más exigentes
-        </motion.p>
+        </p>
       </div>
 
       {/* Search Bar */}
       {showSearch && (
-        <motion.div
-          className="max-w-md mx-auto mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
+        <div
+          className="max-w-md mx-auto mb-8 animate-fade-in-up"
+          style={{ animationDelay: '0.3s' }}
         >
           <div className="relative">
             <input
@@ -223,31 +213,27 @@ export default function ProductGallery({
               </svg>
             </div>
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* Category Filter */}
       {showCategoryFilter && (
-        <motion.div
-          className="mb-12"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
+        <div
+          className="mb-12 animate-fade-in-up"
+          style={{ animationDelay: '0.4s' }}
         >
           <CategoryFilter
             categories={categories || []}
             selectedCategory={selectedCategory}
             onCategoryChange={setSelectedCategory}
           />
-        </motion.div>
+        </div>
       )}
 
       {/* Results Count */}
-      <motion.div
-        className="text-center mb-8"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.5 }}
+      <div
+        className="text-center mb-8 animate-fade-in"
+        style={{ animationDelay: '0.5s' }}
       >
         <p className="text-gray-600">
           Mostrando <span className="font-semibold text-amber-600">{filteredItems.length}</span> productos
@@ -255,7 +241,7 @@ export default function ProductGallery({
             <span> en <span className="font-semibold">{selectedCategory.replace("-", " ")}</span></span>
           )}
         </p>
-      </motion.div>
+      </div>
 
       {/* Masonry Grid */}
       <div
@@ -265,95 +251,80 @@ export default function ProductGallery({
       >
         {masonryColumns.map((column, columnIndex) => (
           <div key={columnIndex} className="space-y-4">
-            <AnimatePresence>
-              {column.map((item: GalleryItem, itemIndex: number) => (
-                <motion.div
-                  key={item.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ 
-                    duration: 0.4, 
-                    delay: (columnIndex * 0.1) + (itemIndex * 0.05),
-                    layout: { type: "spring", stiffness: 300, damping: 30 }
-                  }}
-                  className="group cursor-pointer"
-                  onClick={() => handleItemClick(item)}
-                >
-                  <div className="relative overflow-hidden rounded-2xl bg-gray-100 shadow-lg hover:shadow-2xl transition-all duration-300">
-                    {/* Image */}
-                    <div className="relative">
-                      <LazyImage
-                        item={item}
-                        observeImage={observeImage}
-                        unobserveImage={unobserveImage}
-                        handleImageLoad={handleImageLoad}
-                        handleImageError={handleImageError}
-                        shouldLoadImage={shouldLoadImage}
-                        getImageState={getImageState}
-                      />
-                      
-                      {/* Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      
-                      {/* Category Badge */}
-                      <div className="absolute top-4 left-4">
-                        <span className="bg-white/90 backdrop-blur-sm text-gray-900 px-3 py-1 rounded-full text-sm font-medium">
-                          {item.category.replace("-", " ").replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                        </span>
-                      </div>
+            {column.map((item: GalleryItem, itemIndex: number) => (
+              <div
+                key={item.id}
+                className="group cursor-pointer animate-fade-in-scale"
+                style={{ animationDelay: `${(columnIndex * 0.1) + (itemIndex * 0.05)}s` }}
+                onClick={() => handleItemClick(item)}
+              >
+                <div className="relative overflow-hidden rounded-2xl bg-gray-100 shadow-lg hover:shadow-2xl transition-all duration-300">
+                  {/* Image */}
+                  <div className="relative">
+                    <LazyImage
+                      item={item}
+                      observeImage={observeImage}
+                      unobserveImage={unobserveImage}
+                      handleImageLoad={handleImageLoad}
+                      handleImageError={handleImageError}
+                      shouldLoadImage={shouldLoadImage}
+                      getImageState={getImageState}
+                    />
 
-                      {/* Zoom Icon */}
-                      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center">
-                          <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                          </svg>
-                        </div>
-                      </div>
+                    {/* Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                    {/* Category Badge */}
+                    <div className="absolute top-4 left-4">
+                      <span className="bg-white/90 backdrop-blur-sm text-gray-900 px-3 py-1 rounded-full text-sm font-medium">
+                        {item.category.replace("-", " ").replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                      </span>
                     </div>
 
-                    {/* Content */}
-                    <div className="p-6">
-                      <h3 className="font-display text-xl font-bold text-gray-900 mb-2 group-hover:text-amber-600 transition-colors">
-                        {item.title}
-                      </h3>
-                      {item.description && (
-                        <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3">
-                          {item.description}
-                        </p>
-                      )}
-                      
-                      {item.tags && item.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {item.tags.slice(0, 3).map((tag: string) => (
-                            <span
-                              key={tag}
-                              className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full"
-                            >
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                    {/* Zoom Icon */}
+                    <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center">
+                        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </div>
                     </div>
                   </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+
+                  {/* Content */}
+                  <div className="p-6">
+                    <h3 className="font-display text-xl font-bold text-gray-900 mb-2 group-hover:text-amber-600 transition-colors">
+                      {item.title}
+                    </h3>
+                    {item.description && (
+                      <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3">
+                        {item.description}
+                      </p>
+                    )}
+
+                    {item.tags && item.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {item.tags.slice(0, 3).map((tag: string) => (
+                          <span
+                            key={tag}
+                            className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full"
+                          >
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ))}
       </div>
 
       {/* Empty State */}
       {filteredItems.length === 0 && (
-        <motion.div
-          className="text-center py-16"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
+        <div className="text-center py-16 animate-fade-in-up">
           <div className="text-gray-400 mb-4">
             <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -361,7 +332,7 @@ export default function ProductGallery({
           </div>
           <h3 className="text-xl font-semibold text-gray-600 mb-2">No se encontraron productos</h3>
           <p className="text-gray-500">Intenta ajustar tus filtros o términos de búsqueda</p>
-        </motion.div>
+        </div>
       )}
 
       {/* Lightbox */}
@@ -410,7 +381,7 @@ function LazyImage({
   }, [item.id, observeImage, unobserveImage]);
 
   return (
-    <div 
+    <div
       className="relative w-full bg-gray-200 animate-pulse"
       style={{ aspectRatio: item.width / item.height }}
     >
@@ -439,7 +410,7 @@ function LazyImage({
           </div>
         </div>
       )}
-      
+
       {error && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
           <div className="text-center text-gray-400">

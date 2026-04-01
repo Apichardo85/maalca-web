@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './buttons';
 
 interface WhatsAppIntegrationProps {
@@ -166,16 +165,16 @@ export default function WhatsAppIntegration({
       </div>
 
       {/* Message Selector Modal */}
-      <AnimatePresence>
+      
         {showMessageSelector && (
-          <motion.div
+          <div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
             onClick={() => setShowMessageSelector(false)}
           >
-            <motion.div
+            <div
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -229,7 +228,7 @@ export default function WhatsAppIntegration({
                 {selectedMessageType === 'quick' && (
                   <div className="space-y-3">
                     {quickMessages.map((msg) => (
-                      <motion.button
+                      <button
                         key={msg.id}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
@@ -242,7 +241,7 @@ export default function WhatsAppIntegration({
                         <div className="text-sm text-slate-600 line-clamp-2">
                           {msg.message}
                         </div>
-                      </motion.button>
+                      </button>
                     ))}
                   </div>
                 )}
@@ -314,10 +313,10 @@ export default function WhatsAppIntegration({
                   </div>
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         )}
-      </AnimatePresence>
+      
     </>
   );
 }

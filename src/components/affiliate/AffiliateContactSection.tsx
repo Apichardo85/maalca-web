@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import WhatsAppIntegration from "@/components/ui/WhatsAppIntegration";
 
@@ -56,12 +55,7 @@ export function AffiliateContactSection({
   return (
     <section id="contacto" className="py-16 md:py-24 bg-white">
       <div className="max-w-6xl mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
+        <div className="text-center mb-16 animate-fade-in-up">
           <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6">
             {getText('CONTACTO', 'CONTACT')}
           </h2>
@@ -69,16 +63,11 @@ export function AffiliateContactSection({
           <p className="text-xl text-gray-600">
             {getText('Estamos aquí para ti', 'We\'re here for you')}
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid md:grid-cols-2 gap-12 md:gap-16">
           {/* Contact Info */}
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="space-y-8"
-          >
+          <div className="space-y-8 animate-fade-in-left">
             {/* Location */}
             <div className="flex items-start gap-4">
               <div className={`w-12 h-12 bg-gradient-to-r from-${colors.primary} to-${colors.hover} rounded-full flex items-center justify-center text-white text-xl flex-shrink-0`}>
@@ -202,15 +191,11 @@ export function AffiliateContactSection({
                 />
               </div>
             )}
-          </motion.div>
+          </div>
 
           {/* Contact Form */}
           {showForm && (
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-            >
+            <div className="animate-fade-in-right">
               <form className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-4">
                   <input
@@ -249,7 +234,7 @@ export function AffiliateContactSection({
                   {getText('Enviar Mensaje', 'Send Message')}
                 </Button>
               </form>
-            </motion.div>
+            </div>
           )}
         </div>
       </div>

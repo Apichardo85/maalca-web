@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 
 export default function PegoteFila() {
   const [formData, setFormData] = useState({
@@ -36,7 +35,7 @@ export default function PegoteFila() {
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-4">
-        <motion.div
+        <div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="max-w-md w-full bg-white dark:bg-gray-900 rounded-3xl shadow-2xl p-8 text-center border-2 border-red-600"
@@ -85,14 +84,14 @@ export default function PegoteFila() {
           >
             Agregar otra persona
           </button>
-        </motion.div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-4">
-      <motion.div
+      <div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-w-md w-full"
@@ -107,10 +106,9 @@ export default function PegoteFila() {
         </div>
 
         {/* Current Wait Time */}
-        <motion.div
+        <div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
           className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6 mb-6 border border-gray-200 dark:border-gray-800"
         >
           <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-2">
@@ -119,13 +117,12 @@ export default function PegoteFila() {
           <p className="text-5xl font-bold text-red-600 dark:text-red-500 text-center">
             {estimatedWait} min
           </p>
-        </motion.div>
+        </div>
 
         {/* Form */}
-        <motion.div
+        <div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
           className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800"
         >
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -192,20 +189,19 @@ export default function PegoteFila() {
               Al unirte, aceptas que podemos llamarte cuando sea tu turno. Sin cita previa necesaria.
             </p>
           </div>
-        </motion.div>
+        </div>
 
         {/* Info Footer */}
-        <motion.div
+        <div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
           className="mt-6 text-center"
         >
           <p className="text-sm text-gray-400">
             ¿Prefieres hacer una cita? <a href="/contacto" className="text-red-500 hover:text-red-400 font-semibold">Contáctanos</a>
           </p>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </div>
   );
 }

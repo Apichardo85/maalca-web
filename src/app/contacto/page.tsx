@@ -1,6 +1,5 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import { FormField } from "@/components/ui/FormField";
 import { TextAreaField } from "@/components/ui/TextAreaField";
@@ -83,10 +82,10 @@ export default function ContactoPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate all fields
     const isValid = validateAllFields();
-    
+
     if (!isValid) {
       // Scroll to first error
       const firstErrorField = Object.keys(errors).find(key => errors[key]);
@@ -95,10 +94,10 @@ export default function ContactoPage() {
       }
       return;
     }
-    
+
     // Submit form
     const result = await submitForm(formData);
-    
+
     if (result.success) {
       resetForm();
     }
@@ -110,11 +109,7 @@ export default function ContactoPage() {
       <section className="py-16 md:py-24 bg-surface relative overflow-hidden grain">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-            >
+            <div className="animate-fade-in-up">
               <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6">
                 {t('contactPage.hero.title')}
                 <span className="block text-brand-primary">{t('contactPage.hero.subtitle')}</span>
@@ -122,7 +117,7 @@ export default function ContactoPage() {
               <p className="text-lg lg:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
                 {t('contactPage.hero.description')}
               </p>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
@@ -131,12 +126,7 @@ export default function ContactoPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             {/* Contact Form */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
+            <div className="animate-fade-in-left">
               <div className="bg-surface rounded-2xl p-8 border border-border shadow-lg">
                 <h2 className="text-2xl font-bold text-white mb-6">
                   {t('contactPage.form.title')}
@@ -202,37 +192,31 @@ export default function ContactoPage() {
                   />
 
                   {/* Form Status Messages */}
-                  <AnimatePresence>
-                    {message && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0, y: -10 }}
-                        animate={{ opacity: 1, height: 'auto', y: 0 }}
-                        exit={{ opacity: 0, height: 0, y: -10 }}
-                        transition={{ duration: 0.3 }}
-                        className={`p-4 rounded-xl border flex items-center gap-3 ${
-                          isSuccess 
-                            ? 'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-300'
-                            : isError
-                              ? 'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-300'
-                              : 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300'
-                        }`}
-                      >
-                        <div className="flex-shrink-0">
-                          {isSuccess && (
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                          )}
-                          {isError && (
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                            </svg>
-                          )}
-                        </div>
-                        <p className="font-medium">{message}</p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  {message && (
+                    <div
+                      className={`p-4 rounded-xl border flex items-center gap-3 animate-fade-in ${
+                        isSuccess
+                          ? 'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-300'
+                          : isError
+                            ? 'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-300'
+                            : 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300'
+                      }`}
+                    >
+                      <div className="flex-shrink-0">
+                        {isSuccess && (
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                        {isError && (
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+                      <p className="font-medium">{message}</p>
+                    </div>
+                  )}
 
                   {/* Submit Button */}
                   <Button
@@ -260,16 +244,10 @@ export default function ContactoPage() {
                   </div>
                 </form>
               </div>
-            </motion.div>
+            </div>
 
             {/* Contact Information */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="space-y-8"
-            >
+            <div className="animate-fade-in-right space-y-8">
               {/* Company Info */}
               <div className="bg-surface rounded-2xl p-8 border border-border">
                 <h3 className="text-xl font-bold text-white mb-6">
@@ -333,7 +311,7 @@ export default function ContactoPage() {
                   </cite>
                 </blockquote>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>

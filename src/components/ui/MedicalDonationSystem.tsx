@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './buttons';
 
 interface MedicalDonationSystemProps {
@@ -229,15 +228,15 @@ export default function MedicalDonationSystem({
   if (!isOpen) return null;
 
   return (
-    <AnimatePresence>
-      <motion.div
+    
+      <div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
         onClick={handleClose}
       >
-        <motion.div
+        <div
           initial={{ scale: 0.9, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -287,7 +286,7 @@ export default function MedicalDonationSystem({
           <div className="p-6">
             {/* Step 1: Amount Selection */}
             {currentStep === 1 && (
-              <motion.div
+              <div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
@@ -307,7 +306,7 @@ export default function MedicalDonationSystem({
 
                 <div className="grid md:grid-cols-2 gap-4">
                   {donationOptions.map((option) => (
-                    <motion.button
+                    <button
                       key={option.amount}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
@@ -331,7 +330,7 @@ export default function MedicalDonationSystem({
                       <h4 className="font-bold text-slate-900 mb-2">{option.label}</h4>
                       <p className="text-slate-600 text-sm mb-2">{option.description}</p>
                       <p className="text-green-600 text-sm font-medium">{option.impact}</p>
-                    </motion.button>
+                    </button>
                   ))}
                 </div>
 
@@ -377,12 +376,12 @@ export default function MedicalDonationSystem({
                     </Button>
                   </div>
                 )}
-              </motion.div>
+              </div>
             )}
 
             {/* Step 2: Donor Information */}
             {currentStep === 2 && (
-              <motion.div
+              <div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
@@ -547,12 +546,12 @@ export default function MedicalDonationSystem({
                     {donationData.amount === 0 ? 'Finalizar' : 'Proceder al Pago'}
                   </Button>
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* Step 3: Payment */}
             {currentStep === 3 && donationData.amount > 0 && (
-              <motion.div
+              <div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
@@ -685,12 +684,12 @@ export default function MedicalDonationSystem({
                     </Button>
                   </div>
                 )}
-              </motion.div>
+              </div>
             )}
 
             {/* Complete Step for Free Consultation */}
             {currentStep === 3 && donationData.amount === 0 && (
-              <motion.div
+              <div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 className="text-center py-12"
@@ -711,11 +710,11 @@ export default function MedicalDonationSystem({
                 >
                   Continuar
                 </Button>
-              </motion.div>
+              </div>
             )}
           </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+        </div>
+      </div>
+    
   );
 }

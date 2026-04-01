@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import Image from 'next/image';
 import type { Product } from '@/lib/types/commerce.types';
 
@@ -30,7 +29,7 @@ export function ProductCard({
     : 0;
 
   return (
-    <motion.div
+    <div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="group relative bg-gray-900 rounded-lg overflow-hidden border border-gray-800 hover:border-gray-700 transition-all duration-300"
@@ -159,6 +158,6 @@ export function ProductCard({
             : 'Out of Stock'}
         </button>
       </div>
-    </motion.div>
+    </div>
   );
 }

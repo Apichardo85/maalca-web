@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
@@ -49,19 +48,12 @@ export default function ThemeToggle() {
   }
 
   return (
-    <motion.button
-      className="relative p-2 rounded-full bg-surface-elevated border border-border hover:bg-surface-muted transition-colors"
+    <button
+      className="relative p-2 rounded-full bg-surface-elevated border border-border hover:bg-surface-muted transition-all duration-300 hover:scale-105 active:scale-95"
       onClick={toggleTheme}
       aria-label={theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme'}
-      whileTap={{ scale: 0.95 }}
-      whileHover={{ scale: 1.05 }}
     >
-      <motion.div
-        className="w-5 h-5"
-        initial={false}
-        animate={{ rotate: theme === 'dark' ? 180 : 0 }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
-      >
+      <div className="w-5 h-5 transition-transform duration-300" style={{ transform: theme === 'dark' ? 'rotate(180deg)' : 'rotate(0deg)' }}>
         {theme === 'light' ? (
           // Sun Icon
           <svg
@@ -93,7 +85,7 @@ export default function ThemeToggle() {
             />
           </svg>
         )}
-      </motion.div>
-    </motion.button>
+      </div>
+    </button>
   );
 }

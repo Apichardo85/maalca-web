@@ -1,7 +1,6 @@
 "use client";
 
 import { memo, useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
 import { Property } from '@/lib/types/property';
 import { Button } from './buttons';
 import PropertyGallery from './PropertyGallery';
@@ -62,11 +61,10 @@ const FeaturedPropertyCard = memo(function FeaturedPropertyCard({
   const t = translations[language];
 
   return (
-    <motion.div
+    <div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.6, delay: index * 0.1, ease: "easeOut" }}
       whileHover={{
         y: -4,
         transition: { duration: 0.3, ease: "easeOut" }
@@ -218,7 +216,7 @@ const FeaturedPropertyCard = memo(function FeaturedPropertyCard({
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 });
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { affiliates } from "@/data/mock/affiliates";
 import type { AffiliateCategory, AffiliateStatus } from "@/lib/types";
@@ -79,10 +78,9 @@ export default function AffiliatesPage() {
       {/* Hero Section */}
       <section className="relative py-20 px-6">
         <div className="max-w-7xl mx-auto">
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
             className="text-center"
           >
             <h1 className="text-5xl md:text-7xl font-bold mb-6">
@@ -94,7 +92,7 @@ export default function AffiliatesPage() {
                 'Strategic partners of the MaalCa ecosystem. Companies that share our vision of excellence and quality.'
               )}
             </p>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -150,11 +148,10 @@ export default function AffiliatesPage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAffiliates.map((affiliate, index) => (
-              <motion.div
+              <div
                 key={affiliate.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
               >
                 <Link href={`/affiliates/${affiliate.id}`}>
                   <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-6 hover:border-red-600 transition-all duration-300 cursor-pointer group h-full flex flex-col">
@@ -213,7 +210,7 @@ export default function AffiliatesPage() {
                     </div>
                   </div>
                 </Link>
-              </motion.div>
+              </div>
             ))}
           </div>
 
@@ -233,10 +230,9 @@ export default function AffiliatesPage() {
       {/* CTA Section */}
       <section className="py-20 px-6 border-t border-gray-200 dark:border-gray-800">
         <div className="max-w-4xl mx-auto text-center">
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-6 text-gray-900 dark:text-white">
               {getText('¿Quieres ser parte del ecosistema?', 'Want to be part of the ecosystem?')}
@@ -253,7 +249,7 @@ export default function AffiliatesPage() {
             >
               {getText('Solicitar Afiliación', 'Request Affiliation')}
             </Link>
-          </motion.div>
+          </div>
         </div>
       </section>
     </div>

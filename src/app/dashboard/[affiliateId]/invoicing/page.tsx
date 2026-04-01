@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { DashboardCard, StatCard } from "@/components/dashboard/DashboardCard";
 import { Button } from "@/components/ui/buttons";
@@ -204,7 +203,7 @@ export default function InvoicingPage() {
 
   return (
     <div className="space-y-8">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+      <div className="animate-fade-in-up flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Sistema de Facturación</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">Gestiona facturas, pagos y reportes financieros de {brandName}</p>
@@ -212,17 +211,17 @@ export default function InvoicingPage() {
         <Button variant="primary" size="lg" onClick={() => setShowNewSalePanel(true)}>
           + Nueva Venta
         </Button>
-      </motion.div>
+      </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="animate-fade-in-up grid grid-cols-1 md:grid-cols-4 gap-4" style={{ animationDelay: '0.1s' }}>
         <StatCard label="Facturación del Mes" value={`${currency}18,750`} icon="💰" change={{ value: 12.5, type: "increase" }} color="green" />
         <StatCard label="Facturas Pendientes" value="12" icon="⏳" color="yellow" />
         <StatCard label="Facturas Pagadas" value="45" icon="✅" color="blue" />
         <StatCard label="Vencidas" value="3" icon="⚠️" color="red" />
-      </motion.div>
+      </div>
 
       {/* Gráfico de Ingresos */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+      <div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <DashboardCard title="Evolución de Ingresos" icon="📈">
           <ResponsiveContainer width="100%" height={250}>
             <AreaChart data={chartData}>
@@ -237,9 +236,9 @@ export default function InvoicingPage() {
             </AreaChart>
           </ResponsiveContainer>
         </DashboardCard>
-      </motion.div>
+      </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+      <div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <DashboardCard>
           <div className="flex flex-col gap-4">
             <div className="flex flex-col md:flex-row gap-4">
@@ -279,9 +278,9 @@ export default function InvoicingPage() {
             )}
           </div>
         </DashboardCard>
-      </motion.div>
+      </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+      <div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <DashboardCard title="Registro de Facturas" icon="💰">
           <ResponsiveTable
             data={paginatedInvoices}
@@ -290,7 +289,7 @@ export default function InvoicingPage() {
             emptyMessage="No se encontraron facturas"
           />
         </DashboardCard>
-      </motion.div>
+      </div>
 
       {filteredInvoices.length > itemsPerPage && (
         <Pagination
@@ -303,14 +302,14 @@ export default function InvoicingPage() {
       )}
 
       {/* Panel de Nueva Venta */}
-      <AnimatePresence>
+      
         {showNewSalePanel && (
           <NewSalePanel
             onClose={() => setShowNewSalePanel(false)}
             onSave={handleSaveInvoice}
           />
         )}
-      </AnimatePresence>
+      
     </div>
   );
 }

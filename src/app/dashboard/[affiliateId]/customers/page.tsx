@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 import { Button } from "@/components/ui/buttons";
@@ -192,7 +191,7 @@ export default function CustomersPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <motion.div
+      <div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-between"
@@ -208,13 +207,12 @@ export default function CustomersPage() {
         <Button variant="primary" size="lg">
           + Nuevo Cliente
         </Button>
-      </motion.div>
+      </div>
 
       {/* Stats rápidas */}
-      <motion.div
+      <div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
         className="grid grid-cols-1 md:grid-cols-4 gap-4"
       >
         <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-4">
@@ -233,13 +231,12 @@ export default function CustomersPage() {
           <p className="text-sm text-gray-600 dark:text-gray-400">Valor Promedio</p>
           <p className="text-2xl font-bold text-blue-600 mt-1">$324</p>
         </div>
-      </motion.div>
+      </div>
 
       {/* Filtros y búsqueda */}
-      <motion.div
+      <div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
       >
         <DashboardCard>
           <div className="flex flex-col md:flex-row gap-4">
@@ -266,13 +263,12 @@ export default function CustomersPage() {
             </div>
           </div>
         </DashboardCard>
-      </motion.div>
+      </div>
 
       {/* Tabla de clientes con ResponsiveTable */}
-      <motion.div
+      <div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
       >
         <DashboardCard title="Lista de Clientes" icon="👥">
           <ResponsiveTable
@@ -282,7 +278,7 @@ export default function CustomersPage() {
             emptyMessage="No se encontraron clientes"
           />
         </DashboardCard>
-      </motion.div>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { lazy, Suspense } from 'react';
-import { motion } from 'framer-motion';
 import { Property } from '@/lib/types/property';
 
 // Lazy load the heavy PropertyListWithMap component
@@ -58,9 +57,8 @@ const PropertyMapSkeleton = () => (
       <div className="sticky top-4">
         <div className="h-[600px] bg-gradient-to-br from-blue-100 via-teal-50 to-green-100 rounded-xl border border-gray-200 relative">
           <div className="absolute inset-0 flex items-center justify-center">
-            <motion.div
+            <div
               animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
               className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"
             />
           </div>

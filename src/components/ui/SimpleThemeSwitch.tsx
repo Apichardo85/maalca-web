@@ -2,10 +2,9 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
 
 export function SimpleThemeSwitch() {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   // Avoid hydration mismatch
@@ -26,29 +25,21 @@ export function SimpleThemeSwitch() {
   };
 
   return (
-    <motion.button
+    <button
       onClick={toggleTheme}
       className="relative p-2 rounded-full bg-white/80 backdrop-blur-sm
                  border border-gray-200
                  hover:bg-white shadow-lg hover:shadow-xl
-                 transition-all duration-300
+                 transition-all duration-300 hover:scale-105 active:scale-95
                  dark:bg-gray-800/80
                  dark:border-gray-700
                  dark:hover:bg-gray-800"
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
       aria-label={`Switch to ${isDark ? "light" : "dark"} theme`}
       title={`Current: ${resolvedTheme}. Click to toggle.`}
     >
-      <motion.div
-        animate={{
-          rotate: isDark ? 180 : 0,
-        }}
-        transition={{
-          duration: 0.5,
-          ease: "easeInOut",
-        }}
-        className="w-5 h-5 relative"
+      <div
+        className="w-5 h-5 relative transition-transform duration-500 ease-in-out"
+        style={{ transform: isDark ? 'rotate(180deg)' : 'rotate(0deg)' }}
       >
         {isDark ? (
           // Moon Icon
@@ -81,7 +72,7 @@ export function SimpleThemeSwitch() {
             />
           </svg>
         )}
-      </motion.div>
-    </motion.button>
+      </div>
+    </button>
   );
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { motion, useAnimationControls } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/buttons";
 import { PropertyFilter, PropertyType, FilterOption, PriceRange } from "@/lib/types";
@@ -51,47 +50,38 @@ export default function PropertyHero({
     maxPrice: 0,
     location: ""
   });
-  
+
   const [propertyCount, setPropertyCount] = useState(0);
   const [selectedPriceRange, setSelectedPriceRange] = useState(0);
-  const counterControls = useAnimationControls();
 
   // Animated counter effect
   useEffect(() => {
-    const animateCounter = async () => {
-      await counterControls.start({
-        scale: [1, 1.1, 1],
-        transition: { duration: 0.3 }
-      });
-    };
-    
     const startCount = propertyCount;
     let endCount = initialPropertyCount;
-    
+
     if (filters.type || filters.location || filters.minPrice > 0) {
-      // Simulate filtered results
       endCount = Math.floor(initialPropertyCount * (0.3 + Math.random() * 0.4));
     }
-    
+
     const duration = 1000;
     const steps = 30;
     const increment = (endCount - startCount) / steps;
-    
+
     let currentStep = 0;
     const timer = setInterval(() => {
       currentStep++;
       const currentCount = Math.floor(startCount + (increment * currentStep));
       setPropertyCount(currentCount);
-      
+
       if (currentStep >= steps) {
         setPropertyCount(endCount);
         clearInterval(timer);
-        animateCounter();
       }
     }, duration / steps);
 
     return () => clearInterval(timer);
-  }, [filters, initialPropertyCount, counterControls]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, initialPropertyCount]);
 
   const handleFilterChange = (newFilters: Partial<PropertyFilter>) => {
     const updatedFilters = { ...filters, ...newFilters };
@@ -122,133 +112,106 @@ export default function PropertyHero({
       {/* Content */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <motion.div
-          className="text-center text-white mb-12"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <motion.p
-            className="text-lg sm:text-xl font-light mb-4 tracking-wide opacity-90"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+        <div className="text-center text-white mb-12 animate-fade-in-up">
+          <p
+            className="text-lg sm:text-xl font-light mb-4 tracking-wide opacity-90 animate-fade-in-up"
+            style={{ animationDelay: '0.2s' }}
           >
             {subtitle}
-          </motion.p>
-          
-          <motion.h1
-            className="font-display text-4xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
+          </p>
+
+          <h1
+            className="font-display text-4xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight animate-fade-in-up"
+            style={{ animationDelay: '0.3s' }}
           >
             {title}
-          </motion.h1>
+          </h1>
 
           {/* Property Counter */}
-          <motion.div
-            className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-6 py-3"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
+          <div
+            className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-6 py-3 animate-fade-in-scale"
+            style={{ animationDelay: '0.5s' }}
           >
-            <motion.span
-              animate={counterControls}
-              className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent"
-            >
+            <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
               {propertyCount.toLocaleString()}
-            </motion.span>
+            </span>
             <span className="text-white/80 text-lg">propiedades disponibles</span>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         {/* Filter Panel */}
-        <motion.div
-          className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-6 lg:p-8 shadow-2xl"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
+        <div
+          className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-6 lg:p-8 shadow-2xl animate-fade-in-up"
+          style={{ animationDelay: '0.6s' }}
         >
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Property Type */}
-            <motion.div
-              className="space-y-3"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.7, duration: 0.5 }}
+            <div
+              className="space-y-3 animate-fade-in-left"
+              style={{ animationDelay: '0.7s' }}
             >
               <label className="block text-white font-semibold text-sm uppercase tracking-wide">
                 Tipo de Propiedad
               </label>
-              <motion.select
+              <select
                 value={filters.type}
                 onChange={(e) => handleFilterChange({ type: e.target.value as PropertyType | "" })}
-                className="w-full bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-4 py-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
-                whileFocus={{ scale: 1.02 }}
+                className="w-full bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-4 py-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent focus:scale-[1.02] transition-all"
               >
                 {propertyTypes.map((type) => (
                   <option key={type.value} value={type.value} className="text-gray-900">
                     {type.label} {type.count && `(${type.count})`}
                   </option>
                 ))}
-              </motion.select>
-            </motion.div>
+              </select>
+            </div>
 
             {/* Price Range */}
-            <motion.div
-              className="space-y-3"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.8, duration: 0.5 }}
+            <div
+              className="space-y-3 animate-fade-in-left"
+              style={{ animationDelay: '0.8s' }}
             >
               <label className="block text-white font-semibold text-sm uppercase tracking-wide">
                 Rango de Precio
               </label>
-              <motion.select
+              <select
                 value={selectedPriceRange}
                 onChange={(e) => handlePriceRangeChange(Number(e.target.value))}
-                className="w-full bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-4 py-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
-                whileFocus={{ scale: 1.02 }}
+                className="w-full bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-4 py-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent focus:scale-[1.02] transition-all"
               >
                 {priceRanges.map((range, index) => (
                   <option key={index} value={index} className="text-gray-900">
                     {range.label}
                   </option>
                 ))}
-              </motion.select>
-            </motion.div>
+              </select>
+            </div>
 
             {/* Location */}
-            <motion.div
-              className="space-y-3"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.9, duration: 0.5 }}
+            <div
+              className="space-y-3 animate-fade-in-left"
+              style={{ animationDelay: '0.9s' }}
             >
               <label className="block text-white font-semibold text-sm uppercase tracking-wide">
                 Ubicación
               </label>
-              <motion.select
+              <select
                 value={filters.location}
                 onChange={(e) => handleFilterChange({ location: e.target.value })}
-                className="w-full bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-4 py-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
-                whileFocus={{ scale: 1.02 }}
+                className="w-full bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl px-4 py-3 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent focus:scale-[1.02] transition-all"
               >
                 {locations.map((location) => (
                   <option key={location.value} value={location.value} className="text-gray-900">
                     {location.label} {location.count && `(${location.count})`}
                   </option>
                 ))}
-              </motion.select>
-            </motion.div>
+              </select>
+            </div>
 
             {/* Search Button */}
-            <motion.div
-              className="flex items-end"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 1, duration: 0.5 }}
+            <div
+              className="flex items-end animate-fade-in-left"
+              style={{ animationDelay: '1s' }}
             >
               <Button
                 variant="primary"
@@ -257,15 +220,13 @@ export default function PropertyHero({
               >
                 🔍 Buscar Propiedades
               </Button>
-            </motion.div>
+            </div>
           </div>
 
           {/* Quick Filters */}
-          <motion.div
-            className="mt-6 pt-6 border-t border-white/20"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.1, duration: 0.5 }}
+          <div
+            className="mt-6 pt-6 border-t border-white/20 animate-fade-in-up"
+            style={{ animationDelay: '1.1s' }}
           >
             <p className="text-white/80 text-sm mb-3">Filtros populares:</p>
             <div className="flex flex-wrap gap-2">
@@ -275,41 +236,27 @@ export default function PropertyHero({
                 "Oficinas Santiago Centro",
                 "Propiedades nuevas"
               ].map((filter, index) => (
-                <motion.button
+                <button
                   key={filter}
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white text-sm transition-all duration-300"
-                  whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.2)" }}
-                  whileTap={{ scale: 0.95 }}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 1.2 + index * 0.1, duration: 0.3 }}
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white text-sm transition-all duration-300 hover:scale-105 active:scale-95 animate-fade-in-scale"
+                  style={{ animationDelay: `${1.2 + index * 0.1}s` }}
                 >
                   {filter}
-                </motion.button>
+                </button>
               ))}
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         {/* Scroll Indicator */}
-        <motion.div
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1.5 }}
+        <div
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-fade-in"
+          style={{ animationDelay: '1.5s' }}
         >
-          <motion.div
-            className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center"
-            animate={{ y: [0, 5, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <motion.div
-              className="w-1 h-3 bg-white/70 rounded-full mt-2"
-              animate={{ opacity: [1, 0.3, 1] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            />
-          </motion.div>
-        </motion.div>
+          <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
+            <div className="w-1 h-3 bg-white/70 rounded-full mt-2 animate-bounce" />
+          </div>
+        </div>
       </div>
     </section>
   );

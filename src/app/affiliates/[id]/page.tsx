@@ -1,7 +1,6 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { getAffiliateById } from "@/data/mock/affiliates";
 import type { AffiliateCategory, AffiliateStatus } from "@/lib/types";
@@ -94,10 +93,9 @@ export default function AffiliateDetailPage() {
       {/* Hero Section */}
       <section className="relative py-20 px-6 border-b border-gray-800">
         <div className="max-w-7xl mx-auto">
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
           >
             <div className="flex items-center gap-4 mb-6">
               <span className={`${statusColors[affiliate.status]} text-white text-sm px-4 py-2 rounded-full`}>
@@ -135,7 +133,7 @@ export default function AffiliateDetailPage() {
                 </div>
               )}
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -176,18 +174,17 @@ export default function AffiliateDetailPage() {
           <h2 className="text-3xl font-bold mb-6">Servicios</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {affiliate.services.map((service, index) => (
-              <motion.div
+              <div
                 key={index}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
                 className="bg-gray-900 border border-gray-800 rounded-lg p-4 hover:border-red-600 transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <span className="text-red-600 text-xl">✓</span>
                   <span className="text-white">{service}</span>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -361,10 +358,9 @@ export default function AffiliateDetailPage() {
       {/* CTA Section */}
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
               ¿Quieres trabajar con {affiliate.name}?
@@ -386,7 +382,7 @@ export default function AffiliateDetailPage() {
                 Ver más afiliados
               </Link>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
     </div>

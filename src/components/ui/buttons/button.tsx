@@ -1,10 +1,9 @@
 "use client";
 
 import { forwardRef } from "react";
-import { motion, HTMLMotionProps } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-export interface ButtonProps extends Omit<HTMLMotionProps<"button">, "variants"> {
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "outline" | "ghost";
   size?: "sm" | "md" | "lg";
   isLoading?: boolean;
@@ -13,8 +12,8 @@ export interface ButtonProps extends Omit<HTMLMotionProps<"button">, "variants">
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "primary", size = "md", isLoading = false, children, disabled, ...props }, ref) => {
-    const baseStyles = "inline-flex items-center justify-center rounded-full font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
-    
+    const baseStyles = "inline-flex items-center justify-center rounded-full font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]";
+
     const variants = {
       primary: "bg-gradient-to-r from-amber-600 to-orange-600 text-white hover:from-amber-700 hover:to-orange-700 focus:ring-amber-500 shadow-lg hover:shadow-xl",
       secondary: "bg-gray-900 text-white hover:bg-gray-800 focus:ring-gray-500 shadow-lg hover:shadow-xl",
@@ -29,29 +28,25 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     return (
-      <motion.button
+      <button
         ref={ref}
         className={cn(
           baseStyles,
           variants[variant],
           sizes[size],
+          (disabled || isLoading) && "hover:scale-100 active:scale-100",
           className
         )}
         disabled={disabled || isLoading}
-        whileHover={{ scale: disabled || isLoading ? 1 : 1.02 }}
-        whileTap={{ scale: disabled || isLoading ? 1 : 0.98 }}
-        transition={{ type: "spring", stiffness: 400, damping: 17 }}
         {...props}
       >
         {isLoading ? (
-          <motion.div
-            className="w-5 h-5 border-2 border-current border-t-transparent rounded-full mr-2"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          <div
+            className="w-5 h-5 border-2 border-current border-t-transparent rounded-full mr-2 animate-spin-slow"
           />
         ) : null}
         {children}
-      </motion.button>
+      </button>
     );
   }
 );

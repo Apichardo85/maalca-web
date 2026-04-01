@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './buttons';
 
 interface MedicalConsultationBookingProps {
@@ -217,15 +216,15 @@ export default function MedicalConsultationBooking({
   if (!isOpen) return null;
 
   return (
-    <AnimatePresence>
-      <motion.div
+    
+      <div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
         onClick={handleClose}
       >
-        <motion.div
+        <div
           initial={{ scale: 0.9, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -274,7 +273,7 @@ export default function MedicalConsultationBooking({
           <div className="p-6">
             {/* Step 1: Personal Information */}
             {currentStep === 1 && (
-              <motion.div
+              <div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
@@ -401,12 +400,12 @@ export default function MedicalConsultationBooking({
                     Siguiente
                   </Button>
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* Step 2: Medical Information */}
             {currentStep === 2 && (
-              <motion.div
+              <div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
@@ -586,12 +585,12 @@ export default function MedicalConsultationBooking({
                     Siguiente
                   </Button>
                 </div>
-              </motion.div>
+              </div>
             )}
 
             {/* Step 3: Consents */}
             {currentStep === 3 && (
-              <motion.div
+              <div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 className="space-y-6"
@@ -726,11 +725,11 @@ export default function MedicalConsultationBooking({
                     )}
                   </Button>
                 </div>
-              </motion.div>
+              </div>
             )}
           </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+        </div>
+      </div>
+    
   );
 }

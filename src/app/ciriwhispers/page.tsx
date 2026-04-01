@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import FirstChapter from "@/components/ui/FirstChapter";
 import SensitiveNotice from "@/components/ui/SensitiveNotice";
@@ -181,11 +180,7 @@ export default function CiriWhispersPage() {
         </div>
 
         <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2 }}
-          >
+          <div className="animate-fade-in-up">
             {/* CiriWhispers Logo */}
             <div className="w-48 h-48 mx-auto mb-8 relative group">
               <div className="w-full h-full relative overflow-hidden rounded-full bg-gradient-to-br from-slate-900 via-slate-800 to-red-900/20 border border-red-800/30 shadow-2xl">
@@ -234,17 +229,13 @@ export default function CiriWhispersPage() {
                 {t('ciriwhispers.hero.soulWhispers')}
               </Button>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Scroll Indicator */}
-        <motion.div
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
           <div className="w-1 h-12 bg-gradient-to-b from-transparent via-red-600 to-transparent rounded-full"></div>
-        </motion.div>
+        </div>
       </section>
 
       {/* Navigation */}
@@ -285,25 +276,14 @@ export default function CiriWhispersPage() {
       {/* Sobre Mí Section */}
       <section id="sobre-mi" className="py-24 bg-gradient-to-b from-slate-800 to-slate-900">
         <div className="max-w-4xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
+          <div className="text-center mb-16 animate-fade-in-up">
             <h2 className="font-serif text-4xl md:text-5xl font-bold text-stone-100 mb-8">
               {t('ciriwhispers.about.title')}
             </h2>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-2 gap-16 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
+            <div className="animate-fade-in-left">
               <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 p-8 rounded-2xl border border-red-800/20">
                 <h3 className="font-serif text-2xl font-bold text-red-600 mb-6">{t('ciriwhispers.about.heading')}</h3>
                 <p className="text-slate-300 leading-relaxed mb-4">
@@ -316,15 +296,9 @@ export default function CiriWhispersPage() {
                   {t('ciriwhispers.about.p3')} <span className="text-red-400">{t('ciriwhispers.about.location')}</span>
                 </p>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="space-y-8"
-            >
+            <div className="animate-fade-in-right space-y-8">
               <div className="bg-slate-800/30 p-6 rounded-xl border border-slate-700/50">
                 <h4 className="font-serif text-xl font-bold text-red-600 mb-3">{t('ciriwhispers.about.inspirations.title')}</h4>
                 <ul className="text-slate-300 space-y-2">
@@ -341,7 +315,7 @@ export default function CiriWhispersPage() {
                   {t('ciriwhispers.about.process.description')}
                 </p>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
@@ -349,13 +323,7 @@ export default function CiriWhispersPage() {
       {/* Portafolio Section */}
       <section id="portafolio" className="py-24 bg-slate-900">
         <div className="max-w-7xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
+          <div className="text-center mb-16 animate-fade-in-up">
             <h2 className="font-serif text-4xl md:text-5xl font-bold text-stone-100 mb-8">
               📚 {t('ciriwhispers.works.title')}
             </h2>
@@ -370,17 +338,14 @@ export default function CiriWhispersPage() {
                 {t('ciriwhispers.works.readerSubnotice')}
               </p>
             </div>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {books.map((book, index) => (
-              <motion.div
+              <div
                 key={book.id}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="group cursor-pointer"
+                className="group cursor-pointer animate-fade-in-up"
+                style={{ animationDelay: `${index * 0.1}s` }}
                 onClick={() => {
                   const newSelection = selectedBook === book.id ? null : book.id;
                   setSelectedBook(newSelection);
@@ -436,12 +401,7 @@ export default function CiriWhispersPage() {
                     </p>
 
                     {selectedBook === book.id && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="border-t border-slate-700/50 pt-4"
-                      >
+                      <div className="border-t border-slate-700/50 pt-4 animate-fade-in">
                         <blockquote className="font-serif italic text-slate-300 text-sm leading-relaxed mb-4">
                           {`"${book.excerpt}"`}
                         </blockquote>
@@ -513,11 +473,11 @@ export default function CiriWhispersPage() {
                             }
                           />
                         )}
-                      </motion.div>
+                      </div>
                     )}
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -526,13 +486,7 @@ export default function CiriWhispersPage() {
       {/* Cartas/Blog Section */}
       <section id="cartas" className="py-24 bg-gradient-to-b from-slate-900 to-slate-800">
         <div className="max-w-4xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-16"
-          >
+          <div className="text-center mb-16 animate-fade-in-up">
             <h2 className="font-serif text-4xl md:text-5xl font-bold text-stone-100 mb-8">
               📜 {t('ciriwhispers.letters.title')}
             </h2>
@@ -557,17 +511,14 @@ export default function CiriWhispersPage() {
                 project="ciriwhispers"
               />
             </div>
-          </motion.div>
+          </div>
 
           <div className="space-y-8">
             {blogPosts.map((post, index) => (
-              <motion.article
+              <article
                 key={post.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-gradient-to-br from-slate-800/30 to-slate-900/30 p-8 rounded-2xl border border-slate-700/50 hover:border-red-600/30 transition-all duration-300"
+                className="bg-gradient-to-br from-slate-800/30 to-slate-900/30 p-8 rounded-2xl border border-slate-700/50 hover:border-red-600/30 transition-all duration-300 animate-fade-in-up"
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-red-800/20 to-red-600/20 rounded-full flex items-center justify-center">
@@ -593,7 +544,7 @@ export default function CiriWhispersPage() {
                 >
                   {t('ciriwhispers.works.fullLetterButton')}
                 </Button>
-              </motion.article>
+              </article>
             ))}
           </div>
         </div>
@@ -602,12 +553,7 @@ export default function CiriWhispersPage() {
       {/* Contacto Section */}
       <section id="contacto" className="py-24 bg-slate-900">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
+          <div className="animate-fade-in-up">
             <h2 className="font-serif text-4xl md:text-5xl font-bold text-stone-100 mb-8">
               {t('ciriwhispers.contact.title')}
             </h2>
@@ -686,7 +632,7 @@ export default function CiriWhispersPage() {
                 {t('ciriwhispers.contact.signature')}
               </p>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 

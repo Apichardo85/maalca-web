@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/buttons';
 import { useTranslation } from '@/hooks/useSimpleLanguage';
 import type { CartItem } from '@/hooks/useCart';
@@ -60,26 +59,24 @@ export function CartSidebar({
   const total = getTotal();
 
   return (
-    <AnimatePresence>
+    <>
       {isOpen && (
         <>
           {/* Backdrop */}
-          <motion.div
+          <div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
             onClick={onClose}
             aria-hidden="true"
           />
 
           {/* Sidebar Panel */}
-          <motion.div
+          <div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed top-0 right-0 bottom-0 w-full max-w-md bg-white shadow-2xl z-50 overflow-y-auto"
             role="dialog"
             aria-label="Carrito de compras"
@@ -141,12 +138,11 @@ export function CartSidebar({
                 ) : (
                   <div className="p-6 space-y-4">
                     {cart.map((item, index) => (
-                      <motion.div
+                      <div
                         key={item.id}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, x: 100 }}
-                        transition={{ delay: index * 0.05 }}
                         className="bg-amber-50 rounded-xl p-4 border border-amber-200"
                       >
                         {/* Item Header */}
@@ -204,7 +200,7 @@ export function CartSidebar({
                             </p>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
 
                     {/* Clear Cart Button */}
@@ -250,9 +246,9 @@ export function CartSidebar({
                 </div>
               )}
             </div>
-          </motion.div>
+          </div>
         </>
       )}
-    </AnimatePresence>
+    </>
   );
 }

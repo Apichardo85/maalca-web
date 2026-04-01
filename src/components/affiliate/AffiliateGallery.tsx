@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { ProjectImage } from "@/components/ui/ProjectImage";
 
 export interface GalleryImage {
@@ -51,17 +50,12 @@ export function AffiliateGallery({
   return (
     <section className="py-16 md:py-24 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-12"
-        >
+        <div className="text-center mb-12 animate-fade-in-up">
           <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6">
             {title ? getText(title, titleEn) : getText('Galería', 'Gallery')}
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-purple-400 to-pink-400 mx-auto"></div>
-        </motion.div>
+        </div>
 
         {/* Category Filter */}
         {categories.length > 1 && (
@@ -87,15 +81,11 @@ export function AffiliateGallery({
         {/* Gallery Grid */}
         <div className={`grid grid-cols-1 ${gridCols[columns]} gap-4 md:gap-6`}>
           {filteredImages.map((image, index) => (
-            <motion.div
+            <div
               key={index}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ scale: 1.05 }}
               onClick={() => setSelectedImage(image)}
-              className="cursor-pointer group relative overflow-hidden rounded-2xl shadow-lg"
+              className="cursor-pointer group relative overflow-hidden rounded-2xl shadow-lg hover:scale-105 transition-transform duration-300 animate-fade-in-scale"
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
               <ProjectImage
                 src={image.src}
@@ -114,49 +104,44 @@ export function AffiliateGallery({
                   )}
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
 
         {/* Lightbox Modal */}
-        <AnimatePresence>
-          {selectedImage && (
+        {selectedImage && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 animate-overlay-in"
+            onClick={() => setSelectedImage(null)}
+          >
             <div
-              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90"
-              onClick={() => setSelectedImage(null)}
+              className="relative max-w-5xl w-full animate-fade-in-scale"
+              onClick={(e) => e.stopPropagation()}
             >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                className="relative max-w-5xl w-full"
-                onClick={(e) => e.stopPropagation()}
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="absolute -top-12 right-0 text-white text-4xl hover:text-gray-300"
               >
-                <button
-                  onClick={() => setSelectedImage(null)}
-                  className="absolute -top-12 right-0 text-white text-4xl hover:text-gray-300"
-                >
-                  ×
-                </button>
-                <ProjectImage
-                  src={selectedImage.src}
-                  alt={getText(selectedImage.title, selectedImage.titleEn)}
-                  className="w-full h-auto rounded-lg"
-                />
-                <div className="mt-4 text-white text-center">
-                  <h3 className="text-2xl font-bold mb-2">
-                    {getText(selectedImage.title, selectedImage.titleEn)}
-                  </h3>
-                  {selectedImage.description && (
-                    <p className="text-gray-300">
-                      {getText(selectedImage.description, selectedImage.descriptionEn)}
-                    </p>
-                  )}
-                </div>
-              </motion.div>
+                ×
+              </button>
+              <ProjectImage
+                src={selectedImage.src}
+                alt={getText(selectedImage.title, selectedImage.titleEn)}
+                className="w-full h-auto rounded-lg"
+              />
+              <div className="mt-4 text-white text-center">
+                <h3 className="text-2xl font-bold mb-2">
+                  {getText(selectedImage.title, selectedImage.titleEn)}
+                </h3>
+                {selectedImage.description && (
+                  <p className="text-gray-300">
+                    {getText(selectedImage.description, selectedImage.descriptionEn)}
+                  </p>
+                )}
+              </div>
             </div>
-          )}
-        </AnimatePresence>
+          </div>
+        )}
       </div>
     </section>
   );

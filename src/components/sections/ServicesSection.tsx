@@ -1,8 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
-import { useRef } from "react";
 import { Button } from "@/components/ui/buttons";
 
 interface ServiceCard {
@@ -53,74 +50,31 @@ const services: ServiceCard[] = [
 ];
 
 export default function ServicesSection() {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.3,
-        delayChildren: 0.2
-      }
-    }
-  };
-
-  const cardVariants = {
-    hidden: { 
-      opacity: 0, 
-      y: 60,
-      scale: 0.9
-    },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      scale: 1
-    }
-  };
-
   return (
     <section className="py-20 bg-gradient-to-br from-slate-50 to-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
+        <div className="text-center mb-16 animate-fade-in-up">
           <h2 className="font-display text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
             Nuestros Servicios
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
             Descubre nuestra selección de servicios gastronómicos diseñados para hacer de cada evento una experiencia memorable
           </p>
-        </motion.div>
+        </div>
 
-        <motion.div
-          ref={ref}
-          variants={containerVariants}
-          initial="hidden"
-          animate={isInView ? "visible" : "hidden"}
-          className="grid grid-cols-1 lg:grid-cols-3 gap-8"
-        >
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {services.map((service, index) => (
-            <motion.div
+            <div
               key={service.title}
-              variants={cardVariants}
-              transition={{ duration: 0.6, ease: "easeOut" }}
-              className="group"
+              className="group animate-fade-in-up"
+              style={{ animationDelay: `${0.2 + index * 0.3}s` }}
             >
-              <motion.div
-                className="bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500"
-                whileHover={{ y: -8 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              <div
+                className="bg-white rounded-3xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-500"
               >
                 <div className="relative h-64 overflow-hidden">
-                  <motion.div
-                    className="w-full h-full bg-gradient-to-br from-amber-200 to-orange-300"
-                    whileHover={{ scale: 1.1 }}
-                    transition={{ duration: 0.5 }}
+                  <div
+                    className="w-full h-full bg-gradient-to-br from-amber-200 to-orange-300 group-hover:scale-110 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-black/20" />
                   <div className="absolute top-4 right-4">
@@ -140,28 +94,14 @@ export default function ServicesSection() {
 
                   <ul className="space-y-3 mb-8">
                     {service.features.map((feature, featureIndex) => (
-                      <motion.li
+                      <li
                         key={featureIndex}
-                        className="flex items-center text-gray-700"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={isInView ? { opacity: 1, x: 0 } : {}}
-                        transition={{ 
-                          delay: index * 0.3 + featureIndex * 0.1 + 0.5,
-                          duration: 0.4
-                        }}
+                        className="flex items-center text-gray-700 animate-fade-in-left"
+                        style={{ animationDelay: `${index * 0.3 + featureIndex * 0.1 + 0.5}s` }}
                       >
-                        <motion.div
-                          className="w-2 h-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full mr-3"
-                          initial={{ scale: 0 }}
-                          animate={isInView ? { scale: 1 } : {}}
-                          transition={{ 
-                            delay: index * 0.3 + featureIndex * 0.1 + 0.6,
-                            type: "spring",
-                            stiffness: 300
-                          }}
-                        />
+                        <div className="w-2 h-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full mr-3" />
                         {feature}
-                      </motion.li>
+                      </li>
                     ))}
                   </ul>
 
@@ -173,16 +113,14 @@ export default function ServicesSection() {
                     Solicitar Información
                   </Button>
                 </div>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           ))}
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 1, duration: 0.6 }}
-          className="text-center mt-16"
+        <div
+          className="text-center mt-16 animate-fade-in-up"
+          style={{ animationDelay: '1s' }}
         >
           <Button
             variant="primary"
@@ -193,7 +131,7 @@ export default function ServicesSection() {
           >
             Ver Todos los Servicios
           </Button>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

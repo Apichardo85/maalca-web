@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 import { Button } from "@/components/ui/buttons";
@@ -120,7 +119,7 @@ export default function AppointmentsPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+      <div className="animate-fade-in-up flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Sistema de Citas</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">Gestiona reservas y agenda de {brandName}</p>
@@ -128,10 +127,10 @@ export default function AppointmentsPage() {
         <Button variant="primary" size="lg" onClick={() => setIsModalOpen(true)}>
           + Nueva Cita
         </Button>
-      </motion.div>
+      </div>
 
       {/* Stats rápidas */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="animate-fade-in-up grid grid-cols-1 md:grid-cols-4 gap-4" style={{ animationDelay: '0.1s' }}>
         <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-4">
           <p className="text-sm text-gray-600 dark:text-gray-400">Citas Hoy</p>
           <p className="text-2xl font-bold text-blue-600 mt-1">3</p>
@@ -152,10 +151,10 @@ export default function AppointmentsPage() {
           <p className="text-2xl font-bold text-red-600 mt-1">8</p>
           <p className="text-xs text-gray-500 mt-1">6% del total</p>
         </div>
-      </motion.div>
+      </div>
 
       {/* Gráfico */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+      <div className="animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
         <DashboardCard title="Tendencia Semanal" icon="📈">
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={chartData}>
@@ -167,10 +166,10 @@ export default function AppointmentsPage() {
             </LineChart>
           </ResponsiveContainer>
         </DashboardCard>
-      </motion.div>
+      </div>
 
       {/* Filtros */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+      <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
         <DashboardCard>
           <div className="flex flex-col md:flex-row gap-4">
             <input
@@ -207,10 +206,10 @@ export default function AppointmentsPage() {
             )}
           </div>
         </DashboardCard>
-      </motion.div>
+      </div>
 
       {/* Tabla de citas */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+      <div className="animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
         <DashboardCard title="Agenda de Citas" icon="📅">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -276,7 +275,7 @@ export default function AppointmentsPage() {
             />
           )}
         </DashboardCard>
-      </motion.div>
+      </div>
 
       {/* Modal Nueva Cita */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Nueva Cita" size="md">
