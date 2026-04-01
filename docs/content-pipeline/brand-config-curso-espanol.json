@@ -1,0 +1,123 @@
+{
+  "brandId": "curso-de-espanol",
+  "brandName": "Curso de Espanol",
+  "tagline": "Learn Dominican Spanish with Domi & Gringa",
+  "parentBrand": "malca",
+
+  "characters": {
+    "domi": {
+      "name": "Domi",
+      "description": "Dominican street-smart character, charismatic and funny",
+      "personality": "Confident, energetic, fast-talking, uses heavy Dominican slang",
+      "language": "Dominican Spanish with slang",
+      "voiceId": "fNZkPhLHNXqE8oMjamg6",
+      "voiceProvider": "elevenlabs",
+      "voiceSettings": {
+        "model_id": "eleven_multilingual_v2",
+        "stability": 0.4,
+        "similarity_boost": 0.8,
+        "style": 0.6,
+        "use_speaker_boost": true
+      },
+      "avatarId": "__REPLACE_WITH_HEYGEN_AVATAR_ID__",
+      "avatarProvider": "heygen"
+    },
+    "gringa": {
+      "name": "Gringa",
+      "description": "American woman learning Spanish, relatable and curious",
+      "personality": "Cheerful, enthusiastic, sometimes confused, makes relatable mistakes",
+      "language": "English with increasing Spanish mixed in",
+      "voiceId": "IeiHyO4UwOOUdKQ0HSDK",
+      "voiceProvider": "elevenlabs",
+      "voiceSettings": {
+        "model_id": "eleven_multilingual_v2",
+        "stability": 0.5,
+        "similarity_boost": 0.75,
+        "style": 0.4,
+        "use_speaker_boost": true
+      },
+      "avatarId": "__REPLACE_WITH_HEYGEN_AVATAR_ID__",
+      "avatarProvider": "heygen"
+    }
+  },
+
+  "content": {
+    "format": "short",
+    "durationRange": { "minSec": 30, "maxSec": 60 },
+    "slangPerLesson": { "min": 2, "max": 3 },
+    "maxCharCountPerScript": {
+      "domi": 300,
+      "gringa": 250
+    },
+    "subtitles": {
+      "primary": "es",
+      "secondary": "en",
+      "style": "bold-centered"
+    }
+  },
+
+  "distribution": {
+    "platforms": {
+      "youtube": {
+        "enabled": true,
+        "channelId": "__REPLACE_WITH_YOUTUBE_CHANNEL_ID__",
+        "format": "shorts",
+        "categoryId": "27",
+        "defaultLanguage": "es",
+        "schedule": {
+          "days": ["tuesday", "thursday"],
+          "time": "12:00",
+          "timezone": "America/New_York"
+        }
+      },
+      "tiktok": {
+        "enabled": true,
+        "accountId": "__REPLACE_WITH_TIKTOK_ACCOUNT_ID__",
+        "schedule": {
+          "days": ["tuesday", "thursday"],
+          "time": "19:00",
+          "timezone": "America/New_York"
+        }
+      },
+      "instagram": {
+        "enabled": true,
+        "accountId": "__REPLACE_WITH_INSTAGRAM_ACCOUNT_ID__",
+        "format": "reels",
+        "schedule": {
+          "days": ["wednesday", "friday"],
+          "time": "11:00",
+          "timezone": "America/New_York"
+        }
+      }
+    },
+    "hashtags": [
+      "#LearnSpanish",
+      "#DominicanSpanish",
+      "#SpanishSlang",
+      "#CursoDeEspanol",
+      "#DomiAndGringa",
+      "#SpanishForBeginners",
+      "#StreetSpanish",
+      "#DominicanRepublic"
+    ]
+  },
+
+  "branding": {
+    "primaryColor": "#DC2626",
+    "secondaryColor": "#1E40AF",
+    "fonts": {
+      "title": "Inter Bold",
+      "subtitle": "Inter Regular"
+    },
+    "thumbnailTemplate": "templates/thumbnail-template.html",
+    "introVideo": null,
+    "outroVideo": null
+  },
+
+  "budget": {
+    "elevenLabsMonthlyChars": 30000,
+    "heygenMonthlyCredits": 3,
+    "maxScriptsPerBatch": 5,
+    "reservePercentage": 0.1
+  }
+}

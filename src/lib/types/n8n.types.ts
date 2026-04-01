@@ -9,7 +9,14 @@ export type N8nEventType =
   | 'appointment.cancelled'
   | 'newsletter.subscribed'
   | 'contact.inquiry'
-  | 'notification.push';
+  | 'notification.push'
+  // Content pipeline events
+  | 'content.script.generated'
+  | 'content.voice.generated'
+  | 'content.video.generated'
+  | 'content.published'
+  | 'content.analytics.updated'
+  | 'content.viral.detected';
 
 // Outbound: maalca-web → n8n
 export interface N8nWebhookPayload<T = unknown> {

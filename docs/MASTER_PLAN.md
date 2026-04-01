@@ -1,228 +1,306 @@
-# MaalCa Ecosystem — Master Plan para Kilocode/Agentes
+# MaalCa Ecosystem — Master Plan v4
 
 **Fecha:** 2026-03-27
-**Objetivo:** Plan ejecutable completo para todo el ecosistema MaalCa — priorizado por impacto
+**Referencia:** Architecture v4 Definitive (maalca-architecture-v4.html)
+**Objetivo:** Pipeline de agentes n8n funcional → delegar trabajo rutinario → reservar Claude para tareas complejas
 
 ---
 
-## Estado Actual (verificado 2026-03-27)
+## Estado Actual
 
-| Componente | Repo | Dockerfile | docker-compose | Estado |
-|------------|------|-----------|-----------------|--------|
-| **maalca-cms** (Umbraco 17.2.1/.NET 10) | `UMBRACO/MiSitioUmbraco` | multi-stage .NET 10 | Unificado en source/docker-compose.yml | SQLite dev, SQL Server prod |
-| **maalca-api** (.NET 8/PostgreSQL) | `maalca-api` | multi-stage .NET 8 | Unificado en source/docker-compose.yml | Railway (prod), Docker (dev) |
-| **maalca-web** (Next.js 15) | `maalca-web` | multi-stage node:22-alpine | Unificado en source/docker-compose.yml | Vercel (prod), Docker (dev) |
-| **n8n** | Railway only | N/A | N/A | `maalca-agents.up.railway.app` |
+| Componente | Repo | Deploy | Estado |
+|------------|------|--------|--------|
+| **maalca-web** (Next.js 15) | `maalca-web` | Vercel (prod), Docker (dev) | 38 issues abiertos |
+| **maalca-api** (.NET 8/PostgreSQL) | `maalca-api` | Railway (prod), Docker (dev) | 9 issues abiertos |
+| **maalca-cms** (Umbraco 17/.NET 10) | `UMBRACO/MiSitioUmbraco` | Docker (dev) | 3 issues abiertos |
+| **n8n** | Railway | `maalca-agents.up.railway.app` | Dispatcher + Executor existentes |
 
-**Issues abiertos:** 46 maalca-web, 9 maalca-api, 3 maalca-cms (58 total)
-
-**Docker compose:** `C:/Users/apich/source/docker-compose.yml` — postgres + maalca-api + maalca-cms + maalca-web
+**Docker compose:** `C:/Users/apich/source/docker-compose.yml`
+**Puertos:** PostgreSQL:5433 | maalca-api:5000 | maalca-cms:5011 | maalca-web:3000
 
 ---
 
-## FASE 0: Docker Local — COMPLETADO
+## Arquitectura v4 — Overview
 
-- [x] docker-compose.yml unificado con los 4 servicios + red compartida + healthchecks
-- [x] next.config.ts: `output: 'standalone'` agregado para Docker build
-- [ ] `docker compose up --build` — pendiente de ejecutar y verificar
-
-**Puertos:**
-| Servicio | Puerto local | Puerto interno |
-|----------|-------------|----------------|
-| PostgreSQL | 5433 | 5432 |
-| maalca-api | 5000 | 8080 |
-| maalca-cms | 5011 (http), 5012 (https) | 8080, 8443 |
-| maalca-web | 3000 | 3000 |
-
-**Levantar todo:**
-```bash
-cd C:/Users/apich/source
-docker compose up --build
+```
+GitHub Issues (label: agent:queued)
+        ↓
+n8n: github-issue-dispatcher (webhook → filter → extract → route)
+        ↓
+Orchestrator Agent (routing → priority → model select → cost gate → memory)
+        ↓↓↓↓
+┌──────────┬──────────┬──────────┬──────────┐
+│ DEV (9)  │EDITORIAL │ MANGA    │ SAAS     │
+│ MVP-0    │(10) MVP-2│(11) MVP-3│(13) MVP-1│
+└──────────┴──────────┴──────────┴──────────┘
+        ↓
+agent-executor pipeline:
+  memory→cost gate→select model→build prompt→call LLM→
+  fallback→validate→retry→QA review→commit+PR→log→learn→update label
+        ↓
+Feedback Loop: Agent Output→QA Eval→PR Review→Learn Pattern→agent_learnings→PM Report→Next Execution
 ```
 
+**4 Dominios, ~28 Agentes, 3 Repos de salida**
+
 ---
 
-## FASE 1: Editorial End-to-End (Issues #65, #66, maalca-cms #1)
+## LLM Strategy — 3 Tiers
 
-> editorial/page.tsx ya NO usa Framer Motion. 6 articulos con contenido completo. umbraco-client.ts tiene fallback.
+| Tier | Modelo | Provider | Costo | Agentes |
+|------|--------|----------|-------|---------|
+| **PREMIUM** | Claude Sonnet 4 | Anthropic | $3/$15 per M tokens | architect, security, sensitivity, site_builder |
+| **STANDARD** | DeepSeek V3, Gemini Flash 2.0 | OpenRouter, Google | $0.27/M / gratis | frontend, backend, cms, qa, editor, translator, payments |
+| **FREE** | Llama 3.3 70B, Qwen 2.5 72B, Gemini Flash | Groq, OpenRouter, Google | $0 | sql, pm, devops, seo, publisher, business_setup, catalog_importer, +8 mas |
 
-### Task 1.1: Crear contenido en Umbraco backoffice
-- Acceder a `localhost:5011/umbraco` (requiere Docker corriendo)
-- Crear nodo raiz "Editorial" (tipo: content)
-- Publicar 6 articulos como nodos `article` con los datos de `src/data/editorialContent.ts`
-- Los Document Types se crean automaticamente via `DocumentTypeComposer.cs` al arrancar
+### Fallback Chains
+- **Premium:** Claude Sonnet 4 → Gemini Pro 2.0 → agent:failed
+- **Standard:** DeepSeek V3 → Gemini Flash 2.0 → Groq Llama 3.3 → agent:failed
+- **Free:** Groq Llama 3.3 → Qwen 2.5 72B → Gemini Flash 2.0 → queue + retry 5min
 
-### Task 1.2: Verificar Delivery API
-```bash
-curl http://localhost:5011/umbraco/delivery/api/v2/content?filter=contentType:article
+### Modelos Especializados
+- Imagenes: Flux 1.1 Pro (fal.ai), SDXL (Replicate free)
+- OCR/Vision: Gemini Flash 2.0 (gratis 1M), PaddleOCR (local $0)
+- Embeddings: Nomic Embed v1.5 (OpenRouter FREE)
+- Busqueda: Perplexity API, n8n HTTP + RSS
+
+---
+
+## Orchestrator Rules
+
+### 1. Routing: Label → Agent → Model
+```
+LABEL                → AGENT              → TIER      → PROVIDER
+agent:architect      → architect          → PREMIUM   → Anthropic
+agent:security       → security           → PREMIUM   → Anthropic
+agent:frontend       → frontend           → STANDARD  → OpenRouter (DeepSeek)
+agent:backend        → backend            → STANDARD  → OpenRouter (DeepSeek)
+agent:cms            → cms                → STANDARD  → OpenRouter (DeepSeek)
+agent:qa             → qa                 → STANDARD  → Google (Gemini Flash)
+agent:sql            → sql                → FREE      → Groq (Llama 3.3)
+agent:devops         → devops             → FREE      → Groq (Llama 3.3)
+agent:pm             → pm                 → FREE      → Groq (Llama 3.3)
+agent:seo            → seo_optimizer      → FREE      → Groq (Llama 3.3)
 ```
 
-### Task 1.3: Configurar env vars en maalca-web para CMS
-**Archivo:** `maalca-web/.env.local`
+### 2. Priority Queue (Redis BullMQ)
+- **P1** (hotfix, security) — bugs prod, vulnerabilidades
+- **P2** (architect, sensitivity) — decisiones que bloquean otros
+- **P3** (frontend, backend, cms) — feature work normal
+- **P4** (qa, editor, seo) — review y optimizacion
+- **P5** (pm, devops) — reporting, CI/CD (batch nocturno OK)
+- Concurrency: max 3 simultaneos | Limiter: 10 jobs/min
+
+### 3. Cost Gate — Presupuesto Diario
 ```
-UMBRACO_API_URL=http://localhost:5011
-NEXT_PUBLIC_UMBRACO_MEDIA_URL=http://localhost:5011
-```
+premium:  $3.00/dia  (~$90/mes max Claude)
+standard: $1.00/dia  (~$30/mes max OpenRouter)
+free:     ∞
+total:    $5.00/dia  (hard cap)
 
-### Task 1.4: Verificar editorial con datos reales
-- `npm run dev` en maalca-web
-- Navegar a `localhost:3000/editorial`
-- Confirmar que muestra datos del CMS (no mock)
-
----
-
-## FASE 2: Eliminar Framer Motion del proyecto (Regla tecnica)
-
-> 17 archivos usan framer-motion. editorial/page.tsx ya esta limpio.
-
-### Task 2.1: Migrar cada pagina a CSS/Tailwind animations
-**Archivos a modificar (17):**
-1. `src/app/affiliates/page.tsx`
-2. `src/app/britocolor/page.tsx`
-3. `src/app/casos-estudio/page.tsx`
-4. `src/app/cirisonic/page.tsx`
-5. `src/app/ciriwhispers/page.tsx`
-6. `src/app/contacto/page.tsx`
-7. `src/app/dashboard/page.tsx`
-8. `src/app/dr-pichardo/page.tsx`
-9. `src/app/ecosistema/page.tsx`
-10. `src/app/hablando-mierda/page.tsx`
-11. `src/app/maalca-properties/page.tsx`
-12. `src/app/maalca-properties/page-backup.tsx` (borrar si no se usa)
-13. `src/app/maalca-properties/page-optimized.tsx` (borrar si no se usa)
-14. `src/app/masa-tina/page.tsx`
-15. `src/app/pegote-barber/page.tsx`
-16. `src/app/servicios/page.tsx`
-17. `src/app/verde-prive/page.tsx`
-
-**Patron de reemplazo:**
-- `motion.div` -> `<div className="animate-fade-in-up">`
-- `motion.h1` -> `<h1 className="animate-fade-in-up">`
-- `variants`, `initial`, `animate`, `whileInView` -> eliminar
-- `AnimatePresence` -> condicional CSS con `transition-opacity`
-- Verificar que `animate-fade-in-up` existe en tailwind.config o globals.css
-
-### Task 2.2: Eliminar dependencia
-```bash
-cd maalca-web && npm uninstall framer-motion
+Si excede → downgrade tier automatico → si todo excede → queue para manana
 ```
 
-### Task 2.3: Limpiar next.config.ts
-- Eliminar `optimizePackageImports: ['framer-motion']` de next.config.ts
-
-### Task 2.4: Verificar
-```bash
-npm run build  # 0 errores, 0 imports de framer-motion
-```
+### 4. Groq Rate Limit
+- Backoff: 2s initial, 60s max, 2 retries luego fallback
+- Min interval: 2500ms (nunca mas de 24 RPM)
+- Circuit breaker: 3x 429 en 5min → disable Groq 10min → route a Qwen/Gemini
 
 ---
 
-## FASE 3: Auth + Dashboard MVP (Issues #2-#19 maalca-web)
+## MVP-0: Pipeline Proof (Abr-May 2026) — EN PROGRESO
 
-> Auth y dashboard ya usan maalca-api como backend. Supabase references son legacy.
+**Objetivo:** Demostrar pipeline end-to-end funcional con Dev Agents
+**Costo:** ~$25/mes
 
-### Task 3.1: Limpiar referencias a Supabase
-- Cerrar issues #2, #3 como "won't fix" (decision tomada: maalca-api, no Supabase)
-- Actualizar #6, #7 para usar maalca-api
+### Agentes activos (5 de 28)
+| Agente | Tier | Modelo |
+|--------|------|--------|
+| frontend | STD | DeepSeek V3 |
+| backend | STD | DeepSeek V3 |
+| sql | FREE | Llama 3.3 70B |
+| qa | STD | Gemini Flash 2.0 |
+| pm | FREE | Llama 3.3 70B |
 
-### Task 3.2: Auth real (#4, #5)
-**Archivos:**
-- `maalca-web/src/app/login/page.tsx` -> conectar a `POST /api/auth/login` de maalca-api
-- `maalca-web/src/middleware.ts` -> proteger `/dashboard/*` verificando JWT
-- `maalca-web/src/lib/auth.ts` -> helper para token management (cookie-based)
+### Infra minima
+- n8n en Railway + Redis BullMQ + PostgreSQL (agent_executions) + GitHub webhooks
+- Groq + DeepSeek + 5 golden test issues
 
-### Task 3.3: Dashboard CRUD real (#8-#12, #14-#17)
-Endpoints ya existen en maalca-api. Conectar frontend:
-- `src/app/dashboard/customers/` -> `GET/POST/PUT/DELETE /api/customers`
-- `src/app/dashboard/appointments/` -> `/api/appointments`
-- `src/app/dashboard/inventory/` -> `/api/inventory`
-- `src/app/dashboard/invoices/` -> `/api/invoices`
-- `src/lib/dashboard/` -> service files ya existen, actualizar base URL a maalca-api
+### Criterios de DONE
+- [ ] Issue con label agent:frontend genera PR con codigo que compila
+- [ ] Issue con label agent:backend genera endpoint funcional con tests
+- [ ] QA Agent revisa y aprueba/rechaza con comentario en PR
+- [ ] PM Agent reporta daily standup a Slack con datos reales
+- [ ] 5 golden test issues pasan 3 veces consecutivas sin intervencion
+- [ ] agent_executions tiene logs de tokens, costo, duracion
 
-### Task 3.4: Dashboard config y reportes (#19, #48, #49)
-- Modulo reportes: export CSV/PDF desde datos de maalca-api
-- Configuracion negocio: editar perfil conectado a `/api/affiliates`
-
----
-
-## FASE 4: n8n Pipeline Fix (Issues maalca-api #2, maalca-web #73, #75)
-
-### Task 4.1: Fix env var access en n8n (BLOQUEANTE — accion manual)
-- Railway dashboard -> servicio n8n -> Variables -> `N8N_BLOCK_ENV_ACCESS_IN_NODE=false`
-- Redeploy
-
-### Task 4.2: Configurar API keys (maalca-api #2)
-- Railway dashboard -> servicio maalca-api -> `GROQ_API_KEY`, `OPENROUTER_API_KEY`
-
-### Task 4.3: Test e2e pipeline (maalca-web #73)
-- Crear issue con label `agent:queued`
-- Verificar github-issue-dispatcher -> agent-executor -> PR
-
-### Task 4.4: Retry logic (maalca-web #75)
-- n8n agent-executor: agregar retry (max 3) despues del AI Agent node
+### Tareas manuales BLOQUEANTES (tu en Railway)
+- [ ] `N8N_BLOCK_ENV_ACCESS_IN_NODE=false` en Railway → redeploy
+- [ ] API keys: `GROQ_API_KEY`, `OPENROUTER_API_KEY` en Railway
+- [ ] Verificar `docker compose up --build` local
+- [ ] Test e2e: crear issue con `agent:queued` → verificar PR (#73)
 
 ---
 
-## FASE 5: SEO + Deploy pendientes (Issues #23-#27, #30)
+## MVP-1: SaaS Micro — Primer Negocio Real (Jun-Jul 2026)
 
-### Task 5.1: Google Analytics (#23)
-- `GA_MEASUREMENT_ID` en Vercel env vars
-- `<Script>` de GA4 en `layout.tsx`
+**Objetivo:** Barberia/dispensario con presencia digital generada por agentes
+**Costo:** ~$50-75/mes | **Depende de MVP-0**
 
-### Task 5.2: Search Console (#24)
-- Verificar dominio + subir sitemap.xml
+### Agentes (+6 = 11 total)
+site_builder (PREMIUM), brand_extractor (STD), menu_builder (STD), catalog_importer (FREE), business_setup (FREE), customer_support_rag (FREE)
 
-### Task 5.3: Meta tags (#25)
-- Verificar `metadata` export en cada pagina
+### Lo que el cliente recibe
+- Pagina web generada live
+- Menu/catalogo digital
+- WhatsApp bot FAQ (RAG)
+- Branding extraido de fotos
 
-### Task 5.4: Dominio Vercel (#26, #27)
-- Configurar DNS de maalca.com -> Vercel
-
-### Task 5.5: Optimizar imagenes (#30)
-- `<img>` -> `<Image>` de next/image
-
----
-
-## FASE 6: P2/P3 (Backlog futuro)
-
-| Issue | Descripcion | Repo | Prioridad |
-|-------|------------|------|-----------|
-| #74 | PM Agent daily standup via Slack | web | P1 |
-| #77 | Model selector por agente/tier | web | P1 |
-| #78 | Webhook PR merge -> agent_learnings | web | P2 |
-| #79 | Metabase observabilidad | web | P2 |
-| #3 | agent_memory corto plazo | api | P2 |
-| #4 | pgvector + agent_learnings | api | P2 |
-| #5 | QA Agent en executor | api | P2 |
-| #80 | Onboarding flow con agentes | web | P3 |
-| #81 | menu_builder digital | web | P3 |
-| #82-84 | Editorial/manga agents | web | P3 |
-| #8-11 | SaaS features (categories, payments, etc) | api | P3 |
-| #61-62 | Properties (formulario, leads) | web | P3 |
-| #86 | Custom domain por tenant | web | P3 |
-| #1-3 | CMS Document Types + ADR | cms | P3 |
+### Criterios de DONE
+- [ ] Cliente real (Pegote/Dispensario) tiene pagina live
+- [ ] Catalogo importado desde Excel/fotos
+- [ ] WhatsApp bot responde con RAG
+- [ ] Onboarding < 48h
+- [ ] Cliente actualiza catalogo sin intervencion tecnica
 
 ---
 
-## Issues a cerrar (ya resueltos)
+## MVP-2: Editorial Pipeline (Jun-Jul 2026, paralelo a MVP-1)
+
+**Objetivo:** Contenido auto-editado y publicado en Umbraco CMS
+**Costo:** ~$40-60/mes
+
+### Agentes (+5 = 16 total)
+editor (STD), seo_optimizer (FREE), topic_suggester (FREE), publisher (FREE), promotion (FREE)
+
+### Criterios de DONE
+- [ ] Issue → edit → SEO → publish sin intervencion
+- [ ] topic_suggester genera 5 temas/semana reales
+- [ ] 10 articulos publicados por pipeline
+- [ ] Tiempo issue → publicacion < 4 horas
+
+---
+
+## MVP-3: Manga Pipeline (Ago-Oct 2026)
+
+**Objetivo:** Upload → OCR → Translate → Publish para manga/manhwa
+**Costo:** ~$80-120/mes | **Depende de MVP-1 + MVP-2**
+
+### Agentes (+5 = 21 total)
+upload_validator (FREE), text_extractor/OCR (STD), translator (STD), chapter_builder (FREE), metadata_generator (FREE)
+
+### Criterios de DONE
+- [ ] 1 capitulo procesado end-to-end
+- [ ] OCR accuracy > 90%
+- [ ] Traduccion con < 15% correcciones humanas
+- [ ] Procesamiento < 30 min por capitulo 20 pags
+
+---
+
+## Testing Strategy
+
+### Golden Test Issues (5)
+| Test | Input | Expected |
+|------|-------|----------|
+| GT-1 | "Crear componente Button primary/secondary/ghost" | PR con Button.tsx que compila |
+| GT-2 | "Crear GET /api/health con status y timestamp" | PR con endpoint + test |
+| GT-3 | "Crear tabla agent_executions con campos..." | PR con migration EF Core valida |
+| GT-4 | Codigo con SQL injection, hardcoded secrets | QA rechaza identificando cada problema |
+| GT-5 | "Crear endpoint + componente + test" | 3 PRs coordinados, QA revisa todos |
+
+### Smoke Test Triggers
+- Cambio en executor → GT-1 + GT-2
+- Nuevo modelo → los 5 GTs
+- Nuevo agente → GT dominio + GT-5
+- Cron domingo 10PM → todos
+
+### Metricas de Pipeline Health
+- PR Acceptance Rate: target > 60%
+- Agent Failure Rate: target < 15%
+- Avg Execution Time: < 5min FREE, < 2min STD/PREMIUM
+- Cost per Issue: < $0.15 STD, $0 FREE
+- Retry Rate: target < 25%
+
+---
+
+## Division: Claude Code vs Agentes n8n
+
+### Claude Code (reservar para)
+- Arquitectura que cruza repos (web + api + cms)
+- Escribir/refinar system prompts de agentes
+- Debugging complejo del pipeline n8n
+- Refactoring grande (Framer Motion x17 archivos, Auth flow)
+- Code review de PRs complejos generados por agentes
+- Tareas que necesitan contexto de todo el codebase
+
+### Agentes n8n (delegar)
+- Componentes individuales, paginas, UI fixes → `agent:frontend`
+- Endpoints CRUD, services → `agent:backend`
+- Tablas, indices, migrations → `agent:sql`
+- Review automatico de PRs → `agent:qa`
+- Daily standup, metricas → `agent:pm`
+- CI/CD, Docker → `agent:devops`
+- Meta tags, JSON-LD, sitemaps → `agent:seo`
+- Edicion, SEO, publicacion → `agent:editor`/`agent:publisher`
+
+---
+
+## Fases Web (maalca-web especificas)
+
+### Fase W1: Editorial End-to-End (Issues #65, #66)
+- Requiere Docker corriendo (Umbraco CMS)
+- Verificar Delivery API, conectar env vars, probar editorial con datos CMS
+
+### Fase W2: Eliminar Framer Motion (17 archivos)
+- Migrar `motion.div` → CSS/Tailwind animations
+- `npm uninstall framer-motion`
+- Limpiar next.config.ts
+
+### Fase W3: Auth + Dashboard (Issues #4-#17)
+- Login → maalca-api `POST /api/auth/login` (no Supabase)
+- Middleware JWT → proteger `/dashboard/*`
+- CRUD: customers, appointments, inventory, invoices → maalca-api
+
+### Fase W4: SEO + Deploy (#23-#27, #30)
+- GA4, Search Console, meta tags, dominio Vercel, next/image
+
+---
+
+## Issues a cerrar
 
 | Issue | Razon |
 |-------|-------|
-| #13 (maalca-web) | Dashboard changes committed |
-| #20 (maalca-web) | Resend setup done |
-| #22 (maalca-web) | Editorial newsletter done |
-| #95 (maalca-web) | StatusBadge — test issue |
-| #2, #3 (maalca-web) | Auth decision made (maalca-api, not Supabase) |
-| #8 (maalca-web) | Schema done in maalca-api PostgreSQL |
+| #2, #3 | Decision: maalca-api, no Supabase |
+| #8 | Schema ya en maalca-api PostgreSQL |
+| #13 | Dashboard changes committed |
+| #20 | Resend setup done |
+| #22 | Editorial newsletter done |
+| #95 | StatusBadge test issue |
+
+---
+
+## Backlog P2/P3
+
+| Issue | Descripcion | Prioridad |
+|-------|------------|-----------|
+| #74 | PM Agent daily standup Slack | P1 |
+| #77 | Model selector por tier | P1 |
+| #78 | Webhook PR merge → agent_learnings | P2 |
+| #79 | Metabase observabilidad | P2 |
+| #80 | Onboarding flow con agentes | P3 |
+| #81 | menu_builder digital | P3 |
+| #82-84 | Editorial/manga agents | P3 |
+| #61-62 | Properties (formulario, leads) | P3 |
+| #86 | Custom domain por tenant | P3 |
 
 ---
 
 ## Verificacion Global
 
-1. `docker compose up --build` -> 4 servicios healthy
-2. `localhost:5011/umbraco` -> backoffice accesible
-3. `localhost:5000/swagger` -> todos los endpoints responden
-4. `localhost:3000` -> sitio completo
-5. `npm run build` en maalca-web -> 0 errores
-6. Auth flow: login -> JWT -> dashboard protegido
-7. n8n pipeline: issue -> agent -> PR
+1. `docker compose up --build` → 4 servicios healthy
+2. `localhost:5011/umbraco` → backoffice accesible
+3. `localhost:5000/swagger` → endpoints responden
+4. `localhost:3000` → sitio completo
+5. `npm run build` → 0 errores
+6. n8n pipeline: issue → agent → PR (MVP-0 done)
+7. PM daily standup en Slack con datos reales

@@ -103,6 +103,28 @@ class N8nService {
     const payload = this.buildPayload(event, tenantId, data);
     return this.sendWebhook('/events', payload);
   }
+
+  // ── Content Pipeline Triggers ──
+
+  async triggerContentScript(brandId: string, lessonId: string): Promise<N8nServiceResponse> {
+    const payload = this.buildPayload('content.script.generated', brandId, { lessonId, action: 'generate' });
+    return this.sendWebhook('/content/generate-script', payload);
+  }
+
+  async triggerContentVoice(brandId: string, lessonId: string): Promise<N8nServiceResponse> {
+    const payload = this.buildPayload('content.voice.generated', brandId, { lessonId, action: 'generate' });
+    return this.sendWebhook('/content/generate-voice', payload);
+  }
+
+  async triggerContentVideo(brandId: string, lessonId: string): Promise<N8nServiceResponse> {
+    const payload = this.buildPayload('content.video.generated', brandId, { lessonId, action: 'generate' });
+    return this.sendWebhook('/content/generate-video', payload);
+  }
+
+  async triggerContentDistribution(brandId: string, lessonId: string): Promise<N8nServiceResponse> {
+    const payload = this.buildPayload('content.published', brandId, { lessonId, action: 'distribute' });
+    return this.sendWebhook('/content/distribute', payload);
+  }
 }
 
 export const n8nService = new N8nService();
