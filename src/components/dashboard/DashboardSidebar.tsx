@@ -30,12 +30,15 @@ export function DashboardSidebar({ mobileMenuOpen = false, onMobileMenuClose }: 
     ...(hasModule('appointments') ? [{ name: "Citas",         href: `/dashboard/${config?.id}/appointments`, icon: "📅" }] : []),
     ...(hasModule('queue')        ? [{ name: "Fila Virtual",  href: `/dashboard/${config?.id}/queue`,        icon: "⏳" }] : []),
     ...(hasModule('salon')        ? [{ name: "Salón Virtual", href: `/dashboard/${config?.id}/salon`,        icon: "💈" }] : []),
+    ...(hasModule('menu')         ? [{ name: "Menú",          href: `/dashboard/${config?.id}/menu`,         icon: "🍽️" }] : []),
+    ...(hasModule('orders')       ? [{ name: "Órdenes",       href: `/dashboard/${config?.id}/orders`,       icon: "📋" }] : []),
     ...(hasModule('ecommerce')    ? [{ name: "Tienda",        href: `/dashboard/${config?.id}/store`,        icon: "🛍️" }] : []),
     ...(hasModule('inventory')    ? [{ name: "Inventario",    href: `/dashboard/${config?.id}/inventory`,    icon: "📦" }] : []),
     ...(hasModule('invoicing')    ? [{ name: "Facturación",   href: `/dashboard/${config?.id}/invoicing`,    icon: "💰" }] : []),
     ...(hasModule('giftcards')    ? [{ name: "Gift Cards",    href: `/dashboard/${config?.id}/giftcards`,    icon: "💳" }] : []),
     ...(hasModule('team')         ? [{ name: "Equipo",        href: `/dashboard/${config?.id}/team`,         icon: "👨‍💼" }] : []),
     ...(hasModule('reports')      ? [{ name: "Reportes",      href: `/dashboard/${config?.id}/reports`,      icon: "📊" }] : []),
+    ...(hasModule('qrCodes')      ? [{ name: "QR Codes",      href: `/dashboard/${config?.id}/qr`,           icon: "📱" }] : []),
     ...(isAdmin                   ? [{ name: "Configuración", href: `/dashboard/${config?.id}/settings`,     icon: "⚙️" }] : []),
   ];
 
@@ -54,19 +57,28 @@ export function DashboardSidebar({ mobileMenuOpen = false, onMobileMenuClose }: 
     const active = isActive(item.href);
     return (
       <Link key={item.href} href={item.href} onClick={onMobileMenuClose}>
-        <div className={cn(
-          "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-150 cursor-pointer",
-          "hover:scale-[1.02] active:scale-[0.98]",
-          active
-            ? "bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-semibold"
-            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-        )}>
+        <div
+          className={cn(
+            "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-150 cursor-pointer",
+            "hover:scale-[1.02] active:scale-[0.98]",
+            active
+              ? "font-semibold"
+              : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+          )}
+          style={active ? {
+            backgroundColor: 'color-mix(in srgb, var(--brand-light) 40%, transparent)',
+            color: 'var(--brand-primary)',
+          } : undefined}
+        >
           <span className="text-xl flex-shrink-0">{item.icon}</span>
           {!isCollapsed && (
             <span className="font-medium whitespace-nowrap flex-1">{item.name}</span>
           )}
           {active && !isCollapsed && (
-            <span className="ml-auto w-1.5 h-1.5 bg-blue-500 rounded-full" />
+            <span
+              className="ml-auto w-1.5 h-1.5 rounded-full"
+              style={{ backgroundColor: 'var(--brand-primary)' }}
+            />
           )}
         </div>
       </Link>

@@ -4,11 +4,13 @@ import { useState } from "react";
 import { stories, storyTypes, getStoriesByType, type StoryType } from "@/data/ciriwhispers/stories";
 import StoryCard from "@/components/ciriwhispers/StoryCard";
 import StoryReader from "@/components/ciriwhispers/StoryReader";
+import { useTranslation } from "@/hooks/useSimpleLanguage";
 import type { Story } from "@/data/ciriwhispers/stories";
 
 export default function BibliotecaPage() {
   const [activeFilter, setActiveFilter] = useState<StoryType | undefined>(undefined);
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
+  const { t } = useTranslation();
 
   const filteredStories = getStoriesByType(activeFilter);
 
@@ -18,10 +20,10 @@ export default function BibliotecaPage() {
         {/* Header */}
         <div className="text-center mb-12 animate-fade-in-up">
           <h1 className="font-serif text-4xl md:text-5xl font-bold text-stone-100 mb-4">
-            Biblioteca
+            {t("ciriwhispers.biblioteca.title")}
           </h1>
           <p className="text-slate-400 text-lg max-w-xl mx-auto">
-            Historias cortas, poemas, fragmentos y cartas. Todo gratis. Todo real.
+            {t("ciriwhispers.biblioteca.desc")}
           </p>
         </div>
 
@@ -35,7 +37,7 @@ export default function BibliotecaPage() {
                 : "bg-slate-800/50 text-slate-400 hover:text-slate-200 border border-slate-700/50"
             }`}
           >
-            Todos ({stories.length})
+            {t("ciriwhispers.biblioteca.all")} ({stories.length})
           </button>
           {storyTypes.map((type) => {
             const count = stories.filter((s) => s.type === type.key).length;
@@ -50,7 +52,7 @@ export default function BibliotecaPage() {
                     : "bg-slate-800/50 text-slate-400 hover:text-slate-200 border border-slate-700/50"
                 }`}
               >
-                {type.label} ({count})
+                {t(`ciriwhispers.storyType.${type.key}s`)} ({count})
               </button>
             );
           })}
@@ -76,7 +78,7 @@ export default function BibliotecaPage() {
         {filteredStories.length === 0 && (
           <div className="text-center py-20">
             <p className="text-slate-500 text-lg font-serif italic">
-              Aun no hay historias de este tipo. Pero las hay en el tintero.
+              {t("ciriwhispers.biblioteca.empty")}
             </p>
           </div>
         )}
@@ -84,10 +86,10 @@ export default function BibliotecaPage() {
         {/* Coming soon teaser */}
         <div className="mt-16 text-center border-t border-slate-800 pt-12">
           <p className="font-serif italic text-slate-500 text-lg mb-2">
-            Nuevas historias cada semana.
+            {t("ciriwhispers.biblioteca.comingSoon")}
           </p>
           <p className="text-slate-600 text-sm">
-            Suscribete abajo para recibirlas antes que nadie.
+            {t("ciriwhispers.biblioteca.comingSoonSub")}
           </p>
         </div>
       </div>

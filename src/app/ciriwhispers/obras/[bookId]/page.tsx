@@ -23,7 +23,7 @@ function getBookContent(bookId: string): string {
     case "luz-sombras":
       return lucesSombrasContent;
     default:
-      return "<p>Contenido no disponible</p>";
+      return "<p>Content not available / Contenido no disponible</p>";
   }
 }
 
@@ -41,9 +41,9 @@ export default function BookDetailPage() {
   if (!book) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-24 text-center">
-        <h1 className="font-serif text-3xl text-stone-100 mb-4">Libro no encontrado</h1>
+        <h1 className="font-serif text-3xl text-stone-100 mb-4">404</h1>
         <Link href="/ciriwhispers/obras" className="text-red-400 hover:text-red-300">
-          Volver a Obras
+          ← {t("ciriwhispers.obras2.backToObras")}
         </Link>
       </div>
     );
@@ -64,7 +64,7 @@ export default function BookDetailPage() {
         {/* Breadcrumb */}
         <div className="mb-8 animate-fade-in">
           <Link href="/ciriwhispers/obras" className="text-sm text-slate-500 hover:text-red-400 transition-colors">
-            &larr; Obras
+            &larr; {t("ciriwhispers.obras2.backToObras")}
           </Link>
         </div>
 
@@ -106,7 +106,7 @@ export default function BookDetailPage() {
                   onClick={openReader}
                   className="px-6 py-3 bg-gradient-to-r from-red-800 to-red-600 hover:from-red-600 hover:to-red-800 text-stone-100 font-semibold rounded-lg transition-all"
                 >
-                  Leer ahora
+                  {t("ciriwhispers.obras2.readNow")}
                 </button>
               )}
 
@@ -118,7 +118,7 @@ export default function BookDetailPage() {
                   onClick={() => trackBookInteraction(book.id, "amazon_click")}
                   className="px-6 py-3 border border-stone-600/50 text-stone-400 hover:bg-stone-600/10 rounded-lg font-medium transition-all"
                 >
-                  Comprar en Amazon
+                  {t("ciriwhispers.obras2.buyAmazon")}
                 </a>
               )}
 
@@ -147,7 +147,7 @@ export default function BookDetailPage() {
         {relatedStories.length > 0 && (
           <div className="border-t border-slate-800 pt-12">
             <h2 className="font-serif text-2xl font-bold text-stone-100 mb-6">
-              Fragmentos de esta obra
+              {t("ciriwhispers.obras2.relatedStories")}
             </h2>
             <div className="space-y-4">
               {relatedStories.map((story) => (

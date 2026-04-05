@@ -12,11 +12,10 @@ export default function ObrasPage() {
       {/* Header */}
       <div className="text-center mb-16 animate-fade-in-up">
         <h1 className="font-serif text-4xl md:text-5xl font-bold text-stone-100 mb-4">
-          Obras
+          {t("ciriwhispers.obras2.title")}
         </h1>
         <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-          Novelas, poemarios y colecciones. Algunas publicadas, otras en camino.
-          Todas escritas con lo que no se dice en voz alta.
+          {t("ciriwhispers.obras2.desc")}
         </p>
       </div>
 

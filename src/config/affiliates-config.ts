@@ -29,6 +29,9 @@ export interface AffiliateConfig {
     salon: boolean;            // Vista de salón/sillas en tiempo real
     giftcards: boolean;        // Sistema de gift cards
     reports: boolean;          // Reportes y análisis
+    menu: boolean;             // Menu management (restaurantes)
+    orders: boolean;           // Monitor de órdenes en vivo
+    qrCodes: boolean;          // Generador de códigos QR
   };
   features: {
     multiLanguage: boolean;    // Soporte multi-idioma
@@ -69,7 +72,10 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
       queue: true,              // Fila virtual
       salon: true,              // Vista de salón
       giftcards: true,          // Gift cards
-      reports: true             // Reportes y análisis
+      reports: true,            // Reportes y análisis
+      menu: false,
+      orders: false,
+      qrCodes: false
     },
     features: {
       multiLanguage: true,      // ES/EN
@@ -105,7 +111,10 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
       queue: false,             // No aplica
       salon: false,             // No aplica
       giftcards: false,         // No habilitado aún
-      reports: false
+      reports: false,
+      menu: false,
+      orders: false,
+      qrCodes: false
     },
     features: {
       multiLanguage: false,     // Solo español
@@ -141,7 +150,10 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
       queue: false,             // No aplica
       salon: false,             // No aplica
       giftcards: true,          // Gift cards para catering
-      reports: false
+      reports: false,
+      menu: true,               // Menú de catering
+      orders: true,             // Órdenes de catering
+      qrCodes: false
     },
     features: {
       multiLanguage: true,
@@ -177,7 +189,10 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
       queue: true,              // Fila virtual para consultas
       salon: false,             // No aplica
       giftcards: false,         // No aplica
-      reports: false
+      reports: false,
+      menu: false,
+      orders: false,
+      qrCodes: false
     },
     features: {
       multiLanguage: true,
@@ -206,14 +221,17 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
       campaigns: true,
       customers: true,
       ecommerce: false,
-      appointments: true,
-      inventory: false,
-      invoicing: false,
+      appointments: false,
+      inventory: true,          // Control de ingredientes
+      invoicing: true,          // Facturación
       team: false,
       queue: false,
       salon: false,
-      giftcards: false,
-      reports: false
+      giftcards: true,          // Gift cards
+      reports: false,
+      menu: true,               // Menu management
+      orders: true,             // Monitor de órdenes
+      qrCodes: true             // QR codes para mesas
     },
     features: {
       multiLanguage: true,
@@ -249,7 +267,10 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
       queue: false,             // No aplica
       salon: false,             // No aplica
       giftcards: false,         // No habilitado aún
-      reports: false
+      reports: false,
+      menu: false,
+      orders: false,
+      qrCodes: false
     },
     features: {
       multiLanguage: false,

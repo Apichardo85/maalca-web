@@ -84,7 +84,10 @@ export function DashboardHeader({ onMobileMenuToggle }: DashboardHeaderProps) {
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
-              <div className={`w-8 h-8 bg-${primaryColor} rounded-full flex items-center justify-center text-white font-bold text-sm`}>
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                style={{ backgroundColor: 'var(--brand-primary)' }}
+              >
                 {brandName.charAt(0)}
               </div>
             </button>

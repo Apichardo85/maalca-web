@@ -38,4 +38,7 @@ export const MODULE_NAV_CONFIG: Record<
   salon:        { label: 'Salón Virtual', icon: '💈', path: 'salon',        desc: 'Vista en tiempo real del salón' },
   giftcards:    { label: 'Gift Cards',    icon: '💳', path: 'giftcards',    desc: 'Tarjetas de regalo' },
   reports:      { label: 'Reportes',      icon: '📊', path: 'reports',      desc: 'Análisis avanzado e informes' },
+  menu:         { label: 'Menú',          icon: '🍽️', path: 'menu',         desc: 'Gestión del menú' },
+  orders:       { label: 'Órdenes',       icon: '📋', path: 'orders',       desc: 'Monitor de órdenes en vivo' },
+  qrCodes:      { label: 'QR Codes',      icon: '📱', path: 'qr',           desc: 'Generador de códigos QR' },
 }

@@ -4,17 +4,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
-
-const navItems = [
-  { href: "/ciriwhispers", label: "Inicio" },
-  { href: "/ciriwhispers/biblioteca", label: "Biblioteca" },
-  { href: "/ciriwhispers/obras", label: "Obras" },
-  { href: "/ciriwhispers/manifiesto", label: "Manifiesto" },
-  { href: "/ciriwhispers/contacto", label: "Contacto" },
-];
+import { useTranslation } from "@/hooks/useSimpleLanguage";
 
 export default function CiriNav() {
   const pathname = usePathname();
+  const { t } = useTranslation();
+
+  const navItems = [
+    { href: "/ciriwhispers", label: t("ciriwhispers.nav2.inicio") },
+    { href: "/ciriwhispers/biblioteca", label: t("ciriwhispers.nav2.biblioteca") },
+    { href: "/ciriwhispers/obras", label: t("ciriwhispers.nav2.obras") },
+    { href: "/ciriwhispers/manifiesto", label: t("ciriwhispers.nav2.manifiesto") },
+    { href: "/ciriwhispers/contacto", label: t("ciriwhispers.nav2.contacto") },
+  ];
 
   return (
     <nav className="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-sm border-b border-slate-700/50">

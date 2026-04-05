@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AffiliateProvider } from "@/contexts/AffiliateContext";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { getBrandColors } from "@/lib/affiliate-branding";
 import type { AffiliateConfig } from "@/config/affiliates-config";
 
 interface DashboardLayoutClientProps {
@@ -14,10 +15,18 @@ interface DashboardLayoutClientProps {
 
 export function DashboardLayoutClient({ children, config, isAdmin = false }: DashboardLayoutClientProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const colors = getBrandColors(config.branding.primaryColor);
 
   return (
     <AffiliateProvider config={config} isAdmin={isAdmin}>
-      <div className="min-h-screen bg-gray-50 dark:bg-black">
+      <div
+        className="min-h-screen bg-gray-50 dark:bg-black"
+        style={{
+          '--brand-primary': colors.primary,
+          '--brand-dark': colors.dark,
+          '--brand-light': colors.light,
+        } as React.CSSProperties}
+      >
         <DashboardHeader onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)} />
         <div className="flex">
           <DashboardSidebar
