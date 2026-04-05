@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout";
+import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import { OrganizationJsonLd, WebSiteJsonLd } from "@/components/seo/JsonLd";
 
 const playfairDisplay = Playfair_Display({
   variable: "--font-playfair",
@@ -70,14 +72,16 @@ export default function RootLayout({
   return (
     <html lang="es">
       <head>
-        {/* Resource hints for performance */}
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <OrganizationJsonLd />
+        <WebSiteJsonLd />
       </head>
       <body
         className={`${playfairDisplay.variable} ${inter.variable} antialiased`}
       >
+          <GoogleAnalytics />
           <Header />
           {children}
       </body>

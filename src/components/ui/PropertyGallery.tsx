@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 
 interface PropertyGalleryProps {
@@ -150,9 +149,9 @@ export default function PropertyGallery({ images, title, className = "" }: Prope
       </div>
 
       {/* Lightbox Modal */}
-      <AnimatePresence>
+      
         {selectedImage !== null && (
-          <motion.div
+          <div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -195,11 +194,10 @@ export default function PropertyGallery({ images, title, className = "" }: Prope
               )}
 
               {/* Main image */}
-              <motion.div
+              <div
                 key={currentIndex}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3 }}
                 className="relative max-w-full max-h-full"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -210,7 +208,7 @@ export default function PropertyGallery({ images, title, className = "" }: Prope
                   height={800}
                   className="object-contain max-w-full max-h-full"
                 />
-              </motion.div>
+              </div>
 
               {/* Image counter */}
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full text-sm">
@@ -243,9 +241,9 @@ export default function PropertyGallery({ images, title, className = "" }: Prope
                 </div>
               )}
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      
     </>
   );
 }

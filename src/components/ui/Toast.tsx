@@ -1,6 +1,5 @@
 "use client";
 
-import { motion, AnimatePresence } from 'framer-motion';
 import type { Toast as ToastType } from '@/hooks/useToast';
 
 interface ToastProps {
@@ -29,42 +28,36 @@ export function Toast({ toasts, onRemove }: ToastProps) {
       aria-live="polite"
       aria-atomic="true"
     >
-      <AnimatePresence mode="popLayout">
-        {toasts.map((toast) => (
-          <motion.div
-            key={toast.id}
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, x: 100, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="pointer-events-auto"
+      {toasts.map((toast) => (
+        <div
+          key={toast.id}
+          className="pointer-events-auto animate-fade-in-down"
+        >
+          <div
+            className={`${toastColors[toast.type]} text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 min-w-[300px] max-w-md`}
+            role="alert"
           >
-            <div
-              className={`${toastColors[toast.type]} text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 min-w-[300px] max-w-md`}
-              role="alert"
-            >
-              {/* Icon */}
-              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white/20 flex items-center justify-center font-bold">
-                {toastIcons[toast.type]}
-              </div>
-
-              {/* Message */}
-              <p className="flex-1 font-medium text-sm leading-tight">
-                {toast.message}
-              </p>
-
-              {/* Close Button */}
-              <button
-                onClick={() => onRemove(toast.id)}
-                className="flex-shrink-0 w-5 h-5 rounded-full hover:bg-white/20 flex items-center justify-center transition-colors"
-                aria-label="Cerrar notificación"
-              >
-                ✕
-              </button>
+            {/* Icon */}
+            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white/20 flex items-center justify-center font-bold">
+              {toastIcons[toast.type]}
             </div>
-          </motion.div>
-        ))}
-      </AnimatePresence>
+
+            {/* Message */}
+            <p className="flex-1 font-medium text-sm leading-tight">
+              {toast.message}
+            </p>
+
+            {/* Close Button */}
+            <button
+              onClick={() => onRemove(toast.id)}
+              className="flex-shrink-0 w-5 h-5 rounded-full hover:bg-white/20 flex items-center justify-center transition-colors"
+              aria-label="Cerrar notificación"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

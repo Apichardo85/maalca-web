@@ -1,0 +1,18 @@
+{
+  "characterId": "domi",
+  "characterName": "Domi",
+  "provider": "elevenlabs",
+  "voiceId": "fNZkPhLHNXqE8oMjamg6",
+  "description": "Energetic Dominican male voice with Caribbean cadence, fast-paced, confident",
+  "selectionNotes": "Search ElevenLabs Voice Library for: Dominican, Caribbean, Latin male. Alternatively use Instant Voice Clone with a 30-second sample of Dominican speech.",
+  "apiEndpoint": "https://api.elevenlabs.io/v1/text-to-speech/{voiceId}",
+  "model_id": "eleven_multilingual_v2",
+  "voice_settings": {
+    "stability": 0.4,
+    "similarity_boost": 0.8,
+    "style": 0.6,
+    "use_speaker_boost": true
+  },
+  "outputFormat": "mp3_44100_128",
+  "notes": "Low stability (0.4) = more expressive and varied. High style (0.6) = more character. This creates the energetic, animated Dominican personality."
+}

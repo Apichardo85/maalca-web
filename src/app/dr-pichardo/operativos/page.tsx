@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import { ProjectImage } from "@/components/ui/ProjectImage";
 
@@ -350,10 +349,9 @@ export default function OperativeEventsPage() {
       <section className="relative py-16 md:py-24 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-green-600/10 to-blue-600/10"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
             className="text-center mb-12"
           >
             <div className="mb-6">
@@ -371,13 +369,12 @@ export default function OperativeEventsPage() {
               Llevamos atención médica gratuita y de calidad a las comunidades que más lo necesitan. 
               Únete a nuestros operativos solidarios y forma parte del cambio hacia una salud más accesible.
             </p>
-          </motion.div>
+          </div>
 
           {/* Category Filters */}
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
             className="flex flex-wrap justify-center gap-3 mb-12"
           >
             {categories.map((category) => (
@@ -394,7 +391,7 @@ export default function OperativeEventsPage() {
                 <span>{category.name}</span>
               </button>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -403,11 +400,10 @@ export default function OperativeEventsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-8">
             {filteredEvents.map((event, index) => (
-              <motion.div
+              <div
                 key={event.id}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
                 className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
               >
                 <div className="relative">
@@ -510,7 +506,7 @@ export default function OperativeEventsPage() {
                     </Button>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -519,7 +515,7 @@ export default function OperativeEventsPage() {
       {/* Event Details Modal */}
       {showDetails && selectedEvent && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <motion.div
+          <div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
@@ -669,14 +665,14 @@ export default function OperativeEventsPage() {
                 </Button>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       )}
 
       {/* Registration Modal */}
       {showRegistration && selectedEvent && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <motion.div
+          <div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
@@ -812,7 +808,7 @@ export default function OperativeEventsPage() {
                 </Button>
               </div>
             </form>
-          </motion.div>
+          </div>
         </div>
       )}
     </main>

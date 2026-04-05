@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import { ProjectImage } from "@/components/ui/ProjectImage";
 
@@ -171,20 +170,16 @@ export default function CasosEstudioPage() {
       {/* Hero Section */}
       <section className="py-16 md:py-24 bg-surface relative overflow-hidden grain">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
+          <div className="animate-fade-in-up">
             <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-text-primary mb-6">
               Casos de
               <span className="block text-brand-primary">Estudio</span>
             </h1>
             <p className="text-lg lg:text-xl text-text-secondary max-w-3xl mx-auto leading-relaxed mb-8">
-              Análisis profundos de nuestros proyectos: desafíos enfrentados, soluciones implementadas 
+              Análisis profundos de nuestros proyectos: desafíos enfrentados, soluciones implementadas
               y resultados medibles que demuestran el impacto real del ecosistema MaalCa.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <div className="text-sm text-text-muted">
                 <span className="font-medium">6</span> Casos Analizados
@@ -198,7 +193,7 @@ export default function CasosEstudioPage() {
                 Resultados <span className="font-medium">Verificables</span>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -207,13 +202,10 @@ export default function CasosEstudioPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="space-y-24">
             {caseStudies.map((study, index) => (
-              <motion.div
+              <div
                 key={study.id}
-                className="group"
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: index * 0.1 }}
+                className="group animate-fade-in-up"
+                style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div className="grid lg:grid-cols-2 gap-12 items-start">
                   {/* Content */}
@@ -234,7 +226,7 @@ export default function CasosEstudioPage() {
                         <h3 className="text-lg font-bold text-red-600 mb-3">🎯 Desafío</h3>
                         <p className="text-text-secondary leading-relaxed">{study.challenge}</p>
                       </div>
-                      
+
                       <div className="bg-surface rounded-xl p-6 border border-border">
                         <h3 className="text-lg font-bold text-green-600 mb-3">💡 Solución</h3>
                         <p className="text-text-secondary leading-relaxed">{study.solution}</p>
@@ -274,7 +266,7 @@ export default function CasosEstudioPage() {
                     {/* Testimonial */}
                     <div className="bg-brand-primary/5 rounded-xl p-6 border border-brand-primary/20">
                       <blockquote className="text-text-primary italic mb-3">
-                        "{study.testimonial.text}"
+                        {`"${study.testimonial.text}"`}
                       </blockquote>
                       <cite className="text-sm text-brand-primary font-medium">
                         — {study.testimonial.author}
@@ -285,13 +277,13 @@ export default function CasosEstudioPage() {
                   {/* Visual */}
                   <div className={`${index % 2 === 1 ? 'lg:order-1' : ''}`}>
                     <div className="aspect-square overflow-hidden rounded-2xl border border-border shadow-lg group-hover:shadow-xl transition-shadow duration-300">
-                      <ProjectImage 
-                        src={study.image} 
+                      <ProjectImage
+                        src={study.image}
                         alt={study.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>
-                    
+
                     {/* Results Summary */}
                     <div className="mt-6 bg-surface rounded-xl p-6 border border-border">
                       <h3 className="text-lg font-bold text-text-primary mb-4">🏆 Resultados Clave</h3>
@@ -306,7 +298,7 @@ export default function CasosEstudioPage() {
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -315,17 +307,12 @@ export default function CasosEstudioPage() {
       {/* CTA Section */}
       <section className="py-16 md:py-24 bg-surface">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
+          <div className="animate-fade-in-up">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-6">
               ¿Tu proyecto será el próximo caso de estudio?
             </h2>
             <p className="text-lg text-text-secondary mb-8 max-w-2xl mx-auto">
-              Cada proyecto del ecosistema MaalCa comienza con una idea audaz y se convierte 
+              Cada proyecto del ecosistema MaalCa comienza con una idea audaz y se convierte
               en una solución medible. Conversemos sobre tu visión.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -346,7 +333,7 @@ export default function CasosEstudioPage() {
                 Ver Nuestros Servicios
               </Button>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
     </main>

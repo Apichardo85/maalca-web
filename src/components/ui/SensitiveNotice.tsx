@@ -1,13 +1,13 @@
 "use client";
 
-import { useLanguage } from "@/hooks/useLanguage";
+import { useTranslation } from "@/hooks/useSimpleLanguage";
 
 interface SensitiveNoticeProps {
   topics?: string[];
 }
 
 export default function SensitiveNotice({ topics = ["violencia", "duelo"] }: SensitiveNoticeProps) {
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   
   // Translate topics using the warning translation keys
   const translatedTopics = topics.map(topic => {

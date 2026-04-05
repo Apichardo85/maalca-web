@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { DashboardCard } from "../DashboardCard";
 
@@ -15,12 +14,10 @@ interface QuickAction {
 
 /**
  * Módulo de acciones rápidas
- * Muestra botones para las acciones más comunes según módulos habilitados
  */
 export function QuickActionsModule() {
   const { config, hasModule } = useAffiliate();
 
-  // Definir acciones rápidas según módulos habilitados
   const quickActions: QuickAction[] = [
     hasModule('customers') && {
       name: "Nuevo Cliente",
@@ -78,11 +75,10 @@ export function QuickActionsModule() {
     >
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {quickActions.map((action, index) => (
-          <motion.div
+          <div
             key={action.href}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: index * 0.1 }}
+            className="animate-fade-in-scale"
+            style={{ animationDelay: `${index * 0.1}s` }}
           >
             <Link href={action.href}>
               <div className="group p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-400 dark:hover:border-gray-500 transition-all cursor-pointer hover:shadow-md">
@@ -104,7 +100,7 @@ export function QuickActionsModule() {
                 </div>
               </div>
             </Link>
-          </motion.div>
+          </div>
         ))}
       </div>
     </DashboardCard>

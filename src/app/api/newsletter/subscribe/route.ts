@@ -1,121 +1,73 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
+import { addSubscriber } from '@/lib/services/resend-service'
 
 /**
  * Newsletter Subscription API
  *
  * POST /api/newsletter/subscribe
- * Body: { email: string }
+ * Body: { email: string, source?: string }
  *
- * Features:
- * - Email validation
- * - Duplicate check (future: DB)
- * - Welcome email via Resend (when configured)
- * - Rate limiting (future)
+ * Flow: validate → Resend (contact + welcome email) → n8n (async) → response
  */
 
-interface SubscribeRequest {
-  email: string;
-}
-
-// Email validation regex
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export async function POST(request: NextRequest) {
   try {
-    // Parse request body
-    const body: SubscribeRequest = await request.json();
-    const { email } = body;
+    const body = await request.json()
+    const { email, source = 'ecosystem' } = body
 
-    // Validate email
+    // Validate
     if (!email) {
-      return NextResponse.json(
-        { error: 'Email es requerido' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Email es requerido' }, { status: 400 })
     }
-
     if (!EMAIL_REGEX.test(email)) {
-      return NextResponse.json(
-        { error: 'Email inválido' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Email inválido' }, { status: 400 })
     }
 
-    // Normalize email
-    const normalizedEmail = email.toLowerCase().trim();
+    const normalizedEmail = email.toLowerCase().trim()
 
-    // TODO: Check if email already exists in database
-    // const exists = await db.newsletter.findUnique({ where: { email: normalizedEmail } });
-    // if (exists) {
-    //   return NextResponse.json(
-    //     { error: 'Este email ya está suscrito' },
-    //     { status: 409 }
-    //   );
-    // }
+    // 1. Resend: add contact + send welcome email
+    const resendResult = await addSubscriber(normalizedEmail, source)
 
-    // TODO: Save to database
-    // await db.newsletter.create({
-    //   data: {
-    //     email: normalizedEmail,
-    //     subscribedAt: new Date(),
-    //     source: 'editorial',
-    //     status: 'active'
-    //   }
-    // });
-
-    // Log subscription (temporary until DB is set up)
-    console.log('[Newsletter] New subscription:', {
+    console.log('[Newsletter] Subscription:', {
       email: normalizedEmail,
+      source,
+      resend: resendResult,
       timestamp: new Date().toISOString(),
-      source: 'editorial',
-      userAgent: request.headers.get('user-agent'),
-      ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip')
-    });
+    })
 
-    // TODO: Send welcome email via Resend
-    // if (process.env.RESEND_API_KEY) {
-    //   const { Resend } = await import('resend');
-    //   const resend = new Resend(process.env.RESEND_API_KEY);
-    //
-    //   await resend.emails.send({
-    //     from: 'Editorial MaalCa <editorial@maalca.com>',
-    //     to: normalizedEmail,
-    //     subject: '¡Bienvenido a Editorial MaalCa!',
-    //     html: `
-    //       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-    //         <h1 style="color: #DC2626;">¡Bienvenido a Editorial MaalCa!</h1>
-    //         <p>Gracias por suscribirte a nuestro newsletter.</p>
-    //         <p>Recibirás nuestros artículos más profundos sobre filosofía, cultura y sociedad contemporánea directamente en tu correo.</p>
-    //         <p style="margin-top: 30px;">
-    //           <strong>— Editorial MaalCa</strong><br/>
-    //           <em>Filosofía desde el Caribe</em>
-    //         </p>
-    //       </div>
-    //     `
-    //   });
-    // }
+    // 2. Forward to n8n (non-blocking)
+    import('@/lib/services/n8n-service')
+      .then(({ n8nService }) => {
+        n8nService
+          .sendNewsletterSubscription('maalca', {
+            email: normalizedEmail,
+            source,
+          })
+          .catch((err: unknown) => {
+            console.error('[Newsletter] n8n forwarding failed:', err)
+          })
+      })
+      .catch(() => {
+        // n8n service not available — that's fine
+      })
 
-    // Success response
-    return NextResponse.json(
-      {
-        message: '¡Suscripción exitosa! Revisa tu email.',
-        email: normalizedEmail
-      },
-      { status: 200 }
-    );
-
+    return NextResponse.json({
+      message: '¡Suscripción exitosa! Revisa tu email.',
+      email: normalizedEmail,
+    })
   } catch (error) {
-    console.error('[Newsletter] Subscription error:', error);
-
+    console.error('[Newsletter] Subscription error:', error)
     return NextResponse.json(
       { error: 'Error al procesar suscripción. Intenta de nuevo.' },
       { status: 500 }
-    );
+    )
   }
 }
 
-// OPTIONS method for CORS preflight
-export async function OPTIONS(request: NextRequest) {
+// CORS preflight
+export async function OPTIONS() {
   return NextResponse.json(
     {},
     {
@@ -126,5 +78,5 @@ export async function OPTIONS(request: NextRequest) {
         'Access-Control-Allow-Headers': 'Content-Type',
       },
     }
-  );
+  )
 }

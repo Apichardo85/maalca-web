@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { ReactNode } from "react";
 
 interface TableActionButtonProps {
@@ -38,13 +37,12 @@ export function TableActionButton({
   };
 
   return (
-    <motion.button
-      whileHover={{ scale: disabled ? 1 : 1.05 }}
-      whileTap={{ scale: disabled ? 1 : 0.95 }}
+    <button
       onClick={onClick}
       disabled={disabled}
       className={`
         inline-flex items-center gap-1.5 font-medium rounded-lg border transition-colors
+        ${disabled ? "" : "hover:scale-105 active:scale-95"} transition-transform
         ${variants[variant]}
         ${sizes[size]}
         ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
@@ -52,7 +50,7 @@ export function TableActionButton({
     >
       {icon && <span className="text-base">{icon}</span>}
       {children}
-    </motion.button>
+    </button>
   );
 }
 

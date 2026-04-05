@@ -1,0 +1,227 @@
+{
+  "brand": "curso-de-espanol",
+  "version": "1.0",
+  "description": "20 initial lesson topics for Curso de Espanol (Domi + Gringa)",
+  "lessons": [
+    {
+      "lessonId": "CDE-001",
+      "topic": "Saludos dominicanos",
+      "title": "Que lo que! - How Dominicans Say What's Up",
+      "slangFocus": ["que lo que", "dimelo", "klk"],
+      "culturalContext": "Dominican greetings vs formal Spanish greetings",
+      "difficulty": "beginner",
+      "category": "greetings",
+      "status": "pending",
+      "priority": 1
+    },
+    {
+      "lessonId": "CDE-002",
+      "topic": "La palabra 'vaina'",
+      "title": "Vaina - The Most Dominican Word Ever",
+      "slangFocus": ["vaina", "esa vaina", "que vaina"],
+      "culturalContext": "How 'vaina' replaces almost any noun in Dominican Spanish",
+      "difficulty": "beginner",
+      "category": "vocabulary",
+      "status": "pending",
+      "priority": 2
+    },
+    {
+      "lessonId": "CDE-003",
+      "topic": "Pedir comida en la calle",
+      "title": "Ordering Street Food Like a Local",
+      "slangFocus": ["dame", "frio frio", "chimichurri", "yaroa"],
+      "culturalContext": "Dominican street food culture and how to order",
+      "difficulty": "beginner",
+      "category": "food",
+      "status": "pending",
+      "priority": 3
+    },
+    {
+      "lessonId": "CDE-004",
+      "topic": "Expresiones de sorpresa",
+      "title": "Diache! - Dominican Surprise Expressions",
+      "slangFocus": ["diache", "coño", "ombe", "no me diga"],
+      "culturalContext": "How Dominicans express surprise vs other Spanish speakers",
+      "difficulty": "beginner",
+      "category": "expressions",
+      "status": "pending",
+      "priority": 4
+    },
+    {
+      "lessonId": "CDE-005",
+      "topic": "El tigueraje",
+      "title": "What's a Tiguere? Dominican Street Smarts",
+      "slangFocus": ["tiguere", "tiguerazo", "ta loco"],
+      "culturalContext": "The concept of 'tiguere' in Dominican culture - street smart persona",
+      "difficulty": "intermediate",
+      "category": "culture",
+      "status": "pending",
+      "priority": 5
+    },
+    {
+      "lessonId": "CDE-006",
+      "topic": "Letras comidas - swallowed letters",
+      "title": "Why Dominicans 'Eat' Their Letters",
+      "slangFocus": ["pa'lla", "pa'ca", "to'", "verdá"],
+      "culturalContext": "Dominican phonetics - dropped S, D between vowels, contractions",
+      "difficulty": "intermediate",
+      "category": "pronunciation",
+      "status": "pending",
+      "priority": 6
+    },
+    {
+      "lessonId": "CDE-007",
+      "topic": "Coqueteo dominicano",
+      "title": "Dominican Pickup Lines That Actually Work (or Not)",
+      "slangFocus": ["mami", "papi", "tu ta buena", "me tiene loco/a"],
+      "culturalContext": "Flirting culture in the Dominican Republic vs USA",
+      "difficulty": "intermediate",
+      "category": "social",
+      "status": "pending",
+      "priority": 7
+    },
+    {
+      "lessonId": "CDE-008",
+      "topic": "Musica y baile",
+      "title": "Dembow, Bachata, Merengue - Music Spanish",
+      "slangFocus": ["dale", "prende", "goza", "a fuego"],
+      "culturalContext": "Dominican music genres and the vocabulary around them",
+      "difficulty": "beginner",
+      "category": "culture",
+      "status": "pending",
+      "priority": 8
+    },
+    {
+      "lessonId": "CDE-009",
+      "topic": "Colmado culture",
+      "title": "The Colmado - Dominican Corner Store Life",
+      "slangFocus": ["colmado", "fiado", "pone ahi", "la cuenta"],
+      "culturalContext": "The colmado as social hub in Dominican neighborhoods",
+      "difficulty": "beginner",
+      "category": "culture",
+      "status": "pending",
+      "priority": 9
+    },
+    {
+      "lessonId": "CDE-010",
+      "topic": "Insultos cariñosos",
+      "title": "When Insults Are Actually Terms of Endearment",
+      "slangFocus": ["loco/a", "desgraciado", "condenao", "muchacho"],
+      "culturalContext": "How tone changes meaning - insults used lovingly in Dominican culture",
+      "difficulty": "intermediate",
+      "category": "expressions",
+      "status": "pending",
+      "priority": 10
+    },
+    {
+      "lessonId": "CDE-011",
+      "topic": "Transporte dominicano",
+      "title": "Guagua, Motoconcho, Carro Publico - Getting Around",
+      "slangFocus": ["guagua", "motoconcho", "carro publico", "para aqui"],
+      "culturalContext": "Dominican transportation system and how to navigate it",
+      "difficulty": "beginner",
+      "category": "travel",
+      "status": "pending",
+      "priority": 11
+    },
+    {
+      "lessonId": "CDE-012",
+      "topic": "False friends dominicanos",
+      "title": "Words That Don't Mean What You Think",
+      "slangFocus": ["bizcocho", "concon", "chin", "guapo"],
+      "culturalContext": "Dominican words that mean something completely different than expected",
+      "difficulty": "intermediate",
+      "category": "vocabulary",
+      "status": "pending",
+      "priority": 12
+    },
+    {
+      "lessonId": "CDE-013",
+      "topic": "Expresiones de dinero",
+      "title": "Money Talk - Dominican Style",
+      "slangFocus": ["cuarto", "chele", "pela", "toy a do"],
+      "culturalContext": "Dominican money slang and expressions about being broke or rich",
+      "difficulty": "intermediate",
+      "category": "vocabulary",
+      "status": "pending",
+      "priority": 13
+    },
+    {
+      "lessonId": "CDE-014",
+      "topic": "Familia dominicana",
+      "title": "Dominican Family - Everyone is Your Tia",
+      "slangFocus": ["tia/tio", "primo", "compadre", "mi gente"],
+      "culturalContext": "How Dominicans use family terms for non-family members",
+      "difficulty": "beginner",
+      "category": "social",
+      "status": "pending",
+      "priority": 14
+    },
+    {
+      "lessonId": "CDE-015",
+      "topic": "Apagones y vida diaria",
+      "title": "No Hay Luz! - Surviving Power Outages Dominican Style",
+      "slangFocus": ["apagon", "inversor", "planta", "se fue la luz"],
+      "culturalContext": "Power outage culture in DR and how people cope with humor",
+      "difficulty": "intermediate",
+      "category": "culture",
+      "status": "pending",
+      "priority": 15
+    },
+    {
+      "lessonId": "CDE-016",
+      "topic": "Deportes y beisbol",
+      "title": "Pelota! - Baseball is Religion in DR",
+      "slangFocus": ["pelota", "ponche", "cuadrangular", "va pa fuera"],
+      "culturalContext": "Baseball as Dominican national passion and its vocabulary",
+      "difficulty": "beginner",
+      "category": "sports",
+      "status": "pending",
+      "priority": 16
+    },
+    {
+      "lessonId": "CDE-017",
+      "topic": "Expresiones de tiempo",
+      "title": "Ahora, Ahorita, Ahoritita - Dominican Time",
+      "slangFocus": ["ahorita", "ahoritita", "en un ratito", "ya casi"],
+      "culturalContext": "Dominican concept of time - none of these mean 'right now'",
+      "difficulty": "beginner",
+      "category": "expressions",
+      "status": "pending",
+      "priority": 17
+    },
+    {
+      "lessonId": "CDE-018",
+      "topic": "Fiesta dominicana",
+      "title": "La Parranda - Dominican Party Culture",
+      "slangFocus": ["parranda", "jangueo", "bebecita", "ta prendio"],
+      "culturalContext": "Dominican party culture, pre-gaming, and celebration vocabulary",
+      "difficulty": "intermediate",
+      "category": "social",
+      "status": "pending",
+      "priority": 18
+    },
+    {
+      "lessonId": "CDE-019",
+      "topic": "Comparaciones culturales",
+      "title": "Gringa vs Dominicana - Cultural Showdown",
+      "slangFocus": ["alla", "aqui", "en mi pais", "ustedes los gringos"],
+      "culturalContext": "Humorous cultural differences between DR and USA",
+      "difficulty": "beginner",
+      "category": "culture",
+      "status": "pending",
+      "priority": 19
+    },
+    {
+      "lessonId": "CDE-020",
+      "topic": "Despedidas dominicanas",
+      "title": "Bye is Never Quick - Dominican Goodbyes",
+      "slangFocus": ["nos vemos", "te me cuida", "bendicion", "Dios te bendiga"],
+      "culturalContext": "Why Dominican goodbyes take 30 minutes - la bendicion tradition",
+      "difficulty": "beginner",
+      "category": "greetings",
+      "status": "pending",
+      "priority": 20
+    }
+  ]
+}

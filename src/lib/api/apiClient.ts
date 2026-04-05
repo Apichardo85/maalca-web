@@ -30,6 +30,34 @@ const getBaseUrl = (): string => {
 };
 
 /**
+ * Read auth token from cookie (client-side only)
+ */
+const getAuthToken = (): string | undefined => {
+  if (typeof document === "undefined") return undefined;
+  const match = document.cookie.match(/(?:^|;\s*)auth_token=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : undefined;
+};
+
+/**
+ * Read affiliate GUID from cookie (client-side only)
+ */
+const getAffiliateGuid = (): string | undefined => {
+  if (typeof document === "undefined") return undefined;
+  const match = document.cookie.match(/(?:^|;\s*)affiliate_guid=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : undefined;
+};
+
+/**
+ * Build tenant-scoped API path
+ * Transforms "/appointments" → "/api/affiliates/{guid}/appointments"
+ */
+export const affiliateUrl = (path: string, affiliateId?: string): string => {
+  const guid = affiliateId || getAffiliateGuid();
+  if (!guid) return `/api${path}`;
+  return `/api/affiliates/${guid}${path}`;
+};
+
+/**
  * Custom error class for API errors
  */
 export class ApiClientError extends Error {
@@ -127,7 +155,7 @@ class ApiClient {
 
   /**
    * Build headers for request
-   * Includes tenant ID if available
+   * Includes auth token and tenant ID if available
    */
   private buildHeaders(customHeaders?: Record<string, string>): HeadersInit {
     const headers: Record<string, string> = {
@@ -136,8 +164,13 @@ class ApiClient {
       ...customHeaders,
     };
 
+    // Inject JWT auth token
+    const token = getAuthToken();
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     // Add tenant ID to headers if available
-    // TODO: Coordinate with backend on header name (X-Tenant-Id, X-Tenant, etc.)
     if (this.config.tenantId) {
       headers["X-Tenant-Id"] = this.config.tenantId;
     }

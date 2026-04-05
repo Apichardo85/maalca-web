@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import Map, { Marker, Popup, NavigationControl, FullscreenControl, ScaleControl } from 'react-map-gl';
 import { Property } from '@/lib/types/property';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './buttons';
 
 // MapBox styles
@@ -119,7 +118,7 @@ export default function PropertyMap({
   const [hoveredProperty, setHoveredProperty] = useState<string | null>(null);
   const [popupInfo, setPopupInfo] = useState<Property | null>(null);
   const [mapStyle, setMapStyle] = useState(style);
-  const mapRef = useRef<any>(null);
+  const mapRef = useRef<unknown>(null);
 
   // Filter properties that have coordinates
   const mappableProperties = useMemo(() => {

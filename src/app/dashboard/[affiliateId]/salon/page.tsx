@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { DashboardCard, StatCard } from "@/components/dashboard/DashboardCard";
 import type { Chair, ChairStatus } from "@/lib/types/salon.types";
@@ -114,32 +113,31 @@ export default function SalonPage() {
 
   return (
     <div className="space-y-8">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+      <div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <div>
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Salón Virtual</h1>
           <p className="text-lg text-gray-600 dark:text-gray-400 mt-2">Vista en tiempo real del salón de {brandName}</p>
         </div>
-      </motion.div>
+      </div>
 
       {/* KPIs - Versión grande para TV */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <StatCard label="Sillas Totales" value={totalChairs.toString()} icon="💈" color="blue" />
         <StatCard label="Ocupadas" value={occupiedChairs.toString()} icon="👥" color="purple" />
         <StatCard label="Disponibles" value={availableChairs.toString()} icon="✅" color="green" />
         <StatCard label="En Fila" value={peopleInQueue.toString()} icon="⏳" color="yellow" />
         <StatCard label="Ocupación" value={`${occupancyRate}%`} icon="📊" color="orange" />
-      </motion.div>
+      </div>
 
       {/* Grid de Sillas - Optimizado para TV */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {chairs.map((chair, index) => {
           const statusInfo = getStatusBadge(chair.status);
           return (
-            <motion.div
+            <div
               key={chair.id}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 + index * 0.05 }}
               className="bg-white dark:bg-gray-900 rounded-2xl border-2 border-gray-200 dark:border-gray-800 overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
             >
               {/* Header con estado */}
@@ -216,13 +214,13 @@ export default function SalonPage() {
                   Actualizado: {new Date(chair.lastUpdated).toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' })}
                 </p>
               </div>
-            </motion.div>
+            </div>
           );
         })}
-      </motion.div>
+      </div>
 
       {/* Resumen inferior - Información de fila */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+      <div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <DashboardCard title="Información de la Fila Virtual" icon="⏳">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-4">
             <div className="text-center">
@@ -239,16 +237,16 @@ export default function SalonPage() {
             </div>
           </div>
         </DashboardCard>
-      </motion.div>
+      </div>
 
       {/* Nota informativa */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
+      <div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-900/30 rounded-lg p-4">
           <p className="text-sm text-blue-800 dark:text-blue-300">
             <strong>💡 Modo TV:</strong> Esta vista está optimizada para mostrarse en una pantalla en el salón. Los clientes pueden ver en tiempo real el estado de las sillas y el tiempo de espera estimado.
           </p>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

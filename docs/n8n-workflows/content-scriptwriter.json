@@ -1,0 +1,221 @@
+{
+  "name": "Content Scriptwriter — Curso de Espanol",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 6 * * 1"
+            }
+          ]
+        }
+      },
+      "id": "cron-trigger",
+      "name": "Weekly Monday 6AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [220, 200]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "content/generate-script",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "webhook-trigger",
+      "name": "Manual Trigger Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 420],
+      "webhookId": "content-generate-script"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Curriculum Manager: Pick next pending lessons from curriculum\n// In production, this reads from Google Sheets. For now, uses embedded curriculum.\n\nconst MAX_BATCH_SIZE = 5;\n\n// This would normally be a Google Sheets API call:\n// GET https://sheets.googleapis.com/v4/spreadsheets/{sheetId}/values/curriculum!A:H\nconst curriculum = [\n  { lessonId: 'CDE-001', topic: 'Saludos dominicanos', title: 'Que lo que! - How Dominicans Say What\\'s Up', slangFocus: ['que lo que', 'dimelo', 'klk'], culturalContext: 'Dominican greetings vs formal Spanish greetings', difficulty: 'beginner', status: 'pending', priority: 1 },\n  { lessonId: 'CDE-002', topic: 'La palabra vaina', title: 'Vaina - The Most Dominican Word Ever', slangFocus: ['vaina', 'esa vaina', 'que vaina'], culturalContext: 'How vaina replaces almost any noun in Dominican Spanish', difficulty: 'beginner', status: 'pending', priority: 2 },\n  { lessonId: 'CDE-003', topic: 'Pedir comida en la calle', title: 'Ordering Street Food Like a Local', slangFocus: ['dame', 'frio frio', 'chimichurri', 'yaroa'], culturalContext: 'Dominican street food culture and how to order', difficulty: 'beginner', status: 'pending', priority: 3 },\n  { lessonId: 'CDE-004', topic: 'Expresiones de sorpresa', title: 'Diache! - Dominican Surprise Expressions', slangFocus: ['diache', 'coño', 'ombe', 'no me diga'], culturalContext: 'How Dominicans express surprise vs other Spanish speakers', difficulty: 'beginner', status: 'pending', priority: 4 },\n  { lessonId: 'CDE-005', topic: 'El tigueraje', title: 'What\\'s a Tiguere? Dominican Street Smarts', slangFocus: ['tiguere', 'tiguerazo', 'ta loco'], culturalContext: 'The concept of tiguere in Dominican culture', difficulty: 'intermediate', status: 'pending', priority: 5 }\n];\n\n// Filter pending lessons sorted by priority\nconst pendingLessons = curriculum\n  .filter(l => l.status === 'pending')\n  .sort((a, b) => a.priority - b.priority)\n  .slice(0, MAX_BATCH_SIZE);\n\nif (pendingLessons.length === 0) {\n  throw new Error('No pending lessons in curriculum');\n}\n\n// Return each lesson as a separate item for batch processing\nreturn pendingLessons.map(lesson => ({ json: lesson }));"
+      },
+      "id": "curriculum-manager",
+      "name": "Curriculum Manager",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [520, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "x-api-key",
+              "value": "={{ $credentials.anthropicApi.value }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-20250514\",\n  \"max_tokens\": 4096,\n  \"temperature\": 0.8,\n  \"system\": \"You are the scriptwriter for 'Curso de Espanol,' a comedic Spanish learning series on TikTok/YouTube Shorts. You write dialogue between two characters:\\n\\n## DOMI (Dominican Character)\\n- Male Dominican street-smart persona\\n- Speaks Dominican Spanish with heavy slang (e.g., 'que lo que,' 'dimelo,' 'ta to,' 'vaina,' 'tigre')\\n- Confident, funny, exaggerated reactions\\n- Teaches slang, culture, real-world Spanish\\n- Voice: energetic, fast-paced, Dominican cadence\\n- Drops letters like a real Dominican: 'verdad' → 'verdá', 'para allá' → 'pa\\'lla', 'todo' → 'to\\''\\n- Uses Dominican expressions naturally, never explains them mid-dialogue\\n\\n## GRINGA (American Character)\\n- Female American learning Spanish\\n- Speaks mostly English with increasing Spanish mixed in\\n- Makes relatable mistakes (false friends, literal translations, wrong accents)\\n- Curious, enthusiastic, sometimes hilariously confused\\n- Voice: cheerful American accent, slower when attempting Spanish\\n- Often tries to use the slang Domi teaches but butchers it charmingly\\n\\n## SCRIPT STRUCTURE\\n1. HOOK (0-3 sec): Domi or Gringa says something that grabs attention\\n2. SETUP (3-15 sec): Introduce the slang/concept with a mini-situation\\n3. TEACHING MOMENT (15-35 sec): Domi explains/demonstrates, Gringa tries and fails/succeeds\\n4. PUNCHLINE (35-45 sec): Funny payoff, Gringa uses the slang in an unexpected way\\n5. CTA (45-50 sec): Quick call to action\\n\\n## OUTPUT FORMAT (strict JSON — no markdown, no commentary, just JSON):\\n{\\n  'lessonId': 'CDE-XXX',\\n  'title': 'Short catchy title in English',\\n  'titleEs': 'Titulo en espanol',\\n  'platform': 'short',\\n  'estimatedDuration': 45,\\n  'hook': 'One-sentence description of the attention-grabbing opener',\\n  'lines': [{ 'character': 'DOMI'|'GRINGA', 'dialogue': 'The exact spoken text', 'language': 'es'|'en'|'mixed', 'emotion': 'excited'|'confused'|'laughing'|'shocked'|'teaching'|'proud'|'neutral', 'timing': { 'startSec': 0, 'durationSec': 3 }, 'visualCue': 'Description of expression/gesture', 'subtitle': { 'es': 'Spanish text', 'en': 'English text' } }],\\n  'slangTerms': [{ 'term': 'word', 'pronunciation': 'pron', 'meaning': 'def', 'usage': 'context', 'example': 'sentence' }],\\n  'endScreen': { 'text': 'Follow text', 'cta': 'CTA text' },\\n  'totalCharCount': { 'domi': 250, 'gringa': 180 },\\n  'hashtags': ['#LearnSpanish', '#DominicanSpanish']\\n}\\n\\n## RULES:\\n1. Total duration: 30-60 seconds\\n2. Domi total dialogue under 300 chars, Gringa under 250\\n3. 2-3 slang terms per lesson with pronunciation\\n4. End with punchline/comedic moment\\n5. Visual cues on every line\\n6. Bilingual subtitles on every line\\n7. Natural conversation, not textbook\\n8. Domi only speaks Dominican Spanish\\n9. Gringa speaks mostly English\\n10. Humor from cultural clash, not mockery\\n11. Gringa must misuse slang at least once\\n12. Accurate totalCharCount\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Generate a script for lesson {{ $json.lessonId }}.\\n\\nTopic: {{ $json.topic }}\\nTitle suggestion: {{ $json.title }}\\nSlang focus: {{ $json.slangFocus.join(', ') }}\\nCultural context: {{ $json.culturalContext }}\\nDifficulty: {{ $json.difficulty }}\\n\\nGenerate only the JSON output. No explanations, no markdown wrapping.\"\n    }\n  ]\n}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "claude-script-gen",
+      "name": "Claude: Generate Script",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [760, 300],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse and validate the Claude API response\nconst response = $input.first().json;\n\n// Extract the text content from Claude's response\nconst textContent = response.content?.find(c => c.type === 'text')?.text;\nif (!textContent) {\n  throw new Error('No text content in Claude response');\n}\n\n// Parse the JSON from Claude's response (handle potential markdown wrapping)\nlet scriptJson;\ntry {\n  // Try direct parse first\n  scriptJson = JSON.parse(textContent);\n} catch {\n  // Try extracting JSON from markdown code block\n  const jsonMatch = textContent.match(/```(?:json)?\\s*([\\s\\S]*?)\\s*```/);\n  if (jsonMatch) {\n    scriptJson = JSON.parse(jsonMatch[1]);\n  } else {\n    // Try finding JSON object boundaries\n    const start = textContent.indexOf('{');\n    const end = textContent.lastIndexOf('}');\n    if (start !== -1 && end !== -1) {\n      scriptJson = JSON.parse(textContent.substring(start, end + 1));\n    } else {\n      throw new Error('Could not parse JSON from Claude response');\n    }\n  }\n}\n\n// Validate required fields\nconst required = ['lessonId', 'title', 'lines', 'slangTerms', 'totalCharCount'];\nfor (const field of required) {\n  if (!scriptJson[field]) {\n    throw new Error(`Missing required field: ${field}`);\n  }\n}\n\n// Validate character counts\nconst domiChars = scriptJson.lines\n  .filter(l => l.character === 'DOMI')\n  .reduce((sum, l) => sum + l.dialogue.length, 0);\nconst gringaChars = scriptJson.lines\n  .filter(l => l.character === 'GRINGA')\n  .reduce((sum, l) => sum + l.dialogue.length, 0);\n\n// Update actual char counts\nscriptJson.totalCharCount = {\n  domi: domiChars,\n  gringa: gringaChars\n};\n\n// Budget check\nconst MONTHLY_CHAR_BUDGET = 30000; // ElevenLabs Starter\nconst totalChars = domiChars + gringaChars;\n\nconst budgetInfo = {\n  scriptChars: totalChars,\n  domiChars,\n  gringaChars,\n  withinSingleScriptLimit: domiChars <= 300 && gringaChars <= 250,\n  estimatedMonthlyUsage: `${totalChars} of ${MONTHLY_CHAR_BUDGET} chars`\n};\n\n// Validate all lines have subtitles\nconst missingSubtitles = scriptJson.lines.filter(l => !l.subtitle?.es || !l.subtitle?.en);\nif (missingSubtitles.length > 0) {\n  console.warn(`Warning: ${missingSubtitles.length} lines missing subtitles`);\n}\n\nreturn [{\n  json: {\n    script: scriptJson,\n    budget: budgetInfo,\n    status: 'validated',\n    generatedAt: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "script-validator",
+      "name": "Validate & Parse Script",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Store the validated script\n// In production, this writes to Google Sheets or maalca-api\n// For now, it prepares the data for the next workflow stage\n\nconst { script, budget, generatedAt } = $input.first().json;\n\n// Log for monitoring\nconsole.log(`[scriptwriter] Generated: ${script.lessonId} - ${script.title}`);\nconsole.log(`[scriptwriter] Chars: Domi=${budget.domiChars}, Gringa=${budget.gringaChars}, Total=${budget.scriptChars}`);\nconsole.log(`[scriptwriter] Within limits: ${budget.withinSingleScriptLimit}`);\n\n// Prepare output for storage and next workflow trigger\nreturn [{\n  json: {\n    lessonId: script.lessonId,\n    title: script.title,\n    brandId: 'curso-de-espanol',\n    script: script,\n    charCount: {\n      domi: budget.domiChars,\n      gringa: budget.gringaChars,\n      total: budget.scriptChars\n    },\n    status: 'script_ready',\n    generatedAt: generatedAt,\n    // This data will be sent to the voice generation workflow\n    nextStage: {\n      webhook: '/content/generate-voice',\n      payload: {\n        lessonId: script.lessonId,\n        brandId: 'curso-de-espanol',\n        script: script\n      }\n    }\n  }\n}];"
+      },
+      "id": "store-script",
+      "name": "Store & Prepare Next Stage",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1240, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "auto-continue",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "script_ready",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "auto-continue-check",
+      "name": "Auto-Continue to Voice?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.N8N_WEBHOOK_URL }}/content/generate-voice",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Brand-Id",
+              "value": "curso-de-espanol"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.nextStage.payload) }}"
+      },
+      "id": "trigger-voice-gen",
+      "name": "Trigger Voice Generation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1700, 200],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Error handler: log and notify\nconst error = $input.first().json;\nconsole.error('[scriptwriter] Pipeline error:', JSON.stringify(error));\n\n// In production, send notification via email/Slack/webhook to maalca-web\nreturn [{\n  json: {\n    error: true,\n    stage: 'script_generation',\n    message: error.message || 'Unknown error in script generation',\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "error-handler",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1240, 540]
+    }
+  ],
+  "connections": {
+    "Weekly Monday 6AM": {
+      "main": [
+        [{ "node": "Curriculum Manager", "type": "main", "index": 0 }]
+      ]
+    },
+    "Manual Trigger Webhook": {
+      "main": [
+        [{ "node": "Curriculum Manager", "type": "main", "index": 0 }]
+      ]
+    },
+    "Curriculum Manager": {
+      "main": [
+        [{ "node": "Claude: Generate Script", "type": "main", "index": 0 }]
+      ]
+    },
+    "Claude: Generate Script": {
+      "main": [
+        [{ "node": "Validate & Parse Script", "type": "main", "index": 0 }]
+      ]
+    },
+    "Validate & Parse Script": {
+      "main": [
+        [{ "node": "Store & Prepare Next Stage", "type": "main", "index": 0 }]
+      ]
+    },
+    "Store & Prepare Next Stage": {
+      "main": [
+        [{ "node": "Auto-Continue to Voice?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Auto-Continue to Voice?": {
+      "main": [
+        [{ "node": "Trigger Voice Generation", "type": "main", "index": 0 }],
+        [{ "node": "Error Handler", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "staticData": null,
+  "tags": [
+    { "name": "content-pipeline" },
+    { "name": "curso-de-espanol" },
+    { "name": "scriptwriter" }
+  ],
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "maalca-agents"
+  }
+}

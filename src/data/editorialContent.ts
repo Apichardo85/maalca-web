@@ -194,6 +194,245 @@ export const editorialArticles = {
     </div>
   `,
 
+  "identidad-global-local": `
+    <div style="text-align: center; margin-bottom: 40px; padding: 20px; background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%); border-radius: 8px;">
+      <h1 style="color: #880e4f; margin-bottom: 10px;">🌍 Identidad Global, Raíces Locales</h1>
+      <p><strong>Ser del Mundo sin Dejar de Ser de Aquí</strong></p>
+      <p style="font-style: italic;">Explorando cómo mantener la autenticidad cultural en un mundo hiperconectado donde las fronteras se difuminan.</p>
+      <p style="font-size: 12px; color: #666; margin-top: 15px;">Editorial MaalCa • 22 de enero, 2024 • 10 min de lectura</p>
+    </div>
+
+    <div style="margin: 30px 0; padding: 20px; background: #fce4ec; border-left: 4px solid #880e4f; border-radius: 0 8px 8px 0;">
+      <p style="font-style: italic; color: #880e4f; font-size: 18px;">
+        "No se trata de elegir entre ser global o ser local. Se trata de ser auténticamente ambos."
+      </p>
+    </div>
+
+    <h2 style="color: #880e4f; border-bottom: 2px solid #880e4f; padding-bottom: 10px;">La Paradoja del Ciudadano Global</h2>
+
+    <p>Vivimos en una era donde un joven de Santo Domingo consume el mismo contenido que uno de Seúl, viste las mismas marcas que uno de Berlín y escucha la misma música que uno de Lagos. La globalización ha democratizado el acceso a la cultura mundial. Pero en ese proceso, surge una pregunta incómoda: <strong>¿estamos ganando mundo o perdiendo barrio?</strong></p>
+
+    <p>La respuesta fácil es decir que no son mutuamente excluyentes. La respuesta honesta es reconocer que sí existe una tensión real. Cada hora consumiendo contenido global es una hora menos absorbiendo la sabiduría del abuelo en la mecedora del patio.</p>
+
+    <h3 style="color: #c2185b; margin-top: 30px;">El Mito del "Ciudadano del Mundo"</h3>
+
+    <p>Hay quienes se jactan de ser "ciudadanos del mundo", como si no tener raíces fuera una virtud. Pero la realidad es que las personas más interesantes, las más creativas, las que realmente aportan algo nuevo a la conversación global, son precisamente aquellas que tienen raíces profundas.</p>
+
+    <p>Gabriel García Márquez no habría escrito Cien Años de Soledad si hubiera sido "ciudadano del mundo" desde los quince años. Fue su inmersión total en Aracataca, en el Caribe colombiano, en la cultura popular de su gente, lo que le dio material para crear algo universal.</p>
+
+    <div style="margin: 30px 0; padding: 20px; background: #f3e5f5; border: 1px solid #ce93d8; border-radius: 8px;">
+      <h4 style="color: #7b1fa2; margin-bottom: 15px;">💡 La Fórmula de la Autenticidad</h4>
+      <p style="margin: 0; color: #4a148c;">Raíces profundas + Perspectiva amplia = Voz auténtica. Sin las raíces, eres eco. Sin la perspectiva, eres isla. Con ambas, eres puente.</p>
+    </div>
+
+    <h2 style="color: #880e4f; border-bottom: 2px solid #880e4f; padding-bottom: 10px; margin-top: 40px;">El Dilema del Creador Caribeño</h2>
+
+    <p>Para los creativos del Caribe, esta tensión es especialmente aguda. Nuestras islas son pequeñas, nuestros mercados limitados, nuestras plataformas locales modestas. La tentación de "globalizarse" — adoptar estéticas, narrativas y formatos del mainstream internacional — es enorme.</p>
+
+    <p>Pero cada vez que un artista dominicano pinta como si fuera de Brooklyn, cada vez que un escritor puertorriqueño escribe como si viviera en Manhattan, cada vez que un músico cubano suena como si fuera de Londres, perdemos algo irreemplazable: <strong>la perspectiva única que solo nuestro lugar puede dar.</strong></p>
+
+    <h3 style="color: #c2185b; margin-top: 30px;">Estrategias para el Equilibrio</h3>
+
+    <div style="margin: 20px 0;">
+      <h4 style="color: #2E7D32; margin-bottom: 10px;">1. Documenta Antes de que Desaparezca</h4>
+      <p>Las expresiones, tradiciones y saberes locales se están perdiendo a velocidad alarmante. El creador consciente documenta, preserva y reimagina estas tradiciones antes de que sean reemplazadas por contenido genérico global.</p>
+    </div>
+
+    <div style="margin: 20px 0;">
+      <h4 style="color: #2E7D32; margin-bottom: 10px;">2. Traduce, No Copies</h4>
+      <p>Tomar tendencias globales y copiarlas es colonialismo cultural autoinfligido. Pero tomar conceptos globales y traducirlos a tu realidad local — eso es creatividad genuina.</p>
+    </div>
+
+    <div style="margin: 20px 0;">
+      <h4 style="color: #2E7D32; margin-bottom: 10px;">3. Exporta Lo Tuyo, No Lo De Otros</h4>
+      <p>El mundo no necesita otra copia de lo que ya tiene. Necesita lo que solo tú puedes ofrecer: tu perspectiva, tu sabor, tu ritmo, tu luz.</p>
+    </div>
+
+    <h2 style="color: #880e4f; border-bottom: 2px solid #880e4f; padding-bottom: 10px; margin-top: 40px;">La Identidad como Ventaja Competitiva</h2>
+
+    <p>En un mercado saturado de contenido genérico, la autenticidad cultural se ha convertido en la ventaja competitiva más poderosa. Las marcas más exitosas del mundo buscan desesperadamente lo que nosotros tenemos de forma natural: <strong>una historia auténtica, una identidad real, una conexión genuina con una comunidad.</strong></p>
+
+    <p>No necesitamos diluir nuestra identidad para "competir" globalmente. Nuestra identidad ES nuestra competitividad.</p>
+
+    <div style="margin: 40px 0; padding: 25px; background: linear-gradient(135deg, #880e4f 0%, #c2185b 100%); color: white; text-align: center; border-radius: 12px;">
+      <h3 style="margin-bottom: 15px;">Reflexión Final</h3>
+      <p style="margin-bottom: 15px; font-style: italic;">¿Qué aspecto de tu identidad local has abandonado por parecer más "global"? ¿Qué pasaría si lo recuperaras y lo conviertieras en tu firma creativa?</p>
+      <p style="font-size: 14px; margin: 0;">Lo más universal siempre nace de lo más específico.</p>
+    </div>
+
+    <div style="text-align: center; margin: 40px 0; padding: 20px; font-style: italic; color: #888; background: #f8f9fa; border-radius: 8px;">
+      <p><strong>— Fin —</strong></p>
+      <p>🌍 <strong>Editorial MaalCa</strong> - Identidad sin Fronteras</p>
+      <p style="font-size: 12px; margin-top: 10px;">¿Cómo equilibras lo global y lo local en tu vida creativa?</p>
+    </div>
+  `,
+
+  "futuro-trabajo-humano": `
+    <div style="text-align: center; margin-bottom: 40px; padding: 20px; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-radius: 8px;">
+      <h1 style="color: #0d47a1; margin-bottom: 10px;">⚡ El Futuro del Trabajo Humano</h1>
+      <p><strong>Más Allá de la Productividad</strong></p>
+      <p style="font-style: italic;">Un análisis sobre cómo redefinir el trabajo para que sirva a la vida, y no al revés.</p>
+      <p style="font-size: 12px; color: #666; margin-top: 15px;">Editorial MaalCa • 8 de enero, 2024 • 14 min de lectura</p>
+    </div>
+
+    <div style="margin: 30px 0; padding: 20px; background: #e3f2fd; border-left: 4px solid #0d47a1; border-radius: 0 8px 8px 0;">
+      <p style="font-style: italic; color: #0d47a1; font-size: 18px;">
+        "El objetivo del trabajo no debería ser producir más, sino vivir mejor. La pregunta no es cuánto produces, sino qué tipo de vida construyes."
+      </p>
+    </div>
+
+    <h2 style="color: #0d47a1; border-bottom: 2px solid #0d47a1; padding-bottom: 10px;">La Gran Desconexión</h2>
+
+    <p>Algo se rompió en el contrato social del trabajo. Durante generaciones, el trato implícito era claro: trabajas duro, progresas, vives bien. Pero en 2024, millones de personas trabajan más duro que nunca y viven peor que sus padres. La productividad global se ha multiplicado, pero los beneficios se han concentrado. <strong>El trabajo ha dejado de cumplir su promesa.</strong></p>
+
+    <p>No se trata solo de dinero. Se trata de propósito, de autonomía, de dignidad. La "Gran Renuncia" no fue un capricho generacional; fue un grito colectivo de personas que descubrieron que la vida es demasiado corta para trabajos que no significan nada.</p>
+
+    <h3 style="color: #1565c0; margin-top: 30px;">Los Tres Modelos en Colisión</h3>
+
+    <div style="margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 8px;">
+      <h4 style="color: #0d47a1; margin-bottom: 10px;">🏭 Modelo Industrial</h4>
+      <p>"Trabaja 8 horas, 5 días, 48 semanas al año, durante 40 años." Diseñado para fábricas del siglo XIX, aplicado a oficinas del siglo XXI. Mide presencia, no impacto.</p>
+    </div>
+
+    <div style="margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 8px;">
+      <h4 style="color: #0d47a1; margin-bottom: 10px;">💻 Modelo Hustle Culture</h4>
+      <p>"Trabaja 16 horas, 7 días, sin vacaciones, hasta que 'lo logres'." Glorifica el agotamiento como virtud. Mide esfuerzo, no resultado.</p>
+    </div>
+
+    <div style="margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 8px;">
+      <h4 style="color: #0d47a1; margin-bottom: 10px;">🌱 Modelo Emergente</h4>
+      <p>"Trabaja con intención, descansa con propósito, vive con plenitud." En construcción, imperfecto, pero apunta en la dirección correcta. Mide impacto Y bienestar.</p>
+    </div>
+
+    <h2 style="color: #0d47a1; border-bottom: 2px solid #0d47a1; padding-bottom: 10px; margin-top: 40px;">El Mito de la Productividad Infinita</h2>
+
+    <p>La obsesión con la productividad nos ha llevado a un lugar absurdo. Optimizamos cada minuto, automatizamos cada proceso, medimos cada métrica. ¿Y el resultado? Personas más eficientes pero menos felices. Empresas más productivas pero menos humanas.</p>
+
+    <blockquote style="margin: 30px 0; padding: 20px; background: #f8f9fa; border-left: 4px solid #1565c0; font-style: italic; color: #5D4037;">
+      <p>"Hemos creado sistemas perfectos para hacer cosas que no valen la pena hacer. La verdadera productividad no es hacer más cosas, sino hacer las cosas correctas."</p>
+    </blockquote>
+
+    <p>La paradoja es clara: tenemos más herramientas de productividad que nunca, pero estamos más abrumados que nunca. El problema no es la eficiencia; es la dirección.</p>
+
+    <h2 style="color: #0d47a1; border-bottom: 2px solid #0d47a1; padding-bottom: 10px; margin-top: 40px;">Redefiniendo el Éxito Laboral</h2>
+
+    <h3 style="color: #1565c0; margin-top: 30px;">1. De "Hacer Más" a "Importar Más"</h3>
+    <p>El nuevo éxito laboral no se mide por cantidad de tareas completadas, sino por la magnitud del impacto generado. Un maestro que inspira a 30 estudiantes produce más valor real que un ejecutivo que envía 300 emails al día.</p>
+
+    <h3 style="color: #1565c0; margin-top: 30px;">2. De "Horario Fijo" a "Energía Óptima"</h3>
+    <p>Los humanos no somos máquinas. Tenemos ciclos de energía, creatividad y concentración. El trabajo del futuro respeta estos ciclos en lugar de ignorarlos.</p>
+
+    <h3 style="color: #1565c0; margin-top: 30px;">3. De "Carrera Lineal" a "Portfolio de Experiencias"</h3>
+    <p>La idea de hacer una sola cosa durante 40 años ya no tiene sentido. El futuro pertenece a quienes combinan múltiples habilidades, intereses y formas de generar valor.</p>
+
+    <div style="margin: 30px 0; padding: 20px; background: #e8eaf6; border: 1px solid #9fa8da; border-radius: 8px;">
+      <h4 style="color: #283593; margin-bottom: 15px;">💡 La Perspectiva Caribeña</h4>
+      <p style="margin: 0; color: #1a237e;">En el Caribe siempre hemos tenido una relación diferente con el trabajo. El "chiripeo" — tener múltiples fuentes de ingreso — no es precariedad; es resiliencia. El trabajador caribeño ha sido "portfolio career" antes de que existiera el término.</p>
+    </div>
+
+    <h2 style="color: #0d47a1; border-bottom: 2px solid #0d47a1; padding-bottom: 10px; margin-top: 40px;">Construyendo una Nueva Relación con el Trabajo</h2>
+
+    <p>El futuro del trabajo no será decidido por corporaciones ni por algoritmos. Será decidido por personas que tienen el coraje de decir: "Merezco un trabajo que me permita vivir, no solo sobrevivir."</p>
+
+    <p>No se trata de trabajar menos (aunque a veces sí). Se trata de trabajar con más intención, más autonomía y más alineación con lo que realmente importa.</p>
+
+    <div style="margin: 40px 0; padding: 25px; background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%); color: white; text-align: center; border-radius: 12px;">
+      <h3 style="margin-bottom: 15px;">La Pregunta que Importa</h3>
+      <p style="margin-bottom: 15px; font-style: italic;">Si el dinero no fuera un problema, ¿seguirías haciendo lo que haces? Si la respuesta es no, no necesitas un mejor empleo. Necesitas un mejor plan.</p>
+      <p style="font-size: 14px; margin: 0;">El trabajo debería ser parte de una buena vida, no un sustituto de ella.</p>
+    </div>
+
+    <div style="text-align: center; margin: 40px 0; padding: 20px; font-style: italic; color: #888; background: #f8f9fa; border-radius: 8px;">
+      <p><strong>— Fin —</strong></p>
+      <p>⚡ <strong>Editorial MaalCa</strong> - Trabajo con Propósito</p>
+      <p style="font-size: 12px; margin-top: 10px;">¿Cómo estás redefiniendo tu relación con el trabajo?</p>
+    </div>
+  `,
+
+  "arte-resistencia-digital": `
+    <div style="text-align: center; margin-bottom: 40px; padding: 20px; background: linear-gradient(135deg, #fff9c4 0%, #ffcc80 100%); border-radius: 8px;">
+      <h1 style="color: #e65100; margin-bottom: 10px;">🎨 Arte como Resistencia Digital</h1>
+      <p><strong>Crear en la Era del Algoritmo</strong></p>
+      <p style="font-style: italic;">Cómo el arte auténtico se convierte en acto de resistencia contra la homogeneización algorítmica.</p>
+      <p style="font-size: 12px; color: #666; margin-top: 15px;">Editorial MaalCa • 18 de diciembre, 2023 • 11 min de lectura</p>
+    </div>
+
+    <div style="margin: 30px 0; padding: 20px; background: #fff3e0; border-left: 4px solid #e65100; border-radius: 0 8px 8px 0;">
+      <p style="font-style: italic; color: #e65100; font-size: 18px;">
+        "En un mundo donde el algoritmo decide qué es visible, crear arte auténtico es un acto político."
+      </p>
+    </div>
+
+    <h2 style="color: #e65100; border-bottom: 2px solid #e65100; padding-bottom: 10px;">La Dictadura del Algoritmo</h2>
+
+    <p>Nunca en la historia de la humanidad ha sido tan fácil crear y compartir arte. Y nunca ha sido tan difícil que ese arte sea visto. La paradoja de la era digital es brutal: tenemos todas las herramientas, todas las plataformas, toda la audiencia potencial del planeta. Pero entre tu obra y esa audiencia hay un guardián invisible: <strong>el algoritmo.</strong></p>
+
+    <p>Los algoritmos de Instagram, TikTok, YouTube y Spotify no evalúan calidad artística. Evalúan engagement, retención, viralidad. Premian lo que genera reacciones rápidas, no lo que genera reflexiones profundas. Favorecen lo provocativo sobre lo poético, lo impactante sobre lo importante.</p>
+
+    <h3 style="color: #f57c00; margin-top: 30px;">El Arte Optimizado vs. El Arte Auténtico</h3>
+
+    <p>Esta presión algorítmica ha creado una nueva categoría de "arte" diseñado específicamente para el engagement: thumbnails exagerados, hooks en los primeros 3 segundos, formatos que privilegian lo visual sobre lo sustancial. No es necesariamente malo, pero es peligrosamente adictivo para el creador.</p>
+
+    <div style="margin: 30px 0; padding: 20px; background: #fbe9e7; border: 1px solid #ffab91; border-radius: 8px;">
+      <h4 style="color: #bf360c; margin-bottom: 15px;">⚠️ La Trampa del Engagement</h4>
+      <p style="margin: 0; color: #5D4037;">Cuando empiezas a crear para el algoritmo en lugar de crear desde tu verdad, has cedido tu soberanía artística. El algoritmo se convierte en tu curador, tu editor y tu crítico. Tu arte deja de ser tuyo.</p>
+    </div>
+
+    <h2 style="color: #e65100; border-bottom: 2px solid #e65100; padding-bottom: 10px; margin-top: 40px;">Formas de Resistencia Creativa</h2>
+
+    <h3 style="color: #f57c00; margin-top: 30px;">1. La Resistencia del Tempo</h3>
+
+    <p>En un mundo de contenido de 15 segundos, crear una obra que requiere 15 minutos de atención es un acto de resistencia. La "slow art" — arte que exige paciencia, contemplación, presencia — es la antítesis del scroll infinito.</p>
+
+    <p>Los artistas que resisten la presión de comprimir, simplificar y acelerar están preservando algo esencial: la capacidad humana de concentración profunda.</p>
+
+    <h3 style="color: #f57c00; margin-top: 30px;">2. La Resistencia de lo Local</h3>
+
+    <p>Mientras los algoritmos empujan hacia contenido genérico que "funciona" globalmente, crear desde lo específicamente local es subversivo. Un mural en Villa Mella, una canción en papiamento, un poema en spanglish — estas obras resisten la homogeneización cultural.</p>
+
+    <h3 style="color: #f57c00; margin-top: 30px;">3. La Resistencia de lo Imperfecto</h3>
+
+    <p>La estética del algoritmo favorece lo pulido, lo profesional, lo "perfecto". Pero el arte más poderoso de la historia ha sido frecuentemente crudo, imperfecto, visceral. La imperfección es autenticidad; la perfección algorítmica es conformismo.</p>
+
+    <h3 style="color: #f57c00; margin-top: 30px;">4. La Resistencia Comunitaria</h3>
+
+    <p>Crear comunidades de arte fuera de las plataformas algorítmicas — gallerías locales, zines, eventos presenciales, newsletters, podcasts independientes — es construir infraestructura cultural que no depende de los caprichos de Silicon Valley.</p>
+
+    <h2 style="color: #e65100; border-bottom: 2px solid #e65100; padding-bottom: 10px; margin-top: 40px;">El Arte como Tecnología de Liberación</h2>
+
+    <p>Históricamente, el arte siempre ha sido una herramienta de resistencia. Los esclavos cantaban spirituals que contenían mapas de escape. Los muralistas mexicanos pintaban la revolución en paredes públicas. Los raperos del Bronx convertían la pobreza en poesía.</p>
+
+    <p>Hoy, la forma de opresión es más sutil pero no menos real. No es un dictador quien censura tu arte; es un algoritmo que lo hace invisible. No es un gobierno que prohíbe tu expresión; es una plataforma que la entierra bajo contenido optimizado.</p>
+
+    <blockquote style="margin: 30px 0; padding: 20px; background: #f8f9fa; border-left: 4px solid #e65100; font-style: italic; color: #5D4037;">
+      <p>"La resistencia artística del siglo XXI no es contra gobiernos o instituciones. Es contra la homogeneización silenciosa que convierte toda expresión humana en contenido optimizable."</p>
+    </blockquote>
+
+    <h2 style="color: #e65100; border-bottom: 2px solid #e65100; padding-bottom: 10px; margin-top: 40px;">Un Manifiesto para el Artista Digital</h2>
+
+    <div style="margin: 20px 0; padding: 15px; background: #fff8e1; border-radius: 8px;">
+      <p style="margin: 5px 0;"><strong>1.</strong> Crearé desde mi verdad, no desde las métricas.</p>
+      <p style="margin: 5px 0;"><strong>2.</strong> Usaré las plataformas como herramientas, no como amos.</p>
+      <p style="margin: 5px 0;"><strong>3.</strong> Valoraré una conexión profunda sobre mil interacciones superficiales.</p>
+      <p style="margin: 5px 0;"><strong>4.</strong> Preservaré lo local como acto de generosidad global.</p>
+      <p style="margin: 5px 0;"><strong>5.</strong> Aceptaré la imperfección como firma de autenticidad.</p>
+      <p style="margin: 5px 0;"><strong>6.</strong> Construiré comunidad fuera de los algoritmos.</p>
+      <p style="margin: 5px 0;"><strong>7.</strong> Recordaré que el arte que importa no siempre es el arte que triunfa.</p>
+    </div>
+
+    <div style="margin: 40px 0; padding: 25px; background: linear-gradient(135deg, #e65100 0%, #f57c00 100%); color: white; text-align: center; border-radius: 12px;">
+      <h3 style="margin-bottom: 15px;">El Desafío</h3>
+      <p style="margin-bottom: 15px; font-style: italic;">Crea algo esta semana que el algoritmo no entendería. Algo demasiado personal, demasiado local, demasiado lento para ser "contenido". Algo que sea puro arte.</p>
+      <p style="font-size: 14px; margin: 0;">El arte que resiste es el arte que perdura.</p>
+    </div>
+
+    <div style="text-align: center; margin: 40px 0; padding: 20px; font-style: italic; color: #888; background: #f8f9fa; border-radius: 8px;">
+      <p><strong>— Fin —</strong></p>
+      <p>🎨 <strong>Editorial MaalCa</strong> - Arte sin Algoritmos</p>
+      <p style="font-size: 12px; margin-top: 10px;">¿Cómo resistes la presión algorítmica en tu trabajo creativo?</p>
+    </div>
+  `,
+
   "ecosistemas-creativos": `
     <div style="text-align: center; margin-bottom: 40px; padding: 20px; background: linear-gradient(135deg, #c3e9d0 0%, #7fcdcd 100%); border-radius: 8px;">
       <h1 style="color: #0d7377; margin-bottom: 10px;">🌱 Construyendo Ecosistemas Creativos</h1>

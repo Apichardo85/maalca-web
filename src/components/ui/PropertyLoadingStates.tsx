@@ -1,14 +1,11 @@
 "use client";
 
-import { motion } from 'framer-motion';
-
 // Skeleton for property cards
 export function PropertyCardSkeleton({ index = 0 }: { index?: number }) {
   return (
-    <motion.div
+    <div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.05 }}
       className="bg-white rounded-xl shadow-md border border-gray-200 p-4"
     >
       <div className="flex gap-4">
@@ -53,17 +50,16 @@ export function PropertyCardSkeleton({ index = 0 }: { index?: number }) {
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
 // Skeleton for featured property cards (big beautiful cards)
 export function FeaturedPropertyCardSkeleton({ index = 0 }: { index?: number }) {
   return (
-    <motion.div
+    <div
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, delay: index * 0.2 }}
       className="bg-white rounded-2xl overflow-hidden shadow-lg border border-slate-200"
     >
       {/* Image skeleton */}
@@ -113,7 +109,7 @@ export function FeaturedPropertyCardSkeleton({ index = 0 }: { index?: number }) 
           <div className="h-10 bg-gray-200 rounded animate-pulse" style={{ width: '120px' }} />
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -156,11 +152,10 @@ export function PropertyMapSkeleton() {
 
       {/* Placeholder markers */}
       {[1, 2, 3].map((i) => (
-        <motion.div
+        <div
           key={i}
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ delay: i * 0.2, type: "spring" }}
           className="absolute w-6 h-6 bg-gray-300 rounded-full animate-pulse"
           style={{
             left: `${30 + i * 20}%`,

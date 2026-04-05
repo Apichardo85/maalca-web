@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/buttons';
 import { useTranslation } from '@/hooks/useSimpleLanguage';
 
@@ -64,26 +63,24 @@ export function MobileMenu({
   };
 
   return (
-    <AnimatePresence>
+    <>
       {isOpen && (
         <>
           {/* Backdrop */}
-          <motion.div
+          <div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
             onClick={onClose}
             aria-hidden="true"
           />
 
           {/* Menu Panel */}
-          <motion.div
+          <div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed top-0 right-0 bottom-0 w-full max-w-sm bg-amber-50 shadow-2xl z-50 overflow-y-auto"
             role="dialog"
             aria-label="Menú de navegación"
@@ -120,11 +117,10 @@ export function MobileMenu({
               <nav className="flex-1 p-6" role="navigation" aria-label="Navegación principal">
                 <ul className="space-y-2">
                   {menuLinks.map((link, index) => (
-                    <motion.li
+                    <li
                       key={link.href}
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
                     >
                       <button
                         onClick={() => handleLinkClick(link.href)}
@@ -137,7 +133,7 @@ export function MobileMenu({
                           {link.label}
                         </span>
                       </button>
-                    </motion.li>
+                    </li>
                   ))}
                 </ul>
               </nav>
@@ -182,9 +178,9 @@ export function MobileMenu({
                 </Button>
               </div>
             </div>
-          </motion.div>
+          </div>
         </>
       )}
-    </AnimatePresence>
+    </>
   );
 }

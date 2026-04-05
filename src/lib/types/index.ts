@@ -70,6 +70,21 @@ export type {
   LowStockAlert,
 } from "./inventory";
 
+// API types - n8n Integration
+export type {
+  N8nEventType,
+  N8nWebhookPayload,
+  N8nInboundWebhook,
+  OrderItem,
+  OrderPayload,
+  OrderStatusUpdate,
+  ReservationPayload,
+  NewsletterPayload,
+  AppointmentPayload,
+  DashboardNotification,
+  N8nServiceResponse,
+} from "./n8n.types";
+
 // API types - Billing
 export type {
   Invoice,

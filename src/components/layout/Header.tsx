@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/buttons";
@@ -61,7 +60,7 @@ export default function Header({
 
   const getHeaderStyle = () => {
     const baseStyle = "fixed top-0 left-0 right-0 z-50 transition-all duration-300";
-    
+
     switch (variant) {
       case "transparent":
         return `${baseStyle} ${isScrolled ? "bg-background/95 backdrop-blur-lg shadow-lg border-b border-border" : "bg-transparent"}`;
@@ -81,37 +80,27 @@ export default function Header({
 
   return (
     <>
-      <motion.header
-        className={cn(getHeaderStyle(), className)}
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+      <header
+        className={cn(getHeaderStyle(), "animate-fade-in-down", className)}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-20">
             {/* Logo */}
             {showLogo && (
-              <motion.div
-                className="flex-shrink-0"
-                whileHover={{ scale: 1.05 }}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-              >
+              <div className="flex-shrink-0 hover:scale-105 transition-transform duration-300 animate-fade-in">
                 <Link href="/" className="flex items-center">
                   <Logo variant="full" size="md" />
                 </Link>
-              </motion.div>
+              </div>
             )}
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center space-x-8">
               {navigationItems.map((item, index) => (
-                <motion.div
+                <div
                   key={item.href}
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.1 * index + 0.3 }}
+                  className="animate-fade-in-down"
+                  style={{ animationDelay: `${0.1 * index + 0.1}s` }}
                 >
                   <Link
                     href={item.href}
@@ -123,224 +112,171 @@ export default function Header({
                     )}
                   >
                     {item.label}
-                    
+
                     {/* Active indicator */}
                     {isActive(item.href) && (
-                      <motion.div
-                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-full"
-                        layoutId="activeTab"
-                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      <div
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-full transition-all duration-300"
                       />
                     )}
-                    
+
                     {/* Hover indicator */}
-                    <motion.div
+                    <div
                       className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-primary/60 to-brand-secondary/60 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-300"
-                      initial={false}
                     />
                   </Link>
-                </motion.div>
+                </div>
               ))}
             </nav>
 
             {/* Actions */}
             <div className="hidden lg:flex items-center space-x-4">
               {/* Language Toggle */}
-              <motion.div
-                className="flex-shrink-0"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-              >
+              <div className="flex-shrink-0 animate-fade-in" style={{ animationDelay: '0.3s' }}>
                 <SimpleLanguageToggle />
-              </motion.div>
+              </div>
 
               {/* Theme Toggle */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-              >
+              <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
                 <ThemeToggle />
-              </motion.div>
+              </div>
 
               {showActions && (
                 <>
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.6, delay: 0.5 }}
-                  >
+                  <div className="animate-fade-in" style={{ animationDelay: '0.5s' }}>
                     <Link href="/login">
                       <Button variant="outline" size="sm">
                         Iniciar sesión
                       </Button>
                     </Link>
-                  </motion.div>
+                  </div>
 
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.6, delay: 0.6 }}
-                  >
+                  <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
                     <Button variant="primary" size="sm">
                       {t('nav.join')}
                     </Button>
-                  </motion.div>
+                  </div>
                 </>
               )}
             </div>
 
             {/* Mobile menu button */}
-            <motion.button
-              className="lg:hidden p-2 rounded-lg hover:bg-surface-elevated transition-colors text-text-primary"
+            <button
+              className="lg:hidden p-2 rounded-lg hover:bg-surface-elevated transition-colors text-text-primary active:scale-95"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
             >
-              <motion.div
-                animate={isMobileMenuOpen ? "open" : "closed"}
-                className="w-6 h-6 flex flex-col justify-center items-center"
-              >
-                <motion.span
-                  className="w-6 h-0.5 bg-current rounded-full block"
-                  variants={{
-                    closed: { rotate: 0, y: 0 },
-                    open: { rotate: 45, y: 6 }
-                  }}
-                  transition={{ duration: 0.3 }}
+              <div className="w-6 h-6 flex flex-col justify-center items-center">
+                <span
+                  className={cn(
+                    "w-6 h-0.5 bg-current rounded-full block transition-all duration-300",
+                    isMobileMenuOpen ? "rotate-45 translate-y-[4px]" : ""
+                  )}
                 />
-                <motion.span
-                  className="w-6 h-0.5 bg-current rounded-full block mt-1.5"
-                  variants={{
-                    closed: { opacity: 1 },
-                    open: { opacity: 0 }
-                  }}
-                  transition={{ duration: 0.3 }}
+                <span
+                  className={cn(
+                    "w-6 h-0.5 bg-current rounded-full block mt-1.5 transition-all duration-300",
+                    isMobileMenuOpen ? "opacity-0" : ""
+                  )}
                 />
-                <motion.span
-                  className="w-6 h-0.5 bg-current rounded-full block mt-1.5"
-                  variants={{
-                    closed: { rotate: 0, y: 0 },
-                    open: { rotate: -45, y: -6 }
-                  }}
-                  transition={{ duration: 0.3 }}
+                <span
+                  className={cn(
+                    "w-6 h-0.5 bg-current rounded-full block mt-1.5 transition-all duration-300",
+                    isMobileMenuOpen ? "-rotate-45 -translate-y-[10px]" : ""
+                  )}
                 />
-              </motion.div>
-            </motion.button>
+              </div>
+            </button>
           </div>
         </div>
-      </motion.header>
+      </header>
 
       {/* Mobile Menu */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div
-            className="fixed inset-0 z-40 lg:hidden"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            {/* Backdrop */}
-            <motion.div
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsMobileMenuOpen(false)}
-            />
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-40 lg:hidden animate-overlay-in">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
 
-            {/* Menu Panel */}
-            <motion.div
-              className="absolute top-16 left-0 right-0 bg-surface shadow-2xl border-t border-border"
-              initial={{ y: -20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -20, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            >
-              <div className="max-w-7xl mx-auto px-4 py-6">
-                {/* Navigation Items */}
-                <nav className="space-y-4">
-                  {navigationItems.map((item, index) => (
-                    <motion.div
-                      key={item.href}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.1 }}
+          {/* Menu Panel */}
+          <div className="absolute top-16 left-0 right-0 bg-surface shadow-2xl border-t border-border animate-fade-in-down">
+            <div className="max-w-7xl mx-auto px-4 py-6">
+              {/* Navigation Items */}
+              <nav className="space-y-4">
+                {navigationItems.map((item, index) => (
+                  <div
+                    key={item.href}
+                    className="animate-fade-in-left"
+                    style={{ animationDelay: `${index * 0.05}s` }}
+                  >
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "block px-4 py-3 rounded-xl text-lg font-medium transition-all duration-300",
+                        isActive(item.href)
+                          ? "bg-gradient-to-r from-brand-primary/10 to-brand-primary/20 text-brand-primary border-l-4 border-brand-primary"
+                          : "text-text-primary hover:bg-surface-elevated hover:text-brand-primary"
+                      )}
+                      onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <Link
-                        href={item.href}
-                        className={cn(
-                          "block px-4 py-3 rounded-xl text-lg font-medium transition-all duration-300",
-                          isActive(item.href)
-                            ? "bg-gradient-to-r from-brand-primary/10 to-brand-primary/20 text-brand-primary border-l-4 border-brand-primary"
-                            : "text-text-primary hover:bg-surface-elevated hover:text-brand-primary"
-                        )}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        {item.label}
-                      </Link>
-                    </motion.div>
-                  ))}
-                </nav>
-
-                {/* Mobile Actions */}
-                <motion.div
-                  className="mt-8 pt-6 border-t border-border space-y-4"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.4 }}
-                >
-                  {/* Language & Theme Toggles for Mobile */}
-                  <div className="flex justify-center gap-4">
-                    <SimpleLanguageToggle />
-                    <ThemeToggle />
+                      {item.label}
+                    </Link>
                   </div>
+                ))}
+              </nav>
 
-                  {showActions && (
-                    <>
+              {/* Mobile Actions */}
+              <div
+                className="mt-8 pt-6 border-t border-border space-y-4 animate-fade-in-up"
+                style={{ animationDelay: '0.2s' }}
+              >
+                {/* Language & Theme Toggles for Mobile */}
+                <div className="flex justify-center gap-4">
+                  <SimpleLanguageToggle />
+                  <ThemeToggle />
+                </div>
+
+                {showActions && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="w-full"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        document.getElementById('ecosistema')?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                    >
+                      {t('nav.explore')}
+                    </Button>
+
+                    <Link href="/login" className="w-full">
                       <Button
                         variant="outline"
                         size="lg"
                         className="w-full"
-                        onClick={() => {
-                          setIsMobileMenuOpen(false);
-                          document.getElementById('ecosistema')?.scrollIntoView({ behavior: 'smooth' });
-                        }}
-                      >
-                        {t('nav.explore')}
-                      </Button>
-
-                      <Link href="/login" className="w-full">
-                        <Button
-                          variant="outline"
-                          size="lg"
-                          className="w-full"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          Iniciar sesión
-                        </Button>
-                      </Link>
-
-                      <Button
-                        variant="primary"
-                        size="lg"
-                        className="w-full"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        {t('nav.join')}
+                        Iniciar sesión
                       </Button>
-                    </>
-                  )}
-                </motion.div>
+                    </Link>
+
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      className="w-full"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {t('nav.join')}
+                    </Button>
+                  </>
+                )}
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Spacer to prevent content from hiding behind fixed header */}
       <div className="h-16 lg:h-20" />

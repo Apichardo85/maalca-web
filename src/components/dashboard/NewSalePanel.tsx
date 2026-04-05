@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useAffiliate } from "@/contexts/AffiliateContext";
-import { TableActionButton } from "@/components/ui/TableActionButton";
 import {
   MOCK_PRODUCTS,
   MOCK_CUSTOMERS,
@@ -18,19 +16,17 @@ import {
 
 interface NewSalePanelProps {
   onClose: () => void;
-  onSave?: (invoiceData: any) => void;
+  onSave?: (invoiceData: Record<string, unknown>) => void;
 }
 
 /**
  * Panel de Nueva Venta - POS simple
- * Diseñado para barbería, catering, tiendas de repuestos
  */
 export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
   const { config } = useAffiliate();
   const currency = config?.settings.currency || "DOP";
 
-  // Estados principales
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer>(MOCK_CUSTOMERS[0]); // Cliente Mostrador por defecto
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer>(MOCK_CUSTOMERS[0]);
   const [customerSearch, setCustomerSearch] = useState("");
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
 
@@ -40,7 +36,6 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
   const [lines, setLines] = useState<InvoiceLine[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
 
-  // Filtrado de clientes
   const filteredCustomers = useMemo(() => {
     if (!customerSearch) return MOCK_CUSTOMERS;
     return MOCK_CUSTOMERS.filter(c =>
@@ -50,7 +45,6 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
     );
   }, [customerSearch]);
 
-  // Filtrado de productos
   const filteredProducts = useMemo(() => {
     if (!productSearch) return MOCK_PRODUCTS.filter(p => p.isActive);
     return MOCK_PRODUCTS.filter(p =>
@@ -60,19 +54,16 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
     );
   }, [productSearch]);
 
-  // Agregar producto a la venta
   const addProduct = (product: Product) => {
     const existingLineIndex = lines.findIndex(l => l.productId === product.id);
 
     if (existingLineIndex >= 0) {
-      // Incrementar cantidad si ya existe
       const updatedLines = [...lines];
       updatedLines[existingLineIndex].quantity += 1;
       const recalculated = calculateLineTotals(updatedLines[existingLineIndex]);
       updatedLines[existingLineIndex] = { ...recalculated, id: updatedLines[existingLineIndex].id };
       setLines(updatedLines);
     } else {
-      // Agregar nueva línea
       const newLine = calculateLineTotals({
         productId: product.id,
         sku: product.sku,
@@ -90,7 +81,6 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
     setShowProductDropdown(false);
   };
 
-  // Actualizar cantidad de línea
   const updateLineQuantity = (lineId: string, quantity: number) => {
     if (quantity <= 0) {
       removeLine(lineId);
@@ -107,15 +97,12 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
     setLines(updatedLines);
   };
 
-  // Remover línea
   const removeLine = (lineId: string) => {
     setLines(lines.filter(l => l.id !== lineId));
   };
 
-  // Calcular totales
   const totals = useMemo(() => calculateInvoiceTotals(lines), [lines]);
 
-  // Confirmar venta
   const handleConfirmSale = () => {
     if (lines.length === 0) {
       alert("Debe agregar al menos un producto/servicio");
@@ -139,18 +126,12 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    <div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-overlay-in"
       onClick={onClose}
     >
-      <motion.div
-        initial={{ scale: 0.95, y: 20 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.95, y: 20 }}
-        className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col"
+      <div
+        className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col animate-slide-in-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -172,7 +153,7 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Columna izquierda - Productos y líneas */}
+            {/* Columna izquierda */}
             <div className="lg:col-span-2 space-y-6">
               {/* Selector de Cliente */}
               <div>
@@ -191,33 +172,26 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
                     onFocus={() => setShowCustomerDropdown(true)}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                   />
-                  <AnimatePresence>
-                    {showCustomerDropdown && filteredCustomers.length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="absolute z-10 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto"
-                      >
-                        {filteredCustomers.map((customer) => (
-                          <button
-                            key={customer.id}
-                            onClick={() => {
-                              setSelectedCustomer(customer);
-                              setCustomerSearch("");
-                              setShowCustomerDropdown(false);
-                            }}
-                            className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                          >
-                            <p className="font-medium text-gray-900 dark:text-white">{customer.name}</p>
-                            {customer.phone && (
-                              <p className="text-sm text-gray-600 dark:text-gray-400">{customer.phone}</p>
-                            )}
-                          </button>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  {showCustomerDropdown && filteredCustomers.length > 0 && (
+                    <div className="absolute z-10 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto animate-fade-in-down">
+                      {filteredCustomers.map((customer) => (
+                        <button
+                          key={customer.id}
+                          onClick={() => {
+                            setSelectedCustomer(customer);
+                            setCustomerSearch("");
+                            setShowCustomerDropdown(false);
+                          }}
+                          className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          <p className="font-medium text-gray-900 dark:text-white">{customer.name}</p>
+                          {customer.phone && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400">{customer.phone}</p>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -238,34 +212,27 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
                     onFocus={() => setShowProductDropdown(true)}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                   />
-                  <AnimatePresence>
-                    {showProductDropdown && productSearch && filteredProducts.length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="absolute z-10 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto"
-                      >
-                        {filteredProducts.map((product) => (
-                          <button
-                            key={product.id}
-                            onClick={() => addProduct(product)}
-                            className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                          >
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <p className="font-medium text-gray-900 dark:text-white">{product.name}</p>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">SKU: {product.sku}</p>
-                              </div>
-                              <p className="font-semibold text-gray-900 dark:text-white">
-                                {formatCurrency(product.unitPrice, currency as any)}
-                              </p>
+                  {showProductDropdown && productSearch && filteredProducts.length > 0 && (
+                    <div className="absolute z-10 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto animate-fade-in-down">
+                      {filteredProducts.map((product) => (
+                        <button
+                          key={product.id}
+                          onClick={() => addProduct(product)}
+                          className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-medium text-gray-900 dark:text-white">{product.name}</p>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">SKU: {product.sku}</p>
                             </div>
-                          </button>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                            <p className="font-semibold text-gray-900 dark:text-white">
+                              {formatCurrency(product.unitPrice, currency as string)}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -286,7 +253,7 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
                           <div className="flex-1">
                             <p className="font-medium text-gray-900 dark:text-white">{line.description}</p>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                              {formatCurrency(line.unitPrice, currency as any)} × {line.quantity}
+                              {formatCurrency(line.unitPrice, currency as string)} × {line.quantity}
                             </p>
                           </div>
                           <div className="flex items-center gap-2">
@@ -307,7 +274,7 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
                             </button>
                           </div>
                           <div className="w-24 text-right font-semibold text-gray-900 dark:text-white">
-                            {formatCurrency(line.lineTotal, currency as any)}
+                            {formatCurrency(line.lineTotal, currency as string)}
                           </div>
                           <button
                             onClick={() => removeLine(line.id)}
@@ -331,23 +298,23 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-400">Subtotal:</span>
-                    <span className="text-gray-900 dark:text-white">{formatCurrency(totals.subtotal, currency as any)}</span>
+                    <span className="text-gray-900 dark:text-white">{formatCurrency(totals.subtotal, currency as string)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600 dark:text-gray-400">Impuestos:</span>
-                    <span className="text-gray-900 dark:text-white">{formatCurrency(totals.taxTotal, currency as any)}</span>
+                    <span className="text-gray-900 dark:text-white">{formatCurrency(totals.taxTotal, currency as string)}</span>
                   </div>
                   {totals.discountTotal > 0 && (
                     <div className="flex justify-between text-sm text-green-600">
                       <span>Descuentos:</span>
-                      <span>-{formatCurrency(totals.discountTotal, currency as any)}</span>
+                      <span>-{formatCurrency(totals.discountTotal, currency as string)}</span>
                     </div>
                   )}
                   <div className="border-t border-gray-300 dark:border-gray-700 pt-2 mt-2">
                     <div className="flex justify-between">
                       <span className="font-bold text-gray-900 dark:text-white">Total:</span>
                       <span className="font-bold text-xl text-gray-900 dark:text-white">
-                        {formatCurrency(totals.total, currency as any)}
+                        {formatCurrency(totals.total, currency as string)}
                       </span>
                     </div>
                   </div>
@@ -400,7 +367,7 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
             </div>
           </div>
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import type { BeforeAfterImage } from '@/lib/types/commerce.types';
 
@@ -61,11 +60,10 @@ export function BeforeAfterSlider({
       {/* Gallery Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredImages.map((item, idx) => (
-          <motion.div
+          <div
             key={item.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.1 }}
             onClick={() => setSelectedImage(item)}
             className="group cursor-pointer"
           >
@@ -113,16 +111,16 @@ export function BeforeAfterSlider({
                 {language === 'es' ? 'Por' : 'By'} {item.barberOrProvider}
               </p>
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
 
       {/* Lightbox Modal with Slider */}
-      <AnimatePresence>
+      
         {selectedImage && (
           <>
             {/* Backdrop */}
-            <motion.div
+            <div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -132,7 +130,7 @@ export function BeforeAfterSlider({
 
             {/* Modal */}
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-              <motion.div
+              <div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
@@ -212,11 +210,11 @@ export function BeforeAfterSlider({
                     {language === 'es' ? 'Por' : 'By'} {selectedImage.barberOrProvider}
                   </p>
                 </div>
-              </motion.div>
+              </div>
             </div>
           </>
         )}
-      </AnimatePresence>
+      
     </div>
   );
 }

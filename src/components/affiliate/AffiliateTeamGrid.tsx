@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/buttons";
 import { ProjectImage } from "@/components/ui/ProjectImage";
 
@@ -50,12 +49,7 @@ export function AffiliateTeamGrid({
   return (
     <section className="py-16 md:py-24 bg-white">
       <div className="max-w-6xl mx-auto px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
+        <div className="text-center mb-16 animate-fade-in-up">
           <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6">
             {title
               ? getText(title, titleEn)
@@ -68,18 +62,14 @@ export function AffiliateTeamGrid({
               'Professionals committed to excellence'
             )}
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
           {members.map((member, index) => (
-            <motion.div
+            <div
               key={member.id}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: index * 0.2 }}
-              whileHover={{ y: -10 }}
-              className="text-center"
+              className="text-center hover:-translate-y-2 transition-transform duration-300 animate-fade-in-up"
+              style={{ animationDelay: `${index * 0.2}s` }}
             >
               <div className={`bg-gradient-to-br ${colors.bg} rounded-3xl p-6 md:p-8 shadow-xl h-full flex flex-col`}>
                 {/* Image/Icon */}
@@ -171,7 +161,7 @@ export function AffiliateTeamGrid({
                   </Button>
                 )}
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

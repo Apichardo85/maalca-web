@@ -1,7 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface ProfessionalReaderProps {
   articleId: string;
@@ -19,6 +18,17 @@ export default function ProfessionalReader({
   onClose
 }: ProfessionalReaderProps) {
   const [fontSize, setFontSize] = useState<'small' | 'medium' | 'large'>('medium');
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    // Trigger enter animation on mount
+    requestAnimationFrame(() => setIsVisible(true));
+  }, []);
+
+  const handleClose = () => {
+    setIsVisible(false);
+    setTimeout(onClose, 200);
+  };
 
   const fontSizeClasses = {
     small: 'text-sm',
@@ -27,18 +37,16 @@ export default function ProfessionalReader({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={onClose}
+    <div
+      className={`fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-200 ${
+        isVisible ? 'opacity-100' : 'opacity-0'
+      }`}
+      onClick={handleClose}
     >
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-surface rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border-2 border-border shadow-2xl"
+      <div
+        className={`bg-surface rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border-2 border-border shadow-2xl transition-all duration-200 ${
+          isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -85,7 +93,7 @@ export default function ProfessionalReader({
 
           {/* Close Button */}
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-text-muted hover:text-text-primary transition-colors text-3xl font-light"
             aria-label="Cerrar"
           >
@@ -107,13 +115,13 @@ export default function ProfessionalReader({
             Artículo ID: {articleId}
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="px-4 py-2 bg-brand-primary hover:bg-brand-primary-hover text-white font-medium rounded-lg transition-colors shadow-lg"
           >
             Cerrar
           </button>
         </div>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }

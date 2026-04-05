@@ -1,0 +1,28 @@
+import type { Metadata } from 'next'
+import { LocalBusinessJsonLd } from '@/components/seo/JsonLd'
+
+export const metadata: Metadata = {
+  title: 'Pegote Barbershop | MaalCa',
+  description: 'Barbería premium en República Dominicana. Cortes clásicos y modernos, productos de cuidado capilar y una experiencia única para caballeros.',
+  openGraph: {
+    title: 'Pegote Barbershop | MaalCa',
+    description: 'Barbería premium — cortes clásicos y modernos, productos de cuidado capilar.',
+    url: 'https://maalca.com/pegote-barber',
+    type: 'website',
+  },
+}
+
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <LocalBusinessJsonLd
+        name="Pegote Barbershop"
+        url="https://maalca.com/pegote-barber"
+        description="Barbería premium — cortes clásicos y modernos, productos de cuidado capilar."
+        type="BarberShop"
+        priceRange="$$"
+      />
+      {children}
+    </>
+  )
+}

@@ -1,6 +1,5 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import type { CartItem, ShoppingCart } from '@/lib/types/commerce.types';
 
@@ -28,11 +27,11 @@ export function ShoppingCartSidebar({
   const itemCount = cart.items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <AnimatePresence>
+    <>
       {isOpen && (
         <>
           {/* Backdrop */}
-          <motion.div
+          <div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -41,11 +40,10 @@ export function ShoppingCartSidebar({
           />
 
           {/* Sidebar */}
-          <motion.div
+          <div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed right-0 top-0 h-full w-full max-w-md bg-gray-900 shadow-2xl z-50 flex flex-col"
           >
             {/* Header */}
@@ -86,7 +84,7 @@ export function ShoppingCartSidebar({
                 cart.items.map((item) => {
                   const name = language === 'es' ? item.product.name : item.product.nameEn;
                   return (
-                    <motion.div
+                    <div
                       key={item.product.id}
                       layout
                       initial={{ opacity: 0, x: 20 }}
@@ -141,7 +139,7 @@ export function ShoppingCartSidebar({
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>
-                    </motion.div>
+                    </div>
                   );
                 })
               )}
@@ -220,9 +218,9 @@ export function ShoppingCartSidebar({
                 </button>
               </div>
             )}
-          </motion.div>
+          </div>
         </>
       )}
-    </AnimatePresence>
+    </>
   );
 }

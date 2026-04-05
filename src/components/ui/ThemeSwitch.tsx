@@ -1,16 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 
 export function ThemeSwitch() {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    // Check for saved theme preference or default to light
     const savedTheme = localStorage.getItem("theme");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    
+
     if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
       setIsDark(true);
       document.documentElement.setAttribute("data-theme", "dark");
@@ -20,30 +18,25 @@ export function ThemeSwitch() {
   const toggleTheme = () => {
     const newTheme = isDark ? "light" : "dark";
     setIsDark(!isDark);
-    
+
     if (newTheme === "dark") {
       document.documentElement.setAttribute("data-theme", "dark");
     } else {
       document.documentElement.removeAttribute("data-theme");
     }
-    
+
     localStorage.setItem("theme", newTheme);
   };
 
   return (
-    <motion.button
+    <button
       onClick={toggleTheme}
-      className="relative p-2 rounded-full bg-surface-elevated border border-border hover:bg-surface-muted transition-colors"
-      whileTap={{ scale: 0.95 }}
+      className="relative p-2 rounded-full bg-surface-elevated border border-border hover:bg-surface-muted active:scale-95 transition-all"
       aria-label={`Switch to ${isDark ? "light" : "dark"} theme`}
     >
-      <motion.div
-        initial={false}
-        animate={{
-          rotate: isDark ? 180 : 0,
-        }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="w-5 h-5"
+      <div
+        className="w-5 h-5 transition-transform duration-300"
+        style={{ transform: isDark ? 'rotate(180deg)' : 'rotate(0deg)' }}
       >
         {isDark ? (
           <svg
@@ -74,7 +67,7 @@ export function ThemeSwitch() {
             />
           </svg>
         )}
-      </motion.div>
-    </motion.button>
+      </div>
+    </button>
   );
 }

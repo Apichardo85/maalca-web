@@ -22,7 +22,7 @@ export const ecosystemProjects: EcosystemProject[] = [
     description: "Proyecto de contenido íntimo y conversaciones profundas",
     category: "Contenido",
     color: "gray",
-    active: false
+    active: true
   },
   {
     id: "cirisonic",

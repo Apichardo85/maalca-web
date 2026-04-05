@@ -25,7 +25,7 @@ export interface CreateCustomerDto {
   notes?: string;
 }
 
-export interface UpdateCustomerDto extends Partial<CreateCustomerDto> {}
+export type UpdateCustomerDto = Partial<CreateCustomerDto>;
 
 class CustomerService {
   /**

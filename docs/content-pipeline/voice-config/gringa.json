@@ -1,0 +1,18 @@
+{
+  "characterId": "gringa",
+  "characterName": "Gringa",
+  "provider": "elevenlabs",
+  "voiceId": "IeiHyO4UwOOUdKQ0HSDK",
+  "description": "Cheerful American female voice, natural and upbeat, slightly slower when speaking Spanish",
+  "selectionNotes": "Search ElevenLabs Voice Library for: American female, friendly, young adult. Look for a voice that sounds natural and relatable, not overly professional.",
+  "apiEndpoint": "https://api.elevenlabs.io/v1/text-to-speech/{voiceId}",
+  "model_id": "eleven_multilingual_v2",
+  "voice_settings": {
+    "stability": 0.5,
+    "similarity_boost": 0.75,
+    "style": 0.4,
+    "use_speaker_boost": true
+  },
+  "outputFormat": "mp3_44100_128",
+  "notes": "Medium stability (0.5) = natural but not too wild. Lower style (0.4) = more neutral American sound. The multilingual model handles her English-to-Spanish transitions well."
+}

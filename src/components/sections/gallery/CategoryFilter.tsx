@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { GalleryCategory, CategoryFilter as CategoryFilterType } from "@/lib/types";
 
 interface CategoryFilterProps {
@@ -46,105 +45,56 @@ export default function CategoryFilter({
   onCategoryChange,
   className = ""
 }: CategoryFilterProps) {
-  
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20, scale: 0.9 },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
-      scale: 1
-    }
-  };
-
   return (
-    <motion.div
-      className={`flex flex-wrap justify-center gap-3 ${className}`}
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      {categories.map((category) => {
+    <div className={`flex flex-wrap justify-center gap-3 ${className}`}>
+      {categories.map((category, index) => {
         const isActive = selectedCategory === category.value;
         const color = category.color as keyof typeof colorVariants || "amber";
-        
+
         return (
-          <motion.button
+          <button
             key={category.value}
-            variants={itemVariants}
-            transition={{ type: "spring", stiffness: 300, damping: 20 }}
             onClick={() => onCategoryChange(category.value)}
             className={`
-              relative inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium 
+              relative inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium
               border transition-all duration-300 group overflow-hidden
-              ${isActive 
-                ? activeColorVariants[color] 
+              hover:scale-105 active:scale-95
+              animate-fade-in-up
+              ${isActive
+                ? activeColorVariants[color]
                 : colorVariants[color]
               }
             `}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            layout
+            style={{ animationDelay: `${0.2 + index * 0.1}s` }}
           >
-            {/* Animated background */}
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"
-              initial={{ x: "-100%" }}
-              whileHover={{ x: "100%" }}
-              transition={{ duration: 0.6 }}
-            />
-            
             {/* Category label */}
             <span className="relative z-10">{category.label}</span>
-            
+
             {/* Count badge */}
             {category.count && (
-              <motion.span
+              <span
                 className={`
-                  relative z-10 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 
+                  relative z-10 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5
                   text-xs font-bold rounded-full transition-all duration-300
-                  ${isActive 
-                    ? "bg-white/20 text-white" 
+                  ${isActive
+                    ? "bg-white/20 text-white"
                     : "bg-current/10 text-current"
                   }
                 `}
-                layout
               >
                 {category.count}
-              </motion.span>
+              </span>
             )}
 
             {/* Active indicator */}
             {isActive && (
-              <motion.div
-                className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-current rounded-full"
-                layoutId="activeIndicator"
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              <div
+                className="absolute -bottom-0.5 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-current rounded-full transition-all duration-300"
               />
             )}
-
-            {/* Hover glow effect */}
-            <motion.div
-              className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              style={{
-                background: `radial-gradient(circle, ${
-                  isActive ? 'rgba(255,255,255,0.1)' : 'currentColor'
-                } 0%, transparent 70%)`
-              }}
-            />
-          </motion.button>
+          </button>
         );
       })}
-    </motion.div>
+    </div>
   );
 }

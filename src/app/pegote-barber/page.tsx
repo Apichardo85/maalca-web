@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/buttons";
 import {
   ProductCard,
@@ -298,19 +298,16 @@ export default function PegoteBarberPage() {
         <nav className="absolute top-0 left-0 right-0 z-50 bg-black/20 backdrop-blur-md border-b border-white/10">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex items-center justify-between h-20">
-              <motion.div 
-                className="flex items-center gap-4"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 1 }}
+              <div
+                className="flex items-center gap-4 animate-fade-in-left"
               >
                 <div className="text-4xl">💈</div>
                 <div>
                   <div className="text-2xl font-black text-white">PEGOTE</div>
                   <div className="text-sm text-red-300 font-medium">BARBER SHOP</div>
                 </div>
-              </motion.div>
-              
+              </div>
+
               <div className="hidden md:flex items-center space-x-8">
                 <a href="#servicios" className="text-white hover:text-red-300 transition-colors font-medium">
                   {getText("Servicios", "Services")}
@@ -335,71 +332,51 @@ export default function PegoteBarberPage() {
 
         {/* Hero Content */}
         <div className="relative z-10 text-center max-w-6xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2 }}
-          >
+          <div className="animate-fade-in-up">
             {/* Dominican Crown Icon */}
-            <motion.div
-              animate={{ 
-                rotateY: [0, 10, -10, 0],
-                scale: [1, 1.05, 1]
-              }}
-              transition={{ duration: 6, repeat: Infinity }}
-              className="mb-8"
-            >
+            <div className="mb-8">
               <div className="w-32 h-32 mx-auto bg-gradient-to-br from-blue-600 to-red-600 rounded-full flex items-center justify-center border-4 border-white/30 shadow-2xl">
                 <span className="text-6xl">👑</span>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.h1 
-              className="text-7xl md:text-9xl lg:text-[10rem] font-black mb-6 leading-tight text-white drop-shadow-2xl"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 1 }}
+            <h1
+              className="text-7xl md:text-9xl lg:text-[10rem] font-black mb-6 leading-tight text-white drop-shadow-2xl animate-fade-in-up"
+              style={{ animationDelay: '0.3s' }}
             >
               PEGOTE
-            </motion.h1>
+            </h1>
             
-            <motion.h2
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6, duration: 1 }}
-              className="text-3xl md:text-5xl font-bold mb-8 text-red-300"
+            <h2
+              className="text-3xl md:text-5xl font-bold mb-8 text-red-300 animate-fade-in"
+              style={{ animationDelay: '0.6s' }}
             >
               BARBER SHOP
-            </motion.h2>
+            </h2>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.9, duration: 1 }}
-              className="text-2xl md:text-3xl text-white/90 mb-4 font-medium"
+            <p
+              className="text-2xl md:text-3xl text-white/90 mb-4 font-medium animate-fade-in"
+              style={{ animationDelay: '0.9s' }}
             >
               {getText(
-                "La barbería dominicana en Elmira, NY", 
+                "La barbería dominicana en Elmira, NY",
                 "The Dominican barbershop in Elmira, NY"
               )}
-            </motion.p>
+            </p>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.1, duration: 1 }}
-              className="text-lg text-white/70 mb-12 max-w-3xl mx-auto leading-relaxed"
+            <p
+              className="text-lg text-white/70 mb-12 max-w-3xl mx-auto leading-relaxed animate-fade-in"
+              style={{ animationDelay: '1.1s' }}
             >
               {getText(
                 "Tradición dominicana, tecnología moderna. Reserva tu turno online y vive la experiencia Pegote.",
                 "Dominican tradition, modern technology. Book your appointment online and live the Pegote experience."
               )}
-            </motion.p>
+            </p>
 
-            <motion.div
+            <div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.4, duration: 0.8 }}
               className="flex flex-col sm:flex-row gap-6 justify-center"
             >
               <Button
@@ -418,13 +395,12 @@ export default function PegoteBarberPage() {
               >
                 👀 {getText("Ver Servicios", "View Services")}
               </Button>
-            </motion.div>
+            </div>
 
             {/* Quick Stats */}
-            <motion.div
+            <div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.8, duration: 1 }}
               className="grid grid-cols-3 gap-8 mt-16 max-w-2xl mx-auto"
             >
               {[
@@ -441,27 +417,26 @@ export default function PegoteBarberPage() {
                   </div>
                 </div>
               ))}
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         </div>
 
         {/* Scroll Indicator */}
-        <motion.div
+        <div
           animate={{ y: [0, 15, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
           className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white"
         >
           <div className="flex flex-col items-center">
             <span className="text-sm mb-2 font-medium">{getText("Descubrir", "Discover")}</span>
             <div className="w-0.5 h-16 bg-gradient-to-b from-white to-transparent rounded-full"></div>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* Services Section */}
       <section id="servicios" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4">
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -477,16 +452,15 @@ export default function PegoteBarberPage() {
                 "Professional services with the Dominican style that characterizes us"
               )}
             </p>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {services.map((service, index) => (
-              <motion.div
+              <div
                 key={service.id}
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: index * 0.1 }}
                 whileHover={{ y: -5, scale: 1.02 }}
                 className="group cursor-pointer relative"
               >
@@ -526,7 +500,7 @@ export default function PegoteBarberPage() {
                     </Button>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -535,7 +509,7 @@ export default function PegoteBarberPage() {
       {/* La Tienda del Tigueraje - Products Section */}
       <section id="tienda" className="py-24 bg-gradient-to-br from-gray-900 to-gray-800">
         <div className="max-w-7xl mx-auto px-4">
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -551,7 +525,7 @@ export default function PegoteBarberPage() {
                 "Professional products to maintain your style at home"
               )}
             </p>
-          </motion.div>
+          </div>
 
           {/* Category Filters */}
           <div className="flex flex-wrap gap-3 justify-center mb-12">
@@ -600,7 +574,7 @@ export default function PegoteBarberPage() {
       {/* Bundles/Combos Section */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4">
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -616,7 +590,7 @@ export default function PegoteBarberPage() {
                 "Service + Products. Save with our exclusive combos"
               )}
             </p>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {pegoteBundles.map((bundle) => (
@@ -640,7 +614,7 @@ export default function PegoteBarberPage() {
       {/* Before/After Gallery */}
       <section className="py-24 bg-gradient-to-br from-gray-900 to-gray-800">
         <div className="max-w-7xl mx-auto px-4">
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -656,7 +630,7 @@ export default function PegoteBarberPage() {
                 "Before and after our best cuts"
               )}
             </p>
-          </motion.div>
+          </div>
 
           <BeforeAfterSlider
             images={pegoteBeforeAfter}
@@ -669,7 +643,7 @@ export default function PegoteBarberPage() {
       {/* Virtual Queue Section */}
       <section id="reservas" className="py-24 bg-gradient-to-br from-blue-50 to-red-50">
         <div className="max-w-6xl mx-auto px-4">
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -685,11 +659,11 @@ export default function PegoteBarberPage() {
                 "Innovative technology for your comfort. Book online and receive your QR code."
               )}
             </p>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Benefits */}
-            <motion.div
+            <div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
@@ -717,7 +691,7 @@ export default function PegoteBarberPage() {
                   description: getText("Te avisamos 24h y 1h antes de tu cita", "We remind you 24h and 1h before your appointment")
                 }
               ].map((benefit, index) => (
-                <motion.div
+                <div
                   key={index}
                   whileHover={{ scale: 1.05 }}
                   className="flex items-start gap-4 bg-white rounded-2xl p-6 shadow-lg"
@@ -727,12 +701,12 @@ export default function PegoteBarberPage() {
                     <h3 className="text-xl font-bold text-gray-900 mb-2">{benefit.title}</h3>
                     <p className="text-gray-600">{benefit.description}</p>
                   </div>
-                </motion.div>
+                </div>
               ))}
-            </motion.div>
+            </div>
 
             {/* QR Code Demo */}
-            <motion.div
+            <div
               initial={{ opacity: 0, x: 50 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
@@ -782,7 +756,7 @@ export default function PegoteBarberPage() {
                   {getText("Hacer Reserva", "Make Booking")}
                 </Button>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
@@ -790,7 +764,7 @@ export default function PegoteBarberPage() {
       {/* Team Section */}
       <section className="py-24 bg-white">
         <div className="max-w-6xl mx-auto px-4">
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -806,16 +780,15 @@ export default function PegoteBarberPage() {
                 "Dominican masters with years of experience and passion for the art of cutting"
               )}
             </p>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-2 gap-12">
             {barbers.map((barber, index) => (
-              <motion.div
+              <div
                 key={barber.id}
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: index * 0.2 }}
                 whileHover={{ y: -10 }}
                 className="text-center"
               >
@@ -861,7 +834,7 @@ export default function PegoteBarberPage() {
                     )}
                   </Button>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -870,7 +843,7 @@ export default function PegoteBarberPage() {
       {/* Testimonials */}
       <section className="py-24 bg-gradient-to-br from-gray-900 to-gray-800">
         <div className="max-w-6xl mx-auto px-4">
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -880,16 +853,15 @@ export default function PegoteBarberPage() {
               {getText("LO QUE DICEN NUESTROS CLIENTES", "WHAT OUR CLIENTS SAY")}
             </h2>
             <div className="w-24 h-1 bg-gradient-to-r from-blue-400 to-red-400 mx-auto"></div>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <motion.div
+              <div
                 key={index}
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.8, delay: index * 0.2 }}
                 whileHover={{ y: -5 }}
                 className="bg-white rounded-2xl p-8 shadow-xl"
               >
@@ -900,7 +872,7 @@ export default function PegoteBarberPage() {
                 </div>
                 
                 <p className="text-gray-600 mb-6 leading-relaxed italic">
-                  "{getText(testimonial.text, testimonial.textEn)}"
+                  {`"${getText(testimonial.text, testimonial.textEn)}"`}
                 </p>
                 
                 <div className="border-t pt-4">
@@ -908,7 +880,7 @@ export default function PegoteBarberPage() {
                   <div className="text-gray-500 text-sm">{testimonial.location}</div>
                   <div className="text-blue-600 text-sm font-medium">{testimonial.service}</div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -917,7 +889,7 @@ export default function PegoteBarberPage() {
       {/* About/Culture Section */}
       <section id="nosotros" className="py-24 bg-gradient-to-br from-blue-900 via-red-800 to-blue-900 text-white">
         <div className="max-w-6xl mx-auto px-4">
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -927,10 +899,10 @@ export default function PegoteBarberPage() {
               {getText("NUESTRA HISTORIA", "OUR STORY")}
             </h2>
             <div className="w-24 h-1 bg-white mx-auto mb-8"></div>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-2 gap-16 items-center">
-            <motion.div
+            <div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
@@ -966,9 +938,9 @@ export default function PegoteBarberPage() {
                   <div className="font-bold">{getText("Calidad Garantizada", "Quality Guaranteed")}</div>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
+            <div
               initial={{ opacity: 0, x: 50 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
@@ -998,7 +970,7 @@ export default function PegoteBarberPage() {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
@@ -1006,7 +978,7 @@ export default function PegoteBarberPage() {
       {/* Contact Section */}
       <section id="contacto" className="py-24 bg-white">
         <div className="max-w-6xl mx-auto px-4">
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -1019,11 +991,11 @@ export default function PegoteBarberPage() {
             <p className="text-xl text-gray-600">
               {getText("Estamos aquí para ti", "We're here for you")}
             </p>
-          </motion.div>
+          </div>
 
           <div className="grid md:grid-cols-2 gap-16">
             {/* Contact Info */}
-            <motion.div
+            <div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
@@ -1093,10 +1065,10 @@ export default function PegoteBarberPage() {
                   </a>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* Contact Form */}
-            <motion.div
+            <div
               initial={{ opacity: 0, x: 50 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
@@ -1144,7 +1116,7 @@ export default function PegoteBarberPage() {
                   {getText("Enviar Mensaje", "Send Message")}
                 </Button>
               </form>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
@@ -1186,7 +1158,7 @@ export default function PegoteBarberPage() {
             <div>
               <h4 className="font-bold text-white mb-4">{getText("MaalCa Ecosystem", "MaalCa Ecosystem")}</h4>
               <div className="space-y-2 text-gray-400 text-sm">
-                <a href="/" className="block hover:text-red-400 transition-colors">MaalCa Home</a>
+                <Link href="/" className="block hover:text-red-400 transition-colors">MaalCa Home</Link>
                 <a href="/cirisonic" className="block hover:text-red-400 transition-colors">CiriSonic</a>
                 <a href="/ciriwhispers" className="block hover:text-red-400 transition-colors">CiriWhispers</a>
                 <a href="/masa-tina" className="block hover:text-red-400 transition-colors">Cocina Tina</a>
@@ -1199,17 +1171,16 @@ export default function PegoteBarberPage() {
               © 2024 Pegote Barber Shop - {getText("Parte del ecosistema MaalCa", "Part of MaalCa ecosystem")}
             </p>
             <p className="text-gray-600 text-xs italic">
-              "{getText("Tu estilo, nuestra tradición", "Your style, our tradition")}"
+              {`"${getText("Tu estilo, nuestra tradición", "Your style, our tradition")}"`}
             </p>
           </div>
         </div>
       </footer>
 
       {/* Floating WhatsApp */}
-      <motion.div
+      <div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
-        transition={{ delay: 3 }}
         className="fixed bottom-28 right-8 z-40"
       >
         <a
@@ -1218,17 +1189,17 @@ export default function PegoteBarberPage() {
         >
           💬
         </a>
-      </motion.div>
+      </div>
 
       {/* Booking Modal */}
-      <AnimatePresence>
+      
         {showBookingModal && (
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div 
               className="absolute inset-0 bg-black/80 backdrop-blur-sm" 
               onClick={() => setShowBookingModal(false)}
             ></div>
-            <motion.div
+            <div
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
@@ -1250,9 +1221,9 @@ export default function PegoteBarberPage() {
                 </div>
                 
                 <div className="p-8">
-                  <AnimatePresence mode="wait">
+                  
                     {!bookingConfirmed ? (
-                      <motion.form
+                      <form
                         key="form"
                         initial={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -1341,9 +1312,9 @@ export default function PegoteBarberPage() {
                         >
                           {getText("Confirmar Reserva", "Confirm Booking")}
                         </Button>
-                      </motion.form>
+                      </form>
                     ) : (
-                      <motion.div
+                      <div
                         key="success"
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -1359,12 +1330,12 @@ export default function PegoteBarberPage() {
                             "We'll send you your QR code via email and WhatsApp in a few minutes."
                           )}
                         </p>
-                      </motion.div>
+                      </div>
                     )}
-                  </AnimatePresence>
+                  
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
 
@@ -1375,7 +1346,7 @@ export default function PegoteBarberPage() {
               className="absolute inset-0 bg-black/80 backdrop-blur-sm" 
               onClick={() => setShowQRModal(false)}
             ></div>
-            <motion.div
+            <div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
@@ -1442,10 +1413,10 @@ export default function PegoteBarberPage() {
                   {getText("Perfecto", "Perfect")}
                 </Button>
               </div>
-            </motion.div>
+            </div>
           </div>
         )}
-      </AnimatePresence>
+      
 
       {/* Floating Shopping Cart Button */}
       <FloatingCartButton

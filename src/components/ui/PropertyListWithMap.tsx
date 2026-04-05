@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Property } from '@/lib/types/property';
 import PropertyMapPlaceholder from './PropertyMapPlaceholder';
 import PropertyGallery from './PropertyGallery';
@@ -104,7 +103,7 @@ export default function PropertyListWithMap({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Property List */}
         {(view === 'list' || view === 'split') && (
-          <motion.div
+          <div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             className={`space-y-6 ${view === 'list' ? 'lg:col-span-2' : ''}`}
@@ -115,11 +114,10 @@ export default function PropertyListWithMap({
             
             <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
               {properties.map((property, index) => (
-                <motion.div
+                <div
                   key={property.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
                   className={`bg-white rounded-xl shadow-md border transition-all duration-300 cursor-pointer ${
                     selectedProperty === property.id
                       ? 'border-blue-500 shadow-lg ring-2 ring-blue-100'
@@ -234,15 +232,15 @@ export default function PropertyListWithMap({
                       </div>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* Map */}
         {(view === 'map' || view === 'split') && (
-          <motion.div
+          <div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             className={`${view === 'map' ? 'lg:col-span-2' : ''}`}
@@ -256,7 +254,7 @@ export default function PropertyListWithMap({
                 className="shadow-lg border border-gray-200"
               />
             </div>
-          </motion.div>
+          </div>
         )}
       </div>
 

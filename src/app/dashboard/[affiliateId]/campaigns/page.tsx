@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { DashboardCard, StatCard } from "@/components/dashboard/DashboardCard";
 import { Button } from "@/components/ui/buttons";
@@ -134,23 +133,23 @@ export default function CampaignsPage() {
 
   return (
     <div className="space-y-8">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+      <div className="animate-fade-in-up flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Campañas de Marketing</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">Gestiona tus campañas y promociones de {brandName}</p>
         </div>
         <Button variant="primary" size="lg" onClick={() => setIsModalOpen(true)}>+ Nueva Campaña</Button>
-      </motion.div>
+      </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="animate-fade-in-up grid grid-cols-1 md:grid-cols-4 gap-4" style={{ animationDelay: '0.1s' }}>
         <StatCard label="Campañas Activas" value="8" icon="📢" color="green" />
         <StatCard label="Total Clicks" value="12,540" icon="👆" change={{ value: 18.5, type: "increase" }} color="blue" />
         <StatCard label="Leads Generados" value="456" icon="🎯" change={{ value: 23.4, type: "increase" }} color="purple" />
         <StatCard label="Presupuesto Usado" value={`${currency}3,250`} icon="💰" color="orange" />
-      </motion.div>
+      </div>
 
       {/* Gráfico de Rendimiento */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+      <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
         <DashboardCard title="Rendimiento de Campañas" icon="📊">
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={chartData}>
@@ -167,9 +166,9 @@ export default function CampaignsPage() {
             </LineChart>
           </ResponsiveContainer>
         </DashboardCard>
-      </motion.div>
+      </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+      <div className="animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
         <DashboardCard>
           <div className="flex flex-col gap-4">
             <div className="flex flex-col md:flex-row gap-4">
@@ -218,9 +217,9 @@ export default function CampaignsPage() {
             )}
           </div>
         </DashboardCard>
-      </motion.div>
+      </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+      <div className="animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
         <DashboardCard title="Campañas Activas" icon="📢">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -270,7 +269,7 @@ export default function CampaignsPage() {
             </table>
           </div>
         </DashboardCard>
-      </motion.div>
+      </div>
 
       {filteredCampaigns.length > itemsPerPage && (
         <Pagination

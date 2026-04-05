@@ -16,7 +16,6 @@
     "epub-gen-memory": "^1.1.2",
     "epub.js": "^0.2.15",
     "epubjs": "^0.3.93",
-    "framer-motion": "^12.23.12",
     "mapbox-gl": "^2.15.0",
     "next": "^15.5.14",
     "next-themes": "^0.4.6",
@@ -27,6 +26,7 @@
     "react-map-gl": "^7.1.7",
     "react-reader": "^2.0.13",
     "recharts": "^3.5.1",
+    "resend": "^6.9.4",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
