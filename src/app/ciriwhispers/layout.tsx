@@ -21,7 +21,7 @@ export default function CiriWhispersLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100">
+    <div className="min-h-screen bg-[#FAF7F2] text-[#2D1B11]">
       <CiriNav />
       <main>{children}</main>
       <CiriFooter />

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import ThemeToggle from "@/components/ui/ThemeToggle";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
 
@@ -19,12 +18,12 @@ export default function CiriNav() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-sm border-b border-slate-700/50">
+    <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-[#E8DED1]">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link
             href="/ciriwhispers"
-            className="font-serif text-xl font-bold text-red-400 hover:text-red-300 transition-colors"
+            className="font-serif text-xl font-bold text-[#8B1A1A] hover:text-[#6B1414] transition-colors"
           >
             CiriWhispers
           </Link>
@@ -37,8 +36,8 @@ export default function CiriNav() {
                   href={item.href}
                   className={`transition-colors text-sm ${
                     pathname === item.href
-                      ? "text-red-400"
-                      : "text-slate-300 hover:text-red-400"
+                      ? "text-[#8B1A1A] font-medium"
+                      : "text-[#5C3D2E] hover:text-[#8B1A1A]"
                   }`}
                 >
                   {item.label}
@@ -46,13 +45,11 @@ export default function CiriNav() {
               ))}
             </div>
             <LanguageToggle />
-            <ThemeToggle />
           </div>
 
           {/* Mobile: simplified */}
           <div className="md:hidden flex items-center space-x-2">
             <LanguageToggle />
-            <ThemeToggle />
           </div>
         </div>
 
@@ -64,8 +61,8 @@ export default function CiriNav() {
               href={item.href}
               className={`whitespace-nowrap text-xs transition-colors ${
                 pathname === item.href
-                  ? "text-red-400"
-                  : "text-slate-400 hover:text-red-400"
+                  ? "text-[#8B1A1A] font-medium"
+                  : "text-[#8B7355] hover:text-[#8B1A1A]"
               }`}
             >
               {item.label}
