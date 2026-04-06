@@ -11,10 +11,10 @@ export default function ObrasPage() {
     <div className="max-w-7xl mx-auto px-4 py-12">
       {/* Header */}
       <div className="text-center mb-16 animate-fade-in-up">
-        <h1 className="font-serif text-4xl md:text-5xl font-bold text-stone-100 mb-4">
+        <h1 className="font-serif text-4xl md:text-5xl font-bold text-[#2D1B11] mb-4">
           {t("ciriwhispers.obras2.title")}
         </h1>
-        <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+        <p className="text-[#8B7355] text-lg max-w-2xl mx-auto">
           {t("ciriwhispers.obras2.desc")}
         </p>
       </div>
@@ -36,7 +36,7 @@ export default function ObrasPage() {
                   <BookCard book={book} statusText={statusText} t={t} />
                 </Link>
               ) : (
-                <div className="opacity-80">
+                <div className="opacity-70">
                   <BookCard book={book} statusText={statusText} t={t} />
                 </div>
               )}
@@ -60,9 +60,9 @@ function BookCard({
   const isAvailable = book.statusKey === "ciriwhispers.works.status.available";
 
   return (
-    <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-2xl overflow-hidden border border-red-800/20 hover:border-red-600/40 transition-all duration-300">
+    <div className="bg-white rounded-2xl overflow-hidden border border-[#E8DED1] hover:border-[#8B1A1A]/30 transition-all duration-300 shadow-sm">
       {/* Cover */}
-      <div className="aspect-[3/4] bg-gradient-to-br from-red-900/20 to-slate-800/50 flex items-center justify-center relative overflow-hidden">
+      <div className="aspect-[3/4] bg-gradient-to-br from-[#F5F0E8] to-[#E8DED1] flex items-center justify-center relative overflow-hidden">
         <img
           src={book.cover}
           alt={book.title}
@@ -74,15 +74,15 @@ function BookCard({
             }
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/50 hidden items-center justify-center">
-          <span className="text-6xl opacity-40">📖</span>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#2D1B11]/30 hidden items-center justify-center">
+          <span className="text-6xl opacity-40">&#128214;</span>
         </div>
         <div className="absolute bottom-4 left-4 right-4">
           <div
             className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
               isAvailable
-                ? "bg-red-600/15 text-red-400 border border-red-600/30"
-                : "bg-slate-600/20 text-slate-200 border border-slate-500/30"
+                ? "bg-[#8B1A1A]/90 text-white"
+                : "bg-[#5C3D2E]/80 text-[#E8DED1]"
             }`}
           >
             {statusText}
@@ -93,13 +93,13 @@ function BookCard({
       {/* Info */}
       <div className="p-6">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-red-400 font-medium">{book.year}</span>
-          <span className="text-xs text-slate-400">{book.subtitle}</span>
+          <span className="text-sm text-[#8B1A1A] font-medium">{book.year}</span>
+          <span className="text-xs text-[#A89580]">{book.subtitle}</span>
         </div>
-        <h3 className="font-serif text-xl font-bold text-stone-100 mb-3 group-hover:text-red-400 transition-colors">
+        <h3 className="font-serif text-xl font-bold text-[#2D1B11] mb-3 group-hover:text-[#8B1A1A] transition-colors">
           {t(book.titleKey)}
         </h3>
-        <p className="text-slate-400 text-sm leading-relaxed line-clamp-3">
+        <p className="text-[#8B7355] text-sm leading-relaxed line-clamp-3">
           {t(book.synopsisKey)}
         </p>
       </div>
