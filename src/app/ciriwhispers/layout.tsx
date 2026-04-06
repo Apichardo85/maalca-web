@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import CiriNav from "@/components/ciriwhispers/CiriNav";
 import CiriFooter from "@/components/ciriwhispers/CiriFooter";
+import "./ciri.css";
 
 export const metadata: Metadata = {
   title: "CiriWhispers | Lo bello tambien sangra",
@@ -21,7 +22,7 @@ export default function CiriWhispersLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#FAF7F2] text-[#2D1B11]">
+    <div className="ciri-theme min-h-screen">
       <CiriNav />
       <main>{children}</main>
       <CiriFooter />

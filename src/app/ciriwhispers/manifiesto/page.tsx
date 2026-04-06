@@ -16,15 +16,15 @@ export default function ManifiestoPage() {
     <div className="min-h-screen">
       {/* Hero quote */}
       <section className="relative py-24 px-4 text-center">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#F5F0E8] via-[#FAF7F2] to-[#FAF7F2]" />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, var(--ciri-bg-subtle), var(--ciri-bg))' }} />
         <div className="relative max-w-3xl mx-auto">
-          <p className="text-[#8B1A1A] text-sm font-semibold tracking-widest uppercase mb-8">
+          <p className="text-sm font-semibold tracking-widest uppercase mb-8" style={{ color: 'var(--ciri-brand)' }}>
             {t("ciriwhispers.manifiesto.label")}
           </p>
-          <blockquote className="font-serif text-3xl md:text-5xl text-[#2D1B11] leading-tight italic mb-8">
+          <blockquote className="font-serif text-3xl md:text-5xl leading-tight italic mb-8" style={{ color: 'var(--ciri-text)' }}>
             &ldquo;{t("ciriwhispers.manifiesto.quote")}&rdquo;
           </blockquote>
-          <div className="w-16 h-0.5 bg-[#8B1A1A] mx-auto" />
+          <div className="w-16 h-0.5 mx-auto" style={{ backgroundColor: 'var(--ciri-brand)' }} />
         </div>
       </section>
 
@@ -33,29 +33,30 @@ export default function ManifiestoPage() {
         <div className="space-y-8">
           {/* Author intro */}
           <div className="flex flex-col md:flex-row gap-8 items-start">
-            <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl bg-gradient-to-br from-[#8B1A1A] to-[#6B1414] flex-shrink-0 flex items-center justify-center">
+            <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl flex-shrink-0 flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, var(--ciri-brand), var(--ciri-brand-hover))' }}>
               <span className="font-serif text-5xl text-white italic">C</span>
             </div>
             <div>
-              <h2 className="font-serif text-2xl text-[#2D1B11] mb-1">
+              <h2 className="font-serif text-2xl mb-1" style={{ color: 'var(--ciri-text)' }}>
                 {t("ciriwhispers.manifiesto.name")}
               </h2>
-              <p className="text-[#8B1A1A] text-sm font-medium mb-4">
+              <p className="text-sm font-medium mb-4" style={{ color: 'var(--ciri-brand)' }}>
                 {t("ciriwhispers.manifiesto.role")}
               </p>
-              <p className="text-[#5C3D2E] leading-relaxed">
+              <p className="leading-relaxed" style={{ color: 'var(--ciri-text-secondary)' }}>
                 {t("ciriwhispers.manifiesto.intro")}
               </p>
             </div>
           </div>
 
           {/* Manifesto body */}
-          <div className="space-y-6 text-[#5C3D2E] leading-relaxed">
+          <div className="space-y-6 leading-relaxed" style={{ color: 'var(--ciri-text-secondary)' }}>
             <p>{t("ciriwhispers.manifiesto.p1")}</p>
             <p>{t("ciriwhispers.manifiesto.p2")}</p>
 
-            <div className="border-l-2 border-[#8B1A1A] pl-6 py-2">
-              <p className="font-serif text-xl text-[#2D1B11] italic">
+            <div className="pl-6 py-2" style={{ borderLeft: '2px solid var(--ciri-brand)' }}>
+              <p className="font-serif text-xl italic" style={{ color: 'var(--ciri-text)' }}>
                 {t("ciriwhispers.manifiesto.pullquote")}
               </p>
             </div>
@@ -67,9 +68,10 @@ export default function ManifiestoPage() {
           {/* Values */}
           <div className="grid md:grid-cols-3 gap-6 pt-8">
             {values.map((item) => (
-              <div key={item.title} className="border border-[#E8DED1] rounded-xl p-5 bg-white">
-                <h3 className="font-serif text-lg text-[#8B1A1A] mb-2">{item.title}</h3>
-                <p className="text-[#8B7355] text-sm leading-relaxed">{item.desc}</p>
+              <div key={item.title} className="rounded-xl p-5"
+                style={{ border: '1px solid var(--ciri-border)', backgroundColor: 'var(--ciri-surface)' }}>
+                <h3 className="font-serif text-lg mb-2" style={{ color: 'var(--ciri-brand)' }}>{item.title}</h3>
+                <p className="text-sm leading-relaxed" style={{ color: 'var(--ciri-text-muted)' }}>{item.desc}</p>
               </div>
             ))}
           </div>
@@ -80,7 +82,8 @@ export default function ManifiestoPage() {
               href="https://www.instagram.com/ciriwhispers/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#8B1A1A] hover:bg-[#6B1414] text-white rounded-full text-sm font-semibold transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 text-white rounded-full text-sm font-semibold transition-colors"
+              style={{ backgroundColor: 'var(--ciri-brand)' }}
             >
               Instagram
             </a>
@@ -88,13 +91,15 @@ export default function ManifiestoPage() {
               href="https://www.amazon.com/stores/Ciriaco-Alejandro-Pichardo-Santana/author/B0DFH93HCJ"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 border border-[#E8DED1] hover:border-[#8B1A1A]/40 text-[#5C3D2E] hover:text-[#8B1A1A] rounded-full text-sm font-semibold transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold transition-colors"
+              style={{ border: '1px solid var(--ciri-border)', color: 'var(--ciri-text-secondary)' }}
             >
               Amazon
             </a>
             <Link
               href="/ciriwhispers/biblioteca"
-              className="inline-flex items-center gap-2 px-6 py-3 border border-[#E8DED1] hover:border-[#8B1A1A]/40 text-[#5C3D2E] hover:text-[#8B1A1A] rounded-full text-sm font-semibold transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold transition-colors"
+              style={{ border: '1px solid var(--ciri-border)', color: 'var(--ciri-text-secondary)' }}
             >
               {t("ciriwhispers.manifiesto.cta.read")}
             </Link>

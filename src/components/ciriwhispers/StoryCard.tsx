@@ -8,17 +8,17 @@ interface StoryCardProps {
   onClick: () => void;
 }
 
-const typeStyles: Record<string, { border: string; badge: string }> = {
-  microcuento: { border: "border-[#8B1A1A]/20", badge: "bg-[#8B1A1A]/10 text-[#8B1A1A]" },
-  fragmento: { border: "border-amber-700/20", badge: "bg-amber-50 text-amber-800" },
-  poema: { border: "border-blue-700/20", badge: "bg-blue-50 text-blue-800" },
-  carta: { border: "border-emerald-700/20", badge: "bg-emerald-50 text-emerald-800" },
-  capitulo: { border: "border-purple-700/20", badge: "bg-purple-50 text-purple-800" },
+const typeAccents: Record<string, string> = {
+  microcuento: "#8B1A1A",
+  fragmento: "#92400E",
+  poema: "#1E40AF",
+  carta: "#065F46",
+  capitulo: "#6B21A8",
 };
 
 export default function StoryCard({ story, onClick }: StoryCardProps) {
   const { t } = useTranslation();
-  const style = typeStyles[story.type] || typeStyles.microcuento;
+  const accent = typeAccents[story.type] || typeAccents.microcuento;
 
   const title = t(`ciriwhispers.story.${story.id}.title`);
   const excerpt = t(`ciriwhispers.story.${story.id}.excerpt`);
@@ -26,25 +26,33 @@ export default function StoryCard({ story, onClick }: StoryCardProps) {
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left bg-white hover:bg-[#FFFDF9] rounded-2xl p-6 border ${style.border} hover:border-[#8B1A1A]/40 transition-all duration-300 group cursor-pointer shadow-sm`}
+      className="w-full text-left rounded-2xl p-6 transition-all duration-300 group cursor-pointer shadow-sm"
+      style={{
+        backgroundColor: 'var(--ciri-surface)',
+        border: '1px solid var(--ciri-border)',
+      }}
     >
       {/* Type badge + read time */}
       <div className="flex items-center justify-between mb-3">
-        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${style.badge}`}>
+        <span
+          className="text-xs px-2.5 py-1 rounded-full font-medium"
+          style={{ backgroundColor: `${accent}15`, color: accent }}
+        >
           {t(`ciriwhispers.storyType.${story.type}`)}
         </span>
-        <span className="text-xs text-[#A89580]">
+        <span className="text-xs" style={{ color: 'var(--ciri-text-faint)' }}>
           {story.readTime} {t("ciriwhispers.biblioteca.min")}
         </span>
       </div>
 
       {/* Title */}
-      <h3 className="font-serif text-xl font-bold text-[#2D1B11] mb-2 group-hover:text-[#8B1A1A] transition-colors">
+      <h3 className="font-serif text-xl font-bold mb-2 group-hover:text-[#8B1A1A] transition-colors"
+        style={{ color: 'var(--ciri-text)' }}>
         {title}
       </h3>
 
       {/* Excerpt */}
-      <p className="text-[#5C3D2E] text-sm leading-relaxed line-clamp-3">
+      <p className="text-sm leading-relaxed line-clamp-3" style={{ color: 'var(--ciri-text-secondary)' }}>
         {excerpt}
       </p>
 
@@ -53,7 +61,8 @@ export default function StoryCard({ story, onClick }: StoryCardProps) {
         {story.tags.slice(0, 3).map((tag) => (
           <span
             key={tag}
-            className="text-[10px] text-[#A89580] border border-[#E8DED1] rounded-full px-2 py-0.5"
+            className="text-[10px] rounded-full px-2 py-0.5"
+            style={{ color: 'var(--ciri-text-faint)', border: '1px solid var(--ciri-border)' }}
           >
             {tag}
           </span>

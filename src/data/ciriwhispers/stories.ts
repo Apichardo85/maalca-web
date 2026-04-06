@@ -196,14 +196,14 @@ export const stories: Story[] = [
 <p>Pero esta carta no es un reclamo. Es una confesion: me gusta que estes ahi. Me gusta que cada manana, cuando abro la ventana, seas lo primero que veo. Verde. Insistente. Viva.</p>
 <p>Eres todo lo que yo no soy en este momento.</p>
 <p>Asi que quédate. Pero no vuelvas a tocar la ventana. Ese es mi limite. Detras de ese cristal esta todo lo que no quiero que veas.</p>
-<p style="text-align:right;font-style:italic;">Con algo parecido al carino,<br/>C.</p>`,
+<p style="text-align:right;font-style:italic;">Con algo parecido al carino,<br/>CiriWhispers</p>`,
       en: `<p>Dear ivy:</p>
 <p>Don't grow on my wall again. I no longer have the strength to tear you out, and every time I try, you take a piece of brick with you. A piece of me.</p>
 <p>I know it's not your fault. Your nature is to cling. Mine is to let myself be covered by things I should have cut away in time.</p>
 <p>But this letter isn't a complaint. It's a confession: I like that you're there. I like that every morning, when I open the window, you're the first thing I see. Green. Insistent. Alive.</p>
 <p>You are everything I am not right now.</p>
 <p>So stay. But don't touch the window again. That's my limit. Behind that glass is everything I don't want you to see.</p>
-<p style="text-align:right;font-style:italic;">With something resembling affection,<br/>C.</p>`,
+<p style="text-align:right;font-style:italic;">With something resembling affection,<br/>CiriWhispers</p>`,
     },
     type: "carta",
     series: "cartas-hiedra",
@@ -224,7 +224,7 @@ export const stories: Story[] = [
 <p>Hoy camine hasta la biblioteca. No habia nadie. Solo yo y el silencio de una ciudad que no me conoce. Pense en ti, hiedra. Pense en que los dos estamos lejos de donde nacimos, aguantando un invierno que no elegimos.</p>
 <p>Pero tu no te quejas. Tu solo esperas.</p>
 <p>Quizas deberia aprender eso de ti.</p>
-<p style="text-align:right;font-style:italic;">Desde el frio,<br/>C.</p>`,
+<p style="text-align:right;font-style:italic;">Desde el frio,<br/>CiriWhispers</p>`,
       en: `<p>Ivy:</p>
 <p>It snowed for the first time today since I arrived in this city. Everything is white, except you. You're still there, dry, brown, clinging to the wall as if you knew spring would come back.</p>
 <p>I'm not so sure.</p>
@@ -232,7 +232,7 @@ export const stories: Story[] = [
 <p>Today I walked to the library. There was no one. Just me and the silence of a city that doesn't know me. I thought of you, ivy. I thought about how we're both far from where we were born, enduring a winter we didn't choose.</p>
 <p>But you don't complain. You just wait.</p>
 <p>Maybe I should learn that from you.</p>
-<p style="text-align:right;font-style:italic;">From the cold,<br/>C.</p>`,
+<p style="text-align:right;font-style:italic;">From the cold,<br/>CiriWhispers</p>`,
     },
     type: "carta",
     series: "cartas-hiedra",

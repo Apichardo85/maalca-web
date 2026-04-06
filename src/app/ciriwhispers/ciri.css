@@ -1,0 +1,40 @@
+/* CiriWhispers Theme — Light mode (default) */
+.ciri-theme {
+  --ciri-bg: #FAF7F2;
+  --ciri-bg-subtle: #F5F0E8;
+  --ciri-surface: #ffffff;
+  --ciri-text: #2D1B11;
+  --ciri-text-secondary: #5C3D2E;
+  --ciri-text-muted: #8B7355;
+  --ciri-text-faint: #A89580;
+  --ciri-brand: #8B1A1A;
+  --ciri-brand-hover: #6B1414;
+  --ciri-border: #E8DED1;
+  --ciri-nav-bg: rgba(255, 255, 255, 0.9);
+  --ciri-footer-bg: #2D1B11;
+  --ciri-footer-text: #E8DED1;
+  --ciri-footer-muted: #8B7355;
+  --ciri-logo-filter: none;
+
+  background-color: var(--ciri-bg);
+  color: var(--ciri-text);
+}
+
+/* CiriWhispers Theme — Dark mode */
+[data-theme="dark"] .ciri-theme {
+  --ciri-bg: #0F0A07;
+  --ciri-bg-subtle: #1A1209;
+  --ciri-surface: #1E160E;
+  --ciri-text: #F5F0E8;
+  --ciri-text-secondary: #D4C4B0;
+  --ciri-text-muted: #A89580;
+  --ciri-text-faint: #7A6A58;
+  --ciri-brand: #C4302B;
+  --ciri-brand-hover: #E04040;
+  --ciri-border: #3D2B1F;
+  --ciri-nav-bg: rgba(15, 10, 7, 0.9);
+  --ciri-footer-bg: #0A0705;
+  --ciri-footer-text: #D4C4B0;
+  --ciri-footer-muted: #7A6A58;
+  --ciri-logo-filter: brightness(0.9);
+}
