@@ -1,7 +1,5 @@
 "use client";
-
 import { Button } from "@/components/ui/buttons";
-
 export interface AffiliateService {
   id: string;
   name: string;
@@ -15,7 +13,6 @@ export interface AffiliateService {
   popular?: boolean;
   image?: string;
 }
-
 interface AffiliateServiceCardProps {
   service: AffiliateService;
   onBook?: (serviceId: string) => void;
@@ -23,7 +20,6 @@ interface AffiliateServiceCardProps {
   index?: number;
   variant?: 'default' | 'medical' | 'barber' | 'design';
 }
-
 export function AffiliateServiceCard({
   service,
   onBook,
@@ -33,21 +29,18 @@ export function AffiliateServiceCard({
 }: AffiliateServiceCardProps) {
   const getText = (es: string, en?: string) =>
     language === 'en' && en ? en : es;
-
   const variantStyles = {
     default: "from-blue-50 to-white border-blue-100 hover:border-blue-300",
     medical: "from-blue-50 to-green-50 border-blue-100 hover:border-green-300",
     barber: "from-blue-50 to-red-50 border-gray-200 hover:border-blue-300",
     design: "from-purple-50 to-pink-50 border-purple-100 hover:border-purple-300"
   };
-
   const buttonStyles = {
     default: "bg-blue-600 hover:bg-blue-700",
     medical: "bg-green-600 hover:bg-green-700",
     barber: "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800",
     design: "bg-purple-600 hover:bg-purple-700"
   };
-
   const renderPrice = () => {
     if (service.priceRange) {
       return (
@@ -61,7 +54,6 @@ export function AffiliateServiceCard({
         </div>
       );
     }
-
     if (service.price) {
       return (
         <div className="text-center">
@@ -71,7 +63,6 @@ export function AffiliateServiceCard({
         </div>
       );
     }
-
     return (
       <div className="text-center">
         <div className="text-lg font-bold text-gray-600">
@@ -80,7 +71,6 @@ export function AffiliateServiceCard({
       </div>
     );
   };
-
   return (
     <div
       className="group cursor-pointer relative hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 animate-fade-in-up"
@@ -94,30 +84,24 @@ export function AffiliateServiceCard({
             </span>
           </div>
         )}
-
         <div className="text-center mb-6 flex-grow">
           {service.icon && (
             <div className="text-5xl md:text-6xl mb-4">{service.icon}</div>
           )}
-
           <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
             {getText(service.name, service.nameEn)}
           </h3>
-
           <p className="text-gray-600 leading-relaxed text-sm md:text-base">
             {getText(service.description, service.descriptionEn)}
           </p>
-
           {service.duration && (
             <div className="mt-3 text-sm text-gray-500">
               ⏱️ {service.duration}
             </div>
           )}
         </div>
-
         <div className="space-y-4">
           {renderPrice()}
-
           {onBook && (
             <Button
               variant="primary"

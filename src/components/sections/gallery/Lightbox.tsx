@@ -1,8 +1,6 @@
 "use client";
-
 import { useEffect, useCallback } from "react";
 import { GalleryItem } from "@/lib/types";
-
 interface LightboxProps {
   item: GalleryItem | null;
   isOpen: boolean;
@@ -12,7 +10,6 @@ interface LightboxProps {
   hasPrevious?: boolean;
   hasNext?: boolean;
 }
-
 export default function Lightbox({
   item,
   isOpen,
@@ -22,10 +19,8 @@ export default function Lightbox({
   hasPrevious = false,
   hasNext = false
 }: LightboxProps) {
-
   const handleKeyPress = useCallback((e: KeyboardEvent) => {
     if (!isOpen) return;
-
     switch (e.key) {
       case "Escape":
         onClose();
@@ -38,26 +33,21 @@ export default function Lightbox({
         break;
     }
   }, [isOpen, onClose, onPrevious, onNext, hasPrevious, hasNext]);
-
   useEffect(() => {
     document.addEventListener("keydown", handleKeyPress);
     return () => document.removeEventListener("keydown", handleKeyPress);
   }, [handleKeyPress]);
-
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
     }
-
     return () => {
       document.body.style.overflow = "unset";
     };
   }, [isOpen]);
-
   if (!item || !isOpen) return null;
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center animate-overlay-in">
       {/* Backdrop */}
@@ -65,7 +55,6 @@ export default function Lightbox({
         className="absolute inset-0 bg-black/90 backdrop-blur-sm"
         onClick={onClose}
       />
-
       {/* Content */}
       <div className="relative max-w-7xl max-h-[90vh] mx-4 flex flex-col animate-fade-in-scale">
         {/* Close Button */}
@@ -77,7 +66,6 @@ export default function Lightbox({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-
         {/* Image */}
         <div className="relative flex items-center justify-center">
           <img
@@ -86,7 +74,6 @@ export default function Lightbox({
             className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl animate-fade-in-scale"
             style={{ animationDelay: '0.1s' }}
           />
-
           {/* Navigation Arrows */}
           {hasPrevious && onPrevious && (
             <button
@@ -98,7 +85,6 @@ export default function Lightbox({
               </svg>
             </button>
           )}
-
           {hasNext && onNext && (
             <button
               onClick={onNext}
@@ -110,7 +96,6 @@ export default function Lightbox({
             </button>
           )}
         </div>
-
         {/* Info Panel */}
         <div
           className="mt-6 bg-white/10 backdrop-blur-sm rounded-xl p-6 text-white max-w-2xl mx-auto animate-fade-in-up"
@@ -120,12 +105,10 @@ export default function Lightbox({
           {item.description && (
             <p className="text-gray-300 mb-4 leading-relaxed">{item.description}</p>
           )}
-
           <div className="flex items-center justify-between text-sm">
             <span className="bg-amber-500/20 text-amber-300 px-3 py-1 rounded-full border border-amber-500/30">
               {item.category.replace("-", " ").replace(/\b\w/g, l => l.toUpperCase())}
             </span>
-
             {item.tags && item.tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {item.tags.slice(0, 3).map((tag) => (
@@ -140,7 +123,6 @@ export default function Lightbox({
             )}
           </div>
         </div>
-
         {/* Navigation Dots */}
         {(hasPrevious || hasNext) && (
           <div

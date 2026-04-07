@@ -1,12 +1,9 @@
 "use client";
-
 import Link from "next/link";
 import { books } from "@/data/ciriwhispers/books";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
-
 export default function ObrasPage() {
   const { t } = useTranslation();
-
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       {/* Header */}
@@ -18,13 +15,11 @@ export default function ObrasPage() {
           {t("ciriwhispers.obras2.desc")}
         </p>
       </div>
-
       {/* Books grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
         {books.map((book, index) => {
           const isAvailable = book.statusKey === "ciriwhispers.works.status.available";
           const statusText = t(book.statusKey);
-
           return (
             <div
               key={book.id}
@@ -47,7 +42,6 @@ export default function ObrasPage() {
     </div>
   );
 }
-
 function BookCard({
   book,
   statusText,
@@ -58,7 +52,6 @@ function BookCard({
   t: (key: string) => string;
 }) {
   const isAvailable = book.statusKey === "ciriwhispers.works.status.available";
-
   return (
     <div className="bg-white rounded-2xl overflow-hidden border border-[#E8DED1] hover:border-[#8B1A1A]/30 transition-all duration-300 shadow-sm">
       {/* Cover */}
@@ -89,7 +82,6 @@ function BookCard({
           </div>
         </div>
       </div>
-
       {/* Info */}
       <div className="p-6">
         <div className="flex items-center justify-between mb-2">

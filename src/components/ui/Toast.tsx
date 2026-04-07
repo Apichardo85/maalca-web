@@ -1,26 +1,21 @@
 "use client";
-
 import type { Toast as ToastType } from '@/hooks/useToast';
-
 interface ToastProps {
   toasts: ToastType[];
   onRemove: (id: string) => void;
 }
-
 const toastIcons = {
   success: '✓',
   error: '✕',
   warning: '⚠',
   info: 'ℹ',
 };
-
 const toastColors = {
   success: 'bg-green-500',
   error: 'bg-red-500',
   warning: 'bg-yellow-500',
   info: 'bg-blue-500',
 };
-
 export function Toast({ toasts, onRemove }: ToastProps) {
   return (
     <div
@@ -41,12 +36,10 @@ export function Toast({ toasts, onRemove }: ToastProps) {
             <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white/20 flex items-center justify-center font-bold">
               {toastIcons[toast.type]}
             </div>
-
             {/* Message */}
             <p className="flex-1 font-medium text-sm leading-tight">
               {toast.message}
             </p>
-
             {/* Close Button */}
             <button
               onClick={() => onRemove(toast.id)}

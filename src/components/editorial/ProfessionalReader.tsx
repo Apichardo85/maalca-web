@@ -1,7 +1,5 @@
 "use client";
-
 import { useState, useEffect } from "react";
-
 interface ProfessionalReaderProps {
   articleId: string;
   title: string;
@@ -9,7 +7,6 @@ interface ProfessionalReaderProps {
   content: string;
   onClose: () => void;
 }
-
 export default function ProfessionalReader({
   articleId,
   title,
@@ -19,23 +16,19 @@ export default function ProfessionalReader({
 }: ProfessionalReaderProps) {
   const [fontSize, setFontSize] = useState<'small' | 'medium' | 'large'>('medium');
   const [isVisible, setIsVisible] = useState(false);
-
   useEffect(() => {
     // Trigger enter animation on mount
     requestAnimationFrame(() => setIsVisible(true));
   }, []);
-
   const handleClose = () => {
     setIsVisible(false);
     setTimeout(onClose, 200);
   };
-
   const fontSizeClasses = {
     small: 'text-sm',
     medium: 'text-base',
     large: 'text-lg'
   };
-
   return (
     <div
       className={`fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-200 ${
@@ -55,7 +48,6 @@ export default function ProfessionalReader({
             <h2 className="text-2xl font-bold text-text-primary mb-1">{title}</h2>
             <p className="text-text-muted">Por {author}</p>
           </div>
-
           {/* Font Size Controls */}
           <div className="flex items-center gap-2 mr-4">
             <span className="text-text-muted text-sm">A</span>
@@ -90,7 +82,6 @@ export default function ProfessionalReader({
               A
             </button>
           </div>
-
           {/* Close Button */}
           <button
             onClick={handleClose}
@@ -100,7 +91,6 @@ export default function ProfessionalReader({
             ×
           </button>
         </div>
-
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
           <div
@@ -108,7 +98,6 @@ export default function ProfessionalReader({
             dangerouslySetInnerHTML={{ __html: content }}
           />
         </div>
-
         {/* Footer */}
         <div className="p-4 border-t border-border bg-surface-elevated flex items-center justify-between">
           <div className="text-sm text-text-muted">

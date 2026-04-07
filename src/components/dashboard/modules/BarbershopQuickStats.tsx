@@ -1,33 +1,27 @@
 "use client";
-
 import Link from "next/link";
 import { useAffiliate } from "@/contexts/AffiliateContext";
-
 /**
  * Quick Stats específico para barberías
  */
 export function BarbershopQuickStats() {
   const { config } = useAffiliate();
-
   const queueStats = {
     waiting: 7,
     averageWaitTime: 35,
     totalToday: 24
   };
-
   const salonStats = {
     totalChairs: 6,
     occupied: 4,
     available: 2,
     occupancyRate: 67
   };
-
   const giftCardStats = {
     active: 8,
     totalValue: 8500,
     expiringSoon: 2
   };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -39,7 +33,6 @@ export function BarbershopQuickStats() {
           <span className="text-sm text-gray-600 dark:text-gray-400">En vivo</span>
         </div>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Queue Card */}
         <div className="animate-fade-in-scale" style={{ animationDelay: '0.1s' }}>
@@ -56,7 +49,6 @@ export function BarbershopQuickStats() {
                   </p>
                 </div>
               </div>
-
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-400">Tiempo medio</span>
@@ -71,7 +63,6 @@ export function BarbershopQuickStats() {
                   </span>
                 </div>
               </div>
-
               <div className="mt-4 pt-4 border-t border-yellow-200 dark:border-yellow-800">
                 <div className="flex items-center justify-between text-yellow-600 dark:text-yellow-400 font-semibold">
                   <span>Ver Fila Completa</span>
@@ -81,7 +72,6 @@ export function BarbershopQuickStats() {
             </div>
           </Link>
         </div>
-
         {/* Salon Card */}
         <div className="animate-fade-in-scale" style={{ animationDelay: '0.2s' }}>
           <Link href={`/dashboard/${config?.id}/salon`}>
@@ -97,7 +87,6 @@ export function BarbershopQuickStats() {
                   </p>
                 </div>
               </div>
-
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-400">Sillas ocupadas</span>
@@ -112,7 +101,6 @@ export function BarbershopQuickStats() {
                   </span>
                 </div>
               </div>
-
               <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800">
                 <div className="flex items-center justify-between text-blue-600 dark:text-blue-400 font-semibold">
                   <span>Ver Salón Virtual</span>
@@ -122,7 +110,6 @@ export function BarbershopQuickStats() {
             </div>
           </Link>
         </div>
-
         {/* Gift Cards Card */}
         <div className="animate-fade-in-scale" style={{ animationDelay: '0.3s' }}>
           <Link href={`/dashboard/${config?.id}/giftcards`}>
@@ -138,7 +125,6 @@ export function BarbershopQuickStats() {
                   </p>
                 </div>
               </div>
-
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-400">Valor total</span>
@@ -153,7 +139,6 @@ export function BarbershopQuickStats() {
                   </span>
                 </div>
               </div>
-
               <div className="mt-4 pt-4 border-t border-purple-200 dark:border-purple-800">
                 <div className="flex items-center justify-between text-purple-600 dark:text-purple-400 font-semibold">
                   <span>Gestionar Gift Cards</span>
@@ -164,7 +149,6 @@ export function BarbershopQuickStats() {
           </Link>
         </div>
       </div>
-
       {/* Quick Actions Bar */}
       <div
         className="bg-white dark:bg-gray-900 rounded-2xl border-2 border-gray-200 dark:border-gray-800 p-6 animate-fade-in-up"

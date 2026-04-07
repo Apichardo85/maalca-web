@@ -1,17 +1,13 @@
 "use client";
-
 import Link from "next/link";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
-
 export default function ManifiestoPage() {
   const { t } = useTranslation();
-
   const values = [
     { title: t("ciriwhispers.manifiesto.value1.title"), desc: t("ciriwhispers.manifiesto.value1.desc") },
     { title: t("ciriwhispers.manifiesto.value2.title"), desc: t("ciriwhispers.manifiesto.value2.desc") },
     { title: t("ciriwhispers.manifiesto.value3.title"), desc: t("ciriwhispers.manifiesto.value3.desc") },
   ];
-
   return (
     <div className="min-h-screen">
       {/* Hero quote */}
@@ -27,7 +23,6 @@ export default function ManifiestoPage() {
           <div className="w-16 h-0.5 mx-auto" style={{ backgroundColor: 'var(--ciri-brand)' }} />
         </div>
       </section>
-
       {/* About */}
       <section className="max-w-3xl mx-auto px-4 py-16">
         <div className="space-y-8">
@@ -49,22 +44,18 @@ export default function ManifiestoPage() {
               </p>
             </div>
           </div>
-
           {/* Manifesto body */}
           <div className="space-y-6 leading-relaxed" style={{ color: 'var(--ciri-text-secondary)' }}>
             <p>{t("ciriwhispers.manifiesto.p1")}</p>
             <p>{t("ciriwhispers.manifiesto.p2")}</p>
-
             <div className="pl-6 py-2" style={{ borderLeft: '2px solid var(--ciri-brand)' }}>
               <p className="font-serif text-xl italic" style={{ color: 'var(--ciri-text)' }}>
                 {t("ciriwhispers.manifiesto.pullquote")}
               </p>
             </div>
-
             <p>{t("ciriwhispers.manifiesto.p3")}</p>
             <p>{t("ciriwhispers.manifiesto.p4")}</p>
           </div>
-
           {/* Values */}
           <div className="grid md:grid-cols-3 gap-6 pt-8">
             {values.map((item) => (
@@ -75,7 +66,6 @@ export default function ManifiestoPage() {
               </div>
             ))}
           </div>
-
           {/* Links */}
           <div className="flex flex-wrap gap-4 pt-8">
             <a

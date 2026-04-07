@@ -1,17 +1,13 @@
 "use client";
-
 import { useState } from "react";
 import { useLanguage } from "@/hooks/useLanguage";
-
 interface FirstChapterProps {
   title: string;
   content: string;
 }
-
 export default function FirstChapter({ title, content }: FirstChapterProps) {
   const [open, setOpen] = useState(false);
   const { t } = useLanguage();
-
   return (
     <>
       <button
@@ -20,7 +16,6 @@ export default function FirstChapter({ title, content }: FirstChapterProps) {
       >
         {t('works.readChapter')}
       </button>
-
       {open && (
         <div
           className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 animate-overlay-in"
@@ -41,7 +36,6 @@ export default function FirstChapter({ title, content }: FirstChapterProps) {
                 ✕
               </button>
             </div>
-
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-6">
               <div className="prose prose-lg prose-invert max-w-none">
@@ -50,7 +44,6 @@ export default function FirstChapter({ title, content }: FirstChapterProps) {
                 </div>
               </div>
             </div>
-
             {/* Footer */}
             <div className="border-t border-red-800/20 p-6 bg-slate-800/50">
               <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">

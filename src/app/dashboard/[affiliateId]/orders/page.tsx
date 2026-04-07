@@ -1,13 +1,9 @@
 "use client";
-
 import { useState } from "react";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { DashboardCard, StatCard } from "@/components/dashboard/DashboardCard";
-
 // ─── Types & mock data ───────────────────────────────────────────────────────
-
 type TableStatus = "occupied" | "attention" | "bill" | "available" | "cleaning";
-
 interface TableEntry {
   id: string;
   status: TableStatus;
@@ -18,7 +14,6 @@ interface TableEntry {
   order?: string;
   vip?: boolean;
 }
-
 const TABLES: TableEntry[] = [
   { id: "T-01", status: "occupied", party: 4, server: "Marisol", duration: "0h 42m", ticket: 112.0, order: "Pernil + Sancocho + 2x Morir Sonando" },
   { id: "T-02", status: "available" },
@@ -33,7 +28,6 @@ const TABLES: TableEntry[] = [
   { id: "T-11", status: "cleaning" },
   { id: "T-12", status: "occupied", party: 2, server: "Carlos", duration: "0h 12m", ticket: 48.0, order: "Yaniqueques + Tres Leches + 2 bebidas" },
 ];
-
 const STATUS_CONFIG: Record<TableStatus, { label: string; color: string; bg: string; dot: string }> = {
   occupied:  { label: "Ocupada",   color: "text-gray-900 dark:text-white",   bg: "bg-gray-100 dark:bg-gray-800",      dot: "bg-gray-900 dark:bg-white" },
   attention: { label: "Atencion",  color: "text-amber-700 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-950/30", dot: "bg-amber-500" },
@@ -41,20 +35,15 @@ const STATUS_CONFIG: Record<TableStatus, { label: string; color: string; bg: str
   available: { label: "Libre",     color: "text-green-700 dark:text-green-400", bg: "bg-green-50 dark:bg-green-950/30", dot: "bg-green-500" },
   cleaning:  { label: "Limpieza",  color: "text-gray-500",                      bg: "bg-gray-50 dark:bg-gray-800/50",   dot: "bg-gray-400" },
 };
-
 // ─── Page ────────────────────────────────────────────────────────────────────
-
 export default function LiveOrders() {
   const { config } = useAffiliate();
   const currency = config?.settings.currency === "DOP" ? "RD$" : "$";
   const [selected, setSelected] = useState<string | null>("T-05");
-
   const selectedTable = TABLES.find((t) => t.id === selected);
-
   const counts = Object.fromEntries(
     Object.keys(STATUS_CONFIG).map((s) => [s, TABLES.filter((t) => t.status === s).length])
   ) as Record<TableStatus, number>;
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -74,7 +63,6 @@ export default function LiveOrders() {
           </span>
         </div>
       </div>
-
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <StatCard label="Ventas del Turno" value={`${currency}634.25`} icon="💰" />
@@ -83,7 +71,6 @@ export default function LiveOrders() {
         <StatCard label="Ord. Completadas" value={14} icon="✅" />
         <StatCard label="Tiempo Prom." value="52 min" icon="⏱️" />
       </div>
-
       {/* Legend pills */}
       <div className="flex flex-wrap gap-2">
         {(Object.entries(STATUS_CONFIG) as [TableStatus, typeof STATUS_CONFIG[TableStatus]][]).map(([status, cfg]) => (
@@ -97,7 +84,6 @@ export default function LiveOrders() {
           </div>
         ))}
       </div>
-
       {/* Main grid */}
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 items-start">
         {/* Table grid */}
@@ -125,11 +111,9 @@ export default function LiveOrders() {
                     <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />
                   </div>
                 </div>
-
                 <p className={`text-[10px] font-bold tracking-wider uppercase mb-1 ${cfg.color}`}>
                   {cfg.label}
                 </p>
-
                 {table.party && (
                   <div className="text-xs text-gray-500 dark:text-gray-400 space-y-0.5">
                     <span className="block">👥 {table.party} personas</span>
@@ -142,7 +126,6 @@ export default function LiveOrders() {
                     )}
                   </div>
                 )}
-
                 {table.status === "available" && (
                   <p className="text-xs text-green-600 font-semibold">Lista para recibir</p>
                 )}
@@ -153,7 +136,6 @@ export default function LiveOrders() {
             );
           })}
         </div>
-
         {/* Right panel — selected table detail */}
         <div className="space-y-4">
           {selectedTable ? (
@@ -195,7 +177,6 @@ export default function LiveOrders() {
                       <p className="text-sm text-gray-700 dark:text-gray-300">{selectedTable.order}</p>
                     </div>
                   )}
-
                   {/* Action buttons */}
                   {(selectedTable.status === "occupied" || selectedTable.status === "attention") && (
                     <div className="space-y-2 pt-2">
@@ -222,7 +203,6 @@ export default function LiveOrders() {
                   )}
                 </div>
               </DashboardCard>
-
               {/* Attention alerts */}
               {TABLES.filter((t) => t.status === "attention").length > 0 && (
                 <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">

@@ -1,64 +1,1 @@
-'use client'
-
-export default function ReservationForm({ phone }: { phone: string }) {
-  return (
-    <form style={{ display:'flex', flexDirection:'column', gap:'1rem' }}
-      onSubmit={e => e.preventDefault()}>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[10px]">
-        <FormField label="Nombre"   placeholder="Tu nombre"      type="text" />
-        <FormField label="Teléfono" placeholder="(845) 000-0000" type="tel"  />
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[10px]">
-        <FormField label="Fecha" type="date" />
-        <FormField label="Hora"  type="time" />
-      </div>
-
-      <div>
-        <Label>Personas</Label>
-        <select className="tld-inp" style={{ cursor:'pointer' }}>
-          {[1,2,3,4,5,6,7,8].map(n => (
-            <option key={n} value={n}>{n} {n === 1 ? 'persona' : 'personas'}</option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <Label>Nota especial (opcional)</Label>
-        <textarea
-          className="tld-inp"
-          rows={2}
-          placeholder="Alergias, celebración, mesa afuera..."
-          style={{ resize:'none' }}
-        />
-      </div>
-
-      <button type="submit" className="btn-p" style={{ justifyContent:'center', marginTop:'.25rem' }}>
-        Confirmar Reservación
-      </button>
-
-      <p style={{ textAlign:'center', fontSize:'.75rem', color:'var(--tl)' }}>
-        O llámanos al{' '}
-        <a href={`tel:${phone.replace(/\D/g,'')}`}
-          style={{ color:'var(--p)', fontWeight:600, textDecoration:'none' }}>
-          {phone}
-        </a>
-      </p>
-    </form>
-  )
-}
-
-function FormField({ label, placeholder, type }: { label: string; placeholder?: string; type: string }) {
-  return (
-    <div>
-      <Label>{label}</Label>
-      <input type={type} placeholder={placeholder} className="tld-inp" />
-    </div>
-  )
-}
-
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="tld-label" style={{ marginBottom:'6px' }}>{children}</div>
-  )
-}
+'use client'export default function ReservationForm({ phone }: { phone: string }) {  return (    <form style={{ display:'flex', flexDirection:'column', gap:'1rem' }}      onSubmit={e => e.preventDefault()}>      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[10px]">        <FormField label="Nombre"   placeholder="Tu nombre"      type="text" />        <FormField label="Teléfono" placeholder="(845) 000-0000" type="tel"  />      </div>      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[10px]">        <FormField label="Fecha" type="date" />        <FormField label="Hora"  type="time" />      </div>      <div>        <Label>Personas</Label>        <select className="tld-inp" style={{ cursor:'pointer' }}>          {[1,2,3,4,5,6,7,8].map(n => (            <option key={n} value={n}>{n} {n === 1 ? 'persona' : 'personas'}</option>          ))}        </select>      </div>      <div>        <Label>Nota especial (opcional)</Label>        <textarea          className="tld-inp"          rows={2}          placeholder="Alergias, celebración, mesa afuera..."          style={{ resize:'none' }}        />      </div>      <button type="submit" className="btn-p" style={{ justifyContent:'center', marginTop:'.25rem' }}>        Confirmar Reservación      </button>      <p style={{ textAlign:'center', fontSize:'.75rem', color:'var(--tl)' }}>        O llámanos al{' '}        <a href={`tel:${phone.replace(/\D/g,'')}`}          style={{ color:'var(--p)', fontWeight:600, textDecoration:'none' }}>          {phone}        </a>      </p>    </form>  )}function FormField({ label, placeholder, type }: { label: string; placeholder?: string; type: string }) {  return (    <div>      <Label>{label}</Label>      <input type={type} placeholder={placeholder} className="tld-inp" />    </div>  )}function Label({ children }: { children: React.ReactNode }) {  return (    <div className="tld-label" style={{ marginBottom:'6px' }}>{children}</div>  )}

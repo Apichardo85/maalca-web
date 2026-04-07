@@ -1,6 +1,5 @@
 import { Button } from "./buttons";
 import PropertyGallery from "./PropertyGallery";
-
 interface Property {
   id: string;
   name: string;
@@ -17,7 +16,6 @@ interface Property {
   status: string;
   featured: boolean;
 }
-
 interface PropertyDetailModalProps {
   property: Property | null;
   isOpen: boolean;
@@ -25,7 +23,6 @@ interface PropertyDetailModalProps {
   onScheduleCall: () => void;
   t: (key: string) => string;
 }
-
 export default function PropertyDetailModal({
   property,
   isOpen,
@@ -34,7 +31,6 @@ export default function PropertyDetailModal({
   t
 }: PropertyDetailModalProps) {
   if (!property || !isOpen) return null;
-
   return (
     <>
       {/* Overlay */}
@@ -42,7 +38,6 @@ export default function PropertyDetailModal({
         onClick={onClose}
         className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 animate-overlay-in"
       />
-
       {/* Modal */}
       <div
         className="fixed inset-4 md:inset-8 lg:inset-16 z-50 overflow-hidden animate-slide-in-up"
@@ -77,7 +72,6 @@ export default function PropertyDetailModal({
               </svg>
             </button>
           </div>
-
           {/* Scrollable Content */}
           <div className="flex-1 overflow-y-auto p-6">
             <div className="max-w-6xl mx-auto space-y-8">
@@ -89,7 +83,6 @@ export default function PropertyDetailModal({
                   className="w-full h-full"
                 />
               </div>
-
               {/* Price and Status */}
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
@@ -110,7 +103,6 @@ export default function PropertyDetailModal({
                   </span>
                 </div>
               </div>
-
               {/* Key Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-slate-50 rounded-xl p-4 text-center">
@@ -142,7 +134,6 @@ export default function PropertyDetailModal({
                   <div className="text-sm text-slate-600 mt-1">Lot Size</div>
                 </div>
               </div>
-
               {/* Description */}
               <div>
                 <h3 className="text-2xl font-semibold text-slate-900 mb-4">
@@ -152,7 +143,6 @@ export default function PropertyDetailModal({
                   {property.description}
                 </p>
               </div>
-
               {/* Amenities */}
               <div>
                 <h3 className="text-2xl font-semibold text-slate-900 mb-4">
@@ -180,7 +170,6 @@ export default function PropertyDetailModal({
                   ))}
                 </div>
               </div>
-
               {/* Investment Highlights */}
               <div className="bg-blue-50 rounded-2xl p-6">
                 <h3 className="text-2xl font-semibold text-blue-900 mb-4">
@@ -209,7 +198,6 @@ export default function PropertyDetailModal({
               </div>
             </div>
           </div>
-
           {/* Footer - Sticky CTAs */}
           <div className="border-t border-slate-200 p-6 bg-white">
             <div className="max-w-6xl mx-auto flex gap-4 flex-col sm:flex-row">

@@ -1,5 +1,4 @@
 "use client";
-
 interface HeroSectionProps {
   title: string;
   subtitle?: string;
@@ -9,7 +8,6 @@ interface HeroSectionProps {
   ctaAction?: () => void;
   variant?: "primary" | "secondary" | "accent" | "warm" | "gold";
 }
-
 export default function HeroSection({
   title,
   subtitle,
@@ -26,7 +24,6 @@ export default function HeroSection({
     warm: "bg-[image:var(--gradient-warm)]",
     gold: "bg-[image:var(--gradient-gold)]"
   };
-
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background */}
@@ -41,7 +38,6 @@ export default function HeroSection({
         )}
         <div className="absolute inset-0 bg-black/30" />
       </div>
-
       {/* Content */}
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
         <div className="animate-fade-in-up">
@@ -53,14 +49,12 @@ export default function HeroSection({
               {subtitle}
             </p>
           )}
-
           <h1
             className="font-display text-4xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight animate-fade-in-up"
             style={{ animationDelay: '0.3s' }}
           >
             {title}
           </h1>
-
           {description && (
             <p
               className="text-lg sm:text-xl font-light mb-8 max-w-3xl mx-auto leading-relaxed opacity-90 animate-fade-in-up"
@@ -69,7 +63,6 @@ export default function HeroSection({
               {description}
             </p>
           )}
-
           {ctaText && ctaAction && (
             <button
               onClick={ctaAction}
@@ -84,7 +77,6 @@ export default function HeroSection({
           )}
         </div>
       </div>
-
       {/* Scroll indicator */}
       <div
         className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-fade-in"

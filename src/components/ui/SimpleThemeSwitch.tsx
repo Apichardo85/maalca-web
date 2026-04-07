@@ -1,29 +1,22 @@
 "use client";
-
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-
 export function SimpleThemeSwitch() {
   const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-
   // Avoid hydration mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
-
   if (!mounted) {
     return (
       <div className="p-2 rounded-full w-9 h-9 bg-gray-200 animate-pulse" />
     );
   }
-
   const isDark = resolvedTheme === "dark";
-
   const toggleTheme = () => {
     setTheme(isDark ? "light" : "dark");
   };
-
   return (
     <button
       onClick={toggleTheme}

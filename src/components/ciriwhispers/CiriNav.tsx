@@ -1,14 +1,11 @@
 "use client";
-
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
-
 export default function CiriNav() {
   const pathname = usePathname();
   const { t } = useTranslation();
-
   const navItems = [
     { href: "/ciriwhispers", label: t("ciriwhispers.nav2.inicio") },
     { href: "/ciriwhispers/biblioteca", label: t("ciriwhispers.nav2.biblioteca") },
@@ -16,7 +13,6 @@ export default function CiriNav() {
     { href: "/ciriwhispers/manifiesto", label: t("ciriwhispers.nav2.manifiesto") },
     { href: "/ciriwhispers/contacto", label: t("ciriwhispers.nav2.contacto") },
   ];
-
   return (
     <nav className="sticky top-0 z-50 backdrop-blur-sm border-b"
       style={{ backgroundColor: 'var(--ciri-nav-bg)', borderColor: 'var(--ciri-border)' }}>
@@ -29,7 +25,6 @@ export default function CiriNav() {
           >
             CiriWhispers
           </Link>
-
           <div className="hidden md:flex items-center space-x-4">
             <div className="flex space-x-6">
               {navItems.map((item) => (
@@ -48,13 +43,11 @@ export default function CiriNav() {
             </div>
             <LanguageToggle />
           </div>
-
           {/* Mobile */}
           <div className="md:hidden flex items-center space-x-2">
             <LanguageToggle />
           </div>
         </div>
-
         {/* Mobile nav links */}
         <div className="md:hidden flex overflow-x-auto space-x-4 pb-3 -mt-1 scrollbar-hide">
           {navItems.map((item) => (

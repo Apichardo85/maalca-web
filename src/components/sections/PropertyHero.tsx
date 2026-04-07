@@ -1,9 +1,7 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/buttons";
 import { PropertyFilter, PropertyType, FilterOption, PriceRange } from "@/lib/types";
-
 interface PropertyHeroProps {
   title?: string;
   subtitle?: string;
@@ -11,7 +9,6 @@ interface PropertyHeroProps {
   initialPropertyCount?: number;
   onFilterChange?: (filters: PropertyFilter) => void;
 }
-
 const propertyTypes: FilterOption[] = [
   { value: "", label: "Todos los tipos", count: 245 },
   { value: "casa", label: "Casas", count: 89 },
@@ -19,7 +16,6 @@ const propertyTypes: FilterOption[] = [
   { value: "oficina", label: "Oficinas", count: 28 },
   { value: "local", label: "Locales", count: 16 }
 ];
-
 const priceRanges: PriceRange[] = [
   { min: 0, max: 0, label: "Cualquier precio" },
   { min: 50000000, max: 100000000, label: "$50M - $100M" },
@@ -27,7 +23,6 @@ const priceRanges: PriceRange[] = [
   { min: 200000000, max: 300000000, label: "$200M - $300M" },
   { min: 300000000, max: 0, label: "Más de $300M" }
 ];
-
 const locations: FilterOption[] = [
   { value: "", label: "Todas las ubicaciones" },
   { value: "providencia", label: "Providencia", count: 45 },
@@ -36,7 +31,6 @@ const locations: FilterOption[] = [
   { value: "vitacura", label: "Vitacura", count: 28 },
   { value: "nunoa", label: "Ñuñoa", count: 41 }
 ];
-
 export default function PropertyHero({
   title = "Encuentra Tu Propiedad Ideal",
   subtitle = "MaalCa Properties",
@@ -50,45 +44,36 @@ export default function PropertyHero({
     maxPrice: 0,
     location: ""
   });
-
   const [propertyCount, setPropertyCount] = useState(0);
   const [selectedPriceRange, setSelectedPriceRange] = useState(0);
-
   // Animated counter effect
   useEffect(() => {
     const startCount = propertyCount;
     let endCount = initialPropertyCount;
-
     if (filters.type || filters.location || filters.minPrice > 0) {
       endCount = Math.floor(initialPropertyCount * (0.3 + Math.random() * 0.4));
     }
-
     const duration = 1000;
     const steps = 30;
     const increment = (endCount - startCount) / steps;
-
     let currentStep = 0;
     const timer = setInterval(() => {
       currentStep++;
       const currentCount = Math.floor(startCount + (increment * currentStep));
       setPropertyCount(currentCount);
-
       if (currentStep >= steps) {
         setPropertyCount(endCount);
         clearInterval(timer);
       }
     }, duration / steps);
-
     return () => clearInterval(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, initialPropertyCount]);
-
   const handleFilterChange = (newFilters: Partial<PropertyFilter>) => {
     const updatedFilters = { ...filters, ...newFilters };
     setFilters(updatedFilters);
     onFilterChange?.(updatedFilters);
   };
-
   const handlePriceRangeChange = (rangeIndex: number) => {
     setSelectedPriceRange(rangeIndex);
     const range = priceRanges[rangeIndex];
@@ -97,7 +82,6 @@ export default function PropertyHero({
       maxPrice: range.max
     });
   };
-
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background */}
@@ -108,7 +92,6 @@ export default function PropertyHero({
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60" />
       </div>
-
       {/* Content */}
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
@@ -119,14 +102,12 @@ export default function PropertyHero({
           >
             {subtitle}
           </p>
-
           <h1
             className="font-display text-4xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight animate-fade-in-up"
             style={{ animationDelay: '0.3s' }}
           >
             {title}
           </h1>
-
           {/* Property Counter */}
           <div
             className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-6 py-3 animate-fade-in-scale"
@@ -138,7 +119,6 @@ export default function PropertyHero({
             <span className="text-white/80 text-lg">propiedades disponibles</span>
           </div>
         </div>
-
         {/* Filter Panel */}
         <div
           className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-6 lg:p-8 shadow-2xl animate-fade-in-up"
@@ -165,7 +145,6 @@ export default function PropertyHero({
                 ))}
               </select>
             </div>
-
             {/* Price Range */}
             <div
               className="space-y-3 animate-fade-in-left"
@@ -186,7 +165,6 @@ export default function PropertyHero({
                 ))}
               </select>
             </div>
-
             {/* Location */}
             <div
               className="space-y-3 animate-fade-in-left"
@@ -207,7 +185,6 @@ export default function PropertyHero({
                 ))}
               </select>
             </div>
-
             {/* Search Button */}
             <div
               className="flex items-end animate-fade-in-left"
@@ -222,7 +199,6 @@ export default function PropertyHero({
               </Button>
             </div>
           </div>
-
           {/* Quick Filters */}
           <div
             className="mt-6 pt-6 border-t border-white/20 animate-fade-in-up"
@@ -247,7 +223,6 @@ export default function PropertyHero({
             </div>
           </div>
         </div>
-
         {/* Scroll Indicator */}
         <div
           className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-fade-in"

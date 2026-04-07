@@ -1,12 +1,9 @@
 "use client";
-
 import Link from "next/link";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
 import NewsletterSignup from "@/components/ui/NewsletterSignup";
-
 export default function CiriFooter() {
   const { t } = useTranslation();
-
   return (
     <footer style={{ backgroundColor: 'var(--ciri-footer-bg)', color: 'var(--ciri-footer-text)' }}>
       {/* Newsletter */}
@@ -21,7 +18,6 @@ export default function CiriFooter() {
         </div>
         <NewsletterSignup source="ciriwhispers" className="max-w-md mx-auto" />
       </div>
-
       {/* Links + Credits */}
       <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
         <div className="max-w-6xl mx-auto px-4 py-8">
@@ -40,7 +36,6 @@ export default function CiriFooter() {
                 </Link>
               </div>
             </div>
-
             <div>
               <h4 className="font-serif text-lg font-bold mb-3" style={{ color: 'var(--ciri-brand)' }}>{t("ciriwhispers.footer.connect")}</h4>
               <div className="space-y-2">
@@ -52,7 +47,6 @@ export default function CiriFooter() {
                 </a>
               </div>
             </div>
-
             <div>
               <h4 className="font-serif text-lg font-bold mb-3" style={{ color: 'var(--ciri-brand)' }}>{t("ciriwhispers.footer.ecosystem")}</h4>
               <div className="space-y-2">
@@ -65,7 +59,6 @@ export default function CiriFooter() {
               </div>
             </div>
           </div>
-
           <div className="text-center pt-6" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
             <p className="font-serif italic text-sm" style={{ color: 'var(--ciri-footer-muted)' }}>
               &ldquo;{t("ciriwhispers.footer.quote")}&rdquo;

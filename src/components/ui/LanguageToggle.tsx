@@ -1,10 +1,7 @@
 "use client";
-
 import { useSimpleLanguage } from "@/hooks/useSimpleLanguage";
-
 export function LanguageToggle() {
   const { language, setLanguage } = useSimpleLanguage();
-
   return (
     <button
       onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}

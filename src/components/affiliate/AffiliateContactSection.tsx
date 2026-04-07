@@ -1,8 +1,6 @@
 "use client";
-
 import { Button } from "@/components/ui/buttons";
 import WhatsAppIntegration from "@/components/ui/WhatsAppIntegration";
-
 export interface ContactInfo {
   name: string;
   phone: string;
@@ -27,14 +25,12 @@ export interface ContactInfo {
     twitter?: string;
   };
 }
-
 interface AffiliateContactSectionProps {
   contactInfo: ContactInfo;
   language?: 'es' | 'en';
   showForm?: boolean;
   variant?: 'default' | 'medical' | 'barber' | 'design';
 }
-
 export function AffiliateContactSection({
   contactInfo,
   language = 'es',
@@ -42,16 +38,13 @@ export function AffiliateContactSection({
   variant = 'default'
 }: AffiliateContactSectionProps) {
   const getText = (es: string, en: string) => language === 'en' ? en : es;
-
   const variantColors = {
     default: { primary: 'blue-600', hover: 'blue-700' },
     medical: { primary: 'green-600', hover: 'green-700' },
     barber: { primary: 'red-600', hover: 'red-700' },
     design: { primary: 'purple-600', hover: 'purple-700' }
   };
-
   const colors = variantColors[variant];
-
   return (
     <section id="contacto" className="py-16 md:py-24 bg-white">
       <div className="max-w-6xl mx-auto px-4">
@@ -64,7 +57,6 @@ export function AffiliateContactSection({
             {getText('Estamos aquí para ti', 'We\'re here for you')}
           </p>
         </div>
-
         <div className="grid md:grid-cols-2 gap-12 md:gap-16">
           {/* Contact Info */}
           <div className="space-y-8 animate-fade-in-left">
@@ -83,7 +75,6 @@ export function AffiliateContactSection({
                 </p>
               </div>
             </div>
-
             {/* Phone */}
             <div className="flex items-start gap-4">
               <div className={`w-12 h-12 bg-gradient-to-r from-${colors.primary} to-${colors.hover} rounded-full flex items-center justify-center text-white text-xl flex-shrink-0`}>
@@ -100,7 +91,6 @@ export function AffiliateContactSection({
                 </p>
               </div>
             </div>
-
             {/* Email */}
             <div className="flex items-start gap-4">
               <div className={`w-12 h-12 bg-gradient-to-r from-${colors.primary} to-${colors.hover} rounded-full flex items-center justify-center text-white text-xl flex-shrink-0`}>
@@ -117,7 +107,6 @@ export function AffiliateContactSection({
                 </p>
               </div>
             </div>
-
             {/* Hours */}
             {contactInfo.hours && (
               <div className="flex items-start gap-4">
@@ -136,7 +125,6 @@ export function AffiliateContactSection({
                 </div>
               </div>
             )}
-
             {/* Social Media */}
             {contactInfo.socialMedia && (
               <div className="pt-8 border-t">
@@ -177,7 +165,6 @@ export function AffiliateContactSection({
                 </div>
               </div>
             )}
-
             {/* WhatsApp Integration */}
             {contactInfo.whatsapp && (
               <div className="pt-4">
@@ -192,7 +179,6 @@ export function AffiliateContactSection({
               </div>
             )}
           </div>
-
           {/* Contact Form */}
           {showForm && (
             <div className="animate-fade-in-right">
@@ -211,21 +197,18 @@ export function AffiliateContactSection({
                     required
                   />
                 </div>
-
                 <input
                   type="email"
                   placeholder="Email"
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
-
                 <textarea
                   placeholder={getText('Mensaje', 'Message')}
                   rows={5}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
                   required
                 />
-
                 <Button
                   type="submit"
                   variant="primary"

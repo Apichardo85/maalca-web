@@ -1,12 +1,10 @@
 "use client";
-
 import { useState } from "react";
 import { Button } from "@/components/ui/buttons";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
 import ProfessionalReader from "@/components/editorial/ProfessionalReader";
 import { editorialArticles } from "@/data/editorialContent";
-
 // Article metadata (translation keys will be used for title/excerpt)
 const articlesData = [
   {
@@ -64,7 +62,6 @@ const articlesData = [
     tags: ["Arte", "Digital", "Resistencia"]
   }
 ];
-
 // Book metadata (translation keys will be used)
 const booksData = [
   {
@@ -86,10 +83,8 @@ const booksData = [
     statusType: "development"
   }
 ];
-
 // Category keys
 const categoryKeys = ["all", "philosophy", "technology", "business", "culture", "society", "art"];
-
 export default function EditorialPage() {
   const { t, language } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -98,7 +93,6 @@ export default function EditorialPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const { trackArticleClick } = useAnalytics('editorial');
-
   // Transform articles data with translations
   const articles = articlesData.map(article => ({
     ...article,
@@ -107,14 +101,11 @@ export default function EditorialPage() {
     category: t(`editorial.category.${article.categoryKey}`),
     author: t('editorial.author')
   }));
-
   // Filter articles
   const filteredArticles = selectedCategory === "all"
     ? articles
     : articles.filter(article => article.categoryKey === selectedCategory);
-
   const featuredArticles = articles.filter(article => article.featured);
-
   // Transform books data with translations
   const books = booksData.map(book => ({
     ...book,
@@ -122,25 +113,20 @@ export default function EditorialPage() {
     description: t(`editorial.book.${book.key}.description`),
     status: t(`editorial.book.${book.key}.status`)
   }));
-
   const getArticleContent = (articleId: string) => {
     return editorialArticles[articleId as keyof typeof editorialArticles] || t('editorial.contentNotAvailable');
   };
-
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setMessage('');
-
     try {
       const response = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
       });
-
       const data = await response.json();
-
       if (response.ok) {
         setMessage(t('editorial.newsletter.success'));
         setEmail('');
@@ -153,7 +139,6 @@ export default function EditorialPage() {
       setIsSubmitting(false);
     }
   };
-
   return (
     <main className="min-h-screen bg-background text-white pt-20">
       {/* Hero Section */}
@@ -172,7 +157,6 @@ export default function EditorialPage() {
           </div>
         </div>
       </section>
-
       {/* Featured Articles */}
       <section className="py-16 md:py-24 bg-surface-elevated">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -181,7 +165,6 @@ export default function EditorialPage() {
               {t('editorial.featured.title')}
             </h2>
           </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {featuredArticles.map((article, index) => (
               <article
@@ -198,7 +181,6 @@ export default function EditorialPage() {
                   <div className="aspect-[16/9] bg-gradient-to-br from-brand-primary/10 to-surface-elevated flex items-center justify-center">
                     <div className="text-6xl opacity-30">📖</div>
                   </div>
-
                   {/* Content */}
                   <div className="p-8">
                     {/* Category and Meta */}
@@ -208,17 +190,14 @@ export default function EditorialPage() {
                       </span>
                       <span className="text-sm text-gray-400">{article.readTime} {t('editorial.readTime')}</span>
                     </div>
-
                     {/* Title */}
                     <h3 className="text-2xl font-bold text-text-primary mb-4 group-hover:text-brand-primary-hover transition-colors leading-tight">
                       {article.title}
                     </h3>
-
                     {/* Excerpt */}
                     <p className="text-text-secondary leading-relaxed mb-6">
                       {article.excerpt}
                     </p>
-
                     {/* Meta Info */}
                     <div className="flex items-center justify-between text-sm text-gray-400">
                       <span>{article.author}</span>
@@ -237,7 +216,6 @@ export default function EditorialPage() {
           </div>
         </div>
       </section>
-
       {/* All Articles */}
       <section className="py-16 md:py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -246,7 +224,6 @@ export default function EditorialPage() {
             <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-8">
               {t('editorial.all.title')}
             </h2>
-
             {/* Category Filter */}
             <div className="flex flex-wrap gap-2">
               {categoryKeys.map((categoryKey) => (
@@ -264,7 +241,6 @@ export default function EditorialPage() {
               ))}
             </div>
           </div>
-
           {/* Articles Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredArticles.map((article, index) => (
@@ -284,17 +260,14 @@ export default function EditorialPage() {
                       {article.category}
                     </span>
                   </div>
-
                   {/* Title */}
                   <h3 className="text-lg font-bold text-text-primary mb-3 group-hover:text-brand-primary-hover transition-colors leading-tight">
                     {article.title}
                   </h3>
-
                   {/* Excerpt */}
                   <p className="text-text-secondary text-sm leading-relaxed mb-4">
                     {article.excerpt.slice(0, 120)}...
                   </p>
-
                   {/* Tags */}
                   <div className="flex flex-wrap gap-2 mb-4">
                     {article.tags.slice(0, 2).map((tag) => (
@@ -306,7 +279,6 @@ export default function EditorialPage() {
                       </span>
                     ))}
                   </div>
-
                   {/* Meta */}
                   <div className="flex items-center justify-between text-xs text-gray-400 pt-3 border-t border-border">
                     <span>{article.readTime} {t('editorial.readTime')}</span>
@@ -320,7 +292,6 @@ export default function EditorialPage() {
           </div>
         </div>
       </section>
-
       {/* Books Section */}
       <section className="py-16 md:py-24 bg-surface-elevated">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -334,7 +305,6 @@ export default function EditorialPage() {
               {t('editorial.books.description')}
             </p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {books.map((book, index) => (
               <div
@@ -345,17 +315,14 @@ export default function EditorialPage() {
                 <div className="bg-surface rounded-2xl p-8 text-center border border-border hover:border-brand-primary transition-all duration-300 shadow-sm hover:shadow-xl h-full">
                   {/* Book Cover */}
                   <div className="text-6xl mb-6">{book.cover}</div>
-
                   {/* Title */}
                   <h3 className="text-xl font-bold text-text-primary mb-4">
                     {book.title}
                   </h3>
-
                   {/* Description */}
                   <p className="text-text-secondary leading-relaxed mb-6">
                     {book.description}
                   </p>
-
                   {/* Status */}
                   <div className="mb-6">
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
@@ -368,7 +335,6 @@ export default function EditorialPage() {
                       {book.status}
                     </span>
                   </div>
-
                   {/* CTA */}
                   <Button
                     variant={book.statusType === 'available' ? 'primary' : 'outline'}
@@ -386,7 +352,6 @@ export default function EditorialPage() {
           </div>
         </div>
       </section>
-
       {/* Newsletter Section */}
       <section className="py-16 md:py-24 bg-surface">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -397,7 +362,6 @@ export default function EditorialPage() {
             <p className="text-lg text-text-secondary mb-8 max-w-2xl mx-auto">
               {t('editorial.newsletter.description')}
             </p>
-
             {/* Newsletter Form */}
             <form onSubmit={handleNewsletterSubmit} className="max-w-md mx-auto">
               <div className="flex gap-2">
@@ -419,7 +383,6 @@ export default function EditorialPage() {
                   {isSubmitting ? t('editorial.newsletter.submitting') : t('editorial.newsletter.submit')}
                 </Button>
               </div>
-
               {message && (
                 <p className={`text-sm mt-2 ${
                   message.includes(t('editorial.newsletter.success')) || message.includes('exitosa') ? 'text-green-400' : 'text-brand-primary'
@@ -427,7 +390,6 @@ export default function EditorialPage() {
                   {message}
                 </p>
               )}
-
               <p className="text-xs text-gray-400 mt-2">
                 {t('editorial.newsletter.disclaimer')}
               </p>
@@ -435,7 +397,6 @@ export default function EditorialPage() {
           </div>
         </div>
       </section>
-
       {/* Reader Modal */}
       {selectedArticle && (
         <ProfessionalReader

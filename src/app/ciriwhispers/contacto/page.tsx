@@ -1,18 +1,14 @@
 "use client";
-
 import Link from "next/link";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
-
 export default function ContactoCiriWhispersPage() {
   const { t } = useTranslation();
-
   const collabs = [
     { title: t("ciriwhispers.contacto2.collab1.title"), desc: t("ciriwhispers.contacto2.collab1.desc") },
     { title: t("ciriwhispers.contacto2.collab2.title"), desc: t("ciriwhispers.contacto2.collab2.desc") },
     { title: t("ciriwhispers.contacto2.collab3.title"), desc: t("ciriwhispers.contacto2.collab3.desc") },
     { title: t("ciriwhispers.contacto2.collab4.title"), desc: t("ciriwhispers.contacto2.collab4.desc") },
   ];
-
   return (
     <div className="min-h-screen py-16 px-4">
       <div className="max-w-3xl mx-auto">
@@ -28,7 +24,6 @@ export default function ContactoCiriWhispersPage() {
             {t("ciriwhispers.contacto2.desc")}
           </p>
         </div>
-
         {/* Contact cards */}
         <div className="grid md:grid-cols-2 gap-6 mb-16">
           {[
@@ -58,7 +53,6 @@ export default function ContactoCiriWhispersPage() {
             </div>
           ))}
         </div>
-
         {/* Collaboration types */}
         <div className="rounded-xl p-8 mb-12"
           style={{ border: '1px solid var(--ciri-border)', backgroundColor: 'var(--ciri-surface)' }}>
@@ -77,7 +71,6 @@ export default function ContactoCiriWhispersPage() {
             ))}
           </div>
         </div>
-
         {/* CTA to main contact */}
         <div className="text-center">
           <p className="text-sm mb-4" style={{ color: 'var(--ciri-text-faint)' }}>

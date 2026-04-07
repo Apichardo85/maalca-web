@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import CiriNav from "@/components/ciriwhispers/CiriNav";
 import CiriFooter from "@/components/ciriwhispers/CiriFooter";
 import "./ciri.css";
-
 export const metadata: Metadata = {
   title: "CiriWhispers | Lo bello tambien sangra",
   description:
@@ -15,7 +14,6 @@ export const metadata: Metadata = {
     type: "website",
   },
 };
-
 export default function CiriWhispersLayout({
   children,
 }: {

@@ -1,13 +1,9 @@
 "use client";
-
 import { useState } from "react";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { DashboardCard, StatCard } from "@/components/dashboard/DashboardCard";
-
 // ─── Mock data ───────────────────────────────────────────────────────────────
-
 const CATEGORIES = ["Todos", "Entradas", "Sopas", "Platos Fuertes", "Postres", "Bebidas"];
-
 const MENU_ITEMS = [
   { id: 1, category: "Platos Fuertes", name: "Mofongo Relleno", price: 24.0, desc: "Platano verde majado con chicharron, relleno con camarones al ajillo", available: true, featured: true, stock: "high" },
   { id: 2, category: "Platos Fuertes", name: "Pernil Dominicano", price: 28.0, desc: "Pierna de cerdo marinada 24h con sazon criollo, arroz blanco y habichuelas", available: true, featured: true, stock: "low" },
@@ -19,20 +15,16 @@ const MENU_ITEMS = [
   { id: 8, category: "Postres", name: "Tres Leches Dominicano", price: 9.0, desc: "Bizcocho empapado en tres tipos de leche, canela y coco rallado", available: true, featured: false, stock: "high" },
   { id: 9, category: "Bebidas", name: "Morir Sonando", price: 6.0, desc: "Jugo de naranja con leche evaporada y azucar, clasico dominicano", available: true, featured: false, stock: "high" },
 ];
-
 const INVENTORY_ALERTS = [
   { name: "Platanos verdes", unit: "12 lbs restantes", pct: 15, critical: true },
   { name: "Snapper fresco", unit: "8 lbs restantes", pct: 25, critical: true },
   { name: "Cerdo (pernil)", unit: "22 lbs restantes", pct: 45, critical: false },
   { name: "Arroz largo", unit: "40 lbs restantes", pct: 60, critical: false },
 ];
-
 // ─── Page ────────────────────────────────────────────────────────────────────
-
 export default function MenuManagement() {
   const { config } = useAffiliate();
   const currency = config?.settings.currency === "DOP" ? "RD$" : "$";
-
   const [activeCategory, setActiveCategory] = useState("Todos");
   const [search, setSearch] = useState("");
   const [prices, setPrices] = useState<Record<number, number>>(
@@ -42,18 +34,15 @@ export default function MenuManagement() {
     Object.fromEntries(MENU_ITEMS.map((i) => [i.id, i.available]))
   );
   const [editingPrice, setEditingPrice] = useState<number | null>(null);
-
   const filtered = MENU_ITEMS.filter((item) => {
     if (activeCategory !== "Todos" && item.category !== activeCategory) return false;
     if (search && !item.name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
-
   const stockColor = (s: string) =>
     s === "high" ? "text-green-600" : s === "medium" ? "text-amber-600" : s === "low" ? "text-rose-600" : "text-gray-400";
   const stockLabel = (s: string) =>
     s === "high" ? "Disponible" : s === "medium" ? "Moderado" : s === "low" ? "Bajo" : "Agotado";
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -78,7 +67,6 @@ export default function MenuManagement() {
           </button>
         </div>
       </div>
-
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <StatCard label="Platos Activos" value={MENU_ITEMS.filter((i) => i.available).length} icon="✅" />
@@ -86,7 +74,6 @@ export default function MenuManagement() {
         <StatCard label="Destacados" value={MENU_ITEMS.filter((i) => i.featured).length} icon="⭐" />
         <StatCard label="Total Platos" value={MENU_ITEMS.length} icon="🍽️" />
       </div>
-
       {/* Filter bar */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex gap-2 flex-wrap">
@@ -113,7 +100,6 @@ export default function MenuManagement() {
           className="bg-gray-100 dark:bg-gray-800 border-none rounded-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 placeholder-gray-400 outline-none w-full max-w-[220px]"
         />
       </div>
-
       {/* Main grid */}
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 items-start">
         {/* Menu items */}
@@ -146,7 +132,6 @@ export default function MenuManagement() {
                 <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-3">
                   {item.desc}
                 </p>
-
                 {/* Price + controls */}
                 <div className="flex items-center justify-between">
                   {editingPrice === item.id ? (
@@ -172,7 +157,6 @@ export default function MenuManagement() {
                       {currency}{prices[item.id].toFixed(2)}
                     </button>
                   )}
-
                   <button
                     onClick={() => setAvailability((a) => ({ ...a, [item.id]: !a[item.id] }))}
                     className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
@@ -187,7 +171,6 @@ export default function MenuManagement() {
               </div>
             </div>
           ))}
-
           {filtered.length === 0 && (
             <div className="col-span-full text-center py-12 text-gray-400">
               <p className="text-4xl mb-2">🔍</p>
@@ -195,7 +178,6 @@ export default function MenuManagement() {
             </div>
           )}
         </div>
-
         {/* Right — Inventory alerts */}
         <div className="space-y-4">
           <DashboardCard title="Inventario Critico" icon="📦">

@@ -1,7 +1,6 @@
 interface PropertySkeletonProps {
   count?: number;
 }
-
 export default function PropertySkeleton({ count = 6 }: PropertySkeletonProps) {
   return (
     <>
@@ -20,7 +19,6 @@ export default function PropertySkeleton({ count = 6 }: PropertySkeletonProps) {
               <div className="bg-slate-300 h-6 w-20 rounded-full animate-pulse" />
             </div>
           </div>
-
           {/* Content Skeleton */}
           <div className="p-8 space-y-4">
             {/* Title */}
@@ -28,10 +26,8 @@ export default function PropertySkeleton({ count = 6 }: PropertySkeletonProps) {
               <div className="bg-slate-200 h-6 w-3/4 rounded animate-pulse" />
               <div className="bg-slate-100 h-4 w-1/2 rounded animate-pulse" />
             </div>
-
             {/* Price */}
             <div className="bg-slate-200 h-8 w-32 rounded animate-pulse" />
-
             {/* Stats Grid */}
             <div className="grid grid-cols-3 gap-4">
               {[...Array(3)].map((_, i) => (
@@ -41,21 +37,18 @@ export default function PropertySkeleton({ count = 6 }: PropertySkeletonProps) {
                 </div>
               ))}
             </div>
-
             {/* Description */}
             <div className="space-y-2">
               <div className="bg-slate-100 h-3 w-full rounded animate-pulse" />
               <div className="bg-slate-100 h-3 w-full rounded animate-pulse" />
               <div className="bg-slate-100 h-3 w-2/3 rounded animate-pulse" />
             </div>
-
             {/* Amenities */}
             <div className="flex flex-wrap gap-2">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="bg-slate-100 h-6 w-16 rounded-full animate-pulse" />
               ))}
             </div>
-
             {/* Buttons */}
             <div className="flex gap-3">
               <div className="flex-1 bg-slate-200 h-10 rounded-lg animate-pulse" />

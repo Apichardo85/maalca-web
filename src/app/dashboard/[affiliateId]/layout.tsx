@@ -1,45 +1,1 @@
-import { notFound } from "next/navigation";
-import { cookies } from "next/headers";
-import { getAffiliateConfig } from "@/config/affiliates-config";
-import { DashboardLayoutClient } from "@/components/dashboard/DashboardLayoutClient";
-
-interface AffiliateDashboardLayoutProps {
-  children: React.ReactNode;
-  params: Promise<{ affiliateId: string }>;
-}
-
-export default async function AffiliateDashboardLayout({
-  children,
-  params
-}: AffiliateDashboardLayoutProps) {
-  const { affiliateId } = await params;
-  const config = getAffiliateConfig(affiliateId);
-
-  if (!config) notFound();
-
-  const cookieStore = await cookies();
-  const userRole = cookieStore.get('user_role')?.value ?? 'owner';
-  const isAdmin = userRole === 'admin';
-
-  return (
-    <DashboardLayoutClient config={config} isAdmin={isAdmin}>
-      {children}
-    </DashboardLayoutClient>
-  );
-}
-
-export async function generateMetadata({
-  params
-}: {
-  params: Promise<{ affiliateId: string }>;
-}) {
-  const { affiliateId } = await params;
-  const config = getAffiliateConfig(affiliateId);
-
-  if (!config) return { title: "Dashboard no encontrado" };
-
-  return {
-    title: `Dashboard - ${config.branding.name} | MaalCa`,
-    description: `Panel de control para ${config.branding.description}`
-  };
-}
+import { notFound } from "next/navigation";import { cookies } from "next/headers";import { getAffiliateConfig } from "@/config/affiliates-config";import { DashboardLayoutClient } from "@/components/dashboard/DashboardLayoutClient";interface AffiliateDashboardLayoutProps {  children: React.ReactNode;  params: Promise<{ affiliateId: string }>;}export default async function AffiliateDashboardLayout({  children,  params}: AffiliateDashboardLayoutProps) {  const { affiliateId } = await params;  const config = getAffiliateConfig(affiliateId);  if (!config) notFound();  const cookieStore = await cookies();  const userRole = cookieStore.get('user_role')?.value ?? 'owner';  const isAdmin = userRole === 'admin';  return (    <DashboardLayoutClient config={config} isAdmin={isAdmin}>      {children}    </DashboardLayoutClient>  );}export async function generateMetadata({  params}: {  params: Promise<{ affiliateId: string }>;}) {  const { affiliateId } = await params;  const config = getAffiliateConfig(affiliateId);  if (!config) return { title: "Dashboard no encontrado" };  return {    title: `Dashboard - ${config.branding.name} | MaalCa`,    description: `Panel de control para ${config.branding.description}`  };}

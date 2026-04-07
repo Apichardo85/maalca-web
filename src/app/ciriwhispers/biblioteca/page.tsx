@@ -1,19 +1,15 @@
 "use client";
-
 import { useState } from "react";
 import { stories, storyTypes, getStoriesByType, type StoryType } from "@/data/ciriwhispers/stories";
 import StoryCard from "@/components/ciriwhispers/StoryCard";
 import StoryReader from "@/components/ciriwhispers/StoryReader";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
 import type { Story } from "@/data/ciriwhispers/stories";
-
 export default function BibliotecaPage() {
   const [activeFilter, setActiveFilter] = useState<StoryType | undefined>(undefined);
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const { t } = useTranslation();
-
   const filteredStories = getStoriesByType(activeFilter);
-
   return (
     <>
       <div className="max-w-4xl mx-auto px-4 py-12">
@@ -26,7 +22,6 @@ export default function BibliotecaPage() {
             {t("ciriwhispers.biblioteca.desc")}
           </p>
         </div>
-
         {/* Filters */}
         <div className="flex flex-wrap justify-center gap-2 mb-10 animate-fade-in-up" style={{ animationDelay: "0.1s" }}>
           <button
@@ -57,7 +52,6 @@ export default function BibliotecaPage() {
             );
           })}
         </div>
-
         {/* Stories grid */}
         <div className="space-y-4">
           {filteredStories.map((story, index) => (
@@ -73,7 +67,6 @@ export default function BibliotecaPage() {
             </div>
           ))}
         </div>
-
         {/* Empty state */}
         {filteredStories.length === 0 && (
           <div className="text-center py-20">
@@ -82,7 +75,6 @@ export default function BibliotecaPage() {
             </p>
           </div>
         )}
-
         {/* Coming soon teaser */}
         <div className="mt-16 text-center pt-12" style={{ borderTop: '1px solid var(--ciri-border)' }}>
           <p className="font-serif italic text-lg mb-2" style={{ color: 'var(--ciri-text-muted)' }}>
@@ -93,7 +85,6 @@ export default function BibliotecaPage() {
           </p>
         </div>
       </div>
-
       {/* Story Reader Modal */}
       {selectedStory && (
         <StoryReader

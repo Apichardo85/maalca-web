@@ -1,13 +1,10 @@
 "use client";
-
 import type { Story } from "@/data/ciriwhispers/stories";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
-
 interface StoryCardProps {
   story: Story;
   onClick: () => void;
 }
-
 const typeAccents: Record<string, string> = {
   microcuento: "#8B1A1A",
   fragmento: "#92400E",
@@ -15,14 +12,11 @@ const typeAccents: Record<string, string> = {
   carta: "#065F46",
   capitulo: "#6B21A8",
 };
-
 export default function StoryCard({ story, onClick }: StoryCardProps) {
   const { t } = useTranslation();
   const accent = typeAccents[story.type] || typeAccents.microcuento;
-
   const title = t(`ciriwhispers.story.${story.id}.title`);
   const excerpt = t(`ciriwhispers.story.${story.id}.excerpt`);
-
   return (
     <button
       onClick={onClick}
@@ -44,18 +38,15 @@ export default function StoryCard({ story, onClick }: StoryCardProps) {
           {story.readTime} {t("ciriwhispers.biblioteca.min")}
         </span>
       </div>
-
       {/* Title */}
       <h3 className="font-serif text-xl font-bold mb-2 group-hover:text-[#8B1A1A] transition-colors"
         style={{ color: 'var(--ciri-text)' }}>
         {title}
       </h3>
-
       {/* Excerpt */}
       <p className="text-sm leading-relaxed line-clamp-3" style={{ color: 'var(--ciri-text-secondary)' }}>
         {excerpt}
       </p>
-
       {/* Tags */}
       <div className="flex flex-wrap gap-1.5 mt-4">
         {story.tags.slice(0, 3).map((tag) => (

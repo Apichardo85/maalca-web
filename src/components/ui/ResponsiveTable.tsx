@@ -1,7 +1,5 @@
 "use client";
-
 import { ReactNode } from "react";
-
 export interface TableColumn<T> {
   key: string;
   header: string;
@@ -9,7 +7,6 @@ export interface TableColumn<T> {
   mobileLabel?: string;
   hideOnMobile?: boolean;
 }
-
 interface ResponsiveTableProps<T> {
   data: T[];
   columns: TableColumn<T>[];
@@ -17,7 +14,6 @@ interface ResponsiveTableProps<T> {
   emptyMessage?: string;
   onRowClick?: (item: T) => void;
 }
-
 /**
  * Tabla responsive que se adapta a mobile y desktop
  */
@@ -28,9 +24,7 @@ export function ResponsiveTable<T>({
   emptyMessage = "No se encontraron resultados",
   onRowClick
 }: ResponsiveTableProps<T>) {
-
   const mobileColumns = columns.filter(col => !col.hideOnMobile);
-
   if (data.length === 0) {
     return (
       <div className="py-12 text-center">
@@ -41,7 +35,6 @@ export function ResponsiveTable<T>({
       </div>
     );
   }
-
   return (
     <>
       {/* Desktop Table */}
@@ -82,7 +75,6 @@ export function ResponsiveTable<T>({
           </tbody>
         </table>
       </div>
-
       {/* Mobile Cards */}
       <div className="md:hidden space-y-4">
         {data.map((item, index) => (

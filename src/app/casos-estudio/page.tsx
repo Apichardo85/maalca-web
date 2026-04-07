@@ -1,8 +1,6 @@
 "use client";
-
 import { Button } from "@/components/ui/buttons";
 import { ProjectImage } from "@/components/ui/ProjectImage";
-
 const caseStudies = [
   {
     id: "editorial-maalca-case",
@@ -155,16 +153,13 @@ const caseStudies = [
     technologies: ["Property Management", "International Marketing", "ROI Analytics", "Client Relations"]
   }
 ];
-
 export default function CasosEstudioPage() {
   const getTrendIcon = (trend: "up" | "down") => {
     return trend === "up" ? "↗️" : "↙️";
   };
-
   const getTrendColor = (trend: "up" | "down") => {
     return trend === "up" ? "text-green-600" : "text-blue-600";
   };
-
   return (
     <main className="min-h-screen bg-background text-foreground pt-20">
       {/* Hero Section */}
@@ -179,7 +174,6 @@ export default function CasosEstudioPage() {
               Análisis profundos de nuestros proyectos: desafíos enfrentados, soluciones implementadas
               y resultados medibles que demuestran el impacto real del ecosistema MaalCa.
             </p>
-
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <div className="text-sm text-text-muted">
                 <span className="font-medium">6</span> Casos Analizados
@@ -196,7 +190,6 @@ export default function CasosEstudioPage() {
           </div>
         </div>
       </section>
-
       {/* Case Studies */}
       <section className="py-16 md:py-24 bg-surface-elevated">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -219,20 +212,17 @@ export default function CasosEstudioPage() {
                         {study.title}
                       </h2>
                     </div>
-
                     {/* Challenge & Solution */}
                     <div className="space-y-6">
                       <div className="bg-surface rounded-xl p-6 border border-border">
                         <h3 className="text-lg font-bold text-red-600 mb-3">🎯 Desafío</h3>
                         <p className="text-text-secondary leading-relaxed">{study.challenge}</p>
                       </div>
-
                       <div className="bg-surface rounded-xl p-6 border border-border">
                         <h3 className="text-lg font-bold text-green-600 mb-3">💡 Solución</h3>
                         <p className="text-text-secondary leading-relaxed">{study.solution}</p>
                       </div>
                     </div>
-
                     {/* Key Metrics */}
                     <div className="bg-surface rounded-xl p-6 border border-border">
                       <h3 className="text-lg font-bold text-text-primary mb-4">📊 Métricas Clave</h3>
@@ -247,7 +237,6 @@ export default function CasosEstudioPage() {
                         ))}
                       </div>
                     </div>
-
                     {/* Technologies */}
                     <div>
                       <h4 className="text-sm font-semibold text-text-primary mb-3">Tecnologías y Enfoques:</h4>
@@ -262,7 +251,6 @@ export default function CasosEstudioPage() {
                         ))}
                       </div>
                     </div>
-
                     {/* Testimonial */}
                     <div className="bg-brand-primary/5 rounded-xl p-6 border border-brand-primary/20">
                       <blockquote className="text-text-primary italic mb-3">
@@ -273,7 +261,6 @@ export default function CasosEstudioPage() {
                       </cite>
                     </div>
                   </div>
-
                   {/* Visual */}
                   <div className={`${index % 2 === 1 ? 'lg:order-1' : ''}`}>
                     <div className="aspect-square overflow-hidden rounded-2xl border border-border shadow-lg group-hover:shadow-xl transition-shadow duration-300">
@@ -283,7 +270,6 @@ export default function CasosEstudioPage() {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>
-
                     {/* Results Summary */}
                     <div className="mt-6 bg-surface rounded-xl p-6 border border-border">
                       <h3 className="text-lg font-bold text-text-primary mb-4">🏆 Resultados Clave</h3>
@@ -303,7 +289,6 @@ export default function CasosEstudioPage() {
           </div>
         </div>
       </section>
-
       {/* CTA Section */}
       <section className="py-16 md:py-24 bg-surface">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

@@ -1,8 +1,6 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { useAnalytics } from "@/hooks/useAnalytics";
-
 interface SimpleReaderProps {
   bookId: string;
   title: string;
@@ -10,7 +8,6 @@ interface SimpleReaderProps {
   content: string;
   onClose?: () => void;
 }
-
 export default function SimpleReader({
   bookId,
   title,
@@ -23,9 +20,7 @@ export default function SimpleReader({
   const [showControls, setShowControls] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [progress, setProgress] = useState(0);
-
   const { trackEvent } = useAnalytics('ciriwhispers');
-
   // Auto-hide controls
   useEffect(() => {
     if (isFullscreen) {
@@ -33,7 +28,6 @@ export default function SimpleReader({
       return () => clearTimeout(timer);
     }
   }, [isFullscreen, showControls]);
-
   // Track reader opened
   useEffect(() => {
     trackEvent({
@@ -42,18 +36,15 @@ export default function SimpleReader({
       label: bookId
     });
   }, [bookId, trackEvent]);
-
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') handleClose();
       if (e.key === 'f' || e.key === 'F') toggleFullscreen();
     };
-
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
-
   const changeTheme = (theme: 'light' | 'sepia' | 'dark') => {
     setCurrentTheme(theme);
     trackEvent({
@@ -62,26 +53,20 @@ export default function SimpleReader({
       label: theme
     });
   };
-
   const increaseFontSize = () => setFontSize(prev => Math.min(200, prev + 10));
   const decreaseFontSize = () => setFontSize(prev => Math.max(60, prev - 10));
-
   const toggleFullscreen = () => setIsFullscreen(!isFullscreen);
-
   const handleClose = () => {
     trackEvent({
       action: 'reader_closed',
       category: 'engagement',
       label: `${bookId}_progress_${progress}`
     });
-
     if (onClose) onClose();
   };
-
   const handleMouseMove = () => {
     if (isFullscreen) setShowControls(true);
   };
-
   const getThemeStyles = () => {
     switch (currentTheme) {
       case 'sepia':
@@ -92,7 +77,6 @@ export default function SimpleReader({
         return { backgroundColor: '#FAFAFA', color: '#2D3748' };
     }
   };
-
   return (
     <div
       className="fixed inset-0 z-[100] flex flex-col animate-fade-in"
@@ -110,7 +94,6 @@ export default function SimpleReader({
                 <p className="text-sm opacity-70">por {author}</p>
               </div>
             </div>
-
             {/* Controls */}
             <div className="flex items-center gap-2">
               {/* Theme Controls */}
@@ -143,7 +126,6 @@ export default function SimpleReader({
                   🌙
                 </button>
               </div>
-
               {/* Font Size Controls */}
               <div className="flex items-center gap-1 bg-black/10 rounded-lg p-1">
                 <button
@@ -164,7 +146,6 @@ export default function SimpleReader({
                   A+
                 </button>
               </div>
-
               {/* Action Buttons */}
               <button
                 onClick={toggleFullscreen}
@@ -173,7 +154,6 @@ export default function SimpleReader({
               >
                 {isFullscreen ? "⤓" : "⤴"}
               </button>
-
               <button
                 onClick={handleClose}
                 className="p-2 rounded text-red-500 hover:text-red-400 transition-all"
@@ -185,7 +165,6 @@ export default function SimpleReader({
           </div>
         </div>
       )}
-
       {/* Content */}
       <div className="flex-1 overflow-auto">
         <div
@@ -197,7 +176,6 @@ export default function SimpleReader({
           dangerouslySetInnerHTML={{ __html: content }}
         />
       </div>
-
       {/* Footer Info (only when controls visible) */}
       {showControls && !isFullscreen && (
         <div className="bg-black/10 backdrop-blur-sm border-t border-gray-300/20 p-3 animate-fade-in-up">

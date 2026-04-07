@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useMemo } from "react";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import {
@@ -13,29 +12,23 @@ import {
   calculateInvoiceTotals,
   formatCurrency
 } from "@/lib/types/invoicing.types";
-
 interface NewSalePanelProps {
   onClose: () => void;
   onSave?: (invoiceData: Record<string, unknown>) => void;
 }
-
 /**
  * Panel de Nueva Venta - POS simple
  */
 export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
   const { config } = useAffiliate();
   const currency = config?.settings.currency || "DOP";
-
   const [selectedCustomer, setSelectedCustomer] = useState<Customer>(MOCK_CUSTOMERS[0]);
   const [customerSearch, setCustomerSearch] = useState("");
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
-
   const [productSearch, setProductSearch] = useState("");
   const [showProductDropdown, setShowProductDropdown] = useState(false);
-
   const [lines, setLines] = useState<InvoiceLine[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
-
   const filteredCustomers = useMemo(() => {
     if (!customerSearch) return MOCK_CUSTOMERS;
     return MOCK_CUSTOMERS.filter(c =>
@@ -44,7 +37,6 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
       c.email?.toLowerCase().includes(customerSearch.toLowerCase())
     );
   }, [customerSearch]);
-
   const filteredProducts = useMemo(() => {
     if (!productSearch) return MOCK_PRODUCTS.filter(p => p.isActive);
     return MOCK_PRODUCTS.filter(p =>
@@ -53,10 +45,8 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
        p.sku.toLowerCase().includes(productSearch.toLowerCase()))
     );
   }, [productSearch]);
-
   const addProduct = (product: Product) => {
     const existingLineIndex = lines.findIndex(l => l.productId === product.id);
-
     if (existingLineIndex >= 0) {
       const updatedLines = [...lines];
       updatedLines[existingLineIndex].quantity += 1;
@@ -76,17 +66,14 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
       });
       setLines([...lines, { ...newLine, id: `line-${Date.now()}` }]);
     }
-
     setProductSearch("");
     setShowProductDropdown(false);
   };
-
   const updateLineQuantity = (lineId: string, quantity: number) => {
     if (quantity <= 0) {
       removeLine(lineId);
       return;
     }
-
     const updatedLines = lines.map(line => {
       if (line.id === lineId) {
         const recalculated = calculateLineTotals({ ...line, quantity });
@@ -96,19 +83,15 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
     });
     setLines(updatedLines);
   };
-
   const removeLine = (lineId: string) => {
     setLines(lines.filter(l => l.id !== lineId));
   };
-
   const totals = useMemo(() => calculateInvoiceTotals(lines), [lines]);
-
   const handleConfirmSale = () => {
     if (lines.length === 0) {
       alert("Debe agregar al menos un producto/servicio");
       return;
     }
-
     const invoiceData = {
       customerId: selectedCustomer.id,
       customerName: selectedCustomer.name,
@@ -119,12 +102,10 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
       status: "paid",
       date: new Date().toISOString()
     };
-
     console.log("Nueva venta:", invoiceData);
     onSave?.(invoiceData);
     onClose();
   };
-
   return (
     <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-overlay-in"
@@ -149,7 +130,6 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
             </svg>
           </button>
         </div>
-
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -194,7 +174,6 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
                   )}
                 </div>
               </div>
-
               {/* Buscador de Productos */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -235,7 +214,6 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
                   )}
                 </div>
               </div>
-
               {/* Tabla de líneas */}
               <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
                 <div className="bg-gray-50 dark:bg-gray-800 px-4 py-3">
@@ -289,7 +267,6 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
                 </div>
               </div>
             </div>
-
             {/* Columna derecha - Resumen y pago */}
             <div className="space-y-6">
               {/* Resumen */}
@@ -320,7 +297,6 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
                   </div>
                 </div>
               </div>
-
               {/* Método de Pago */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -347,7 +323,6 @@ export function NewSalePanel({ onClose, onSave }: NewSalePanelProps) {
                   ))}
                 </div>
               </div>
-
               {/* Botones de acción */}
               <div className="space-y-3">
                 <button

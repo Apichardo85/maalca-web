@@ -1,20 +1,15 @@
 "use client";
-
 import { useEffect } from "react";
 import type { Story } from "@/data/ciriwhispers/stories";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
 import SocialShare from "@/components/ui/SocialShare";
-
 interface StoryReaderProps {
   story: Story;
   onClose: () => void;
 }
-
 export default function StoryReader({ story, onClose }: StoryReaderProps) {
   const { t, language } = useTranslation();
-
   const title = t(`ciriwhispers.story.${story.id}.title`);
-
   // Lock body scroll when modal is open
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -22,7 +17,6 @@ export default function StoryReader({ story, onClose }: StoryReaderProps) {
       document.body.style.overflow = "";
     };
   }, []);
-
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto animate-fade-in"
       style={{ backgroundColor: 'var(--ciri-bg)' }}>
@@ -41,7 +35,6 @@ export default function StoryReader({ story, onClose }: StoryReaderProps) {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
-
       {/* Content */}
       <div className="max-w-2xl mx-auto px-6 py-16 md:py-24">
         {/* Header */}
@@ -58,7 +51,6 @@ export default function StoryReader({ story, onClose }: StoryReaderProps) {
             <span>CiriWhispers</span>
           </div>
         </div>
-
         {/* Story content */}
         <div
           className="prose prose-lg max-w-none
@@ -75,7 +67,6 @@ export default function StoryReader({ story, onClose }: StoryReaderProps) {
           } as React.CSSProperties}
           dangerouslySetInnerHTML={{ __html: story.content[language] }}
         />
-
         {/* Footer: share + CTA */}
         <div
           className="mt-16 pt-8 animate-fade-in-up"
@@ -95,7 +86,6 @@ export default function StoryReader({ story, onClose }: StoryReaderProps) {
               {t("ciriwhispers.storyReader.keepReading")}
             </a>
           </div>
-
           <SocialShare
             title={`${title} — CiriWhispers`}
             description={t(`ciriwhispers.story.${story.id}.excerpt`)}

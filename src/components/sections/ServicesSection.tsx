@@ -1,7 +1,5 @@
 "use client";
-
 import { Button } from "@/components/ui/buttons";
-
 interface ServiceCard {
   title: string;
   description: string;
@@ -9,7 +7,6 @@ interface ServiceCard {
   image: string;
   price: string;
 }
-
 const services: ServiceCard[] = [
   {
     title: "Box Comida",
@@ -48,7 +45,6 @@ const services: ServiceCard[] = [
     price: "Desde $3.500"
   }
 ];
-
 export default function ServicesSection() {
   return (
     <section className="py-20 bg-gradient-to-br from-slate-50 to-gray-100">
@@ -61,7 +57,6 @@ export default function ServicesSection() {
             Descubre nuestra selección de servicios gastronómicos diseñados para hacer de cada evento una experiencia memorable
           </p>
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {services.map((service, index) => (
             <div
@@ -83,7 +78,6 @@ export default function ServicesSection() {
                     </span>
                   </div>
                 </div>
-
                 <div className="p-8">
                   <h3 className="font-display text-2xl font-bold text-gray-900 mb-4">
                     {service.title}
@@ -91,7 +85,6 @@ export default function ServicesSection() {
                   <p className="text-gray-600 mb-6 leading-relaxed">
                     {service.description}
                   </p>
-
                   <ul className="space-y-3 mb-8">
                     {service.features.map((feature, featureIndex) => (
                       <li
@@ -104,7 +97,6 @@ export default function ServicesSection() {
                       </li>
                     ))}
                   </ul>
-
                   <Button
                     variant="outline"
                     size="md"
@@ -117,7 +109,6 @@ export default function ServicesSection() {
             </div>
           ))}
         </div>
-
         <div
           className="text-center mt-16 animate-fade-in-up"
           style={{ animationDelay: '1s' }}

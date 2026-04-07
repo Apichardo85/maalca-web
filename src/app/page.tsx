@@ -1,5 +1,4 @@
 "use client";
-
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/buttons";
@@ -9,21 +8,16 @@ import { useTranslation } from "@/hooks/useSimpleLanguage";
 import { projects, getActiveAffiliates } from "@/data";
 import { dominicanMenus } from "@/data/dominican-menus";
 import { getActiveEcosystemProjects } from "@/data/ecosystem-projects";
-
 export default function HomePage() {
   const router = useRouter();
   const { t } = useTranslation();
-
   const scrollToSection = (sectionId: string) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
   };
-
   const activeEcosystemProjects = getActiveEcosystemProjects();
-
   const handleProjectClick = (href: string) => {
     router.push(href);
   };
-
   return (
     <main className="min-h-screen bg-background text-foreground">
       {/* Hero Section with DRAMATIC MOVING GRADIENT */}
@@ -34,7 +28,6 @@ export default function HomePage() {
             className="absolute inset-0 animate-gradient-shift"
           />
         </div>
-
         {/* Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="animate-fade-in-up">
@@ -48,14 +41,12 @@ export default function HomePage() {
               <br />
               <span className="text-text-secondary">{t('hero.creative')}</span>
             </h1>
-
             <p
               className="text-lg sm:text-xl lg:text-2xl font-light mb-12 max-w-3xl mx-auto leading-relaxed text-text-secondary animate-fade-in-up"
               style={{ animationDelay: '0.6s' }}
             >
               {t('hero.subtitle')}
             </p>
-
             <div
               className="flex flex-col sm:flex-row gap-6 justify-center items-center animate-fade-in-up"
               style={{ animationDelay: '0.9s' }}
@@ -79,7 +70,6 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-
         {/* Scroll Indicator */}
         <div
           className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-fade-in"
@@ -95,7 +85,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
       {/* About / Storytelling Section */}
       <section id="about" className="py-16 md:py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -107,7 +96,6 @@ export default function HomePage() {
               {t('about.description')}
             </p>
           </div>
-
           {/* Timeline */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             {[
@@ -140,7 +128,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
       {/* STATS SECTION WITH ANIMATED COUNTERS */}
       <section className="py-16 md:py-24 bg-surface-elevated">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -165,7 +152,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
       {/* Ecosystem / Projects Section */}
       <section id="ecosistema" className="py-16 md:py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -177,7 +163,6 @@ export default function HomePage() {
               {t('projects.description')}
             </p>
           </div>
-
           {/* Projects Grid — visibility controlled by active field in ecosystem-projects.ts */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
@@ -248,7 +233,6 @@ export default function HomePage() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-red-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </div>
-
                 <div className={`inline-block px-3 py-1 rounded-full text-xs font-medium mb-4 ${
                   project.color === 'red'
                     ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-300 dark:border-red-700'
@@ -256,19 +240,15 @@ export default function HomePage() {
                 }`}>
                   {t(project.categoryKey)}
                 </div>
-
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
                   {t(project.titleKey)}
                 </h3>
-
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-sm mb-4">
                   {t(project.descriptionKey)}
                 </p>
-
                 <div className="text-xs text-gray-400 dark:text-gray-300 mb-6 font-medium">
                   ✓ {t(project.outcomeKey)}
                 </div>
-
                 {/* FUNCTIONAL BUTTON WITH DRAMATIC STYLING */}
                 <div className="mt-auto">
                   <button
@@ -286,7 +266,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
       {/* Affiliates Section */}
       <section className="py-16 md:py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -298,7 +277,6 @@ export default function HomePage() {
               {t('affiliates.description')}
             </p>
           </div>
-
           {/* Affiliates — active partners only (controlled by active field in affiliates.ts) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto">
             {getActiveAffiliates().map((affiliate, index) => (
@@ -324,7 +302,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
       {/* Philosophy / Quote Section */}
       <section className="py-32 bg-black relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-900/10 to-transparent" />
@@ -334,13 +311,11 @@ export default function HomePage() {
           >
             {`"${t('quote.philosophy')}"`}
           </blockquote>
-
           <div
             className="mt-8 w-24 h-1 bg-red-600 mx-auto animate-expand-width"
           />
         </div>
       </section>
-
       {/* Contact Section */}
       <section id="contacto" className="py-20 bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -350,7 +325,6 @@ export default function HomePage() {
               <h2 className="font-display text-4xl lg:text-5xl font-bold text-white mb-8">
                 {t('contact.title')}
               </h2>
-
               <form className="space-y-6">
                 <div>
                   <input
@@ -382,7 +356,6 @@ export default function HomePage() {
                 </Button>
               </form>
             </div>
-
             {/* Contact Info */}
             <div className="animate-fade-in-right" style={{ animationDelay: '0.2s' }}>
               <div className="space-y-8">
@@ -393,14 +366,12 @@ export default function HomePage() {
                     {t('contact.location')}
                   </p>
                 </div>
-
                 <div>
                   <h3 className="text-xl font-bold text-white mb-4">{t('contact.emailLabel')}</h3>
                   <a href="mailto:hello@maalca.com" className="text-red-400 hover:text-red-300 transition-colors">
                     hello@maalca.com
                   </a>
                 </div>
-
                 <div>
                   <h3 className="text-xl font-bold text-white mb-6">{t('contact.followUs')}</h3>
                   <div className="flex space-x-6">
