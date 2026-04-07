@@ -42,8 +42,11 @@ export default function CiriFooter() {
                 <a href="https://www.instagram.com/ciriwhispers/" target="_blank" rel="noopener noreferrer" className="block text-sm transition-colors hover:text-white" style={{ color: 'var(--ciri-footer-muted)' }}>
                   Instagram
                 </a>
-                <a href="https://www.amazon.com/stores/Ciriaco-Alejandro-Pichardo-Santana/author/B0DFH93HCJ" target="_blank" rel="noopener noreferrer" className="block text-sm transition-colors hover:text-white" style={{ color: 'var(--ciri-footer-muted)' }}>
+                <a href="https://www.amazon.com/author/ciriwhispers" target="_blank" rel="noopener noreferrer" className="block text-sm transition-colors hover:text-white" style={{ color: 'var(--ciri-footer-muted)' }}>
                   Amazon
+                </a>
+                <a href="https://www.facebook.com/ciriwhispers" target="_blank" rel="noopener noreferrer" className="block text-sm transition-colors hover:text-white" style={{ color: 'var(--ciri-footer-muted)' }}>
+                  Facebook
                 </a>
               </div>
             </div>
