@@ -719,7 +719,7 @@ export default function PegoteBarberPage() {
                     {[...Array(64)].map((_, i) => (
                       <div
                         key={i}
-                        className={`w-2 h-2 ${Math.random() > 0.5 ? "bg-gray-900" : "bg-white"}`}
+                        className={`w-2 h-2 ${(i * 7 + 3) % 11 > 5 ? "bg-gray-900" : "bg-white"}`}
                       />
                     ))}
                   </div>
@@ -1366,7 +1366,7 @@ export default function PegoteBarberPage() {
                   {[...Array(64)].map((_, i) => (
                     <div
                       key={i}
-                      className={`w-3 h-3 ${Math.random() > 0.5 ? "bg-gray-900" : "bg-white"}`}
+                      className={`w-3 h-3 ${(i * 7 + 3) % 11 > 5 ? "bg-gray-900" : "bg-white"}`}
                     />
                   ))}
                 </div>
