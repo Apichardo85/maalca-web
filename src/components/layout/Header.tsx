@@ -149,6 +149,8 @@ export default function Header({
             <button
               className="lg:hidden p-2 rounded-lg hover:bg-surface-elevated transition-colors text-text-primary active:scale-95"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={isMobileMenuOpen}
             >
               <div className="w-6 h-6 flex flex-col justify-center items-center">
                 <span

@@ -327,21 +327,27 @@ export default function HomePage() {
               </h2>
               <form className="space-y-6">
                 <div>
+                  <label htmlFor="contact-name" className="sr-only">{t('contact.name')}</label>
                   <input
+                    id="contact-name"
                     type="text"
                     placeholder={t('contact.name')}
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-6 py-4 text-white placeholder-gray-400 focus:outline-none focus:border-red-600 transition-colors"
                   />
                 </div>
                 <div>
+                  <label htmlFor="contact-email" className="sr-only">{t('contact.email')}</label>
                   <input
+                    id="contact-email"
                     type="email"
                     placeholder={t('contact.email')}
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-6 py-4 text-white placeholder-gray-400 focus:outline-none focus:border-red-600 transition-colors"
                   />
                 </div>
                 <div>
+                  <label htmlFor="contact-message" className="sr-only">{t('contact.message')}</label>
                   <textarea
+                    id="contact-message"
                     rows={6}
                     placeholder={t('contact.message')}
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-6 py-4 text-white placeholder-gray-400 focus:outline-none focus:border-red-600 transition-colors resize-none"

@@ -110,7 +110,7 @@ export default function PropertyHero({
           </h1>
           {/* Property Counter */}
           <div
-            className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-6 py-3 animate-fade-in-scale"
+            className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/40 rounded-full px-6 py-3 animate-fade-in-scale"
             style={{ animationDelay: '0.5s' }}
           >
             <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
@@ -201,7 +201,7 @@ export default function PropertyHero({
           </div>
           {/* Quick Filters */}
           <div
-            className="mt-6 pt-6 border-t border-white/20 animate-fade-in-up"
+            className="mt-6 pt-6 border-t border-white/40 animate-fade-in-up"
             style={{ animationDelay: '1.1s' }}
           >
             <p className="text-white/80 text-sm mb-3">Filtros populares:</p>
@@ -214,7 +214,7 @@ export default function PropertyHero({
               ].map((filter, index) => (
                 <button
                   key={filter}
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white text-sm transition-all duration-300 hover:scale-105 active:scale-95 animate-fade-in-scale"
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/40 rounded-full text-white text-sm transition-all duration-300 hover:scale-105 active:scale-95 animate-fade-in-scale"
                   style={{ animationDelay: `${1.2 + index * 0.1}s` }}
                 >
                   {filter}
