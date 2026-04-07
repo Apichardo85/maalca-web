@@ -1,13 +1,10 @@
 "use client";
-
 import { Button } from "@/components/ui/buttons";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
-
 export default function ServiciosPage() {
   const router = useRouter();
   const { t } = useTranslation();
-
   // Define services — active: false to hide without deleting
   const allServices = [
     {
@@ -29,7 +26,7 @@ export default function ServiciosPage() {
     },
     {
       id: "fabrica-ia",
-      active: false,
+      active: true,
       icon: "🤖",
       titleKey: "services.fabrica-ia.title",
       descriptionKey: "services.fabrica-ia.description",
@@ -114,7 +111,6 @@ export default function ServiciosPage() {
     }
   ];
   const services = allServices.filter(s => s.active);
-
   const process = [
     {
       step: "01",
@@ -137,13 +133,11 @@ export default function ServiciosPage() {
       descriptionKey: "services.process.step4.description"
     }
   ];
-
   const stats = [
     { metricKey: "services.results.metric1", labelKey: "services.results.metric1.label" },
     { metricKey: "services.results.metric2", labelKey: "services.results.metric2.label" },
     { metricKey: "services.results.metric3", labelKey: "services.results.metric3.label" }
   ];
-
   return (
     <main className="min-h-screen bg-background text-foreground pt-20">
       {/* Hero Section */}
@@ -162,7 +156,6 @@ export default function ServiciosPage() {
           </div>
         </div>
       </section>
-
       {/* Services Grid */}
       <section className="py-16 md:py-24 bg-surface-elevated">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -174,7 +167,6 @@ export default function ServiciosPage() {
               {t('services.section.description')}
             </p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {services.map((service, index) => (
               <div
@@ -185,17 +177,14 @@ export default function ServiciosPage() {
                 <div className="bg-surface rounded-2xl p-8 h-full border border-border hover:border-brand-primary/30 transition-all duration-300 shadow-sm hover:shadow-xl">
                   {/* Icon */}
                   <div className="text-4xl mb-6">{service.icon}</div>
-
                   {/* Title */}
                   <h3 className="text-xl font-bold text-text-primary mb-4 group-hover:text-brand-primary transition-colors">
                     {t(service.titleKey)}
                   </h3>
-
                   {/* Description */}
                   <p className="text-text-secondary mb-6 leading-relaxed">
                     {t(service.descriptionKey)}
                   </p>
-
                   {/* Features */}
                   <ul className="space-y-2 mb-8">
                     {service.features.map((featureKey, idx) => (
@@ -205,7 +194,6 @@ export default function ServiciosPage() {
                       </li>
                     ))}
                   </ul>
-
                   {/* Pricing and Timeline */}
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between items-center">
@@ -217,7 +205,6 @@ export default function ServiciosPage() {
                       <span className="font-semibold text-text-secondary">{t(service.timelineKey)}</span>
                     </div>
                   </div>
-
                   {/* CTA */}
                   <Button
                     variant="outline"
@@ -231,7 +218,6 @@ export default function ServiciosPage() {
           </div>
         </div>
       </section>
-
       {/* Process Section */}
       <section className="py-16 md:py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -243,7 +229,6 @@ export default function ServiciosPage() {
               {t('services.process.description')}
             </p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {process.map((step, index) => (
               <div
@@ -256,18 +241,15 @@ export default function ServiciosPage() {
                   <div className="w-16 h-16 bg-brand-primary/10 border-2 border-brand-primary rounded-full flex items-center justify-center mx-auto mb-6">
                     <span className="text-brand-primary font-bold text-lg">{step.step}</span>
                   </div>
-
                   {/* Title */}
                   <h3 className="text-xl font-bold text-text-primary mb-4">
                     {t(step.titleKey)}
                   </h3>
-
                   {/* Description */}
                   <p className="text-text-secondary leading-relaxed">
                     {t(step.descriptionKey)}
                   </p>
                 </div>
-
                 {/* Connector Line */}
                 {index < process.length - 1 && (
                   <div className="hidden lg:block absolute top-8 -right-4 w-8 h-0.5 bg-border"></div>
@@ -277,7 +259,6 @@ export default function ServiciosPage() {
           </div>
         </div>
       </section>
-
       {/* Case Studies Teaser */}
       <section className="py-16 md:py-24 bg-surface-elevated">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -289,7 +270,6 @@ export default function ServiciosPage() {
               {t('services.results.description')}
             </p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             {stats.map((stat, index) => (
               <div
@@ -302,7 +282,6 @@ export default function ServiciosPage() {
               </div>
             ))}
           </div>
-
           <div className="text-center">
             <Button
               variant="outline"
@@ -315,7 +294,6 @@ export default function ServiciosPage() {
           </div>
         </div>
       </section>
-
       {/* CTA Section */}
       <section className="py-16 md:py-24 bg-surface">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

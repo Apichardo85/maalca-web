@@ -15,6 +15,7 @@
   --ciri-footer-text: #E8DED1;
   --ciri-footer-muted: #8B7355;
   --ciri-logo-filter: none;
+  --ciri-logo-blend: multiply;
 
   background-color: var(--ciri-bg);
   color: var(--ciri-text);
@@ -37,4 +38,5 @@
   --ciri-footer-text: #D4C4B0;
   --ciri-footer-muted: #7A6A58;
   --ciri-logo-filter: brightness(0.9);
+  --ciri-logo-blend: screen;
 }

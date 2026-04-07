@@ -1,5 +1,4 @@
 "use client";
-
 import { Button } from "@/components/ui/buttons";
 import { FormField } from "@/components/ui/FormField";
 import { TextAreaField } from "@/components/ui/TextAreaField";
@@ -7,10 +6,8 @@ import { SelectField } from "@/components/ui/SelectField";
 import { useFormValidation, EMAIL_PATTERN, NAME_PATTERN, type ValidationRules } from "@/hooks/useFormValidation";
 import { useContactForm, type ContactFormData } from "@/hooks/useContactForm";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
-
 export default function ContactoPage() {
   const { t } = useTranslation();
-
   // Form validation rules
   const validationRules: ValidationRules = {
     name: {
@@ -40,7 +37,6 @@ export default function ContactoPage() {
       maxLength: 1000
     }
   };
-
   // Project type options
   const projectOptions = [
     { value: "editorial", label: t('contactPage.project.editorial') },
@@ -59,7 +55,6 @@ export default function ContactoPage() {
     message: "",
     project: ""
   };
-
   const {
     formData,
     errors,
@@ -70,7 +65,6 @@ export default function ContactoPage() {
     resetForm,
     getFieldProps
   } = useFormValidation(initialData, validationRules);
-
   const {
     status,
     message,
@@ -79,13 +73,10 @@ export default function ContactoPage() {
     isSuccess,
     isError
   } = useContactForm('global');
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     // Validate all fields
     const isValid = validateAllFields();
-
     if (!isValid) {
       // Scroll to first error
       const firstErrorField = Object.keys(errors).find(key => errors[key]);
@@ -94,19 +85,16 @@ export default function ContactoPage() {
       }
       return;
     }
-
     // Submit form
     const result = await submitForm(formData);
-
     if (result.success) {
       resetForm();
     }
   };
-
   return (
     <main className="min-h-screen bg-background text-foreground pt-20">
       {/* Hero Section */}
-      <section className="py-16 md:py-24 bg-surface relative overflow-hidden grain">
+      <section className="py-16 md:py-24 bg-gray-900 relative overflow-hidden grain">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
             <div className="animate-fade-in-up">
@@ -121,17 +109,15 @@ export default function ContactoPage() {
           </div>
         </div>
       </section>
-
-      <section className="py-16 md:py-24 bg-surface-elevated">
+      <section className="py-16 md:py-24 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             {/* Contact Form */}
             <div className="animate-fade-in-left">
-              <div className="bg-surface rounded-2xl p-8 border border-border shadow-lg">
-                <h2 className="text-2xl font-bold text-white mb-6">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 border border-gray-200 dark:border-gray-700 shadow-lg">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
                   {t('contactPage.form.title')}
                 </h2>
-
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Name */}
                   <FormField
@@ -144,7 +130,6 @@ export default function ContactoPage() {
                     error={errors.name}
                     {...getFieldProps('name')}
                   />
-
                   {/* Email */}
                   <FormField
                     label={t('contactPage.form.email')}
@@ -156,7 +141,6 @@ export default function ContactoPage() {
                     error={errors.email}
                     {...getFieldProps('email')}
                   />
-
                   {/* Company */}
                   <FormField
                     label={t('contactPage.form.company')}
@@ -167,7 +151,6 @@ export default function ContactoPage() {
                     error={errors.company}
                     {...getFieldProps('company')}
                   />
-
                   {/* Project Type */}
                   <SelectField
                     label={t('contactPage.form.projectType')}
@@ -178,7 +161,6 @@ export default function ContactoPage() {
                     error={errors.project}
                     {...getFieldProps('project')}
                   />
-
                   {/* Message */}
                   <TextAreaField
                     label={t('contactPage.form.message')}
@@ -190,7 +172,6 @@ export default function ContactoPage() {
                     error={errors.message}
                     {...getFieldProps('message')}
                   />
-
                   {/* Form Status Messages */}
                   {message && (
                     <div
@@ -217,7 +198,6 @@ export default function ContactoPage() {
                       <p className="font-medium">{message}</p>
                     </div>
                   )}
-
                   {/* Submit Button */}
                   <Button
                     type="submit"
@@ -235,7 +215,6 @@ export default function ContactoPage() {
                       t('contactPage.form.submit')
                     )}
                   </Button>
-
                   {/* Form Footer */}
                   <div className="text-center">
                     <p className="text-sm text-gray-400">
@@ -245,15 +224,13 @@ export default function ContactoPage() {
                 </form>
               </div>
             </div>
-
             {/* Contact Information */}
             <div className="animate-fade-in-right space-y-8">
               {/* Company Info */}
-              <div className="bg-surface rounded-2xl p-8 border border-border">
-                <h3 className="text-xl font-bold text-white mb-6">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 border border-gray-200 dark:border-gray-700">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
                   {t('contactPage.info.title')}
                 </h3>
-
                 <div className="space-y-6">
                   {/* Company */}
                   <div className="flex items-start gap-4">
@@ -263,12 +240,11 @@ export default function ContactoPage() {
                       </svg>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-white">{t('contactPage.info.company')}</h4>
-                      <p className="text-gray-300">{t('contactPage.info.ecosystem')}</p>
-                      <p className="text-sm text-gray-400">{t('contactPage.info.location')}</p>
+                      <h4 className="font-semibold text-gray-900 dark:text-white">{t('contactPage.info.company')}</h4>
+                      <p className="text-gray-600 dark:text-gray-300">{t('contactPage.info.ecosystem')}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{t('contactPage.info.location')}</p>
                     </div>
                   </div>
-
                   {/* Email */}
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 bg-brand-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -278,13 +254,12 @@ export default function ContactoPage() {
                       </svg>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-white">{t('contactPage.info.emailLabel')}</h4>
+                      <h4 className="font-semibold text-gray-900 dark:text-white">{t('contactPage.info.emailLabel')}</h4>
                       <a href="mailto:hola@maalca.com" className="text-brand-primary hover:underline">
                         hola@maalca.com
                       </a>
                     </div>
                   </div>
-
                   {/* Response Time */}
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 bg-brand-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -293,16 +268,15 @@ export default function ContactoPage() {
                       </svg>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-white">{t('contactPage.info.responseTime')}</h4>
-                      <p className="text-gray-300">{t('contactPage.info.responseTimeValue')}</p>
+                      <h4 className="font-semibold text-gray-900 dark:text-white">{t('contactPage.info.responseTime')}</h4>
+                      <p className="text-gray-600 dark:text-gray-300">{t('contactPage.info.responseTimeValue')}</p>
                     </div>
                   </div>
                 </div>
               </div>
-
               {/* Philosophy Quote */}
               <div className="bg-gradient-to-r from-brand-primary/10 to-brand-secondary/10 rounded-2xl p-8 border border-brand-primary/20">
-                <blockquote className="text-white">
+                <blockquote className="text-gray-900 dark:text-white">
                   <p className="text-lg font-medium italic mb-4">
                     &ldquo;{t('contactPage.quote.text')}&rdquo;
                   </p>

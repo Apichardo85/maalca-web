@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -10,7 +9,6 @@ import SimpleLanguageToggle from "@/components/ui/SimpleLanguageToggle";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
 import { NavigationItem, HeaderProps } from "@/lib/types";
 import { cn } from "@/lib/utils";
-
 export default function Header({
   className = "",
   variant = "default",
@@ -21,7 +19,6 @@ export default function Header({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const { t } = useTranslation();
-
   const navigationItems: NavigationItem[] = [
     { label: t('nav.home'), href: "/" },
     { label: t('nav.ecosystem'), href: "/ecosistema" },
@@ -29,22 +26,18 @@ export default function Header({
     { label: t('nav.services'), href: "/servicios" },
     { label: t('nav.contact'), href: "/contacto" }
   ];
-
   // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
   // Close mobile menu on route change
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
-
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
@@ -52,15 +45,17 @@ export default function Header({
     } else {
       document.body.style.overflow = "unset";
     }
-
     return () => {
       document.body.style.overflow = "unset";
     };
   }, [isMobileMenuOpen]);
+  // CiriWhispers y Dashboard tienen su propio header/nav
+  if (pathname.startsWith('/ciriwhispers') || pathname.startsWith('/dashboard')) {
+    return null;
+  }
 
   const getHeaderStyle = () => {
     const baseStyle = "fixed top-0 left-0 right-0 z-50 transition-all duration-300";
-
     switch (variant) {
       case "transparent":
         return `${baseStyle} ${isScrolled ? "bg-background/95 backdrop-blur-lg shadow-lg border-b border-border" : "bg-transparent"}`;
@@ -70,14 +65,12 @@ export default function Header({
         return `${baseStyle} ${isScrolled ? "bg-background/95 backdrop-blur-lg shadow-lg border-b border-border" : "bg-background/90 backdrop-blur-sm"}`;
     }
   };
-
   const isActive = (href: string) => {
     if (href === "/") {
       return pathname === "/" || pathname === "";
     }
     return pathname.startsWith(href);
   };
-
   return (
     <>
       <header
@@ -93,7 +86,6 @@ export default function Header({
                 </Link>
               </div>
             )}
-
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center space-x-8">
               {navigationItems.map((item, index) => (
@@ -112,14 +104,12 @@ export default function Header({
                     )}
                   >
                     {item.label}
-
                     {/* Active indicator */}
                     {isActive(item.href) && (
                       <div
                         className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-full transition-all duration-300"
                       />
                     )}
-
                     {/* Hover indicator */}
                     <div
                       className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-primary/60 to-brand-secondary/60 rounded-full opacity-0 group-hover:opacity-50 transition-opacity duration-300"
@@ -128,19 +118,16 @@ export default function Header({
                 </div>
               ))}
             </nav>
-
             {/* Actions */}
             <div className="hidden lg:flex items-center space-x-4">
               {/* Language Toggle */}
               <div className="flex-shrink-0 animate-fade-in" style={{ animationDelay: '0.3s' }}>
                 <SimpleLanguageToggle />
               </div>
-
               {/* Theme Toggle */}
               <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
                 <ThemeToggle />
               </div>
-
               {showActions && (
                 <>
                   <div className="animate-fade-in" style={{ animationDelay: '0.5s' }}>
@@ -150,7 +137,6 @@ export default function Header({
                       </Button>
                     </Link>
                   </div>
-
                   <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
                     <Button variant="primary" size="sm">
                       {t('nav.join')}
@@ -159,7 +145,6 @@ export default function Header({
                 </>
               )}
             </div>
-
             {/* Mobile menu button */}
             <button
               className="lg:hidden p-2 rounded-lg hover:bg-surface-elevated transition-colors text-text-primary active:scale-95"
@@ -189,7 +174,6 @@ export default function Header({
           </div>
         </div>
       </header>
-
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-40 lg:hidden animate-overlay-in">
@@ -198,7 +182,6 @@ export default function Header({
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setIsMobileMenuOpen(false)}
           />
-
           {/* Menu Panel */}
           <div className="absolute top-16 left-0 right-0 bg-surface shadow-2xl border-t border-border animate-fade-in-down">
             <div className="max-w-7xl mx-auto px-4 py-6">
@@ -225,7 +208,6 @@ export default function Header({
                   </div>
                 ))}
               </nav>
-
               {/* Mobile Actions */}
               <div
                 className="mt-8 pt-6 border-t border-border space-y-4 animate-fade-in-up"
@@ -236,7 +218,6 @@ export default function Header({
                   <SimpleLanguageToggle />
                   <ThemeToggle />
                 </div>
-
                 {showActions && (
                   <>
                     <Button
@@ -250,7 +231,6 @@ export default function Header({
                     >
                       {t('nav.explore')}
                     </Button>
-
                     <Link href="/login" className="w-full">
                       <Button
                         variant="outline"
@@ -261,7 +241,6 @@ export default function Header({
                         Iniciar sesión
                       </Button>
                     </Link>
-
                     <Button
                       variant="primary"
                       size="lg"
@@ -277,7 +256,6 @@ export default function Header({
           </div>
         </div>
       )}
-
       {/* Spacer to prevent content from hiding behind fixed header */}
       <div className="h-16 lg:h-20" />
     </>
