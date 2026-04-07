@@ -1,11 +1,9 @@
 "use client";
-
 import { useState, useMemo, useRef, useEffect } from "react";
 import { GalleryItem, GalleryCategory, CategoryFilter as CategoryFilterType, GalleryProps } from "@/lib/types";
 import { useLazyLoading } from "@/hooks/useLazyLoading";
 import CategoryFilter from "./CategoryFilter";
 import Lightbox from "./Lightbox";
-
 // Sample data for demonstration
 const sampleItems: GalleryItem[] = [
   {
@@ -97,7 +95,6 @@ const sampleItems: GalleryItem[] = [
     tags: ["trabajo", "matutino", "profesional"]
   }
 ];
-
 export default function ProductGallery({
   items = sampleItems,
   categories,
@@ -112,18 +109,14 @@ export default function ProductGallery({
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-
   const galleryRef = useRef<HTMLDivElement>(null);
   const { observeImage, unobserveImage, handleImageLoad, handleImageError, shouldLoadImage, getImageState } = useLazyLoading();
-
   // Filter items based on category and search term
   const filteredItems = useMemo(() => {
     let filtered = items;
-
     if (selectedCategory !== "todas") {
       filtered = filtered.filter(item => item.category === selectedCategory);
     }
-
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(item =>
@@ -132,52 +125,41 @@ export default function ProductGallery({
         item.tags?.some(tag => tag.toLowerCase().includes(term))
       );
     }
-
     return filtered;
   }, [items, selectedCategory, searchTerm]);
-
   // Handle item click
   const handleItemClick = (item: GalleryItem) => {
     setSelectedItem(item);
     setIsLightboxOpen(true);
     onItemClick?.(item);
   };
-
   // Lightbox navigation
   const currentIndex = selectedItem ? filteredItems.findIndex(item => item.id === selectedItem.id) : -1;
   const hasPrevious = currentIndex > 0;
   const hasNext = currentIndex < filteredItems.length - 1;
-
   const handlePrevious = () => {
     if (hasPrevious) {
       setSelectedItem(filteredItems[currentIndex - 1]);
     }
   };
-
   const handleNext = () => {
     if (hasNext) {
       setSelectedItem(filteredItems[currentIndex + 1]);
     }
   };
-
   // Masonry grid calculation
   const getMasonryColumns = () => {
     if (typeof window === "undefined") return Array(columns).fill([]);
-
     const cols = Array(columns).fill(null).map(() => [] as GalleryItem[]);
     const colHeights = Array(columns).fill(0);
-
     filteredItems.forEach((item) => {
       const shortestColIndex = colHeights.indexOf(Math.min(...colHeights));
       cols[shortestColIndex].push(item);
       colHeights[shortestColIndex] += (item.height / item.width) * 300 + gap;
     });
-
     return cols;
   };
-
   const masonryColumns = getMasonryColumns();
-
   return (
     <div className={`w-full ${className}`}>
       {/* Header */}
@@ -192,7 +174,6 @@ export default function ProductGallery({
           Descubre nuestra colección de creaciones gastronómicas que han conquistado los paladares más exigentes
         </p>
       </div>
-
       {/* Search Bar */}
       {showSearch && (
         <div
@@ -215,7 +196,6 @@ export default function ProductGallery({
           </div>
         </div>
       )}
-
       {/* Category Filter */}
       {showCategoryFilter && (
         <div
@@ -229,7 +209,6 @@ export default function ProductGallery({
           />
         </div>
       )}
-
       {/* Results Count */}
       <div
         className="text-center mb-8 animate-fade-in"
@@ -242,7 +221,6 @@ export default function ProductGallery({
           )}
         </p>
       </div>
-
       {/* Masonry Grid */}
       <div
         ref={galleryRef}
@@ -270,17 +248,14 @@ export default function ProductGallery({
                       shouldLoadImage={shouldLoadImage}
                       getImageState={getImageState}
                     />
-
                     {/* Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
                     {/* Category Badge */}
                     <div className="absolute top-4 left-4">
                       <span className="bg-white/90 backdrop-blur-sm text-gray-900 px-3 py-1 rounded-full text-sm font-medium">
                         {item.category.replace("-", " ").replace(/\b\w/g, (l: string) => l.toUpperCase())}
                       </span>
                     </div>
-
                     {/* Zoom Icon */}
                     <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <div className="w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center">
@@ -290,7 +265,6 @@ export default function ProductGallery({
                       </div>
                     </div>
                   </div>
-
                   {/* Content */}
                   <div className="p-6">
                     <h3 className="font-display text-xl font-bold text-gray-900 mb-2 group-hover:text-amber-600 transition-colors">
@@ -301,7 +275,6 @@ export default function ProductGallery({
                         {item.description}
                       </p>
                     )}
-
                     {item.tags && item.tags.length > 0 && (
                       <div className="flex flex-wrap gap-2">
                         {item.tags.slice(0, 3).map((tag: string) => (
@@ -321,7 +294,6 @@ export default function ProductGallery({
           </div>
         ))}
       </div>
-
       {/* Empty State */}
       {filteredItems.length === 0 && (
         <div className="text-center py-16 animate-fade-in-up">
@@ -334,7 +306,6 @@ export default function ProductGallery({
           <p className="text-gray-500">Intenta ajustar tus filtros o términos de búsqueda</p>
         </div>
       )}
-
       {/* Lightbox */}
       <Lightbox
         item={selectedItem}
@@ -348,7 +319,6 @@ export default function ProductGallery({
     </div>
   );
 }
-
 // Lazy Image Component
 interface LazyImageProps {
   item: GalleryItem;
@@ -359,7 +329,6 @@ interface LazyImageProps {
   shouldLoadImage: (id: string) => boolean;
   getImageState: (id: string) => { isLoaded: boolean; isIntersecting: boolean; error: boolean };
 }
-
 function LazyImage({
   item,
   observeImage,
@@ -371,7 +340,6 @@ function LazyImage({
 }: LazyImageProps) {
   const imgRef = useRef<HTMLImageElement>(null);
   const { isLoaded, error } = getImageState(item.id);
-
   useEffect(() => {
     const img = imgRef.current;
     if (img) {
@@ -379,7 +347,6 @@ function LazyImage({
       return () => unobserveImage(item.id);
     }
   }, [item.id, observeImage, unobserveImage]);
-
   return (
     <div
       className="relative w-full bg-gray-200 animate-pulse"
@@ -410,7 +377,6 @@ function LazyImage({
           </div>
         </div>
       )}
-
       {error && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
           <div className="text-center text-gray-400">

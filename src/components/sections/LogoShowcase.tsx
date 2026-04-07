@@ -1,7 +1,5 @@
 "use client";
-
 import { Logo } from "@/components/ui/Logo";
-
 export function LogoShowcase() {
   return (
     <section className="py-20 bg-gradient-to-b from-maalca-black to-maalca-dark-gray">
@@ -17,7 +15,6 @@ export function LogoShowcase() {
             Nuestro logo representa la conexión humana y el sentido de pertenencia que impulsa nuestro ecosistema creativo.
           </p>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
           {/* Full Logo Dark */}
           <div
@@ -32,7 +29,6 @@ export function LogoShowcase() {
               Versión principal para fondos oscuros
             </p>
           </div>
-
           {/* Icon Only */}
           <div
             className="flex flex-col items-center p-8 bg-maalca-dark-gray border border-maalca-gray rounded-2xl animate-fade-in-up"
@@ -46,7 +42,6 @@ export function LogoShowcase() {
               Símbolo independiente para aplicaciones compactas
             </p>
           </div>
-
           {/* Text Only */}
           <div
             className="flex flex-col items-center p-8 bg-maalca-gray border border-maalca-light-gray rounded-2xl animate-fade-in-up"
@@ -60,7 +55,6 @@ export function LogoShowcase() {
               Solo texto para usos específicos
             </p>
           </div>
-
           {/* Full Logo Light */}
           <div
             className="flex flex-col items-center p-8 bg-maalca-white rounded-2xl animate-fade-in-up"
@@ -74,7 +68,6 @@ export function LogoShowcase() {
               Para fondos claros y aplicaciones especiales
             </p>
           </div>
-
           {/* Icon Light */}
           <div
             className="flex flex-col items-center p-8 bg-gray-100 rounded-2xl animate-fade-in-up"
@@ -88,7 +81,6 @@ export function LogoShowcase() {
               Símbolo para fondos claros
             </p>
           </div>
-
           {/* Different Sizes */}
           <div
             className="flex flex-col items-center p-8 bg-gradient-to-br from-maalca-red/20 to-maalca-red-dark/20 border border-maalca-red/30 rounded-2xl animate-fade-in-up"
@@ -105,7 +97,6 @@ export function LogoShowcase() {
             </p>
           </div>
         </div>
-
         {/* Design Philosophy */}
         <div
           className="mt-20 text-center animate-fade-in-up"
@@ -125,7 +116,6 @@ export function LogoShowcase() {
                   La figura humana central representa nuestro enfoque centrado en las personas y las conexiones auténticas.
                 </p>
               </div>
-
               <div className="p-6 bg-maalca-dark-gray/50 rounded-xl border border-maalca-gray/30">
                 <div className="w-12 h-12 bg-maalca-red rounded-full flex items-center justify-center mb-4">
                   <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -137,7 +127,6 @@ export function LogoShowcase() {
                   Los puntos circundantes simbolizan las múltiples conexiones y colaboraciones dentro de nuestro ecosistema.
                 </p>
               </div>
-
               <div className="p-6 bg-maalca-dark-gray/50 rounded-xl border border-maalca-gray/30">
                 <div className="w-12 h-12 bg-maalca-red rounded-full flex items-center justify-center mb-4">
                   <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">

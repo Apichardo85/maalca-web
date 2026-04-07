@@ -1,14 +1,10 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 import QRCode from "qrcode";
-
 // ─── Types ───────────────────────────────────────────────────────────────────
-
 type Tab = "mesas" | "redes" | "imprimir";
-
 interface QRItem {
   id: string;
   label: string;
@@ -16,12 +12,9 @@ interface QRItem {
   url: string;
   icon: string;
 }
-
 // ─── QR Card Component ───────────────────────────────────────────────────────
-
 function QRCard({ item, brandColor, size = 150 }: { item: QRItem; brandColor: string; size?: number }) {
   const [dataUrl, setDataUrl] = useState("");
-
   useEffect(() => {
     QRCode.toDataURL(item.url, {
       width: size * 2,
@@ -30,7 +23,6 @@ function QRCard({ item, brandColor, size = 150 }: { item: QRItem; brandColor: st
       errorCorrectionLevel: "M",
     }).then(setDataUrl);
   }, [item.url, size, brandColor]);
-
   const download = () => {
     if (!dataUrl) return;
     const a = document.createElement("a");
@@ -38,9 +30,7 @@ function QRCard({ item, brandColor, size = 150 }: { item: QRItem; brandColor: st
     a.download = `qr-${item.id}.png`;
     a.click();
   };
-
   const ready = !!dataUrl;
-
   return (
     <div className="bg-white dark:bg-gray-900 rounded-xl p-4 border border-gray-100 dark:border-gray-800 flex flex-col items-center gap-3 shadow-sm hover:shadow-md transition-shadow">
       {/* QR image */}
@@ -54,13 +44,11 @@ function QRCard({ item, brandColor, size = 150 }: { item: QRItem; brandColor: st
           <span className="text-2xl">{item.icon}</span>
         )}
       </div>
-
       {/* Label */}
       <div className="text-center">
         <p className="text-sm font-bold text-gray-900 dark:text-white">{item.label}</p>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{item.sub}</p>
       </div>
-
       {/* Actions */}
       <div className="flex gap-2 w-full">
         <button
@@ -98,9 +86,7 @@ function QRCard({ item, brandColor, size = 150 }: { item: QRItem; brandColor: st
     </div>
   );
 }
-
 // ─── Print All Button ────────────────────────────────────────────────────────
-
 function PrintAllBtn({
   items,
   label,
@@ -113,7 +99,6 @@ function PrintAllBtn({
   brandName: string;
 }) {
   const [loading, setLoading] = useState(false);
-
   const run = async () => {
     setLoading(true);
     try {
@@ -128,10 +113,8 @@ function PrintAllBtn({
           }),
         }))
       );
-
       const w = window.open("", "_blank");
       if (!w) return;
-
       const html = cards
         .map(
           ({ item, url }) => `
@@ -143,7 +126,6 @@ function PrintAllBtn({
         </div>`
         )
         .join("");
-
       w.document.write(`<!DOCTYPE html><html><head>
         <title>${label} - ${brandName}</title>
         <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,sans-serif;padding:20px}
@@ -161,7 +143,6 @@ function PrintAllBtn({
       setLoading(false);
     }
   };
-
   return (
     <button
       onClick={run}
@@ -173,18 +154,14 @@ function PrintAllBtn({
     </button>
   );
 }
-
 // ─── Page ────────────────────────────────────────────────────────────────────
-
 export default function QRPage() {
   const { config, brandName } = useAffiliate();
   const [tab, setTab] = useState<Tab>("mesas");
-
   const affiliateId = config?.id ?? "affiliate";
   const brandColor = `var(--brand-primary)`;
   // For QR generation we need the actual hex, grab from CSS variable at runtime
   const [hexColor, setHexColor] = useState("#000000");
-
   useEffect(() => {
     const el = document.querySelector("[style*='--brand-primary']");
     if (el) {
@@ -192,10 +169,8 @@ export default function QRPage() {
       if (val) setHexColor(val);
     }
   }, []);
-
   const BASE = `https://maalca.com/${affiliateId}`;
   const TABLES_COUNT = 12;
-
   const TABLE_ITEMS: QRItem[] = Array.from({ length: TABLES_COUNT }, (_, i) => ({
     id: `mesa-${i + 1}`,
     label: `Mesa ${i + 1}`,
@@ -203,20 +178,17 @@ export default function QRPage() {
     url: `${BASE}/menu?mesa=${i + 1}`,
     icon: "🍽️",
   }));
-
   const SOCIAL_ITEMS: QRItem[] = [
     { id: "menu", label: "Menu Digital", sub: `${BASE}/menu`, url: `${BASE}/menu`, icon: "📋" },
     { id: "instagram", label: "Instagram", sub: `@${affiliateId}`, url: `https://instagram.com/${affiliateId}`, icon: "📸" },
     { id: "facebook", label: "Facebook", sub: brandName, url: `https://facebook.com/${affiliateId}`, icon: "👥" },
     { id: "reservar", label: "Reservaciones", sub: "Reserva tu mesa online", url: `${BASE}/#reservar`, icon: "📅" },
   ];
-
   const tabs: { key: Tab; label: string; icon: string }[] = [
     { key: "mesas", label: "Mesas", icon: "🍽️" },
     { key: "redes", label: "Redes & Flyers", icon: "📱" },
     { key: "imprimir", label: "Kit Impresion", icon: "🖨️" },
   ];
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -235,7 +207,6 @@ export default function QRPage() {
             QR con tu marca — Listos para imprimir — Sin app necesaria
           </p>
         </div>
-
         {/* Tab switcher */}
         <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-full">
           {tabs.map((t) => (
@@ -253,7 +224,6 @@ export default function QRPage() {
           ))}
         </div>
       </div>
-
       {/* MESAS tab */}
       {tab === "mesas" && (
         <div>
@@ -275,7 +245,6 @@ export default function QRPage() {
           </div>
         </div>
       )}
-
       {/* REDES tab */}
       {tab === "redes" && (
         <div>
@@ -292,7 +261,6 @@ export default function QRPage() {
           </div>
         </div>
       )}
-
       {/* KIT tab */}
       {tab === "imprimir" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -326,7 +294,6 @@ export default function QRPage() {
               <PrintAllBtn items={SOCIAL_ITEMS} label="Redes & Flyers" brandColor={hexColor} brandName={brandName} />
             </div>
           </div>
-
           {/* Instructions */}
           <DashboardCard title="Como implementarlos" icon="📖">
             <ol className="space-y-5">

@@ -1,19 +1,15 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/buttons";
 import { ThemeSwitch } from "@/components/ui/ThemeSwitch";
 import { LanguageToggle } from "@/components/ui/LanguageToggle";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
-
 export default function HablandoMierdaPage() {
   const { t } = useTranslation();
   const [isLive, setIsLive] = useState(false);
   const [typewriterText, setTypewriterText] = useState("");
   const [currentTime, setCurrentTime] = useState(new Date());
-
   const iconicPhrase = t('hbm.footer.phrase');
-
   const episodes = [
     {
       id: "ep-01",
@@ -56,7 +52,6 @@ export default function HablandoMierdaPage() {
       image: "/images/hbm/episode-04.jpg"
     }
   ];
-
   const hosts = [
     {
       name: t('hbm.hosts.ciri.name'),
@@ -75,7 +70,6 @@ export default function HablandoMierdaPage() {
       color: "#FFD60A"
     }
   ];
-
   const clips = [
     {
       id: "clip-1",
@@ -99,7 +93,6 @@ export default function HablandoMierdaPage() {
       url: "#"
     }
   ];
-
   // Typewriter effect
   useEffect(() => {
     let i = 0;
@@ -113,13 +106,11 @@ export default function HablandoMierdaPage() {
     }, 100);
     return () => clearInterval(timer);
   }, []);
-
   // Clock for live transmission
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
-
   // Simulate live status (would connect to actual stream)
   useEffect(() => {
     const liveCheck = setInterval(() => {
@@ -127,7 +118,6 @@ export default function HablandoMierdaPage() {
     }, 5000);
     return () => clearInterval(liveCheck);
   }, []);
-
   return (
     <main className="min-h-screen bg-background text-foreground">
       {/* Hero Section */}
@@ -148,7 +138,6 @@ export default function HablandoMierdaPage() {
             ))}
           </div>
         </div>
-
         <div className="relative z-10 text-center max-w-6xl mx-auto px-4">
           <div className="animate-fade-in-up">
             {/* Logo Animado */}
@@ -160,17 +149,14 @@ export default function HablandoMierdaPage() {
                 className="w-24 h-1 bg-brand-primary mx-auto mb-4 animate-pulse-scale"
               />
             </div>
-
             <h1 className="text-4xl md:text-6xl font-black mb-6 text-text-primary font-sans">
               {t('hbm.hero.title')}
             </h1>
-
             <p className="text-xl md:text-2xl text-text-secondary mb-8 font-light max-w-3xl mx-auto">
               {t('hbm.hero.subtitle')}
               <br />
               <span className="text-brand-primary font-medium">{t('hbm.hero.tagline')}</span>
             </p>
-
             <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
               <div className="hover:scale-105 active:scale-95 transition-transform">
                 <Button
@@ -181,7 +167,6 @@ export default function HablandoMierdaPage() {
                   {t('hbm.hero.listenNow')}
                 </Button>
               </div>
-
               <div className="hover:scale-105 active:scale-95 transition-transform">
                 <Button
                   variant="outline"
@@ -192,7 +177,6 @@ export default function HablandoMierdaPage() {
                 </Button>
               </div>
             </div>
-
             {/* Live Indicator */}
             {isLive && (
               <div className="inline-flex items-center gap-3 bg-red-500 text-white px-6 py-3 rounded-full font-bold animate-fade-in-scale">
@@ -205,13 +189,11 @@ export default function HablandoMierdaPage() {
             )}
           </div>
         </div>
-
         {/* Scroll Indicator */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce-slow">
           <div className="w-1 h-12 bg-gradient-to-b from-transparent via-brand-primary to-transparent rounded-full"></div>
         </div>
       </section>
-
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-background/90 backdrop-blur-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4">
@@ -219,7 +201,6 @@ export default function HablandoMierdaPage() {
             <div className="font-black text-xl text-brand-primary hover:scale-110 transition-transform">
               HBM
             </div>
-
             <div className="hidden md:flex items-center space-x-8">
               <a href="#episodios" className="text-text-secondary hover:text-brand-primary transition-colors font-medium">
                 {t('hbm.nav.episodes')}
@@ -239,7 +220,6 @@ export default function HablandoMierdaPage() {
           </div>
         </div>
       </nav>
-
       {/* Episodios Section */}
       <section id="episodios" className="py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-4">
@@ -251,7 +231,6 @@ export default function HablandoMierdaPage() {
               {t('hbm.episodes.subtitle')}
             </p>
           </div>
-
           <div className="grid md:grid-cols-2 gap-8">
             {episodes.map((episode, index) => (
               <div
@@ -275,7 +254,6 @@ export default function HablandoMierdaPage() {
                       </span>
                     </div>
                   </div>
-
                   {/* Episode Content */}
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-3">
@@ -287,15 +265,12 @@ export default function HablandoMierdaPage() {
                         })}
                       </time>
                     </div>
-
                     <h3 className="text-xl font-bold text-text-primary mb-3 group-hover:text-brand-primary transition-colors">
                       {episode.title}
                     </h3>
-
                     <p className="text-text-secondary leading-relaxed mb-6">
                       {episode.description}
                     </p>
-
                     <div className="flex gap-3">
                       <Button
                         variant="primary"
@@ -317,7 +292,6 @@ export default function HablandoMierdaPage() {
               </div>
             ))}
           </div>
-
           <div className="text-center mt-12">
             <Button
               variant="outline"
@@ -329,7 +303,6 @@ export default function HablandoMierdaPage() {
           </div>
         </div>
       </section>
-
       {/* Radio en Vivo Section */}
       <section className="py-24 bg-gradient-to-b from-surface to-background relative overflow-hidden">
         <div className="absolute inset-0 opacity-5">
@@ -347,13 +320,11 @@ export default function HablandoMierdaPage() {
             ))}
           </div>
         </div>
-
         <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
           <div className="animate-fade-in-scale">
             <h2 className="text-4xl md:text-6xl font-black text-text-primary mb-8 font-sans">
               {t('hbm.radio.title')}
             </h2>
-
             <div className="bg-surface-elevated rounded-3xl p-12 border border-border shadow-2xl">
               {/* Live Status */}
               <div className="flex items-center justify-center gap-4 mb-8">
@@ -367,7 +338,6 @@ export default function HablandoMierdaPage() {
                   {currentTime.toLocaleTimeString()}
                 </div>
               </div>
-
               {/* Wave Visualizer */}
               <div className="flex items-center justify-center gap-1 mb-8">
                 {[...Array(10)].map((_, i) => (
@@ -381,7 +351,6 @@ export default function HablandoMierdaPage() {
                   />
                 ))}
               </div>
-
               <Button
                 variant="primary"
                 size="lg"
@@ -390,7 +359,6 @@ export default function HablandoMierdaPage() {
               >
                 {isLive ? t('hbm.radio.listenLive') : t('hbm.radio.nextTransmission')}
               </Button>
-
               {!isLive && (
                 <p className="text-text-muted mt-4">
                   {t('hbm.hero.nextShow')}
@@ -400,7 +368,6 @@ export default function HablandoMierdaPage() {
           </div>
         </div>
       </section>
-
       {/* Equipo Section */}
       <section id="equipo" className="py-24 bg-surface">
         <div className="max-w-6xl mx-auto px-4">
@@ -412,7 +379,6 @@ export default function HablandoMierdaPage() {
               {t('hbm.hosts.subtitle')}
             </p>
           </div>
-
           <div className="grid md:grid-cols-2 gap-12">
             {hosts.map((host, index) => (
               <div
@@ -427,7 +393,6 @@ export default function HablandoMierdaPage() {
                       background: `linear-gradient(45deg, ${host.color}20, transparent)`
                     }}
                   />
-
                   {/* Avatar */}
                   <div className="relative z-10 mb-6">
                     <div
@@ -437,7 +402,6 @@ export default function HablandoMierdaPage() {
                       {index === 0 ? '🎭' : '🎪'}
                     </div>
                   </div>
-
                   <h3 className="text-3xl font-black mb-2" style={{ color: host.color }}>
                     {host.name}
                   </h3>
@@ -447,7 +411,6 @@ export default function HablandoMierdaPage() {
                   <p className="text-text-secondary leading-relaxed mb-6">
                     {host.description}
                   </p>
-
                   {/* Iconic Phrase */}
                   <div className="group-hover:bg-background/50 rounded-xl p-4 transition-all duration-300 animate-fade-in-up">
                     <blockquote
@@ -463,7 +426,6 @@ export default function HablandoMierdaPage() {
           </div>
         </div>
       </section>
-
       {/* Clips Section */}
       <section id="clips" className="py-24 bg-background">
         <div className="max-w-7xl mx-auto px-4">
@@ -475,7 +437,6 @@ export default function HablandoMierdaPage() {
               {t('hbm.clips.subtitle')}
             </p>
           </div>
-
           <div className="grid md:grid-cols-3 gap-8">
             {clips.map((clip, index) => (
               <div
@@ -489,14 +450,12 @@ export default function HablandoMierdaPage() {
                     <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center hover:scale-120 transition-transform">
                       <div className="w-0 h-0 border-l-[12px] border-l-black border-y-[8px] border-y-transparent ml-1"></div>
                     </div>
-
                     {/* Platform Badge */}
                     <div className="absolute top-4 left-4">
                       <span className="bg-black/70 text-white px-3 py-1 rounded-full text-sm font-bold">
                         {clip.platform}
                       </span>
                     </div>
-
                     {/* Views */}
                     <div className="absolute bottom-4 right-4">
                       <span className="bg-brand-primary text-white px-3 py-1 rounded-full text-sm font-bold">
@@ -504,7 +463,6 @@ export default function HablandoMierdaPage() {
                       </span>
                     </div>
                   </div>
-
                   <div className="p-4">
                     <h3 className="font-bold text-text-primary group-hover:text-brand-primary transition-colors">
                       {clip.title}
@@ -514,7 +472,6 @@ export default function HablandoMierdaPage() {
               </div>
             ))}
           </div>
-
           <div className="text-center mt-12">
             <Button
               variant="outline"
@@ -526,7 +483,6 @@ export default function HablandoMierdaPage() {
           </div>
         </div>
       </section>
-
       {/* Support/Merch Section */}
       <section className="py-24 bg-surface">
         <div className="max-w-6xl mx-auto px-4">
@@ -538,7 +494,6 @@ export default function HablandoMierdaPage() {
               {t('hbm.support.subtitle')}
             </p>
           </div>
-
           <div className="grid md:grid-cols-3 gap-8">
             {[
               { item: t('hbm.support.cap'), price: "$25", emoji: "🧢" },
@@ -564,7 +519,6 @@ export default function HablandoMierdaPage() {
               </div>
             ))}
           </div>
-
           <div className="text-center mt-16">
             <div className="hover:scale-105 active:scale-95 transition-transform inline-block">
               <Button
@@ -578,7 +532,6 @@ export default function HablandoMierdaPage() {
           </div>
         </div>
       </section>
-
       {/* Contacto Section */}
       <section id="contacto" className="py-24 bg-background">
         <div className="max-w-4xl mx-auto px-4 text-center">
@@ -589,7 +542,6 @@ export default function HablandoMierdaPage() {
             <p className="text-xl text-text-secondary max-w-2xl mx-auto mb-12">
               {t('hbm.contact.subtitle')}
             </p>
-
             <div className="grid md:grid-cols-2 gap-8 mb-12">
               {/* WhatsApp */}
               <div className="hover:scale-[1.02] transition-transform">
@@ -607,7 +559,6 @@ export default function HablandoMierdaPage() {
                   </Button>
                 </div>
               </div>
-
               {/* Discord */}
               <div className="hover:scale-[1.02] transition-transform">
                 <div className="bg-surface-elevated rounded-2xl p-8 border border-border hover:border-blue-500/50 transition-all duration-300">
@@ -625,7 +576,6 @@ export default function HablandoMierdaPage() {
                 </div>
               </div>
             </div>
-
             {/* Social Links */}
             <div className="flex justify-center gap-6">
               {[
@@ -646,7 +596,6 @@ export default function HablandoMierdaPage() {
           </div>
         </div>
       </section>
-
       {/* Footer with Typewriter */}
       <footer className="py-16 bg-surface border-t border-border">
         <div className="max-w-4xl mx-auto px-4 text-center">
@@ -655,7 +604,6 @@ export default function HablandoMierdaPage() {
               {typewriterText}
               <span className="text-brand-primary animate-pulse">|</span>
             </div>
-
             <div className="text-text-muted mt-8">
               <p>{t('hbm.footer.copyright')}</p>
               <p className="mt-2">{t('hbm.footer.location')}</p>

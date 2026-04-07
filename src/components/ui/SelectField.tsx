@@ -1,11 +1,9 @@
 import { forwardRef } from 'react';
-
 interface SelectOption {
   value: string;
   label: string;
   disabled?: boolean;
 }
-
 interface SelectFieldProps {
   label: string;
   name: string;
@@ -19,7 +17,6 @@ interface SelectFieldProps {
   options: SelectOption[];
   className?: string;
 }
-
 export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(({
   label,
   name,
@@ -36,7 +33,6 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(({
 }, ref) => {
   const hasError = !!error;
   const hasValue = !!value;
-
   return (
     <div className={`relative ${className}`}>
       <label
@@ -45,7 +41,6 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(({
       >
         {label} {required && <span className="text-red-500">*</span>}
       </label>
-
       <div className="relative">
         <select
           ref={ref}
@@ -84,14 +79,12 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(({
             </option>
           ))}
         </select>
-
         {/* Custom dropdown arrow */}
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
           <svg className="w-5 h-5 text-text-muted" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
           </svg>
         </div>
-
         {/* Success checkmark */}
         {hasValue && !hasError && (
           <div className="absolute right-10 top-1/2 transform -translate-y-1/2 transition-opacity duration-200">
@@ -100,7 +93,6 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(({
             </svg>
           </div>
         )}
-
         {/* Error icon */}
         {hasError && (
           <div className="absolute right-10 top-1/2 transform -translate-y-1/2 transition-opacity duration-200">
@@ -110,7 +102,6 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(({
           </div>
         )}
       </div>
-
       {/* Error message */}
       {hasError && (
         <div
@@ -128,5 +119,4 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(({
     </div>
   );
 });
-
 SelectField.displayName = 'SelectField';

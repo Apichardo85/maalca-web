@@ -1,5 +1,4 @@
 import { forwardRef } from 'react';
-
 interface TextAreaFieldProps {
   label: string;
   name: string;
@@ -14,7 +13,6 @@ interface TextAreaFieldProps {
   maxLength?: number;
   className?: string;
 }
-
 export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>(({
   label,
   name,
@@ -35,7 +33,6 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
   const characterCount = value.length;
   const isNearLimit = maxLength && characterCount > maxLength * 0.8;
   const isOverLimit = maxLength && characterCount > maxLength;
-
   return (
     <div className={`relative ${className}`}>
       <div className="flex items-center justify-between mb-2">
@@ -45,7 +42,6 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
         >
           {label} {required && <span className="text-red-500">*</span>}
         </label>
-
         {maxLength && (
           <span
             className={`text-xs transition-colors duration-200 ${
@@ -60,7 +56,6 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
           </span>
         )}
       </div>
-
       <div className="relative">
         <textarea
           ref={ref}
@@ -91,7 +86,6 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
           aria-describedby={hasError ? `${name}-error` : undefined}
           {...props}
         />
-
         {/* Success checkmark */}
         {hasValue && !hasError && !isOverLimit && (
           <div className="absolute right-3 top-3 transition-opacity duration-200">
@@ -100,7 +94,6 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
             </svg>
           </div>
         )}
-
         {/* Error icon */}
         {(hasError || isOverLimit) && (
           <div className="absolute right-3 top-3 transition-opacity duration-200">
@@ -110,7 +103,6 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
           </div>
         )}
       </div>
-
       {/* Error message */}
       {(hasError || isOverLimit) && (
         <div
@@ -128,5 +120,4 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
     </div>
   );
 });
-
 TextAreaField.displayName = 'TextAreaField';

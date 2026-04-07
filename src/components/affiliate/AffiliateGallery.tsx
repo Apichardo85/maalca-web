@@ -1,8 +1,6 @@
 "use client";
-
 import { useState } from "react";
 import { ProjectImage } from "@/components/ui/ProjectImage";
-
 export interface GalleryImage {
   src: string;
   title: string;
@@ -11,7 +9,6 @@ export interface GalleryImage {
   descriptionEn?: string;
   category?: string;
 }
-
 interface AffiliateGalleryProps {
   images: GalleryImage[];
   title?: string;
@@ -20,7 +17,6 @@ interface AffiliateGalleryProps {
   layout?: 'grid' | 'masonry';
   columns?: 2 | 3 | 4;
 }
-
 export function AffiliateGallery({
   images,
   title,
@@ -31,22 +27,17 @@ export function AffiliateGallery({
 }: AffiliateGalleryProps) {
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
   const [filter, setFilter] = useState<string>('all');
-
   const getText = (es: string, en?: string) =>
     language === 'en' && en ? en : es;
-
   const categories = ['all', ...new Set(images.map(img => img.category).filter(Boolean))];
-
   const filteredImages = filter === 'all'
     ? images
     : images.filter(img => img.category === filter);
-
   const gridCols = {
     2: 'md:grid-cols-2',
     3: 'md:grid-cols-3',
     4: 'md:grid-cols-4'
   };
-
   return (
     <section className="py-16 md:py-24 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4">
@@ -56,7 +47,6 @@ export function AffiliateGallery({
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-purple-400 to-pink-400 mx-auto"></div>
         </div>
-
         {/* Category Filter */}
         {categories.length > 1 && (
           <div className="flex flex-wrap justify-center gap-3 mb-12">
@@ -77,7 +67,6 @@ export function AffiliateGallery({
             ))}
           </div>
         )}
-
         {/* Gallery Grid */}
         <div className={`grid grid-cols-1 ${gridCols[columns]} gap-4 md:gap-6`}>
           {filteredImages.map((image, index) => (
@@ -107,7 +96,6 @@ export function AffiliateGallery({
             </div>
           ))}
         </div>
-
         {/* Lightbox Modal */}
         {selectedImage && (
           <div

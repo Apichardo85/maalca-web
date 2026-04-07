@@ -123,20 +123,16 @@ function walkDir(dir: string, callback: (file: string) => void) {
 
 function main() {
   console.log('🔧 Replacing Framer Motion with CSS animations...\n');
-  
+
   let updatedCount = 0;
-  
-  for (const file of FILES_TO_FIX) {
-    const filePath = path.join(PAGES_DIR, file);
-    if (fs.existsSync(filePath)) {
-      if (processFile(filePath)) {
-        updatedCount++;
-      }
-    } else {
-      console.log(`⚠ File not found: ${filePath}`);
+
+  // Process all tsx files in src/
+  walkDir('src', (filePath) => {
+    if (processFile(filePath)) {
+      updatedCount++;
     }
-  }
-  
+  });
+
   console.log(`\n✅ Done! Updated ${updatedCount} files.`);
   console.log('\n📝 Next steps:');
   console.log('1. Run `npm run build` to check for errors');

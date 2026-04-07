@@ -1,14 +1,11 @@
 "use client";
-
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { DashboardCard, StatCard } from "../DashboardCard";
-
 /**
  * Módulo de métricas y analytics
  */
 export function MetricsModule() {
   const { config, primaryColor } = useAffiliate();
-
   const metrics = {
     revenue: {
       label: config?.settings.currency === "USD" ? "Ingresos USD" : "Ingresos DOP",
@@ -35,7 +32,6 @@ export function MetricsModule() {
       change: { value: 2.1, type: "increase" as const }
     }
   };
-
   return (
     <DashboardCard
       title="Métricas Clave"
@@ -46,20 +42,16 @@ export function MetricsModule() {
         <div className="animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           <StatCard {...metrics.revenue} color={primaryColor.split('-')[0]} />
         </div>
-
         <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <StatCard {...metrics.customers} color="green" />
         </div>
-
         <div className="animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
           <StatCard {...metrics.orders} color="purple" />
         </div>
-
         <div className="animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
           <StatCard {...metrics.satisfaction} color="orange" />
         </div>
       </div>
-
       {/* Gráfico placeholder */}
       <div className="mt-8 p-8 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
         <div className="text-center text-gray-500 dark:text-gray-400">

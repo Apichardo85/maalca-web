@@ -1,8 +1,6 @@
 "use client";
-
 import { Button } from "@/components/ui/buttons";
 import { ProjectImage } from "@/components/ui/ProjectImage";
-
 export interface TeamMember {
   id: string;
   name: string;
@@ -16,7 +14,6 @@ export interface TeamMember {
   available?: boolean;
   specialties?: string[];
 }
-
 interface AffiliateTeamGridProps {
   members: TeamMember[];
   title?: string;
@@ -25,7 +22,6 @@ interface AffiliateTeamGridProps {
   onBookWithMember?: (memberId: string) => void;
   variant?: 'default' | 'medical' | 'barber' | 'design';
 }
-
 export function AffiliateTeamGrid({
   members,
   title,
@@ -36,16 +32,13 @@ export function AffiliateTeamGrid({
 }: AffiliateTeamGridProps) {
   const getText = (es: string, en?: string) =>
     language === 'en' && en ? en : es;
-
   const variantColors = {
     default: { primary: 'blue-600', secondary: 'blue-700', bg: 'from-blue-50 to-purple-50' },
     medical: { primary: 'green-600', secondary: 'green-700', bg: 'from-green-50 to-blue-50' },
     barber: { primary: 'red-600', secondary: 'red-700', bg: 'from-blue-50 to-red-50' },
     design: { primary: 'purple-600', secondary: 'purple-700', bg: 'from-purple-50 to-pink-50' }
   };
-
   const colors = variantColors[variant];
-
   return (
     <section className="py-16 md:py-24 bg-white">
       <div className="max-w-6xl mx-auto px-4">
@@ -63,7 +56,6 @@ export function AffiliateTeamGrid({
             )}
           </p>
         </div>
-
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
           {members.map((member, index) => (
             <div
@@ -88,7 +80,6 @@ export function AffiliateTeamGrid({
                     {member.name.charAt(0)}
                   </div>
                 )}
-
                 {/* Name & Role */}
                 <h3 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">
                   {member.name}
@@ -96,19 +87,16 @@ export function AffiliateTeamGrid({
                 <p className={`text-lg font-bold text-${colors.primary} mb-2`}>
                   {getText(member.role, member.roleEn)}
                 </p>
-
                 {/* Experience */}
                 {member.experience && (
                   <p className={`text-${colors.secondary} font-medium mb-4`}>
                     {member.experience}
                   </p>
                 )}
-
                 {/* Bio */}
                 <p className="text-gray-600 leading-relaxed mb-6 flex-grow">
                   {getText(member.bio, member.bioEn)}
                 </p>
-
                 {/* Specialties */}
                 {member.specialties && member.specialties.length > 0 && (
                   <div className="mb-6">
@@ -124,7 +112,6 @@ export function AffiliateTeamGrid({
                     </div>
                   </div>
                 )}
-
                 {/* Availability */}
                 {member.available !== undefined && (
                   <div className="flex items-center justify-center gap-2 mb-6">
@@ -137,7 +124,6 @@ export function AffiliateTeamGrid({
                     </span>
                   </div>
                 )}
-
                 {/* Book Button */}
                 {onBookWithMember && (
                   <Button

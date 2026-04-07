@@ -1,7 +1,5 @@
 "use client";
-
 import { useState } from "react";
-
 interface Testimonial {
   name: string;
   role: string;
@@ -10,7 +8,6 @@ interface Testimonial {
   rating: number;
   image: string;
 }
-
 const testimonials: Testimonial[] = [
   {
     name: "María Elena Rodríguez",
@@ -37,10 +34,8 @@ const testimonials: Testimonial[] = [
     image: "/images/team/isabella.jpg"
   }
 ];
-
 export default function TestimonialsSection() {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
-
   return (
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -52,7 +47,6 @@ export default function TestimonialsSection() {
             La confianza de nuestros clientes es nuestro mayor logro. Descubre por qué eligen MaalCa para sus eventos más importantes.
           </p>
         </div>
-
         <div className="relative">
           {/* Main Testimonial */}
           <div className="max-w-4xl mx-auto mb-12">
@@ -66,7 +60,6 @@ export default function TestimonialsSection() {
                     {testimonials[activeTestimonial].name.charAt(0)}
                   </div>
                 </div>
-
                 <div className="flex-1 text-center lg:text-left">
                   <div className="flex justify-center lg:justify-start mb-4">
                     {[...Array(testimonials[activeTestimonial].rating)].map((_, i) => (
@@ -79,14 +72,12 @@ export default function TestimonialsSection() {
                       </span>
                     ))}
                   </div>
-
                   <blockquote
                     className="text-lg lg:text-xl text-gray-700 italic mb-6 leading-relaxed animate-fade-in-up"
                     style={{ animationDelay: '0.4s' }}
                   >
                     {`"${testimonials[activeTestimonial].content}"`}
                   </blockquote>
-
                   <div className="animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
                     <h4 className="font-semibold text-gray-900 text-lg">
                       {testimonials[activeTestimonial].name}
@@ -99,7 +90,6 @@ export default function TestimonialsSection() {
               </div>
             </div>
           </div>
-
           {/* Testimonial Navigation */}
           <div className="flex justify-center gap-4">
             {testimonials.map((_, index) => (
@@ -114,12 +104,10 @@ export default function TestimonialsSection() {
               />
             ))}
           </div>
-
           {/* Background Elements */}
           <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-amber-200/30 to-orange-300/30 rounded-full blur-3xl -z-10" />
           <div className="absolute bottom-0 right-0 w-40 h-40 bg-gradient-to-br from-orange-200/30 to-amber-300/30 rounded-full blur-3xl -z-10" />
         </div>
-
         {/* Stats Section */}
         <div
           className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20 text-center animate-fade-in-up"

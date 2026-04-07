@@ -1,5 +1,4 @@
 "use client";
-
 import { Button } from "@/components/ui/buttons";
 import {
   AffiliateServiceCard,
@@ -13,7 +12,6 @@ import {
   type Testimonial,
   type ContactInfo
 } from "@/components/affiliate";
-
 // Services data
 const services: AffiliateService[] = [
   {
@@ -68,7 +66,6 @@ const services: AffiliateService[] = [
     popular: true
   }
 ];
-
 // Gallery data
 const galleryImages: GalleryImage[] = [
   {
@@ -108,7 +105,6 @@ const galleryImages: GalleryImage[] = [
     category: "Pintura"
   }
 ];
-
 // Team data
 const team: TeamMember[] = [
   {
@@ -124,7 +120,6 @@ const team: TeamMember[] = [
     specialties: ["Diseño de fachadas", "Pintura artesanal", "Comunicación visual"]
   }
 ];
-
 // Testimonials data
 const testimonials: Testimonial[] = [
   {
@@ -152,7 +147,6 @@ const testimonials: Testimonial[] = [
     service: "Pintura para Madera"
   }
 ];
-
 // Contact info
 const contactInfo: ContactInfo = {
   name: "BritoColor",
@@ -166,7 +160,6 @@ const contactInfo: ContactInfo = {
     instagram: "https://www.instagram.com/britocolor"
   }
 };
-
 export default function BritoColorPage() {
   return (
     <main className="min-h-screen bg-white">
@@ -187,7 +180,6 @@ export default function BritoColorPage() {
             }}
           />
         </div>
-
         {/* Content */}
         <div className="relative z-10 text-center max-w-6xl mx-auto px-4">
           <div className="animate-fade-in-up">
@@ -197,35 +189,30 @@ export default function BritoColorPage() {
                 <span className="text-6xl">🎨</span>
               </div>
             </div>
-
             <h1
               className="text-7xl md:text-9xl font-black mb-6 leading-tight text-white drop-shadow-2xl animate-fade-in-up"
               style={{ animationDelay: '0.3s' }}
             >
               BritoColor
             </h1>
-
             <h2
               className="text-3xl md:text-5xl font-bold mb-8 text-pink-300 animate-fade-in"
               style={{ animationDelay: '0.6s' }}
             >
               Donde el color se convierte en arte
             </h2>
-
             <p
               className="text-xl md:text-2xl text-white/90 mb-4 font-medium max-w-3xl mx-auto animate-fade-in"
               style={{ animationDelay: '0.9s' }}
             >
               Comunicación visual, impresión digital y pintura artesanal para madera
             </p>
-
             <p
               className="text-lg text-white/70 mb-12 max-w-3xl mx-auto leading-relaxed animate-fade-in"
               style={{ animationDelay: '1.1s' }}
             >
               Transformamos espacios comerciales con diseño, color y acabados personalizados de alta calidad
             </p>
-
             <div
               className="flex flex-col sm:flex-row gap-6 justify-center animate-fade-in-up"
               style={{ animationDelay: '1.4s' }}
@@ -247,7 +234,6 @@ export default function BritoColorPage() {
                 📸 Ver Galería
               </Button>
             </div>
-
             {/* Quick Stats */}
             <div
               className="grid grid-cols-3 gap-8 mt-16 max-w-2xl mx-auto animate-fade-in-up"
@@ -268,7 +254,6 @@ export default function BritoColorPage() {
             </div>
           </div>
         </div>
-
         {/* Scroll Indicator */}
         <div
           className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white animate-bounce-slow"
@@ -279,7 +264,6 @@ export default function BritoColorPage() {
           </div>
         </div>
       </section>
-
       {/* Services Section */}
       <section id="servicios" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4">
@@ -290,7 +274,6 @@ export default function BritoColorPage() {
               Soluciones integrales de comunicación visual y diseño para tu negocio
             </p>
           </div>
-
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {services.map((service, index) => (
               <AffiliateServiceCard
@@ -304,7 +287,6 @@ export default function BritoColorPage() {
           </div>
         </div>
       </section>
-
       {/* Gallery Section */}
       <div id="galeria">
         <AffiliateGallery
@@ -314,17 +296,14 @@ export default function BritoColorPage() {
           columns={3}
         />
       </div>
-
       {/* Team Section */}
       <AffiliateTeamGrid
         members={team}
         variant="design"
         onBookWithMember={() => document.getElementById('contacto')?.scrollIntoView({ behavior: 'smooth' })}
       />
-
       {/* Testimonials Section */}
       <AffiliateTestimonials testimonials={testimonials} />
-
       {/* About Section */}
       <section className="py-24 bg-gradient-to-br from-purple-900 to-pink-900 text-white">
         <div className="max-w-6xl mx-auto px-4">
@@ -332,7 +311,6 @@ export default function BritoColorPage() {
             <h2 className="text-5xl font-black mb-6">NUESTRA HISTORIA</h2>
             <div className="w-24 h-1 bg-white mx-auto mb-8"></div>
           </div>
-
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div className="animate-fade-in-left">
               <div className="space-y-6 text-lg leading-relaxed">
@@ -352,7 +330,6 @@ export default function BritoColorPage() {
                 </p>
               </div>
             </div>
-
             <div className="text-center animate-fade-in-right">
               <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
                 <div className="text-8xl mb-6">🎨</div>
@@ -380,13 +357,11 @@ export default function BritoColorPage() {
           </div>
         </div>
       </section>
-
       {/* Contact Section */}
       <AffiliateContactSection
         contactInfo={contactInfo}
         variant="design"
       />
-
       {/* Footer */}
       <footer className="py-16 bg-gray-900 text-white">
         <div className="max-w-6xl mx-auto px-4 text-center">
@@ -417,7 +392,6 @@ export default function BritoColorPage() {
           </div>
         </div>
       </footer>
-
       {/* Floating WhatsApp */}
       <div className="fixed bottom-6 right-6 z-50 animate-fade-in-scale" style={{ animationDelay: '3s', animationFillMode: 'backwards' }}>
         <a

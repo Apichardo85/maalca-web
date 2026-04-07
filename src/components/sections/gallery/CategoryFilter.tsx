@@ -1,14 +1,11 @@
 "use client";
-
 import { GalleryCategory, CategoryFilter as CategoryFilterType } from "@/lib/types";
-
 interface CategoryFilterProps {
   categories: CategoryFilterType[];
   selectedCategory: GalleryCategory;
   onCategoryChange: (category: GalleryCategory) => void;
   className?: string;
 }
-
 const defaultCategories: CategoryFilterType[] = [
   { value: "todas", label: "Todas", count: 45, color: "amber" },
   { value: "box-comida", label: "Box Comida", count: 12, color: "blue" },
@@ -18,7 +15,6 @@ const defaultCategories: CategoryFilterType[] = [
   { value: "bodas", label: "Bodas", count: 5, color: "pink" },
   { value: "postres", label: "Postres", count: 3, color: "red" }
 ];
-
 const colorVariants = {
   amber: "bg-amber-500/10 text-amber-700 border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40",
   blue: "bg-blue-500/10 text-blue-700 border-blue-500/20 hover:bg-blue-500/20 hover:border-blue-500/40",
@@ -28,7 +24,6 @@ const colorVariants = {
   pink: "bg-pink-500/10 text-pink-700 border-pink-500/20 hover:bg-pink-500/20 hover:border-pink-500/40",
   red: "bg-red-500/10 text-red-700 border-red-500/20 hover:bg-red-500/20 hover:border-red-500/40"
 };
-
 const activeColorVariants = {
   amber: "bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-500/25",
   blue: "bg-blue-500 text-white border-blue-500 shadow-lg shadow-blue-500/25",
@@ -38,7 +33,6 @@ const activeColorVariants = {
   pink: "bg-pink-500 text-white border-pink-500 shadow-lg shadow-pink-500/25",
   red: "bg-red-500 text-white border-red-500 shadow-lg shadow-red-500/25"
 };
-
 export default function CategoryFilter({
   categories = defaultCategories,
   selectedCategory,
@@ -50,7 +44,6 @@ export default function CategoryFilter({
       {categories.map((category, index) => {
         const isActive = selectedCategory === category.value;
         const color = category.color as keyof typeof colorVariants || "amber";
-
         return (
           <button
             key={category.value}
@@ -69,7 +62,6 @@ export default function CategoryFilter({
           >
             {/* Category label */}
             <span className="relative z-10">{category.label}</span>
-
             {/* Count badge */}
             {category.count && (
               <span
@@ -85,7 +77,6 @@ export default function CategoryFilter({
                 {category.count}
               </span>
             )}
-
             {/* Active indicator */}
             {isActive && (
               <div

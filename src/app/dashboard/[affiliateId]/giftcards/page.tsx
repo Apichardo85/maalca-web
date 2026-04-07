@@ -1,590 +1,1 @@
-"use client";
-
-import { useState, useMemo } from "react";
-import { useAffiliate } from "@/contexts/AffiliateContext";
-import { DashboardCard, StatCard } from "@/components/dashboard/DashboardCard";
-import { Button } from "@/components/ui/buttons";
-import { Modal } from "@/components/ui/Modal";
-import { Pagination } from "@/components/ui/Pagination";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import type { GiftCard, GiftCardStatus } from "@/lib/types/giftcard.types";
-
-export default function GiftCardsPage() {
-  const { brandName, config } = useAffiliate();
-  const currency = config?.settings.currency === "USD" ? "$" : "RD$";
-
-  // Estados para filtros
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
-
-  // Estados para paginación
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
-
-  // Estados para modales
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false);
-  const [selectedCard, setSelectedCard] = useState<GiftCard | null>(null);
-
-  const [newGiftCard, setNewGiftCard] = useState({
-    amount: "",
-    recipientName: "",
-    recipientEmail: "",
-    purchaserName: "",
-    expiresIn: "12" // meses
-  });
-
-  const [redeemData, setRedeemData] = useState({
-    code: "",
-    amount: ""
-  });
-
-  // Mock data - Gift Cards (12 tarjetas)
-  const allGiftCards: GiftCard[] = [
-    {
-      id: "GC001",
-      code: "PEGOTE-2025-XXYZ",
-      initialAmount: 1000,
-      balance: 1000,
-      currency: "RD$",
-      issuedAt: "2025-12-01T10:00:00",
-      expiresAt: "2026-12-01T23:59:59",
-      status: "active",
-      validForAffiliates: ["pegote-barbershop"],
-      purchaserName: "María González",
-      recipientName: "Pedro García",
-      recipientEmail: "pedro@email.com",
-      transactions: [
-        { id: "T001", date: "2025-12-01T10:00:00", amount: 1000, type: "issued", affiliateId: "pegote-barbershop", notes: "Gift card inicial" }
-      ]
-    },
-    {
-      id: "GC002",
-      code: "PEGOTE-2025-ABCD",
-      initialAmount: 500,
-      balance: 250,
-      currency: "RD$",
-      issuedAt: "2025-11-15T14:30:00",
-      expiresAt: "2026-11-15T23:59:59",
-      status: "partial",
-      validForAffiliates: ["pegote-barbershop", "masa-tina"],
-      purchaserName: "Juan Pérez",
-      recipientName: "Ana Martínez",
-      recipientEmail: "ana@email.com",
-      transactions: [
-        { id: "T002", date: "2025-11-15T14:30:00", amount: 500, type: "issued", affiliateId: "pegote-barbershop" },
-        { id: "T003", date: "2025-11-20T16:45:00", amount: -250, type: "redeemed", affiliateId: "pegote-barbershop", notes: "Corte + Barba" }
-      ]
-    },
-    {
-      id: "GC003",
-      code: "PEGOTE-2025-EFGH",
-      initialAmount: 1500,
-      balance: 0,
-      currency: "RD$",
-      issuedAt: "2025-10-20T09:00:00",
-      expiresAt: "2026-10-20T23:59:59",
-      status: "redeemed",
-      validForAffiliates: ["pegote-barbershop"],
-      purchaserName: "Laura Fernández",
-      recipientName: "Carlos López",
-      transactions: [
-        { id: "T004", date: "2025-10-20T09:00:00", amount: 1500, type: "issued", affiliateId: "pegote-barbershop" },
-        { id: "T005", date: "2025-11-05T11:30:00", amount: -800, type: "redeemed", affiliateId: "pegote-barbershop", notes: "Corte + Color" },
-        { id: "T006", date: "2025-11-28T15:20:00", amount: -700, type: "redeemed", affiliateId: "pegote-barbershop", notes: "Paquete premium" }
-      ]
-    },
-    {
-      id: "GC004",
-      code: "PEGOTE-2024-WXYZ",
-      initialAmount: 750,
-      balance: 750,
-      currency: "RD$",
-      issuedAt: "2024-12-10T12:00:00",
-      expiresAt: "2025-12-10T23:59:59",
-      status: "expired",
-      validForAffiliates: ["pegote-barbershop"],
-      purchaserName: "Roberto Silva",
-      recipientName: "Patricia Ruiz"
-    },
-    {
-      id: "GC005",
-      code: "PEGOTE-2025-MNOP",
-      initialAmount: 2000,
-      balance: 1400,
-      currency: "RD$",
-      issuedAt: "2025-12-05T16:00:00",
-      expiresAt: "2026-12-05T23:59:59",
-      status: "partial",
-      validForAffiliates: ["pegote-barbershop"],
-      purchaserName: "Diego Castro",
-      recipientName: "Sofía Morales",
-      recipientEmail: "sofia@email.com"
-    },
-    {
-      id: "GC006",
-      code: "PEGOTE-2025-QRST",
-      initialAmount: 600,
-      balance: 600,
-      currency: "RD$",
-      issuedAt: "2025-11-28T10:30:00",
-      expiresAt: "2026-11-28T23:59:59",
-      status: "active",
-      validForAffiliates: ["pegote-barbershop", "masa-tina", "verde-prive"],
-      purchaserName: "Manuel Díaz"
-    },
-    {
-      id: "GC007",
-      code: "PEGOTE-2025-UVWX",
-      initialAmount: 1200,
-      balance: 450,
-      currency: "RD$",
-      issuedAt: "2025-11-10T13:00:00",
-      expiresAt: "2026-11-10T23:59:59",
-      status: "partial",
-      validForAffiliates: ["pegote-barbershop"],
-      purchaserName: "Isabel Vargas",
-      recipientName: "Andrés Pichardo"
-    },
-    {
-      id: "GC008",
-      code: "PEGOTE-2025-YZAB",
-      initialAmount: 800,
-      balance: 800,
-      currency: "RD$",
-      issuedAt: "2025-12-07T11:00:00",
-      expiresAt: "2026-12-07T23:59:59",
-      status: "active",
-      validForAffiliates: ["pegote-barbershop"],
-      purchaserName: "Valentina Cruz",
-      recipientName: "Gabriel Núñez",
-      recipientEmail: "gabriel@email.com"
-    },
-    {
-      id: "GC009",
-      code: "PEGOTE-2025-CDEF",
-      initialAmount: 300,
-      balance: 0,
-      currency: "RD$",
-      issuedAt: "2025-09-15T08:00:00",
-      expiresAt: "2026-09-15T23:59:59",
-      status: "redeemed",
-      validForAffiliates: ["pegote-barbershop"],
-      purchaserName: "Fernando Rosario"
-    },
-    {
-      id: "GC010",
-      code: "PEGOTE-2025-GHIJ",
-      initialAmount: 1800,
-      balance: 1800,
-      currency: "RD$",
-      issuedAt: "2025-12-06T14:00:00",
-      expiresAt: "2026-12-06T23:59:59",
-      status: "active",
-      validForAffiliates: ["pegote-barbershop"],
-      purchaserName: "Empresa XYZ Corp",
-      recipientName: "Empleados"
-    },
-    {
-      id: "GC011",
-      code: "PEGOTE-2025-KLMN",
-      initialAmount: 950,
-      balance: 200,
-      currency: "RD$",
-      issuedAt: "2025-11-01T09:30:00",
-      expiresAt: "2026-11-01T23:59:59",
-      status: "partial",
-      validForAffiliates: ["pegote-barbershop"],
-      purchaserName: "Carolina Mejía"
-    },
-    {
-      id: "GC012",
-      code: "PEGOTE-2025-OPQR",
-      initialAmount: 400,
-      balance: 400,
-      currency: "RD$",
-      issuedAt: "2025-12-03T15:00:00",
-      expiresAt: "2026-12-03T23:59:59",
-      status: "active",
-      validForAffiliates: ["pegote-barbershop", "masa-tina"],
-      purchaserName: "Héctor Santana",
-      recipientEmail: "regalo@email.com"
-    }
-  ];
-
-  // Data para gráfico
-  const chartData = [
-    { mes: "Jul", emitidas: 4, canjeadas: 2 },
-    { mes: "Ago", emitidas: 6, canjeadas: 3 },
-    { mes: "Sep", emitidas: 5, canjeadas: 4 },
-    { mes: "Oct", emitidas: 8, canjeadas: 5 },
-    { mes: "Nov", emitidas: 12, canjeadas: 7 },
-    { mes: "Dic", emitidas: 15, canjeadas: 6 }
-  ];
-
-  // Filtrado
-  const filteredCards = useMemo(() => {
-    return allGiftCards.filter(card => {
-      const matchesSearch = card.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           (card.recipientName?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                           (card.purchaserName?.toLowerCase().includes(searchTerm.toLowerCase()));
-      const matchesStatus = filterStatus === "all" || card.status === filterStatus;
-      return matchesSearch && matchesStatus;
-    });
-  }, [searchTerm, filterStatus]);
-
-  // Paginación
-  const paginatedCards = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredCards.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredCards, currentPage]);
-
-  const totalPages = Math.ceil(filteredCards.length / itemsPerPage);
-
-  // Handlers
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
-    setCurrentPage(1);
-  };
-
-  const handleStatusChange = (value: string) => {
-    setFilterStatus(value);
-    setCurrentPage(1);
-  };
-
-  const clearFilters = () => {
-    setSearchTerm("");
-    setFilterStatus("all");
-    setCurrentPage(1);
-  };
-
-  const hasActiveFilters = searchTerm || filterStatus !== "all";
-
-  const handleCreateGiftCard = () => {
-    console.log("Nueva gift card:", newGiftCard);
-    setIsCreateModalOpen(false);
-    setNewGiftCard({ amount: "", recipientName: "", recipientEmail: "", purchaserName: "", expiresIn: "12" });
-  };
-
-  const handleRedeemGiftCard = () => {
-    console.log("Canjear gift card:", redeemData);
-    setIsRedeemModalOpen(false);
-    setRedeemData({ code: "", amount: "" });
-  };
-
-  const handleViewCard = (card: GiftCard) => {
-    setSelectedCard(card);
-  };
-
-  // KPIs
-  const totalActive = allGiftCards.filter(c => c.status === "active" || c.status === "partial").length;
-  const totalValue = allGiftCards.filter(c => c.status === "active" || c.status === "partial")
-    .reduce((acc, c) => acc + c.balance, 0);
-  const redeemedThisMonth = 6; // Mock
-  const expiringThisMonth = allGiftCards.filter(c => {
-    if (!c.expiresAt) return false;
-    const expiry = new Date(c.expiresAt);
-    const now = new Date();
-    const diffMonths = (expiry.getFullYear() - now.getFullYear()) * 12 + expiry.getMonth() - now.getMonth();
-    return diffMonths === 0;
-  }).length;
-
-  const getStatusBadge = (status: GiftCardStatus) => {
-    const styles = {
-      active: "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
-      partial: "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400",
-      redeemed: "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400",
-      expired: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"
-    };
-    const labels = {
-      active: "Activa",
-      partial: "Parcial",
-      redeemed: "Canjeada",
-      expired: "Expirada"
-    };
-    return <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status]}`}>{labels[status]}</span>;
-  };
-
-  return (
-    <div className="space-y-8">
-      <div className="animate-fade-in-up flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gift Cards</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">Gestiona tarjetas de regalo de {brandName}</p>
-        </div>
-        <div className="flex gap-3">
-          <Button variant="secondary" size="lg" onClick={() => setIsRedeemModalOpen(true)}>
-            Canjear Gift Card
-          </Button>
-          <Button variant="primary" size="lg" onClick={() => setIsCreateModalOpen(true)}>
-            + Nueva Gift Card
-          </Button>
-        </div>
-      </div>
-
-      {/* KPIs */}
-      <div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard label="Tarjetas Activas" value={totalActive.toString()} icon="💳" color="green" />
-        <StatCard label="Valor Total" value={`${currency}${totalValue.toLocaleString()}`} icon="💰" color="blue" />
-        <StatCard label="Canjeadas Este Mes" value={redeemedThisMonth.toString()} icon="🎁" change={{ value: 20, type: "increase" }} color="purple" />
-        <StatCard label="Por Expirar" value={expiringThisMonth.toString()} icon="⚠️" color="orange" />
-      </div>
-
-      {/* Gráfico */}
-      <div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <DashboardCard title="Actividad de Gift Cards" icon="📊">
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.1} />
-              <XAxis dataKey="mes" stroke="#6B7280" />
-              <YAxis stroke="#6B7280" />
-              <Tooltip
-                contentStyle={{ backgroundColor: "#1F2937", border: "none", borderRadius: "8px" }}
-                labelStyle={{ color: "#F9FAFB" }}
-              />
-              <Bar dataKey="emitidas" fill="#3B82F6" radius={[8, 8, 0, 0]} />
-              <Bar dataKey="canjeadas" fill="#10B981" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </DashboardCard>
-      </div>
-
-      {/* Filtros */}
-      <div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <DashboardCard>
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              <input
-                type="text"
-                placeholder="Buscar por código, comprador o destinatario..."
-                value={searchTerm}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-              />
-              <select
-                value={filterStatus}
-                onChange={(e) => handleStatusChange(e.target.value)}
-                className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-              >
-                <option value="all">Todos los estados</option>
-                <option value="active">Activas</option>
-                <option value="partial">Parciales</option>
-                <option value="redeemed">Canjeadas</option>
-                <option value="expired">Expiradas</option>
-              </select>
-            </div>
-            {hasActiveFilters && (
-              <div className="flex justify-end">
-                <button onClick={clearFilters} className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium">
-                  Limpiar filtros
-                </button>
-              </div>
-            )}
-          </div>
-        </DashboardCard>
-      </div>
-
-      {/* Grid de Gift Cards */}
-      <div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {paginatedCards.length > 0 ? (
-          paginatedCards.map((card, index) => (
-            <div
-              key={card.id}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-6 text-white shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
-              onClick={() => handleViewCard(card)}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-lg">
-                  <p className="text-xs font-medium">Gift Card</p>
-                </div>
-                {getStatusBadge(card.status)}
-              </div>
-
-              <div className="mb-6">
-                <p className="text-sm opacity-80 mb-1">Código</p>
-                <p className="text-lg font-mono font-bold tracking-wider">{card.code}</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div>
-                  <p className="text-sm opacity-80 mb-1">Balance</p>
-                  <p className="text-2xl font-bold">{currency}{card.balance}</p>
-                </div>
-                <div>
-                  <p className="text-sm opacity-80 mb-1">Inicial</p>
-                  <p className="text-lg font-semibold">{currency}{card.initialAmount}</p>
-                </div>
-              </div>
-
-              {card.recipientName && (
-                <div className="mb-4">
-                  <p className="text-sm opacity-80 mb-1">Para</p>
-                  <p className="font-medium">{card.recipientName}</p>
-                </div>
-              )}
-
-              {card.expiresAt && (
-                <div className="pt-4 border-t border-white/20">
-                  <p className="text-xs opacity-70">
-                    Expira: {new Date(card.expiresAt).toLocaleDateString('es-DO')}
-                  </p>
-                </div>
-              )}
-            </div>
-          ))
-        ) : (
-          <div className="col-span-full text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400">No se encontraron gift cards</p>
-          </div>
-        )}
-      </div>
-
-      {filteredCards.length > itemsPerPage && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-          totalItems={filteredCards.length}
-          itemsPerPage={itemsPerPage}
-        />
-      )}
-
-      {/* Modal Nueva Gift Card */}
-      <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Nueva Gift Card" size="lg">
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Monto ({currency})
-              </label>
-              <input
-                type="number"
-                value={newGiftCard.amount}
-                onChange={(e) => setNewGiftCard({ ...newGiftCard, amount: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                placeholder="1000"
-                step="100"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Expira en (meses)
-              </label>
-              <select
-                value={newGiftCard.expiresIn}
-                onChange={(e) => setNewGiftCard({ ...newGiftCard, expiresIn: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="6">6 meses</option>
-                <option value="12">12 meses</option>
-                <option value="24">24 meses</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Comprador
-            </label>
-            <input
-              type="text"
-              value={newGiftCard.purchaserName}
-              onChange={(e) => setNewGiftCard({ ...newGiftCard, purchaserName: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-              placeholder="Nombre del comprador"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Destinatario (Opcional)
-            </label>
-            <input
-              type="text"
-              value={newGiftCard.recipientName}
-              onChange={(e) => setNewGiftCard({ ...newGiftCard, recipientName: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-              placeholder="Para quién es la tarjeta"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Email del Destinatario (Opcional)
-            </label>
-            <input
-              type="email"
-              value={newGiftCard.recipientEmail}
-              onChange={(e) => setNewGiftCard({ ...newGiftCard, recipientEmail: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-              placeholder="email@ejemplo.com"
-            />
-          </div>
-          <div className="flex gap-3 pt-4">
-            <button
-              onClick={handleCreateGiftCard}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition"
-            >
-              Crear Gift Card
-            </button>
-            <button
-              onClick={() => setIsCreateModalOpen(false)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition"
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Modal Canjear Gift Card */}
-      <Modal isOpen={isRedeemModalOpen} onClose={() => setIsRedeemModalOpen(false)} title="Canjear Gift Card" size="md">
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Código de Gift Card
-            </label>
-            <input
-              type="text"
-              value={redeemData.code}
-              onChange={(e) => setRedeemData({ ...redeemData, code: e.target.value.toUpperCase() })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 font-mono"
-              placeholder="PEGOTE-2025-XXYZ"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Monto a Aplicar ({currency})
-            </label>
-            <input
-              type="number"
-              value={redeemData.amount}
-              onChange={(e) => setRedeemData({ ...redeemData, amount: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-              placeholder="0.00"
-              step="0.01"
-            />
-          </div>
-          <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-900/30 rounded-lg p-4">
-            <p className="text-sm text-blue-800 dark:text-blue-300">
-              <strong>💡 Nota:</strong> El sistema verificará el balance disponible y validará que la tarjeta esté activa antes de aplicar el descuento.
-            </p>
-          </div>
-          <div className="flex gap-3 pt-4">
-            <button
-              onClick={handleRedeemGiftCard}
-              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition"
-            >
-              Aplicar Gift Card
-            </button>
-            <button
-              onClick={() => setIsRedeemModalOpen(false)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition"
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
-      </Modal>
-    </div>
-  );
-}
+"use client";import { useState, useMemo } from "react";import { useAffiliate } from "@/contexts/AffiliateContext";import { DashboardCard, StatCard } from "@/components/dashboard/DashboardCard";import { Button } from "@/components/ui/buttons";import { Modal } from "@/components/ui/Modal";import { Pagination } from "@/components/ui/Pagination";import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";import type { GiftCard, GiftCardStatus } from "@/lib/types/giftcard.types";export default function GiftCardsPage() {  const { brandName, config } = useAffiliate();  const currency = config?.settings.currency === "USD" ? "$" : "RD$";  // Estados para filtros  const [searchTerm, setSearchTerm] = useState("");  const [filterStatus, setFilterStatus] = useState("all");  // Estados para paginación  const [currentPage, setCurrentPage] = useState(1);  const itemsPerPage = 6;  // Estados para modales  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);  const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false);  const [selectedCard, setSelectedCard] = useState<GiftCard | null>(null);  const [newGiftCard, setNewGiftCard] = useState({    amount: "",    recipientName: "",    recipientEmail: "",    purchaserName: "",    expiresIn: "12" // meses  });  const [redeemData, setRedeemData] = useState({    code: "",    amount: ""  });  // Mock data - Gift Cards (12 tarjetas)  const allGiftCards: GiftCard[] = [    {      id: "GC001",      code: "PEGOTE-2025-XXYZ",      initialAmount: 1000,      balance: 1000,      currency: "RD$",      issuedAt: "2025-12-01T10:00:00",      expiresAt: "2026-12-01T23:59:59",      status: "active",      validForAffiliates: ["pegote-barbershop"],      purchaserName: "María González",      recipientName: "Pedro García",      recipientEmail: "pedro@email.com",      transactions: [        { id: "T001", date: "2025-12-01T10:00:00", amount: 1000, type: "issued", affiliateId: "pegote-barbershop", notes: "Gift card inicial" }      ]    },    {      id: "GC002",      code: "PEGOTE-2025-ABCD",      initialAmount: 500,      balance: 250,      currency: "RD$",      issuedAt: "2025-11-15T14:30:00",      expiresAt: "2026-11-15T23:59:59",      status: "partial",      validForAffiliates: ["pegote-barbershop", "masa-tina"],      purchaserName: "Juan Pérez",      recipientName: "Ana Martínez",      recipientEmail: "ana@email.com",      transactions: [        { id: "T002", date: "2025-11-15T14:30:00", amount: 500, type: "issued", affiliateId: "pegote-barbershop" },        { id: "T003", date: "2025-11-20T16:45:00", amount: -250, type: "redeemed", affiliateId: "pegote-barbershop", notes: "Corte + Barba" }      ]    },    {      id: "GC003",      code: "PEGOTE-2025-EFGH",      initialAmount: 1500,      balance: 0,      currency: "RD$",      issuedAt: "2025-10-20T09:00:00",      expiresAt: "2026-10-20T23:59:59",      status: "redeemed",      validForAffiliates: ["pegote-barbershop"],      purchaserName: "Laura Fernández",      recipientName: "Carlos López",      transactions: [        { id: "T004", date: "2025-10-20T09:00:00", amount: 1500, type: "issued", affiliateId: "pegote-barbershop" },        { id: "T005", date: "2025-11-05T11:30:00", amount: -800, type: "redeemed", affiliateId: "pegote-barbershop", notes: "Corte + Color" },        { id: "T006", date: "2025-11-28T15:20:00", amount: -700, type: "redeemed", affiliateId: "pegote-barbershop", notes: "Paquete premium" }      ]    },    {      id: "GC004",      code: "PEGOTE-2024-WXYZ",      initialAmount: 750,      balance: 750,      currency: "RD$",      issuedAt: "2024-12-10T12:00:00",      expiresAt: "2025-12-10T23:59:59",      status: "expired",      validForAffiliates: ["pegote-barbershop"],      purchaserName: "Roberto Silva",      recipientName: "Patricia Ruiz"    },    {      id: "GC005",      code: "PEGOTE-2025-MNOP",      initialAmount: 2000,      balance: 1400,      currency: "RD$",      issuedAt: "2025-12-05T16:00:00",      expiresAt: "2026-12-05T23:59:59",      status: "partial",      validForAffiliates: ["pegote-barbershop"],      purchaserName: "Diego Castro",      recipientName: "Sofía Morales",      recipientEmail: "sofia@email.com"    },    {      id: "GC006",      code: "PEGOTE-2025-QRST",      initialAmount: 600,      balance: 600,      currency: "RD$",      issuedAt: "2025-11-28T10:30:00",      expiresAt: "2026-11-28T23:59:59",      status: "active",      validForAffiliates: ["pegote-barbershop", "masa-tina", "verde-prive"],      purchaserName: "Manuel Díaz"    },    {      id: "GC007",      code: "PEGOTE-2025-UVWX",      initialAmount: 1200,      balance: 450,      currency: "RD$",      issuedAt: "2025-11-10T13:00:00",      expiresAt: "2026-11-10T23:59:59",      status: "partial",      validForAffiliates: ["pegote-barbershop"],      purchaserName: "Isabel Vargas",      recipientName: "Andrés Pichardo"    },    {      id: "GC008",      code: "PEGOTE-2025-YZAB",      initialAmount: 800,      balance: 800,      currency: "RD$",      issuedAt: "2025-12-07T11:00:00",      expiresAt: "2026-12-07T23:59:59",      status: "active",      validForAffiliates: ["pegote-barbershop"],      purchaserName: "Valentina Cruz",      recipientName: "Gabriel Núñez",      recipientEmail: "gabriel@email.com"    },    {      id: "GC009",      code: "PEGOTE-2025-CDEF",      initialAmount: 300,      balance: 0,      currency: "RD$",      issuedAt: "2025-09-15T08:00:00",      expiresAt: "2026-09-15T23:59:59",      status: "redeemed",      validForAffiliates: ["pegote-barbershop"],      purchaserName: "Fernando Rosario"    },    {      id: "GC010",      code: "PEGOTE-2025-GHIJ",      initialAmount: 1800,      balance: 1800,      currency: "RD$",      issuedAt: "2025-12-06T14:00:00",      expiresAt: "2026-12-06T23:59:59",      status: "active",      validForAffiliates: ["pegote-barbershop"],      purchaserName: "Empresa XYZ Corp",      recipientName: "Empleados"    },    {      id: "GC011",      code: "PEGOTE-2025-KLMN",      initialAmount: 950,      balance: 200,      currency: "RD$",      issuedAt: "2025-11-01T09:30:00",      expiresAt: "2026-11-01T23:59:59",      status: "partial",      validForAffiliates: ["pegote-barbershop"],      purchaserName: "Carolina Mejía"    },    {      id: "GC012",      code: "PEGOTE-2025-OPQR",      initialAmount: 400,      balance: 400,      currency: "RD$",      issuedAt: "2025-12-03T15:00:00",      expiresAt: "2026-12-03T23:59:59",      status: "active",      validForAffiliates: ["pegote-barbershop", "masa-tina"],      purchaserName: "Héctor Santana",      recipientEmail: "regalo@email.com"    }  ];  // Data para gráfico  const chartData = [    { mes: "Jul", emitidas: 4, canjeadas: 2 },    { mes: "Ago", emitidas: 6, canjeadas: 3 },    { mes: "Sep", emitidas: 5, canjeadas: 4 },    { mes: "Oct", emitidas: 8, canjeadas: 5 },    { mes: "Nov", emitidas: 12, canjeadas: 7 },    { mes: "Dic", emitidas: 15, canjeadas: 6 }  ];  // Filtrado  const filteredCards = useMemo(() => {    return allGiftCards.filter(card => {      const matchesSearch = card.code.toLowerCase().includes(searchTerm.toLowerCase()) ||                           (card.recipientName?.toLowerCase().includes(searchTerm.toLowerCase())) ||                           (card.purchaserName?.toLowerCase().includes(searchTerm.toLowerCase()));      const matchesStatus = filterStatus === "all" || card.status === filterStatus;      return matchesSearch && matchesStatus;    });  }, [searchTerm, filterStatus]);  // Paginación  const paginatedCards = useMemo(() => {    const startIndex = (currentPage - 1) * itemsPerPage;    return filteredCards.slice(startIndex, startIndex + itemsPerPage);  }, [filteredCards, currentPage]);  const totalPages = Math.ceil(filteredCards.length / itemsPerPage);  // Handlers  const handleSearchChange = (value: string) => {    setSearchTerm(value);    setCurrentPage(1);  };  const handleStatusChange = (value: string) => {    setFilterStatus(value);    setCurrentPage(1);  };  const clearFilters = () => {    setSearchTerm("");    setFilterStatus("all");    setCurrentPage(1);  };  const hasActiveFilters = searchTerm || filterStatus !== "all";  const handleCreateGiftCard = () => {    console.log("Nueva gift card:", newGiftCard);    setIsCreateModalOpen(false);    setNewGiftCard({ amount: "", recipientName: "", recipientEmail: "", purchaserName: "", expiresIn: "12" });  };  const handleRedeemGiftCard = () => {    console.log("Canjear gift card:", redeemData);    setIsRedeemModalOpen(false);    setRedeemData({ code: "", amount: "" });  };  const handleViewCard = (card: GiftCard) => {    setSelectedCard(card);  };  // KPIs  const totalActive = allGiftCards.filter(c => c.status === "active" || c.status === "partial").length;  const totalValue = allGiftCards.filter(c => c.status === "active" || c.status === "partial")    .reduce((acc, c) => acc + c.balance, 0);  const redeemedThisMonth = 6; // Mock  const expiringThisMonth = allGiftCards.filter(c => {    if (!c.expiresAt) return false;    const expiry = new Date(c.expiresAt);    const now = new Date();    const diffMonths = (expiry.getFullYear() - now.getFullYear()) * 12 + expiry.getMonth() - now.getMonth();    return diffMonths === 0;  }).length;  const getStatusBadge = (status: GiftCardStatus) => {    const styles = {      active: "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",      partial: "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400",      redeemed: "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400",      expired: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400"    };    const labels = {      active: "Activa",      partial: "Parcial",      redeemed: "Canjeada",      expired: "Expirada"    };    return <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status]}`}>{labels[status]}</span>;  };  return (    <div className="space-y-8">      <div className="animate-fade-in-up flex items-center justify-between">        <div>          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gift Cards</h1>          <p className="text-gray-600 dark:text-gray-400 mt-2">Gestiona tarjetas de regalo de {brandName}</p>        </div>        <div className="flex gap-3">          <Button variant="secondary" size="lg" onClick={() => setIsRedeemModalOpen(true)}>            Canjear Gift Card          </Button>          <Button variant="primary" size="lg" onClick={() => setIsCreateModalOpen(true)}>            + Nueva Gift Card          </Button>        </div>      </div>      {/* KPIs */}      <div}} className="grid grid-cols-1 md:grid-cols-4 gap-4">        <StatCard label="Tarjetas Activas" value={totalActive.toString()} icon="💳" color="green" />        <StatCard label="Valor Total" value={`${currency}${totalValue.toLocaleString()}`} icon="💰" color="blue" />        <StatCard label="Canjeadas Este Mes" value={redeemedThisMonth.toString()} icon="🎁" change={{ value: 20, type: "increase" }} color="purple" />        <StatCard label="Por Expirar" value={expiringThisMonth.toString()} icon="⚠️" color="orange" />      </div>      {/* Gráfico */}      <div}}>        <DashboardCard title="Actividad de Gift Cards" icon="📊">          <ResponsiveContainer width="100%" height={250}>            <BarChart data={chartData}>              <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.1} />              <XAxis dataKey="mes" stroke="#6B7280" />              <YAxis stroke="#6B7280" />              <Tooltip                contentStyle={{ backgroundColor: "#1F2937", border: "none", borderRadius: "8px" }}                labelStyle={{ color: "#F9FAFB" }}              />              <Bar dataKey="emitidas" fill="#3B82F6" radius={[8, 8, 0, 0]} />              <Bar dataKey="canjeadas" fill="#10B981" radius={[8, 8, 0, 0]} />            </BarChart>          </ResponsiveContainer>        </DashboardCard>      </div>      {/* Filtros */}      <div}}>        <DashboardCard>          <div className="flex flex-col gap-4">            <div className="flex flex-col md:flex-row gap-4">              <input                type="text"                placeholder="Buscar por código, comprador o destinatario..."                value={searchTerm}                onChange={(e) => handleSearchChange(e.target.value)}                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"              />              <select                value={filterStatus}                onChange={(e) => handleStatusChange(e.target.value)}                className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"              >                <option value="all">Todos los estados</option>                <option value="active">Activas</option>                <option value="partial">Parciales</option>                <option value="redeemed">Canjeadas</option>                <option value="expired">Expiradas</option>              </select>            </div>            {hasActiveFilters && (              <div className="flex justify-end">                <button onClick={clearFilters} className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium">                  Limpiar filtros                </button>              </div>            )}          </div>        </DashboardCard>      </div>      {/* Grid de Gift Cards */}      <div}} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">        {paginatedCards.length > 0 ? (          paginatedCards.map((card, index) => (            <div              key={card.id}}}              className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-6 text-white shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"              onClick={() => handleViewCard(card)}            >              <div className="flex items-start justify-between mb-4">                <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-lg">                  <p className="text-xs font-medium">Gift Card</p>                </div>                {getStatusBadge(card.status)}              </div>              <div className="mb-6">                <p className="text-sm opacity-80 mb-1">Código</p>                <p className="text-lg font-mono font-bold tracking-wider">{card.code}</p>              </div>              <div className="grid grid-cols-2 gap-4 mb-6">                <div>                  <p className="text-sm opacity-80 mb-1">Balance</p>                  <p className="text-2xl font-bold">{currency}{card.balance}</p>                </div>                <div>                  <p className="text-sm opacity-80 mb-1">Inicial</p>                  <p className="text-lg font-semibold">{currency}{card.initialAmount}</p>                </div>              </div>              {card.recipientName && (                <div className="mb-4">                  <p className="text-sm opacity-80 mb-1">Para</p>                  <p className="font-medium">{card.recipientName}</p>                </div>              )}              {card.expiresAt && (                <div className="pt-4 border-t border-white/20">                  <p className="text-xs opacity-70">                    Expira: {new Date(card.expiresAt).toLocaleDateString('es-DO')}                  </p>                </div>              )}            </div>          ))        ) : (          <div className="col-span-full text-center py-12">            <p className="text-gray-500 dark:text-gray-400">No se encontraron gift cards</p>          </div>        )}      </div>      {filteredCards.length > itemsPerPage && (        <Pagination          currentPage={currentPage}          totalPages={totalPages}          onPageChange={setCurrentPage}          totalItems={filteredCards.length}          itemsPerPage={itemsPerPage}        />      )}      {/* Modal Nueva Gift Card */}      <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Nueva Gift Card" size="lg">        <div className="space-y-4">          <div className="grid grid-cols-2 gap-4">            <div>              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">                Monto ({currency})              </label>              <input                type="number"                value={newGiftCard.amount}                onChange={(e) => setNewGiftCard({ ...newGiftCard, amount: e.target.value })}                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"                placeholder="1000"                step="100"              />            </div>            <div>              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">                Expira en (meses)              </label>              <select                value={newGiftCard.expiresIn}                onChange={(e) => setNewGiftCard({ ...newGiftCard, expiresIn: e.target.value })}                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"              >                <option value="6">6 meses</option>                <option value="12">12 meses</option>                <option value="24">24 meses</option>              </select>            </div>          </div>          <div>            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">              Comprador            </label>            <input              type="text"              value={newGiftCard.purchaserName}              onChange={(e) => setNewGiftCard({ ...newGiftCard, purchaserName: e.target.value })}              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"              placeholder="Nombre del comprador"            />          </div>          <div>            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">              Destinatario (Opcional)            </label>            <input              type="text"              value={newGiftCard.recipientName}              onChange={(e) => setNewGiftCard({ ...newGiftCard, recipientName: e.target.value })}              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"              placeholder="Para quién es la tarjeta"            />          </div>          <div>            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">              Email del Destinatario (Opcional)            </label>            <input              type="email"              value={newGiftCard.recipientEmail}              onChange={(e) => setNewGiftCard({ ...newGiftCard, recipientEmail: e.target.value })}              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"              placeholder="email@ejemplo.com"            />          </div>          <div className="flex gap-3 pt-4">            <button              onClick={handleCreateGiftCard}              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition"            >              Crear Gift Card            </button>            <button              onClick={() => setIsCreateModalOpen(false)}              className="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition"            >              Cancelar            </button>          </div>        </div>      </Modal>      {/* Modal Canjear Gift Card */}      <Modal isOpen={isRedeemModalOpen} onClose={() => setIsRedeemModalOpen(false)} title="Canjear Gift Card" size="md">        <div className="space-y-4">          <div>            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">              Código de Gift Card            </label>            <input              type="text"              value={redeemData.code}              onChange={(e) => setRedeemData({ ...redeemData, code: e.target.value.toUpperCase() })}              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 font-mono"              placeholder="PEGOTE-2025-XXYZ"            />          </div>          <div>            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">              Monto a Aplicar ({currency})            </label>            <input              type="number"              value={redeemData.amount}              onChange={(e) => setRedeemData({ ...redeemData, amount: e.target.value })}              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"              placeholder="0.00"              step="0.01"            />          </div>          <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-900/30 rounded-lg p-4">            <p className="text-sm text-blue-800 dark:text-blue-300">              <strong>💡 Nota:</strong> El sistema verificará el balance disponible y validará que la tarjeta esté activa antes de aplicar el descuento.            </p>          </div>          <div className="flex gap-3 pt-4">            <button              onClick={handleRedeemGiftCard}              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition"            >              Aplicar Gift Card            </button>            <button              onClick={() => setIsRedeemModalOpen(false)}              className="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 font-medium transition"            >              Cancelar            </button>          </div>        </div>      </Modal>    </div>  );}

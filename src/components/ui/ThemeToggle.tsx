@@ -1,39 +1,31 @@
 "use client";
-
 import { useEffect, useState } from "react";
-
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [mounted, setMounted] = useState(false);
-
   // Load theme from localStorage on mount
   useEffect(() => {
     setMounted(true);
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
-
     setTheme(initialTheme);
     applyTheme(initialTheme);
   }, []);
-
   const applyTheme = (newTheme: 'light' | 'dark') => {
     const root = document.documentElement;
-
     if (newTheme === 'dark') {
       root.setAttribute('data-theme', 'dark');
     } else {
       root.removeAttribute('data-theme');
     }
   };
-
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
     applyTheme(newTheme);
   };
-
   // Prevent hydration mismatch
   if (!mounted) {
     return (
@@ -46,7 +38,6 @@ export default function ThemeToggle() {
       </button>
     );
   }
-
   return (
     <button
       className="relative p-2 rounded-full bg-surface-elevated border border-border hover:bg-surface-muted transition-all duration-300 hover:scale-105 active:scale-95"

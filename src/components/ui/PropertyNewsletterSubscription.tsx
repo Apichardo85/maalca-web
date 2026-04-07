@@ -1,276 +1,1 @@
-"use client";
-
-import { useState } from 'react';
-import { Button } from './buttons';
-import { submitNewsletter, newsletterConfigs } from '@/lib/utils/newsletter';
-
-interface PropertyNewsletterSubscriptionProps {
-  title?: string;
-  description?: string;
-  buttonText?: string;
-  className?: string;
-  source?: 'properties' | 'dr-pichardo';
-}
-
-const interestOptions = [
-  { value: 'luxury-villas', label: 'Luxury Villas' },
-  { value: 'penthouses', label: 'Penthouses' },
-  { value: 'private-estates', label: 'Private Estates' },
-  { value: 'marina-condos', label: 'Marina Condos' },
-  { value: 'eco-retreats', label: 'Eco Retreats' },
-  { value: 'investment-opportunities', label: 'Investment Opportunities' },
-  { value: 'new-developments', label: 'New Developments' },
-  { value: 'exclusive-deals', label: 'Exclusive Deals' }
-];
-
-const frequencyOptions = [
-  { value: 'immediate', label: 'Immediate - As soon as new properties are listed' },
-  { value: 'daily', label: 'Daily Digest' },
-  { value: 'weekly', label: 'Weekly Summary' },
-  { value: 'monthly', label: 'Monthly Newsletter' }
-];
-
-export default function PropertyNewsletterSubscription({
-  title = "Exclusive Property Updates",
-  description = "Receive notifications about new listings and exclusive investment opportunities",
-  buttonText = "Subscribe",
-  className = "",
-  source = 'properties'
-}: PropertyNewsletterSubscriptionProps) {
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [interests, setInterests] = useState<string[]>(['investment-opportunities', 'exclusive-deals']);
-  const [frequency, setFrequency] = useState('weekly');
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [errors, setErrors] = useState<{email?: string}>({});
-
-  const validateEmail = (): boolean => {
-    if (!email.trim()) {
-      setErrors({ email: 'Email is required' });
-      return false;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setErrors({ email: 'Please enter a valid email address' });
-      return false;
-    }
-    setErrors({});
-    return true;
-  };
-
-  const handleSubscribe = async () => {
-    if (!validateEmail()) return;
-
-    setIsSubmitting(true);
-    setSubmitStatus('idle');
-
-    const config = newsletterConfigs[source] || newsletterConfigs.properties;
-    const result = await submitNewsletter(email, config);
-
-    if (result.success) {
-      setSubmitStatus('success');
-      setTimeout(() => {
-        setSubmitStatus('idle');
-        setEmail('');
-        setName('');
-        setIsExpanded(false);
-      }, 3000);
-    } else {
-      setSubmitStatus('error');
-      setTimeout(() => setSubmitStatus('idle'), 3000);
-    }
-
-    setIsSubmitting(false);
-  };
-
-  const toggleInterest = (interest: string) => {
-    setInterests(prev =>
-      prev.includes(interest)
-        ? prev.filter(i => i !== interest)
-        : [...prev, interest]
-    );
-  };
-
-  return (
-    <div className={`bg-white rounded-3xl p-8 shadow-lg border border-slate-200 ${className}`}>
-      <div className="text-center mb-6">
-        <h3 className="text-2xl font-semibold text-slate-900 mb-4">{title}</h3>
-        <p className="text-slate-600">{description}</p>
-      </div>
-
-      {/* Quick Subscribe */}
-      {!isExpanded && (
-        <div className="space-y-4">
-          <div className="flex gap-3 max-w-md mx-auto">
-            <div className="flex-1">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => { setEmail(e.target.value); setErrors({}); }}
-                placeholder="your@email.com"
-                className={`w-full px-4 py-3 bg-slate-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 transition-colors ${
-                  errors.email ? 'border-red-300 bg-red-50' : 'border-slate-300'
-                }`}
-              />
-              {errors.email && <p className="text-red-600 text-xs mt-1">{errors.email}</p>}
-            </div>
-            <Button
-              variant="primary"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6"
-              onClick={handleSubscribe}
-              disabled={isSubmitting || submitStatus === 'success'}
-            >
-              {isSubmitting ? (
-                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-              ) : buttonText}
-            </Button>
-          </div>
-          <div className="text-center">
-            <button
-              onClick={() => setIsExpanded(true)}
-              className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
-            >
-              ⚙️ Customize preferences
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Advanced Form */}
-      {isExpanded && (
-        <div className="space-y-6 transition-all duration-300">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Email Address *</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => { setEmail(e.target.value); setErrors({}); }}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
-                  errors.email ? 'border-red-300 bg-red-50' : 'border-slate-300'
-                }`}
-                placeholder="your@email.com"
-              />
-              {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Name (Optional)</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
-                placeholder="Your Name"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-3">Property Interests</label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {interestOptions.map((option) => (
-                <label
-                  key={option.value}
-                  className={`flex items-center space-x-2 p-3 rounded-lg border cursor-pointer transition-colors ${
-                    interests.includes(option.value)
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={interests.includes(option.value)}
-                    onChange={() => toggleInterest(option.value)}
-                    className="text-blue-600 focus:ring-blue-500 border-slate-300 rounded"
-                  />
-                  <span className="text-sm text-slate-700">{option.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-3">Email Frequency</label>
-            <div className="space-y-2">
-              {frequencyOptions.map((option) => (
-                <label
-                  key={option.value}
-                  className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                    frequency === option.value
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="frequency"
-                    value={option.value}
-                    checked={frequency === option.value}
-                    onChange={(e) => setFrequency(e.target.value)}
-                    className="text-blue-600 focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-slate-700">{option.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={() => { setIsExpanded(false); setErrors({}); }}
-              className="flex-1"
-              disabled={isSubmitting}
-            >
-              Back to Simple
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleSubscribe}
-              disabled={isSubmitting || submitStatus === 'success' || interests.length === 0}
-              className="flex-1 bg-blue-600 hover:bg-blue-700"
-            >
-              {isSubmitting ? 'Subscribing...' : 'Subscribe with Preferences'}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Status Messages */}
-      {submitStatus === 'success' && (
-        <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-4 transition-opacity duration-300">
-          <div className="flex items-center">
-            <span className="text-green-600 mr-3 text-lg">✓</span>
-            <div>
-              <h4 className="font-medium text-green-900">Successfully Subscribed!</h4>
-              <p className="text-green-700 text-sm">Check your email for a welcome message.</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {submitStatus === 'error' && (
-        <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4 transition-opacity duration-300">
-          <div className="flex items-center">
-            <span className="text-red-600 mr-3 text-lg">✗</span>
-            <div>
-              <h4 className="font-medium text-red-900">Subscription Failed</h4>
-              <p className="text-red-700 text-sm">Please try again.</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="mt-6 pt-4 border-t border-slate-200">
-        <p className="text-xs text-slate-500 text-center">
-          By subscribing, you agree to receive marketing emails from MaalCa Properties.
-          You can unsubscribe at any time. We respect your privacy.
-        </p>
-      </div>
-    </div>
-  );
-}
+"use client";import { useState } from 'react';import { Button } from './buttons';import { submitNewsletter, newsletterConfigs } from '@/lib/utils/newsletter';interface PropertyNewsletterSubscriptionProps {  title?: string;  description?: string;  buttonText?: string;  className?: string;  source?: 'properties' | 'dr-pichardo';}const interestOptions = [  { value: 'luxury-villas', label: 'Luxury Villas' },  { value: 'penthouses', label: 'Penthouses' },  { value: 'private-estates', label: 'Private Estates' },  { value: 'marina-condos', label: 'Marina Condos' },  { value: 'eco-retreats', label: 'Eco Retreats' },  { value: 'investment-opportunities', label: 'Investment Opportunities' },  { value: 'new-developments', label: 'New Developments' },  { value: 'exclusive-deals', label: 'Exclusive Deals' }];const frequencyOptions = [  { value: 'immediate', label: 'Immediate - As soon as new properties are listed' },  { value: 'daily', label: 'Daily Digest' },  { value: 'weekly', label: 'Weekly Summary' },  { value: 'monthly', label: 'Monthly Newsletter' }];export default function PropertyNewsletterSubscription({  title = "Exclusive Property Updates",  description = "Receive notifications about new listings and exclusive investment opportunities",  buttonText = "Subscribe",  className = "",  source = 'properties'}: PropertyNewsletterSubscriptionProps) {  const [email, setEmail] = useState('');  const [name, setName] = useState('');  const [interests, setInterests] = useState<string[]>(['investment-opportunities', 'exclusive-deals']);  const [frequency, setFrequency] = useState('weekly');  const [isExpanded, setIsExpanded] = useState(false);  const [isSubmitting, setIsSubmitting] = useState(false);  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');  const [errors, setErrors] = useState<{email?: string}>({});  const validateEmail = (): boolean => {    if (!email.trim()) {      setErrors({ email: 'Email is required' });      return false;    }    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {      setErrors({ email: 'Please enter a valid email address' });      return false;    }    setErrors({});    return true;  };  const handleSubscribe = async () => {    if (!validateEmail()) return;    setIsSubmitting(true);    setSubmitStatus('idle');    const config = newsletterConfigs[source] || newsletterConfigs.properties;    const result = await submitNewsletter(email, config);    if (result.success) {      setSubmitStatus('success');      setTimeout(() => {        setSubmitStatus('idle');        setEmail('');        setName('');        setIsExpanded(false);      }, 3000);    } else {      setSubmitStatus('error');      setTimeout(() => setSubmitStatus('idle'), 3000);    }    setIsSubmitting(false);  };  const toggleInterest = (interest: string) => {    setInterests(prev =>      prev.includes(interest)        ? prev.filter(i => i !== interest)        : [...prev, interest]    );  };  return (    <div className={`bg-white rounded-3xl p-8 shadow-lg border border-slate-200 ${className}`}>      <div className="text-center mb-6">        <h3 className="text-2xl font-semibold text-slate-900 mb-4">{title}</h3>        <p className="text-slate-600">{description}</p>      </div>      {/* Quick Subscribe */}      {!isExpanded && (        <div className="space-y-4">          <div className="flex gap-3 max-w-md mx-auto">            <div className="flex-1">              <input                type="email"                value={email}                onChange={(e) => { setEmail(e.target.value); setErrors({}); }}                placeholder="your@email.com"                className={`w-full px-4 py-3 bg-slate-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 transition-colors ${                  errors.email ? 'border-red-300 bg-red-50' : 'border-slate-300'                }`}              />              {errors.email && <p className="text-red-600 text-xs mt-1">{errors.email}</p>}            </div>            <Button              variant="primary"              className="bg-blue-600 hover:bg-blue-700 text-white px-6"              onClick={handleSubscribe}              disabled={isSubmitting || submitStatus === 'success'}            >              {isSubmitting ? (                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />                  <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />                </svg>              ) : buttonText}            </Button>          </div>          <div className="text-center">            <button              onClick={() => setIsExpanded(true)}              className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"            >              ⚙️ Customize preferences            </button>          </div>        </div>      )}      {/* Advanced Form */}      {isExpanded && (        <div className="space-y-6 transition-all duration-300">          <div className="grid md:grid-cols-2 gap-4">            <div>              <label className="block text-sm font-medium text-slate-700 mb-2">Email Address *</label>              <input                type="email"                value={email}                onChange={(e) => { setEmail(e.target.value); setErrors({}); }}                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${                  errors.email ? 'border-red-300 bg-red-50' : 'border-slate-300'                }`}                placeholder="your@email.com"              />              {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}            </div>            <div>              <label className="block text-sm font-medium text-slate-700 mb-2">Name (Optional)</label>              <input                type="text"                value={name}                onChange={(e) => setName(e.target.value)}                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"                placeholder="Your Name"              />            </div>          </div>          <div>            <label className="block text-sm font-medium text-slate-700 mb-3">Property Interests</label>            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">              {interestOptions.map((option) => (                <label                  key={option.value}                  className={`flex items-center space-x-2 p-3 rounded-lg border cursor-pointer transition-colors ${                    interests.includes(option.value)                      ? 'border-blue-500 bg-blue-50'                      : 'border-slate-200 hover:border-slate-300'                  }`}                >                  <input                    type="checkbox"                    checked={interests.includes(option.value)}                    onChange={() => toggleInterest(option.value)}                    className="text-blue-600 focus:ring-blue-500 border-slate-300 rounded"                  />                  <span className="text-sm text-slate-700">{option.label}</span>                </label>              ))}            </div>          </div>          <div>            <label className="block text-sm font-medium text-slate-700 mb-3">Email Frequency</label>            <div className="space-y-2">              {frequencyOptions.map((option) => (                <label                  key={option.value}                  className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${                    frequency === option.value                      ? 'border-blue-500 bg-blue-50'                      : 'border-slate-200 hover:border-slate-300'                  }`}                >                  <input                    type="radio"                    name="frequency"                    value={option.value}                    checked={frequency === option.value}                    onChange={(e) => setFrequency(e.target.value)}                    className="text-blue-600 focus:ring-blue-500"                  />                  <span className="text-sm text-slate-700">{option.label}</span>                </label>              ))}            </div>          </div>          <div className="flex gap-3">            <Button              variant="outline"              onClick={() => { setIsExpanded(false); setErrors({}); }}              className="flex-1"              disabled={isSubmitting}            >              Back to Simple            </Button>            <Button              variant="primary"              onClick={handleSubscribe}              disabled={isSubmitting || submitStatus === 'success' || interests.length === 0}              className="flex-1 bg-blue-600 hover:bg-blue-700"            >              {isSubmitting ? 'Subscribing...' : 'Subscribe with Preferences'}            </Button>          </div>        </div>      )}      {/* Status Messages */}      {submitStatus === 'success' && (        <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-4 transition-opacity duration-300">          <div className="flex items-center">            <span className="text-green-600 mr-3 text-lg">✓</span>            <div>              <h4 className="font-medium text-green-900">Successfully Subscribed!</h4>              <p className="text-green-700 text-sm">Check your email for a welcome message.</p>            </div>          </div>        </div>      )}      {submitStatus === 'error' && (        <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4 transition-opacity duration-300">          <div className="flex items-center">            <span className="text-red-600 mr-3 text-lg">✗</span>            <div>              <h4 className="font-medium text-red-900">Subscription Failed</h4>              <p className="text-red-700 text-sm">Please try again.</p>            </div>          </div>        </div>      )}      <div className="mt-6 pt-4 border-t border-slate-200">        <p className="text-xs text-slate-500 text-center">          By subscribing, you agree to receive marketing emails from MaalCa Properties.          You can unsubscribe at any time. We respect your privacy.        </p>      </div>    </div>  );}

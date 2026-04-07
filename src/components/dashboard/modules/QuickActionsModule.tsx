@@ -1,9 +1,7 @@
 "use client";
-
 import Link from "next/link";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { DashboardCard } from "../DashboardCard";
-
 interface QuickAction {
   name: string;
   description: string;
@@ -11,13 +9,11 @@ interface QuickAction {
   icon: string;
   color: string;
 }
-
 /**
  * Módulo de acciones rápidas
  */
 export function QuickActionsModule() {
   const { config, hasModule } = useAffiliate();
-
   const quickActions: QuickAction[] = [
     hasModule('customers') && {
       name: "Nuevo Cliente",
@@ -62,11 +58,9 @@ export function QuickActionsModule() {
       color: "yellow"
     }
   ].filter(Boolean) as QuickAction[];
-
   if (quickActions.length === 0) {
     return null;
   }
-
   return (
     <DashboardCard
       title="Acciones Rápidas"

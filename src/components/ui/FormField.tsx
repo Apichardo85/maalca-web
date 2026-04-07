@@ -1,5 +1,4 @@
 import { forwardRef } from 'react';
-
 interface FormFieldProps {
   label: string;
   name: string;
@@ -14,7 +13,6 @@ interface FormFieldProps {
   className?: string;
   autoComplete?: string;
 }
-
 export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(({
   label,
   name,
@@ -32,7 +30,6 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(({
 }, ref) => {
   const hasError = !!error;
   const hasValue = !!value;
-
   return (
     <div className={`relative ${className}`}>
       <label
@@ -41,7 +38,6 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(({
       >
         {label} {required && <span className="text-red-500">*</span>}
       </label>
-
       <div className="relative">
         <input
           ref={ref}
@@ -69,7 +65,6 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(({
           aria-describedby={hasError ? `${name}-error` : undefined}
           {...props}
         />
-
         {/* Success checkmark */}
         {hasValue && !hasError && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2 transition-opacity duration-200">
@@ -78,7 +73,6 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(({
             </svg>
           </div>
         )}
-
         {/* Error icon */}
         {hasError && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2 transition-opacity duration-200">
@@ -88,7 +82,6 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(({
           </div>
         )}
       </div>
-
       {/* Error message */}
       {hasError && (
         <div
@@ -106,5 +99,4 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(({
     </div>
   );
 });
-
 FormField.displayName = 'FormField';
