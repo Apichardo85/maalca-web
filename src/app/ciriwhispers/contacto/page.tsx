@@ -29,8 +29,8 @@ export default function ContactoCiriWhispersPage() {
           {[
             { icon: "\u2709", titleKey: "ciriwhispers.contacto2.email.title", descKey: "ciriwhispers.contacto2.email.desc", link: "mailto:ciriwhispers@maalca.com", linkText: "ciriwhispers@maalca.com" },
             { icon: "\uD83D\uDCF7", titleKey: "ciriwhispers.contacto2.instagram.title", descKey: "ciriwhispers.contacto2.instagram.desc", link: "https://www.instagram.com/ciriwhispers/", linkText: "@ciriwhispers", external: true },
-            { icon: "\uD83D\uDCDA", titleKey: "ciriwhispers.contacto2.amazon.title", descKey: "ciriwhispers.contacto2.amazon.desc", link: "https://www.amazon.com/stores/Ciriaco-Alejandro-Pichardo-Santana/author/B0DFH93HCJ", linkText: t("ciriwhispers.contacto2.amazon.link"), external: true },
-            { icon: "\uD83C\uDF99\uFE0F", titleKey: "ciriwhispers.contacto2.podcast.title", descKey: "ciriwhispers.contacto2.podcast.desc", link: "/hablando-mierda", linkText: "Hablando Mierda \u2192" },
+            { icon: "\uD83D\uDCDA", titleKey: "ciriwhispers.contacto2.amazon.title", descKey: "ciriwhispers.contacto2.amazon.desc", link: "https://www.amazon.com/author/ciriwhispers", linkText: t("ciriwhispers.contacto2.amazon.link"), external: true },
+            { icon: "\uD83D\uDCCB", titleKey: "ciriwhispers.contacto2.facebook.title", descKey: "ciriwhispers.contacto2.facebook.desc", link: "https://www.facebook.com/ciriwhispers", linkText: "CiriWhispers en Facebook", external: true },
           ].map((card) => (
             <div key={card.titleKey} className="rounded-xl p-6 transition-colors"
               style={{ border: '1px solid var(--ciri-border)', backgroundColor: 'var(--ciri-surface)' }}>

@@ -30,7 +30,7 @@ export default function ManifiestoPage() {
           <div className="flex flex-col md:flex-row gap-8 items-start">
             <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl flex-shrink-0 flex items-center justify-center"
               style={{ background: 'linear-gradient(135deg, var(--ciri-brand), var(--ciri-brand-hover))' }}>
-              <span className="font-serif text-5xl text-white italic">C</span>
+              <span className="font-serif text-lg text-white italic leading-tight text-center">Ciri<br/>Whispers</span>
             </div>
             <div>
               <h2 className="font-serif text-2xl mb-1" style={{ color: 'var(--ciri-text)' }}>
@@ -78,7 +78,7 @@ export default function ManifiestoPage() {
               Instagram
             </a>
             <a
-              href="https://www.amazon.com/stores/Ciriaco-Alejandro-Pichardo-Santana/author/B0DFH93HCJ"
+              href="https://www.amazon.com/author/ciriwhispers"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold transition-colors"
