@@ -2,7 +2,9 @@
 import { useState, useEffect } from "react";
 export function ThemeSwitch() {
   const [isDark, setIsDark] = useState(false);
+  const [mounted, setMounted] = useState(false);
   useEffect(() => {
+    setMounted(true);
     const savedTheme = localStorage.getItem("theme");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
@@ -20,6 +22,17 @@ export function ThemeSwitch() {
     }
     localStorage.setItem("theme", newTheme);
   };
+  if (!mounted) {
+    return (
+      <button
+        className="relative p-2 rounded-full bg-surface-elevated border border-border"
+        aria-label="Toggle theme"
+        disabled
+      >
+        <div className="w-5 h-5" />
+      </button>
+    );
+  }
   return (
     <button
       onClick={toggleTheme}
