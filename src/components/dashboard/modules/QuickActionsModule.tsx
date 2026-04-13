@@ -9,9 +9,15 @@ interface QuickAction {
   icon: string;
   color: string;
 }
-/**
- * Módulo de acciones rápidas
- */
+const actionColorClasses: Record<string, string> = {
+  blue: "bg-blue-100 dark:bg-blue-900/20",
+  green: "bg-green-100 dark:bg-green-900/20",
+  purple: "bg-purple-100 dark:bg-purple-900/20",
+  orange: "bg-orange-100 dark:bg-orange-900/20",
+  red: "bg-red-100 dark:bg-red-900/20",
+  yellow: "bg-yellow-100 dark:bg-yellow-900/20",
+};
+
 export function QuickActionsModule() {
   const { config, hasModule } = useAffiliate();
   const quickActions: QuickAction[] = [
@@ -77,7 +83,7 @@ export function QuickActionsModule() {
             <Link href={action.href}>
               <div className="group p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-400 dark:hover:border-gray-500 transition-all cursor-pointer hover:shadow-md">
                 <div className="flex items-start gap-3">
-                  <div className={`w-10 h-10 bg-${action.color}-100 dark:bg-${action.color}-900/20 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>
+                  <div className={`w-10 h-10 ${actionColorClasses[action.color] ?? actionColorClasses.blue} rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>
                     <span className="text-xl">{action.icon}</span>
                   </div>
                   <div className="flex-1">
