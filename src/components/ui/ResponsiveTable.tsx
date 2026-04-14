@@ -6,13 +6,22 @@ export interface TableColumn<T> {
   render: (item: T) => ReactNode;
   mobileLabel?: string;
   hideOnMobile?: boolean;
+  sortable?: boolean;
 }
+
+export interface SortConfig {
+  key: string;
+  direction: "asc" | "desc";
+}
+
 interface ResponsiveTableProps<T> {
   data: T[];
   columns: TableColumn<T>[];
   getRowKey: (item: T) => string;
   emptyMessage?: string;
   onRowClick?: (item: T) => void;
+  sortConfig?: SortConfig;
+  onSort?: (key: string) => void;
 }
 /**
  * Tabla responsive que se adapta a mobile y desktop
@@ -22,7 +31,9 @@ export function ResponsiveTable<T>({
   columns,
   getRowKey,
   emptyMessage = "No se encontraron resultados",
-  onRowClick
+  onRowClick,
+  sortConfig,
+  onSort,
 }: ResponsiveTableProps<T>) {
   const mobileColumns = columns.filter(col => !col.hideOnMobile);
   if (data.length === 0) {
@@ -45,9 +56,17 @@ export function ResponsiveTable<T>({
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className="px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white"
+                  className={`px-4 py-3 text-left text-sm font-semibold text-gray-900 dark:text-white ${
+                    column.sortable && onSort ? "cursor-pointer select-none hover:text-blue-600 dark:hover:text-blue-400 transition-colors" : ""
+                  }`}
+                  onClick={column.sortable && onSort ? () => onSort(column.key) : undefined}
                 >
-                  {column.header}
+                  <span className="inline-flex items-center gap-1">
+                    {column.header}
+                    {column.sortable && sortConfig?.key === column.key && (
+                      <span className="text-blue-500">{sortConfig.direction === "asc" ? "↑" : "↓"}</span>
+                    )}
+                  </span>
                 </th>
               ))}
             </tr>

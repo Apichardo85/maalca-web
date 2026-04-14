@@ -144,6 +144,10 @@ El proyecto tiene skills especializados en `.claude/skills/` para tareas comunes
 | Skill | Uso | Descripción |
 |-------|-----|-------------|
 | `/dashboard-module` | Crear módulos dashboard | Páginas multi-tenant con validaciones |
+| `/dashboard-redesign` | Auditar diseño visual | Enforce estándar 2026 (glassmorphism, animations) |
+| `/dashboard-table` | Tablas con datos | Server Component + ResponsiveTable + filtros + sort |
+| `/dashboard-form` | Forms validados | useFormValidation + service layer + toast feedback |
+| `/dashboard-chart` | Gráficos Recharts | ChartCard wrapper + theming consistente |
 | `/api-endpoint` | Crear endpoints API | Patrón apiClient con tipos |
 | `/component` | Crear componentes | React + Tailwind (estilos correctos) |
 | `/affiliate` | Nuevo afiliado | Configurar negocio en sistema multi-tenant |

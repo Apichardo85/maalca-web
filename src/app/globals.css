@@ -398,3 +398,21 @@ html.light-theme .from-gray-500 {
 .animate-overlay-in      { animation: overlayIn 0.3s ease-out both; }
 .animate-overlay-out     { animation: overlayOut 0.3s ease-out both; }
 .animate-spin-slow       { animation: spin 1s linear infinite; }
+
+/* Dashboard 2026 animations */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes pulseSoft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-shimmer     { animation: shimmer 1.5s ease-in-out infinite; background-size: 200% 100%; }
+.animate-pulse-soft  { animation: pulseSoft 2s ease-in-out infinite; }
+.animate-count-up    { animation: countUp 0.4s ease-out forwards; }

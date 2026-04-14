@@ -7,6 +7,10 @@ Skills personalizados para automatizar tareas comunes en el proyecto MaalCa-Web.
 | Skill | Comando | Descripción |
 |-------|---------|-------------|
 | **dashboard-module** | `/dashboard-module` | Crear módulos del dashboard multi-tenant |
+| **dashboard-redesign** | `/dashboard-redesign` | Auditar y corregir diseño visual de módulos (2026) |
+| **dashboard-table** | `/dashboard-table` | Generar tablas con Server Component + ResponsiveTable |
+| **dashboard-form** | `/dashboard-form` | Generar forms validados con service layer + toast |
+| **dashboard-chart** | `/dashboard-chart` | Generar charts con Recharts + ChartCard wrapper |
 | **api-endpoint** | `/api-endpoint` | Crear endpoints de API con el patrón apiClient |
 | **component** | `/component` | Crear componentes React con estilos correctos |
 | **affiliate** | `/affiliate` | Configurar nuevos afiliados en el sistema |
@@ -91,6 +95,10 @@ Cada skill tiene un archivo `SKILL.md` con:
 | Si necesitas... | Usa este skill |
 |-----------------|----------------|
 | Agregar página al dashboard | `/dashboard-module` |
+| Mejorar diseño visual de módulo | `/dashboard-redesign` |
+| Tabla con filtros, sort, paginación | `/dashboard-table` |
+| Form modal con validación real | `/dashboard-form` |
+| Gráficos con Recharts | `/dashboard-chart` |
 | Conectar con el backend | `/api-endpoint` |
 | Crear UI component | `/component` |
 | Nuevo negocio/afiliado | `/affiliate` |
