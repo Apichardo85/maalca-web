@@ -85,6 +85,17 @@ export type {
   N8nServiceResponse,
 } from "./n8n.types";
 
+// Catalog types (menu + store + future verticals)
+export type {
+  CatalogItem,
+  MenuItemFlags,
+  MenuCatalogItem,
+  ProductStatus,
+  ProductCatalogItem,
+  AnyCatalogItem,
+} from "./catalog.types";
+export { isMenuItem, isProductItem } from "./catalog.types";
+
 // API types - Billing
 export type {
   Invoice,

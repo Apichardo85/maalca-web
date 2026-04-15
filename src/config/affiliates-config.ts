@@ -2,13 +2,94 @@
  * Configuración multi-tenant para afiliados del ecosistema MaalCa
  *
  * Cada afiliado tiene su configuración de:
+ * - BusinessType (vertical de negocio — determina terminología por defecto)
  * - Branding (colores, logo, nombre)
  * - Módulos habilitados (metrics, campaigns, customers, etc.)
+ * - Terminology (override de labels por afiliado)
  * - Features (multilenguaje, dark mode, notificaciones)
  */
 
+// ─── Business types ──────────────────────────────────────────────────────────
+
+export type BusinessType = 'barbershop' | 'restaurant' | 'beauty' | 'retail' | 'health' | 'media';
+
+export type ModuleKey = keyof AffiliateConfig['modules'];
+
+export type ModuleTerminology = Partial<Record<ModuleKey, string>>;
+
+// ─── Module navigation config (canonical labels, icons, paths) ───────────────
+
+export const MODULE_NAV_CONFIG: Record<
+  string,
+  { label: string; icon: string; path: string; desc: string }
+> = {
+  metrics:      { label: 'Analytics',     icon: '📈', path: 'metrics',      desc: 'Dashboard de análisis y KPIs' },
+  campaigns:    { label: 'Campañas',      icon: '📢', path: 'campaigns',    desc: 'Marketing y comunicaciones' },
+  customers:    { label: 'Clientes',      icon: '👥', path: 'customers',    desc: 'CRM y gestión de clientes' },
+  ecommerce:    { label: 'Tienda',        icon: '🛍️', path: 'store',        desc: 'Productos y ventas en línea' },
+  appointments: { label: 'Citas',         icon: '📅', path: 'appointments', desc: 'Sistema de reservaciones' },
+  inventory:    { label: 'Inventario',    icon: '📦', path: 'inventory',    desc: 'Control de stock y materiales' },
+  invoicing:    { label: 'Facturación',   icon: '💰', path: 'invoicing',    desc: 'Facturas y pagos' },
+  team:         { label: 'Equipo',        icon: '👨‍💼', path: 'team',         desc: 'Gestión de personal' },
+  queue:        { label: 'Fila Virtual',  icon: '⏳', path: 'queue',        desc: 'Sistema de turno digital' },
+  salon:        { label: 'Salón Virtual', icon: '💈', path: 'salon',        desc: 'Vista en tiempo real del salón' },
+  giftcards:    { label: 'Gift Cards',    icon: '💳', path: 'giftcards',    desc: 'Tarjetas de regalo' },
+  reports:      { label: 'Reportes',      icon: '📊', path: 'reports',      desc: 'Análisis avanzado e informes' },
+  menu:         { label: 'Menú',          icon: '🍽️', path: 'menu',         desc: 'Gestión del menú' },
+  orders:       { label: 'Órdenes',       icon: '📋', path: 'orders',       desc: 'Monitor de órdenes en vivo' },
+  qrCodes:      { label: 'QR Codes',      icon: '📱', path: 'qr',           desc: 'Generador de códigos QR' },
+};
+
+// ─── Default terminology per business type ──────────────────────────────────
+
+export const DEFAULT_TERMINOLOGY: Record<BusinessType, ModuleTerminology> = {
+  barbershop: { appointments: 'Citas', queue: 'Fila Virtual', salon: 'Salón Virtual' },
+  restaurant: { customers: 'Comensales', menu: 'Carta', orders: 'Comandas', inventory: 'Ingredientes' },
+  beauty:     { customers: 'Clientas', queue: 'Turno Digital', salon: 'Estaciones', appointments: 'Reservas' },
+  retail:     { ecommerce: 'Catálogo', inventory: 'Stock' },
+  health:     { customers: 'Pacientes', appointments: 'Consultas', queue: 'Sala de Espera' },
+  media:      { customers: 'Audiencia', ecommerce: 'Merch', campaigns: 'Contenido', team: 'Crew' },
+};
+
+// ─── Sidebar navigation groups ──────────────────────────────────────────────
+
+export type NavGroupId = 'operations' | 'commerce' | 'clients' | 'growth';
+
+export interface NavGroup {
+  id: NavGroupId;
+  label: string;
+  modules: ModuleKey[];
+}
+
+export const SIDEBAR_GROUPS: NavGroup[] = [
+  {
+    id: 'operations',
+    label: 'OPERACIONES',
+    modules: ['metrics', 'queue', 'orders'],
+  },
+  {
+    id: 'commerce',
+    label: 'COMERCIO',
+    modules: ['menu', 'ecommerce', 'inventory', 'invoicing', 'giftcards'],
+  },
+  {
+    id: 'clients',
+    label: 'CLIENTES & AGENDA',
+    modules: ['customers', 'appointments'],
+  },
+  {
+    id: 'growth',
+    label: 'CRECIMIENTO',
+    modules: ['campaigns', 'qrCodes', 'team'],
+  },
+];
+
+// ─── Config interface ───────────────────────────────────────────────────────
+
 export interface AffiliateConfig {
   id: string;
+  businessType: BusinessType;
+  terminology: ModuleTerminology;
   branding: {
     primaryColor: string;      // Tailwind color class (e.g., "red-600", "blue-600")
     secondaryColor: string;    // Color secundario
@@ -53,6 +134,8 @@ export interface AffiliateConfig {
 export const affiliatesConfig: Record<string, AffiliateConfig> = {
   "pegote-barbershop": {
     id: "pegote-barbershop",
+    businessType: "barbershop",
+    terminology: {},
     branding: {
       primaryColor: "blue-600",
       secondaryColor: "blue-400",
@@ -92,6 +175,8 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
 
   "britocolor": {
     id: "britocolor",
+    businessType: "retail",
+    terminology: { ecommerce: "Servicios", inventory: "Materiales" },
     branding: {
       primaryColor: "orange-600",
       secondaryColor: "orange-400",
@@ -131,6 +216,8 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
 
   "masa-tina": {
     id: "masa-tina",
+    businessType: "restaurant",
+    terminology: { appointments: "Reservas de Catering" },
     branding: {
       primaryColor: "green-600",
       secondaryColor: "green-400",
@@ -170,6 +257,8 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
 
   "dr-pichardo": {
     id: "dr-pichardo",
+    businessType: "health",
+    terminology: { invoicing: "Donaciones" },
     branding: {
       primaryColor: "blue-600",
       secondaryColor: "green-500",
@@ -209,6 +298,8 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
 
   "the-little-dominican": {
     id: "the-little-dominican",
+    businessType: "restaurant",
+    terminology: {},
     branding: {
       primaryColor: "red-600",
       secondaryColor: "orange-400",
@@ -248,6 +339,8 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
 
   "hablando-mierda": {
     id: "hablando-mierda",
+    businessType: "media",
+    terminology: { inventory: "Merch Inventory" },
     branding: {
       primaryColor: "purple-600",
       secondaryColor: "pink-500",
@@ -316,4 +409,37 @@ export function getAffiliatesWithDashboard(): AffiliateConfig[] {
  */
 export function getAffiliatePrimaryColor(affiliateId: string): string {
   return getAffiliateConfig(affiliateId)?.branding.primaryColor ?? "red-600";
+}
+
+/**
+ * Obtiene el label de un módulo para un afiliado específico
+ * Orden de precedencia:
+ *   1. terminology override del afiliado
+ *   2. DEFAULT_TERMINOLOGY del businessType
+ *   3. MODULE_NAV_CONFIG canonical label
+ *   4. module key como fallback
+ */
+export function getModuleLabel(config: AffiliateConfig, module: ModuleKey): string {
+  return (
+    config.terminology[module] ??
+    DEFAULT_TERMINOLOGY[config.businessType]?.[module] ??
+    MODULE_NAV_CONFIG[module]?.label ??
+    module
+  );
+}
+
+/**
+ * Verifica si un afiliado tiene el área de Analytics (metrics OR reports)
+ * metrics y reports están fusionados en una sola vista tabulada
+ */
+export function affiliateHasAnalytics(config: AffiliateConfig): boolean {
+  return config.modules.metrics || config.modules.reports;
+}
+
+/**
+ * Verifica si un afiliado tiene el área de Workspace (queue OR salon)
+ * queue y salon están fusionados en una sola vista tabulada
+ */
+export function affiliateHasWorkspace(config: AffiliateConfig): boolean {
+  return config.modules.queue || config.modules.salon;
 }

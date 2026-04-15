@@ -19,26 +19,7 @@ export function getBrandColors(tailwindColor: string) {
 }
 
 /**
- * Configuración de módulos para la navegación del sidebar genérico
- * Orden de aparición en el sidebar
+ * @deprecated MODULE_NAV_CONFIG ha sido movido a `@/config/affiliates-config`.
+ * Se re-exporta aquí para compatibilidad. En nuevos archivos importa desde config/affiliates-config.
  */
-export const MODULE_NAV_CONFIG: Record<
-  string,
-  { label: string; icon: string; path: string; desc: string }
-> = {
-  metrics:      { label: 'Métricas',      icon: '📈', path: 'metrics',      desc: 'Dashboard de análisis y KPIs' },
-  campaigns:    { label: 'Campañas',      icon: '📢', path: 'campaigns',    desc: 'Marketing y comunicaciones' },
-  customers:    { label: 'Clientes',      icon: '👥', path: 'customers',    desc: 'CRM y gestión de clientes' },
-  ecommerce:    { label: 'Tienda',        icon: '🛍️', path: 'store',        desc: 'Productos y ventas en línea' },
-  appointments: { label: 'Citas',         icon: '📅', path: 'appointments', desc: 'Sistema de reservaciones' },
-  inventory:    { label: 'Inventario',    icon: '📦', path: 'inventory',    desc: 'Control de stock y materiales' },
-  invoicing:    { label: 'Facturación',   icon: '💰', path: 'invoicing',    desc: 'Facturas y pagos' },
-  team:         { label: 'Equipo',        icon: '👨‍💼', path: 'team',         desc: 'Gestión de personal' },
-  queue:        { label: 'Fila Virtual',  icon: '⏳', path: 'queue',        desc: 'Sistema de turno digital' },
-  salon:        { label: 'Salón Virtual', icon: '💈', path: 'salon',        desc: 'Vista en tiempo real del salón' },
-  giftcards:    { label: 'Gift Cards',    icon: '💳', path: 'giftcards',    desc: 'Tarjetas de regalo' },
-  reports:      { label: 'Reportes',      icon: '📊', path: 'reports',      desc: 'Análisis avanzado e informes' },
-  menu:         { label: 'Menú',          icon: '🍽️', path: 'menu',         desc: 'Gestión del menú' },
-  orders:       { label: 'Órdenes',       icon: '📋', path: 'orders',       desc: 'Monitor de órdenes en vivo' },
-  qrCodes:      { label: 'QR Codes',      icon: '📱', path: 'qr',           desc: 'Generador de códigos QR' },
-}
+export { MODULE_NAV_CONFIG } from '@/config/affiliates-config';
