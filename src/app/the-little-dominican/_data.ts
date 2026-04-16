@@ -1,6 +1,8 @@
 // Shared data for The Little Dominican pages
 // TODO: Replace with fetch from Umbraco Delivery API v2
 
+import type { MealPeriod } from '@/lib/types'
+
 export interface MenuItem {
   id: string
   name: string
@@ -11,6 +13,8 @@ export interface MenuItem {
   flags: { vegetarian?: boolean; spicy?: boolean; glutenFree?: boolean }
   popular?: boolean
   available: boolean
+  /** Periodos en que se sirve. Vacío/undefined → all_day (siempre). */
+  periods?: MealPeriod[]
 }
 
 export interface LiveEvent {
@@ -54,15 +58,19 @@ export const MOCK_DISHES: MenuItem[] = [
     description: 'Queso tropical frito, dorado por fuera y suave por dentro.' },
   // Carnes
   { id: 'pernil',      name: 'Pernil / Pork',       price: 14,   category: 'Carnes',     flags: { glutenFree: true }, available: true,
+    periods: ['lunch', 'dinner'],
     image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&h=400&fit=crop&q=80',
     description: 'Cerdo asado lentamente con sazón de la casa.' },
   { id: 'pollo-guisado', name: 'Pollo Guisado',     price: 8,    category: 'Carnes',     flags: { glutenFree: true }, available: true,
+    periods: ['lunch', 'dinner'],
     image: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=600&h=400&fit=crop&q=80',
     description: 'Pollo estofado en salsa criolla con especias tradicionales.' },
   { id: 'churrasco',   name: 'Churrasco',           price: 18,   category: 'Carnes',     flags: { glutenFree: true }, popular: true, available: true,
+    periods: ['dinner'],
     image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop&q=80',
     description: 'Skirt steak tierno a la parrilla. Servido con chimichurri de la casa.' },
   { id: 'rabo',        name: 'Rabo Guisado',        price: 17,   category: 'Carnes',     flags: { glutenFree: true }, available: true,
+    periods: ['dinner'],
     image: 'https://images.unsplash.com/photo-1534939561126-855b8675edd7?w=600&h=400&fit=crop&q=80',
     description: 'Cola de res estofada por cuatro horas. Con arroz blanco y tostones.' },
   // Mariscos
@@ -81,7 +89,19 @@ export const MOCK_DISHES: MenuItem[] = [
     description: 'Plátano frito majado con ajo y chicharrón. Comfort food quisqueyano.' },
 ]
 
-export const MENU_CATEGORIES = ['Picadera', 'Fritura', 'Carnes', 'Mariscos', 'Appetizers', 'Sides']
+// Demo breakfast items (disponible solo 7am-11am)
+MOCK_DISHES.push(
+  { id: 'mangu', name: 'Mangú con los 3 Golpes', price: 11, category: 'Desayuno', flags: {}, available: true,
+    periods: ['breakfast'],
+    image: 'https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=600&h=400&fit=crop&q=80',
+    description: 'Puré de plátano verde con queso frito, salami y huevos. Clásico dominicano.' },
+  { id: 'tres-golpes', name: 'Huevos Rancheros', price: 9, category: 'Desayuno', flags: { vegetarian: true }, available: true,
+    periods: ['breakfast'],
+    image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=600&h=400&fit=crop&q=80',
+    description: 'Huevos revueltos con cebolla, tomate y pimientos. Sobre tostada o arepa.' },
+)
+
+export const MENU_CATEGORIES = ['Desayuno', 'Picadera', 'Fritura', 'Carnes', 'Mariscos', 'Appetizers', 'Sides']
 
 export const FEATURED_DISHES = ['chicharron', 'mofongo', 'churrasco', 'camarones']
 

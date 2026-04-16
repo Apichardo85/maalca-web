@@ -37,10 +37,21 @@ export interface MenuItemFlags {
   glutenFree?: boolean;
 }
 
+/**
+ * Periodo semántico del día en que un item del menu está disponible.
+ * - `all_day`: siempre disponible (ej. bebidas, postres).
+ * - El resto: depende de `AffiliateConfig.mealPeriodHours`.
+ *
+ * Si un item no tiene `periods` o incluye `all_day`, se considera siempre disponible.
+ */
+export type MealPeriod = "breakfast" | "lunch" | "dinner" | "late_night" | "all_day";
+
 export interface MenuCatalogItem extends CatalogItem {
   kind: "menu";
   flags?: MenuItemFlags;
   featured?: boolean;
+  /** Periodos en que el item se sirve. Vacío/undefined = all_day. */
+  periods?: MealPeriod[];
 }
 
 // ─── Product (retail / ferretería / barbería) ───────────────────────────────

@@ -3,8 +3,13 @@ import { useEffect, useState } from "react";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
 import QRCode from "qrcode";
+import { BusinessCardTab } from "./components/BusinessCardTab";
+
+// Afiliados que ven la nueva tab "Tarjeta" (piloto)
+const BUSINESS_CARD_AFFILIATES = new Set<string>(["the-little-dominican"]);
+
 // ─── Types ───────────────────────────────────────────────────────────────────
-type Tab = "mesas" | "redes" | "imprimir";
+type Tab = "mesas" | "redes" | "imprimir" | "tarjeta";
 interface QRItem {
   id: string;
   label: string;
@@ -184,10 +189,14 @@ export default function QRPage() {
     { id: "facebook", label: "Facebook", sub: brandName, url: `https://facebook.com/${affiliateId}`, icon: "👥" },
     { id: "reservar", label: "Reservaciones", sub: "Reserva tu mesa online", url: `${BASE}/#reservar`, icon: "📅" },
   ];
+  const hasBusinessCard = BUSINESS_CARD_AFFILIATES.has(affiliateId);
   const tabs: { key: Tab; label: string; icon: string }[] = [
     { key: "mesas", label: "Mesas", icon: "🍽️" },
     { key: "redes", label: "Redes & Flyers", icon: "📱" },
     { key: "imprimir", label: "Kit Impresion", icon: "🖨️" },
+    ...(hasBusinessCard
+      ? [{ key: "tarjeta" as Tab, label: "Tarjeta", icon: "💳" }]
+      : []),
   ];
   return (
     <div className="space-y-6">
@@ -261,6 +270,9 @@ export default function QRPage() {
           </div>
         </div>
       )}
+      {/* TARJETA tab — gated a afiliados piloto */}
+      {tab === "tarjeta" && hasBusinessCard && <BusinessCardTab />}
+
       {/* KIT tab */}
       {tab === "imprimir" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -17,6 +17,46 @@ export type ModuleKey = keyof AffiliateConfig['modules'];
 
 export type ModuleTerminology = Partial<Record<ModuleKey, string>>;
 
+// ─── Contact & hours (tarjeta de negocios + menu por periodo) ───────────────
+
+import type { MealPeriod } from "@/lib/types/catalog.types";
+
+/**
+ * Información de contacto pública del afiliado — usada en:
+ * - Tarjeta de negocios (física y digital)
+ * - vCard descargable
+ * - Links accionables (tel:, mailto:, wa.me, maps)
+ */
+export interface AffiliateContact {
+  phone?: string;           // E.164 (ej. "+16072150990")
+  phoneDisplay?: string;    // Formato humano (ej. "(607) 215-0990")
+  whatsapp?: string;        // E.164 para wa.me
+  email?: string;
+  address?: string;         // Una línea
+  mapsUrl?: string;         // maps.app.goo.gl o Google Maps URL
+  website?: string;         // Fallback cuando no hay menu público
+  social?: {
+    instagram?: string;     // handle SIN @
+    facebook?: string;
+    tiktok?: string;
+    twitter?: string;
+  };
+}
+
+/** Rango horario "HH:mm" 24h. `end < start` significa que cruza medianoche. */
+export interface MealPeriodHours {
+  start: string;
+  end: string;
+}
+
+/**
+ * Horarios por periodo del día del afiliado (solo aplica a businessType === 'restaurant').
+ * `all_day` se infiere cuando un item no tiene periodo o lo tiene marcado explícitamente.
+ */
+export type AffiliateMealPeriodHours = Partial<
+  Record<Exclude<MealPeriod, "all_day">, MealPeriodHours>
+>;
+
 // ─── Module navigation config (canonical labels, icons, paths) ───────────────
 
 export const MODULE_NAV_CONFIG: Record<
@@ -125,6 +165,10 @@ export interface AffiliateConfig {
     timezone: string;          // Zona horaria
     dateFormat: string;        // Formato de fecha
   };
+  /** Contacto público (tarjeta de negocios, vCard). Opcional por afiliado. */
+  contact?: AffiliateContact;
+  /** Horarios por periodo — solo afiliados con businessType 'restaurant'. */
+  mealPeriodHours?: AffiliateMealPeriodHours;
 }
 
 /**
@@ -300,12 +344,27 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
     id: "the-little-dominican",
     businessType: "restaurant",
     terminology: {},
+    contact: {
+      phone: "+16072150990",
+      phoneDisplay: "(607) 215-0990",
+      whatsapp: "+16072150990",
+      website: "https://maalca.com/the-little-dominican",
+      social: {
+        instagram: "thelittledominican",
+      },
+    },
+    mealPeriodHours: {
+      breakfast:  { start: "07:00", end: "11:00" },
+      lunch:      { start: "11:00", end: "16:00" },
+      dinner:     { start: "17:00", end: "22:00" },
+      late_night: { start: "22:00", end: "02:00" },
+    },
     branding: {
       primaryColor: "red-600",
       secondaryColor: "orange-400",
       logo: "/images/affiliates/the-little-dominican-logo.svg",
       name: "The Little Dominican",
-      description: "Restaurante dominicano en Nyack, NY"
+      description: "Cocina dominicana auténtica en Elmira, NY"
     },
     modules: {
       metrics: true,

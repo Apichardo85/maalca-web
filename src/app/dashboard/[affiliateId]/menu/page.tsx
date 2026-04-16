@@ -3,6 +3,13 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { DashboardSkeleton } from "@/components/dashboard/shared/DashboardSkeleton";
 import { MenuClient } from "./components/MenuClient";
+import { MenuClientV2 } from "./components/MenuClientV2";
+
+/**
+ * Afiliados que reciben el nuevo MenuClientV2 (con editor de periodos).
+ * El resto sigue viendo el MenuClient legacy — replicamos solo tras validar el piloto.
+ */
+const NEW_MENU_AFFILIATES = new Set<string>(["the-little-dominican"]);
 
 export default async function MenuPage({
   params,
@@ -16,9 +23,15 @@ export default async function MenuPage({
     notFound();
   }
 
+  const useV2 = NEW_MENU_AFFILIATES.has(affiliateId);
+
   return (
     <Suspense fallback={<DashboardSkeleton variant="cards" />}>
-      <MenuClient affiliateId={affiliateId} config={config} />
+      {useV2 ? (
+        <MenuClientV2 affiliateId={affiliateId} config={config} />
+      ) : (
+        <MenuClient affiliateId={affiliateId} config={config} />
+      )}
     </Suspense>
   );
 }
