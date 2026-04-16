@@ -16,17 +16,26 @@ export const metadata: Metadata = {
 const TLD_CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&family=Manrope:wght@300;400;500;600&display=swap');
 .tld {
-  --p:  #00193c;
-  --s:  #e12531;
-  --t:  #3eaa59;
-  --bg: #f8f9fa;
-  --l1: #f3f4f5;
-  --l2: #edeeef;
-  --l3: #e4e5e7;
-  --tx: #191c1d;
-  --tm: #44474f;
-  --tl: #74777f;
-  --sh: 0 20px 40px rgba(25,28,29,.06);
+  /* ─── TLD Brand System ──────────────────────────────────────────
+     Colores oficiales derivados del logo ilustrado + fotos reales.
+     No cambiar sin consultar brand guidelines.
+     ─────────────────────────────────────────────────────────── */
+  --p:      #00193c;  /* Navy deep — fondos hero, headers fuertes */
+  --navy:   #002D62;  /* Navy principal */
+  --s:      #CE1126;  /* Rojo bandera DR — acentos/CTAs secundarios */
+  --t:      #3A7D44;  /* Verde plátano/limón — frescura */
+  --gold:   #F4B400;  /* Oro cálido — precios, stars, highlights */
+  --blue:   #0038A8;  /* Azul bandera DR */
+  --wood:   #8B5A3C;  /* Madera quemada — footer, tarjetas tipo menú mesa */
+  --cream:  #F5E6D0;  /* Arena caribe — cards, bloques suaves */
+  --bg:     #F8F4EE;  /* Crema soft — fondo principal */
+  --l1:     #F5E6D0;  /* Crema → cards primarias */
+  --l2:     #EEE4D1;  /* Crema oscura → hover states */
+  --l3:     #E6D9C1;  /* Crema más oscura → bordes */
+  --tx:     #191c1d;  /* Texto fuerte */
+  --tm:     #44474f;  /* Texto medio */
+  --tl:     #74777f;  /* Texto light */
+  --sh:     0 20px 40px rgba(25,28,29,.06);
   font-family: 'Manrope', system-ui, sans-serif;
   background: var(--bg);
   color: var(--tx);
@@ -361,19 +370,23 @@ export default function TheLittleDominicanPage() {
           <div className="tld-hero-bg">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&h=1000&fit=crop&q=85"
-              alt="The Little Dominican restaurant"
+              src="/images/affiliates/tld/photos/parrillada-mixta-01.jpg"
+              alt="Parrillada mixta dominicana — pollo, chorizo, costilla, tostones y yuca"
             />
           </div>
           <div className="tld-hero-overlay" />
           <div className="tld-hero-content">
             {/* Flag badge — bandera dominicana (cruz blanca + 4 cuadrantes) */}
-            <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'1.5rem' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'1.25rem' }}>
               <DRFlag />
               <span style={{ fontSize:'.7rem', fontWeight:600, letterSpacing:'.1em', textTransform:'uppercase', color:'rgba(255,255,255,.75)' }}>
                 Elmira, NY · ★★★★★ Google
               </span>
             </div>
+            {/* Tagline oficial — Caveat (handwritten warmth) */}
+            <p className="font-caveat" style={{ color:'var(--gold)', fontSize:'clamp(1.6rem,3vw,2.2rem)', lineHeight:1.1, margin:'0 0 .5rem', fontWeight:600, textShadow:'0 2px 12px rgba(0,0,0,.35)' }}>
+              Sabor de casa. Lejos de casa.
+            </p>
             <h1 className="tld-serif-xl" style={{ color:'#fff', maxWidth:'14ch' }}>
               La cocina de<br />
               <em style={{ fontStyle:'italic', color:'rgba(255,255,255,.9)' }}>la abuela.</em><br />
@@ -421,8 +434,8 @@ export default function TheLittleDominicanPage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   className="story-img"
-                  src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&h=1000&fit=crop&q=85"
-                  alt="Interior de The Little Dominican"
+                  src="/images/affiliates/tld/photos/habichuelas-con-dulce-02.jpg"
+                  alt="Habichuelas con dulce — postre tradicional dominicano hecho en casa"
                 />
                 {/* Rating badge */}
                 <div className="story-badge" style={{ bottom:'-1.5rem', right:'-1.5rem' }}>
@@ -444,6 +457,9 @@ export default function TheLittleDominicanPage() {
               {/* Text side */}
               <div>
                 <div className="tld-label" style={{ marginBottom:'.75rem' }}>Nuestra historia</div>
+                <p className="font-caveat" style={{ color:'var(--s)', fontSize:'1.65rem', lineHeight:1.05, margin:'0 0 .35rem', fontWeight:600 }}>
+                  Hecho con amor dominicano.
+                </p>
                 <h2 className="tld-serif-lg" style={{ marginBottom:'1.5rem' }}>
                   Donde la tradición<br />se encuentra con el sabor
                 </h2>
@@ -555,8 +571,8 @@ export default function TheLittleDominicanPage() {
           <div className="tld-sanctuary-bg">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&h=800&fit=crop&q=85"
-              alt="Ambiente del restaurante"
+              src="/images/affiliates/tld/photos/parrillada-mixta-02.jpg"
+              alt="Parrillada a la brasa — close-up con limón y vegetales asados"
             />
           </div>
           <div className="tld-sanctuary-overlay" />

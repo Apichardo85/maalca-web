@@ -415,4 +415,85 @@ html.light-theme .from-gray-500 {
 
 .animate-shimmer     { animation: shimmer 1.5s ease-in-out infinite; background-size: 200% 100%; }
 .animate-pulse-soft  { animation: pulseSoft 2s ease-in-out infinite; }
+
+/* ─────────────────────────────────────────────────────────────────────────
+   The Little Dominican — Brand System
+   Paleta derivada del logo ilustrado (chef dominicana) + fotos reales.
+   Cualquier componente con data-brand="tld" hereda estos tokens.
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  /* TLD — Primarios (del logo) */
+  --tld-navy-deep:    #00193C;
+  --tld-navy:         #002D62;
+  --tld-red-flag:     #CE1126;
+  --tld-blue-flag:    #0038A8;
+  --tld-gold:         #F4B400;
+  --tld-white:        #FFFFFF;
+
+  /* TLD — Secundarios (de las fotos reales) */
+  --tld-wood:         #8B5A3C;
+  --tld-cream:        #F5E6D0;
+  --tld-cream-soft:   #F8F4EE;
+  --tld-plantain:     #3A7D44;
+  --tld-bean:         #7B1F28;
+  --tld-chocolate:    #5D3A1F;
+  --tld-spice:        #C47E3A;
+
+  /* TLD — UI */
+  --tld-wa-green:     #25D366;
+  --tld-wa-green-dark:#1DA851;
+
+  /* Fuente manuscrita */
+  --font-caveat: var(--font-caveat);
+}
+
+/* Acento escrito a mano (solo para accents puntuales — no body) */
+.font-caveat {
+  font-family: var(--font-caveat), "Caveat", cursive;
+  font-weight: 500;
+}
+
+/* Gradientes reutilizables TLD */
+.tld-bg-hero {
+  background:
+    radial-gradient(ellipse at top left, rgba(206,17,38,0.12), transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(244,180,0,0.08), transparent 60%),
+    linear-gradient(135deg, var(--tld-navy-deep) 0%, var(--tld-navy) 100%);
+}
+.tld-bg-cream {
+  background: var(--tld-cream-soft);
+}
+.tld-bg-flag {
+  background: linear-gradient(90deg, var(--tld-red-flag) 0%, var(--tld-navy) 100%);
+}
+
+/* Botón dorado secundario */
+.btn-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border-radius: 9999px;
+  background: var(--tld-gold);
+  color: var(--tld-navy-deep);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  box-shadow: 0 8px 20px rgba(244,180,0,0.35);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.btn-gold:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(244,180,0,0.5);
+}
+
+/* Línea decorativa con colores de bandera */
+.tld-divider-flag {
+  display: inline-block;
+  width: 72px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--tld-blue-flag) 0 33%, var(--tld-white) 33% 66%, var(--tld-red-flag) 66% 100%);
+  border-radius: 2px;
+}
 .animate-count-up    { animation: countUp 0.4s ease-out forwards; }

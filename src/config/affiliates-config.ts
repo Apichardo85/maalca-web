@@ -126,6 +126,30 @@ export const SIDEBAR_GROUPS: NavGroup[] = [
 
 // ─── Config interface ───────────────────────────────────────────────────────
 
+/**
+ * Paleta extendida opcional del afiliado. Cuando está definida, el sistema
+ * de branding usa estos tokens en vez de derivar colores del `primaryColor` string.
+ * Pensada para afiliados con identidad visual completa (ej. TLD).
+ */
+export interface AffiliatePalette {
+  /** Navy profundo — fondos hero, bloques oscuros */
+  navyDeep?: string;
+  /** Navy principal — headers, bloques oscuros */
+  navy?: string;
+  /** Rojo de bandera / acento cálido */
+  red?: string;
+  /** Azul bandera / secundario */
+  blue?: string;
+  /** Dorado — precios, acentos, stars */
+  gold?: string;
+  /** Crema / arena — fondos suaves de contenido */
+  cream?: string;
+  /** Verde accent (NO confundir con WhatsApp; aquí es para plátano/limón) */
+  accent?: string;
+  /** Tagline cálido para copy (ej. "Sabor de casa. Lejos de casa.") */
+  tagline?: string;
+}
+
 export interface AffiliateConfig {
   id: string;
   businessType: BusinessType;
@@ -136,6 +160,8 @@ export interface AffiliateConfig {
     logo: string;              // Path al logo
     name: string;              // Nombre para mostrar
     description: string;       // Descripción del negocio
+    /** Paleta extendida opcional — si está presente, sobreescribe primaryColor para componentes que la soportan. */
+    palette?: AffiliatePalette;
   };
   modules: {
     metrics: boolean;          // Dashboard de métricas y analytics
@@ -364,7 +390,17 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
       secondaryColor: "orange-400",
       logo: "/images/affiliates/the-little-dominican-logo.svg",
       name: "The Little Dominican",
-      description: "Cocina dominicana auténtica en Elmira, NY"
+      description: "Cocina dominicana auténtica en Elmira, NY",
+      palette: {
+        navyDeep: "#00193C",
+        navy:     "#002D62",
+        red:      "#CE1126",
+        blue:     "#0038A8",
+        gold:     "#F4B400",
+        cream:    "#F5E6D0",
+        accent:   "#3A7D44",
+        tagline:  "Sabor de casa. Lejos de casa.",
+      },
     },
     modules: {
       metrics: true,

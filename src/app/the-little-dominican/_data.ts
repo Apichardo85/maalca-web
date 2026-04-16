@@ -65,6 +65,14 @@ export const MOCK_DISHES: MenuItem[] = [
     periods: ['lunch', 'dinner'],
     image: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=600&h=400&fit=crop&q=80',
     description: 'Pollo estofado en salsa criolla con especias tradicionales.' },
+  { id: 'pollo-plancha', name: 'Pollo a la Plancha', price: 15, category: 'Carnes',     flags: { glutenFree: true }, popular: true, available: true,
+    periods: ['lunch', 'dinner'],
+    image: '/images/affiliates/tld/photos/pollo-plancha-01.jpg',
+    description: 'Pechuga marinada a la plancha, servida con arroz blanco y yuca frita con salsa de ajo.' },
+  { id: 'parrillada-mixta', name: 'Parrillada Mixta', price: 32, category: 'Carnes', flags: { glutenFree: true }, popular: true, available: true,
+    periods: ['dinner'],
+    image: '/images/affiliates/tld/photos/parrillada-mixta-01.jpg',
+    description: 'Tabla para compartir: pollo, chorizo, costilla y chuleta a la parrilla, con tostones, yuca y fries. Ideal para 2-3 personas.' },
   { id: 'churrasco',   name: 'Churrasco',           price: 18,   category: 'Carnes',     flags: { glutenFree: true }, popular: true, available: true,
     periods: ['dinner'],
     image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop&q=80',
@@ -87,6 +95,10 @@ export const MOCK_DISHES: MenuItem[] = [
   { id: 'mofongo',     name: 'Mofongo Bowl',        price: 12,   category: 'Sides',      flags: { glutenFree: true }, popular: true, available: true,
     image: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=600&h=400&fit=crop&q=80',
     description: 'Plátano frito majado con ajo y chicharrón. Comfort food quisqueyano.' },
+  // Postres tradicionales
+  { id: 'habichuelas-con-dulce', name: 'Habichuelas con Dulce', price: 7, category: 'Postres', flags: { vegetarian: true }, popular: true, available: true,
+    image: '/images/affiliates/tld/photos/habichuelas-con-dulce-01.jpg',
+    description: 'El postre de la Cuaresma dominicana: habichuelas rojas, leche, batata, canela y clavo, servido con galleticas de soda. Receta de abuela.' },
 ]
 
 // Demo breakfast items (disponible solo 7am-11am)
@@ -101,9 +113,9 @@ MOCK_DISHES.push(
     description: 'Huevos revueltos con cebolla, tomate y pimientos. Sobre tostada o arepa.' },
 )
 
-export const MENU_CATEGORIES = ['Desayuno', 'Picadera', 'Fritura', 'Carnes', 'Mariscos', 'Appetizers', 'Sides']
+export const MENU_CATEGORIES = ['Desayuno', 'Picadera', 'Fritura', 'Carnes', 'Mariscos', 'Appetizers', 'Sides', 'Postres']
 
-export const FEATURED_DISHES = ['chicharron', 'mofongo', 'churrasco', 'camarones']
+export const FEATURED_DISHES = ['parrillada-mixta', 'pollo-plancha', 'habichuelas-con-dulce', 'mofongo']
 
 export const MOCK_EVENTS: LiveEvent[] = [
   { id: '1', title: 'Noche de Bachata',  artistName: 'DJ Caribe',       date: '2026-03-28', startTime: '8:00 PM' },
@@ -121,6 +133,16 @@ export const HOURS: HourEntry[] = [
 ]
 
 export const GALLERY_IMAGES: GalleryImage[] = [
+  { id: 'g-parrillada-hero', src: '/images/affiliates/tld/photos/parrillada-mixta-01.jpg', alt: 'Parrillada mixta — pollo, chorizo, costilla con tostones',
+    category: 'Platos', wide: true },
+  { id: 'g-parrillada-close', src: '/images/affiliates/tld/photos/parrillada-mixta-02.jpg', alt: 'Parrillada mixta close-up con limón y pimientos',
+    category: 'Platos', tall: true },
+  { id: 'g-pollo-plancha', src: '/images/affiliates/tld/photos/pollo-plancha-01.jpg', alt: 'Pollo a la plancha con arroz y yuca frita',
+    category: 'Platos' },
+  { id: 'g-habichuelas-01', src: '/images/affiliates/tld/photos/habichuelas-con-dulce-01.jpg', alt: 'Habichuelas con dulce en pilones de barro',
+    category: 'Postres', wide: true },
+  { id: 'g-habichuelas-02', src: '/images/affiliates/tld/photos/habichuelas-con-dulce-02.jpg', alt: 'Habichuelas con dulce close-up con galleticas',
+    category: 'Postres', tall: true },
   { id: 'g1',  src: 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=800&h=600&fit=crop&q=80',  alt: 'Chicharrón crujiente',        category: 'Platos', tall: true },
   { id: 'g2',  src: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800&h=500&fit=crop&q=80',  alt: 'Camarones al ajillo',      category: 'Platos', wide: true },
   { id: 'g3',  src: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=500&fit=crop&q=80',  alt: 'Churrasco a la parrilla',     category: 'Platos' },
