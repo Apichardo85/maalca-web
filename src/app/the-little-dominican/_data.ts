@@ -57,10 +57,10 @@ export const MOCK_DISHES: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1531749668029-2db88e4276c7?w=600&h=400&fit=crop&q=80',
     description: 'Queso tropical frito, dorado por fuera y suave por dentro.' },
   // Carnes
-  { id: 'pernil',      name: 'Pernil / Pork',       price: 14,   category: 'Carnes',     flags: { glutenFree: true }, available: true,
+  { id: 'pernil',      name: 'Pernil al Horno',     price: 14,   category: 'Carnes',     flags: { glutenFree: true }, available: true,
     periods: ['lunch', 'dinner'],
     image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&h=400&fit=crop&q=80',
-    description: 'Cerdo asado lentamente con sazón de la casa.' },
+    description: 'Pierna de cerdo asada lentamente con sazón de la casa. Slow-roasted pork shoulder.' },
   { id: 'pollo-guisado', name: 'Pollo Guisado',     price: 8,    category: 'Carnes',     flags: { glutenFree: true }, available: true,
     periods: ['lunch', 'dinner'],
     image: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=600&h=400&fit=crop&q=80',
@@ -76,7 +76,7 @@ export const MOCK_DISHES: MenuItem[] = [
   { id: 'churrasco',   name: 'Churrasco',           price: 18,   category: 'Carnes',     flags: { glutenFree: true }, popular: true, available: true,
     periods: ['dinner'],
     image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop&q=80',
-    description: 'Skirt steak tierno a la parrilla. Servido con chimichurri de la casa.' },
+    description: 'Falda de res tierna a la parrilla, servida con chimichurri de la casa.' },
   { id: 'rabo',        name: 'Rabo Guisado',        price: 17,   category: 'Carnes',     flags: { glutenFree: true }, available: true,
     periods: ['dinner'],
     image: 'https://images.unsplash.com/photo-1534939561126-855b8675edd7?w=600&h=400&fit=crop&q=80',
@@ -88,13 +88,18 @@ export const MOCK_DISHES: MenuItem[] = [
   { id: 'pescado',     name: 'Pescado Frito',       price: 18,   category: 'Mariscos',   flags: { glutenFree: true }, available: true,
     image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=600&h=400&fit=crop&q=80',
     description: 'Pescado entero marinado con sazón criollo y frito al estilo isla.' },
-  // Appetizers / Sides
-  { id: 'empanadas',   name: 'Empanadas',           price: 3.50, category: 'Appetizers', flags: {},                   available: true,
+  // Picadera (snacks / appetizers)
+  { id: 'empanadas',   name: 'Empanadas',           price: 3.50, category: 'Picadera',       flags: {},                   available: true,
     image: 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=600&h=400&fit=crop&q=80',
-    description: 'Pollo, Res o Queso — con nuestra famosa salsa rosada.' },
-  { id: 'mofongo',     name: 'Mofongo Bowl',        price: 12,   category: 'Sides',      flags: { glutenFree: true }, popular: true, available: true,
+    description: 'Pollo, res o queso — con nuestra famosa salsa rosada.' },
+  // Acompañantes (sides)
+  { id: 'mofongo',     name: 'Mofongo',             price: 12,   category: 'Acompañantes',   flags: { glutenFree: true }, popular: true, available: true,
     image: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=600&h=400&fit=crop&q=80',
     description: 'Plátano frito majado con ajo y chicharrón. Comfort food quisqueyano.' },
+  { id: 'moros-con-maduro', name: 'Moros con Maduro', price: 13, category: 'Acompañantes', flags: { vegetarian: true, glutenFree: true }, popular: true, available: true,
+    periods: ['lunch', 'dinner'],
+    image: '/images/affiliates/tld/photos/moros-con-maduro-01.jpg',
+    description: 'Arroz moro de habichuelas negras con plátano maduro frito y papas criollas. Plato tradicional de la mesa dominicana.' },
   // Postres tradicionales
   { id: 'habichuelas-con-dulce', name: 'Habichuelas con Dulce', price: 7, category: 'Postres', flags: { vegetarian: true }, popular: true, available: true,
     image: '/images/affiliates/tld/photos/habichuelas-con-dulce-01.jpg',
@@ -107,13 +112,13 @@ MOCK_DISHES.push(
     periods: ['breakfast'],
     image: 'https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=600&h=400&fit=crop&q=80',
     description: 'Puré de plátano verde con queso frito, salami y huevos. Clásico dominicano.' },
-  { id: 'tres-golpes', name: 'Huevos Rancheros', price: 9, category: 'Desayuno', flags: { vegetarian: true }, available: true,
+  { id: 'huevos-criolla', name: 'Huevos a la Criolla', price: 9, category: 'Desayuno', flags: { vegetarian: true }, available: true,
     periods: ['breakfast'],
     image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=600&h=400&fit=crop&q=80',
-    description: 'Huevos revueltos con cebolla, tomate y pimientos. Sobre tostada o arepa.' },
+    description: 'Huevos revueltos con cebolla, tomate y pimientos. Servidos sobre tostada o arepa.' },
 )
 
-export const MENU_CATEGORIES = ['Desayuno', 'Picadera', 'Fritura', 'Carnes', 'Mariscos', 'Appetizers', 'Sides', 'Postres']
+export const MENU_CATEGORIES = ['Desayuno', 'Picadera', 'Fritura', 'Carnes', 'Mariscos', 'Acompañantes', 'Postres']
 
 export const FEATURED_DISHES = ['parrillada-mixta', 'pollo-plancha', 'habichuelas-con-dulce', 'mofongo']
 
@@ -143,6 +148,8 @@ export const GALLERY_IMAGES: GalleryImage[] = [
     category: 'Postres', wide: true },
   { id: 'g-habichuelas-02', src: '/images/affiliates/tld/photos/habichuelas-con-dulce-02.jpg', alt: 'Habichuelas con dulce close-up con galleticas',
     category: 'Postres', tall: true },
+  { id: 'g-moros-maduro', src: '/images/affiliates/tld/photos/moros-con-maduro-01.jpg', alt: 'Moros con maduro y papas criollas sobre hoja de plátano',
+    category: 'Platos' },
   { id: 'g1',  src: 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=800&h=600&fit=crop&q=80',  alt: 'Chicharrón crujiente',        category: 'Platos', tall: true },
   { id: 'g2',  src: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800&h=500&fit=crop&q=80',  alt: 'Camarones al ajillo',      category: 'Platos', wide: true },
   { id: 'g3',  src: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=500&fit=crop&q=80',  alt: 'Churrasco a la parrilla',     category: 'Platos' },

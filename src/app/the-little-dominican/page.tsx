@@ -773,7 +773,7 @@ export default function TheLittleDominicanPage() {
             {/* Menu col */}
             <div>
               <div className="tld-footer-title">Menú</div>
-              {['Picadera','Fritura','Carnes','Mariscos','Appetizers','Sides'].map(cat => (
+              {['Picadera','Fritura','Carnes','Mariscos','Acompañantes','Postres'].map(cat => (
                 <a key={cat} href={`/the-little-dominican/menu?cat=${cat}`} className="tld-footer-link">{cat}</a>
               ))}
             </div>
