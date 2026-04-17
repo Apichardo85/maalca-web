@@ -12,6 +12,7 @@ import { EmptyState } from "@/components/dashboard/shared/EmptyState";
 import { ChartCard, chartColors, chartTheme } from "@/components/dashboard/shared/ChartCard";
 import { NewSalePanel } from "@/components/dashboard/NewSalePanel";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { TLD_AFFILIATE_ID, TLD_INVOICES, TLD_INVOICE_CHART } from "@/lib/mock/tld-dashboard";
 
 interface Invoice {
   id: string;
@@ -79,8 +80,12 @@ export default function InvoicingPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [showNewSalePanel, setShowNewSalePanel] = useState(false);
 
+  const isTld = config?.id === TLD_AFFILIATE_ID;
+  const invoicesSource: Invoice[] = isTld ? TLD_INVOICES : MOCK_INVOICES;
+  const chartDataSource = isTld ? TLD_INVOICE_CHART : CHART_DATA;
+
   const filteredInvoices = useMemo(() => {
-    let result = [...MOCK_INVOICES];
+    let result = [...invoicesSource];
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(
@@ -102,7 +107,7 @@ export default function InvoicingPage() {
       });
     }
     return result;
-  }, [search, filters, sortConfig]);
+  }, [search, filters, sortConfig, invoicesSource]);
 
   const totalPages = Math.ceil(filteredInvoices.length / ITEMS_PER_PAGE);
   const paginatedInvoices = filteredInvoices.slice(
@@ -170,9 +175,9 @@ export default function InvoicingPage() {
     },
   ];
 
-  const paidCount = MOCK_INVOICES.filter((i) => i.status === "paid").length;
-  const pendingCount = MOCK_INVOICES.filter((i) => i.status === "pending").length;
-  const overdueCount = MOCK_INVOICES.filter((i) => i.status === "overdue").length;
+  const paidCount = invoicesSource.filter((i) => i.status === "paid").length;
+  const pendingCount = invoicesSource.filter((i) => i.status === "pending").length;
+  const overdueCount = invoicesSource.filter((i) => i.status === "overdue").length;
 
   return (
     <div className="space-y-8">
@@ -194,7 +199,7 @@ export default function InvoicingPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: "Mes Actual", value: `${currency}18,750`, icon: "💰", color: "green", change: { value: 12.5, type: "increase" as const } },
+          { label: "Mes Actual", value: isTld ? "$26,400" : `${currency}18,750`, icon: "💰", color: "green", change: { value: isTld ? 12.8 : 12.5, type: "increase" as const } },
           { label: "Pendientes", value: pendingCount.toString(), icon: "⏳", color: "yellow" },
           { label: "Pagadas", value: paidCount.toString(), icon: "✅", color: "blue" },
           { label: "Vencidas", value: overdueCount.toString(), icon: "⚠️", color: "red" },
@@ -208,7 +213,7 @@ export default function InvoicingPage() {
       {/* Revenue chart */}
       <ChartCard title="Evolución de Ingresos" icon="📈" timeRanges={["6m", "12m"]}>
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={CHART_DATA}>
+          <AreaChart data={chartDataSource}>
             <defs>
               <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={chartColors[1]} stopOpacity={0.3} />

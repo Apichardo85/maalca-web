@@ -9,12 +9,72 @@
  * Gated a afiliados en el set del padre — aquí solo renderiza si ya se incluye.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { AffiliateBusinessCard } from "@/components/affiliate/AffiliateBusinessCard";
 import { generateQrDataUrl } from "@/lib/qr";
 import { downloadVCard } from "@/lib/vcard";
 import { getBrandColors } from "@/lib/affiliate-branding";
+
+/**
+ * Wrapper que escala proporcionalmente un contenido de tamaño fijo
+ * (ej: 1050x600 tarjeta print) al ancho disponible del contenedor.
+ * Usa ResizeObserver para recomputar scale en resize y rotate.
+ */
+function ScaledCardPreview({
+  width,
+  height,
+  children,
+}: {
+  width: number;
+  height: number;
+  children: ReactNode;
+}) {
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useLayoutEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const update = () => {
+      const avail = el.clientWidth;
+      if (avail > 0) setScale(Math.min(1, avail / width));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [width]);
+
+  return (
+    <div
+      ref={wrapRef}
+      className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-3 sm:p-6 overflow-hidden"
+    >
+      <div
+        style={{
+          width: "100%",
+          height: height * scale,
+          position: "relative",
+        }}
+      >
+        <div
+          style={{
+            width,
+            height,
+            transform: `scale(${scale})`,
+            transformOrigin: "top left",
+            position: "absolute",
+            top: 0,
+            left: 0,
+          }}
+        >
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function BusinessCardTab() {
   const { config, brandName } = useAffiliate();
@@ -109,76 +169,53 @@ export function BusinessCardTab() {
         </div>
       </div>
 
-      {/* Preview grid — front + back */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+      {/* Preview grid — front + back (responsive scale to container) */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8">
         <div>
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
             <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
               Anverso
             </p>
             <button
               onClick={() => downloadPng("front")}
               disabled={loading !== null}
-              className="px-4 py-1.5 rounded-full text-white text-xs font-bold transition-opacity disabled:opacity-60"
+              className="px-3 sm:px-4 py-1.5 rounded-full text-white text-xs font-bold transition-opacity disabled:opacity-60"
               style={{ background: "var(--brand-primary)" }}
             >
               {loading === "png-front" ? "Generando..." : "⬇️ PNG imprimible"}
             </button>
           </div>
-          {/* Viewport con zoom-out — card real es 1050×600, mostramos a ~48% */}
-          <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-6 overflow-hidden">
-            <div
-              style={{
-                width: 1050,
-                height: 600,
-                transform: "scale(0.48)",
-                transformOrigin: "top left",
-                marginBottom: -312, // 600 * (1 - 0.48)
-                marginRight: -546,  // 1050 * (1 - 0.48)
-              }}
-            >
-              <div ref={frontRef}>
-                <AffiliateBusinessCard config={config} variant="front" />
-              </div>
+          <ScaledCardPreview width={1050} height={600}>
+            <div ref={frontRef}>
+              <AffiliateBusinessCard config={config} variant="front" />
             </div>
-          </div>
+          </ScaledCardPreview>
         </div>
 
         <div>
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
             <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
               Reverso (con QR)
             </p>
             <button
               onClick={() => downloadPng("back")}
               disabled={loading !== null}
-              className="px-4 py-1.5 rounded-full text-white text-xs font-bold transition-opacity disabled:opacity-60"
+              className="px-3 sm:px-4 py-1.5 rounded-full text-white text-xs font-bold transition-opacity disabled:opacity-60"
               style={{ background: "var(--brand-primary)" }}
             >
               {loading === "png-back" ? "Generando..." : "⬇️ PNG imprimible"}
             </button>
           </div>
-          <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-6 overflow-hidden">
-            <div
-              style={{
-                width: 1050,
-                height: 600,
-                transform: "scale(0.48)",
-                transformOrigin: "top left",
-                marginBottom: -312,
-                marginRight: -546,
-              }}
-            >
-              <div ref={backRef}>
-                <AffiliateBusinessCard
-                  config={config}
-                  qrDataUrl={qrDataUrl}
-                  qrUrl={cardQrUrl}
-                  variant="back"
-                />
-              </div>
+          <ScaledCardPreview width={1050} height={600}>
+            <div ref={backRef}>
+              <AffiliateBusinessCard
+                config={config}
+                qrDataUrl={qrDataUrl}
+                qrUrl={cardQrUrl}
+                variant="back"
+              />
             </div>
-          </div>
+          </ScaledCardPreview>
         </div>
       </div>
 

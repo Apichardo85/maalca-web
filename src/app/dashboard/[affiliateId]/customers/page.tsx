@@ -8,6 +8,7 @@ import { ResponsiveTable, type TableColumn, type SortConfig } from "@/components
 import { TableActionButton, TableActions } from "@/components/ui/TableActionButton";
 import { FilterBar, type FilterConfig } from "@/components/dashboard/shared/FilterBar";
 import { EmptyState } from "@/components/dashboard/shared/EmptyState";
+import { TLD_AFFILIATE_ID, TLD_CUSTOMERS } from "@/lib/mock/tld-dashboard";
 
 interface Customer {
   id: string;
@@ -50,13 +51,16 @@ const filterConfigs: FilterConfig[] = [
 ];
 
 export default function CustomersPage() {
-  const { brandName } = useAffiliate();
+  const { brandName, config } = useAffiliate();
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [sortConfig, setSortConfig] = useState<SortConfig | undefined>();
 
+  const isTld = config?.id === TLD_AFFILIATE_ID;
+  const customersSource: Customer[] = isTld ? TLD_CUSTOMERS : MOCK_CUSTOMERS;
+
   const filteredCustomers = useMemo(() => {
-    let result = [...MOCK_CUSTOMERS];
+    let result = [...customersSource];
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(
@@ -78,7 +82,7 @@ export default function CustomersPage() {
       });
     }
     return result;
-  }, [search, filters, sortConfig]);
+  }, [search, filters, sortConfig, customersSource]);
 
   const columns: TableColumn<Customer>[] = [
     {
@@ -143,8 +147,10 @@ export default function CustomersPage() {
     },
   ];
 
-  const vipCount = MOCK_CUSTOMERS.filter((c) => c.status === "vip").length;
-  const activeCount = MOCK_CUSTOMERS.filter((c) => c.status === "active").length;
+  const vipCount = customersSource.filter((c) => c.status === "vip").length;
+  const activeCount = customersSource.filter((c) => c.status === "active").length;
+  const totalCustomersLabel = isTld ? "842" : "1,248";
+  const newThisMonthLabel = isTld ? "+58" : "+42";
 
   return (
     <div className="space-y-8">
@@ -164,8 +170,8 @@ export default function CustomersPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: "Total Clientes", value: "1,248", icon: "👥", color: "blue" },
-          { label: "Nuevos Este Mes", value: "+42", icon: "✨", color: "green", change: { value: 12, type: "increase" as const } },
+          { label: "Total Clientes", value: totalCustomersLabel, icon: "👥", color: "blue" },
+          { label: "Nuevos Este Mes", value: newThisMonthLabel, icon: "✨", color: "green", change: { value: isTld ? 14 : 12, type: "increase" as const } },
           { label: "Clientes VIP", value: vipCount.toString(), icon: "⭐", color: "purple" },
           { label: "Activos", value: activeCount.toString(), icon: "🟢", color: "teal" },
         ].map((stat, index) => (

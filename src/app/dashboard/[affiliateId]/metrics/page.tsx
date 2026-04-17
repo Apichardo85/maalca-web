@@ -21,6 +21,17 @@ import {
 } from "recharts";
 import { ChartCard, chartColors, chartTheme } from "@/components/dashboard/shared/ChartCard";
 import { cn } from "@/lib/utils";
+import {
+  TLD_AFFILIATE_ID,
+  TLD_MONTHLY_SALES,
+  TLD_TRAFFIC_SOURCES,
+  TLD_TOP_DISHES,
+  TLD_REPORT_DISHES,
+  TLD_KPIS,
+  TLD_KPIS_REPORTS,
+  type TldTopDish,
+  type TldReportDish,
+} from "@/lib/mock/tld-dashboard";
 
 // ─── Mock data ──────────────────────────────────────────────────────────────
 
@@ -142,9 +153,16 @@ export default function MetricsPage() {
   const pathname = usePathname();
 
   const hasReports = hasModule("reports");
+  const isTld = config?.id === TLD_AFFILIATE_ID;
   const initialTab: TabKey =
     searchParams?.get("tab") === "reports" && hasReports ? "reports" : "overview";
   const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
+
+  // ─── Data switching: TLD (restaurante MVP) vs genérico ──────────────────────
+  const monthlySales    = isTld ? TLD_MONTHLY_SALES    : MONTHLY_SALES;
+  const trafficSources  = isTld ? TLD_TRAFFIC_SOURCES  : TRAFFIC_SOURCES;
+  const topProducts: TopProduct[] | TldTopDish[] = isTld ? TLD_TOP_DISHES : TOP_PRODUCTS;
+  const reportProducts: ReportProduct[] | TldReportDish[] = isTld ? TLD_REPORT_DISHES : REPORT_PRODUCTS;
 
   // Keep ?tab= in sync when user switches
   useEffect(() => {
@@ -188,36 +206,44 @@ export default function MetricsPage() {
         <>
           {/* KPIs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                label: `Ingresos (${config?.settings.currency})`,
-                value: config?.settings.currency === "USD" ? "$45,231" : "RD$2,548,920",
-                icon: "💰",
-                change: { value: 12.5, type: "increase" as const },
-                color: "green",
-              },
-              {
-                label: "Clientes Totales",
-                value: "1,248",
-                icon: "👥",
-                change: { value: 8.2, type: "increase" as const },
-                color: "blue",
-              },
-              {
-                label: "Tasa de Conversión",
-                value: "3.24%",
-                icon: "📊",
-                change: { value: 0.8, type: "increase" as const },
-                color: "purple",
-              },
-              {
-                label: "Ticket Promedio",
-                value: config?.settings.currency === "USD" ? "$156" : "RD$8,760",
-                icon: "💳",
-                change: { value: 5.3, type: "increase" as const },
-                color: "orange",
-              },
-            ].map((stat, index) => (
+            {(isTld
+              ? [
+                  { label: "Ingresos del Mes",      value: TLD_KPIS.revenueUSD,       icon: "💰", change: { value: TLD_KPIS.revenueChange,     type: "increase" as const }, color: "green"  },
+                  { label: "Clientes Únicos",        value: TLD_KPIS.totalCustomers,   icon: "👥", change: { value: TLD_KPIS.customersChange,   type: "increase" as const }, color: "blue"   },
+                  { label: "Conversión WhatsApp",    value: TLD_KPIS.conversionRate,   icon: "💬", change: { value: TLD_KPIS.conversionChange,  type: "increase" as const }, color: "purple" },
+                  { label: "Ticket Promedio",        value: TLD_KPIS.averageTicketUSD, icon: "🧾", change: { value: TLD_KPIS.ticketChange,      type: "increase" as const }, color: "orange" },
+                ]
+              : [
+                  {
+                    label: `Ingresos (${config?.settings.currency})`,
+                    value: config?.settings.currency === "USD" ? "$45,231" : "RD$2,548,920",
+                    icon: "💰",
+                    change: { value: 12.5, type: "increase" as const },
+                    color: "green",
+                  },
+                  {
+                    label: "Clientes Totales",
+                    value: "1,248",
+                    icon: "👥",
+                    change: { value: 8.2, type: "increase" as const },
+                    color: "blue",
+                  },
+                  {
+                    label: "Tasa de Conversión",
+                    value: "3.24%",
+                    icon: "📊",
+                    change: { value: 0.8, type: "increase" as const },
+                    color: "purple",
+                  },
+                  {
+                    label: "Ticket Promedio",
+                    value: config?.settings.currency === "USD" ? "$156" : "RD$8,760",
+                    icon: "💳",
+                    change: { value: 5.3, type: "increase" as const },
+                    color: "orange",
+                  },
+                ]
+            ).map((stat, index) => (
               <div
                 key={stat.label}
                 className="animate-fade-in-up"
@@ -232,7 +258,7 @@ export default function MetricsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ChartCard title="Ventas por Mes" icon="📈" timeRanges={["6m", "12m"]}>
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={MONTHLY_SALES}>
+                <BarChart data={monthlySales}>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     stroke={chartTheme.grid.stroke}
@@ -261,7 +287,7 @@ export default function MetricsPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={TRAFFIC_SOURCES}
+                    data={trafficSources}
                     cx="50%"
                     cy="50%"
                     innerRadius={55}
@@ -269,7 +295,7 @@ export default function MetricsPage() {
                     paddingAngle={3}
                     dataKey="value"
                   >
-                    {TRAFFIC_SOURCES.map((_, index) => (
+                    {trafficSources.map((_, index) => (
                       <Cell key={index} fill={chartColors[index % chartColors.length]} />
                     ))}
                   </Pie>
@@ -277,7 +303,7 @@ export default function MetricsPage() {
                 </PieChart>
               </ResponsiveContainer>
               <div className="flex flex-wrap justify-center gap-4 -mt-2">
-                {TRAFFIC_SOURCES.map((entry, index) => (
+                {trafficSources.map((entry, index) => (
                   <div key={entry.name} className="flex items-center gap-2 text-sm">
                     <div
                       className="w-3 h-3 rounded-full"
@@ -298,7 +324,7 @@ export default function MetricsPage() {
           {/* Revenue trend line */}
           <ChartCard title="Tendencia de Ingresos" icon="💰" timeRanges={["7d", "30d", "90d"]}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={MONTHLY_SALES}>
+              <LineChart data={monthlySales}>
                 <CartesianGrid
                   strokeDasharray="3 3"
                   stroke={chartTheme.grid.stroke}
@@ -332,7 +358,7 @@ export default function MetricsPage() {
 
           <DashboardCard title="Más Vendidos Este Mes" icon="🏆">
             <ResponsiveTable
-              data={TOP_PRODUCTS}
+              data={topProducts as TopProduct[]}
               columns={topProductColumns}
               getRowKey={(item) => item.id}
               emptyMessage="No hay datos de ventas disponibles"
@@ -347,30 +373,34 @@ export default function MetricsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
               label="Ventas Hoy"
-              value={`${currency}4,250`}
+              value={isTld ? TLD_KPIS_REPORTS.salesToday : `${currency}4,250`}
               icon="📅"
-              change={{ value: 8.5, type: "increase" }}
+              change={{ value: isTld ? TLD_KPIS_REPORTS.todayChange : 8.5, type: "increase" }}
               color="blue"
             />
             <StatCard
               label="Ventas del Mes"
-              value={`${currency}127,400`}
+              value={isTld ? TLD_KPIS_REPORTS.salesMonth : `${currency}127,400`}
               icon="📊"
-              change={{ value: 15.3, type: "increase" }}
+              change={{ value: isTld ? TLD_KPIS_REPORTS.monthChange : 15.3, type: "increase" }}
               color="green"
             />
             <StatCard
               label="Facturas Generadas"
-              value="342"
+              value={isTld ? TLD_KPIS_REPORTS.invoicesIssued : "342"}
               icon="🧾"
-              change={{ value: 12, type: "increase" }}
+              change={{ value: isTld ? TLD_KPIS_REPORTS.invoicesChange : 12, type: "increase" }}
               color="purple"
             />
             <StatCard
               label="Ticket Promedio"
-              value={`${currency}372`}
+              value={isTld ? TLD_KPIS_REPORTS.averageTicket : `${currency}372`}
               icon="💰"
-              change={{ value: -2.1, type: "decrease" }}
+              change={
+                isTld
+                  ? { value: TLD_KPIS_REPORTS.ticketChange, type: "increase" }
+                  : { value: -2.1, type: "decrease" }
+              }
               color="orange"
             />
           </div>
@@ -382,7 +412,9 @@ export default function MetricsPage() {
                 <h3 className="font-semibold text-gray-900 dark:text-white">Clientes Nuevos</h3>
                 <span className="text-2xl">👥</span>
               </div>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">42</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                {isTld ? TLD_KPIS_REPORTS.newCustomers : 42}
+              </p>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Este mes</p>
             </div>
             <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6">
@@ -390,7 +422,9 @@ export default function MetricsPage() {
                 <h3 className="font-semibold text-gray-900 dark:text-white">Tasa de Retención</h3>
                 <span className="text-2xl">🔄</span>
               </div>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">78%</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                {isTld ? TLD_KPIS_REPORTS.retentionRate : "78%"}
+              </p>
               <p className="text-sm text-green-600 dark:text-green-400 mt-2">
                 ↑ 5% vs mes anterior
               </p>
@@ -400,7 +434,9 @@ export default function MetricsPage() {
                 <h3 className="font-semibold text-gray-900 dark:text-white">Satisfacción</h3>
                 <span className="text-2xl">⭐</span>
               </div>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">4.8/5.0</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                {isTld ? TLD_KPIS_REPORTS.satisfaction : "4.8/5.0"}
+              </p>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Promedio de reseñas</p>
             </div>
           </div>
@@ -408,7 +444,7 @@ export default function MetricsPage() {
           {/* Sales by day — real chart */}
           <ChartCard title="Ventas por Día" icon="📈" timeRanges={["7d", "30d"]}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={MONTHLY_SALES}>
+              <LineChart data={monthlySales}>
                 <CartesianGrid
                   strokeDasharray="3 3"
                   stroke={chartTheme.grid.stroke}
@@ -444,14 +480,14 @@ export default function MetricsPage() {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={REPORT_PRODUCTS.map((p) => ({ name: p.category, value: p.revenue }))}
+                  data={(reportProducts as ReportProduct[]).map((p) => ({ name: p.category, value: p.revenue }))}
                   cx="50%"
                   cy="50%"
                   outerRadius={85}
                   dataKey="value"
                   label={(entry) => entry.name}
                 >
-                  {REPORT_PRODUCTS.map((_, index) => (
+                  {reportProducts.map((_, index) => (
                     <Cell key={index} fill={chartColors[index % chartColors.length]} />
                   ))}
                 </Pie>
@@ -461,9 +497,9 @@ export default function MetricsPage() {
           </ChartCard>
 
           {/* Top 5 Products (advanced table) */}
-          <DashboardCard title="Top 5 Productos/Servicios" icon="🏆">
+          <DashboardCard title={isTld ? "Top 5 Platos del Mes" : "Top 5 Productos/Servicios"} icon="🏆">
             <ResponsiveTable
-              data={REPORT_PRODUCTS}
+              data={reportProducts as ReportProduct[]}
               columns={[
                 {
                   key: "name",
@@ -517,23 +553,29 @@ export default function MetricsPage() {
               <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Última Semana</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {currency}28,450
+                  {isTld ? TLD_KPIS_REPORTS.lastWeek : `${currency}28,450`}
                 </p>
-                <p className="text-xs text-green-600 dark:text-green-400 mt-1">↑ 12.5%</p>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                  ↑ {isTld ? TLD_KPIS_REPORTS.weekChange : 12.5}%
+                </p>
               </div>
               <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Último Mes</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {currency}127,400
+                  {isTld ? TLD_KPIS_REPORTS.lastMonth : `${currency}127,400`}
                 </p>
-                <p className="text-xs text-green-600 dark:text-green-400 mt-1">↑ 15.3%</p>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                  ↑ {isTld ? TLD_KPIS_REPORTS.monthChangeCompare : 15.3}%
+                </p>
               </div>
               <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Último Trimestre</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {currency}389,200
+                  {isTld ? TLD_KPIS_REPORTS.lastQuarter : `${currency}389,200`}
                 </p>
-                <p className="text-xs text-green-600 dark:text-green-400 mt-1">↑ 18.7%</p>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                  ↑ {isTld ? TLD_KPIS_REPORTS.quarterChange : 18.7}%
+                </p>
               </div>
             </div>
           </DashboardCard>
