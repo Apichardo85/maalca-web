@@ -28,8 +28,8 @@ import type { MealPeriod } from "@/lib/types/catalog.types";
  * - Links accionables (tel:, mailto:, wa.me, maps)
  */
 export interface AffiliateContact {
-  phone?: string;           // E.164 (ej. "+16072150990")
-  phoneDisplay?: string;    // Formato humano (ej. "(607) 215-0990")
+  phone?: string;           // E.164 (ej. "+16078574226")
+  phoneDisplay?: string;    // Formato humano (ej. "(607) 857-4226")
   whatsapp?: string;        // E.164 para wa.me
   email?: string;
   address?: string;         // Una línea
@@ -371,9 +371,9 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
     businessType: "restaurant",
     terminology: {},
     contact: {
-      phone: "+16072150990",
-      phoneDisplay: "(607) 215-0990",
-      whatsapp: "+16072150990",
+      phone: "+16078574226",
+      phoneDisplay: "(607) 857-4226",
+      whatsapp: "+16078574226",
       website: "https://maalca.com/the-little-dominican",
       social: {
         instagram: "thelittledominican",
@@ -388,7 +388,7 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
     branding: {
       primaryColor: "red-600",
       secondaryColor: "orange-400",
-      logo: "/images/affiliates/the-little-dominican-logo.svg",
+      logo: "/images/affiliates/tld/Logo.png",
       name: "The Little Dominican",
       description: "Cocina dominicana auténtica en Elmira, NY",
       palette: {

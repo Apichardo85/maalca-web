@@ -95,6 +95,8 @@ type TldStrings = {
   footerTitleContact: string;
   footerPoweredBy: string;
   // Menu page
+  menuHeroTitle: string;
+  menuHeroSubtitle: string;
   menuInfoHours: string;
   menuInfoContact: string;
   menuInfoServices: string;
@@ -197,6 +199,8 @@ const ES: TldStrings = {
   footerTitleContact: "Contacto",
   footerPoweredBy: "Powered by",
 
+  menuHeroTitle: "Nuestro Menú",
+  menuHeroSubtitle: "Cocina dominicana auténtica — Elmira, NY",
   menuInfoHours: "Horario",
   menuInfoContact: "Contacto",
   menuInfoServices: "Servicios",
@@ -306,6 +310,8 @@ const EN: TldStrings = {
   footerTitleContact: "Contact",
   footerPoweredBy: "Powered by",
 
+  menuHeroTitle: "Our Menu",
+  menuHeroSubtitle: "Authentic Dominican cuisine — Elmira, NY",
   menuInfoHours: "Hours",
   menuInfoContact: "Contact",
   menuInfoServices: "Services",

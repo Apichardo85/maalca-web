@@ -1,5 +1,8 @@
 // src/app/api/auth/login/route.ts
-// Proxies login to maalca-api, falls back to mock if API is unavailable
+// Tries maalca-api; falls back to mock users.
+// NOTE: Menu editing in the dashboard trusts the `affiliate_guid` cookie set here.
+// API routes under /api/dashboard/* use the service-role Supabase key to write,
+// with app-layer validation (cookie matches route param).
 
 import { NextResponse } from 'next/server'
 
@@ -47,7 +50,7 @@ export async function POST(request: Request) {
       )
     }
 
-    // Try maalca-api first
+    // Try maalca-api
     try {
       const apiRes = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
@@ -58,50 +61,23 @@ export async function POST(request: Request) {
 
       if (apiRes.ok) {
         const data = await apiRes.json()
-        // data shape: { token, refreshToken, user: { id, email, affiliateId, role } }
-
-        // Store raw GUID for API calls, translate to slug for dashboard routing
         const affiliateGuid = data.user.affiliateId
         data.user.affiliateId = resolveAffiliateSlug(data.user.affiliateId)
 
         const response = NextResponse.json(data)
-
-        response.cookies.set('affiliate_guid', affiliateGuid, {
-          httpOnly: false,
+        const common = {
           secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
+          sameSite: 'lax' as const,
           path: '/',
           maxAge: 60 * 60 * 24,
-        })
-
-        response.cookies.set('auth_token', data.token, {
-          httpOnly: false,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-          maxAge: 60 * 60 * 24,
-        })
-
-        response.cookies.set('refresh_token', data.refreshToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-          maxAge: 60 * 60 * 24 * 7, // 7 days
-        })
-
-        response.cookies.set('user_role', data.user.role, {
-          httpOnly: false,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-          maxAge: 60 * 60 * 24,
-        })
-
+        }
+        response.cookies.set('affiliate_guid', affiliateGuid, { ...common, httpOnly: false })
+        response.cookies.set('auth_token', data.token, { ...common, httpOnly: false })
+        response.cookies.set('refresh_token', data.refreshToken, { ...common, httpOnly: true, maxAge: 60 * 60 * 24 * 7 })
+        response.cookies.set('user_role', data.user.role, { ...common, httpOnly: false })
         return response
       }
 
-      // 401 from API = invalid credentials — don't fall back to mock
       if (apiRes.status === 401) {
         return NextResponse.json(
           { error: { code: 'INVALID_CREDENTIALS', message: 'Credenciales incorrectas' } },
@@ -109,7 +85,6 @@ export async function POST(request: Request) {
         )
       }
     } catch {
-      // API unreachable — fall through to mock
       console.warn('[auth/login] maalca-api unreachable, using mock auth')
     }
 
@@ -138,37 +113,16 @@ export async function POST(request: Request) {
       },
     })
 
-    response.cookies.set('auth_token', mockToken, {
-      httpOnly: false,
+    const common = {
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'lax' as const,
       path: '/',
       maxAge: 60 * 60 * 24,
-    })
-
-    response.cookies.set('refresh_token', mockRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
-    })
-
-    response.cookies.set('affiliate_guid', affiliateGuid, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24,
-    })
-
-    response.cookies.set('user_role', user.role, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24,
-    })
+    }
+    response.cookies.set('auth_token', mockToken, { ...common, httpOnly: false })
+    response.cookies.set('refresh_token', mockRefreshToken, { ...common, httpOnly: true, maxAge: 60 * 60 * 24 * 7 })
+    response.cookies.set('affiliate_guid', affiliateGuid, { ...common, httpOnly: false })
+    response.cookies.set('user_role', user.role, { ...common, httpOnly: false })
 
     return response
   } catch {

@@ -378,7 +378,7 @@ export const ecosystemAffiliates: Affiliate[] = [
     status: "active",
     active: true,
     displayInitials: "TLD",
-    logo: "/images/affiliates/the-little-dominican-logo.svg",
+    logo: "/images/affiliates/tld/Logo.png",
     website: "/the-little-dominican",
     contact: {
       name: "The Little Dominican Team",

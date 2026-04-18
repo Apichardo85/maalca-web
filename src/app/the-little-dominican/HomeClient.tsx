@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import TLDNav from './TLDNav'
 import ReservationForm from './ReservationForm'
-import { MOCK_DISHES, HOURS, GALLERY_IMAGES, FEATURED_DISHES } from './_data'
+import { MOCK_DISHES, HOURS, GALLERY_IMAGES, FEATURED_DISHES, type MenuItem } from './_data'
 import WhatsAppIntegration from '@/components/ui/WhatsAppIntegration'
 import { useTldI18n } from './tld-i18n'
 // ─── Shared CSS (design system + page-specific) ──────────────────────────────
@@ -30,9 +30,33 @@ const TLD_CSS = `
   --tm:     #44474f;  /* Texto medio */
   --tl:     #74777f;  /* Texto light */
   --sh:     0 20px 40px rgba(25,28,29,.06);
+  --navy-footer: #00193c;  /* Token fijo: footer siempre oscuro en ambos temas */
   font-family: 'Manrope', system-ui, sans-serif;
   background: var(--bg);
   color: var(--tx);
+}
+/* ─── Dark mode ─────────────────────────────────────────
+   Invertimos la paleta cálida: navy → casi-blanco, crema → negro.
+   Los acentos bandera (rojo/verde/gold) se brighten para contrast.
+   El footer queda estable con --navy-footer (no invierte).
+   ─────────────────────────────────────────────────── */
+[data-theme="dark"] .tld {
+  --p:      #f5f5f5;
+  --navy:   #e0e0e0;
+  --s:      #ff4d5c;
+  --t:      #4bc267;
+  --gold:   #ffc947;
+  --blue:   #5aa0ff;
+  --wood:   #b08872;
+  --cream:  #1e1a15;
+  --bg:     #0a0a0a;
+  --l1:     #141414;
+  --l2:     #1c1c1c;
+  --l3:     #2a2a2a;
+  --tx:     #f5f5f5;
+  --tm:     #b8bcc4;
+  --tl:     #8b8f97;
+  --sh:     0 20px 40px rgba(0,0,0,.45);
 }
 /* ── Typography ── */
 .tld-serif-xl {
@@ -265,7 +289,7 @@ const TLD_CSS = `
 .tld-inp:focus { background:#fff;box-shadow:0 0 0 2px rgba(0,25,60,.12); }
 /* ── Footer ── */
 .tld-footer {
-  background:var(--p);color:rgba(255,255,255,.7);
+  background:var(--navy-footer);color:rgba(255,255,255,.7);
   padding:clamp(3rem,6vw,5rem) clamp(1.5rem,5vw,5rem);
 }
 .tld-footer-grid {
@@ -347,9 +371,9 @@ const TLD_CSS = `
 }
 `
 // ─── Page ────────────────────────────────────────────────────────────────────
-export default function HomeClient() {
+export default function HomeClient({ dishes = MOCK_DISHES }: { dishes?: MenuItem[] } = {}) {
   const { t, language } = useTldI18n()
-  const featuredDishes = MOCK_DISHES.filter(d => FEATURED_DISHES.includes(d.id))
+  const featuredDishes = dishes.filter(d => FEATURED_DISHES.includes(d.id))
   const heroDish = featuredDishes[0]
   const sideDishes = featuredDishes.slice(1, 3)
   const bottomDish = featuredDishes[3]
@@ -357,7 +381,7 @@ export default function HomeClient() {
   const waText = language === 'en'
     ? 'Hi, I want to order. What do you have available right now?'
     : 'Hola, quiero ordenar. ¿Qué tienen disponible ahora?'
-  const waUrl = `https://wa.me/16072150990?text=${encodeURIComponent(waText)}`
+  const waUrl = `https://wa.me/16078574226?text=${encodeURIComponent(waText)}`
   return (
     <>
       <style>{TLD_CSS}</style>
@@ -369,8 +393,8 @@ export default function HomeClient() {
           <div className="tld-hero-bg">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/images/affiliates/tld/photos/parrillada-mixta-01.jpg"
-              alt="Parrillada mixta dominicana — pollo, chorizo, costilla, tostones y yuca"
+              src="/images/affiliates/tld/photos/La-Bandera-Dominicana.jpg"
+              alt="La Bandera Dominicana — arroz blanco, habichuelas guisadas y carne"
             />
           </div>
           <div className="tld-hero-overlay" />
@@ -409,7 +433,7 @@ export default function HomeClient() {
               <a href="/the-little-dominican/menu" className="btn-g" style={{ color:'#fff', borderColor:'rgba(255,255,255,.35)', background:'rgba(255,255,255,.1)', backdropFilter:'blur(8px)' }}>
                 <MenuIcon /> {t.ctaViewMenu}
               </a>
-              <a href="tel:6072150990" style={{ color:'rgba(255,255,255,.85)', fontSize:'.82rem', fontWeight:500, textDecoration:'none', padding:'10px 4px' }}>
+              <a href="tel:6078574226" style={{ color:'rgba(255,255,255,.85)', fontSize:'.82rem', fontWeight:500, textDecoration:'none', padding:'10px 4px' }}>
                 {t.ctaCall}
               </a>
             </div>
@@ -562,8 +586,8 @@ export default function HomeClient() {
           <div className="tld-sanctuary-bg">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/images/affiliates/tld/photos/parrillada-mixta-02.jpg"
-              alt="Parrillada a la brasa — close-up con limón y vegetales asados"
+              src="/images/affiliates/tld/photos/pezcado-frito.jpg"
+              alt="Pescado frito dominicano — sabor tropical de la costa"
             />
           </div>
           <div className="tld-sanctuary-overlay" />
@@ -636,7 +660,7 @@ export default function HomeClient() {
           </div>
         </section>
         {/* ── CTA: ORDER NOW ───────────────────────────────────────── */}
-        <section style={{ background:'var(--p)', padding:'clamp(3rem,6vw,5rem) clamp(1.5rem,5vw,5rem)' }}>
+        <section style={{ background:'var(--navy-footer)', padding:'clamp(3rem,6vw,5rem) clamp(1.5rem,5vw,5rem)' }}>
           <div style={{ maxWidth:'920px', margin:'0 auto', textAlign:'center' }}>
             <div className="tld-label" style={{ color:'rgba(255,255,255,.55)', marginBottom:'.75rem' }}>
               {t.ctaStripLabel}
@@ -673,7 +697,7 @@ export default function HomeClient() {
               <div style={{ display:'flex', flexDirection:'column', gap:'1rem', marginBottom:'2.5rem' }}>
                 <InfoRow emoji="📍">315 E Water St, Elmira, NY 14901 — Between Baldwin St &amp; Lake St</InfoRow>
                 <InfoRow emoji="📞">
-                  <a href="tel:6072150990" style={{ color:'var(--p)', textDecoration:'none', fontWeight:500 }}>(607) 215-0990</a>
+                  <a href="tel:6078574226" style={{ color:'var(--p)', textDecoration:'none', fontWeight:500 }}>(607) 857-4226</a>
                 </InfoRow>
                 <InfoRow emoji="🌐">
                   <a href="https://maalca.com/the-little-dominican" target="_blank" rel="noopener noreferrer" style={{ color:'var(--p)', textDecoration:'none', fontWeight:500 }}>
@@ -700,12 +724,12 @@ export default function HomeClient() {
               <p className="tld-body" style={{ fontSize:'.82rem', marginBottom:'1.75rem' }}>
                 {t.reserveFormP}
               </p>
-              <ReservationForm phone="(607) 215-0990" />
+              <ReservationForm phone="(607) 857-4226" />
             </div>
           </div>
         </section>
         {/* ── SOCIAL ───────────────────────────────────────────────── */}
-        <section style={{ background:'var(--p)', padding:'clamp(3rem,6vw,5rem) clamp(1.5rem,5vw,5rem)' }}>
+        <section style={{ background:'var(--navy-footer)', padding:'clamp(3rem,6vw,5rem) clamp(1.5rem,5vw,5rem)' }}>
           <div style={{ maxWidth:'1280px', margin:'0 auto', textAlign:'center' }}>
             <div className="tld-label" style={{ color:'rgba(255,255,255,.5)', marginBottom:'.75rem' }}>{t.socialLabel}</div>
             <h2 style={{ fontFamily:'Newsreader,Georgia,serif', fontSize:'clamp(1.6rem,3vw,2.2rem)', fontWeight:300, color:'#fff', marginBottom:'.5rem', letterSpacing:'-.01em' }}>
@@ -726,7 +750,7 @@ export default function HomeClient() {
                 Instagram
               </a>
               {/* WhatsApp */}
-              <a href="https://wa.me/16072150990" target="_blank" rel="noopener noreferrer" className="tld-social-btn-wa">
+              <a href="https://wa.me/16078574226" target="_blank" rel="noopener noreferrer" className="tld-social-btn-wa">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                 WhatsApp
               </a>
@@ -748,7 +772,7 @@ export default function HomeClient() {
                 {[
                   { label:'FB', href:'https://facebook.com/thelittledominican' },
                   { label:'IG', href:'https://instagram.com/thelittledominican' },
-                  { label:'WA', href:'https://wa.me/16072150990' },
+                  { label:'WA', href:'https://wa.me/16078574226' },
                 ].map(s => (
                   <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" style={{
                     width:'34px', height:'34px', borderRadius:'50%',
@@ -782,9 +806,9 @@ export default function HomeClient() {
             {/* Contact col */}
             <div>
               <div className="tld-footer-title">{t.footerTitleContact}</div>
-              <a href="tel:6072150990" className="tld-footer-link">📞 (607) 215-0990</a>
+              <a href="tel:6078574226" className="tld-footer-link">📞 (607) 857-4226</a>
               <a href="mailto:tld@maalca.com" className="tld-footer-link">✉ tld@maalca.com</a>
-              <a href="#" className="tld-footer-link">📍 315 E Water St, Elmira, NY</a>
+              <a href="https://maps.google.com/?q=315+E+Water+St,+Elmira,+NY+14901" target="_blank" rel="noopener noreferrer" className="tld-footer-link">📍 315 E Water St, Elmira, NY</a>
               <div style={{ marginTop:'1rem' }}>
                 <a href="/the-little-dominican/menu" className="btn-s" style={{ padding:'9px 18px', fontSize:'.78rem' }}>
                   {t.ctaOrderNow}
@@ -801,7 +825,7 @@ export default function HomeClient() {
               <Link href="/" style={{ color:'rgba(255,255,255,.55)', fontWeight:600, textDecoration:'none' }}>MaalCa Ecosistema</Link>
             </p>
           </div>
-        </footer><WhatsAppIntegration phoneNumber="+1 (607) 215-0990" businessName="The Little Dominican" businessType="restaurant" />
+        </footer><WhatsAppIntegration phoneNumber="+1 (607) 857-4226" businessName="The Little Dominican" businessType="restaurant" />
       </div>
     </>
   )

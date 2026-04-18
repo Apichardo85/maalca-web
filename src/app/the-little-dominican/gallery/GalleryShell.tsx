@@ -18,9 +18,22 @@ const GALLERY_CSS = `@import url('https://fonts.googleapis.com/css2?family=Newsr
   --tx: #191c1d;
   --tm: #44474f;
   --tl: #74777f;
+  --navy-footer: #00193c;
   font-family: 'Manrope', system-ui, sans-serif;
   background: var(--bg);
   color: var(--tx);
+}
+/* ─── Dark mode ─────────────────────────────────── */
+[data-theme="dark"] .tld {
+  --p:  #f5f5f5;
+  --s:  #ff4d5c;
+  --bg: #0a0a0a;
+  --l1: #141414;
+  --l2: #1c1c1c;
+  --l3: #2a2a2a;
+  --tx: #f5f5f5;
+  --tm: #b8bcc4;
+  --tl: #8b8f97;
 }
 .tld-label {
   font-size: .68rem; font-weight: 600; letter-spacing: .1em;
@@ -67,7 +80,7 @@ const GALLERY_CSS = `@import url('https://fonts.googleapis.com/css2?family=Newsr
 }
 .tld-mobile-link:hover { background:var(--l2); }
 .tld-gallery-footer {
-  background:var(--p);color:rgba(255,255,255,.65);
+  background:var(--navy-footer);color:rgba(255,255,255,.65);
   padding:2rem clamp(1.5rem,5vw,5rem);
   display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem;
 }
@@ -84,7 +97,7 @@ export default function GalleryShell() {
       <div className="tld" style={{ minHeight:'100vh', paddingTop:'60px' }}>
         <TLDNav />
         {/* ── HERO HEADER ───────────────────────────────────────── */}
-        <section style={{ background:'var(--p)', padding:'clamp(3rem,6vw,5rem) clamp(1.5rem,5vw,5rem)', textAlign:'center' }}>
+        <section style={{ background:'var(--navy-footer)', padding:'clamp(3rem,6vw,5rem) clamp(1.5rem,5vw,5rem)', textAlign:'center' }}>
           <div style={{ fontSize:'.7rem', fontWeight:600, letterSpacing:'.12em', textTransform:'uppercase', color:'rgba(255,255,255,.45)', marginBottom:'1rem' }}>
             {t.galleryHeroLabel}
           </div>

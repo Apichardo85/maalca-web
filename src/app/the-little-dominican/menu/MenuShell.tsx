@@ -4,7 +4,7 @@
 import Link from 'next/link'
 import TLDNav from '../TLDNav'
 import MenuPageClient from './MenuPageClient'
-import { MOCK_DISHES, HOURS } from '../_data'
+import { MOCK_DISHES, HOURS, type MenuItem } from '../_data'
 import { useTldI18n } from '../tld-i18n'
 
 const MENU_CSS = `@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300;1,6..72,400&family=Manrope:wght@300;400;500;600&display=swap');
@@ -20,9 +20,24 @@ const MENU_CSS = `@import url('https://fonts.googleapis.com/css2?family=Newsread
   --tm: #44474f;
   --tl: #74777f;
   --sh: 0 20px 40px rgba(25,28,29,.06);
+  --navy-footer: #00193c;
   font-family: 'Manrope', system-ui, sans-serif;
   background: var(--bg);
   color: var(--tx);
+}
+/* ─── Dark mode ─────────────────────────────────── */
+[data-theme="dark"] .tld {
+  --p:  #f5f5f5;
+  --s:  #ff4d5c;
+  --t:  #4bc267;
+  --bg: #0a0a0a;
+  --l1: #141414;
+  --l2: #1c1c1c;
+  --l3: #2a2a2a;
+  --tx: #f5f5f5;
+  --tm: #b8bcc4;
+  --tl: #8b8f97;
+  --sh: 0 20px 40px rgba(0,0,0,.45);
 }
 .tld-label {
   font-size: .68rem; font-weight: 600; letter-spacing: .1em;
@@ -34,9 +49,9 @@ const MENU_CSS = `@import url('https://fonts.googleapis.com/css2?family=Newsread
 /* Fixed nav */
 .tld-nav {
   position:fixed;top:0;left:0;right:0;z-index:100;
-  background:rgba(248,249,250,.90);
+  background:color-mix(in srgb, var(--bg) 90%, transparent);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border-bottom:1px solid rgba(0,25,60,.06);
+  border-bottom:1px solid color-mix(in srgb, var(--p) 8%, transparent);
   height:60px;padding:0 clamp(1rem,3vw,5rem);
   display:flex;align-items:center;justify-content:space-between;
 }
@@ -60,9 +75,9 @@ const MENU_CSS = `@import url('https://fonts.googleapis.com/css2?family=Newsread
 }
 .tld-mobile-nav {
   position:fixed;top:60px;left:0;right:0;z-index:99;
-  background:rgba(248,249,250,.97);
+  background:color-mix(in srgb, var(--bg) 97%, transparent);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border-bottom:1px solid rgba(0,25,60,.08);
+  border-bottom:1px solid color-mix(in srgb, var(--p) 10%, transparent);
   display:flex;flex-direction:column;padding:1rem 1.5rem 1.25rem;gap:.25rem;
   transform:translateY(-110%);opacity:0;
   transition:transform .22s ease,opacity .18s ease;
@@ -79,7 +94,7 @@ const MENU_CSS = `@import url('https://fonts.googleapis.com/css2?family=Newsread
 .tld-mobile-link:hover { background:var(--l2); }
 /* Footer */
 .tld-menu-footer {
-  background:var(--p);color:rgba(255,255,255,.65);
+  background:var(--navy-footer);color:rgba(255,255,255,.65);
   padding:2rem clamp(1.5rem,5vw,5rem);
   display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:1rem;
 }
@@ -87,9 +102,9 @@ const MENU_CSS = `@import url('https://fonts.googleapis.com/css2?family=Newsread
 .tld-bottom-nav {
   display:none;
   position:fixed;bottom:0;left:0;right:0;z-index:100;
-  background:rgba(248,249,250,.95);
+  background:color-mix(in srgb, var(--bg) 95%, transparent);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border-top:1px solid rgba(0,25,60,.08);
+  border-top:1px solid color-mix(in srgb, var(--p) 10%, transparent);
   padding:6px 0 calc(6px + env(safe-area-inset-bottom, 0px));
 }
 .tld-bottom-nav-inner {
@@ -113,7 +128,7 @@ const MENU_CSS = `@import url('https://fonts.googleapis.com/css2?family=Newsread
   .tld-info-strip { flex-direction:column; }
 }`
 
-export default function MenuShell() {
+export default function MenuShell({ dishes = MOCK_DISHES }: { dishes?: MenuItem[] } = {}) {
   const { t } = useTldI18n()
   return (
     <>
@@ -122,7 +137,7 @@ export default function MenuShell() {
         {/* ── FIXED NAV (with lang toggle) ─────────────────────── */}
         <TLDNav />
         {/* ── INTERACTIVE MENU CLIENT ───────────────────────────── */}
-        <MenuPageClient dishes={MOCK_DISHES} />
+        <MenuPageClient dishes={dishes} />
         {/* ── MINI INFO STRIP ───────────────────────────────────── */}
         <section style={{ background: 'var(--l1)', padding: '2.5rem clamp(1.5rem,5vw,5rem)', borderTop: '1px solid var(--l3)' }}>
           <div className="tld-info-strip" style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: '2rem', justifyContent: 'space-between', alignItems: 'start' }}>
@@ -142,7 +157,7 @@ export default function MenuShell() {
             <div>
               <div className="tld-label" style={{ marginBottom: '.5rem' }}>{t.menuInfoContact}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <a href="tel:6072150990" style={{ fontSize: '.88rem', color: 'var(--p)', textDecoration: 'none', fontWeight: 500 }}>📞 (607) 215-0990</a>
+                <a href="tel:6078574226" style={{ fontSize: '.88rem', color: 'var(--p)', textDecoration: 'none', fontWeight: 500 }}>📞 (607) 857-4226</a>
                 <p style={{ fontSize: '.82rem', color: 'var(--tm)', fontWeight: 300 }}>📍 315 E Water St, Elmira, NY 14901</p>
               </div>
             </div>
@@ -177,7 +192,7 @@ export default function MenuShell() {
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
               {t.bottomNavGallery}
             </a>
-            <a href="tel:6072150990" className="tld-bottom-link" style={{ color: 'var(--p)' }}>
+            <a href="tel:6078574226" className="tld-bottom-link" style={{ color: 'var(--p)' }}>
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
               {t.bottomNavCall}
             </a>

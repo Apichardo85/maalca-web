@@ -12,6 +12,7 @@ import {
 } from '@/lib/menu-availability'
 import { UnavailableItemModal } from '@/components/menu/UnavailableItemModal'
 import type { MenuCatalogItem } from '@/lib/types'
+import { useTldI18n } from '../tld-i18n'
 
 // ─── Cart types ──────────────────────────────────────────────────────────────
 interface CartItem { dish: MenuItem; qty: number }
@@ -69,6 +70,7 @@ function Toast({ message, visible }: { message: string; visible: boolean }) {
 
 // ─── Client Component ────────────────────────────────────────────────────────
 export default function MenuPageClient({ dishes }: MenuPageClientProps) {
+  const { t } = useTldI18n()
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState('Todos')
   const [dietFilters, setDietFilters] = useState<Set<string>>(new Set())
@@ -203,10 +205,10 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
       <section style={{ background: 'var(--p)', padding: 'clamp(2rem,4vw,3.5rem) clamp(1.5rem,5vw,5rem)' }}>
         <div style={{ maxWidth: '760px', margin: '0 auto', textAlign: 'center' }}>
           <div style={{ fontFamily: 'Newsreader,Georgia,serif', fontSize: 'clamp(1.8rem,4.5vw,2.8rem)', fontWeight: 300, color: '#fff', lineHeight: 1.1, marginBottom: '.6rem' }}>
-            Nuestro Menú
+            {t.menuHeroTitle}
           </div>
           <p style={{ fontSize: '.85rem', fontWeight: 300, color: 'rgba(255,255,255,.7)', marginBottom: '1rem' }}>
-            Cocina dominicana auténtica — Elmira, NY
+            {t.menuHeroSubtitle}
           </p>
 
           {/* Period chip */}
@@ -248,7 +250,7 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
       {/* ── FILTER BAR (sticky) ──────────────── */}
       <div style={{
         position: 'sticky', top: '60px', zIndex: 50,
-        background: 'rgba(248,249,250,.95)', backdropFilter: 'blur(16px)',
+        background: 'color-mix(in srgb, var(--bg) 95%, transparent)', backdropFilter: 'blur(16px)',
         borderBottom: '1px solid var(--l3)',
         padding: '.625rem clamp(1rem,3vw,5rem)',
       }}>

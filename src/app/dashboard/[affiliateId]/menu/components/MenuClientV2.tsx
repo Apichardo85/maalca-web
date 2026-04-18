@@ -13,13 +13,31 @@
  * real tendrá que extenderse con `periods` cuando se enganche Umbraco/API.
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   MOCK_DISHES,
   MENU_CATEGORIES,
   FEATURED_DISHES,
   type MenuItem,
 } from "@/app/the-little-dominican/_data";
+
+// Map DB dish row → UI MenuItem
+interface DbDish {
+  id: string; name: string; description: string | null; price: number | string;
+  category: string; image_url: string | null; periods: string[] | null;
+  available: boolean; featured: boolean; popular: boolean;
+  flags: { vegetarian?: boolean; spicy?: boolean; glutenFree?: boolean } | null;
+}
+function mapDbDish(r: DbDish & { featured?: boolean }): MenuItem & { _featured?: boolean } {
+  return {
+    id: r.id, name: r.name, description: r.description ?? "",
+    price: typeof r.price === "string" ? parseFloat(r.price) : r.price,
+    image: r.image_url ?? "", category: r.category, flags: r.flags ?? {},
+    popular: r.popular, available: r.available,
+    periods: (r.periods && r.periods.length > 0 ? r.periods : undefined) as MenuItem["periods"],
+    _featured: r.featured,
+  };
+}
 import type { AffiliateConfig } from "@/config/affiliates-config";
 import { StatCard, DashboardCard } from "@/components/dashboard/DashboardCard";
 import { EmptyState } from "@/components/dashboard/shared/EmptyState";
@@ -101,11 +119,19 @@ interface MenuClientV2Props {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export function MenuClientV2({ config }: MenuClientV2Props) {
+export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
   const currency = config.settings.currency === "DOP" ? "RD$" : "$";
   const mealPeriodHours = config.mealPeriodHours;
 
-  // Editable state — in-memory overrides
+  // ── Live dishes from API (Supabase) ────────────────────────────────────────
+  // Seed initial state from MOCK_DISHES so SSR/first-paint has content; replaced on fetch.
+  const [dishes, setDishes] = useState<MenuItem[]>(MOCK_DISHES);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Editable state — mirrors what's in `dishes`; updated optimistically then confirmed on PATCH.
   const [images, setImages] = useState<Record<string, string>>(() =>
     Object.fromEntries(MOCK_DISHES.map((d) => [d.id, d.image]))
   );
@@ -124,6 +150,55 @@ export function MenuClientV2({ config }: MenuClientV2Props) {
   const [itemPeriods, setItemPeriods] = useState<Record<string, MealPeriod[]>>(() =>
     Object.fromEntries(MOCK_DISHES.map((d) => [d.id, d.periods ?? []]))
   );
+
+  // Load real dishes from Supabase via the API route
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/dashboard/${affiliateId}/dishes`, { cache: "no-store" });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({ error: res.statusText }));
+          throw new Error(body.error || `HTTP ${res.status}`);
+        }
+        const { dishes: rows } = (await res.json()) as { dishes: DbDish[] };
+        if (cancelled) return;
+        if (rows.length === 0) {
+          setLoadError("La base de datos no devolvió platos para este afiliado. Mostrando datos de ejemplo (MOCK).");
+        } else {
+          setLoadError(null);
+          const mapped = rows.map(mapDbDish);
+          setDishes(mapped);
+          setImages(Object.fromEntries(mapped.map((d) => [d.id, d.image])));
+          setPrices(Object.fromEntries(mapped.map((d) => [d.id, d.price])));
+          setAvail(Object.fromEntries(mapped.map((d) => [d.id, d.available])));
+          setPopular(Object.fromEntries(mapped.map((d) => [d.id, d.popular ?? false])));
+          setFeatured(Object.fromEntries(mapped.map((d) => [d.id, !!(d as MenuItem & { _featured?: boolean })._featured])));
+          setItemPeriods(Object.fromEntries(mapped.map((d) => [d.id, (d.periods ?? []) as MealPeriod[]])));
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error("[MenuClientV2] failed to load dishes from API:", msg);
+        if (!cancelled) setLoadError(`No se pudo cargar el menú desde la base de datos: ${msg}. Mostrando datos de ejemplo (MOCK) — los cambios NO se guardarán. Revisa /api/dashboard/health.`);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [affiliateId]);
+
+  // Persist a field change to the API (optimistic local update already done by caller)
+  const patchDish = async (dishId: string, patch: Record<string, unknown>) => {
+    const res = await fetch(`/api/dashboard/${affiliateId}/dishes/${dishId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(err.error || `PATCH failed (${res.status})`);
+    }
+  };
 
   // UI state
   const [activeCategory, setActiveCategory] = useState("Todos");
@@ -153,19 +228,76 @@ export function MenuClientV2({ config }: MenuClientV2Props) {
     setEditItem(item);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editItem) return;
+    setSaving(true);
+    // Snapshot previous values for rollback
+    const prev = {
+      image: images[editItem.id],
+      price: prices[editItem.id],
+      available: availability[editItem.id],
+      popular: isPopular[editItem.id],
+      featured: isFeatured[editItem.id],
+      periods: itemPeriods[editItem.id],
+    };
+    // Optimistic update
     setImages((p) => ({ ...p, [editItem.id]: editUrl }));
     setPrices((p) => ({ ...p, [editItem.id]: editPrice }));
     setAvail((p) => ({ ...p, [editItem.id]: editToggles.available }));
     setPopular((p) => ({ ...p, [editItem.id]: editToggles.popular }));
     setFeatured((p) => ({ ...p, [editItem.id]: editToggles.featured }));
     setItemPeriods((p) => ({ ...p, [editItem.id]: editPeriods }));
-    setEditItem(null);
+
+    try {
+      await patchDish(editItem.id, {
+        image_url: editUrl,
+        price: editPrice,
+        available: editToggles.available,
+        popular: editToggles.popular,
+        featured: editToggles.featured,
+        periods: editPeriods,
+      });
+      setEditItem(null);
+    } catch (err) {
+      // Rollback
+      setImages((p) => ({ ...p, [editItem.id]: prev.image }));
+      setPrices((p) => ({ ...p, [editItem.id]: prev.price }));
+      setAvail((p) => ({ ...p, [editItem.id]: prev.available }));
+      setPopular((p) => ({ ...p, [editItem.id]: prev.popular }));
+      setFeatured((p) => ({ ...p, [editItem.id]: prev.featured }));
+      setItemPeriods((p) => ({ ...p, [editItem.id]: prev.periods }));
+      alert(`No se pudo guardar: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUploadPhoto = async (file: File) => {
+    if (!editItem) return;
+    setSaving(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("dishId", editItem.id);
+      const res = await fetch(`/api/dashboard/${affiliateId}/dishes/upload-image`, {
+        method: "POST",
+        body: form,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: res.statusText }));
+        throw new Error(err.error || `Upload failed (${res.status})`);
+      }
+      const { url } = (await res.json()) as { url: string };
+      setEditUrl(url);
+    } catch (err) {
+      alert(`No se pudo subir la foto: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Filtering
-  const filtered = MOCK_DISHES.filter((d) => {
+  const filtered = dishes.filter((d) => {
     if (activeCategory === "Popular" && !isPopular[d.id]) return false;
     if (
       activeCategory !== "Todos" &&
@@ -184,22 +316,22 @@ export function MenuClientV2({ config }: MenuClientV2Props) {
   });
 
   // Stats
-  const activeCount = MOCK_DISHES.filter((d) => availability[d.id]).length;
-  const inactiveCount = MOCK_DISHES.filter((d) => !availability[d.id]).length;
-  const featuredCount = MOCK_DISHES.filter((d) => isFeatured[d.id]).length;
+  const activeCount = dishes.filter((d) => availability[d.id]).length;
+  const inactiveCount = dishes.filter((d) => !availability[d.id]).length;
+  const featuredCount = dishes.filter((d) => isFeatured[d.id]).length;
 
   // Period summary
   const periodSummary = useMemo(() => {
     const counts: Record<MealPeriod, number> = {
       breakfast: 0, lunch: 0, dinner: 0, late_night: 0, all_day: 0,
     };
-    for (const d of MOCK_DISHES) {
+    for (const d of dishes) {
       const p = itemPeriods[d.id] ?? [];
       const effective = p.length === 0 ? (["all_day"] as MealPeriod[]) : p;
       for (const period of effective) counts[period]++;
     }
     return counts;
-  }, [itemPeriods]);
+  }, [itemPeriods, dishes]);
 
   const now = new Date();
   const currentPeriod = getCurrentPeriod(mealPeriodHours, now);
@@ -218,6 +350,31 @@ export function MenuClientV2({ config }: MenuClientV2Props) {
 
   return (
     <div className="space-y-6">
+      {/* ── Load/config error banner ─────────────────────────────────── */}
+      {loadError && !loading && (
+        <div
+          role="alert"
+          className="rounded-lg border border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-950/40 p-4 flex items-start gap-3"
+        >
+          <span aria-hidden="true" className="text-2xl leading-none">⚠️</span>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-red-800 dark:text-red-200 mb-1">
+              Menú no conectado a base de datos
+            </p>
+            <p className="text-xs text-red-700 dark:text-red-300 leading-relaxed">
+              {loadError}
+            </p>
+            <a
+              href="/api/dashboard/health"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block mt-2 text-xs font-semibold underline text-red-800 dark:text-red-200"
+            >
+              Abrir diagnóstico →
+            </a>
+          </div>
+        </div>
+      )}
       {/* ── Header ───────────────────────────────────────────────────── */}
       <div className="flex items-end justify-between flex-wrap gap-3">
         <div>
@@ -253,7 +410,7 @@ export function MenuClientV2({ config }: MenuClientV2Props) {
         <StatCard label="Platos Activos" value={activeCount} icon="✅" color="green" />
         <StatCard label="Inactivos" value={inactiveCount} icon="❌" color="red" />
         <StatCard label="Destacados" value={featuredCount} icon="⭐" color="yellow" />
-        <StatCard label="Total Platos" value={MOCK_DISHES.length} icon="🍽️" color="blue" />
+        <StatCard label="Total Platos" value={dishes.length} icon="🍽️" color="blue" />
       </div>
 
       {/* ── Period summary row ───────────────────────────────────────── */}
@@ -492,16 +649,37 @@ export function MenuClientV2({ config }: MenuClientV2Props) {
               />
             </div>
 
-            {/* Image URL */}
+            {/* Image upload + URL */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
-                URL de imagen
+                Foto del plato
               </label>
+              <div className="flex gap-2 mb-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleUploadPhoto(f);
+                    e.currentTarget.value = "";
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={saving}
+                  className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                >
+                  📷 {saving ? "Subiendo..." : "Subir foto desde el teléfono"}
+                </button>
+              </div>
               <input
                 type="url"
                 value={editUrl}
                 onChange={(e) => setEditUrl(e.target.value)}
-                placeholder="https://images.unsplash.com/..."
+                placeholder="...o pega una URL"
                 className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -559,8 +737,8 @@ export function MenuClientV2({ config }: MenuClientV2Props) {
               <Button variant="ghost" size="sm" onClick={() => setEditItem(null)}>
                 Cancelar
               </Button>
-              <Button variant="primary" size="sm" onClick={handleSaveEdit}>
-                Guardar
+              <Button variant="primary" size="sm" onClick={handleSaveEdit} disabled={saving}>
+                {saving ? "Guardando..." : "Guardar"}
               </Button>
             </div>
           </div>
