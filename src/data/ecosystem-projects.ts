@@ -9,14 +9,6 @@ export interface EcosystemProject {
 
 export const ecosystemProjects: EcosystemProject[] = [
   {
-    id: "the-little-dominican",
-    title: "The Little Dominican",
-    description: "Cocina dominicana auténtica en Elmira, NY",
-    category: "Gastronomía Dominicana",
-    color: "red",
-    active: true
-  },
-  {
     id: "editorial-maalca",
     title: "Editorial MaalCa",
     description: "Publicaciones que exploran cultura, creatividad y sociedad",
@@ -38,6 +30,7 @@ export const ecosystemProjects: EcosystemProject[] = [
     description: "Fábrica de contenido IA con automatización inteligente",
     category: "Fábrica IA",
     color: "red",
+    // TODO: activar cuando exista src/app/cirisonic/page.tsx
     active: false
   },
   {

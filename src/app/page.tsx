@@ -163,16 +163,6 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
-                id: "the-little-dominican",
-                titleKey: "project.tld.title",
-                descriptionKey: "project.tld.description",
-                categoryKey: "project.tld.category",
-                outcomeKey: "project.tld.outcome",
-                color: "red",
-                image: "/images/projects/the-little-dominican.svg",
-                href: "/the-little-dominican"
-              },
-              {
                 id: "editorial-maalca",
                 titleKey: "project.editorial.title",
                 descriptionKey: "project.editorial.description",
