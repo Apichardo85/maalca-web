@@ -55,6 +55,7 @@ import { EmptyState } from "@/components/dashboard/shared/EmptyState";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/buttons";
 import { MealPeriodEditor } from "./MealPeriodEditor";
+import { ImageCropper } from "./ImageCropper";
 import {
   MEAL_PERIOD_LABELS,
   MEAL_PERIOD_ORDER,
@@ -236,12 +237,124 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
   const [newDescription, setNewDescription] = useState("");
   const [newPrice, setNewPrice] = useState<number>(0);
   const [newCategory, setNewCategory] = useState<string>(MENU_CATEGORIES[0]);
+  const [newImageUrl, setNewImageUrl] = useState<string>("");
+  const newFileRef = useRef<HTMLInputElement | null>(null);
+
+  // Cropper state — shared between edit and new flows
+  // `cropFor` tracks which flow should receive the cropped result
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [cropFor, setCropFor] = useState<"edit" | "new" | null>(null);
 
   const resetNewForm = () => {
     setNewName("");
     setNewDescription("");
     setNewPrice(0);
     setNewCategory(MENU_CATEGORIES[0]);
+    setNewImageUrl("");
+  };
+
+  // Read a File into a dataURL so the cropper can load it without CORS
+  const readFileAsDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = () => reject(r.error ?? new Error("No se pudo leer el archivo"));
+      r.readAsDataURL(file);
+    });
+
+  // Edit flow — file picked → open cropper → on crop → upload blob
+  const handleEditFilePicked = async (file: File) => {
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      setCropSrc(dataUrl);
+      setCropFor("edit");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  const uploadBlob = async (blob: Blob, dishId: string): Promise<string> => {
+    const form = new FormData();
+    const file = new File([blob], `${dishId}.jpg`, { type: "image/jpeg" });
+    form.append("file", file);
+    form.append("dishId", dishId);
+    const res = await fetch(`/api/dashboard/${affiliateId}/dishes/upload-image`, {
+      method: "POST",
+      body: form,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(err.error || `Upload failed (${res.status})`);
+    }
+    const { url } = (await res.json()) as { url: string };
+    return url;
+  };
+
+  const handleCropDone = async (blob: Blob) => {
+    if (cropFor === "edit" && editItem) {
+      setSaving(true);
+      try {
+        const url = await uploadBlob(blob, editItem.id);
+        setEditUrl(url);
+      } catch (err) {
+        alert(`No se pudo subir la foto: ${err instanceof Error ? err.message : String(err)}`);
+      } finally {
+        setSaving(false);
+        setCropSrc(null);
+        setCropFor(null);
+      }
+      return;
+    }
+    if (cropFor === "new") {
+      setSaving(true);
+      try {
+        // Use a temp id for the storage path; the dish row will be created after
+        const tempId = slugify(newName) || `new-${Date.now()}`;
+        const url = await uploadBlob(blob, tempId);
+        setNewImageUrl(url);
+      } catch (err) {
+        alert(`No se pudo subir la foto: ${err instanceof Error ? err.message : String(err)}`);
+      } finally {
+        setSaving(false);
+        setCropSrc(null);
+        setCropFor(null);
+      }
+      return;
+    }
+    setCropSrc(null);
+    setCropFor(null);
+  };
+
+  // New-dish flow — file picked → open cropper
+  const handleNewFilePicked = async (file: File) => {
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      setCropSrc(dataUrl);
+      setCropFor("new");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  // Re-crop from an existing URL (edit flow)
+  const recropExistingImage = async (url: string, target: "edit" | "new") => {
+    if (!url) return;
+    // Convert URL → blob → dataURL (avoids cross-origin canvas taint later since
+    // the cropper loads via <img crossOrigin>)
+    try {
+      const res = await fetch(url, { cache: "no-store" });
+      const blob = await res.blob();
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result as string);
+        r.onerror = () => reject(r.error);
+        r.readAsDataURL(blob);
+      });
+      setCropSrc(dataUrl);
+      setCropFor(target);
+    } catch (err) {
+      alert(`No se pudo abrir la imagen para recortar: ${err instanceof Error ? err.message : String(err)}`);
+    }
   };
 
   const openNewDish = () => {
@@ -279,7 +392,7 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
           description: newDescription.trim() || null,
           price: newPrice,
           category: newCategory,
-          image_url: null,
+          image_url: newImageUrl || null,
           periods: [],
           available: true,
           featured: false,
@@ -371,30 +484,6 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
       setFeatured((p) => ({ ...p, [editItem.id]: prev.featured }));
       setItemPeriods((p) => ({ ...p, [editItem.id]: prev.periods }));
       alert(`No se pudo guardar: ${err instanceof Error ? err.message : String(err)}`);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleUploadPhoto = async (file: File) => {
-    if (!editItem) return;
-    setSaving(true);
-    try {
-      const form = new FormData();
-      form.append("file", file);
-      form.append("dishId", editItem.id);
-      const res = await fetch(`/api/dashboard/${affiliateId}/dishes/upload-image`, {
-        method: "POST",
-        body: form,
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: res.statusText }));
-        throw new Error(err.error || `Upload failed (${res.status})`);
-      }
-      const { url } = (await res.json()) as { url: string };
-      setEditUrl(url);
-    } catch (err) {
-      alert(`No se pudo subir la foto: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setSaving(false);
     }
@@ -757,7 +846,7 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
               <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
                 Foto del plato
               </label>
-              <div className="flex gap-2 mb-2">
+              <div className="flex flex-wrap gap-2 mb-2">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -765,7 +854,7 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
                   className="hidden"
                   onChange={(e) => {
                     const f = e.target.files?.[0];
-                    if (f) handleUploadPhoto(f);
+                    if (f) handleEditFilePicked(f);
                     e.currentTarget.value = "";
                   }}
                 />
@@ -775,8 +864,19 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
                   disabled={saving}
                   className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
                 >
-                  📷 {saving ? "Subiendo..." : "Subir foto desde el teléfono"}
+                  📷 {saving ? "Subiendo..." : "Subir foto"}
                 </button>
+                {editUrl && (
+                  <button
+                    type="button"
+                    onClick={() => recropExistingImage(editUrl, "edit")}
+                    disabled={saving}
+                    className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                    title="Recortar / ajustar enfoque de la foto actual"
+                  >
+                    ✂️ Recortar actual
+                  </button>
+                )}
               </div>
               <input
                 type="url"
@@ -853,9 +953,70 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
         <Modal isOpen onClose={() => setNewOpen(false)} title="Nuevo plato">
           <div className="space-y-4 p-4 overflow-y-auto">
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Crea un plato con lo mínimo. Después podrás editarlo para añadir foto,
-              periodos, etiquetas y destacados.
+              Nombre, precio y categoría son obligatorios. Puedes añadir la foto ahora
+              y recortarla como quieras; el resto (periodos, destacados) se edita luego.
             </p>
+
+            {/* Foto del plato */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                Foto del plato
+              </label>
+              {newImageUrl ? (
+                <div className="space-y-2">
+                  <div className="w-full aspect-[4/3] rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={newImageUrl} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => recropExistingImage(newImageUrl, "new")}
+                      disabled={saving}
+                      className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                    >
+                      ✂️ Recortar de nuevo
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => newFileRef.current?.click()}
+                      disabled={saving}
+                      className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                    >
+                      🔁 Reemplazar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewImageUrl("")}
+                      disabled={saving}
+                      className="px-3 py-1.5 rounded-lg border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950 transition-colors disabled:opacity-50"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => newFileRef.current?.click()}
+                  disabled={saving}
+                  className="w-full px-3 py-4 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                >
+                  📷 {saving ? "Subiendo..." : "Subir foto (recortable)"}
+                </button>
+              )}
+              <input
+                ref={newFileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleNewFilePicked(f);
+                  e.currentTarget.value = "";
+                }}
+              />
+            </div>
 
             {/* Nombre */}
             <div>
@@ -927,6 +1088,31 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
                 {saving ? "Creando..." : "Crear plato"}
               </Button>
             </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── Cropper modal (compartido entre edit + new) ──────────────── */}
+      {cropSrc && (
+        <Modal
+          isOpen
+          onClose={() => {
+            setCropSrc(null);
+            setCropFor(null);
+          }}
+          title="Ajustar foto"
+        >
+          <div className="p-4">
+            <ImageCropper
+              src={cropSrc}
+              aspect={4 / 3}
+              busy={saving}
+              onCancel={() => {
+                setCropSrc(null);
+                setCropFor(null);
+              }}
+              onCropped={handleCropDone}
+            />
           </div>
         </Modal>
       )}
