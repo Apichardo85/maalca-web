@@ -5,9 +5,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## ⚠️ CRITICAL - READ FIRST
 
 **BEFORE making ANY changes to styling, branding, or components:**
-1. Read `BRANDING.md` - Contains official branding rules and dark mode guidelines
-2. The active homepage is `src/app/(marketing)/page.tsx` NOT `src/app/page.tsx`
-3. Use direct Tailwind classes (e.g., `text-red-600`) NOT semantic classes (e.g., `text-brand-primary`)
+1. The active homepage is `src/app/page.tsx`
+2. Use **semantic tokens** (`bg-surface`, `text-text-primary`, `text-brand-primary`) defined in `globals.css` via `@theme inline`. They support light/dark automatically via CSS vars.
+3. Use direct Tailwind (`bg-gray-900`, `text-white`, `text-red-600`) **only** inside affiliate-scoped pages that deliberately break the global theme (e.g. TLD, CiriWhispers, Pegote).
 4. NEVER refactor or "componentize" code without explicit user approval
 5. ALWAYS ask before implementing "best practices" or structural changes
 
@@ -86,16 +86,20 @@ The application uses Playfair Display (display font) and Inter (body font) loade
 Use the `@/` alias for imports from the `src/` directory. Example: `import Component from '@/components/Component'`
 
 ### Styling Conventions - IMPORTANT
-- **ONLY use direct Tailwind classes**: `text-white`, `bg-black`, `text-red-600`
-- **NEVER use semantic classes**: NO `text-brand-primary`, NO `bg-surface`, NO `text-text-primary`
-- The site uses a FIXED dark theme (no dark mode toggle currently)
-- Component-specific styles should use Tailwind classes rather than separate CSS files
-- See `BRANDING.md` for complete color palette and branding rules
+- **Default: use semantic tokens** defined in `globals.css` via `@theme inline` (Tailwind v4). They swap colors automatically between light/dark via CSS vars — no `dark:` prefix needed.
+- Use direct Tailwind (`bg-gray-900`, `text-white`) **only** inside affiliate pages that intentionally override the global theme (TLD, CiriWhispers, Pegote). Mark those sections clearly.
+- Dark mode is controlled manually via `data-theme="dark"` on `<html>` (see DARK MODE section above). Do not use next-themes.
+- Component-specific styles should use Tailwind classes rather than separate CSS files.
 
-**Current Color System:**
-- Brand: `text-red-600`, `bg-red-600`, `hover:bg-red-700`
-- Text: `text-white`, `text-gray-300`, `text-gray-400`
-- Backgrounds: `bg-black`, `bg-gray-900`, `bg-gray-800`
+**Semantic tokens (default — use these):**
+- Brand: `text-brand-primary`, `bg-brand-primary`, `hover:bg-brand-primary-hover`
+- Text: `text-text-primary`, `text-text-secondary`, `text-text-muted`
+- Backgrounds: `bg-background`, `bg-surface`, `bg-surface-elevated`
+- Borders: `border-border`, `border-border-muted`
+
+**Direct Tailwind (exception — affiliate overrides only):**
+- `bg-black`, `bg-gray-900`, `text-white`, `text-red-600`, etc.
+- Always pair with `dark:` variants when used, since there's no automatic theme swap.
 
 ### Animation Patterns
 - Framer Motion is used for page transitions and component animations
@@ -107,24 +111,23 @@ Use the `@/` alias for imports from the `src/` directory. Example: `import Compo
 ## Working with This Codebase
 
 ### Route Structure
-- Homepage: `src/app/(marketing)/page.tsx` ← **THIS IS THE ACTIVE HOMEPAGE**
+- Homepage: `src/app/page.tsx` ← **THIS IS THE ACTIVE HOMEPAGE**
 - Other routes: `src/app/{route-name}/page.tsx`
-- Route Group `(marketing)` means that folder doesn't appear in URLs
 
 ### DO NOT
-- ❌ Create semantic CSS classes (`text-brand-primary`, `bg-surface`)
+- ❌ Add new CSS tokens to `globals.css` without asking (the existing set is intentional)
 - ❌ Refactor working code into components without approval
 - ❌ Create new folder structures (`components/sections/`, `data/affiliates.ts`) without asking
-- ❌ Implement dark mode using `dark:` variants without approval
-- ❌ Change the branding colors (red-600 is sacred)
+- ❌ Change `[data-theme="dark"]` to `.dark` or reintroduce next-themes
+- ❌ Change the brand color value (`--brand-primary: #dc2626` is sacred)
 - ❌ Assume "best practices" are wanted - always ask first
 
 ### DO
-- ✅ Read `BRANDING.md` before making style changes
-- ✅ Use direct Tailwind classes as shown in existing code
+- ✅ Default to semantic tokens (`bg-surface`, `text-text-primary`, `text-brand-primary`)
+- ✅ Use direct Tailwind classes only for affiliate-scoped overrides, paired with `dark:` variants
 - ✅ Ask before refactoring or restructuring
 - ✅ Fix bugs in existing code structure
-- ✅ Follow the exact patterns shown in `src/app/(marketing)/page.tsx`
+- ✅ Follow the exact patterns shown in `src/app/page.tsx`
 
 ### Emergency Recovery
 If you break something:
@@ -161,8 +164,8 @@ Ver `.claude/skills/README.md` para documentación completa.
 
 ## Reference Files
 
-- `BRANDING.md` - Official branding and color guidelines
-- `src/app/(marketing)/page.tsx` - Homepage reference implementation
+- `src/app/globals.css` - Semantic tokens (`@theme inline`) and brand CSS vars
+- `src/app/page.tsx` - Homepage reference implementation
 - `src/data/index.ts` - Central data exports
 - `src/components/ui/buttons.tsx` - Button component reference
 - `.claude/skills/` - Skills para automatización

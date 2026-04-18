@@ -9,6 +9,14 @@ export interface EcosystemProject {
 
 export const ecosystemProjects: EcosystemProject[] = [
   {
+    id: "the-little-dominican",
+    title: "The Little Dominican",
+    description: "Cocina dominicana auténtica en Elmira, NY",
+    category: "Gastronomía Dominicana",
+    color: "red",
+    active: true
+  },
+  {
     id: "editorial-maalca",
     title: "Editorial MaalCa",
     description: "Publicaciones que exploran cultura, creatividad y sociedad",
@@ -54,14 +62,6 @@ export const ecosystemProjects: EcosystemProject[] = [
     description: "Wellness y productos de bienestar integral",
     category: "Wellness",
     color: "red",
-    active: false
-  },
-  {
-    id: "maalca-properties",
-    title: "MaalCa Properties",
-    description: "Desarrollos inmobiliarios con visión creativa",
-    category: "Real Estate",
-    color: "gray",
     active: false
   }
 ];

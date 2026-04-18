@@ -1,13 +1,33 @@
 "use client";
 import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/buttons";
 import { ProjectImage } from "@/components/ui/ProjectImage";
-import { Counter } from "@/components/ui/Counter";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
 import { projects, getActiveAffiliates } from "@/data";
 import { dominicanMenus } from "@/data/dominican-menus";
 import { getActiveEcosystemProjects } from "@/data/ecosystem-projects";
+
+function AffiliateLogo({ logo, fallback }: { logo?: string; fallback: string }) {
+  const [failed, setFailed] = useState(!logo);
+  if (failed || !logo) {
+    return (
+      <span className="text-text-secondary group-hover:text-white font-bold text-lg transition-colors">
+        {fallback}
+      </span>
+    );
+  }
+  return (
+    <img
+      src={logo}
+      alt={fallback}
+      className="max-h-16 max-w-full object-contain"
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
 export default function HomePage() {
   const router = useRouter();
   const { t } = useTranslation();
@@ -128,30 +148,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      {/* STATS SECTION WITH ANIMATED COUNTERS */}
-      <section className="py-16 md:py-24 bg-surface-elevated">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {[
-              { number: 7, label: 'Proyectos Activos', suffix: '+' },
-              { number: 50, label: 'Colaboradores', suffix: '+' },
-              { number: 1000, label: 'Clientes Satisfechos', suffix: '+' },
-              { number: 5, label: 'Años de Experiencia', suffix: '' }
-            ].map((stat, index) => (
-              <div
-                key={stat.label}
-                className="text-center animate-fade-in-scale"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className="text-5xl font-black text-red-600 dark:text-red-500 mb-2">
-                  <Counter to={stat.number} duration={2} />{stat.suffix}
-                </div>
-                <div className="text-text-secondary font-medium">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
       {/* Ecosystem / Projects Section */}
       <section id="ecosistema" className="py-16 md:py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -166,6 +162,16 @@ export default function HomePage() {
           {/* Projects Grid — visibility controlled by active field in ecosystem-projects.ts */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
+              {
+                id: "the-little-dominican",
+                titleKey: "project.tld.title",
+                descriptionKey: "project.tld.description",
+                categoryKey: "project.tld.category",
+                outcomeKey: "project.tld.outcome",
+                color: "red",
+                image: "/images/projects/the-little-dominican.svg",
+                href: "/the-little-dominican"
+              },
               {
                 id: "editorial-maalca",
                 titleKey: "project.editorial.title",
@@ -206,22 +212,12 @@ export default function HomePage() {
                 image: "/images/projects/masa-tina.svg",
                 href: "/masa-tina"
               },
-              {
-                id: "maalca-properties",
-                titleKey: "project.properties.title",
-                descriptionKey: "project.properties.description",
-                categoryKey: "project.properties.category",
-                outcomeKey: "project.properties.outcome",
-                color: "gray",
-                image: "/images/projects/maalca-properties.svg",
-                href: "/maalca-properties"
-              },
             ]
             .filter(p => activeEcosystemProjects.some(ep => ep.id === p.id))
             .map((project, index) => (
               <div
                 key={project.titleKey}
-                className="group relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl p-8 border-2 border-slate-200 dark:border-gray-700 hover:border-red-500 dark:hover:border-red-400 transition-all duration-500 shadow-2xl hover:shadow-red-500/30 hover:-translate-y-4 cursor-pointer animate-fade-in-up"
+                className="group relative bg-surface backdrop-blur-xl rounded-3xl p-8 border-2 border-border hover:border-brand-primary transition-all duration-500 shadow-2xl hover:shadow-brand-primary/30 hover:-translate-y-4 cursor-pointer animate-fade-in-up"
                 style={{ animationDelay: `${index * 0.1}s` }}
                 onClick={() => handleProjectClick(project.href)}
               >
@@ -240,13 +236,13 @@ export default function HomePage() {
                 }`}>
                   {t(project.categoryKey)}
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                <h3 className="text-xl font-bold text-text-primary mb-3 group-hover:text-brand-primary transition-colors">
                   {t(project.titleKey)}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-sm mb-4">
+                <p className="text-text-secondary leading-relaxed text-sm mb-4">
                   {t(project.descriptionKey)}
                 </p>
-                <div className="text-xs text-gray-400 dark:text-gray-300 mb-6 font-medium">
+                <div className="text-xs text-text-muted mb-6 font-medium">
                   ✓ {t(project.outcomeKey)}
                 </div>
                 {/* FUNCTIONAL BUTTON WITH DRAMATIC STYLING */}
@@ -256,7 +252,7 @@ export default function HomePage() {
                       e.stopPropagation();
                       handleProjectClick(project.href);
                     }}
-                    className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                    className="w-full bg-brand-primary hover:bg-brand-primary-hover text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
                   >
                     {t('common.viewProject')} →
                   </button>
@@ -286,10 +282,11 @@ export default function HomePage() {
                 style={{ animationDelay: `${index * 0.1}s` }}
                 onClick={() => window.location.href = affiliate.website ?? '/'}
               >
-                <div className="bg-surface-elevated rounded-xl p-8 h-24 flex items-center justify-center mb-4 group-hover:bg-brand-primary transition-all duration-300 border border-border">
-                  <span className="text-text-secondary group-hover:text-white font-bold text-lg">
-                    {affiliate.displayInitials ?? affiliate.name.slice(0, 2).toUpperCase()}
-                  </span>
+                <div className="bg-surface-elevated rounded-xl p-4 h-24 flex items-center justify-center mb-4 group-hover:border-brand-primary transition-all duration-300 border border-border overflow-hidden">
+                  <AffiliateLogo
+                    logo={affiliate.logo}
+                    fallback={affiliate.displayInitials ?? affiliate.name.slice(0, 2).toUpperCase()}
+                  />
                 </div>
                 <p className="text-text-primary text-sm group-hover:text-brand-primary transition-colors font-medium">
                   {affiliate.name}
@@ -303,26 +300,26 @@ export default function HomePage() {
         </div>
       </section>
       {/* Philosophy / Quote Section */}
-      <section className="py-32 bg-black relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-red-900/10 to-transparent" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+      <section className="py-20 bg-background relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-brand-primary/10 to-transparent" />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <blockquote
-            className="font-display text-4xl sm:text-6xl lg:text-8xl font-bold text-white leading-tight animate-fade-in-scale"
+            className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary leading-snug animate-fade-in-scale"
           >
             {`"${t('quote.philosophy')}"`}
           </blockquote>
           <div
-            className="mt-8 w-24 h-1 bg-red-600 mx-auto animate-expand-width"
+            className="mt-8 w-24 h-1 bg-brand-primary mx-auto animate-expand-width"
           />
         </div>
       </section>
       {/* Contact Section */}
-      <section id="contacto" className="py-20 bg-gray-900">
+      <section id="contacto" className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             {/* Contact Form */}
             <div className="animate-fade-in-left">
-              <h2 className="font-display text-4xl lg:text-5xl font-bold text-white mb-8">
+              <h2 className="font-display text-4xl lg:text-5xl font-bold text-text-primary mb-8">
                 {t('contact.title')}
               </h2>
               <form className="space-y-6">
@@ -332,7 +329,7 @@ export default function HomePage() {
                     id="contact-name"
                     type="text"
                     placeholder={t('contact.name')}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-6 py-4 text-white placeholder-gray-400 focus:outline-none focus:border-red-600 transition-colors"
+                    className="w-full bg-surface-elevated border border-border rounded-lg px-6 py-4 text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary transition-colors"
                   />
                 </div>
                 <div>
@@ -341,7 +338,7 @@ export default function HomePage() {
                     id="contact-email"
                     type="email"
                     placeholder={t('contact.email')}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-6 py-4 text-white placeholder-gray-400 focus:outline-none focus:border-red-600 transition-colors"
+                    className="w-full bg-surface-elevated border border-border rounded-lg px-6 py-4 text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary transition-colors"
                   />
                 </div>
                 <div>
@@ -350,13 +347,13 @@ export default function HomePage() {
                     id="contact-message"
                     rows={6}
                     placeholder={t('contact.message')}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-6 py-4 text-white placeholder-gray-400 focus:outline-none focus:border-red-600 transition-colors resize-none"
+                    className="w-full bg-surface-elevated border border-border rounded-lg px-6 py-4 text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary transition-colors resize-none"
                   />
                 </div>
                 <Button
                   variant="primary"
                   size="lg"
-                  className="w-full bg-red-600 hover:bg-red-700 text-white text-lg py-4"
+                  className="w-full bg-brand-primary hover:bg-brand-primary-hover text-white text-lg py-4"
                 >
                   {t('contact.send')}
                 </Button>
@@ -366,20 +363,20 @@ export default function HomePage() {
             <div className="animate-fade-in-right" style={{ animationDelay: '0.2s' }}>
               <div className="space-y-8">
                 <div>
-                  <h3 className="text-2xl font-bold text-white mb-4">MaalCa LLC</h3>
-                  <p className="text-gray-300 leading-relaxed">
+                  <h3 className="text-2xl font-bold text-text-primary mb-4">MaalCa LLC</h3>
+                  <p className="text-text-secondary leading-relaxed">
                     Elmira, NY<br />
                     {t('contact.location')}
                   </p>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-4">{t('contact.emailLabel')}</h3>
-                  <a href="mailto:hello@maalca.com" className="text-red-400 hover:text-red-300 transition-colors">
+                  <h3 className="text-xl font-bold text-text-primary mb-4">{t('contact.emailLabel')}</h3>
+                  <a href="mailto:hello@maalca.com" className="text-brand-primary hover:text-brand-primary-hover transition-colors">
                     hello@maalca.com
                   </a>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-6">{t('contact.followUs')}</h3>
+                  <h3 className="text-xl font-bold text-text-primary mb-6">{t('contact.followUs')}</h3>
                   <div className="flex space-x-6">
                     {[
                       { name: "Instagram", icon: "📷" },
@@ -390,7 +387,7 @@ export default function HomePage() {
                       <a
                         key={social.name}
                         href="#"
-                        className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center text-xl hover:bg-red-600 transition-colors hover:scale-110 active:scale-90 transition-transform"
+                        className="w-12 h-12 bg-surface-elevated rounded-full flex items-center justify-center text-xl hover:bg-brand-primary transition-colors hover:scale-110 active:scale-90 transition-transform"
                       >
                         {social.icon}
                       </a>
