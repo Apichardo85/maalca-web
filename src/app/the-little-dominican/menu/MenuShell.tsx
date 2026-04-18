@@ -21,6 +21,22 @@ const MENU_CSS = `@import url('https://fonts.googleapis.com/css2?family=Newsread
   --tl: #74777f;
   --sh: 0 20px 40px rgba(25,28,29,.06);
   --navy-footer: #00193c;
+
+  /* ─── Brand-stable tokens (no invierten en dark mode) ────────────
+     --p se invierte para que los títulos queden legibles sobre fondo
+     oscuro. Pero los CTAs de marca (botones primarios, hero) deben
+     mantener navy+blanco en ambos temas — si usáramos --p como fondo
+     de botón, quedaría blanco sobre blanco en dark. Estos tokens son
+     estables y no se tocan en el bloque [data-theme="dark"].
+     ───────────────────────────────────────────────────────────── */
+  --cta-bg:      #00193c;
+  --cta-text:    #ffffff;
+  --hero-bg:     #00193c;
+  --hero-text:   #ffffff;
+  /* Input blanco con texto oscuro — va sobre el hero navy estable */
+  --input-bg:    #ffffff;
+  --input-text:  #191c1d;
+
   font-family: 'Manrope', system-ui, sans-serif;
   background: var(--bg);
   color: var(--tx);
@@ -38,6 +54,7 @@ const MENU_CSS = `@import url('https://fonts.googleapis.com/css2?family=Newsread
   --tm: #b8bcc4;
   --tl: #8b8f97;
   --sh: 0 20px 40px rgba(0,0,0,.45);
+  /* --cta-*, --hero-*, --input-* NO se redefinen: son brand-stable */
 }
 .tld-label {
   font-size: .68rem; font-weight: 600; letter-spacing: .1em;

@@ -31,6 +31,18 @@ const TLD_CSS = `
   --tl:     #74777f;  /* Texto light */
   --sh:     0 20px 40px rgba(25,28,29,.06);
   --navy-footer: #00193c;  /* Token fijo: footer siempre oscuro en ambos temas */
+
+  /* ─── Brand-stable tokens (no invierten en dark mode) ────────────
+     --p se invierte en dark para títulos, pero los CTAs y el hero
+     deben mantener navy+blanco en ambos temas. Estos tokens son
+     estables — no se tocan en [data-theme="dark"]. */
+  --cta-bg:      #00193c;
+  --cta-text:    #ffffff;
+  --hero-bg:     #00193c;
+  --hero-text:   #ffffff;
+  --input-bg:    #ffffff;
+  --input-text:  #191c1d;
+
   font-family: 'Manrope', system-ui, sans-serif;
   background: var(--bg);
   color: var(--tx);
