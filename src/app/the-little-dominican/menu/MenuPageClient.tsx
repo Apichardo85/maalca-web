@@ -202,7 +202,8 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
   return (
     <>
       {/* ── SEARCH HERO (compact) ──────────────────────────────────── */}
-      <section style={{ background: 'var(--p)', padding: 'clamp(2rem,4vw,3.5rem) clamp(1.5rem,5vw,5rem)' }}>
+      {/* Hero stays navy in both themes — brand identity, readable. */}
+      <section style={{ background: '#00193c', padding: 'clamp(2rem,4vw,3.5rem) clamp(1.5rem,5vw,5rem)' }}>
         <div style={{ maxWidth: '760px', margin: '0 auto', textAlign: 'center' }}>
           <div style={{ fontFamily: 'Newsreader,Georgia,serif', fontSize: 'clamp(1.8rem,4.5vw,2.8rem)', fontWeight: 300, color: '#fff', lineHeight: 1.1, marginBottom: '.6rem' }}>
             {t.menuHeroTitle}
@@ -237,9 +238,12 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
               placeholder="Buscar platos..."
               style={{
                 width: '100%', boxSizing: 'border-box',
+                // Search sits on the hero (stable dark navy). Keep white+dark text so
+                // the input stays readable regardless of theme (otherwise --tx inverts
+                // to white in dark mode → white-on-white).
                 background: '#fff', border: 'none', borderRadius: '9999px',
                 padding: '14px 20px 14px 46px',
-                fontFamily: 'Manrope,sans-serif', fontSize: '.9rem', color: 'var(--tx)',
+                fontFamily: 'Manrope,sans-serif', fontSize: '.9rem', color: '#191c1d',
                 outline: 'none', boxShadow: '0 8px 32px rgba(0,0,0,.15)',
               }}
             />
@@ -270,7 +274,8 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
                   fontFamily: 'Manrope,sans-serif', fontSize: '.8rem', fontWeight: 600,
                   transition: 'all .15s', whiteSpace: 'nowrap', flexShrink: 0,
                   minHeight: '40px',
-                  background: activeCategory === cat ? 'var(--p)' : 'var(--l2)',
+                  // Active pill stays navy+white in both themes (brand CTA).
+                  background: activeCategory === cat ? '#00193c' : 'var(--l2)',
                   color: activeCategory === cat ? '#fff' : 'var(--tm)',
                 }}
               >
@@ -394,7 +399,8 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
           aria-label={`Ver orden: ${cartCount} platos`}
           style={{
             position: 'fixed', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 5rem)', right: '1.25rem', zIndex: 90,
-            background: 'var(--p)', color: '#fff', border: 'none',
+            // Brand CTA — fixed navy+white in both themes
+            background: '#00193c', color: '#fff', border: 'none',
             borderRadius: '9999px', padding: '14px 22px',
             fontFamily: 'Manrope,sans-serif', fontWeight: 600, fontSize: '.88rem',
             cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px',
@@ -491,7 +497,7 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
                       aria-label={`Agregar ${item.dish.name}`}
                       style={{
                         width: '36px', height: '36px', borderRadius: '50%', border: 'none',
-                        background: 'var(--p)', cursor: 'pointer',
+                        background: '#00193c', cursor: 'pointer',
                         fontWeight: 700, fontSize: '1rem', color: '#fff',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}
@@ -684,7 +690,7 @@ function DishGrid({ dishes, cart, onAdd, onRemove, onUnavailable, now }: {
                         aria-label={`Agregar ${dish.name}`}
                         style={{
                           width: '36px', height: '36px', borderRadius: '50%', border: 'none',
-                          background: 'var(--p)', cursor: 'pointer',
+                          background: '#00193c', cursor: 'pointer',
                           fontWeight: 700, fontSize: '1rem', color: '#fff',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}
@@ -695,7 +701,9 @@ function DishGrid({ dishes, cart, onAdd, onRemove, onUnavailable, now }: {
                   <button
                     onClick={() => onAdd(dish)}
                     style={{
-                      width: '100%', background: 'var(--p)', color: '#fff', border: 'none',
+                      // Brand CTA — navy+white in both themes (before this was
+                      // var(--p) which inverts to near-white in dark → invisible)
+                      width: '100%', background: '#00193c', color: '#fff', border: 'none',
                       borderRadius: '9999px', padding: '12px 16px', cursor: 'pointer',
                       fontFamily: 'Manrope,sans-serif', fontWeight: 600, fontSize: '.82rem',
                       transition: 'opacity .15s', minHeight: '44px',
