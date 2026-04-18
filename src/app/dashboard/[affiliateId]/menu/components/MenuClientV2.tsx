@@ -21,6 +21,17 @@ import {
   type MenuItem,
 } from "@/app/the-little-dominican/_data";
 
+// Slugify helper for generating dish IDs from a name
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+}
+
 // Map DB dish row → UI MenuItem
 interface DbDish {
   id: string; name: string; description: string | null; price: number | string;
@@ -200,11 +211,104 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
     }
   };
 
+  // Toggle availability with persistence + optimistic rollback
+  const toggleAvailability = async (dishId: string) => {
+    const prev = availability[dishId];
+    const next = !prev;
+    setAvail((a) => ({ ...a, [dishId]: next }));
+    try {
+      await patchDish(dishId, { available: next });
+    } catch (err) {
+      setAvail((a) => ({ ...a, [dishId]: prev }));
+      alert(`No se pudo ${next ? "activar" : "ocultar"} el plato: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  };
+
   // UI state
   const [activeCategory, setActiveCategory] = useState("Todos");
   const [activePeriod, setActivePeriod] = useState<"all" | MealPeriod>("all");
   const [search, setSearch] = useState("");
   const [editItem, setEditItem] = useState<MenuItem | null>(null);
+
+  // New dish modal state
+  const [newOpen, setNewOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newPrice, setNewPrice] = useState<number>(0);
+  const [newCategory, setNewCategory] = useState<string>(MENU_CATEGORIES[0]);
+
+  const resetNewForm = () => {
+    setNewName("");
+    setNewDescription("");
+    setNewPrice(0);
+    setNewCategory(MENU_CATEGORIES[0]);
+  };
+
+  const openNewDish = () => {
+    resetNewForm();
+    setNewOpen(true);
+  };
+
+  const handleCreateDish = async () => {
+    const name = newName.trim();
+    if (!name) {
+      alert("El nombre es obligatorio.");
+      return;
+    }
+    if (newPrice <= 0) {
+      alert("El precio debe ser mayor que 0.");
+      return;
+    }
+    const baseId = slugify(name) || `plato-${Date.now()}`;
+    // Ensure uniqueness if duplicate
+    let id = baseId;
+    let suffix = 2;
+    const existingIds = new Set(dishes.map((d) => d.id));
+    while (existingIds.has(id)) {
+      id = `${baseId}-${suffix++}`;
+    }
+
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/dashboard/${affiliateId}/dishes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id,
+          name,
+          description: newDescription.trim() || null,
+          price: newPrice,
+          category: newCategory,
+          image_url: null,
+          periods: [],
+          available: true,
+          featured: false,
+          popular: false,
+          flags: {},
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: res.statusText }));
+        throw new Error(err.error || `POST failed (${res.status})`);
+      }
+      const { dish } = (await res.json()) as { dish: DbDish };
+      const mapped = mapDbDish(dish);
+      // Append to local state
+      setDishes((ds) => [...ds, mapped]);
+      setImages((p) => ({ ...p, [mapped.id]: mapped.image }));
+      setPrices((p) => ({ ...p, [mapped.id]: mapped.price }));
+      setAvail((p) => ({ ...p, [mapped.id]: mapped.available }));
+      setPopular((p) => ({ ...p, [mapped.id]: mapped.popular ?? false }));
+      setFeatured((p) => ({ ...p, [mapped.id]: !!(mapped as MenuItem & { _featured?: boolean })._featured }));
+      setItemPeriods((p) => ({ ...p, [mapped.id]: (mapped.periods ?? []) as MealPeriod[] }));
+      setNewOpen(false);
+      resetNewForm();
+    } catch (err) {
+      alert(`No se pudo crear el plato: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // Edit modal state
   const [editUrl, setEditUrl] = useState("");
@@ -397,7 +501,8 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
             Importar CSV
           </button>
           <button
-            className="px-5 py-2.5 rounded-full text-sm font-bold text-white transition-colors"
+            onClick={openNewDish}
+            className="px-5 py-2.5 rounded-full text-sm font-bold text-white transition-colors hover:opacity-90"
             style={{ backgroundColor: "var(--brand-primary)" }}
           >
             + Nuevo Plato
@@ -571,9 +676,7 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
                       ✏️
                     </button>
                     <button
-                      onClick={() =>
-                        setAvail((a) => ({ ...a, [item.id]: !a[item.id] }))
-                      }
+                      onClick={() => toggleAvailability(item.id)}
                       className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${
                         availability[item.id]
                           ? "bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400"
@@ -594,7 +697,7 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
                 icon="🍽️"
                 title="No se encontraron platos"
                 description="Ajusta los filtros o agrega un nuevo plato al menú."
-                action={{ label: "+ Nuevo Plato", onClick: () => {} }}
+                action={{ label: "+ Nuevo Plato", onClick: openNewDish }}
               />
             </div>
           )}
@@ -739,6 +842,89 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
               </Button>
               <Button variant="primary" size="sm" onClick={handleSaveEdit} disabled={saving}>
                 {saving ? "Guardando..." : "Guardar"}
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── New dish modal ───────────────────────────────────────────── */}
+      {newOpen && (
+        <Modal isOpen onClose={() => setNewOpen(false)} title="Nuevo plato">
+          <div className="space-y-4 p-4 overflow-y-auto">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Crea un plato con lo mínimo. Después podrás editarlo para añadir foto,
+              periodos, etiquetas y destacados.
+            </p>
+
+            {/* Nombre */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                Nombre <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Ej: Sancocho dominicano"
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Descripción */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                Descripción corta
+              </label>
+              <textarea
+                rows={2}
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                placeholder="Qué trae, cómo se sirve..."
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              />
+            </div>
+
+            {/* Precio + Categoría */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                  Precio ({currency}) <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={newPrice}
+                  onChange={(e) => setNewPrice(parseFloat(e.target.value) || 0)}
+                  className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                  Categoría <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {MENU_CATEGORIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end gap-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+              <Button variant="ghost" size="sm" onClick={() => setNewOpen(false)}>
+                Cancelar
+              </Button>
+              <Button variant="primary" size="sm" onClick={handleCreateDish} disabled={saving}>
+                {saving ? "Creando..." : "Crear plato"}
               </Button>
             </div>
           </div>
