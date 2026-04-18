@@ -19,6 +19,15 @@ const GALLERY_CSS = `@import url('https://fonts.googleapis.com/css2?family=Newsr
   --tm: #44474f;
   --tl: #74777f;
   --navy-footer: #00193c;
+
+  /* Brand-stable tokens (no invierten en dark) — mismos que MenuShell/HomeClient */
+  --cta-bg:      #00193c;
+  --cta-text:    #ffffff;
+  --hero-bg:     #00193c;
+  --hero-text:   #ffffff;
+  --input-bg:    #ffffff;
+  --input-text:  #191c1d;
+
   font-family: 'Manrope', system-ui, sans-serif;
   background: var(--bg);
   color: var(--tx);
@@ -34,6 +43,7 @@ const GALLERY_CSS = `@import url('https://fonts.googleapis.com/css2?family=Newsr
   --tx: #f5f5f5;
   --tm: #b8bcc4;
   --tl: #8b8f97;
+  /* --cta-*, --hero-*, --input-* quedan estables */
 }
 .tld-label {
   font-size: .68rem; font-weight: 600; letter-spacing: .1em;
@@ -41,9 +51,9 @@ const GALLERY_CSS = `@import url('https://fonts.googleapis.com/css2?family=Newsr
 }
 .tld-nav {
   position:fixed;top:0;left:0;right:0;z-index:100;
-  background:rgba(248,249,250,.90);
+  background:color-mix(in srgb, var(--bg) 90%, transparent);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border-bottom:1px solid rgba(0,25,60,.06);
+  border-bottom:1px solid color-mix(in srgb, var(--p) 8%, transparent);
   height:60px;padding:0 clamp(1.5rem,5vw,5rem);
   display:flex;align-items:center;justify-content:space-between;
 }
@@ -64,9 +74,9 @@ const GALLERY_CSS = `@import url('https://fonts.googleapis.com/css2?family=Newsr
 }
 .tld-mobile-nav {
   position:fixed;top:60px;left:0;right:0;z-index:99;
-  background:rgba(248,249,250,.97);
+  background:color-mix(in srgb, var(--bg) 97%, transparent);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border-bottom:1px solid rgba(0,25,60,.08);
+  border-bottom:1px solid color-mix(in srgb, var(--p) 10%, transparent);
   display:flex;flex-direction:column;padding:1rem 1.5rem 1.25rem;gap:.25rem;
   transform:translateY(-110%);opacity:0;
   transition:transform .22s ease,opacity .18s ease;

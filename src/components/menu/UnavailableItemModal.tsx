@@ -89,13 +89,16 @@ export function UnavailableItemModal({
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: "#fff",
+          // Panel adapta al tema — l1 es cream en light, dark card en dark.
+          // Así --p/--tm (que sí invierten) quedan legibles sobre el panel.
+          background: "var(--l1)",
           borderRadius: "1.25rem",
           padding: "1.75rem",
           width: "100%",
           maxWidth: "420px",
           boxShadow: "0 25px 60px rgba(0,0,0,.25)",
           fontFamily: "Manrope, system-ui, sans-serif",
+          color: "var(--tx)",
         }}
       >
         {success ? (
@@ -183,6 +186,8 @@ export function UnavailableItemModal({
                     padding: "10px 14px",
                     borderRadius: "10px",
                     border: "1.5px solid var(--l3)",
+                    background: "var(--bg)",
+                    color: "var(--tx)",
                     fontSize: ".9rem",
                     fontFamily: "inherit",
                     outline: "none",
@@ -207,9 +212,10 @@ export function UnavailableItemModal({
                         flex: 1,
                         padding: "8px",
                         borderRadius: "8px",
-                        border: contactType === opt.k ? "1.5px solid var(--p)" : "1.5px solid var(--l3)",
-                        background: contactType === opt.k ? "var(--p)" : "transparent",
-                        color: contactType === opt.k ? "#fff" : "var(--tm)",
+                        // Activo = CTA brand-stable (navy+white en ambos temas)
+                        border: contactType === opt.k ? "1.5px solid var(--cta-bg)" : "1.5px solid var(--l3)",
+                        background: contactType === opt.k ? "var(--cta-bg)" : "transparent",
+                        color: contactType === opt.k ? "var(--cta-text)" : "var(--tm)",
                         fontSize: ".8rem",
                         fontWeight: 600,
                         cursor: "pointer",
@@ -231,6 +237,8 @@ export function UnavailableItemModal({
                     padding: "10px 14px",
                     borderRadius: "10px",
                     border: "1.5px solid var(--l3)",
+                    background: "var(--bg)",
+                    color: "var(--tx)",
                     fontSize: ".9rem",
                     fontFamily: "inherit",
                     outline: "none",
@@ -246,8 +254,8 @@ export function UnavailableItemModal({
                 width: "100%",
                 padding: "14px",
                 borderRadius: "9999px",
-                background: "var(--p)",
-                color: "#fff",
+                background: "var(--cta-bg)",
+                color: "var(--cta-text)",
                 fontWeight: 700,
                 fontSize: ".9rem",
                 border: "none",
