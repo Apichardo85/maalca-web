@@ -301,21 +301,49 @@ const TLD_CSS = `
 .tld-inp:focus { background:#fff;box-shadow:0 0 0 2px rgba(0,25,60,.12); }
 /* ── Footer ── */
 .tld-footer {
+  position:relative;
   background:var(--navy-footer);color:rgba(255,255,255,.7);
   padding:clamp(3rem,6vw,5rem) clamp(1.5rem,5vw,5rem);
+  isolation:isolate;
+  overflow:hidden;
+}
+/* Flag stripe — rojo · azul · verde · gold (mini bandera tropical) */
+.tld-footer::before {
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(
+    90deg,
+    var(--s)   0%, var(--s)   25%,
+    var(--blue) 25%, var(--blue) 50%,
+    var(--t)    50%, var(--t)    75%,
+    var(--gold) 75%, var(--gold) 100%
+  );
+  z-index:2;pointer-events:none;
+}
+/* Textura sutil de La Bandera Dominicana — barely-there, lee warmth no la foto */
+.tld-footer::after {
+  content:'';position:absolute;inset:0;
+  background-image:url('/images/affiliates/tld/photos/La-Bandera-Dominicana.jpg');
+  background-size:cover;background-position:center;
+  opacity:.06;mix-blend-mode:screen;
+  z-index:-1;pointer-events:none;
 }
 .tld-footer-grid {
-  max-width:1280px;margin:0 auto;
+  max-width:1280px;margin:0 auto;position:relative;z-index:1;
   display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;
 }
 .tld-footer-link {
   font-size:.8rem;color:rgba(255,255,255,.6);text-decoration:none;
-  transition:color .15s;display:block;margin-bottom:8px;
+  transition:color .18s ease;display:block;margin-bottom:8px;
 }
-.tld-footer-link:hover { color:#fff; }
+.tld-footer-link:hover { color:var(--t); }
 .tld-footer-title {
+  position:relative;
   font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
-  color:rgba(255,255,255,.4);margin-bottom:1rem;
+  color:rgba(255,255,255,.5);margin-bottom:1rem;padding-bottom:.5rem;
+}
+.tld-footer-title::after {
+  content:'';position:absolute;bottom:0;left:0;
+  width:24px;height:2px;background:var(--t);opacity:.85;border-radius:2px;
 }
 /* ── Story section ── */
 .story-grid {
@@ -809,7 +837,7 @@ export default function HomeClient({ dishes = MOCK_DISHES }: { dishes?: MenuItem
               {HOURS.map(h => (
                 <div key={h.day} style={{ display:'flex', justifyContent:'space-between', fontSize:'.78rem', marginBottom:'6px', color:'rgba(255,255,255,.55)' }}>
                   <span>{h.day.substring(0,3)}</span>
-                  <span style={{ color: h.closed ? '#e12531' : 'rgba(255,255,255,.75)' }}>
+                  <span style={{ color: h.closed ? '#ff6b76' : 'color-mix(in srgb, var(--t) 65%, white 35%)', fontWeight: h.closed ? 500 : 400 }}>
                     {h.closed ? t.closed : h.open?.replace(' AM','').replace(' PM','')+'-'+h.close?.replace(' AM','').replace(' PM','')}
                   </span>
                 </div>
@@ -828,7 +856,7 @@ export default function HomeClient({ dishes = MOCK_DISHES }: { dishes?: MenuItem
               </div>
             </div>
           </div>
-          <div style={{ maxWidth:'1280px', margin:'2.5rem auto 0', paddingTop:'1.5rem', borderTop:'1px solid rgba(255,255,255,.08)', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'1rem' }}>
+          <div style={{ maxWidth:'1280px', margin:'2.5rem auto 0', paddingTop:'1.5rem', borderTop:'1px solid color-mix(in srgb, var(--t) 35%, transparent)', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'1rem', position:'relative', zIndex:1 }}>
             <p style={{ fontSize:'.75rem', color:'rgba(255,255,255,.35)' }}>
               © 2026 The Little Dominican
             </p>
