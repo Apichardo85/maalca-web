@@ -459,8 +459,18 @@ export const ecosystemAffiliates: Affiliate[] = [
   }
 ];
 
-// Agregar ecosystemAffiliates al array principal
-affiliates.push(...ecosystemAffiliates);
+// Merge ecosystemAffiliates into principal, dedup por id (ecosystem gana → trae dashboardEnabled)
+{
+  const merged = [...affiliates, ...ecosystemAffiliates];
+  const seen = new Set<string>();
+  const deduped = [...merged].reverse().filter(a => {
+    if (seen.has(a.id)) return false;
+    seen.add(a.id);
+    return true;
+  }).reverse();
+  affiliates.length = 0;
+  affiliates.push(...deduped);
+}
 
 export const getActiveAffiliates = () => {
   // Dedup by id (last occurrence wins = ecosystemAffiliates takes precedence)

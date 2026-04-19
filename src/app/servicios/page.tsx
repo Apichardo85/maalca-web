@@ -1,116 +1,98 @@
 "use client";
 import { Button } from "@/components/ui/buttons";
 import { useRouter } from "next/navigation";
-import { useTranslation } from "@/hooks/useSimpleLanguage";
+import { useTranslation, useSimpleLanguage } from "@/hooks/useSimpleLanguage";
+
+type Plan = {
+  id: string;
+  name: { es: string; en: string };
+  tagline: { es: string; en: string };
+  price: number; // USD monthly
+  setup: { es: string; en: string } | null;
+  highlight: boolean;
+  features: { es: string; en: string }[];
+  cta: { es: string; en: string };
+};
+
+const plans: Plan[] = [
+  {
+    id: "starter",
+    name: { es: "Starter", en: "Starter" },
+    tagline: {
+      es: "Presencia digital profesional para arrancar sin friccion.",
+      en: "Professional digital presence to get started without friction.",
+    },
+    price: 125,
+    setup: { es: "Setup unico $250", en: "One-time setup $250" },
+    highlight: false,
+    features: [
+      { es: "Landing page one-page con tu marca", en: "Branded one-page landing" },
+      { es: "Formulario de contacto + WhatsApp directo", en: "Contact form + WhatsApp direct" },
+      { es: "Hosting, dominio y SSL incluidos", en: "Hosting, domain & SSL included" },
+      { es: "Modo claro/oscuro y responsive", en: "Light/dark mode & responsive" },
+      { es: "SEO basico + Google Analytics", en: "Basic SEO + Google Analytics" },
+      { es: "Soporte por email (48h)", en: "Email support (48h)" },
+    ],
+    cta: { es: "Empezar con Starter", en: "Start with Starter" },
+  },
+  {
+    id: "growth",
+    name: { es: "Growth", en: "Growth" },
+    tagline: {
+      es: "Para negocios que venden, reservan o gestionan inventario.",
+      en: "For businesses that sell, book or manage inventory.",
+    },
+    price: 350,
+    setup: { es: "Setup unico $600", en: "One-time setup $600" },
+    highlight: true,
+    features: [
+      { es: "Todo lo del plan Starter", en: "Everything in Starter" },
+      { es: "Menu/catalogo con inventario y disponibilidad", en: "Menu/catalog with inventory & availability" },
+      { es: "Reservas o pedidos online con panel admin", en: "Online bookings or orders with admin panel" },
+      {
+        es: "Automatizaciones (email + WhatsApp) para confirmaciones y recordatorios",
+        en: "Automations (email + WhatsApp) for confirmations & reminders",
+      },
+      { es: "Dashboard multi-usuario con roles", en: "Multi-user dashboard with roles" },
+      { es: "Integracion con pasarelas de pago (Stripe)", en: "Payment gateway integration (Stripe)" },
+      { es: "Soporte prioritario (24h)", en: "Priority support (24h)" },
+    ],
+    cta: { es: "Quiero Growth", en: "Get Growth" },
+  },
+  {
+    id: "pro",
+    name: { es: "Pro", en: "Pro" },
+    tagline: {
+      es: "Operacion multi-sede con IA y flujos a medida.",
+      en: "Multi-location operation with AI and custom workflows.",
+    },
+    price: 750,
+    setup: { es: "Setup desde $1,500", en: "Setup from $1,500" },
+    highlight: false,
+    features: [
+      { es: "Todo lo del plan Growth", en: "Everything in Growth" },
+      { es: "Multi-sede / multi-afiliado con branding propio", en: "Multi-location / multi-affiliate with own branding" },
+      {
+        es: "Agentes de IA (atencion al cliente, ventas, reportes)",
+        en: "AI agents (customer service, sales, reporting)",
+      },
+      {
+        es: "Automatizaciones avanzadas en n8n (facturacion, marketing, CRM)",
+        en: "Advanced n8n automations (billing, marketing, CRM)",
+      },
+      { es: "Analitica avanzada y reportes custom", en: "Advanced analytics & custom reports" },
+      { es: "Integraciones a tu stack (ERP, contabilidad, etc.)", en: "Integrations to your stack (ERP, accounting, etc.)" },
+      { es: "Soporte dedicado (4h) + reuniones mensuales", en: "Dedicated support (4h) + monthly meetings" },
+    ],
+    cta: { es: "Hablar con ventas", en: "Talk to sales" },
+  },
+];
+
 export default function ServiciosPage() {
   const router = useRouter();
   const { t } = useTranslation();
-  // Define services — active: false to hide without deleting
-  const allServices = [
-    {
-      id: "editorial-kdp",
-      active: true,
-      icon: "📚",
-      titleKey: "services.editorial-kdp.title",
-      descriptionKey: "services.editorial-kdp.description",
-      features: [
-        "services.editorial-kdp.feature1",
-        "services.editorial-kdp.feature2",
-        "services.editorial-kdp.feature3",
-        "services.editorial-kdp.feature4",
-        "services.editorial-kdp.feature5",
-        "services.editorial-kdp.feature6"
-      ],
-      pricingKey: "services.editorial-kdp.pricing",
-      timelineKey: "services.editorial-kdp.timeline"
-    },
-    {
-      id: "fabrica-ia",
-      active: true,
-      icon: "🤖",
-      titleKey: "services.fabrica-ia.title",
-      descriptionKey: "services.fabrica-ia.description",
-      features: [
-        "services.fabrica-ia.feature1",
-        "services.fabrica-ia.feature2",
-        "services.fabrica-ia.feature3",
-        "services.fabrica-ia.feature4",
-        "services.fabrica-ia.feature5",
-        "services.fabrica-ia.feature6"
-      ],
-      pricingKey: "services.fabrica-ia.pricing",
-      timelineKey: "services.fabrica-ia.timeline"
-    },
-    {
-      id: "podcast-media",
-      active: false,
-      icon: "🎙️",
-      titleKey: "services.podcast-media.title",
-      descriptionKey: "services.podcast-media.description",
-      features: [
-        "services.podcast-media.feature1",
-        "services.podcast-media.feature2",
-        "services.podcast-media.feature3",
-        "services.podcast-media.feature4",
-        "services.podcast-media.feature5",
-        "services.podcast-media.feature6"
-      ],
-      pricingKey: "services.podcast-media.pricing",
-      timelineKey: "services.podcast-media.timeline"
-    },
-    {
-      id: "pos-ecommerce",
-      active: true,
-      icon: "💳",
-      titleKey: "services.pos-ecommerce.title",
-      descriptionKey: "services.pos-ecommerce.description",
-      features: [
-        "services.pos-ecommerce.feature1",
-        "services.pos-ecommerce.feature2",
-        "services.pos-ecommerce.feature3",
-        "services.pos-ecommerce.feature4",
-        "services.pos-ecommerce.feature5",
-        "services.pos-ecommerce.feature6"
-      ],
-      pricingKey: "services.pos-ecommerce.pricing",
-      timelineKey: "services.pos-ecommerce.timeline"
-    },
-    {
-      id: "proptech-real-estate",
-      active: false,
-      icon: "🏝️",
-      titleKey: "services.proptech.title",
-      descriptionKey: "services.proptech.description",
-      features: [
-        "services.proptech.feature1",
-        "services.proptech.feature2",
-        "services.proptech.feature3",
-        "services.proptech.feature4",
-        "services.proptech.feature5",
-        "services.proptech.feature6"
-      ],
-      pricingKey: "services.proptech.pricing",
-      timelineKey: "services.proptech.timeline"
-    },
-    {
-      id: "consultoria-integral",
-      active: true,
-      icon: "💡",
-      titleKey: "services.consultoria.title",
-      descriptionKey: "services.consultoria.description",
-      features: [
-        "services.consultoria.feature1",
-        "services.consultoria.feature2",
-        "services.consultoria.feature3",
-        "services.consultoria.feature4",
-        "services.consultoria.feature5",
-        "services.consultoria.feature6"
-      ],
-      pricingKey: "services.consultoria.pricing",
-      timelineKey: "services.consultoria.timeline"
-    }
-  ];
-  const services = allServices.filter(s => s.active);
+  const { language } = useSimpleLanguage();
+  const L = (v: { es: string; en: string }) => (language === "en" ? v.en : v.es);
   const process = [
     {
       step: "01",
@@ -167,55 +149,88 @@ export default function ServiciosPage() {
               {t('services.section.description')}
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {services.map((service, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {plans.map((plan, index) => (
               <div
-                key={service.id}
-                className="group animate-fade-in-up"
+                key={plan.id}
+                className="group animate-fade-in-up relative"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <div className="bg-surface rounded-2xl p-8 h-full border border-border hover:border-brand-primary/30 transition-all duration-300 shadow-sm hover:shadow-xl">
-                  {/* Icon */}
-                  <div className="text-4xl mb-6">{service.icon}</div>
-                  {/* Title */}
-                  <h3 className="text-xl font-bold text-text-primary mb-4 group-hover:text-brand-primary transition-colors">
-                    {t(service.titleKey)}
-                  </h3>
-                  {/* Description */}
-                  <p className="text-text-secondary mb-6 leading-relaxed">
-                    {t(service.descriptionKey)}
+                {plan.highlight && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+                    <span className="inline-block bg-brand-primary text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg uppercase tracking-wide">
+                      {language === "en" ? "Most popular" : "Mas popular"}
+                    </span>
+                  </div>
+                )}
+                <div
+                  className={`bg-surface rounded-2xl p-8 h-full border transition-all duration-300 shadow-sm hover:shadow-xl flex flex-col ${
+                    plan.highlight
+                      ? "border-brand-primary shadow-brand-primary/10"
+                      : "border-border hover:border-brand-primary/30"
+                  }`}
+                >
+                  {/* Plan name */}
+                  <div className="mb-2 text-sm font-semibold uppercase tracking-widest text-brand-primary">
+                    {L(plan.name)}
+                  </div>
+                  {/* Price */}
+                  <div className="mb-4 flex items-baseline gap-2">
+                    <span className="text-5xl font-bold text-text-primary">${plan.price}</span>
+                    <span className="text-text-muted text-sm">
+                      USD / {language === "en" ? "month" : "mes"}
+                    </span>
+                  </div>
+                  {plan.setup && (
+                    <div className="text-xs text-text-muted mb-5">{L(plan.setup)}</div>
+                  )}
+                  {/* Tagline */}
+                  <p className="text-text-secondary text-sm mb-6 leading-relaxed">
+                    {L(plan.tagline)}
                   </p>
                   {/* Features */}
-                  <ul className="space-y-2 mb-8">
-                    {service.features.map((featureKey, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm text-text-secondary">
-                        <div className="w-1.5 h-1.5 bg-brand-primary rounded-full mt-2 flex-shrink-0"></div>
-                        {t(featureKey)}
+                  <ul className="space-y-3 mb-8 flex-grow">
+                    {plan.features.map((feature, idx) => (
+                      <li
+                        key={idx}
+                        className="flex items-start gap-3 text-sm text-text-secondary"
+                      >
+                        <svg
+                          className="w-4 h-4 text-brand-primary mt-0.5 flex-shrink-0"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <span>{L(feature)}</span>
                       </li>
                     ))}
                   </ul>
-                  {/* Pricing and Timeline */}
-                  <div className="space-y-3 mb-6">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-text-muted">{t('services.investment')}</span>
-                      <span className="font-semibold text-brand-primary">{t(service.pricingKey)}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-text-muted">{t('services.timeline')}</span>
-                      <span className="font-semibold text-text-secondary">{t(service.timelineKey)}</span>
-                    </div>
-                  </div>
                   {/* CTA */}
                   <Button
-                    variant="outline"
-                    className="w-full bg-transparent border-brand-primary/20 text-brand-primary hover:bg-brand-primary hover:text-white transition-all duration-300"
+                    variant={plan.highlight ? "primary" : "outline"}
+                    className={`w-full ${
+                      plan.highlight
+                        ? "bg-brand-primary hover:bg-brand-primary-hover text-white"
+                        : "bg-transparent border-brand-primary/30 text-brand-primary hover:bg-brand-primary hover:text-white"
+                    } transition-all duration-300`}
+                    onClick={() => router.push("/contacto")}
                   >
-                    {t('services.moreInfo')}
+                    {L(plan.cta)}
                   </Button>
                 </div>
               </div>
             ))}
           </div>
+          <p className="text-center text-text-muted text-sm mt-10 max-w-2xl mx-auto">
+            {language === "en"
+              ? "All plans include hosting, SSL, regular updates and our MaalCa ecosystem integration. Custom tiers available on request."
+              : "Todos los planes incluyen hosting, SSL, actualizaciones regulares e integracion con el ecosistema MaalCa. Planes a medida disponibles bajo solicitud."}
+          </p>
         </div>
       </section>
       {/* Process Section */}
@@ -286,7 +301,7 @@ export default function ServiciosPage() {
             <Button
               variant="outline"
               size="lg"
-              className="border-text-primary text-text-primary hover:bg-text-primary hover:text-background"
+              className="border-border text-text-primary hover:bg-surface"
               onClick={() => router.push('/casos-estudio')}
             >
               {t('services.results.cta')}
@@ -315,7 +330,7 @@ export default function ServiciosPage() {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-text-primary text-text-primary hover:bg-text-primary hover:text-background"
+                className="border-border text-text-primary hover:bg-surface"
               >
                 {t('services.cta.portfolio')}
               </Button>

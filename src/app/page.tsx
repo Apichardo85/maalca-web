@@ -367,19 +367,54 @@ export default function HomePage() {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-text-primary mb-6">{t('contact.followUs')}</h3>
-                  <div className="flex space-x-6">
+                  <div className="flex gap-3">
                     {[
-                      { name: "Instagram", icon: "📷" },
-                      { name: "YouTube", icon: "📺" },
-                      { name: "Spotify", icon: "🎵" },
-                      { name: "LinkedIn", icon: "💼" }
+                      {
+                        name: "Instagram",
+                        href: "https://www.instagram.com/maalca_llc",
+                        svg: (
+                          <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                            <path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.85s0 3.6-.07 4.85c-.05 1.17-.25 1.8-.41 2.22-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.85.07s-3.6 0-4.85-.07c-1.17-.05-1.8-.25-2.22-.41a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.6 2.2 15.22 2.2 12s0-3.6.07-4.85c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.4 2.21 8.78 2.2 12 2.2Zm0 1.8c-3.17 0-3.54 0-4.78.07-1.07.05-1.65.23-2.04.38-.51.2-.88.44-1.26.82-.38.38-.62.75-.82 1.26-.15.39-.33.97-.38 2.04C2.46 8.84 2.45 9.21 2.45 12s0 3.16.07 4.4c.05 1.07.23 1.65.38 2.04.2.51.44.88.82 1.26.38.38.75.62 1.26.82.39.15.97.33 2.04.38 1.24.06 1.61.07 4.78.07s3.54 0 4.78-.07c1.07-.05 1.65-.23 2.04-.38.51-.2.88-.44 1.26-.82.38-.38.62-.75.82-1.26.15-.39.33-.97.38-2.04.06-1.24.07-1.61.07-4.4s0-3.16-.07-4.4c-.05-1.07-.23-1.65-.38-2.04a3.4 3.4 0 0 0-.82-1.26 3.4 3.4 0 0 0-1.26-.82c-.39-.15-.97-.33-2.04-.38C15.54 4 15.17 4 12 4Zm0 3.1a4.9 4.9 0 1 1 0 9.8 4.9 4.9 0 0 1 0-9.8Zm0 1.8a3.1 3.1 0 1 0 0 6.2 3.1 3.1 0 0 0 0-6.2Zm5.1-2.1a1.15 1.15 0 1 1 0 2.3 1.15 1.15 0 0 1 0-2.3Z"/>
+                          </svg>
+                        ),
+                      },
+                      {
+                        name: "YouTube",
+                        href: "#",
+                        svg: (
+                          <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                            <path d="M23.5 6.5a3 3 0 0 0-2.1-2.1C19.6 4 12 4 12 4s-7.6 0-9.4.4A3 3 0 0 0 .5 6.5C.1 8.3.1 12 .1 12s0 3.7.4 5.5a3 3 0 0 0 2.1 2.1C4.4 20 12 20 12 20s7.6 0 9.4-.4a3 3 0 0 0 2.1-2.1c.4-1.8.4-5.5.4-5.5s0-3.7-.4-5.5ZM9.75 15.5v-7l6.5 3.5-6.5 3.5Z"/>
+                          </svg>
+                        ),
+                      },
+                      {
+                        name: "Spotify",
+                        href: "#",
+                        svg: (
+                          <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                            <path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24Zm5.5 17.3a.75.75 0 0 1-1 .25c-2.8-1.7-6.3-2.1-10.5-1.1a.75.75 0 0 1-.35-1.45c4.6-1.1 8.5-.65 11.6 1.25a.75.75 0 0 1 .25 1.05Zm1.5-3.4a.94.94 0 0 1-1.3.3c-3.2-2-8.1-2.55-11.9-1.4a.94.94 0 1 1-.55-1.8c4.35-1.3 9.75-.7 13.4 1.55.45.25.6.85.35 1.35Zm.15-3.5C15.3 8 8.7 7.75 5.05 8.9a1.13 1.13 0 1 1-.65-2.15c4.2-1.3 11.5-1 15.8 1.55a1.13 1.13 0 1 1-1.15 1.95Z"/>
+                          </svg>
+                        ),
+                      },
+                      {
+                        name: "LinkedIn",
+                        href: "#",
+                        svg: (
+                          <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                            <path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9h4v12H3V9Zm6 0h3.8v1.7h.06c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.77 2.65 4.77 6.1V21h-4v-5.3c0-1.27-.03-2.9-1.77-2.9-1.77 0-2.04 1.37-2.04 2.8V21H9V9Z"/>
+                          </svg>
+                        ),
+                      },
                     ].map((social) => (
                       <a
                         key={social.name}
-                        href="#"
-                        className="w-12 h-12 bg-surface-elevated rounded-full flex items-center justify-center text-xl hover:bg-brand-primary transition-colors hover:scale-110 active:scale-90 transition-transform"
+                        href={social.href}
+                        target={social.href.startsWith('http') ? '_blank' : undefined}
+                        rel={social.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                        aria-label={social.name}
+                        className="w-11 h-11 bg-surface-elevated border border-border rounded-full flex items-center justify-center text-text-secondary hover:text-white hover:bg-brand-primary hover:border-brand-primary transition-all duration-200 hover:scale-110 active:scale-95"
                       >
-                        {social.icon}
+                        {social.svg}
                       </a>
                     ))}
                   </div>

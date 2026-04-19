@@ -130,23 +130,23 @@ export default function EcosistemaPage() {
       <section className="py-16 md:py-24 bg-surface relative overflow-hidden grain">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="animate-fade-in-up">
-            <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6">
+            <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-text-primary mb-6">
               {t('ecosystem.hero.title')}
               <span className="block text-brand-primary">{t('ecosystem.hero.subtitle')}</span>
             </h1>
-            <p className="text-lg lg:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8">
+            <p className="text-lg lg:text-xl text-text-secondary max-w-3xl mx-auto leading-relaxed mb-8">
               {t('ecosystem.hero.description')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <div className="text-sm text-gray-400">
+              <div className="text-sm text-text-muted">
                 <span className="font-medium">{translatedProjects.length}</span> {t('ecosystem.stats.projects')}
               </div>
-              <div className="hidden sm:block text-gray-400">•</div>
-              <div className="text-sm text-gray-400">
+              <div className="hidden sm:block text-text-muted">•</div>
+              <div className="text-sm text-text-muted">
                 <span className="font-medium">{new Set(translatedProjects.map(p => p.categoryKey)).size}</span> {t('ecosystem.stats.verticals')}
               </div>
-              <div className="hidden sm:block text-gray-400">•</div>
-              <div className="text-sm text-gray-400">
+              <div className="hidden sm:block text-text-muted">•</div>
+              <div className="text-sm text-text-muted">
                 {t('ecosystem.stats.founded')} <span className="font-medium">2020</span>
               </div>
             </div>
@@ -179,33 +179,33 @@ export default function EcosistemaPage() {
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(t(project.statusKey))}`}>
                         {t(project.statusKey)}
                       </span>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-text-muted">
                         {t('ecosystem.launched')} {project.launched}
                       </span>
                     </div>
                     {/* Title and Category Badge */}
                     <div className="mb-4">
-                      <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-brand-primary transition-colors">
+                      <h3 className="text-2xl font-bold text-text-primary mb-2 group-hover:text-brand-primary transition-colors">
                         {t(project.titleKey)}
                       </h3>
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
                         project.color === 'red'
                           ? 'bg-brand-primary/20 text-brand-primary border border-brand-primary/30'
-                          : 'bg-surface-elevated text-gray-300 border border-border'
+                          : 'bg-background text-text-secondary border border-border'
                       }`}>
                         {t(project.categoryKey)}
                       </span>
                     </div>
                     {/* Description */}
-                    <p className="text-gray-300 leading-relaxed mb-6">
+                    <p className="text-text-secondary leading-relaxed mb-6">
                       {t(project.descriptionKey)}
                     </p>
                     {/* Key Features */}
                     <div className="mb-6">
-                      <h4 className="text-sm font-semibold text-white mb-3">{t('ecosystem.keyFeatures')}</h4>
+                      <h4 className="text-sm font-semibold text-text-primary mb-3">{t('ecosystem.keyFeatures')}</h4>
                       <ul className="space-y-2">
                         {project.detailKeys.map((detailKey, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm text-gray-300">
+                          <li key={idx} className="flex items-start gap-2 text-sm text-text-secondary">
                             <div className="w-1.5 h-1.5 bg-brand-primary rounded-full mt-2 flex-shrink-0"></div>
                             {t(detailKey)}
                           </li>
@@ -222,7 +222,7 @@ export default function EcosistemaPage() {
                     {/* CTA */}
                     <Button
                       variant="outline"
-                      className="w-full bg-transparent border-brand-primary/20 text-brand-primary hover:bg-brand-primary hover:text-white transition-all duration-300"
+                      className="w-full bg-transparent border-brand-primary/20 text-brand-primary hover:bg-brand-primary hover:text-text-primary transition-all duration-300"
                       onClick={() => handleProjectClick(project.href)}
                     >
                       {t('ecosystem.exploreProject')} {t(project.titleKey)}
@@ -239,10 +239,10 @@ export default function EcosistemaPage() {
       <section className="py-16 md:py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 animate-fade-in-up">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-4">
               Obras de <span className="text-brand-primary">CiriWhispers</span>
             </h2>
-            <p className="text-gray-300 max-w-2xl mx-auto">
+            <p className="text-text-secondary max-w-2xl mx-auto">
               Narrativa, poesía y crónicas desde República Dominicana hacia el mundo.
             </p>
           </div>
@@ -255,7 +255,7 @@ export default function EcosistemaPage() {
               >
                 <Link href={`/ciriwhispers/obras/${book.id}`}>
                   <div className="bg-surface-elevated rounded-xl overflow-hidden border border-border hover:border-brand-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-brand-primary/10">
-                    <div className="aspect-[2/3] overflow-hidden bg-gray-900">
+                    <div className="aspect-[2/3] overflow-hidden bg-surface">
                       <img
                         src={book.cover}
                         alt={book.title}
@@ -266,16 +266,16 @@ export default function EcosistemaPage() {
                       />
                     </div>
                     <div className="p-3">
-                      <h4 className="text-sm font-semibold text-white mb-1 leading-tight group-hover:text-brand-primary transition-colors line-clamp-2">
+                      <h4 className="text-sm font-semibold text-text-primary mb-1 leading-tight group-hover:text-brand-primary transition-colors line-clamp-2">
                         {book.title}
                       </h4>
-                      <p className="text-xs text-gray-400 mb-2">{book.year}</p>
+                      <p className="text-xs text-text-muted mb-2">{book.year}</p>
                       <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
                         book.statusKey.includes('available')
                           ? 'bg-green-900/40 text-green-400 border border-green-700/30'
                           : book.statusKey.includes('inProgress')
                             ? 'bg-blue-900/40 text-blue-400 border border-blue-700/30'
-                            : 'bg-gray-800 text-gray-400 border border-gray-700/30'
+                            : 'bg-surface text-text-muted border border-border'
                       }`}>
                         {book.statusKey.includes('available') ? 'Disponible' : book.statusKey.includes('inProgress') ? 'En proceso' : 'En desarrollo'}
                       </span>
@@ -289,7 +289,7 @@ export default function EcosistemaPage() {
             <Link href="/ciriwhispers/obras">
               <Button
                 variant="outline"
-                className="border-brand-primary/30 text-brand-primary hover:bg-brand-primary hover:text-white transition-all"
+                className="border-brand-primary/30 text-brand-primary hover:bg-brand-primary hover:text-text-primary transition-all"
               >
                 Ver todas las obras →
               </Button>
@@ -301,10 +301,10 @@ export default function EcosistemaPage() {
       <section className="py-16 md:py-24 bg-surface-elevated">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="animate-fade-in-up">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-6">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-6">
               {t('ecosystem.cta.title')}
             </h2>
-            <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-text-secondary mb-8 max-w-2xl mx-auto">
               {t('ecosystem.cta.description')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -319,7 +319,7 @@ export default function EcosistemaPage() {
               <Button
                 variant="outline"
                 size="lg"
-                className="border-text-primary text-white hover:bg-text-primary hover:text-background"
+                className="border-border text-text-primary hover:bg-surface"
                 onClick={() => handleProjectClick("/servicios")}
               >
                 {t('ecosystem.cta.services')}

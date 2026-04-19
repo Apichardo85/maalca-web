@@ -1,9 +1,26 @@
 "use client";
 import { Button } from "@/components/ui/buttons";
 import { ProjectImage } from "@/components/ui/ProjectImage";
-const caseStudies = [
+
+type Trend = "up" | "down";
+type CaseStudy = {
+  id: string;
+  active: boolean;
+  title: string;
+  category: string;
+  challenge: string;
+  solution: string;
+  results: Record<string, string>;
+  metrics: { label: string; value: string; trend: Trend }[];
+  image: string;
+  testimonial: { text: string; author: string };
+  technologies: string[];
+};
+
+const allCaseStudies: CaseStudy[] = [
   {
     id: "editorial-maalca-case",
+    active: true,
     title: "Editorial MaalCa: Filosofía Digital Global",
     category: "Editorial + KDP",
     challenge: "Crear una editorial que pudiera competir globalmente desde República Dominicana",
@@ -29,6 +46,7 @@ const caseStudies = [
   },
   {
     id: "ciriwhispers-case",
+    active: true,
     title: "CiriWhispers: Narrativas Íntimas Digitales",
     category: "Autor + Escritor Creativo",
     challenge: "Crear conexiones auténticas en un mundo digital saturado",
@@ -54,6 +72,7 @@ const caseStudies = [
   },
   {
     id: "masa-tina-case",
+    active: true,
     title: "Cocina Tina: Gastronomía Digital Dominicana",
     category: "Catálogo + POS + Stripe",
     challenge: "Digitalizar experiencias gastronómicas tradicionales dominicanas",
@@ -79,6 +98,7 @@ const caseStudies = [
   },
   {
     id: "hbm-podcast-case",
+    active: true,
     title: "Hablando Mierda: Filosofía Sin Filtros",
     category: "Podcast + Media",
     challenge: "Crear contenido auténtico que resonara con audiencias diversas",
@@ -104,6 +124,7 @@ const caseStudies = [
   },
   {
     id: "verde-prive-case",
+    active: false, // Proyecto en desarrollo — no verificable aun
     title: "Verde Privé: Cannabis Premium Discreto",
     category: "Cannabis + Lifestyle",
     challenge: "Crear una marca premium de cannabis con máxima discreción y calidad",
@@ -129,6 +150,7 @@ const caseStudies = [
   },
   {
     id: "maalca-properties-case",
+    active: false, // Metricas sin verificar (25+ propiedades / 18% ROI) — desactivado hasta validar
     title: "MaalCa Properties: Inversión Turística Global",
     category: "Turismo + Real Estate",
     challenge: "Conectar inversores globales con propiedades turísticas dominicanas",
@@ -153,13 +175,13 @@ const caseStudies = [
     technologies: ["Property Management", "International Marketing", "ROI Analytics", "Client Relations"]
   }
 ];
+const caseStudies = allCaseStudies.filter((c) => c.active);
+
 export default function CasosEstudioPage() {
-  const getTrendIcon = (trend: "up" | "down") => {
-    return trend === "up" ? "↗️" : "↙️";
-  };
-  const getTrendColor = (trend: "up" | "down") => {
-    return trend === "up" ? "text-green-600" : "text-blue-600";
-  };
+  const getTrendIcon = (trend: Trend) => (trend === "up" ? "↗️" : "↙️");
+  const getTrendColor = (trend: Trend) =>
+    trend === "up" ? "text-green-600" : "text-blue-600";
+  const verticalCount = new Set(caseStudies.map((c) => c.category)).size;
   return (
     <main className="min-h-screen bg-background text-foreground pt-20">
       {/* Hero Section */}
@@ -176,11 +198,11 @@ export default function CasosEstudioPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <div className="text-sm text-text-muted">
-                <span className="font-medium">6</span> Casos Analizados
+                <span className="font-medium">{caseStudies.length}</span> Casos Analizados
               </div>
               <div className="hidden sm:block text-text-muted">•</div>
               <div className="text-sm text-text-muted">
-                <span className="font-medium">4</span> Verticales de Negocio
+                <span className="font-medium">{verticalCount}</span> Verticales de Negocio
               </div>
               <div className="hidden sm:block text-text-muted">•</div>
               <div className="text-sm text-text-muted">
