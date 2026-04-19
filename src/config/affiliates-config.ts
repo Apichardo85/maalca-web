@@ -236,6 +236,8 @@ export interface AffiliateConfig {
   businessType: BusinessType;
   /** Plan comercial contratado — determina qué módulos y límites aplica. Default: 'growth'. */
   plan?: Plan;
+  /** Si está en false, el afiliado queda oculto: getAffiliateConfig devuelve null y las rutas dan 404. Default: true. */
+  active?: boolean;
   terminology: ModuleTerminology;
   branding: {
     primaryColor: string;      // Tailwind color class (e.g., "red-600", "blue-600")
@@ -288,7 +290,7 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
   "pegote-barbershop": {
     id: "pegote-barbershop",
     businessType: "barbershop",
-    plan: "pro", // queue/salon requieren Pro
+    plan: "starter",
     terminology: {},
     branding: {
       primaryColor: "blue-600",
@@ -331,6 +333,7 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
     id: "britocolor",
     businessType: "retail",
     plan: "growth",
+    active: false,
     terminology: { ecommerce: "Servicios", inventory: "Materiales" },
     branding: {
       primaryColor: "orange-600",
@@ -372,7 +375,7 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
   "masa-tina": {
     id: "masa-tina",
     businessType: "restaurant",
-    plan: "growth",
+    plan: "pro",
     terminology: { appointments: "Reservas de Catering" },
     branding: {
       primaryColor: "green-600",
@@ -414,7 +417,7 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
   "dr-pichardo": {
     id: "dr-pichardo",
     businessType: "health",
-    plan: "starter",
+    plan: "growth",
     terminology: { invoicing: "Donaciones" },
     branding: {
       primaryColor: "blue-600",
@@ -521,6 +524,7 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
   },
 
   "hablando-mierda": {
+    active: false,
     id: "hablando-mierda",
     businessType: "media",
     plan: "growth",
@@ -567,7 +571,10 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
  * Obtiene la configuración de un afiliado por su ID
  */
 export function getAffiliateConfig(affiliateId: string): AffiliateConfig | null {
-  return affiliatesConfig[affiliateId] || null;
+  const cfg = affiliatesConfig[affiliateId];
+  if (!cfg) return null;
+  if (cfg.active === false) return null;
+  return cfg;
 }
 
 /**

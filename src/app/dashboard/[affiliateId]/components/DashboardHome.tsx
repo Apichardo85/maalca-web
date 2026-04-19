@@ -18,7 +18,7 @@
 
 import Link from "next/link";
 import { useAffiliate } from "@/contexts/AffiliateContext";
-import type { BusinessType } from "@/config/affiliates-config";
+import { PLAN_META, type BusinessType } from "@/config/affiliates-config";
 import { useAffiliateNavigation } from "@/hooks/useAffiliateNavigation";
 import {
   LineChart,
@@ -40,6 +40,7 @@ interface Kpi {
   deltaTone?: "up" | "down" | "neutral";
   icon: string;
   hint?: string;                       // subtítulo pequeño ("vs ayer", "mesas activas")
+  module?: string;                     // se oculta si hasModule(module) === false
 }
 
 interface QuickAction {
@@ -204,7 +205,7 @@ function PulseDot({ tone }: { tone: LivePerson["tone"] }) {
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export function DashboardHome() {
-  const { config, brandName, businessType, hasModule } = useAffiliate();
+  const { config, brandName, businessType, hasModule, plan } = useAffiliate();
   const { getModuleUrl } = useAffiliateNavigation();
 
   // Pick mock by businessType; if not available, show a polite fallback
@@ -245,7 +246,15 @@ export function DashboardHome() {
     (a) => !a.module || hasModule(a.module as Parameters<typeof hasModule>[0])
   );
 
-  const showAlerts = data.alerts.length > 0;
+  // Filter KPIs and alerts by plan-gated modules
+  const visibleKpis = data.kpis.filter(
+    (k) => !k.module || hasModule(k.module as Parameters<typeof hasModule>[0])
+  );
+  const visibleAlerts = data.alerts.filter(
+    (a) => !a.module || hasModule(a.module as Parameters<typeof hasModule>[0])
+  );
+
+  const showAlerts = visibleAlerts.length > 0;
   const showLive = data.live && hasModule(data.live.enabledVia as Parameters<typeof hasModule>[0]);
   const showTop =
     data.topItems && hasModule(data.topItems.enabledVia as Parameters<typeof hasModule>[0]);
@@ -288,16 +297,25 @@ export function DashboardHome() {
               </span>
               En vivo
             </span>
+            <Link
+              href="/servicios"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:text-brand-primary transition-colors"
+              title="Ver planes / upgrade"
+            >
+              {PLAN_META[plan].label}
+            </Link>
           </div>
         </div>
       </header>
 
       {/* ─── KPIs ────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {data.kpis.map((kpi, i) => (
-          <KpiCard key={kpi.label} kpi={kpi} index={i} />
-        ))}
-      </div>
+      {visibleKpis.length > 0 && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {visibleKpis.map((kpi, i) => (
+            <KpiCard key={kpi.label} kpi={kpi} index={i} />
+          ))}
+        </div>
+      )}
 
       {/* ─── Quick actions ──────────────────────────────────────────────── */}
       {visibleActions.length > 0 && (
@@ -337,11 +355,11 @@ export function DashboardHome() {
           {showAlerts && (
             <SectionCard
               title="Atención requerida"
-              subtitle={`${data.alerts.length} ${data.alerts.length === 1 ? "alerta" : "alertas"} pendiente${data.alerts.length === 1 ? "" : "s"}`}
+              subtitle={`${visibleAlerts.length} ${visibleAlerts.length === 1 ? "alerta" : "alertas"} pendiente${visibleAlerts.length === 1 ? "" : "s"}`}
               icon="⚠️"
             >
               <ul className="space-y-3">
-                {data.alerts.map((alert, i) => {
+                {visibleAlerts.map((alert, i) => {
                   const tone =
                     alert.tone === "critical"
                       ? "border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/20"
@@ -563,6 +581,7 @@ const MOCK_BY_TYPE: Partial<Record<BusinessType, MockHomeData>> = {
         deltaTone: "neutral",
         icon: "🍽️",
         hint: "en cocina o servidas",
+        module: "orders",
       },
       {
         label: "Ticket promedio",
@@ -579,6 +598,7 @@ const MOCK_BY_TYPE: Partial<Record<BusinessType, MockHomeData>> = {
         deltaTone: "neutral",
         icon: "📅",
         hint: "2 para cena",
+        module: "appointments",
       },
     ],
     quickActions: [
