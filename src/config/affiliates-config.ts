@@ -17,6 +17,87 @@ export type ModuleKey = keyof AffiliateConfig['modules'];
 
 export type ModuleTerminology = Partial<Record<ModuleKey, string>>;
 
+// ─── Commercial plans (ver /servicios) ──────────────────────────────────────
+
+export type Plan = 'starter' | 'growth' | 'pro' | 'enterprise';
+
+export interface PlanMeta {
+  label: string;
+  priceMonthly: number | null; // null = custom / enterprise
+  setupFee: number | null;
+  tier: number;                // 1..4 — util para comparar
+  color: string;               // tailwind-ish hint para badges
+}
+
+export const PLAN_META: Record<Plan, PlanMeta> = {
+  starter:    { label: 'Starter',    priceMonthly: 125,  setupFee: 250,  tier: 1, color: 'gray'   },
+  growth:     { label: 'Growth',     priceMonthly: 350,  setupFee: 600,  tier: 2, color: 'blue'   },
+  pro:        { label: 'Pro',        priceMonthly: 750,  setupFee: 2500, tier: 3, color: 'purple' },
+  enterprise: { label: 'Enterprise', priceMonthly: null, setupFee: null, tier: 4, color: 'amber'  },
+};
+
+/**
+ * Módulos incluidos en cada plan (cumulativo: cada tier hereda el anterior).
+ * - Starter: presencia + menu/catalogo limitado + QR + analytics básicos + CRM lite
+ * - Growth:  + reservas/pedidos, inventario, automatizaciones, Stripe, multi-user
+ * - Pro:     + multi-sede, BI, IA, ERP
+ * - Enterprise: todo + custom
+ */
+export const PLAN_MODULES: Record<Plan, ModuleKey[]> = {
+  starter:    ['metrics', 'menu', 'qrCodes', 'customers'],
+  growth:     [
+    'metrics', 'menu', 'qrCodes', 'customers',
+    'orders', 'appointments', 'inventory', 'invoicing',
+    'campaigns', 'team', 'giftcards', 'ecommerce',
+  ],
+  pro:        [
+    'metrics', 'menu', 'qrCodes', 'customers',
+    'orders', 'appointments', 'inventory', 'invoicing',
+    'campaigns', 'team', 'giftcards', 'ecommerce',
+    'reports', 'salon', 'queue',
+  ],
+  enterprise: [
+    'metrics', 'campaigns', 'customers', 'ecommerce', 'appointments',
+    'inventory', 'invoicing', 'team', 'queue', 'salon',
+    'giftcards', 'reports', 'menu', 'orders', 'qrCodes',
+  ],
+};
+
+/**
+ * Límites cuantitativos por plan — se aplican dentro de cada módulo.
+ * `null` = sin límite.
+ */
+export interface PlanLimits {
+  maxMenuItems: number | null;
+  maxUsers: number | null;
+  maxLocations: number | null;
+  aiAgents: boolean;
+  advancedAutomations: boolean;
+  erpIntegrations: boolean;
+  prioritySupportHours: number | null; // SLA en horas (null = sin SLA)
+}
+
+export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
+  starter:    { maxMenuItems: 30,   maxUsers: 1,    maxLocations: 1,    aiAgents: false, advancedAutomations: false, erpIntegrations: false, prioritySupportHours: 48 },
+  growth:     { maxMenuItems: null, maxUsers: 5,    maxLocations: 1,    aiAgents: false, advancedAutomations: true,  erpIntegrations: false, prioritySupportHours: 24 },
+  pro:        { maxMenuItems: null, maxUsers: null, maxLocations: null, aiAgents: true,  advancedAutomations: true,  erpIntegrations: true,  prioritySupportHours: 4  },
+  enterprise: { maxMenuItems: null, maxUsers: null, maxLocations: null, aiAgents: true,  advancedAutomations: true,  erpIntegrations: true,  prioritySupportHours: 2  },
+};
+
+/** ¿Un módulo está incluido en el plan? */
+export function isModuleInPlan(plan: Plan, module: ModuleKey): boolean {
+  return PLAN_MODULES[plan].includes(module);
+}
+
+/** Mínimo plan requerido para un módulo (para badges "Requiere Growth/Pro"). */
+export function getMinPlanForModule(module: ModuleKey): Plan {
+  const order: Plan[] = ['starter', 'growth', 'pro', 'enterprise'];
+  for (const p of order) {
+    if (PLAN_MODULES[p].includes(module)) return p;
+  }
+  return 'enterprise';
+}
+
 // ─── Contact & hours (tarjeta de negocios + menu por periodo) ───────────────
 
 import type { MealPeriod } from "@/lib/types/catalog.types";
@@ -153,6 +234,8 @@ export interface AffiliatePalette {
 export interface AffiliateConfig {
   id: string;
   businessType: BusinessType;
+  /** Plan comercial contratado — determina qué módulos y límites aplica. Default: 'growth'. */
+  plan?: Plan;
   terminology: ModuleTerminology;
   branding: {
     primaryColor: string;      // Tailwind color class (e.g., "red-600", "blue-600")
@@ -205,6 +288,7 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
   "pegote-barbershop": {
     id: "pegote-barbershop",
     businessType: "barbershop",
+    plan: "pro", // queue/salon requieren Pro
     terminology: {},
     branding: {
       primaryColor: "blue-600",
@@ -246,6 +330,7 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
   "britocolor": {
     id: "britocolor",
     businessType: "retail",
+    plan: "growth",
     terminology: { ecommerce: "Servicios", inventory: "Materiales" },
     branding: {
       primaryColor: "orange-600",
@@ -287,6 +372,7 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
   "masa-tina": {
     id: "masa-tina",
     businessType: "restaurant",
+    plan: "growth",
     terminology: { appointments: "Reservas de Catering" },
     branding: {
       primaryColor: "green-600",
@@ -328,6 +414,7 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
   "dr-pichardo": {
     id: "dr-pichardo",
     businessType: "health",
+    plan: "starter",
     terminology: { invoicing: "Donaciones" },
     branding: {
       primaryColor: "blue-600",
@@ -369,6 +456,7 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
   "the-little-dominican": {
     id: "the-little-dominican",
     businessType: "restaurant",
+    plan: "growth", // menu + orders + inventory + QR + invoicing — todo incluido en Growth
     terminology: {},
     contact: {
       phone: "+16078574226",
@@ -435,6 +523,7 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
   "hablando-mierda": {
     id: "hablando-mierda",
     businessType: "media",
+    plan: "growth",
     terminology: { inventory: "Merch Inventory" },
     branding: {
       primaryColor: "purple-600",
@@ -537,4 +626,29 @@ export function affiliateHasAnalytics(config: AffiliateConfig): boolean {
  */
 export function affiliateHasWorkspace(config: AffiliateConfig): boolean {
   return config.modules.queue || config.modules.salon;
+}
+
+// ─── Plan helpers ───────────────────────────────────────────────────────────
+
+/** Plan del afiliado con fallback a 'growth' si no está definido. */
+export function getAffiliatePlan(config: AffiliateConfig | null | undefined): Plan {
+  return config?.plan ?? 'growth';
+}
+
+/** Límites cuantitativos del afiliado según su plan. */
+export function getAffiliateLimits(config: AffiliateConfig | null | undefined): PlanLimits {
+  return PLAN_LIMITS[getAffiliatePlan(config)];
+}
+
+/**
+ * ¿Puede el afiliado acceder a este módulo?
+ * Requiere BOTH: módulo habilitado en la config AND módulo incluido en el plan.
+ */
+export function affiliateCanUseModule(
+  config: AffiliateConfig | null | undefined,
+  module: ModuleKey
+): boolean {
+  if (!config) return false;
+  if (!config.modules[module]) return false;
+  return isModuleInPlan(getAffiliatePlan(config), module);
 }

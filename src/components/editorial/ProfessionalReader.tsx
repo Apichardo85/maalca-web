@@ -1,5 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
+import ShareButton from "./ShareButton";
+import { useTranslation } from "@/hooks/useSimpleLanguage";
 interface ProfessionalReaderProps {
   articleId: string;
   title: string;
@@ -16,6 +18,7 @@ export default function ProfessionalReader({
 }: ProfessionalReaderProps) {
   const [fontSize, setFontSize] = useState<'small' | 'medium' | 'large'>('medium');
   const [isVisible, setIsVisible] = useState(false);
+  const { language } = useTranslation();
   useEffect(() => {
     // Trigger enter animation on mount
     requestAnimationFrame(() => setIsVisible(true));
@@ -81,6 +84,15 @@ export default function ProfessionalReader({
             >
               A
             </button>
+          </div>
+          {/* Share Button */}
+          <div className="mr-3">
+            <ShareButton
+              articleId={articleId}
+              title={title}
+              lang={language === 'en' ? 'en' : 'es'}
+              variant="pill"
+            />
           </div>
           {/* Close Button */}
           <button

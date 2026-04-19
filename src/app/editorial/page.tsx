@@ -1,9 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/buttons";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
 import ProfessionalReader from "@/components/editorial/ProfessionalReader";
+import ShareButton from "@/components/editorial/ShareButton";
 import { editorialArticles } from "@/data/editorialContent";
 // Article metadata (translation keys will be used for title/excerpt)
 const articlesData = [
@@ -93,6 +94,15 @@ export default function EditorialPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const { trackArticleClick } = useAnalytics('editorial');
+  // Deep-link: open reader automatically if URL has ?article=<id>
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const articleParam = params.get('article');
+    if (articleParam && articlesData.some(a => a.id === articleParam)) {
+      setSelectedArticle(articleParam);
+    }
+  }, []);
   // Transform articles data with translations
   const articles = articlesData.map(article => ({
     ...article,
@@ -199,15 +209,23 @@ export default function EditorialPage() {
                       {article.excerpt}
                     </p>
                     {/* Meta Info */}
-                    <div className="flex items-center justify-between text-sm text-gray-400">
-                      <span>{article.author}</span>
-                      <time dateTime={article.publishDate}>
-                        {new Date(article.publishDate).toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </time>
+                    <div className="flex items-center justify-between text-sm text-gray-400 gap-3">
+                      <span className="truncate">{article.author}</span>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <time dateTime={article.publishDate}>
+                          {new Date(article.publishDate).toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </time>
+                        <ShareButton
+                          articleId={article.id}
+                          title={article.title}
+                          excerpt={article.excerpt}
+                          lang={language === 'en' ? 'en' : 'es'}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -280,11 +298,17 @@ export default function EditorialPage() {
                     ))}
                   </div>
                   {/* Meta */}
-                  <div className="flex items-center justify-between text-xs text-gray-400 pt-3 border-t border-border">
-                    <span>{article.readTime} {t('editorial.readTime')}</span>
-                    <time dateTime={article.publishDate}>
+                  <div className="flex items-center justify-between text-xs text-gray-400 pt-3 border-t border-border gap-2">
+                    <span className="shrink-0">{article.readTime} {t('editorial.readTime')}</span>
+                    <time dateTime={article.publishDate} className="truncate">
                       {new Date(article.publishDate).toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US')}
                     </time>
+                    <ShareButton
+                      articleId={article.id}
+                      title={article.title}
+                      excerpt={article.excerpt}
+                      lang={language === 'en' ? 'en' : 'es'}
+                    />
                   </div>
                 </div>
               </article>

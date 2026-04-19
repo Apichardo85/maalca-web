@@ -11,11 +11,11 @@
   --surface: #ffffff;
   --surface-elevated: #f8f9fa;
   --surface-muted: #f1f3f4;
-  --text-primary: #1a1a1a;
-  --text-secondary: #6b7280;
-  --text-muted: #9ca3af;
-  --border: #e5e7eb;
-  --border-muted: #f3f4f6;
+  --text-primary: #0f1419;       /* was #1a1a1a */
+  --text-secondary: #374151;     /* was #6b7280 — ahora ~10:1 en white, 7:1 en #f8f9fa */
+  --text-muted: #6b7280;         /* was #9ca3af — ahora 5:1 en white (antes 3:1) */
+  --border: #d1d5db;             /* was #e5e7eb — visible en white */
+  --border-muted: #e5e7eb;       /* was #f3f4f6 */
   
   /* Brand colors */
   --brand-primary: #dc2626;

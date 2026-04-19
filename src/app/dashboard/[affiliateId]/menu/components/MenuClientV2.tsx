@@ -425,6 +425,8 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
 
   // Edit modal state
   const [editUrl, setEditUrl] = useState("");
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
   const [editPrice, setEditPrice] = useState(0);
   const [editPeriods, setEditPeriods] = useState<MealPeriod[]>([]);
   const [editToggles, setEditToggles] = useState({
@@ -435,6 +437,8 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
 
   const openEdit = (item: MenuItem) => {
     setEditUrl(images[item.id] ?? "");
+    setEditName(item.name ?? "");
+    setEditDescription(item.description ?? "");
     setEditPrice(prices[item.id] ?? item.price);
     setEditPeriods(itemPeriods[item.id] ?? []);
     setEditToggles({
@@ -447,6 +451,11 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
 
   const handleSaveEdit = async () => {
     if (!editItem) return;
+    const trimmedName = editName.trim();
+    if (!trimmedName) {
+      alert("El nombre no puede estar vacío.");
+      return;
+    }
     setSaving(true);
     // Snapshot previous values for rollback
     const prev = {
@@ -456,7 +465,10 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
       popular: isPopular[editItem.id],
       featured: isFeatured[editItem.id],
       periods: itemPeriods[editItem.id],
+      name: editItem.name,
+      description: editItem.description,
     };
+    const trimmedDescription = editDescription.trim();
     // Optimistic update
     setImages((p) => ({ ...p, [editItem.id]: editUrl }));
     setPrices((p) => ({ ...p, [editItem.id]: editPrice }));
@@ -464,9 +476,18 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
     setPopular((p) => ({ ...p, [editItem.id]: editToggles.popular }));
     setFeatured((p) => ({ ...p, [editItem.id]: editToggles.featured }));
     setItemPeriods((p) => ({ ...p, [editItem.id]: editPeriods }));
+    setDishes((ds) =>
+      ds.map((d) =>
+        d.id === editItem.id
+          ? { ...d, name: trimmedName, description: trimmedDescription }
+          : d
+      )
+    );
 
     try {
       await patchDish(editItem.id, {
+        name: trimmedName,
+        description: trimmedDescription || null,
         image_url: editUrl,
         price: editPrice,
         available: editToggles.available,
@@ -483,6 +504,13 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
       setPopular((p) => ({ ...p, [editItem.id]: prev.popular }));
       setFeatured((p) => ({ ...p, [editItem.id]: prev.featured }));
       setItemPeriods((p) => ({ ...p, [editItem.id]: prev.periods }));
+      setDishes((ds) =>
+        ds.map((d) =>
+          d.id === editItem.id
+            ? { ...d, name: prev.name, description: prev.description }
+            : d
+        )
+      );
       alert(`No se pudo guardar: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setSaving(false);
@@ -884,6 +912,34 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
                 onChange={(e) => setEditUrl(e.target.value)}
                 placeholder="...o pega una URL"
                 className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Nombre */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                Nombre <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Ej: Sancocho dominicano"
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Descripción */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                Descripción corta
+              </label>
+              <textarea
+                rows={2}
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                placeholder="Qué trae, cómo se sirve..."
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               />
             </div>
 
