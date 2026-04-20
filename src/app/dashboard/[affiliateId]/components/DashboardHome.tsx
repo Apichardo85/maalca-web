@@ -202,6 +202,98 @@ function PulseDot({ tone }: { tone: LivePerson["tone"] }) {
   );
 }
 
+// ─── Fallback shell (verticales sin mock) ───────────────────────────────────
+
+function FallbackShell() {
+  const { brandName, config, plan } = useAffiliate();
+  const { navGroups } = useAffiliateNavigation();
+
+  // Solo módulos realmente disponibles (el hook ya los filtra por plan).
+  const openItems = navGroups.flatMap((g) => g.items.filter((i) => !i.locked));
+
+  const now = new Date();
+  const hours = now.getHours();
+  const greeting =
+    hours < 12 ? "Buen día" : hours < 19 ? "Buenas tardes" : "Buenas noches";
+  const dateLabel = now.toLocaleDateString("es-DO", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+
+  return (
+    <div className="space-y-6">
+      <header className="relative overflow-hidden rounded-2xl border border-gray-200/70 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+        <div
+          className="absolute inset-0 opacity-[0.07]"
+          style={{
+            background:
+              "radial-gradient(ellipse at top right, var(--brand-primary), transparent 60%)",
+          }}
+        />
+        <div className="relative px-6 py-6 sm:py-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-gray-500">
+              {greeting} · {dateLabel}
+            </p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mt-1">
+              {brandName}
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              {config?.branding.description}
+            </p>
+          </div>
+          <Link
+            href="/servicios"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:text-brand-primary transition-colors shrink-0"
+            title="Ver planes / upgrade"
+          >
+            Plan {PLAN_META[plan].label}
+          </Link>
+        </div>
+      </header>
+
+      {openItems.length > 0 ? (
+        <SectionCard title="Accesos rápidos" subtitle="Los módulos incluidos en tu plan" icon="⚡">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {openItems.map((item) => (
+              <Link
+                key={item.url}
+                href={item.url}
+                className="group flex flex-col items-start gap-2 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/60 dark:bg-gray-800/30 hover:bg-white dark:hover:bg-gray-800 hover:shadow-md hover:-translate-y-0.5 transition-all"
+                style={{
+                  borderColor: "color-mix(in srgb, var(--brand-light) 30%, transparent)",
+                }}
+              >
+                <span className="text-2xl">{item.icon}</span>
+                <span className="font-semibold text-sm text-gray-900 dark:text-white">
+                  {item.name}
+                </span>
+                <span
+                  className="text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ color: "var(--brand-primary)" }}
+                >
+                  Abrir →
+                </span>
+              </Link>
+            ))}
+          </div>
+        </SectionCard>
+      ) : (
+        <SectionCard title="Tu plan" icon="💎">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Tu plan <strong>{PLAN_META[plan].label}</strong> no tiene módulos configurados todavía.{" "}
+            <Link href="/contacto" className="underline hover:text-brand-primary">
+              Contactanos
+            </Link>{" "}
+            para activarlos.
+          </p>
+        </SectionCard>
+      )}
+    </div>
+  );
+}
+
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export function DashboardHome() {
@@ -222,23 +314,9 @@ export function DashboardHome() {
   });
 
   if (!data) {
-    // Placeholder inofensivo para verticales sin mock aún
-    return (
-      <div className="max-w-3xl">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          {brandName}
-        </h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-2">
-          {config?.branding.description}
-        </p>
-        <div className="mt-6 p-6 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            🚧 La vista de inicio para esta vertical (<strong>{businessType}</strong>) todavía
-            está en construcción. Mientras tanto, usa el menú lateral para navegar los módulos.
-          </p>
-        </div>
-      </div>
-    );
+    // Shell coherente para verticales sin mock aún: hero + plan badge + accesos rápidos
+    // a los módulos que SÍ tiene el afiliado (no el catálogo completo con candados).
+    return <FallbackShell />;
   }
 
   // Filter quick actions by enabled modules
