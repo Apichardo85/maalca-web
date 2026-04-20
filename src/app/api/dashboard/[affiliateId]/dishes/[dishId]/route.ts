@@ -55,10 +55,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   if (!data) return NextResponse.json({ error: 'not found' }, { status: 404 })
 
-  if (affiliateId === 'the-little-dominican') {
-    revalidatePath('/the-little-dominican')
-    revalidatePath('/the-little-dominican/menu')
-  }
+  revalidatePath(`/${affiliateId}`)
+  revalidatePath(`/${affiliateId}/menu`)
+  revalidatePath(`/dashboard/${affiliateId}/menu`)
   return NextResponse.json({ dish: data })
 }
 
@@ -78,9 +77,8 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  if (affiliateId === 'the-little-dominican') {
-    revalidatePath('/the-little-dominican')
-    revalidatePath('/the-little-dominican/menu')
-  }
+  revalidatePath(`/${affiliateId}`)
+  revalidatePath(`/${affiliateId}/menu`)
+  revalidatePath(`/dashboard/${affiliateId}/menu`)
   return NextResponse.json({ ok: true })
 }
