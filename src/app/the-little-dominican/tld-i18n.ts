@@ -117,6 +117,24 @@ type TldStrings = {
   menuFilterAll: string;
   menuFilterPopular: string;
   menuAllWeek: string;
+  // Menu UI strings
+  menuSearchPlaceholder: string;
+  menuFiltersBtn: string;
+  menuDishesLabel: string;
+  menuTodayLabel: string;
+  menuNowServing: string;
+  menuUntil: string;
+  menuEmptyTitle: string;
+  menuEmptySub: string;
+  menuBadgePopular: string;
+  menuFlagVegetarian: string;
+  menuFlagGlutenFree: string;
+  menuFlagSpicy: string;
+  menuNotifyBtn: string;
+  menuAddBtn: string;
+  menuAddedToast: string;
+  menuWeekDayShort: Record<string, string>;
+  menuMealPeriodLabels: Record<string, string>;
   // Language toggle
   switchTo: string;
 };
@@ -234,6 +252,24 @@ const ES: TldStrings = {
   menuFilterPopular: "Popular",
   menuAllWeek: "Toda la semana",
 
+  menuSearchPlaceholder: "Buscar platos...",
+  menuFiltersBtn: "Filtros",
+  menuDishesLabel: "platos",
+  menuTodayLabel: "Hoy",
+  menuNowServing: "Ahora sirviendo",
+  menuUntil: "hasta las",
+  menuEmptyTitle: "No encontramos ese plato",
+  menuEmptySub: "Prueba con otra búsqueda o categoría",
+  menuBadgePopular: "Popular",
+  menuFlagVegetarian: "Vegetariano",
+  menuFlagGlutenFree: "Sin Gluten",
+  menuFlagSpicy: "Picante",
+  menuNotifyBtn: "Avísame cuando abra",
+  menuAddBtn: "Agregar",
+  menuAddedToast: "agregado",
+  menuWeekDayShort: { monday: "Lun", tuesday: "Mar", wednesday: "Mié", thursday: "Jue", friday: "Vie", saturday: "Sáb", sunday: "Dom" },
+  menuMealPeriodLabels: { breakfast: "desayuno", lunch: "almuerzo", dinner: "cena", late_night: "trasnoche", all_day: "todo el día" },
+
   switchTo: "English",
 };
 
@@ -349,6 +385,24 @@ const EN: TldStrings = {
   menuFilterAll: "All",
   menuFilterPopular: "Popular",
   menuAllWeek: "All week",
+
+  menuSearchPlaceholder: "Search dishes...",
+  menuFiltersBtn: "Filters",
+  menuDishesLabel: "dishes",
+  menuTodayLabel: "Today",
+  menuNowServing: "Now serving",
+  menuUntil: "until",
+  menuEmptyTitle: "We couldn't find that dish",
+  menuEmptySub: "Try another search or category",
+  menuBadgePopular: "Popular",
+  menuFlagVegetarian: "Vegetarian",
+  menuFlagGlutenFree: "Gluten-Free",
+  menuFlagSpicy: "Spicy",
+  menuNotifyBtn: "Notify me when open",
+  menuAddBtn: "Add",
+  menuAddedToast: "added",
+  menuWeekDayShort: { monday: "Mon", tuesday: "Tue", wednesday: "Wed", thursday: "Thu", friday: "Fri", saturday: "Sat", sunday: "Sun" },
+  menuMealPeriodLabels: { breakfast: "breakfast", lunch: "lunch", dinner: "dinner", late_night: "late night", all_day: "all day" },
 
   switchTo: "Español",
 };

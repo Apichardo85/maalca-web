@@ -581,7 +581,7 @@ export default function HomeClient({ dishes = MOCK_DISHES }: { dishes?: MenuItem
                     <div className="tld-label" style={{ color:'rgba(255,255,255,.6)', marginBottom:'4px' }}>{heroDish.category}</div>
                     <div style={{ fontFamily:'Newsreader,Georgia,serif', fontSize:'1.4rem', fontWeight:400, color:'#fff', lineHeight:1.15 }}>{heroDish.name}</div>
                     <div style={{ fontFamily:'Newsreader,Georgia,serif', fontSize:'1.1rem', fontWeight:300, color:'rgba(255,255,255,.8)', marginTop:'4px' }}>${heroDish.price}</div>
-                    <p style={{ fontSize:'.78rem', fontWeight:300, color:'rgba(255,255,255,.7)', marginTop:'6px', lineHeight:1.5 }}>{heroDish.description}</p>
+                    <p style={{ fontSize:'.78rem', fontWeight:300, color:'rgba(255,255,255,.7)', marginTop:'6px', lineHeight:1.5 }}>{language === 'en' ? (heroDish.descriptionEn ?? heroDish.description) : heroDish.description}</p>
                   </div>
                 </div>
               )}
@@ -611,7 +611,7 @@ export default function HomeClient({ dishes = MOCK_DISHES }: { dishes?: MenuItem
                 }}>
                   <div>
                     <div style={{ fontFamily:'Newsreader,Georgia,serif', fontSize:'1.5rem', fontWeight:400, color:'#fff' }}>{bottomDish.name}</div>
-                    <p style={{ fontSize:'.8rem', fontWeight:300, color:'rgba(255,255,255,.8)', marginTop:'4px', maxWidth:'40ch' }}>{bottomDish.description}</p>
+                    <p style={{ fontSize:'.8rem', fontWeight:300, color:'rgba(255,255,255,.8)', marginTop:'4px', maxWidth:'40ch' }}>{language === 'en' ? (bottomDish.descriptionEn ?? bottomDish.description) : bottomDish.description}</p>
                     <a href="/the-little-dominican/menu" className="btn-p" style={{ marginTop:'14px', padding:'9px 20px', fontSize:'.78rem' }}>
                       {t.ctaOrderNow}
                     </a>

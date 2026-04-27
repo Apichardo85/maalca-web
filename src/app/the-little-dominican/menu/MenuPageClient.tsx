@@ -161,7 +161,7 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
         ? prev.map(i => i.dish.id === dish.id ? { ...i, qty: i.qty + 1 } : i)
         : [...prev, { dish, qty: 1 }]
     })
-    showToast(`${dish.name} agregado`)
+    showToast(`${dish.name} ${t.menuAddedToast}`)
   }
 
   const removeFromCart = (id: string) => {
@@ -258,7 +258,7 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
                 backdropFilter: 'blur(6px)',
               }}>
                 <span style={{ width: 8, height: 8, background: '#4ade80', borderRadius: '50%' }} />
-                Ahora sirviendo {MEAL_PERIOD_LABELS[currentPeriod].toLowerCase()} · hasta las {periodEnd}
+                {t.menuNowServing} {t.menuMealPeriodLabels[currentPeriod]} · {t.menuUntil} {periodEnd}
               </div>
             )}
           </div>
@@ -272,7 +272,7 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
               type="search"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Buscar platos..."
+              placeholder={t.menuSearchPlaceholder}
               style={{
                 width: '100%', boxSizing: 'border-box',
                 // Input sits sobre el hero navy estable → tokens estables también,
@@ -330,10 +330,10 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
                 transition: 'all .15s',
               }}
             >
-              <FilterIcon /> Filtros{dietFilters.size > 0 ? ` (${dietFilters.size})` : ''}
+              <FilterIcon /> {t.menuFiltersBtn}{dietFilters.size > 0 ? ` (${dietFilters.size})` : ''}
             </button>
             <span style={{ marginLeft: 'auto', fontSize: '.75rem', color: 'var(--tl)', fontWeight: 500, whiteSpace: 'nowrap', flexShrink: 0 }}>
-              {filtered.length} platos
+              {filtered.length} {t.menuDishesLabel}
             </span>
           </div>
 
@@ -373,7 +373,7 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
                     border: isActive ? '1.5px solid var(--cta-bg)' : isToday ? '1.5px solid var(--s)' : '1.5px solid var(--l3)',
                   }}
                 >
-                  {WEEK_DAY_SHORT[day]}{isToday ? ' · Hoy' : ''}
+                  {t.menuWeekDayShort[day]}{isToday ? ` · ${t.menuTodayLabel}` : ''}
                 </button>
               )
             })}
@@ -385,9 +385,9 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
               borderTop: '1px solid var(--l3)', marginTop: '.5rem',
             }}>
               {[
-                { key: 'vegetarian', label: '🌿 Vegetariano' },
-                { key: 'glutenFree', label: '🌾 Sin Gluten' },
-                { key: 'spicy', label: '🌶 Picante' },
+                { key: 'vegetarian', label: `🌿 ${t.menuFlagVegetarian}` },
+                { key: 'glutenFree', label: `🌾 ${t.menuFlagGlutenFree}` },
+                { key: 'spicy', label: `🌶 ${t.menuFlagSpicy}` },
               ].map(f => (
                 <button
                   key={f.key}
@@ -421,9 +421,9 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
             <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--tl)' }}>
               <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>🍽</div>
               <p style={{ fontFamily: 'Newsreader,Georgia,serif', fontSize: '1.2rem', color: 'var(--p)' }}>
-                No encontramos ese plato
+                {t.menuEmptyTitle}
               </p>
-              <p className="tld-body" style={{ marginTop: '.5rem' }}>Prueba con otra búsqueda o categoría</p>
+              <p className="tld-body" style={{ marginTop: '.5rem' }}>{t.menuEmptySub}</p>
             </div>
           ) : (
             activeCategoryKey === 'all' ? (
@@ -450,6 +450,7 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
                         now={now}
                         todayWeekDay={todayWeekDay}
                         language={language}
+                        t={t}
                       />
                     </div>
                   )
@@ -465,6 +466,7 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
                 now={now}
                 todayWeekDay={todayWeekDay}
                 language={language}
+                t={t}
               />
             )
           )}
@@ -649,7 +651,7 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
 }
 
 // ─── Dish grid sub-component ─────────────────────────────────────────────────
-function DishGrid({ dishes, cart, onAdd, onRemove, onUnavailable, now, todayWeekDay, language }: {
+function DishGrid({ dishes, cart, onAdd, onRemove, onUnavailable, now, todayWeekDay, language, t }: {
   dishes: MenuItem[]
   cart: CartItem[]
   onAdd: (d: MenuItem) => void
@@ -658,6 +660,7 @@ function DishGrid({ dishes, cart, onAdd, onRemove, onUnavailable, now, todayWeek
   now: Date
   todayWeekDay: ReturnType<typeof getCurrentWeekDay>
   language: string
+  t: import('../tld-i18n').TldStrings
 }) {
   return (
     <div style={{
@@ -703,7 +706,7 @@ function DishGrid({ dishes, cart, onAdd, onRemove, onUnavailable, now, todayWeek
                   textTransform: 'uppercase',
                   boxShadow: '0 4px 12px rgba(225,37,49,.3)',
                 }}>
-                  🔥 Popular
+                  🔥 {t.menuBadgePopular}
                 </span>
               )}
               {!available && nextLabel && (
@@ -733,16 +736,16 @@ function DishGrid({ dishes, cart, onAdd, onRemove, onUnavailable, now, todayWeek
 
               {(dish.flags.vegetarian || dish.flags.glutenFree || dish.flags.spicy) && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                  {dish.flags.vegetarian && <span style={{ padding: '2px 8px', background: '#dcfce7', color: '#166534', fontSize: '.6rem', fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', borderRadius: '9999px' }}>Vegetariano</span>}
-                  {dish.flags.glutenFree && <span style={{ padding: '2px 8px', background: '#e0f2fe', color: '#0c4a6e', fontSize: '.6rem', fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', borderRadius: '9999px' }}>Sin Gluten</span>}
-                  {dish.flags.spicy && <span style={{ padding: '2px 8px', background: '#ffe8d6', color: '#7c2d12', fontSize: '.6rem', fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', borderRadius: '9999px' }}>Picante</span>}
+                  {dish.flags.vegetarian && <span style={{ padding: '2px 8px', background: '#dcfce7', color: '#166534', fontSize: '.6rem', fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', borderRadius: '9999px' }}>{t.menuFlagVegetarian}</span>}
+                  {dish.flags.glutenFree && <span style={{ padding: '2px 8px', background: '#e0f2fe', color: '#0c4a6e', fontSize: '.6rem', fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', borderRadius: '9999px' }}>{t.menuFlagGlutenFree}</span>}
+                  {dish.flags.spicy && <span style={{ padding: '2px 8px', background: '#ffe8d6', color: '#7c2d12', fontSize: '.6rem', fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', borderRadius: '9999px' }}>{t.menuFlagSpicy}</span>}
                 </div>
               )}
               {dayRestricted && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                   {dish.weekDays!.map(d => (
                     <span key={d} style={{ padding: '2px 8px', background: '#e0f2fe', color: '#075985', fontSize: '.6rem', fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', borderRadius: '9999px' }}>
-                      {WEEK_DAY_SHORT[d]}
+                      {t.menuWeekDayShort[d]}
                     </span>
                   ))}
                 </div>
@@ -760,7 +763,7 @@ function DishGrid({ dishes, cart, onAdd, onRemove, onUnavailable, now, todayWeek
                       minHeight: '44px',
                     }}
                   >
-                    🔔 Avísame cuando abra
+                    🔔 {t.menuNotifyBtn}
                   </button>
                 ) : cartItem ? (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -801,7 +804,7 @@ function DishGrid({ dishes, cart, onAdd, onRemove, onUnavailable, now, todayWeek
                       transition: 'opacity .15s', minHeight: '44px',
                     }}
                   >
-                    + Agregar
+                    + {t.menuAddBtn}
                   </button>
                 )}
               </div>
