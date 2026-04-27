@@ -140,6 +140,7 @@ const MENU_CSS = `@import url('https://fonts.googleapis.com/css2?family=Newsread
 .tld-bottom-link svg { width:20px;height:20px; }
 @media(max-width:640px) {
   .tld-nav-links { display:none; }
+  .tld-hamburger { display:block; }
   .tld-bottom-nav { display:block; }
   .tld { padding-bottom:72px; }
   .tld-info-strip { flex-direction:column; }
