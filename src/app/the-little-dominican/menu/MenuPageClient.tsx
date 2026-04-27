@@ -5,10 +5,15 @@ import { MENU_CATEGORIES } from '../_data'
 import { getAffiliateConfig } from '@/config/affiliates-config'
 import {
   isItemAvailable,
+  isAvailableOnDay,
   nextAvailabilityLabel,
   currentPeriodEndLabel,
   getCurrentPeriod,
+  getCurrentWeekDay,
   MEAL_PERIOD_LABELS,
+  WEEK_DAY_LABELS,
+  WEEK_DAY_SHORT,
+  WEEK_DAY_ORDER,
 } from '@/lib/menu-availability'
 import { UnavailableItemModal } from '@/components/menu/UnavailableItemModal'
 import type { MenuCatalogItem } from '@/lib/types'
@@ -40,7 +45,20 @@ function toCatalog(d: MenuItem): MenuCatalogItem {
     popular: d.popular,
     flags: d.flags,
     periods: d.periods,
+    weekDays: d.weekDays,
   }
+}
+
+/** Label de próxima disponibilidad por día de semana. */
+function nextDayLabel(weekDays: NonNullable<MenuItem['weekDays']>, today: ReturnType<typeof getCurrentWeekDay>): string {
+  const todayIdx = WEEK_DAY_ORDER.indexOf(today)
+  for (let i = 1; i <= 7; i++) {
+    const next = WEEK_DAY_ORDER[(todayIdx + i) % 7]
+    if (weekDays.includes(next)) {
+      return i === 1 ? 'Disponible mañana' : `Disponible el ${WEEK_DAY_LABELS[next]}`
+    }
+  }
+  return 'No disponible esta semana'
 }
 
 // ─── Fallback image placeholder ──────────────────────────────────────────────
@@ -70,9 +88,9 @@ function Toast({ message, visible }: { message: string; visible: boolean }) {
 
 // ─── Client Component ────────────────────────────────────────────────────────
 export default function MenuPageClient({ dishes }: MenuPageClientProps) {
-  const { t } = useTldI18n()
+  const { t, language } = useTldI18n()
   const [search, setSearch] = useState('')
-  const [activeCategory, setActiveCategory] = useState('Todos')
+  const [activeCategoryKey, setActiveCategoryKey] = useState<'all' | 'popular' | string>('all')
   const [dietFilters, setDietFilters] = useState<Set<string>>(new Set())
   const [cart, setCart] = useState<CartItem[]>([])
   const [cartOpen, setCartOpen] = useState(false)
@@ -91,8 +109,16 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
 
   const currentPeriod = getCurrentPeriod(TLD_HOURS, now)
   const periodEnd = currentPeriodEndLabel(TLD_HOURS, now)
+  const todayWeekDay = getCurrentWeekDay(now)
 
-  const categories = ['Todos', 'Popular', ...MENU_CATEGORIES]
+  const [activeDay, setActiveDay] = useState<'all' | ReturnType<typeof getCurrentWeekDay>>('all')
+
+  // [key, label] pairs — key is language-stable, label is translated
+  const categories: Array<{ key: string; label: string }> = [
+    { key: 'all', label: t.menuFilterAll },
+    { key: 'popular', label: `🔥 ${t.menuFilterPopular}` },
+    ...MENU_CATEGORIES.map(cat => ({ key: cat, label: t.cats[cat] ?? cat })),
+  ]
 
   const toggleDiet = (f: string) => {
     setDietFilters(prev => {
@@ -104,18 +130,20 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
 
   const filtered = useMemo(() => {
     return dishes.filter(d => {
-      // `available: false` explícito sigue ocultando (admin disabled)
       if (!d.available) return false
-      if (activeCategory === 'Popular' && !d.popular) return false
-      if (activeCategory !== 'Todos' && activeCategory !== 'Popular' && d.category !== activeCategory) return false
+      if (activeCategoryKey === 'popular' && !d.popular) return false
+      if (activeCategoryKey !== 'all' && activeCategoryKey !== 'popular' && d.category !== activeCategoryKey) return false
+      // Día: dishes sin weekDays (todos los días) siempre pasan
+      if (activeDay !== 'all' && d.weekDays && d.weekDays.length > 0 && !d.weekDays.includes(activeDay)) return false
       if (search && !d.name.toLowerCase().includes(search.toLowerCase()) &&
-          !d.description.toLowerCase().includes(search.toLowerCase())) return false
+          !d.description.toLowerCase().includes(search.toLowerCase()) &&
+          !(d.descriptionEn ?? '').toLowerCase().includes(search.toLowerCase())) return false
       if (dietFilters.has('vegetarian') && !d.flags.vegetarian) return false
       if (dietFilters.has('glutenFree') && !d.flags.glutenFree) return false
       if (dietFilters.has('spicy') && !d.flags.spicy) return false
       return true
     })
-  }, [dishes, activeCategory, search, dietFilters])
+  }, [dishes, activeCategoryKey, activeDay, search, dietFilters])
 
   const showToast = useCallback((msg: string) => {
     setToast({ message: msg, visible: true })
@@ -123,7 +151,6 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
   }, [])
 
   const addToCart = (dish: MenuItem) => {
-    // Si no está disponible por periodo, abrir modal en lugar de agregar
     if (!isItemAvailable(toCatalog(dish), TLD_HOURS, now)) {
       setUnavailableDish(dish)
       return
@@ -211,19 +238,30 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
             {t.menuHeroSubtitle}
           </p>
 
-          {/* Period chip */}
-          {TLD_HOURS && currentPeriod !== 'all_day' && periodEnd && (
+          {/* Day + period chips */}
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
             <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
               padding: '6px 14px', borderRadius: '9999px',
-              background: 'rgba(255,255,255,.18)', color: '#fff',
+              background: 'rgba(255,255,255,.12)', color: '#fff',
               fontSize: '.78rem', fontWeight: 600,
-              marginBottom: '1.25rem', backdropFilter: 'blur(6px)',
+              backdropFilter: 'blur(6px)',
             }}>
-              <span style={{ width: 8, height: 8, background: '#4ade80', borderRadius: '50%' }} />
-              Ahora sirviendo {MEAL_PERIOD_LABELS[currentPeriod].toLowerCase()} · hasta las {periodEnd}
+              📅 {WEEK_DAY_LABELS[todayWeekDay]}
             </div>
-          )}
+            {TLD_HOURS && currentPeriod !== 'all_day' && periodEnd && (
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                padding: '6px 14px', borderRadius: '9999px',
+                background: 'rgba(255,255,255,.18)', color: '#fff',
+                fontSize: '.78rem', fontWeight: 600,
+                backdropFilter: 'blur(6px)',
+              }}>
+                <span style={{ width: 8, height: 8, background: '#4ade80', borderRadius: '50%' }} />
+                Ahora sirviendo {MEAL_PERIOD_LABELS[currentPeriod].toLowerCase()} · hasta las {periodEnd}
+              </div>
+            )}
+          </div>
 
           {/* Search bar */}
           <div style={{ position: 'relative', maxWidth: '520px', margin: '0 auto' }}>
@@ -263,21 +301,20 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
             scrollbarWidth: 'none', msOverflowStyle: 'none',
             paddingBottom: '2px',
           }}>
-            {categories.map(cat => (
+            {categories.map(({ key, label }) => (
               <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
+                key={key}
+                onClick={() => setActiveCategoryKey(key)}
                 style={{
                   padding: '10px 16px', borderRadius: '9999px', border: 'none', cursor: 'pointer',
                   fontFamily: 'Manrope,sans-serif', fontSize: '.8rem', fontWeight: 600,
                   transition: 'all .15s', whiteSpace: 'nowrap', flexShrink: 0,
                   minHeight: '40px',
-                  // Pill activo = CTA estable; inactivo usa tokens que sí invierten.
-                  background: activeCategory === cat ? 'var(--cta-bg)' : 'var(--l2)',
-                  color: activeCategory === cat ? 'var(--cta-text)' : 'var(--tm)',
+                  background: activeCategoryKey === key ? 'var(--cta-bg)' : 'var(--l2)',
+                  color: activeCategoryKey === key ? 'var(--cta-text)' : 'var(--tm)',
                 }}
               >
-                {cat === 'Popular' ? '🔥 Popular' : cat}
+                {label}
               </button>
             ))}
             <div style={{ width: '1px', height: '24px', background: 'var(--l3)', flexShrink: 0 }} />
@@ -298,6 +335,48 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
             <span style={{ marginLeft: 'auto', fontSize: '.75rem', color: 'var(--tl)', fontWeight: 500, whiteSpace: 'nowrap', flexShrink: 0 }}>
               {filtered.length} platos
             </span>
+          </div>
+
+          {/* ── Fila de días ── */}
+          <div style={{
+            display: 'flex', gap: '6px', flexWrap: 'nowrap', paddingTop: '.5rem',
+            overflowX: 'auto', WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none', msOverflowStyle: 'none',
+            borderTop: '1px solid var(--l3)', marginTop: '.5rem',
+          }}>
+            <button
+              onClick={() => setActiveDay('all')}
+              style={{
+                padding: '8px 14px', borderRadius: '9999px', cursor: 'pointer',
+                fontFamily: 'Manrope,sans-serif', fontSize: '.75rem', fontWeight: 600,
+                transition: 'all .15s', whiteSpace: 'nowrap', flexShrink: 0, minHeight: '36px',
+                background: activeDay === 'all' ? 'var(--cta-bg)' : 'transparent',
+                color: activeDay === 'all' ? 'var(--cta-text)' : 'var(--tl)',
+                border: activeDay === 'all' ? '1.5px solid var(--cta-bg)' : '1.5px solid var(--l3)',
+              }}
+            >
+              {t.menuAllWeek}
+            </button>
+            {WEEK_DAY_ORDER.map(day => {
+              const isToday = day === todayWeekDay
+              const isActive = activeDay === day
+              return (
+                <button
+                  key={day}
+                  onClick={() => setActiveDay(activeDay === day ? 'all' : day)}
+                  style={{
+                    padding: '8px 14px', borderRadius: '9999px', cursor: 'pointer',
+                    fontFamily: 'Manrope,sans-serif', fontSize: '.75rem', fontWeight: 600,
+                    transition: 'all .15s', whiteSpace: 'nowrap', flexShrink: 0, minHeight: '36px',
+                    background: isActive ? 'var(--cta-bg)' : isToday ? 'rgba(var(--s-rgb,206,17,38),.08)' : 'transparent',
+                    color: isActive ? 'var(--cta-text)' : isToday ? 'var(--s)' : 'var(--tl)',
+                    border: isActive ? '1.5px solid var(--cta-bg)' : isToday ? '1.5px solid var(--s)' : '1.5px solid var(--l3)',
+                  }}
+                >
+                  {WEEK_DAY_SHORT[day]}{isToday ? ' · Hoy' : ''}
+                </button>
+              )
+            })}
           </div>
 
           {showFilters && (
@@ -347,7 +426,7 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
               <p className="tld-body" style={{ marginTop: '.5rem' }}>Prueba con otra búsqueda o categoría</p>
             </div>
           ) : (
-            activeCategory === 'Todos' ? (
+            activeCategoryKey === 'all' ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
                 {MENU_CATEGORIES.map(cat => {
                   const catDishes = filtered.filter(d => d.category === cat)
@@ -360,7 +439,7 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
                         marginBottom: '1rem', paddingBottom: '.5rem',
                         borderBottom: '1px solid var(--l3)',
                       }}>
-                        {cat}
+                        {t.cats[cat] ?? cat}
                       </div>
                       <DishGrid
                         dishes={catDishes}
@@ -369,6 +448,8 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
                         onRemove={removeFromCart}
                         onUnavailable={setUnavailableDish}
                         now={now}
+                        todayWeekDay={todayWeekDay}
+                        language={language}
                       />
                     </div>
                   )
@@ -382,6 +463,8 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
                 onRemove={removeFromCart}
                 onUnavailable={setUnavailableDish}
                 now={now}
+                todayWeekDay={todayWeekDay}
+                language={language}
               />
             )
           )}
@@ -566,13 +649,15 @@ export default function MenuPageClient({ dishes }: MenuPageClientProps) {
 }
 
 // ─── Dish grid sub-component ─────────────────────────────────────────────────
-function DishGrid({ dishes, cart, onAdd, onRemove, onUnavailable, now }: {
+function DishGrid({ dishes, cart, onAdd, onRemove, onUnavailable, now, todayWeekDay, language }: {
   dishes: MenuItem[]
   cart: CartItem[]
   onAdd: (d: MenuItem) => void
   onRemove: (id: string) => void
   onUnavailable: (d: MenuItem) => void
   now: Date
+  todayWeekDay: ReturnType<typeof getCurrentWeekDay>
+  language: string
 }) {
   return (
     <div style={{
@@ -583,8 +668,11 @@ function DishGrid({ dishes, cart, onAdd, onRemove, onUnavailable, now }: {
       {dishes.map(dish => {
         const cartItem = cart.find(i => i.dish.id === dish.id)
         const catalog = toCatalog(dish)
+        // Solo el periodo horario afecta la disponibilidad para ordenar
         const available = isItemAvailable(catalog, TLD_HOURS, now)
         const nextLabel = available ? null : nextAvailabilityLabel(catalog, TLD_HOURS, now)
+        // Badge informativo cuando el plato tiene días específicos (< toda la semana)
+        const dayRestricted = dish.weekDays && dish.weekDays.length > 0 && dish.weekDays.length < 7
 
         return (
           <div key={dish.id} style={{
@@ -640,7 +728,7 @@ function DishGrid({ dishes, cart, onAdd, onRemove, onUnavailable, now }: {
                 </span>
               </div>
               <p style={{ fontSize: '.78rem', fontWeight: 300, lineHeight: 1.55, color: 'var(--tm)', flex: 1 }}>
-                {dish.description}
+                {language === 'en' ? (dish.descriptionEn ?? dish.description) : dish.description}
               </p>
 
               {(dish.flags.vegetarian || dish.flags.glutenFree || dish.flags.spicy) && (
@@ -648,6 +736,15 @@ function DishGrid({ dishes, cart, onAdd, onRemove, onUnavailable, now }: {
                   {dish.flags.vegetarian && <span style={{ padding: '2px 8px', background: '#dcfce7', color: '#166534', fontSize: '.6rem', fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', borderRadius: '9999px' }}>Vegetariano</span>}
                   {dish.flags.glutenFree && <span style={{ padding: '2px 8px', background: '#e0f2fe', color: '#0c4a6e', fontSize: '.6rem', fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', borderRadius: '9999px' }}>Sin Gluten</span>}
                   {dish.flags.spicy && <span style={{ padding: '2px 8px', background: '#ffe8d6', color: '#7c2d12', fontSize: '.6rem', fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', borderRadius: '9999px' }}>Picante</span>}
+                </div>
+              )}
+              {dayRestricted && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                  {dish.weekDays!.map(d => (
+                    <span key={d} style={{ padding: '2px 8px', background: '#e0f2fe', color: '#075985', fontSize: '.6rem', fontWeight: 600, letterSpacing: '.04em', textTransform: 'uppercase', borderRadius: '9999px' }}>
+                      {WEEK_DAY_SHORT[d]}
+                    </span>
+                  ))}
                 </div>
               )}
 

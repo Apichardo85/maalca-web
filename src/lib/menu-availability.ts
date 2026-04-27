@@ -8,7 +8,7 @@
  * Todos los helpers aceptan `now?: Date` inyectable para testing/SSR.
  */
 
-import type { MealPeriod, MenuCatalogItem } from "@/lib/types";
+import type { MealPeriod, MenuCatalogItem, WeekDay } from "@/lib/types";
 import type { AffiliateMealPeriodHours, MealPeriodHours } from "@/config/affiliates-config";
 
 // ─── Labels ──────────────────────────────────────────────────────────────────
@@ -62,6 +62,42 @@ function formatHour(minutes: number): string {
   const period = h24 >= 12 ? "pm" : "am";
   const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
   return m === 0 ? `${h12}${period}` : `${h12}:${String(m).padStart(2, "0")}${period}`;
+}
+
+// ─── Week-day helpers ────────────────────────────────────────────────────────
+
+export const WEEK_DAY_LABELS: Record<WeekDay, string> = {
+  monday:    "Lunes",
+  tuesday:   "Martes",
+  wednesday: "Miércoles",
+  thursday:  "Jueves",
+  friday:    "Viernes",
+  saturday:  "Sábado",
+  sunday:    "Domingo",
+};
+
+export const WEEK_DAY_SHORT: Record<WeekDay, string> = {
+  monday:    "Lun",
+  tuesday:   "Mar",
+  wednesday: "Mié",
+  thursday:  "Jue",
+  friday:    "Vie",
+  saturday:  "Sáb",
+  sunday:    "Dom",
+};
+
+export const WEEK_DAY_ORDER: WeekDay[] = [
+  "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
+];
+
+export function getCurrentWeekDay(now: Date = new Date()): WeekDay {
+  const map: WeekDay[] = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+  return map[now.getDay()];
+}
+
+export function isAvailableOnDay(item: { weekDays?: WeekDay[] }, day: WeekDay): boolean {
+  if (!item.weekDays || item.weekDays.length === 0) return true;
+  return item.weekDays.includes(day);
 }
 
 // ─── Public API ──────────────────────────────────────────────────────────────

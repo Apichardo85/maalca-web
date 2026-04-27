@@ -2,7 +2,7 @@
 // Used by page.tsx / menu/page.tsx / gallery/page.tsx server wrappers.
 import { supabaseServer } from '@/lib/supabase/server'
 import { MOCK_DISHES, type MenuItem } from './_data'
-import type { MealPeriod } from '@/lib/types'
+import type { MealPeriod, WeekDay } from '@/lib/types'
 
 const AFFILIATE_ID = 'the-little-dominican'
 
@@ -11,10 +11,12 @@ interface DbDish {
   affiliate_id: string
   name: string
   description: string | null
+  description_en: string | null
   price: number | string
   category: string
   image_url: string | null
   periods: string[] | null
+  week_days: string[] | null
   available: boolean
   featured: boolean
   popular: boolean
@@ -27,6 +29,7 @@ function mapDbToMenuItem(row: DbDish): MenuItem {
     id: row.id,
     name: row.name,
     description: row.description ?? '',
+    descriptionEn: row.description_en ?? undefined,
     price: typeof row.price === 'string' ? parseFloat(row.price) : row.price,
     image: row.image_url ?? '',
     category: row.category,
@@ -34,6 +37,7 @@ function mapDbToMenuItem(row: DbDish): MenuItem {
     popular: row.popular,
     available: row.available,
     periods: (row.periods && row.periods.length > 0 ? row.periods : undefined) as MealPeriod[] | undefined,
+    weekDays: (row.week_days && row.week_days.length > 0 ? row.week_days : undefined) as WeekDay[] | undefined,
   }
 }
 

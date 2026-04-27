@@ -47,7 +47,7 @@ export function ChartCard({
 
   return (
     <DashboardCard title={title} icon={icon} action={rangeAction} className={className}>
-      <div className="h-64 w-full">{children}</div>
+      <div className="h-64 w-full" style={{ minHeight: '256px' }}>{children}</div>
     </DashboardCard>
   );
 }

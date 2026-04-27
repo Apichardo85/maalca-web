@@ -91,6 +91,7 @@ export type {
   MenuItemFlags,
   MenuCatalogItem,
   MealPeriod,
+  WeekDay,
   ProductStatus,
   ProductCatalogItem,
   AnyCatalogItem,

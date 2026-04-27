@@ -34,18 +34,21 @@ function slugify(s: string): string {
 
 // Map DB dish row → UI MenuItem
 interface DbDish {
-  id: string; name: string; description: string | null; price: number | string;
-  category: string; image_url: string | null; periods: string[] | null;
+  id: string; name: string; description: string | null; description_en: string | null;
+  price: number | string; category: string; image_url: string | null;
+  periods: string[] | null; week_days: string[] | null;
   available: boolean; featured: boolean; popular: boolean;
   flags: { vegetarian?: boolean; spicy?: boolean; glutenFree?: boolean } | null;
 }
 function mapDbDish(r: DbDish & { featured?: boolean }): MenuItem & { _featured?: boolean } {
   return {
     id: r.id, name: r.name, description: r.description ?? "",
+    descriptionEn: r.description_en ?? undefined,
     price: typeof r.price === "string" ? parseFloat(r.price) : r.price,
     image: r.image_url ?? "", category: r.category, flags: r.flags ?? {},
     popular: r.popular, available: r.available,
     periods: (r.periods && r.periods.length > 0 ? r.periods : undefined) as MenuItem["periods"],
+    weekDays: (r.week_days && r.week_days.length > 0 ? r.week_days : undefined) as MenuItem["weekDays"],
     _featured: r.featured,
   };
 }
@@ -55,14 +58,19 @@ import { EmptyState } from "@/components/dashboard/shared/EmptyState";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/buttons";
 import { MealPeriodEditor } from "./MealPeriodEditor";
+import { WeekDayEditor } from "./WeekDayEditor";
 import { ImageCropper } from "./ImageCropper";
 import {
   MEAL_PERIOD_LABELS,
   MEAL_PERIOD_ORDER,
   getCurrentPeriod,
   currentPeriodEndLabel,
+  WEEK_DAY_LABELS,
+  WEEK_DAY_ORDER,
+  WEEK_DAY_SHORT,
+  getCurrentWeekDay,
 } from "@/lib/menu-availability";
-import type { MealPeriod } from "@/lib/types";
+import type { MealPeriod, WeekDay } from "@/lib/types";
 
 // ─── Static data ─────────────────────────────────────────────────────────────
 
@@ -78,6 +86,11 @@ const CATEGORY_PILLS = ["Todos", "Popular", ...MENU_CATEGORIES];
 const PERIOD_PILLS: Array<{ key: "all" | MealPeriod; label: string }> = [
   { key: "all", label: "Todos los periodos" },
   ...MEAL_PERIOD_ORDER.map((p) => ({ key: p, label: MEAL_PERIOD_LABELS[p] })),
+];
+
+const WEEK_DAY_PILLS: Array<{ key: "all" | WeekDay; label: string }> = [
+  { key: "all", label: "Toda la semana" },
+  ...WEEK_DAY_ORDER.map((d) => ({ key: d, label: WEEK_DAY_SHORT[d] })),
 ];
 
 const FALLBACK_IMG =
@@ -116,6 +129,22 @@ function PeriodChips({ periods }: { periods: MealPeriod[] }) {
           className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400"
         >
           {MEAL_PERIOD_LABELS[p]}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function WeekDayChips({ weekDays }: { weekDays: WeekDay[] }) {
+  if (weekDays.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1">
+      {weekDays.map((d) => (
+        <span
+          key={d}
+          className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-900/20 dark:text-sky-400"
+        >
+          {WEEK_DAY_SHORT[d]}
         </span>
       ))}
     </div>
@@ -162,6 +191,9 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
   const [itemPeriods, setItemPeriods] = useState<Record<string, MealPeriod[]>>(() =>
     Object.fromEntries(MOCK_DISHES.map((d) => [d.id, d.periods ?? []]))
   );
+  const [itemWeekDays, setItemWeekDays] = useState<Record<string, WeekDay[]>>(() =>
+    Object.fromEntries(MOCK_DISHES.map((d) => [d.id, d.weekDays ?? []]))
+  );
 
   // Load real dishes from Supabase via the API route
   useEffect(() => {
@@ -187,6 +219,7 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
           setPopular(Object.fromEntries(mapped.map((d) => [d.id, d.popular ?? false])));
           setFeatured(Object.fromEntries(mapped.map((d) => [d.id, !!(d as MenuItem & { _featured?: boolean })._featured])));
           setItemPeriods(Object.fromEntries(mapped.map((d) => [d.id, (d.periods ?? []) as MealPeriod[]])));
+          setItemWeekDays(Object.fromEntries(mapped.map((d) => [d.id, (d.weekDays ?? []) as WeekDay[]])));
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -228,6 +261,7 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
   // UI state
   const [activeCategory, setActiveCategory] = useState("Todos");
   const [activePeriod, setActivePeriod] = useState<"all" | MealPeriod>("all");
+  const [activeDay, setActiveDay] = useState<"all" | WeekDay>("all");
   const [search, setSearch] = useState("");
   const [editItem, setEditItem] = useState<MenuItem | null>(null);
 
@@ -235,9 +269,14 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
   const [newOpen, setNewOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newDescription, setNewDescription] = useState("");
+  const [newDescriptionEn, setNewDescriptionEn] = useState("");
   const [newPrice, setNewPrice] = useState<number>(0);
   const [newCategory, setNewCategory] = useState<string>(MENU_CATEGORIES[0]);
   const [newImageUrl, setNewImageUrl] = useState<string>("");
+  const [newPeriods, setNewPeriods] = useState<MealPeriod[]>([]);
+  const [newWeekDays, setNewWeekDays] = useState<WeekDay[]>([]);
+  const [newToggles, setNewToggles] = useState({ available: true, popular: false, featured: false });
+  const [newFlags, setNewFlags] = useState({ vegetarian: false, spicy: false, glutenFree: false });
   const newFileRef = useRef<HTMLInputElement | null>(null);
 
   // Cropper state — shared between edit and new flows
@@ -248,9 +287,14 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
   const resetNewForm = () => {
     setNewName("");
     setNewDescription("");
+    setNewDescriptionEn("");
     setNewPrice(0);
     setNewCategory(MENU_CATEGORIES[0]);
     setNewImageUrl("");
+    setNewPeriods([]);
+    setNewWeekDays([]);
+    setNewToggles({ available: true, popular: false, featured: false });
+    setNewFlags({ vegetarian: false, spicy: false, glutenFree: false });
   };
 
   // Read a File into a dataURL so the cropper can load it without CORS
@@ -390,14 +434,16 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
           id,
           name,
           description: newDescription.trim() || null,
+          description_en: newDescriptionEn.trim() || null,
           price: newPrice,
           category: newCategory,
           image_url: newImageUrl || null,
-          periods: [],
-          available: true,
-          featured: false,
-          popular: false,
-          flags: {},
+          periods: newPeriods,
+          week_days: newWeekDays,
+          available: newToggles.available,
+          featured: newToggles.featured,
+          popular: newToggles.popular,
+          flags: newFlags,
         }),
       });
       if (!res.ok) {
@@ -411,9 +457,10 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
       setImages((p) => ({ ...p, [mapped.id]: mapped.image }));
       setPrices((p) => ({ ...p, [mapped.id]: mapped.price }));
       setAvail((p) => ({ ...p, [mapped.id]: mapped.available }));
-      setPopular((p) => ({ ...p, [mapped.id]: mapped.popular ?? false }));
-      setFeatured((p) => ({ ...p, [mapped.id]: !!(mapped as MenuItem & { _featured?: boolean })._featured }));
-      setItemPeriods((p) => ({ ...p, [mapped.id]: (mapped.periods ?? []) as MealPeriod[] }));
+      setPopular((p) => ({ ...p, [mapped.id]: newToggles.popular }));
+      setFeatured((p) => ({ ...p, [mapped.id]: newToggles.featured }));
+      setItemPeriods((p) => ({ ...p, [mapped.id]: newPeriods }));
+      setItemWeekDays((p) => ({ ...p, [mapped.id]: newWeekDays }));
       setNewOpen(false);
       resetNewForm();
     } catch (err) {
@@ -427,20 +474,30 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
   const [editUrl, setEditUrl] = useState("");
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [editDescriptionEn, setEditDescriptionEn] = useState("");
   const [editPrice, setEditPrice] = useState(0);
   const [editPeriods, setEditPeriods] = useState<MealPeriod[]>([]);
+  const [editWeekDays, setEditWeekDays] = useState<WeekDay[]>([]);
   const [editToggles, setEditToggles] = useState({
     available: true,
     popular: false,
     featured: false,
   });
+  const [editFlags, setEditFlags] = useState({ vegetarian: false, spicy: false, glutenFree: false });
 
   const openEdit = (item: MenuItem) => {
     setEditUrl(images[item.id] ?? "");
     setEditName(item.name ?? "");
     setEditDescription(item.description ?? "");
+    setEditDescriptionEn(item.descriptionEn ?? "");
     setEditPrice(prices[item.id] ?? item.price);
     setEditPeriods(itemPeriods[item.id] ?? []);
+    setEditWeekDays(itemWeekDays[item.id] ?? []);
+    setEditFlags({
+      vegetarian: item.flags.vegetarian ?? false,
+      spicy: item.flags.spicy ?? false,
+      glutenFree: item.flags.glutenFree ?? false,
+    });
     setEditToggles({
       available: availability[item.id],
       popular: isPopular[item.id],
@@ -465,10 +522,12 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
       popular: isPopular[editItem.id],
       featured: isFeatured[editItem.id],
       periods: itemPeriods[editItem.id],
+      weekDays: itemWeekDays[editItem.id],
       name: editItem.name,
       description: editItem.description,
     };
     const trimmedDescription = editDescription.trim();
+    const trimmedDescriptionEn = editDescriptionEn.trim();
     // Optimistic update
     setImages((p) => ({ ...p, [editItem.id]: editUrl }));
     setPrices((p) => ({ ...p, [editItem.id]: editPrice }));
@@ -476,6 +535,7 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
     setPopular((p) => ({ ...p, [editItem.id]: editToggles.popular }));
     setFeatured((p) => ({ ...p, [editItem.id]: editToggles.featured }));
     setItemPeriods((p) => ({ ...p, [editItem.id]: editPeriods }));
+    setItemWeekDays((p) => ({ ...p, [editItem.id]: editWeekDays }));
     setDishes((ds) =>
       ds.map((d) =>
         d.id === editItem.id
@@ -488,12 +548,15 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
       await patchDish(editItem.id, {
         name: trimmedName,
         description: trimmedDescription || null,
+        description_en: trimmedDescriptionEn || null,
         image_url: editUrl,
         price: editPrice,
         available: editToggles.available,
         popular: editToggles.popular,
         featured: editToggles.featured,
         periods: editPeriods,
+        week_days: editWeekDays,
+        flags: editFlags,
       });
       setEditItem(null);
     } catch (err) {
@@ -504,6 +567,7 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
       setPopular((p) => ({ ...p, [editItem.id]: prev.popular }));
       setFeatured((p) => ({ ...p, [editItem.id]: prev.featured }));
       setItemPeriods((p) => ({ ...p, [editItem.id]: prev.periods }));
+      setItemWeekDays((p) => ({ ...p, [editItem.id]: prev.weekDays }));
       setDishes((ds) =>
         ds.map((d) =>
           d.id === editItem.id
@@ -532,6 +596,10 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
       const effective = p.length === 0 ? (["all_day"] as MealPeriod[]) : p;
       if (!effective.includes(activePeriod)) return false;
     }
+    if (activeDay !== "all") {
+      const wd = itemWeekDays[d.id] ?? [];
+      if (wd.length > 0 && !wd.includes(activeDay)) return false;
+    }
     if (search && !d.name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
@@ -557,6 +625,17 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
   const now = new Date();
   const currentPeriod = getCurrentPeriod(mealPeriodHours, now);
   const endLabel = currentPeriodEndLabel(mealPeriodHours, now);
+  const todayWeekDay = getCurrentWeekDay(now);
+
+  const daySummary = useMemo(() => {
+    const counts = Object.fromEntries(WEEK_DAY_ORDER.map((d) => [d, 0])) as Record<WeekDay, number>;
+    for (const d of dishes) {
+      const wd = itemWeekDays[d.id] ?? [];
+      const days = wd.length === 0 ? WEEK_DAY_ORDER : wd;
+      for (const day of days) counts[day]++;
+    }
+    return counts;
+  }, [itemWeekDays, dishes]);
 
   const getStatusColor = (id: string) => {
     if (!availability[id]) return "text-gray-400";
@@ -635,26 +714,54 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
         <StatCard label="Total Platos" value={dishes.length} icon="🍽️" color="blue" />
       </div>
 
-      {/* ── Period summary row ───────────────────────────────────────── */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-4">
-        <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">
-          Distribución por periodo
-        </p>
-        <div className="flex flex-wrap gap-3">
-          {MEAL_PERIOD_ORDER.map((p) => (
-            <div key={p} className="flex items-center gap-2">
-              <span
-                className="inline-block w-2 h-2 rounded-full"
-                style={{ backgroundColor: "var(--brand-primary)" }}
-              />
-              <span className="text-sm text-gray-700 dark:text-gray-300">
-                <span className="font-bold">{periodSummary[p]}</span>{" "}
-                <span className="text-gray-500 dark:text-gray-400">
-                  {MEAL_PERIOD_LABELS[p]}
+      {/* ── Summary rows ─────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">
+            Distribución por periodo
+          </p>
+          <div className="flex flex-wrap gap-3">
+            {MEAL_PERIOD_ORDER.map((p) => (
+              <div key={p} className="flex items-center gap-2">
+                <span
+                  className="inline-block w-2 h-2 rounded-full"
+                  style={{ backgroundColor: "var(--brand-primary)" }}
+                />
+                <span className="text-sm text-gray-700 dark:text-gray-300">
+                  <span className="font-bold">{periodSummary[p]}</span>{" "}
+                  <span className="text-gray-500 dark:text-gray-400">
+                    {MEAL_PERIOD_LABELS[p]}
+                  </span>
                 </span>
-              </span>
-            </div>
-          ))}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 p-4">
+          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">
+            Platos por día
+          </p>
+          <div className="flex flex-wrap gap-3">
+            {WEEK_DAY_ORDER.map((d) => (
+              <div key={d} className="flex items-center gap-2">
+                <span
+                  className={`inline-block w-2 h-2 rounded-full ${
+                    d === todayWeekDay ? "bg-sky-500" : ""
+                  }`}
+                  style={d !== todayWeekDay ? { backgroundColor: "var(--brand-primary)" } : undefined}
+                />
+                <span className="text-sm text-gray-700 dark:text-gray-300">
+                  <span className={`font-bold ${d === todayWeekDay ? "text-sky-600 dark:text-sky-400" : ""}`}>
+                    {daySummary[d]}
+                  </span>{" "}
+                  <span className="text-gray-500 dark:text-gray-400">
+                    {WEEK_DAY_SHORT[d]}
+                    {d === todayWeekDay && <span className="ml-1 text-sky-500 text-[9px] font-bold">HOY</span>}
+                  </span>
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -711,6 +818,31 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
             </button>
           ))}
         </div>
+        {/* Day-of-week pills */}
+        <div className="flex gap-2 overflow-x-auto pb-1 max-w-full [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {WEEK_DAY_PILLS.map((d) => {
+            const isToday = d.key !== "all" && d.key === todayWeekDay;
+            return (
+              <button
+                key={d.key}
+                onClick={() => setActiveDay(d.key)}
+                className={`px-3.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap flex-shrink-0 border transition-colors ${
+                  activeDay === d.key
+                    ? "text-white border-transparent"
+                    : isToday
+                    ? "border-sky-400 text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/30 hover:bg-sky-100 dark:hover:bg-sky-950/50"
+                    : "bg-transparent border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                }`}
+                style={activeDay === d.key ? { backgroundColor: "var(--brand-primary)" } : undefined}
+              >
+                {d.label}
+                {isToday && activeDay !== d.key && (
+                  <span className="ml-1 text-[9px] font-bold">●</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* ── Main grid ────────────────────────────────────────────────── */}
@@ -766,8 +898,9 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
                   {item.description}
                 </p>
 
-                {/* Period chips */}
+                {/* Period + day chips */}
                 <PeriodChips periods={itemPeriods[item.id] ?? []} />
+                <WeekDayChips weekDays={itemWeekDays[item.id] ?? []} />
 
                 {/* Dietary flags */}
                 {(item.flags.vegetarian || item.flags.glutenFree || item.flags.spicy) && (
@@ -932,13 +1065,25 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
             {/* Descripción */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
-                Descripción corta
+                Descripción <span className="text-gray-400">(ES)</span>
               </label>
               <textarea
                 rows={2}
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
                 placeholder="Qué trae, cómo se sirve..."
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                Description <span className="text-gray-400">(EN)</span>
+              </label>
+              <textarea
+                rows={2}
+                value={editDescriptionEn}
+                onChange={(e) => setEditDescriptionEn(e.target.value)}
+                placeholder="What's in it, how it's served..."
                 className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               />
             </div>
@@ -966,6 +1111,43 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
               <p className="text-[11px] text-gray-400 mt-2">
                 Deja vacío o marca <strong>Todo el día</strong> para que esté siempre disponible.
               </p>
+            </div>
+
+            {/* Days of week */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">
+                Días disponibles
+              </label>
+              <WeekDayEditor value={editWeekDays} onChange={setEditWeekDays} compact />
+              <p className="text-[11px] text-gray-400 mt-2">
+                Deja vacío o marca <strong>Todos los días</strong> para disponibilidad toda la semana.
+              </p>
+            </div>
+
+            {/* Flags dietéticos */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">
+                Etiquetas
+              </label>
+              <div className="flex flex-wrap gap-3">
+                {(
+                  [
+                    ["vegetarian", "🌿 Vegetariano"],
+                    ["spicy", "🌶 Picante"],
+                    ["glutenFree", "🌾 Sin gluten"],
+                  ] as const
+                ).map(([key, label]) => (
+                  <label key={key} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editFlags[key]}
+                      onChange={(e) => setEditFlags((f) => ({ ...f, [key]: e.target.checked }))}
+                      className="w-4 h-4 rounded accent-blue-600"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             {/* Toggles */}
@@ -1091,13 +1273,25 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
             {/* Descripción */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
-                Descripción corta
+                Descripción <span className="text-gray-400">(ES)</span>
               </label>
               <textarea
                 rows={2}
                 value={newDescription}
                 onChange={(e) => setNewDescription(e.target.value)}
                 placeholder="Qué trae, cómo se sirve..."
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                Description <span className="text-gray-400">(EN)</span>
+              </label>
+              <textarea
+                rows={2}
+                value={newDescriptionEn}
+                onChange={(e) => setNewDescriptionEn(e.target.value)}
+                placeholder="What's in it, how it's served..."
                 className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               />
             </div>
@@ -1133,6 +1327,75 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
                   ))}
                 </select>
               </div>
+            </div>
+
+            {/* Períodos */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">
+                Se sirve en
+              </label>
+              <MealPeriodEditor value={newPeriods} onChange={setNewPeriods} />
+              <p className="text-[11px] text-gray-400 mt-1.5">
+                Deja vacío o marca <strong>Todo el día</strong> para siempre disponible.
+              </p>
+            </div>
+
+            {/* Días disponibles */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">
+                Días disponibles
+              </label>
+              <WeekDayEditor value={newWeekDays} onChange={setNewWeekDays} compact />
+              <p className="text-[11px] text-gray-400 mt-1.5">
+                Deja vacío para toda la semana.
+              </p>
+            </div>
+
+            {/* Flags dietéticos */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">
+                Etiquetas
+              </label>
+              <div className="flex flex-wrap gap-3">
+                {(
+                  [
+                    ["vegetarian", "🌿 Vegetariano"],
+                    ["spicy", "🌶 Picante"],
+                    ["glutenFree", "🌾 Sin gluten"],
+                  ] as const
+                ).map(([key, label]) => (
+                  <label key={key} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newFlags[key]}
+                      onChange={(e) => setNewFlags((f) => ({ ...f, [key]: e.target.checked }))}
+                      className="w-4 h-4 rounded accent-blue-600"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Toggles */}
+            <div className="flex flex-col gap-3">
+              {(
+                [
+                  ["available", "Disponible en menú"],
+                  ["popular", "Popular 🔥"],
+                  ["featured", "Destacado ⭐"],
+                ] as const
+              ).map(([key, label]) => (
+                <label key={key} className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={newToggles[key]}
+                    onChange={(e) => setNewToggles((t) => ({ ...t, [key]: e.target.checked }))}
+                    className="w-4 h-4 rounded accent-blue-600"
+                  />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
+                </label>
+              ))}
             </div>
 
             {/* Actions */}

@@ -46,12 +46,16 @@ export interface MenuItemFlags {
  */
 export type MealPeriod = "breakfast" | "lunch" | "dinner" | "late_night" | "all_day";
 
+export type WeekDay = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
+
 export interface MenuCatalogItem extends CatalogItem {
   kind: "menu";
   flags?: MenuItemFlags;
   featured?: boolean;
   /** Periodos en que el item se sirve. Vacío/undefined = all_day. */
   periods?: MealPeriod[];
+  /** Días de la semana en que está disponible. Vacío/undefined = todos los días. */
+  weekDays?: WeekDay[];
 }
 
 // ─── Product (retail / ferretería / barbería) ───────────────────────────────

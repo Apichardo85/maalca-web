@@ -112,8 +112,11 @@ type TldStrings = {
   galleryReadyH2: string;
   galleryReserveCta: string;
   galleryViewMenuCta: string;
-  // Categorías (para footer links)
+  // Categorías (para footer links y filtros de menú)
   cats: Record<string, string>;
+  menuFilterAll: string;
+  menuFilterPopular: string;
+  menuAllWeek: string;
   // Language toggle
   switchTo: string;
 };
@@ -218,6 +221,8 @@ const ES: TldStrings = {
   galleryViewMenuCta: "Ver Menú →",
 
   cats: {
+    Desayuno: "Desayuno",
+    Criollos: "Criollos",
     Picadera: "Picadera",
     Fritura: "Fritura",
     Carnes: "Carnes",
@@ -225,6 +230,9 @@ const ES: TldStrings = {
     Acompañantes: "Acompañantes",
     Postres: "Postres",
   },
+  menuFilterAll: "Todos",
+  menuFilterPopular: "Popular",
+  menuAllWeek: "Toda la semana",
 
   switchTo: "English",
 };
@@ -329,6 +337,8 @@ const EN: TldStrings = {
   galleryViewMenuCta: "View Menu →",
 
   cats: {
+    Desayuno: "Breakfast",
+    Criollos: "Dominican Classics",
     Picadera: "Appetizers",
     Fritura: "Fried",
     Carnes: "Meats",
@@ -336,6 +346,9 @@ const EN: TldStrings = {
     Acompañantes: "Sides",
     Postres: "Desserts",
   },
+  menuFilterAll: "All",
+  menuFilterPopular: "Popular",
+  menuAllWeek: "All week",
 
   switchTo: "Español",
 };

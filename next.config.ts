@@ -18,9 +18,9 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 60,
     domains: [],
     // Keep unoptimized for SVGs only (handled in ProjectImage component)
+    qualities: [75, 85, 95, 100], // Required for Next.js 16
   },
   // Performance optimizations
-  swcMinify: true, // Use SWC for minification (faster than Terser)
   compress: true, // Enable Gzip compression
   poweredByHeader: false, // Remove X-Powered-By header for security
   compiler: {
