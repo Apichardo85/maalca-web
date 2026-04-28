@@ -85,15 +85,6 @@ export const MOCK_DISHES: MenuItem[] = [
     descriptionEn: 'The national dish: white rice with concón, stewed beans, braised chicken and green salad. Home cooking, Sunday cooking, forever cooking.',
   },
   {
-    id: 'pollo-guisado-criollo', name: 'Pollo Guisado Criollo', price: 13,
-    category: 'Criollos', flags: { glutenFree: true }, popular: true, available: true,
-    periods: ['lunch', 'dinner'],
-    weekDays: ['monday', 'wednesday', 'thursday', 'friday', 'saturday'],
-    image: '/images/affiliates/tld/photos/arroz-blanco-01.jpg',
-    description: 'La estrella de la mesa dominicana. Pollo estofado en sofrito criollo con orégano, cilantro y pimientos. Servido con arroz blanco y habichuela guisada.',
-    descriptionEn: 'The star of the Dominican table. Chicken stewed in Creole sofrito with oregano, cilantro and peppers. Served with white rice and stewed beans.',
-  },
-  {
     id: 'arroz-blanco', name: 'Arroz Blanco con Concón', price: 5,
     category: 'Criollos', flags: { vegetarian: true, glutenFree: true }, popular: true, available: true,
     image: '/images/affiliates/tld/photos/La-Bandera-Dominicana.jpg',
@@ -116,15 +107,6 @@ export const MOCK_DISHES: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1536304993881-ff86e0c9c5ea?w=600&h=400&fit=crop&q=80',
     description: 'Arroz cocinado con guandules, coco y cilantro. El sabor dominicano de los sábados y los días especiales.',
     descriptionEn: 'Rice cooked with pigeon peas, coconut and cilantro. The Dominican flavor of Saturdays and special occasions.',
-  },
-  {
-    id: 'moros-con-maduro', name: 'Moros con Maduro', price: 13,
-    category: 'Criollos', flags: { vegetarian: true, glutenFree: true }, popular: true, available: true,
-    periods: ['lunch', 'dinner'],
-    weekDays: ['monday', 'wednesday', 'thursday', 'friday', 'saturday'],
-    image: '/images/affiliates/tld/photos/moros-con-maduro-01.jpg',
-    description: 'Arroz moro de habichuelas negras con plátano maduro frito y papas criollas. Plato tradicional de la mesa dominicana.',
-    descriptionEn: 'Black bean rice with sweet fried plantain and Creole potatoes. A traditional Dominican staple.',
   },
 
   // ── SOPAS ─────────────────────────────────────────────────────────────────
@@ -255,30 +237,6 @@ export const MOCK_DISHES: MenuItem[] = [
     image: 'https://images.unsplash.com/photo-1604908177455-e0deb1aab44d?w=600&h=400&fit=crop&q=80',
     description: 'Pechuga de pollo en salsa cremosa de ajo y hierbas. Suave, rica y reconfortante.',
     descriptionEn: 'Chicken breast in creamy garlic and herb sauce. Soft, rich and comforting.',
-  },
-  {
-    id: 'pollo-plancha', name: 'Pollo a la Plancha', price: 15,
-    category: 'Carnes', flags: { glutenFree: true }, popular: true, available: true,
-    periods: ['lunch', 'dinner'],
-    image: '/images/affiliates/tld/photos/pollo-plancha-01.jpg',
-    description: 'Pechuga marinada a la plancha, servida con arroz blanco y yuca frita con salsa de ajo.',
-    descriptionEn: 'Marinated grilled chicken breast, served with white rice and yuca fries with garlic sauce.',
-  },
-  {
-    id: 'churrasco', name: 'Churrasco', price: 18,
-    category: 'Carnes', flags: { glutenFree: true }, popular: true, available: true,
-    periods: ['dinner'],
-    image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&h=400&fit=crop&q=80',
-    description: 'Falda de res tierna a la parrilla, servida con chimichurri de la casa.',
-    descriptionEn: 'Tender grilled skirt steak, served with house chimichurri.',
-  },
-  {
-    id: 'parrillada-mixta', name: 'Parrillada Mixta', price: 32,
-    category: 'Carnes', flags: { glutenFree: true }, popular: true, available: true,
-    periods: ['dinner'],
-    image: '/images/affiliates/tld/photos/parrillada-mixta-01.jpg',
-    description: 'Tabla para compartir: pollo, chorizo, costilla y chuleta a la parrilla, con tostones, yuca y fries. Ideal para 2-3 personas.',
-    descriptionEn: 'Sharing board: grilled chicken, chorizo, ribs and pork chop with tostones, yuca and fries. Perfect for 2–3 people.',
   },
 
   // ── MARISCOS ──────────────────────────────────────────────────────────────
@@ -428,22 +386,14 @@ export const MOCK_DISHES: MenuItem[] = [
     descriptionEn: 'Golden crispy fries — simple, perfect.',
   },
 
-  // ── POSTRES ───────────────────────────────────────────────────────────────
-  {
-    id: 'habichuelas-con-dulce', name: 'Habichuelas con Dulce', price: 7,
-    category: 'Postres', flags: { vegetarian: true }, popular: true, available: true,
-    image: '/images/affiliates/tld/photos/habichuelas-con-dulce-02.jpg',
-    description: 'El postre de la Cuaresma dominicana: habichuelas rojas, leche, batata, canela y clavo, servido con galleticas de soda. Receta de abuela.',
-    descriptionEn: 'The Lenten dessert of the Dominican Republic: sweet red beans with milk, batata, cinnamon and cloves, served with soda crackers. Abuela\'s recipe.',
-  },
 ]
 
 export const MENU_CATEGORIES = [
-  'Desayuno', 'Criollos', 'Sopas', 'Carnes', 'Mariscos', 'Fritura', 'Picadera', 'Acompañantes', 'Postres',
+  'Desayuno', 'Criollos', 'Sopas', 'Carnes', 'Mariscos', 'Fritura', 'Picadera', 'Acompañantes',
 ]
 
 // Home grid destacados — identidad dominicana primero
-export const FEATURED_DISHES = ['la-bandera', 'arroz-blanco', 'habichuela-guisada', 'pollo-guisado-criollo']
+export const FEATURED_DISHES = ['la-bandera', 'arroz-blanco', 'habichuela-guisada', 'pollo-guisado']
 
 export const MOCK_EVENTS: LiveEvent[] = [
   { id: '1', title: 'Noche de Bachata',  artistName: 'DJ Caribe',       date: '2026-03-28', startTime: '8:00 PM' },
