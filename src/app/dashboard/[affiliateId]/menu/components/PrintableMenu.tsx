@@ -176,9 +176,9 @@ function ItemRow({
         <div style={{ fontWeight: 600, fontSize: ".82rem", color: "#1a1a1a", lineHeight: 1.2 }}>
           {dish.name}
         </div>
-        {dish.descriptionEn && (
+        {(dish.descriptionEn || dish.description) && (
           <div style={{ fontSize: ".68rem", color: "#666", fontStyle: "italic", lineHeight: 1.25, marginTop: 1 }}>
-            {firstSentence(dish.descriptionEn)}
+            {firstSentence(dish.descriptionEn || dish.description || "")}
           </div>
         )}
         {dinnerOnly && (
