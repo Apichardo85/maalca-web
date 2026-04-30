@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
       tax: body.tax || 0,
       total: body.total || 0,
       notes: body.notes,
-      whatsappNumber: body.whatsappNumber || '16078574226',
+      whatsappNumber: body.whatsappNumber || '16072150990',
     };
 
     const tenantId = body.tenantId || 'the-little-dominican';

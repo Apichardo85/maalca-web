@@ -44,7 +44,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   }
 
   const body = await req.json()
-  const { id, name, description, price, category, image_url, periods, available, featured, popular, flags, display_order } = body
+  const { id, name, description, description_en, price, category, image_url, periods, week_days, available, featured, popular, flags, display_order } = body
 
   if (!id || !name || price == null || !category) {
     return NextResponse.json({ error: 'missing required fields (id, name, price, category)' }, { status: 400 })
@@ -58,10 +58,12 @@ export async function POST(req: NextRequest, { params }: Params) {
       affiliate_id: affiliateId,
       name,
       description: description ?? null,
+      description_en: description_en ?? null,
       price,
       category,
       image_url: image_url ?? null,
       periods: periods ?? [],
+      week_days: week_days ?? [],
       available: available ?? true,
       featured: featured ?? false,
       popular: popular ?? false,

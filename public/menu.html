@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Little Dominicana — Menú / Menu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ─── RESET & BASE ─── */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --red:#CE1126;--dark:#1a1a1a;--gray:#555;--light:#f8f6f3;
+  --border:#ddd;--gold:#9a7a1f;
+}
+body{
+  background:#e8e4df;
+  font-family:'Inter',system-ui,sans-serif;
+  font-size:14px;color:var(--dark);
+}
+
+/* ─── SCREEN NAV (solo en pantalla) ─── */
+.screen-nav{
+  position:sticky;top:0;z-index:50;
+  background:#1a1a1a;padding:10px 16px;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  box-shadow:0 2px 8px rgba(0,0,0,.3);
+}
+.screen-nav span{color:#888;font-size:.75rem;margin-right:4px}
+.nav-btn{
+  padding:6px 14px;border-radius:4px;border:1px solid #444;
+  background:none;color:#ccc;cursor:pointer;
+  font-family:'Inter',sans-serif;font-size:.78rem;font-weight:500;
+  transition:all .15s;
+}
+.nav-btn:hover{background:#333;color:#fff}
+.nav-btn.active{background:var(--red);border-color:var(--red);color:#fff}
+.nav-btn.today::after{content:'●';font-size:.5rem;margin-left:4px;vertical-align:middle;color:#fbbf24}
+
+/* ─── PAGE (una por día) ─── */
+.page{
+  width:215.9mm; /* Letter */
+  min-height:279.4mm;
+  margin:16px auto;
+  background:#fff;
+  display:none;
+  padding:11mm 12mm 10mm;
+  position:relative;
+  box-shadow:0 2px 12px rgba(0,0,0,.15);
+}
+.page.active{display:block}
+
+/* ─── PAGE HEADER ─── */
+.page-header{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  border-bottom:3px solid var(--red);padding-bottom:7px;margin-bottom:9px;
+}
+.brand{display:flex;align-items:flex-end;gap:10px}
+.brand-flag{font-size:1.6rem;line-height:1}
+.brand-name{font-family:'Playfair Display',serif;font-size:1.45rem;color:var(--dark);line-height:1}
+.brand-sub{font-size:.65rem;color:var(--gray);letter-spacing:2px;text-transform:uppercase;display:block;margin-top:1px}
+.day-label{text-align:right}
+.day-es{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--red);line-height:1.1}
+.day-en{font-size:.7rem;color:var(--gray);text-transform:uppercase;letter-spacing:1.5px}
+
+/* ─── CONTENT COLUMNS ─── */
+.page-body{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:0 14px;
+  align-items:start;
+}
+.col-full{grid-column:1/-1}
+
+/* ─── SECTION ─── */
+.section{margin-bottom:9px;break-inside:avoid}
+.section-head{
+  font-size:.6rem;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;color:var(--red);
+  border-bottom:1px solid #e8e0d8;
+  padding-bottom:2px;margin-bottom:5px;
+  display:flex;justify-content:space-between;align-items:baseline;
+}
+.section-head-note{font-size:.58rem;color:var(--gray);font-weight:400;letter-spacing:.5px;text-transform:none}
+
+/* ─── ITEM ─── */
+.item{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:0 6px;
+  padding:3.5px 0;
+  border-bottom:1px dotted #e8e4df;
+}
+.item:last-child{border-bottom:none}
+.item-left{min-width:0}
+.item-name-es{font-weight:600;font-size:.82rem;color:var(--dark);line-height:1.2}
+.item-name-en{font-size:.7rem;color:var(--gray);font-style:italic;line-height:1.2}
+.item-desc{font-size:.65rem;color:#777;line-height:1.3;margin-top:1px}
+.item-right{text-align:right;padding-top:1px;flex-shrink:0}
+.item-price{font-weight:700;font-size:.85rem;color:var(--dark);white-space:nowrap}
+.item-flags{font-size:.58rem;color:#999;margin-top:1px;text-align:right}
+
+/* Special items */
+.item.special .item-name-es{color:var(--gold)}
+.item.special .item-price{color:var(--gold)}
+
+/* ─── BANNER especial del día ─── */
+.day-special-banner{
+  grid-column:1/-1;
+  border:1px solid #e8d99a;border-radius:4px;
+  background:#fffdf0;padding:5px 9px;margin-bottom:8px;
+  display:flex;align-items:center;gap:8px;
+}
+.banner-icon{font-size:1.1rem}
+.banner-text{font-size:.72rem;color:var(--gold);font-weight:600;line-height:1.4}
+.banner-text em{font-style:italic;font-weight:400;color:#a89040}
+
+/* ─── PAGE FOOTER ─── */
+.page-footer{
+  position:absolute;bottom:8mm;left:12mm;right:12mm;
+  border-top:1px solid var(--border);padding-top:4px;
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:.6rem;color:#aaa;
+}
+.page-footer strong{color:#888}
+
+/* ─── INCLUDES NOTE ─── */
+.includes-note{
+  grid-column:1/-1;
+  font-size:.6rem;color:#999;font-style:italic;
+  border:1px solid #efefef;border-radius:3px;
+  padding:3px 8px;margin-bottom:6px;background:#fafafa;
+  text-align:center;
+}
+
+/* ─── PORTADA ─── */
+.portada{
+  width:215.9mm;min-height:279.4mm;
+  margin:16px auto;background:#fff;
+  display:none;padding:14mm 14mm 12mm;
+  position:relative;box-shadow:0 2px 12px rgba(0,0,0,.15);
+  flex-direction:column;align-items:center;
+}
+.portada.active{display:flex}
+.portada-top{
+  text-align:center;padding-bottom:10mm;
+  border-bottom:3px solid var(--red);width:100%;
+}
+.portada-flag{font-size:3.5rem;line-height:1;margin-bottom:6px}
+.portada-name{
+  font-family:'Playfair Display',serif;
+  font-size:2.4rem;color:var(--dark);line-height:1.1;
+}
+.portada-tagline{
+  font-size:.75rem;letter-spacing:3px;
+  text-transform:uppercase;color:var(--gray);margin-top:4px;
+}
+.portada-info{
+  display:flex;justify-content:center;gap:28px;
+  flex-wrap:wrap;margin-top:10px;font-size:.72rem;color:var(--gray);
+}
+.portada-info strong{color:var(--dark);font-weight:600}
+
+.portada-specials{
+  width:100%;margin:10mm 0;
+}
+.portada-specials-title{
+  font-size:.6rem;font-weight:700;letter-spacing:2.5px;
+  text-transform:uppercase;color:var(--red);
+  text-align:center;margin-bottom:6mm;
+}
+.specials-grid{
+  width:100%;border-collapse:collapse;
+}
+.specials-grid td{
+  padding:5px 8px;vertical-align:top;
+  border-bottom:1px solid #efefef;font-size:.78rem;
+}
+.specials-grid tr:last-child td{border-bottom:none}
+.sg-day{
+  font-weight:700;color:var(--red);white-space:nowrap;
+  width:22%;font-size:.75rem;
+}
+.sg-day-en{
+  font-size:.62rem;color:var(--gray);font-weight:400;display:block;
+}
+.sg-dishes{color:var(--dark);line-height:1.5}
+.sg-dishes em{font-style:normal;color:var(--gold);font-weight:600}
+.sg-note{font-size:.65rem;color:var(--gray);font-style:italic}
+
+.portada-bottom{
+  margin-top:auto;width:100%;
+  display:flex;align-items:center;justify-content:space-between;
+  border-top:1px solid var(--border);padding-top:8mm;gap:16px;
+}
+.portada-qr-block{display:flex;flex-direction:column;align-items:center;gap:6px}
+#qrcode-portada{border:2px solid var(--red);padding:8px;border-radius:4px}
+.portada-qr-label{font-size:.6rem;color:var(--gray);text-align:center;max-width:120px;line-height:1.4}
+.portada-note{
+  flex:1;font-size:.68rem;color:var(--gray);line-height:1.6;
+  border-left:3px solid #f0ece6;padding-left:12px;
+}
+.portada-note strong{color:var(--dark);display:block;font-size:.72rem;margin-bottom:3px}
+
+/* ─── QR PAGE ─── */
+.qr-page{
+  width:215.9mm;min-height:120mm;margin:16px auto;
+  background:#fff;display:none;
+  padding:12mm;
+  box-shadow:0 2px 12px rgba(0,0,0,.15);
+}
+.qr-page.active{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.qr-brand{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--dark);text-align:center}
+.qr-sub{font-size:.75rem;color:var(--gray);text-align:center;max-width:260px;line-height:1.5}
+#qrcode{border:3px solid var(--red);padding:10px;border-radius:4px;display:inline-block}
+.qr-info{display:flex;gap:24px;font-size:.72rem;color:var(--gray);text-align:center;flex-wrap:wrap;justify-content:center}
+.qr-info strong{display:block;color:var(--dark);font-weight:600;margin-bottom:1px}
+
+/* ─── PRINT ─── */
+@media print{
+  @page{size:Letter portrait;margin:0}
+  body{background:#fff}
+  .screen-nav{display:none!important}
+  .portada{
+    display:flex!important;
+    margin:0;width:100%;min-height:100vh;
+    page-break-after:always;break-after:page;
+    box-shadow:none;padding:14mm 14mm 12mm;
+  }
+  .page{
+    display:block!important;
+    margin:0;width:100%;min-height:100vh;
+    page-break-after:always;break-after:page;
+    box-shadow:none;
+    padding:11mm 12mm 16mm;
+  }
+  .page:last-of-type{page-break-after:auto;break-after:auto}
+  .qr-page{display:flex!important;page-break-after:auto;break-after:auto;box-shadow:none}
+}
+
+@media screen and (max-width:600px){
+  .portada{width:100%;min-height:auto;margin:8px 0;padding:20px 14px 40px}
+  .portada-bottom{flex-direction:column;align-items:center}
+  .page{width:100%;min-height:auto;margin:8px 0;padding:16px 14px 40px}
+  .page-body{grid-template-columns:1fr}
+  .col-full,.day-special-banner,.includes-note{grid-column:1}
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+<!-- ─── SCREEN NAV ─── -->
+<nav class="screen-nav">
+  <span>Ver día /</span>
+  <button class="nav-btn" data-day="portada"  onclick="showDay('portada')">Portada</button>
+  <button class="nav-btn" data-day="lunes"    onclick="showDay('lunes')">Lunes</button>
+  <button class="nav-btn" data-day="martes"   onclick="showDay('martes')">Martes</button>
+  <button class="nav-btn" data-day="miercoles" onclick="showDay('miercoles')">Miércoles</button>
+  <button class="nav-btn" data-day="jueves"   onclick="showDay('jueves')">Jueves</button>
+  <button class="nav-btn" data-day="viernes"  onclick="showDay('viernes')">Viernes</button>
+  <button class="nav-btn" data-day="sabado"   onclick="showDay('sabado')">Sábado</button>
+  <button class="nav-btn" data-day="qr"       onclick="showDay('qr')">QR</button>
+  <button class="nav-btn" style="margin-left:auto;background:#333;border-color:#555;color:#fff" onclick="window.print()">🖨 Imprimir todos</button>
+</nav>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     PORTADA / COVER
+══════════════════════════════════════════════════════════ -->
+<div class="portada" id="day-portada">
+
+  <div class="portada-top">
+    <div class="portada-flag">🇩🇴</div>
+    <div class="portada-name">The Little Dominicana</div>
+    <div class="portada-tagline">Cocina Dominicana Auténtica &nbsp;·&nbsp; Authentic Dominican Cuisine</div>
+    <div class="portada-info">
+      <span>📍 <strong>315 E Water St</strong> Elmira, NY 14901</span>
+      <span>📞 <strong>(607) 215-0990</strong></span>
+      <span>⏰ <strong>Lun–Sáb / Mon–Sat</strong> 9 AM – 8 PM &nbsp;·&nbsp; Dom / Sun: Cerrado / Closed</span>
+    </div>
+  </div>
+
+  <div class="portada-specials">
+    <div class="portada-specials-title">Especiales de la Semana &nbsp;/&nbsp; Weekly Specials</div>
+    <table class="specials-grid">
+      <tr>
+        <td class="sg-day">Lunes<span class="sg-day-en">Monday</span></td>
+        <td class="sg-dishes">
+          Batidas de Fruta &amp; Papaya · Camarones al Ajillo · Camarones en Crema<br>
+          <span class="sg-note">Langosta en Crema $28 · Mariscos solo en cena / Seafood at dinner only</span>
+        </td>
+      </tr>
+      <tr>
+        <td class="sg-day">Martes<span class="sg-day-en">Tuesday</span></td>
+        <td class="sg-dishes">
+          Orejita Frita · Mofongo Balls · Coco Frito<br>
+          <span class="sg-note">Menú reducido · Limited menu day</span>
+        </td>
+      </tr>
+      <tr>
+        <td class="sg-day">Miércoles<span class="sg-day-en">Wednesday</span></td>
+        <td class="sg-dishes">
+          Mangú con los 3 Golpes · Bacaladito · Mondongo<br>
+          Chicharrón · Alitas BBQ · Camarones al Ajillo (cena)
+        </td>
+      </tr>
+      <tr>
+        <td class="sg-day">Jueves<span class="sg-day-en">Thursday</span></td>
+        <td class="sg-dishes">
+          <em>⭐ SANCOCHO $14</em> — El guiso nacional / The national stew<br>
+          Patica de Pollo con Molondrón · Chicharrón · Cerdo Frito · Espaguetis Dominicanos
+        </td>
+      </tr>
+      <tr>
+        <td class="sg-day">Viernes<span class="sg-day-en">Friday</span></td>
+        <td class="sg-dishes">
+          <em>⭐ RABO GUISADO $17</em> — Estofado 4 horas / 4-hour braised oxtail<br>
+          Patica de Cerdo con Habichuela Blanca $13 · Pescado Frito · Mangú · Bacaladito
+        </td>
+      </tr>
+      <tr>
+        <td class="sg-day">Sábado<span class="sg-day-en">Saturday</span></td>
+        <td class="sg-dishes">
+          <em>⭐ CHIVO GUISADO $16</em> — Cabra caribeña / Caribbean goat<br>
+          <em>⭐ SNAPPER FRITO $22</em> — Pargo entero al estilo isla / Whole island-style snapper<br>
+          Pollomitas BBQ · Chulitos · Kipe
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="portada-bottom">
+    <div class="portada-qr-block">
+      <div id="qrcode-portada"></div>
+      <div class="portada-qr-label">Escanea para el menú digital<br>Scan for digital menu</div>
+    </div>
+    <div class="portada-note">
+      <strong>Sobre los platos de Carnes / About Meat Plates</strong>
+      Todos los platos de carnes incluyen arroz y habichuela a elegir al ordenar.<br>
+      All meat plates include rice and beans of your choice.<br><br>
+      <strong>Opciones de arroz / Rice options</strong>
+      Arroz Blanco · Moro de Guandules · Moro de Habichuela Roja · Arroz de Vegetales<br><br>
+      <strong>Opciones de habichuela / Bean options</strong>
+      Habichuela Roja Guisada · Lenteja Guisada (martes) · Guandule Guisado (miércoles)
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     LUNES / MONDAY
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="day-lunes">
+  <div class="page-header">
+    <div class="brand">
+      <span class="brand-flag">🇩🇴</span>
+      <div><div class="brand-name">The Little Dominicana</div><span class="brand-sub">Cocina Dominicana Auténtica · Elmira, NY</span></div>
+    </div>
+    <div class="day-label"><div class="day-es">Lunes</div><div class="day-en">Monday</div></div>
+  </div>
+
+  <div class="page-body">
+    <div class="includes-note">
+      ★ Los platos de Carnes incluyen arroz (blanco, moro o vegetales) y habichuela a elegir al ordenar. /<br>
+      ★ Meat plates include rice (white, moro, or vegetable) and beans of your choice.
+    </div>
+
+    <!-- COL 1 -->
+    <div>
+      <div class="section">
+        <div class="section-head">Desayuno / Breakfast <span class="section-head-note">9–11 AM</span></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Huevos a la Criolla</div><div class="item-name-en">Creole Scrambled Eggs</div><div class="item-desc">Con cebolla, tomate y pimientos / With onion, tomato & peppers</div></div><div class="item-right"><div class="item-price">$9</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Arepa Dominicana</div><div class="item-name-en">Dominican Corn Arepa</div><div class="item-desc">Suave y ligeramente dulce / Soft and slightly sweet</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Tostada</div><div class="item-name-en">Buttered Toast</div></div><div class="item-right"><div class="item-price">$3</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Bebidas / Beverages</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Batida de Fruta</div><div class="item-name-en">Fresh Fruit Shake</div><div class="item-desc">Fruta del día con leche / Seasonal fruit with milk</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Batida de Papaya</div><div class="item-name-en">Papaya Smoothie</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Morir Soñando</div><div class="item-name-en">Orange & Milk Drink</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Carnes / Meat Plates ★</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">La Bandera Dominicana</div><div class="item-name-en">The Dominican Flag</div><div class="item-desc">Pollo guisado, arroz y habichuela roja / Stewed chicken, rice & red beans</div></div><div class="item-right"><div class="item-price">$16</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pollo Guisado</div><div class="item-name-en">Stewed Chicken</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pollo al Horno</div><div class="item-name-en">Roasted Chicken</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pollo Frito</div><div class="item-name-en">Fried Chicken</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Bistec Encebollado</div><div class="item-name-en">Beef Steak with Onions</div></div><div class="item-right"><div class="item-price">$15</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Res Guisada</div><div class="item-name-en">Stewed Beef</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pernil al Horno</div><div class="item-name-en">Slow-Roasted Pork Shoulder</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Costillas BBQ</div><div class="item-name-en">BBQ Pork Ribs</div></div><div class="item-right"><div class="item-price">$16</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Chuletas Fritas</div><div class="item-name-en">Fried Pork Chops</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pechuga a la Crema</div><div class="item-name-en">Chicken Breast in Cream Sauce</div><div class="item-desc">Solo cena / Dinner only</div></div><div class="item-right"><div class="item-price">$16</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Mariscos / Seafood ★ <span class="section-head-note">solo cena / dinner only</span></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Camarones al Ajillo</div><div class="item-name-en">Garlic Shrimp</div></div><div class="item-right"><div class="item-price">$18</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Camarones en Crema</div><div class="item-name-en">Shrimp in Cream Sauce</div></div><div class="item-right"><div class="item-price">$19</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pechuga al Ajillo</div><div class="item-name-en">Chicken in Garlic Butter</div></div><div class="item-right"><div class="item-price">$16</div></div></div>
+        <div class="item special"><div class="item-left"><div class="item-name-es">Langosta en Crema</div><div class="item-name-en">Lobster in Cream Sauce</div></div><div class="item-right"><div class="item-price">$28</div></div></div>
+      </div>
+    </div>
+
+    <!-- COL 2 -->
+    <div>
+      <div class="section">
+        <div class="section-head">Sopas / Soups</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Asopao de Pollo</div><div class="item-name-en">Chicken Rice Soup</div></div><div class="item-right"><div class="item-price">$10</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Sopa de Pollo con Fideos</div><div class="item-name-en">Chicken Noodle Soup</div></div><div class="item-right"><div class="item-price">$9</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Fritura / Fried</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pica Pollo</div><div class="item-name-en">Dominican Fried Chicken</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pica Pollo 3 Piezas</div><div class="item-name-en">Fried Chicken (3 pcs)</div></div><div class="item-right"><div class="item-price">$16</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pica Longa</div><div class="item-name-en">Large Fried Chicken Share</div></div><div class="item-right"><div class="item-price">$25</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Queso Frito</div><div class="item-name-en">Fried Tropical Cheese</div></div><div class="item-right"><div class="item-price">$10</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Chimi</div><div class="item-name-en">Dominican Burger</div><div class="item-desc">Solo cena / Dinner only</div></div><div class="item-right"><div class="item-price">$11</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Picadera / Appetizers & Snacks</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Yaroa de Pollo</div><div class="item-name-en">Chicken Yaroa</div><div class="item-desc">Sobre plátano o papa con queso fundido / Over plantain or potato with melted cheese</div></div><div class="item-right"><div class="item-price">$12</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Empanadas</div><div class="item-name-en">Stuffed Pastries</div><div class="item-desc">Pollo, res o queso / Chicken, beef or cheese</div></div><div class="item-right"><div class="item-price">$3.50</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Kipe</div><div class="item-name-en">Dominican Kibbe</div><div class="item-desc">Croqueta de trigo y carne / Bulgur & meat croquette</div></div><div class="item-right"><div class="item-price">$3</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Relleno de Papa</div><div class="item-name-en">Stuffed Potato Ball</div></div><div class="item-right"><div class="item-price">$3.50</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Chulitos</div><div class="item-name-en">Yuca Rolls</div></div><div class="item-right"><div class="item-price">$3</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Ensalada de Tuna</div><div class="item-name-en">Tuna Salad</div></div><div class="item-right"><div class="item-price">$8</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Acompañantes / Sides</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Mofongo</div><div class="item-name-en">Garlic Mashed Plantain</div></div><div class="item-right"><div class="item-price">$12</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Tostones</div><div class="item-name-en">Twice-Fried Plantain</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Plátano Maduro</div><div class="item-name-en">Sweet Fried Plantain</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">French Fries</div><div class="item-name-en">French Fries</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Batata Frita</div><div class="item-name-en">Fried Sweet Potato</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Yuca Frita</div><div class="item-name-en">Fried Yuca</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Guineo</div><div class="item-name-en">Boiled Green Banana</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Ensalada de Papa</div><div class="item-name-en">Potato Salad</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Bolas de Papa</div><div class="item-name-en">Fried Potato Balls</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Vegetales</div><div class="item-name-en">Vegetables of the Day</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>🇩🇴 The Little Dominicana · 315 E Water St, Elmira, NY · (607) 215-0990</span>
+    <span><strong>Lun–Sáb</strong> 9 AM – 8 PM · Dom cerrado / Sun closed</span>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     MARTES / TUESDAY
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="day-martes">
+  <div class="page-header">
+    <div class="brand">
+      <span class="brand-flag">🇩🇴</span>
+      <div><div class="brand-name">The Little Dominicana</div><span class="brand-sub">Cocina Dominicana Auténtica · Elmira, NY</span></div>
+    </div>
+    <div class="day-label"><div class="day-es">Martes</div><div class="day-en">Tuesday</div></div>
+  </div>
+
+  <div class="page-body">
+    <div class="includes-note">
+      ★ Los platos de Carnes incluyen arroz y habichuela a elegir. Martes: habichuela = Lenteja Guisada /<br>
+      ★ Meat plates include rice & beans of your choice. Tuesday's bean: Stewed Lentils.
+    </div>
+
+    <div>
+      <div class="section">
+        <div class="section-head">Desayuno / Breakfast <span class="section-head-note">9–11 AM</span></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Huevos a la Criolla</div><div class="item-name-en">Creole Scrambled Eggs</div><div class="item-desc">Con cebolla, tomate y pimientos</div></div><div class="item-right"><div class="item-price">$9</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Arepa Dominicana</div><div class="item-name-en">Dominican Corn Arepa</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Tostada</div><div class="item-name-en">Buttered Toast</div></div><div class="item-right"><div class="item-price">$3</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Bebidas / Beverages</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Morir Soñando</div><div class="item-name-en">Orange & Milk Drink</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Carnes / Meat Plates ★</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pollo Guisado</div><div class="item-name-en">Stewed Chicken</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pollo Frito</div><div class="item-name-en">Fried Chicken</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Sopas / Soups</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Asopao de Pollo</div><div class="item-name-en">Chicken Rice Soup</div></div><div class="item-right"><div class="item-price">$10</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Sopa de Pollo con Fideos</div><div class="item-name-en">Chicken Noodle Soup</div></div><div class="item-right"><div class="item-price">$9</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Fritura / Fried</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Orejita Frita</div><div class="item-name-en">Crispy Fried Pork Ear</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pica Longa</div><div class="item-name-en">Large Fried Chicken Share</div></div><div class="item-right"><div class="item-price">$25</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Queso Frito</div><div class="item-name-en">Fried Tropical Cheese</div></div><div class="item-right"><div class="item-price">$10</div></div></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section">
+        <div class="section-head">Picadera / Appetizers & Snacks</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Empanadas</div><div class="item-name-en">Stuffed Pastries</div><div class="item-desc">Pollo, res o queso / Chicken, beef or cheese</div></div><div class="item-right"><div class="item-price">$3.50</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Mofongo Balls</div><div class="item-name-en">Mofongo Bites</div><div class="item-desc">Con chicharrón y ajo / With chicharrón & garlic</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Acompañantes / Sides</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Mofongo</div><div class="item-name-en">Garlic Mashed Plantain</div></div><div class="item-right"><div class="item-price">$12</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Plátano Maduro</div><div class="item-name-en">Sweet Fried Plantain</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">French Fries</div><div class="item-name-en">French Fries</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Batata Frita</div><div class="item-name-en">Fried Sweet Potato</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Yuca Frita</div><div class="item-name-en">Fried Yuca</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Guineo</div><div class="item-name-en">Boiled Green Banana</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Coco Frito</div><div class="item-name-en">Fried Coconut</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Bolas de Papa</div><div class="item-name-en">Fried Potato Balls</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Vegetales</div><div class="item-name-en">Vegetables of the Day</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>🇩🇴 The Little Dominicana · 315 E Water St, Elmira, NY · (607) 215-0990</span>
+    <span><strong>Lun–Sáb</strong> 9 AM – 8 PM · Dom cerrado / Sun closed</span>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     MIÉRCOLES / WEDNESDAY
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="day-miercoles">
+  <div class="page-header">
+    <div class="brand">
+      <span class="brand-flag">🇩🇴</span>
+      <div><div class="brand-name">The Little Dominicana</div><span class="brand-sub">Cocina Dominicana Auténtica · Elmira, NY</span></div>
+    </div>
+    <div class="day-label"><div class="day-es">Miércoles</div><div class="day-en">Wednesday</div></div>
+  </div>
+
+  <div class="page-body">
+    <div class="includes-note">
+      ★ Carnes incluyen arroz y habichuela. Miércoles: Moro de Habichuela Roja · Guandule Guisado /<br>
+      ★ Meat plates include rice & beans. Wed options: Red Bean Moro · Stewed Pigeon Peas.
+    </div>
+
+    <div>
+      <div class="section">
+        <div class="section-head">Desayuno / Breakfast <span class="section-head-note">9–11 AM</span></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Mangú con los 3 Golpes</div><div class="item-name-en">Mashed Plantain with the 3 Hits</div><div class="item-desc">Queso frito, salami y huevos / Fried cheese, salami & eggs</div></div><div class="item-right"><div class="item-price">$11</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Bacaladito</div><div class="item-name-en">Salt Cod Fritters</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Huevos a la Criolla</div><div class="item-name-en">Creole Scrambled Eggs</div></div><div class="item-right"><div class="item-price">$9</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Arepa Dominicana</div><div class="item-name-en">Dominican Corn Arepa</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Tostada</div><div class="item-name-en">Buttered Toast</div></div><div class="item-right"><div class="item-price">$3</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Bebidas / Beverages</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Morir Soñando</div><div class="item-name-en">Orange & Milk Drink</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Carnes / Meat Plates ★</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">La Bandera Dominicana</div><div class="item-name-en">The Dominican Flag</div></div><div class="item-right"><div class="item-price">$16</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pollo Guisado</div><div class="item-name-en">Stewed Chicken</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pollo al Horno</div><div class="item-name-en">Roasted Chicken</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Bistec Encebollado</div><div class="item-name-en">Beef Steak with Onions</div></div><div class="item-right"><div class="item-price">$15</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Res Guisada</div><div class="item-name-en">Stewed Beef</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Chuletas Fritas</div><div class="item-name-en">Fried Pork Chops</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Cerdo con Berenjena</div><div class="item-name-en">Pork with Eggplant</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pechuga a la Crema</div><div class="item-name-en">Chicken Breast in Cream Sauce</div><div class="item-desc">Solo cena / Dinner only</div></div><div class="item-right"><div class="item-price">$16</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Mariscos / Seafood ★ <span class="section-head-note">solo cena / dinner only</span></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Camarones al Ajillo</div><div class="item-name-en">Garlic Shrimp</div></div><div class="item-right"><div class="item-price">$18</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Camarones en Crema</div><div class="item-name-en">Shrimp in Cream Sauce</div></div><div class="item-right"><div class="item-price">$19</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pechuga al Ajillo</div><div class="item-name-en">Chicken in Garlic Butter</div></div><div class="item-right"><div class="item-price">$16</div></div></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section">
+        <div class="section-head">Sopas / Soups</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Mondongo</div><div class="item-name-en">Tripe Soup</div></div><div class="item-right"><div class="item-price">$12</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Asopao de Pollo</div><div class="item-name-en">Chicken Rice Soup</div></div><div class="item-right"><div class="item-price">$10</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Sopa de Pollo con Fideos</div><div class="item-name-en">Chicken Noodle Soup</div></div><div class="item-right"><div class="item-price">$9</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Fritura / Fried</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pica Pollo</div><div class="item-name-en">Dominican Fried Chicken</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pica Pollo 3 Piezas</div><div class="item-name-en">Fried Chicken (3 pcs)</div></div><div class="item-right"><div class="item-price">$16</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Chicharrón</div><div class="item-name-en">Crispy Fried Pork</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Alitas BBQ</div><div class="item-name-en">BBQ Chicken Wings</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Salami Frito</div><div class="item-name-en">Fried Dominican Salami</div></div><div class="item-right"><div class="item-price">$8</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pica Longa</div><div class="item-name-en">Large Fried Chicken Share</div></div><div class="item-right"><div class="item-price">$25</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Queso Frito</div><div class="item-name-en">Fried Tropical Cheese</div></div><div class="item-right"><div class="item-price">$10</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Picadera / Snacks</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Empanadas</div><div class="item-name-en">Stuffed Pastries</div></div><div class="item-right"><div class="item-price">$3.50</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Acompañantes / Sides</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Mofongo</div><div class="item-name-en">Garlic Mashed Plantain</div></div><div class="item-right"><div class="item-price">$12</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Tostones</div><div class="item-name-en">Twice-Fried Plantain</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Plátano Maduro</div><div class="item-name-en">Sweet Fried Plantain</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">French Fries</div><div class="item-name-en">French Fries</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Batata Frita</div><div class="item-name-en">Fried Sweet Potato</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Yuca Frita</div><div class="item-name-en">Fried Yuca</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Guineo</div><div class="item-name-en">Boiled Green Banana</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Bolas de Papa</div><div class="item-name-en">Fried Potato Balls</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Vegetales</div><div class="item-name-en">Vegetables of the Day</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>🇩🇴 The Little Dominicana · 315 E Water St, Elmira, NY · (607) 215-0990</span>
+    <span><strong>Lun–Sáb</strong> 9 AM – 8 PM · Dom cerrado / Sun closed</span>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     JUEVES / THURSDAY
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="day-jueves">
+  <div class="page-header">
+    <div class="brand">
+      <span class="brand-flag">🇩🇴</span>
+      <div><div class="brand-name">The Little Dominicana</div><span class="brand-sub">Cocina Dominicana Auténtica · Elmira, NY</span></div>
+    </div>
+    <div class="day-label"><div class="day-es">Jueves</div><div class="day-en">Thursday</div></div>
+  </div>
+
+  <div class="page-body">
+    <div class="day-special-banner col-full">
+      <span class="banner-icon">🍲</span>
+      <div class="banner-text">Especial del Jueves / Thursday Special: <strong>Sancocho</strong> — <em>El guiso nacional dominicano / The Dominican national stew</em></div>
+    </div>
+    <div class="includes-note">
+      ★ Carnes incluyen arroz y habichuela. Jueves: Moro de Guandules /<br>
+      ★ Meat plates include rice & beans. Thursday's rice option: Pigeon Pea Moro.
+    </div>
+
+    <div>
+      <div class="section">
+        <div class="section-head">Desayuno / Breakfast <span class="section-head-note">9–11 AM</span></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Huevos a la Criolla</div><div class="item-name-en">Creole Scrambled Eggs</div></div><div class="item-right"><div class="item-price">$9</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Arepa Dominicana</div><div class="item-name-en">Dominican Corn Arepa</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Tostada</div><div class="item-name-en">Buttered Toast</div></div><div class="item-right"><div class="item-price">$3</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Bebidas / Beverages</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Morir Soñando</div><div class="item-name-en">Orange & Milk Drink</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Sopas / Soups</div>
+        <div class="item special"><div class="item-left"><div class="item-name-es">★ Sancocho</div><div class="item-name-en">Dominican Stew — Thursday Special</div><div class="item-desc">Pollo, cerdo, yuca, plátano y vegetales / Chicken, pork, yuca, plantain & vegetables</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Patica de Pollo con Molondrón</div><div class="item-name-en">Chicken Feet & Okra Soup</div></div><div class="item-right"><div class="item-price">$12</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Asopao de Pollo</div><div class="item-name-en">Chicken Rice Soup</div></div><div class="item-right"><div class="item-price">$10</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Sopa de Pollo con Fideos</div><div class="item-name-en">Chicken Noodle Soup</div></div><div class="item-right"><div class="item-price">$9</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Carnes / Meat Plates ★</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">La Bandera Dominicana</div><div class="item-name-en">The Dominican Flag</div></div><div class="item-right"><div class="item-price">$16</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pollo Guisado</div><div class="item-name-en">Stewed Chicken</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pollo al Horno</div><div class="item-name-en">Roasted Chicken</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Bistec Encebollado</div><div class="item-name-en">Beef Steak with Onions</div></div><div class="item-right"><div class="item-price">$15</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pernil al Horno</div><div class="item-name-en">Slow-Roasted Pork Shoulder</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Cerdo Guisado</div><div class="item-name-en">Stewed Pork</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Cerdo con Berenjena</div><div class="item-name-en">Pork with Eggplant</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Espaguetis Dominicanos</div><div class="item-name-en">Dominican Spaghetti</div><div class="item-desc">Con pollo o res / With chicken or beef</div></div><div class="item-right"><div class="item-price">$12</div></div></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section">
+        <div class="section-head">Fritura / Fried</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Chicharrón</div><div class="item-name-en">Crispy Fried Pork</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Cerdo Frito</div><div class="item-name-en">Dominican Fried Pork</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pica Longa</div><div class="item-name-en">Large Fried Chicken Share</div></div><div class="item-right"><div class="item-price">$25</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Queso Frito</div><div class="item-name-en">Fried Tropical Cheese</div></div><div class="item-right"><div class="item-price">$10</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Picadera / Snacks</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Empanadas</div><div class="item-name-en">Stuffed Pastries</div></div><div class="item-right"><div class="item-price">$3.50</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Kipe</div><div class="item-name-en">Dominican Kibbe</div></div><div class="item-right"><div class="item-price">$3</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Relleno de Papa</div><div class="item-name-en">Stuffed Potato Ball</div></div><div class="item-right"><div class="item-price">$3.50</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Acompañantes / Sides</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Tostones</div><div class="item-name-en">Twice-Fried Plantain</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Plátano Maduro</div><div class="item-name-en">Sweet Fried Plantain</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">French Fries</div><div class="item-name-en">French Fries</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Batata Frita</div><div class="item-name-en">Fried Sweet Potato</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Yuca Frita</div><div class="item-name-en">Fried Yuca</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Guineo</div><div class="item-name-en">Boiled Green Banana</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Espaguetis (side)</div><div class="item-name-en">Dominican Spaghetti (side)</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Bolas de Papa</div><div class="item-name-en">Fried Potato Balls</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Vegetales</div><div class="item-name-en">Vegetables of the Day</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>🇩🇴 The Little Dominicana · 315 E Water St, Elmira, NY · (607) 215-0990</span>
+    <span><strong>Lun–Sáb</strong> 9 AM – 8 PM · Dom cerrado / Sun closed</span>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     VIERNES / FRIDAY
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="day-viernes">
+  <div class="page-header">
+    <div class="brand">
+      <span class="brand-flag">🇩🇴</span>
+      <div><div class="brand-name">The Little Dominicana</div><span class="brand-sub">Cocina Dominicana Auténtica · Elmira, NY</span></div>
+    </div>
+    <div class="day-label"><div class="day-es">Viernes</div><div class="day-en">Friday</div></div>
+  </div>
+
+  <div class="page-body">
+    <div class="day-special-banner col-full">
+      <span class="banner-icon">🦴</span>
+      <div class="banner-text">Especiales del Viernes / Friday Specials: <strong>Rabo Guisado · Patica de Cerdo</strong> — <em>Cocinados lentamente / Slow-cooked</em></div>
+    </div>
+    <div class="includes-note">
+      ★ Carnes incluyen arroz y habichuela. Viernes: Habichuela Roja Guisada /<br>
+      ★ Meat plates include rice & beans. Friday's bean: Stewed Red Beans.
+    </div>
+
+    <div>
+      <div class="section">
+        <div class="section-head">Desayuno / Breakfast <span class="section-head-note">9–11 AM</span></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Mangú con los 3 Golpes</div><div class="item-name-en">Mashed Plantain with the 3 Hits</div></div><div class="item-right"><div class="item-price">$11</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Bacaladito</div><div class="item-name-en">Salt Cod Fritters</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Huevos a la Criolla</div><div class="item-name-en">Creole Scrambled Eggs</div></div><div class="item-right"><div class="item-price">$9</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Arepa Dominicana</div><div class="item-name-en">Dominican Corn Arepa</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Tostada</div><div class="item-name-en">Buttered Toast</div></div><div class="item-right"><div class="item-price">$3</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Bebidas / Beverages</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Morir Soñando</div><div class="item-name-en">Orange & Milk Drink</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">★ Especiales del Viernes / Friday Specials</div>
+        <div class="item special"><div class="item-left"><div class="item-name-es">Rabo Guisado</div><div class="item-name-en">Braised Oxtail</div><div class="item-desc">Estofado 4 horas · incluye arroz y habichuela / 4-hour braise, includes rice & beans</div></div><div class="item-right"><div class="item-price">$17</div></div></div>
+        <div class="item special"><div class="item-left"><div class="item-name-es">Patica de Cerdo con Habichuela Blanca</div><div class="item-name-en">Pork Trotter & White Bean Stew</div><div class="item-desc">Sazón de los viernes / Friday's flavor</div></div><div class="item-right"><div class="item-price">$13</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Carnes / Meat Plates ★</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">La Bandera Dominicana</div><div class="item-name-en">The Dominican Flag</div></div><div class="item-right"><div class="item-price">$16</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pollo Guisado</div><div class="item-name-en">Stewed Chicken</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pollo al Horno</div><div class="item-name-en">Roasted Chicken</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Bistec Encebollado</div><div class="item-name-en">Beef Steak with Onions</div></div><div class="item-right"><div class="item-price">$15</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Res Guisada</div><div class="item-name-en">Stewed Beef</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pernil al Horno</div><div class="item-name-en">Slow-Roasted Pork Shoulder</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Costillas BBQ</div><div class="item-name-en">BBQ Pork Ribs</div></div><div class="item-right"><div class="item-price">$16</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Cerdo Guisado</div><div class="item-name-en">Stewed Pork</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section">
+        <div class="section-head">Mariscos / Seafood ★</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pescado Frito</div><div class="item-name-en">Whole Fried Fish</div><div class="item-desc">Con sazón criollo · incluye arroz y habichuela / Creole-spiced, includes rice & beans</div></div><div class="item-right"><div class="item-price">$18</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Sopas / Soups</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Asopao de Pollo</div><div class="item-name-en">Chicken Rice Soup</div></div><div class="item-right"><div class="item-price">$10</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Sopa de Pollo con Fideos</div><div class="item-name-en">Chicken Noodle Soup</div></div><div class="item-right"><div class="item-price">$9</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Fritura / Fried</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pica Longa</div><div class="item-name-en">Large Fried Chicken Share</div></div><div class="item-right"><div class="item-price">$25</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Queso Frito</div><div class="item-name-en">Fried Tropical Cheese</div></div><div class="item-right"><div class="item-price">$10</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Picadera / Snacks</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Empanadas</div><div class="item-name-en">Stuffed Pastries</div></div><div class="item-right"><div class="item-price">$3.50</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Relleno de Papa</div><div class="item-name-en">Stuffed Potato Ball</div></div><div class="item-right"><div class="item-price">$3.50</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Acompañantes / Sides</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Tostones</div><div class="item-name-en">Twice-Fried Plantain</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Plátano Maduro</div><div class="item-name-en">Sweet Fried Plantain</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">French Fries</div><div class="item-name-en">French Fries</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Batata Frita</div><div class="item-name-en">Fried Sweet Potato</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Yuca Frita</div><div class="item-name-en">Fried Yuca</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Guineo</div><div class="item-name-en">Boiled Green Banana</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Berenjena al Ajillo</div><div class="item-name-en">Garlic Eggplant</div></div><div class="item-right"><div class="item-price">$6</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Bolas de Papa</div><div class="item-name-en">Fried Potato Balls</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Vegetales</div><div class="item-name-en">Vegetables of the Day</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>🇩🇴 The Little Dominicana · 315 E Water St, Elmira, NY · (607) 215-0990</span>
+    <span><strong>Lun–Sáb</strong> 9 AM – 8 PM · Dom cerrado / Sun closed</span>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     SÁBADO / SATURDAY
+══════════════════════════════════════════════════════════ -->
+<div class="page" id="day-sabado">
+  <div class="page-header">
+    <div class="brand">
+      <span class="brand-flag">🇩🇴</span>
+      <div><div class="brand-name">The Little Dominicana</div><span class="brand-sub">Cocina Dominicana Auténtica · Elmira, NY</span></div>
+    </div>
+    <div class="day-label"><div class="day-es">Sábado</div><div class="day-en">Saturday</div></div>
+  </div>
+
+  <div class="page-body">
+    <div class="day-special-banner col-full">
+      <span class="banner-icon">🐐</span>
+      <div class="banner-text">Especiales del Sábado / Saturday Specials: <strong>Chivo Guisado · Snapper Frito</strong> — <em>Los más esperados / The most awaited of the week</em></div>
+    </div>
+    <div class="includes-note">
+      ★ Carnes incluyen arroz y habichuela. Sábado: Moro de Guandules /<br>
+      ★ Meat plates include rice & beans. Saturday's rice: Pigeon Pea Moro.
+    </div>
+
+    <div>
+      <div class="section">
+        <div class="section-head">Desayuno / Breakfast <span class="section-head-note">9–11 AM</span></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Huevos a la Criolla</div><div class="item-name-en">Creole Scrambled Eggs</div></div><div class="item-right"><div class="item-price">$9</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Arepa Dominicana</div><div class="item-name-en">Dominican Corn Arepa</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Tostada</div><div class="item-name-en">Buttered Toast</div></div><div class="item-right"><div class="item-price">$3</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Bebidas / Beverages</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Morir Soñando</div><div class="item-name-en">Orange & Milk Drink</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">★ Especiales del Sábado / Saturday Specials</div>
+        <div class="item special"><div class="item-left"><div class="item-name-es">Chivo Guisado</div><div class="item-name-en">Stewed Goat — Saturday Special</div><div class="item-desc">Con especias caribeñas · incluye arroz y habichuela / Caribbean-spiced, includes rice & beans</div></div><div class="item-right"><div class="item-price">$16</div></div></div>
+        <div class="item special"><div class="item-left"><div class="item-name-es">Snapper Frito</div><div class="item-name-en">Whole Fried Snapper — Saturday Special</div><div class="item-desc">Entero, al estilo isla · incluye arroz y habichuela / Whole island-style, includes rice & beans</div></div><div class="item-right"><div class="item-price">$22</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Carnes / Meat Plates ★</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">La Bandera Dominicana</div><div class="item-name-en">The Dominican Flag</div></div><div class="item-right"><div class="item-price">$16</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pollo Guisado</div><div class="item-name-en">Stewed Chicken</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pollo al Horno</div><div class="item-name-en">Roasted Chicken</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Bistec Encebollado</div><div class="item-name-en">Beef Steak with Onions</div></div><div class="item-right"><div class="item-price">$15</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Res Guisada</div><div class="item-name-en">Stewed Beef</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Costillas BBQ</div><div class="item-name-en">BBQ Pork Ribs</div></div><div class="item-right"><div class="item-price">$16</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Cerdo Guisado</div><div class="item-name-en">Stewed Pork</div></div><div class="item-right"><div class="item-price">$14</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Mariscos / Seafood ★</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pescado Frito</div><div class="item-name-en">Whole Fried Fish</div></div><div class="item-right"><div class="item-price">$18</div></div></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section">
+        <div class="section-head">Sopas / Soups</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Asopao de Pollo</div><div class="item-name-en">Chicken Rice Soup</div></div><div class="item-right"><div class="item-price">$10</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Sopa de Pollo con Fideos</div><div class="item-name-en">Chicken Noodle Soup</div></div><div class="item-right"><div class="item-price">$9</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Fritura / Fried</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pica Longa</div><div class="item-name-en">Large Fried Chicken Share</div></div><div class="item-right"><div class="item-price">$25</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Pollomitas BBQ</div><div class="item-name-en">BBQ Chicken Bites</div></div><div class="item-right"><div class="item-price">$12</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Queso Frito</div><div class="item-name-en">Fried Tropical Cheese</div></div><div class="item-right"><div class="item-price">$10</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Picadera / Snacks</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Empanadas</div><div class="item-name-en">Stuffed Pastries</div></div><div class="item-right"><div class="item-price">$3.50</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Kipe</div><div class="item-name-en">Dominican Kibbe</div></div><div class="item-right"><div class="item-price">$3</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Relleno de Papa</div><div class="item-name-en">Stuffed Potato Ball</div></div><div class="item-right"><div class="item-price">$3.50</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Chulitos</div><div class="item-name-en">Yuca Rolls</div></div><div class="item-right"><div class="item-price">$3</div></div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">Acompañantes / Sides</div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Tostones</div><div class="item-name-en">Twice-Fried Plantain</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Plátano Maduro</div><div class="item-name-en">Sweet Fried Plantain</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">French Fries</div><div class="item-name-en">French Fries</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Batata Frita</div><div class="item-name-en">Fried Sweet Potato</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Yuca Frita</div><div class="item-name-en">Fried Yuca</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Guineo</div><div class="item-name-en">Boiled Green Banana</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Bolas de Papa</div><div class="item-name-en">Fried Potato Balls</div></div><div class="item-right"><div class="item-price">$4</div></div></div>
+        <div class="item"><div class="item-left"><div class="item-name-es">Vegetales</div><div class="item-name-en">Vegetables of the Day</div></div><div class="item-right"><div class="item-price">$5</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>🇩🇴 The Little Dominicana · 315 E Water St, Elmira, NY · (607) 215-0990</span>
+    <span><strong>Lun–Sáb</strong> 9 AM – 8 PM · Dom cerrado / Sun closed</span>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════
+     QR PAGE
+══════════════════════════════════════════════════════════ -->
+<div class="qr-page" id="day-qr">
+  <div class="qr-brand">The Little Dominicana</div>
+  <div class="qr-sub">Escanea para ver el menú en tu teléfono o compartir con amigos<br>Scan to view our menu on your phone or share with friends</div>
+  <div id="qrcode"></div>
+  <div class="qr-url" id="qr-url-label" style="font-size:.65rem;color:#aaa;text-align:center"></div>
+  <div class="qr-info">
+    <div><strong>📍 Dirección / Address</strong>315 E Water St, Elmira, NY 14901</div>
+    <div><strong>📞 Teléfono / Phone</strong>(607) 215-0990</div>
+    <div><strong>⏰ Horario / Hours</strong>Lun–Sáb · Mon–Sat · 9 AM – 8 PM</div>
+    <div><strong>📘 Facebook</strong>The Little Dominicana</div>
+  </div>
+</div>
+
+
+<script>
+const MAP = [null,'lunes','martes','miercoles','jueves','viernes','sabado',null];
+const QR_URL = 'https://www.facebook.com/profile.php?id=61574439323508';
+
+function showDay(day) {
+  document.querySelectorAll('.page,.qr-page,.portada').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById('day-' + day);
+  if (el) el.classList.add('active');
+  const btn = document.querySelector('[data-day="' + day + '"]');
+  if (btn) btn.classList.add('active');
+}
+
+// Mark today and auto-select
+(function(){
+  const d = new Date().getDay();
+  const today = MAP[d];
+  const todayBtn = today ? document.querySelector('[data-day="' + today + '"]') : null;
+  if (todayBtn) todayBtn.classList.add('today');
+  showDay(today || 'lunes');
+})();
+
+// QR en página de portada
+new QRCode(document.getElementById('qrcode-portada'), {
+  text: QR_URL, width: 120, height: 120,
+  colorDark: '#CE1126', colorLight: '#ffffff',
+  correctLevel: QRCode.CorrectLevel.M
+});
+
+// QR en página de QR dedicada
+document.getElementById('qr-url-label').textContent = QR_URL;
+new QRCode(document.getElementById('qrcode'), {
+  text: QR_URL, width: 180, height: 180,
+  colorDark: '#CE1126', colorLight: '#ffffff',
+  correctLevel: QRCode.CorrectLevel.M
+});
+</script>
+</body>
+</html>

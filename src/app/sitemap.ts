@@ -26,9 +26,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const affiliates: MetadataRoute.Sitemap = [
     { url: `${BASE_URL}/pegote-barber`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE_URL}/britocolor`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${BASE_URL}/the-little-dominican`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
-    { url: `${BASE_URL}/the-little-dominican/menu`, lastModified: now, changeFrequency: 'weekly', priority: 0.7 },
-    { url: `${BASE_URL}/the-little-dominican/gallery`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE_URL}/the-little-dominicana`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${BASE_URL}/the-little-dominicana/menu`, lastModified: now, changeFrequency: 'weekly', priority: 0.7 },
+    { url: `${BASE_URL}/the-little-dominicana/gallery`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/masa-tina`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/dr-pichardo`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/dr-pichardo/servicios`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },

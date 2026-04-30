@@ -14,12 +14,15 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { PrintableMenu } from "./PrintableMenu";
 import {
   MOCK_DISHES,
+  HOURS,
   MENU_CATEGORIES,
   FEATURED_DISHES,
   type MenuItem,
-} from "@/app/the-little-dominican/_data";
+  type HourEntry,
+} from "@/app/the-little-dominicana/_data";
 
 // Slugify helper for generating dish IDs from a name
 function slugify(s: string): string {
@@ -74,6 +77,11 @@ import type { MealPeriod, WeekDay } from "@/lib/types";
 
 // ─── Static data ─────────────────────────────────────────────────────────────
 
+function getOpenWeekDays(hours: HourEntry[]): WeekDay[] {
+  const openNames = new Set(hours.filter(h => !h.closed).map(h => h.day))
+  return WEEK_DAY_ORDER.filter(day => openNames.has(WEEK_DAY_LABELS[day]))
+}
+
 const INVENTORY_ALERTS = [
   { name: "Plátanos verdes", unit: "12 lbs restantes", pct: 15, critical: true },
   { name: "Snapper fresco",  unit: "8 lbs restantes",  pct: 25, critical: true },
@@ -90,7 +98,7 @@ const PERIOD_PILLS: Array<{ key: "all" | MealPeriod; label: string }> = [
 
 const WEEK_DAY_PILLS: Array<{ key: "all" | WeekDay; label: string }> = [
   { key: "all", label: "Toda la semana" },
-  ...WEEK_DAY_ORDER.map((d) => ({ key: d, label: WEEK_DAY_SHORT[d] })),
+  ...getOpenWeekDays(HOURS).map((d) => ({ key: d, label: WEEK_DAY_SHORT[d] })),
 ];
 
 const FALLBACK_IMG =
@@ -259,6 +267,7 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
   };
 
   // UI state
+  const [activeTab, setActiveTab] = useState<"gestión" | "imprimir">("gestión");
   const [activeCategory, setActiveCategory] = useState("Todos");
   const [activePeriod, setActivePeriod] = useState<"all" | MealPeriod>("all");
   const [activeDay, setActiveDay] = useState<"all" | WeekDay>("all");
@@ -476,6 +485,7 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
   const [editDescription, setEditDescription] = useState("");
   const [editDescriptionEn, setEditDescriptionEn] = useState("");
   const [editPrice, setEditPrice] = useState(0);
+  const [editCategory, setEditCategory] = useState<string>(MENU_CATEGORIES[0]);
   const [editPeriods, setEditPeriods] = useState<MealPeriod[]>([]);
   const [editWeekDays, setEditWeekDays] = useState<WeekDay[]>([]);
   const [editToggles, setEditToggles] = useState({
@@ -491,6 +501,7 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
     setEditDescription(item.description ?? "");
     setEditDescriptionEn(item.descriptionEn ?? "");
     setEditPrice(prices[item.id] ?? item.price);
+    setEditCategory(item.category ?? MENU_CATEGORIES[0]);
     setEditPeriods(itemPeriods[item.id] ?? []);
     setEditWeekDays(itemWeekDays[item.id] ?? []);
     setEditFlags({
@@ -525,6 +536,7 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
       weekDays: itemWeekDays[editItem.id],
       name: editItem.name,
       description: editItem.description,
+      category: editItem.category,
     };
     const trimmedDescription = editDescription.trim();
     const trimmedDescriptionEn = editDescriptionEn.trim();
@@ -539,7 +551,7 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
     setDishes((ds) =>
       ds.map((d) =>
         d.id === editItem.id
-          ? { ...d, name: trimmedName, description: trimmedDescription }
+          ? { ...d, name: trimmedName, description: trimmedDescription, category: editCategory }
           : d
       )
     );
@@ -551,6 +563,7 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
         description_en: trimmedDescriptionEn || null,
         image_url: editUrl,
         price: editPrice,
+        category: editCategory,
         available: editToggles.available,
         popular: editToggles.popular,
         featured: editToggles.featured,
@@ -571,7 +584,7 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
       setDishes((ds) =>
         ds.map((d) =>
           d.id === editItem.id
-            ? { ...d, name: prev.name, description: prev.description }
+            ? { ...d, name: prev.name, description: prev.description, category: prev.category }
             : d
         )
       );
@@ -650,6 +663,54 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
 
   return (
     <div className="space-y-6">
+      {/* ── Tabs ─────────────────────────────────────────────────────── */}
+      <div className="flex gap-0 border-b border-gray-200 dark:border-gray-800">
+        {(["gestión", "imprimir"] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-5 py-3 text-sm font-semibold border-b-2 transition-colors ${
+              activeTab === tab
+                ? "border-[var(--brand-primary)] text-[var(--brand-primary)]"
+                : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+            }`}
+          >
+            {tab === "gestión" ? "🍽️ Gestión de Carta" : "🖨️ Imprimir Menú"}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Imprimir Menú ─────────────────────────────────────────────── */}
+      {activeTab === "imprimir" && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Imprimir Menú</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                Vista en vivo — precios, disponibilidad y platos sincronizados con Gestión de Carta
+              </p>
+            </div>
+            <button
+              onClick={() => window.print()}
+              className="px-5 py-2 rounded-full text-sm font-bold text-white transition-colors hover:opacity-90"
+              style={{ backgroundColor: "var(--brand-primary)" }}
+            >
+              🖨️ Imprimir todo
+            </button>
+          </div>
+          <PrintableMenu
+            dishes={dishes}
+            prices={prices}
+            availability={availability}
+            itemPeriods={itemPeriods}
+            itemWeekDays={itemWeekDays}
+            currency={currency}
+          />
+        </div>
+      )}
+
+      {/* ── Gestión de Carta ─────────────────────────────────────────── */}
+      {activeTab === "gestión" && <>
       {/* ── Load/config error banner ─────────────────────────────────── */}
       {loadError && !loading && (
         <div
@@ -1088,18 +1149,34 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
               />
             </div>
 
-            {/* Price */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
-                Precio ({currency})
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={editPrice}
-                onChange={(e) => setEditPrice(parseFloat(e.target.value) || 0)}
-                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
-              />
+            {/* Precio + Categoría */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                  Precio ({currency})
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editPrice}
+                  onChange={(e) => setEditPrice(parseFloat(e.target.value) || 0)}
+                  className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
+                  Categoría <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={editCategory}
+                  onChange={(e) => setEditCategory(e.target.value)}
+                  className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {[...MENU_CATEGORIES, 'Incluidos'].map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Periods */}
@@ -1435,6 +1512,7 @@ export function MenuClientV2({ affiliateId, config }: MenuClientV2Props) {
           </div>
         </Modal>
       )}
+      </>}
     </div>
   );
 }

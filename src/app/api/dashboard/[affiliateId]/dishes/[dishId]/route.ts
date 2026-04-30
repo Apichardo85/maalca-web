@@ -9,8 +9,8 @@ import { supabaseAdmin, assertAffiliateAccess } from '@/lib/supabase/admin'
 type Params = { params: Promise<{ affiliateId: string; dishId: string }> }
 
 const EDITABLE_FIELDS = [
-  'name', 'description', 'price', 'category', 'image_url',
-  'periods', 'available', 'featured', 'popular', 'flags', 'display_order',
+  'name', 'description', 'description_en', 'price', 'category', 'image_url',
+  'periods', 'week_days', 'available', 'featured', 'popular', 'flags', 'display_order',
 ] as const
 
 async function checkAuth(affiliateId: string): Promise<{ ok: true } | { ok: false; reason: string }> {

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Diccionario bilingüe ES/EN para The Little Dominican.
+ * Diccionario bilingüe ES/EN para Little Dominicana Restaurant.
  *
  * No tocamos el `useTranslation` global (cargado con keys de todo el site)
  * — aquí solo exponemos las cadenas de este restaurante, consumidas por
@@ -151,21 +151,21 @@ const ES: TldStrings = {
 
   heroRatingLabel: "Elmira, NY · ★★★★★ Google",
   heroTagline: "Sabor de casa. Lejos de casa.",
-  heroH1Line1: "La cocina de",
-  heroH1Line2: "la abuela.",
+  heroH1Line1: "Comida dominicana",
+  heroH1Line2: "tradicional.",
   heroH1Line3: "Ahora aquí.",
-  heroSub: "Cocina dominicana tradicional con un toque moderno — el sabor de la abuela directo a tu mesa. Dine-in, pickup y delivery desde el corazón de Elmira.",
+  heroSub: "Comida dominicana tradicional — auténtica, sabrosa y lista para ti. Dine-in y pickup desde el corazón de Elmira.",
   heroUrgent: "Ordena ahora. Listo en minutos.",
   ctaWhatsapp: "Ordenar por WhatsApp",
   ctaViewMenu: "Ver menú y ordenar",
   ctaCall: "📞 Llamar para ordenar",
-  serviceBadges: ["Dine-in", "Pickup", "Delivery", "$10–20"],
+  serviceBadges: ["Dine-in", "Pickup", "$10–20"],
 
   storyLabel: "Nuestra historia",
   storyTagline: "Hecho con amor dominicano.",
   storyH2Line1: "Donde la tradición",
   storyH2Line2: "se encuentra con el sabor",
-  storyP1: "En The Little Dominican llevamos la esencia de la cocina quisqueyana al corazón de Elmira. Cada plato nace de recetas heredadas, sazonadas con el amor de la familia y adaptadas para quienes buscan autenticidad en cada bocado.",
+  storyP1: "En Little Dominicana Restaurant llevamos la esencia de la cocina quisqueyana al corazón de Elmira. Cada plato nace de recetas heredadas, sazonadas con el amor de la familia y adaptadas para quienes buscan autenticidad en cada bocado.",
   storyP2: "Desde el chicharrón crujiente hasta el rabo guisado que se deshace solo — aquí la comida es cultura, es identidad, es hogar.",
   statsGoogleReviews: "Google Reviews",
   statsAuthenticDishes: "Platos auténticos",
@@ -183,7 +183,7 @@ const ES: TldStrings = {
   sanctuaryLabel: "La experiencia",
   sanctuaryH2Line1: "Un pedazo de",
   sanctuaryH2Line2: "la isla en Elmira",
-  sanctuaryP: "Ambiente familiar, sazón auténtico y la mejor cocina dominicana de Elmira, NY — lista para pickup, delivery o para comer aquí. Ven a vivir la experiencia.",
+  sanctuaryP: "Ambiente familiar, sazón auténtico y la mejor cocina dominicana de Elmira, NY — lista para pickup o para comer aquí. Ven a vivir la experiencia.",
   chipPickupTitle: "Pickup listo",
   chipPickupSub: "En 20–30 minutos",
   chipFamilyTitle: "Ambiente familiar",
@@ -197,10 +197,10 @@ const ES: TldStrings = {
   galleryH2: "Vive la experiencia",
   ctaFullGallery: "Ver galería completa →",
 
-  ctaStripLabel: "Pickup · Delivery · Dine-in",
+  ctaStripLabel: "Pickup · Dine-in",
   ctaStripH2Line1: "Pide tu comida",
   ctaStripH2Line2: "dominicana ahora mismo",
-  ctaStripP: "Respuesta en minutos por WhatsApp — te confirmamos disponibilidad y tiempo de entrega al momento.",
+  ctaStripP: "Respuesta en minutos por WhatsApp — te confirmamos disponibilidad y tiempo de pickup al momento.",
 
   reserveLabelFind: "Encuéntranos",
   reserveH2: "Visítanos",
@@ -225,7 +225,7 @@ const ES: TldStrings = {
   menuInfoHours: "Horario",
   menuInfoContact: "Contacto",
   menuInfoServices: "Servicios",
-  menuBackToHome: "← The Little Dominican",
+  menuBackToHome: "← Little Dominicana Restaurant",
   bottomNavHome: "Inicio",
   bottomNavGallery: "Galería",
   bottomNavCall: "Llamar",
@@ -233,7 +233,7 @@ const ES: TldStrings = {
 
   galleryHeroLabel: "Galería",
   galleryHeroH1: "Vive la experiencia",
-  galleryHeroP: "Platos, ambiente y momentos de The Little Dominican en Elmira, NY.",
+  galleryHeroP: "Platos, ambiente y momentos de Little Dominicana Restaurant en Elmira, NY.",
   galleryReadyH2: "¿Listo para vivir la experiencia?",
   galleryReserveCta: "Reservar Mesa",
   galleryViewMenuCta: "Ver Menú →",
@@ -285,21 +285,21 @@ const EN: TldStrings = {
 
   heroRatingLabel: "Elmira, NY · ★★★★★ Google",
   heroTagline: "Taste of home. Far from home.",
-  heroH1Line1: "Grandma's",
-  heroH1Line2: "cooking.",
+  heroH1Line1: "Traditional Dominican",
+  heroH1Line2: "food.",
   heroH1Line3: "Right here.",
-  heroSub: "Traditional Dominican with a modern spin — bringing abuela's cooking straight to you. Dine-in, pickup and delivery from the heart of Elmira.",
+  heroSub: "Traditional Dominican food — authentic, flavorful and ready for you. Dine-in and pickup from the heart of Elmira.",
   heroUrgent: "Order now. Ready in minutes.",
   ctaWhatsapp: "Order via WhatsApp",
   ctaViewMenu: "See menu & order",
   ctaCall: "📞 Call to order",
-  serviceBadges: ["Dine-in", "Pickup", "Delivery", "$10–20"],
+  serviceBadges: ["Dine-in", "Pickup", "$10–20"],
 
   storyLabel: "Our story",
   storyTagline: "Made with Dominican love.",
   storyH2Line1: "Where tradition",
   storyH2Line2: "meets flavor",
-  storyP1: "At The Little Dominican we bring the soul of Dominican cooking to the heart of Elmira. Every dish is born from family recipes, seasoned with love and made for those who want authenticity in every bite.",
+  storyP1: "At Little Dominicana Restaurant we bring the soul of Dominican cooking to the heart of Elmira. Every dish is born from family recipes, seasoned with love and made for those who want authenticity in every bite.",
   storyP2: "From crispy chicharrón to fall-off-the-bone rabo guisado — here, food is culture, identity, home.",
   statsGoogleReviews: "Google Reviews",
   statsAuthenticDishes: "Authentic dishes",
@@ -317,7 +317,7 @@ const EN: TldStrings = {
   sanctuaryLabel: "The experience",
   sanctuaryH2Line1: "A piece of",
   sanctuaryH2Line2: "the island in Elmira",
-  sanctuaryP: "Family atmosphere, authentic seasoning and the best Dominican cooking in Elmira, NY — ready for pickup, delivery or dine-in. Come live the experience.",
+  sanctuaryP: "Family atmosphere, authentic seasoning and the best Dominican cooking in Elmira, NY — ready for pickup or dine-in. Come live the experience.",
   chipPickupTitle: "Pickup ready",
   chipPickupSub: "In 20–30 minutes",
   chipFamilyTitle: "Family atmosphere",
@@ -331,10 +331,10 @@ const EN: TldStrings = {
   galleryH2: "Live the experience",
   ctaFullGallery: "See full gallery →",
 
-  ctaStripLabel: "Pickup · Delivery · Dine-in",
+  ctaStripLabel: "Pickup · Dine-in",
   ctaStripH2Line1: "Order your Dominican",
   ctaStripH2Line2: "food right now",
-  ctaStripP: "Reply in minutes on WhatsApp — we confirm availability and delivery time instantly.",
+  ctaStripP: "Reply in minutes on WhatsApp — we confirm availability and pickup time instantly.",
 
   reserveLabelFind: "Find us",
   reserveH2: "Visit us",
@@ -359,7 +359,7 @@ const EN: TldStrings = {
   menuInfoHours: "Hours",
   menuInfoContact: "Contact",
   menuInfoServices: "Services",
-  menuBackToHome: "← The Little Dominican",
+  menuBackToHome: "← Little Dominicana Restaurant",
   bottomNavHome: "Home",
   bottomNavGallery: "Gallery",
   bottomNavCall: "Call",
@@ -367,7 +367,7 @@ const EN: TldStrings = {
 
   galleryHeroLabel: "Gallery",
   galleryHeroH1: "Live the experience",
-  galleryHeroP: "Dishes, atmosphere and moments from The Little Dominican in Elmira, NY.",
+  galleryHeroP: "Dishes, atmosphere and moments from Little Dominicana Restaurant in Elmira, NY.",
   galleryReadyH2: "Ready to live the experience?",
   galleryReserveCta: "Reserve a Table",
   galleryViewMenuCta: "View Menu →",

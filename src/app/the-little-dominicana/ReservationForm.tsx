@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 
-const WA_PHONE = '16078574226'
+const WA_PHONE = '16072150990'
 
 export default function ReservationForm({ phone }: { phone: string }) {
   const [name, setName] = useState('')
@@ -14,7 +14,7 @@ export default function ReservationForm({ phone }: { phone: string }) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const lines = [
-      '🍽️ *Nueva Reservación — The Little Dominican*',
+      '🍽️ *Nueva Reservación — Little Dominicana Restaurant*',
       '',
       `👤 Nombre: ${name || '(sin nombre)'}`,
       `📞 Teléfono: ${tel || '(sin teléfono)'}`,

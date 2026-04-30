@@ -462,12 +462,15 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
     plan: "growth", // menu + orders + inventory + QR + invoicing — todo incluido en Growth
     terminology: {},
     contact: {
-      phone: "+16078574226",
-      phoneDisplay: "(607) 857-4226",
-      whatsapp: "+16078574226",
-      website: "https://maalca.com/the-little-dominican",
+      phone: "+16072150990",
+      phoneDisplay: "(607) 215-0990",
+      whatsapp: "+16072150990",
+      email: "littledomonicanarestaurant@gmail.com",
+      website: "https://maalca.com/the-little-dominicana",
+      address: "315 E Water St, Elmira, NY 14901",
       social: {
         instagram: "thelittledominican",
+        facebook: "https://www.facebook.com/profile.php?id=61574439323508",
       },
     },
     mealPeriodHours: {
@@ -480,7 +483,7 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
       primaryColor: "red-600",
       secondaryColor: "orange-400",
       logo: "/images/affiliates/tld/Logo.png",
-      name: "The Little Dominican",
+      name: "Little Dominicana Restaurant",
       description: "Cocina dominicana auténtica en Elmira, NY",
       palette: {
         navyDeep: "#00193C",

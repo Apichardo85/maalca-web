@@ -175,14 +175,14 @@ export default function MenuShell({ dishes = MOCK_DISHES }: { dishes?: MenuItem[
             <div>
               <div className="tld-label" style={{ marginBottom: '.5rem' }}>{t.menuInfoContact}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <a href="tel:6078574226" style={{ fontSize: '.88rem', color: 'var(--p)', textDecoration: 'none', fontWeight: 500 }}>📞 (607) 857-4226</a>
+                <a href="tel:6072150990" style={{ fontSize: '.88rem', color: 'var(--p)', textDecoration: 'none', fontWeight: 500 }}>📞 (607) 215-0990</a>
                 <p style={{ fontSize: '.82rem', color: 'var(--tm)', fontWeight: 300 }}>📍 315 E Water St, Elmira, NY 14901</p>
               </div>
             </div>
             <div>
               <div className="tld-label" style={{ marginBottom: '.5rem' }}>{t.menuInfoServices}</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                {['Dine-in', 'Pickup', 'Delivery', 'Catering'].map(s => (
+                {['Dine-in', 'Pickup', 'Catering'].map(s => (
                   <span key={s} style={{ padding: '4px 12px', background: 'var(--l2)', borderRadius: '9999px', fontSize: '.76rem', fontWeight: 500, color: 'var(--tm)' }}>
                     {s}
                   </span>
@@ -193,7 +193,7 @@ export default function MenuShell({ dishes = MOCK_DISHES }: { dishes?: MenuItem[
         </section>
         {/* ── FOOTER ───────────────────────────────────────────────── */}
         <footer className="tld-menu-footer">
-          <p style={{ fontSize: '.78rem' }}>© 2026 The Little Dominican — Elmira, NY</p>
+          <p style={{ fontSize: '.78rem' }}>© 2026 Little Dominicana Restaurant — Elmira, NY</p>
           <p style={{ fontSize: '.78rem' }}>
             {t.footerPoweredBy}{' '}
             <Link href="/" style={{ color: 'rgba(255,255,255,.8)', fontWeight: 600, textDecoration: 'none' }}>MaalCa Ecosistema</Link>
@@ -202,19 +202,15 @@ export default function MenuShell({ dishes = MOCK_DISHES }: { dishes?: MenuItem[
         {/* ── MOBILE BOTTOM NAV ────────────────────────────────────── */}
         <nav className="tld-bottom-nav" aria-label="Mobile nav">
           <div className="tld-bottom-nav-inner">
-            <a href="/the-little-dominican" className="tld-bottom-link">
+            <a href="/the-little-dominicana" className="tld-bottom-link">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z" /></svg>
               {t.bottomNavHome}
             </a>
-            <a href="/the-little-dominican/gallery" className="tld-bottom-link">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-              {t.bottomNavGallery}
-            </a>
-            <a href="tel:6078574226" className="tld-bottom-link" style={{ color: 'var(--p)' }}>
+            <a href="tel:6072150990" className="tld-bottom-link" style={{ color: 'var(--p)' }}>
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
               {t.bottomNavCall}
             </a>
-            <a href="/the-little-dominican#reservar" className="tld-bottom-link">
+            <a href="/the-little-dominicana#reservar" className="tld-bottom-link">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
               {t.bottomNavReserve}
             </a>

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useTldI18n } from './tld-i18n'
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage'
 
-const WA_URL = `https://wa.me/16078574226?text=${encodeURIComponent('Hola, quiero ordenar. ¿Qué tienen disponible ahora?')}`
+const WA_URL = `https://wa.me/16072150990?text=${encodeURIComponent('Hola, quiero ordenar. ¿Qué tienen disponible ahora?')}`
 
 export default function TLDNav() {
   const [open, setOpen] = useState(false)
@@ -30,10 +30,9 @@ export default function TLDNav() {
   }
 
   const items = [
-    { href: '/the-little-dominican',          label: t.navHome    },
-    { href: '/the-little-dominican/menu',     label: t.navMenu    },
-    { href: '/the-little-dominican/gallery',  label: t.navGallery },
-    { href: 'tel:6078574226',                 label: t.navCall    },
+    { href: '/the-little-dominicana',          label: t.navHome    },
+    { href: '/the-little-dominicana/menu',     label: t.navMenu    },
+    { href: 'tel:6072150990',                 label: t.navCall    },
   ]
 
   const toggleLang = () => setLanguage(language === 'en' ? 'es' : 'en')
@@ -41,10 +40,10 @@ export default function TLDNav() {
   return (
     <>
       <nav className="tld-nav">
-        <a href="/the-little-dominican" className="tld-nav-brand" style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+        <a href="/the-little-dominicana" className="tld-nav-brand" style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/images/affiliates/tld/Logo.png" alt="" width={32} height={32} style={{ display: 'block', objectFit: 'contain' }} />
-          <span>The Little Dominican</span>
+          <span>Little Dominicana Restaurant</span>
         </a>
         {/* Desktop links */}
         <div className="tld-nav-links">

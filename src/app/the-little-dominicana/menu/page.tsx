@@ -5,8 +5,8 @@ import MenuShell from './MenuShell'
 import { getDishes } from '../_dishes-loader'
 
 export const metadata: Metadata = {
-  title: 'Menú | The Little Dominican · Elmira, NY',
-  description: 'Cocina dominicana auténtica — Yaroa, Pica Pollo, Chicharrón, Churrasco, Camarones y más. Ordena online o llama al (607) 857-4226.',
+  title: 'Menú | Little Dominicana Restaurant · Elmira, NY',
+  description: 'Comida dominicana tradicional — Yaroa, Pica Pollo, Chicharrón, Churrasco, Camarones y más. Ordena online o llama al (607) 215-0990.',
 }
 
 export const revalidate = 60

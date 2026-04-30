@@ -12,7 +12,7 @@ export function getN8nConfig(): N8nConfig {
 
   const webhookBaseUrl = process.env.N8N_WEBHOOK_URL || '';
   const webhookSecret = process.env.N8N_WEBHOOK_SECRET || '';
-  const whatsappNumber = process.env.WHATSAPP_NUMBER || '16078574226';
+  const whatsappNumber = process.env.WHATSAPP_NUMBER || '16072150990';
   const timeoutMs = parseInt(process.env.N8N_WEBHOOK_TIMEOUT || '10000', 10);
 
   if (!webhookBaseUrl) {

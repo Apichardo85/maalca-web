@@ -372,23 +372,23 @@ export const ecosystemAffiliates: Affiliate[] = [
   },
   {
     id: "the-little-dominican",
-    name: "The Little Dominican",
+    name: "Little Dominicana Restaurant",
     description: "Restaurante dominicano en Elmira, NY. Cocina tradicional con un toque moderno.",
     category: "proveedor-ingredientes",
     status: "active",
     active: true,
     displayInitials: "TLD",
     logo: "/images/affiliates/tld/Logo.png",
-    website: "/the-little-dominican",
+    website: "/the-little-dominicana",
     contact: {
-      name: "The Little Dominican Team",
-      email: "info@thelittledominican.com",
-      phone: "+1 845 480 5737",
-      address: "4 Waldron Ave",
-      city: "Elmira, NY",
+      name: "Little Dominicana Restaurant",
+      email: "littledomonicanarestaurant@gmail.com",
+      phone: "+1 607 215 0990",
+      address: "315 E Water St",
+      city: "Elmira, NY 14901",
       country: "Estados Unidos"
     },
-    services: ["Dine-in", "Pickup", "Delivery", "Catering", "Música en vivo"],
+    services: ["Dine-in", "Pickup", "Catering", "Música en vivo"],
     locations: ["Elmira, NY"],
     partnership: {
       type: "strategic",
@@ -405,7 +405,7 @@ export const ecosystemAffiliates: Affiliate[] = [
       costEfficiency: 95
     },
     certifications: ["Restaurante certificado", "Manipulación de alimentos"],
-    socialMedia: {},
+    socialMedia: { facebook: "https://www.facebook.com/profile.php?id=61574439323508" },
     dashboardEnabled: true,
     dashboardUrl: "/dashboard/the-little-dominican"
   },

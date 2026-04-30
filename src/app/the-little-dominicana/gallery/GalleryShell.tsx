@@ -125,7 +125,7 @@ export default function GalleryShell() {
             {t.galleryReadyH2}
           </div>
           <div style={{ display:'flex', gap:'12px', justifyContent:'center', flexWrap:'wrap' }}>
-            <a href="/the-little-dominican#reservar"
+            <a href="/the-little-dominicana#reservar"
               style={{
                 display:'inline-flex', alignItems:'center', gap:'8px',
                 padding:'12px 24px', borderRadius:'9999px',
@@ -136,7 +136,7 @@ export default function GalleryShell() {
             >
               {t.galleryReserveCta}
             </a>
-            <a href="/the-little-dominican/menu"
+            <a href="/the-little-dominicana/menu"
               style={{
                 display:'inline-flex', alignItems:'center', gap:'8px',
                 padding:'12px 24px', borderRadius:'9999px',
@@ -149,7 +149,7 @@ export default function GalleryShell() {
           </div>
         </section>
         <footer className="tld-gallery-footer">
-          <p style={{ fontSize:'.78rem' }}>© 2026 The Little Dominican — Elmira, NY</p>
+          <p style={{ fontSize:'.78rem' }}>© 2026 Little Dominicana Restaurant — Elmira, NY</p>
           <p style={{ fontSize:'.78rem' }}>
             {t.footerPoweredBy}{' '}
             <Link href="/" style={{ color:'rgba(255,255,255,.8)', fontWeight:600, textDecoration:'none' }}>MaalCa Ecosistema</Link>

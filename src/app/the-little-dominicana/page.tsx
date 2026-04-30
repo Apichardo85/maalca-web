@@ -5,8 +5,8 @@ import HomeClient from './HomeClient'
 import { getDishes } from './_dishes-loader'
 
 export const metadata: Metadata = {
-  title: 'The Little Dominican | Elmira, NY',
-  description: "Traditional Dominican with a modern spin — bringing abuela's cooking straight to you. Dine-in, pickup y delivery en Elmira, NY.",
+  title: 'Little Dominicana Restaurant | Elmira, NY',
+  description: "Comida dominicana tradicional — auténtica y sabrosa. Dine-in y pickup en Elmira, NY.",
 }
 
 export const revalidate = 60
