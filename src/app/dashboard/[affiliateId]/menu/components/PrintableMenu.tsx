@@ -395,10 +395,13 @@ export function PrintableMenu({
   });
 
   return (
-    <div>
+    <div id="pm-root">
       {/* ── Print CSS ── */}
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
+          body * { visibility: hidden; }
+          #pm-root, #pm-root * { visibility: visible; }
+          #pm-root { position: absolute; top: 0; left: 0; width: 100%; }
           .pm-nav { display: none !important; }
           .pm-page { display: block !important; page-break-after: always; break-after: page; }
           @page { size: Letter portrait; margin: 0; }
