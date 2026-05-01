@@ -465,7 +465,7 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
       phone: "+16072150990",
       phoneDisplay: "(607) 215-0990",
       whatsapp: "+16072150990",
-      email: "littledomonicanarestaurant@gmail.com",
+      email: "littledominicanarestaurant@gmail.com",
       website: "https://maalca.com/the-little-dominicana",
       address: "315 E Water St, Elmira, NY 14901",
       social: {

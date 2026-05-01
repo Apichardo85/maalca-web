@@ -249,13 +249,6 @@ export function AffiliateBusinessCard({
             {contact?.address && (
               <ContactRow icon="📍" label={contact.address} color={colors.primary} />
             )}
-            {contact?.social?.instagram && (
-              <ContactRow
-                icon="📸"
-                label={`@${contact.social.instagram}`}
-                color={colors.primary}
-              />
-            )}
           </div>
         </div>
       </div>
