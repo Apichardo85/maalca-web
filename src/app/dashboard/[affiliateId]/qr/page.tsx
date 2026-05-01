@@ -174,7 +174,7 @@ export default function QRPage() {
       if (val) setHexColor(val);
     }
   }, []);
-  const BASE = `https://maalca.com/${affiliateId}`;
+  const BASE = config?.contact?.website ?? `https://maalca.com/${affiliateId}`;
   const TABLES_COUNT = 12;
   const TABLE_ITEMS: QRItem[] = Array.from({ length: TABLES_COUNT }, (_, i) => ({
     id: `mesa-${i + 1}`,
