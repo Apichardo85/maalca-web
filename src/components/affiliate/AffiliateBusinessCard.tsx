@@ -58,6 +58,15 @@ export function AffiliateBusinessCard({
   const { branding, contact } = config;
 
   if (variant === "front") {
+    const tagline =
+      config.businessType === "restaurant"
+        ? "Cocina Dominicana Auténtica"
+        : config.businessType === "barbershop"
+          ? "Estilo con carácter"
+          : config.businessType === "health"
+            ? "Cuidado integral"
+            : "Hecho con pasión";
+
     return (
       <div
         data-testid="business-card-front"
@@ -65,103 +74,85 @@ export function AffiliateBusinessCard({
         style={{
           width: PRINT_WIDTH,
           height: PRINT_HEIGHT,
-          background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.dark} 100%)`,
+          background: `linear-gradient(150deg, ${colors.dark} 0%, ${colors.primary} 55%, ${colors.dark} 100%)`,
           color: "#ffffff",
           fontFamily: "var(--font-inter, system-ui, sans-serif)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        {/* Textura sutil */}
-        <div
-          aria-hidden
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: `radial-gradient(circle at 85% 15%, ${colors.light}22 0%, transparent 50%), radial-gradient(circle at 15% 85%, #ffffff15 0%, transparent 50%)`,
-            pointerEvents: "none",
-          }}
-        />
+        {/* Glow orbs */}
+        <div aria-hidden style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          background: `radial-gradient(circle at 20% 50%, #ffffff0d 0%, transparent 45%),
+                       radial-gradient(circle at 80% 50%, #ffffff0d 0%, transparent 45%)`,
+        }} />
+        {/* Top accent line */}
+        <div aria-hidden style={{
+          position: "absolute", top: 0, left: 80, right: 80,
+          height: 3, background: "#ffffff35", borderRadius: "0 0 3px 3px",
+        }} />
+        {/* Bottom accent line */}
+        <div aria-hidden style={{
+          position: "absolute", bottom: 0, left: 80, right: 80,
+          height: 3, background: "#ffffff35", borderRadius: "3px 3px 0 0",
+        }} />
 
-        <div
-          style={{
-            position: "relative",
-            height: "100%",
-            padding: 64,
+        {/* Center: logo + name + tagline */}
+        <div style={{
+          position: "relative",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 26,
+          textAlign: "center",
+        }}>
+          {/* Logo — protagonist */}
+          <div style={{
+            width: 230,
+            height: 230,
+            borderRadius: 36,
+            background: "#ffffff",
             display: "flex",
-            flexDirection: "column",
-            justifyContent: "space-between",
-          }}
-        >
-          {/* Header: logo + name */}
-          <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-            <div
-              style={{
-                width: 96,
-                height: 96,
-                borderRadius: 20,
-                background: "#ffffff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: 12,
-                flexShrink: 0,
-              }}
-            >
-              <Image
-                src={branding.logo}
-                alt={branding.name}
-                width={80}
-                height={80}
-                style={{ objectFit: "contain", width: "100%", height: "100%" }}
-                unoptimized
-              />
-            </div>
-            <div>
-              <h1
-                style={{
-                  fontFamily: "var(--font-playfair, Georgia, serif)",
-                  fontSize: 56,
-                  fontWeight: 700,
-                  lineHeight: 1,
-                  margin: 0,
-                  letterSpacing: "-0.02em",
-                }}
-              >
-                {branding.name}
-              </h1>
-            </div>
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 18,
+            boxShadow: "0 12px 48px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2)",
+          }}>
+            <Image
+              src={branding.logo}
+              alt={branding.name}
+              width={194}
+              height={194}
+              style={{ objectFit: "contain", width: "100%", height: "100%" }}
+              unoptimized
+            />
           </div>
 
-          {/* Tagline */}
-          <div>
-            <p
-              style={{
-                fontSize: 14,
-                letterSpacing: "0.25em",
-                textTransform: "uppercase",
-                opacity: 0.65,
-                margin: 0,
-                marginBottom: 12,
-                fontWeight: 700,
-              }}
-            >
-              {config.businessType === "restaurant"
-                ? "Sabor y tradición"
-                : config.businessType === "barbershop"
-                  ? "Estilo con carácter"
-                  : config.businessType === "health"
-                    ? "Cuidado integral"
-                    : "Hecho con pasión"}
-            </p>
-            <p
-              style={{
-                fontSize: 24,
-                lineHeight: 1.3,
-                margin: 0,
-                opacity: 0.95,
-                maxWidth: 720,
-              }}
-            >
-              {branding.description}
+          {/* Name */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+            <h1 style={{
+              fontFamily: "var(--font-playfair, Georgia, serif)",
+              fontSize: 50,
+              fontWeight: 700,
+              lineHeight: 1,
+              margin: 0,
+              letterSpacing: "-0.01em",
+            }}>
+              {branding.name}
+            </h1>
+            {/* Divider */}
+            <div style={{ width: 48, height: 2, background: "#ffffff60", borderRadius: 2 }} />
+            <p style={{
+              fontSize: 12,
+              letterSpacing: "0.28em",
+              textTransform: "uppercase",
+              opacity: 0.65,
+              margin: 0,
+              fontWeight: 700,
+            }}>
+              {tagline}
             </p>
           </div>
         </div>
