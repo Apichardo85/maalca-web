@@ -6,7 +6,7 @@ import QRCode from "qrcode";
 import { BusinessCardTab } from "./components/BusinessCardTab";
 
 // Afiliados que ven la nueva tab "Tarjeta" (piloto)
-const BUSINESS_CARD_AFFILIATES = new Set<string>(["the-little-dominican"]);
+const BUSINESS_CARD_AFFILIATES = new Set<string>(["the-little-dominican", "maalca"]);
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type Tab = "mesas" | "redes" | "imprimir" | "tarjeta";
@@ -162,11 +162,12 @@ function PrintAllBtn({
 // ─── Page ────────────────────────────────────────────────────────────────────
 export default function QRPage() {
   const { config, brandName } = useAffiliate();
-  const [tab, setTab] = useState<Tab>("mesas");
   const affiliateId = config?.id ?? "affiliate";
+  const isPlatform = config?.businessType === "platform";
   const brandColor = `var(--brand-primary)`;
   // For QR generation we need the actual hex, grab from CSS variable at runtime
   const [hexColor, setHexColor] = useState("#000000");
+  const [tab, setTab] = useState<Tab>(isPlatform ? "redes" : "mesas");
   useEffect(() => {
     const el = document.querySelector("[style*='--brand-primary']");
     if (el) {
@@ -175,6 +176,7 @@ export default function QRPage() {
     }
   }, []);
   const BASE = config?.contact?.website ?? `https://maalca.com/${affiliateId}`;
+  const igHandle = config?.contact?.social?.instagram ?? affiliateId;
   const TABLES_COUNT = 12;
   const TABLE_ITEMS: QRItem[] = Array.from({ length: TABLES_COUNT }, (_, i) => ({
     id: `mesa-${i + 1}`,
@@ -183,21 +185,33 @@ export default function QRPage() {
     url: `${BASE}/menu?mesa=${i + 1}`,
     icon: "🍽️",
   }));
-  const SOCIAL_ITEMS: QRItem[] = [
-    { id: "menu", label: "Menu Digital", sub: `${BASE}/menu`, url: `${BASE}/menu`, icon: "📋" },
-    { id: "instagram", label: "Instagram", sub: `@${affiliateId}`, url: `https://instagram.com/${affiliateId}`, icon: "📸" },
-    { id: "facebook", label: "Facebook", sub: brandName, url: `https://facebook.com/${affiliateId}`, icon: "👥" },
-    { id: "reservar", label: "Reservaciones", sub: "Reserva tu mesa online", url: `${BASE}/#reservar`, icon: "📅" },
-  ];
+  const SOCIAL_ITEMS: QRItem[] = isPlatform
+    ? [
+        { id: "website",   label: "MaalCa.com",      sub: "maalca.com",                    url: "https://maalca.com",                    icon: "🌐" },
+        { id: "tarjeta",   label: "Tarjeta Digital",  sub: "maalca.com/tarjeta/maalca",     url: "https://maalca.com/tarjeta/maalca",     icon: "💳" },
+        { id: "instagram", label: "Instagram",         sub: `@${igHandle}`,                  url: `https://instagram.com/${igHandle}`,     icon: "📸" },
+        { id: "contacto",  label: "Contacto",          sub: "maalca.com/contacto",           url: "https://maalca.com/contacto",           icon: "✉️" },
+        { id: "afiliados", label: "Únete",              sub: "maalca.com/affiliates",         url: "https://maalca.com/affiliates",         icon: "🤝" },
+      ]
+    : [
+        { id: "menu",      label: "Menu Digital",   sub: `${BASE}/menu`,   url: `${BASE}/menu`,             icon: "📋" },
+        { id: "instagram", label: "Instagram",       sub: `@${igHandle}`,   url: `https://instagram.com/${igHandle}`, icon: "📸" },
+        { id: "facebook",  label: "Facebook",        sub: brandName,        url: `https://facebook.com/${affiliateId}`, icon: "👥" },
+        { id: "reservar",  label: "Reservaciones",   sub: "Reserva online", url: `${BASE}/#reservar`,        icon: "📅" },
+      ];
   const hasBusinessCard = BUSINESS_CARD_AFFILIATES.has(affiliateId);
-  const tabs: { key: Tab; label: string; icon: string }[] = [
-    { key: "mesas", label: "Mesas", icon: "🍽️" },
-    { key: "redes", label: "Redes & Flyers", icon: "📱" },
-    { key: "imprimir", label: "Kit Impresion", icon: "🖨️" },
-    ...(hasBusinessCard
-      ? [{ key: "tarjeta" as Tab, label: "Tarjeta", icon: "💳" }]
-      : []),
-  ];
+  const tabs: { key: Tab; label: string; icon: string }[] = isPlatform
+    ? [
+        { key: "redes",    label: "Redes & QR",    icon: "📱" },
+        { key: "imprimir", label: "Kit Impresión",  icon: "🖨️" },
+        { key: "tarjeta",  label: "Tarjeta",        icon: "💳" },
+      ]
+    : [
+        { key: "mesas",    label: "Mesas",          icon: "🍽️" },
+        { key: "redes",    label: "Redes & Flyers", icon: "📱" },
+        { key: "imprimir", label: "Kit Impresion",  icon: "🖨️" },
+        ...(hasBusinessCard ? [{ key: "tarjeta" as Tab, label: "Tarjeta", icon: "💳" }] : []),
+      ];
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -213,7 +227,9 @@ export default function QRPage() {
             Codigos QR
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            QR con tu marca — Listos para imprimir — Sin app necesaria
+            {isPlatform
+              ? "Presencia digital de MaalCa — QR de marca para eventos y networking"
+              : "QR con tu marca — Listos para imprimir — Sin app necesaria"}
           </p>
         </div>
         {/* Tab switcher */}
@@ -259,7 +275,9 @@ export default function QRPage() {
         <div>
           <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
             <p className="text-sm text-gray-500 dark:text-gray-400 max-w-lg">
-              Usa estos QR en flyers, menus impresos, tarjetas de visita y publicaciones de redes sociales.
+              {isPlatform
+                ? "Usa estos QR en presentaciones, eventos, stand de marca y materiales de networking."
+                : "Usa estos QR en flyers, menus impresos, tarjetas de visita y publicaciones de redes sociales."}
             </p>
             <PrintAllBtn items={SOCIAL_ITEMS} label="Imprimir todos" brandColor={hexColor} brandName={brandName} />
           </div>
@@ -280,19 +298,27 @@ export default function QRPage() {
           <div className="rounded-2xl p-8 text-white flex flex-col gap-6" style={{ backgroundColor: "var(--brand-dark, var(--brand-primary))" }}>
             <div>
               <p className="text-xs font-bold tracking-widest uppercase opacity-40 mb-2">
-                Kit de Impresion
+                {isPlatform ? "Kit de Marca" : "Kit de Impresion"}
               </p>
               <h3 className="text-2xl font-bold">
-                Todo listo para imprimir
+                {isPlatform ? "QR para tu presencia de marca" : "Todo listo para imprimir"}
               </h3>
             </div>
             <ul className="space-y-3">
-              {[
-                `${TABLES_COUNT} QR de mesas — 3 por pagina`,
-                `${SOCIAL_ITEMS.length} QR de redes sociales y flyers`,
-                `Diseno con marca ${brandName} en cada tarjeta`,
-                "Resolucion 2x — nitido en cualquier impresora",
-              ].map((t, i) => (
+              {(isPlatform
+                ? [
+                    `${SOCIAL_ITEMS.length} QR de marca — sitio, redes, tarjeta y más`,
+                    "QR para tarjeta digital compartible",
+                    `Diseño con marca ${brandName} en cada tarjeta`,
+                    "Resolución 2x — nítido en cualquier impresora",
+                  ]
+                : [
+                    `${TABLES_COUNT} QR de mesas — 3 por pagina`,
+                    `${SOCIAL_ITEMS.length} QR de redes sociales y flyers`,
+                    `Diseno con marca ${brandName} en cada tarjeta`,
+                    "Resolucion 2x — nitido en cualquier impresora",
+                  ]
+              ).map((t, i) => (
                 <li key={i} className="flex items-center gap-3 text-sm">
                   <span className="w-5 h-5 bg-white/10 rounded flex items-center justify-center text-xs flex-shrink-0">
                     ✓
@@ -302,19 +328,29 @@ export default function QRPage() {
               ))}
             </ul>
             <div className="flex flex-col gap-3 pt-2 border-t border-white/10">
-              <PrintAllBtn items={TABLE_ITEMS} label={`Mesas (${TABLES_COUNT})`} brandColor={hexColor} brandName={brandName} />
-              <PrintAllBtn items={SOCIAL_ITEMS} label="Redes & Flyers" brandColor={hexColor} brandName={brandName} />
+              {!isPlatform && (
+                <PrintAllBtn items={TABLE_ITEMS} label={`Mesas (${TABLES_COUNT})`} brandColor={hexColor} brandName={brandName} />
+              )}
+              <PrintAllBtn items={SOCIAL_ITEMS} label={isPlatform ? "Imprimir kit de marca" : "Redes & Flyers"} brandColor={hexColor} brandName={brandName} />
             </div>
           </div>
           {/* Instructions */}
-          <DashboardCard title="Como implementarlos" icon="📖">
+          <DashboardCard title={isPlatform ? "Cómo usarlos" : "Como implementarlos"} icon="📖">
             <ol className="space-y-5">
-              {[
-                { n: "01", t: "Descarga o imprime", d: 'Clic en "Print" en cualquier QR, o usa los botones de Kit para imprimir en lote.' },
-                { n: "02", t: "Coloca en la mesa", d: "Usa un soporte de acrilico, porta-menu o lamina el QR y pegalo en la mesa o pared." },
-                { n: "03", t: "Cliente escanea", d: "Abre la camara del movil, apunta al QR y el menu se abre al instante. Sin app necesaria." },
-                { n: "04", t: "Orden y pago", d: "Desde el menu digital puede agregar platos al carrito y confirmar la orden facilmente." },
-              ].map((s) => (
+              {(isPlatform
+                ? [
+                    { n: "01", t: "Descarga o imprime", d: 'Clic en "Print" en cualquier QR, o usa el botón de kit para imprimir en lote.' },
+                    { n: "02", t: "Coloca en tu material", d: "Stand de eventos, flyers, presentaciones, y tarjetas físicas de MaalCa." },
+                    { n: "03", t: "Conectan contigo", d: "Escanean con la cámara del móvil — sin app — y llegan directo a tu sitio, redes o tarjeta digital." },
+                    { n: "04", t: "Crece tu red", d: "Cada escaneo es un nuevo contacto potencial: afiliado, colaborador o cliente de la plataforma." },
+                  ]
+                : [
+                    { n: "01", t: "Descarga o imprime", d: 'Clic en "Print" en cualquier QR, o usa los botones de Kit para imprimir en lote.' },
+                    { n: "02", t: "Coloca en la mesa", d: "Usa un soporte de acrilico, porta-menu o lamina el QR y pegalo en la mesa o pared." },
+                    { n: "03", t: "Cliente escanea", d: "Abre la camara del movil, apunta al QR y el menu se abre al instante. Sin app necesaria." },
+                    { n: "04", t: "Orden y pago", d: "Desde el menu digital puede agregar platos al carrito y confirmar la orden facilmente." },
+                  ]
+              ).map((s) => (
                 <li key={s.n} className="flex gap-3 items-start">
                   <span
                     className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-extrabold flex-shrink-0 text-white"

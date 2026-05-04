@@ -11,7 +11,7 @@
 
 // ─── Business types ──────────────────────────────────────────────────────────
 
-export type BusinessType = 'barbershop' | 'restaurant' | 'beauty' | 'retail' | 'health' | 'media';
+export type BusinessType = 'barbershop' | 'restaurant' | 'beauty' | 'retail' | 'health' | 'media' | 'platform';
 
 export type ModuleKey = keyof AffiliateConfig['modules'];
 
@@ -170,6 +170,7 @@ export const DEFAULT_TERMINOLOGY: Record<BusinessType, ModuleTerminology> = {
   retail:     { ecommerce: 'Catálogo', inventory: 'Stock' },
   health:     { customers: 'Pacientes', appointments: 'Consultas', queue: 'Sala de Espera' },
   media:      { customers: 'Audiencia', ecommerce: 'Merch', campaigns: 'Contenido', team: 'Crew' },
+  platform:   { customers: 'Suscriptores', campaigns: 'Campañas de Marca', reports: 'Ecosistema', team: 'Equipo' },
 };
 
 // ─── Sidebar navigation groups ──────────────────────────────────────────────
@@ -524,6 +525,60 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
       timezone: "America/New_York",
       dateFormat: "MM/DD/YYYY"
     }
+  },
+
+  "maalca": {
+    id: "maalca",
+    businessType: "platform",
+    plan: "enterprise",
+    terminology: {},
+    contact: {
+      email: "hello@maalca.com",
+      website: "https://maalca.com",
+      social: {
+        instagram: "maalca",
+      },
+    },
+    branding: {
+      primaryColor: "red-600",
+      secondaryColor: "red-400",
+      logo: "/logo-icon.svg",
+      name: "MaalCa",
+      description: "Hub maestro · Ecosistema creativo y multi-negocio",
+      palette: {
+        navyDeep: "#0a0a12",
+        navy:     "#12121e",
+        tagline:  "Ecosistema creativo dominicano",
+      },
+    },
+    modules: {
+      metrics:      true,
+      campaigns:    true,
+      customers:    true,
+      ecommerce:    false,
+      appointments: false,
+      inventory:    false,
+      invoicing:    false,
+      team:         true,
+      queue:        false,
+      salon:        false,
+      giftcards:    false,
+      reports:      true,
+      menu:         false,
+      orders:       false,
+      qrCodes:      true,
+    },
+    features: {
+      multiLanguage: true,
+      darkMode:      true,
+      notifications: true,
+      analytics:     true,
+    },
+    settings: {
+      currency:   "USD",
+      timezone:   "America/New_York",
+      dateFormat: "MM/DD/YYYY",
+    },
   },
 
   "hablando-mierda": {

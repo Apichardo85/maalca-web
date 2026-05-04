@@ -57,15 +57,20 @@ export function AffiliateBusinessCard({
   const colors = getBrandColors(config.branding.primaryColor);
   const { branding, contact } = config;
 
+  // Use palette dark tones for card background when available (e.g. MaalCa: dark card + red logo)
+  const cardDark    = branding.palette?.navyDeep ?? colors.dark;
+  const cardMid     = branding.palette?.navy     ?? colors.primary;
+
   if (variant === "front") {
     const tagline =
-      config.businessType === "restaurant"
+      branding.palette?.tagline ??
+      (config.businessType === "restaurant"
         ? "Cocina Dominicana Auténtica"
         : config.businessType === "barbershop"
           ? "Estilo con carácter"
           : config.businessType === "health"
             ? "Cuidado integral"
-            : "Hecho con pasión";
+            : "Hecho con pasión");
 
     return (
       <div
@@ -74,7 +79,7 @@ export function AffiliateBusinessCard({
         style={{
           width: PRINT_WIDTH,
           height: PRINT_HEIGHT,
-          background: `linear-gradient(150deg, ${colors.dark} 0%, ${colors.primary} 55%, ${colors.dark} 100%)`,
+          background: `linear-gradient(150deg, ${cardDark} 0%, ${cardMid} 55%, ${cardDark} 100%)`,
           color: "#ffffff",
           fontFamily: "var(--font-inter, system-ui, sans-serif)",
           display: "flex",

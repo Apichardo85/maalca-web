@@ -12,6 +12,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import { AffiliateBusinessCard } from "@/components/affiliate/AffiliateBusinessCard";
+import { BusinessCard as MaalCaBusinessCard } from "@/components/maalca/BusinessCard";
 import { generateQrDataUrl } from "@/lib/qr";
 import { downloadVCard } from "@/lib/vcard";
 import { getBrandColors } from "@/lib/affiliate-branding";
@@ -77,7 +78,10 @@ function ScaledCardPreview({
 }
 
 export function BusinessCardTab() {
-  const { config, brandName } = useAffiliate();
+  const { config, brandName, businessType } = useAffiliate();
+
+  // MaalCa (platform) usa su tarjeta bilingüe propia
+  if (businessType === "platform") return <MaalCaBusinessCard />;
   const frontRef = useRef<HTMLDivElement>(null);
   const backRef = useRef<HTMLDivElement>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");

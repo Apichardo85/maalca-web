@@ -1,1 +1,7 @@
-{}
+{
+  "maalca": {
+    "invoicing": true,
+    "appointments": true,
+    "ecommerce": true
+  }
+}

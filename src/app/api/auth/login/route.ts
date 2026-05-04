@@ -16,6 +16,7 @@ const AFFILIATE_GUID_TO_SLUG: Record<string, string> = {
   'a1000000-0000-0000-0000-000000000004': 'dr-pichardo',
   'a1000000-0000-0000-0000-000000000005': 'masa-tina',
   'a1000000-0000-0000-0000-000000000006': 'maalca-llc',
+  'a1000000-0000-0000-0000-000000000007': 'maalca',
 }
 
 const AFFILIATE_SLUG_TO_GUID: Record<string, string> = Object.fromEntries(
@@ -30,7 +31,7 @@ const resolveAffiliateGuid = (slug: string): string =>
 
 // Fallback mock users for when maalca-api is down
 const MOCK_USERS: Record<string, { password: string; affiliateId: string; name: string; role: string }> = {
-  'admin@maalca.com':      { password: 'demo', affiliateId: 'pegote-barbershop',    name: 'Admin MaalCa',    role: 'admin' },
+  'admin@maalca.com':      { password: 'demo', affiliateId: 'maalca',              name: 'Admin MaalCa',    role: 'admin' },
   'pegote@maalca.com':     { password: 'demo', affiliateId: 'pegote-barbershop',    name: 'Pegote Team',     role: 'owner' },
   'britocolor@maalca.com': { password: 'demo', affiliateId: 'britocolor',           name: 'BritoColor Team', role: 'owner' },
   'tld@maalca.com':        { password: 'demo', affiliateId: 'the-little-dominican', name: 'TLD Team',        role: 'owner' },

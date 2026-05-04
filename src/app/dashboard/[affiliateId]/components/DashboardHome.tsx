@@ -773,6 +773,82 @@ const MOCK_BY_TYPE: Partial<Record<BusinessType, MockHomeData>> = {
     },
   },
 
+  // ─── Platform (MaalCa hub) ────────────────────────────────────────────────
+  platform: {
+    greetingHint: "Hub maestro · Vista global del ecosistema MaalCa",
+    kpis: [
+      {
+        label: "Visitas hoy",
+        value: "1,240",
+        delta: "+8.3%",
+        deltaTone: "up",
+        icon: "🌐",
+        hint: "maalca.com",
+        module: "metrics",
+      },
+      {
+        label: "Afiliados activos",
+        value: "4",
+        delta: "2 en piloto",
+        deltaTone: "neutral",
+        icon: "🏢",
+        hint: "de 6 configurados",
+      },
+      {
+        label: "Campañas activas",
+        value: "3",
+        delta: "+1 nueva",
+        deltaTone: "up",
+        icon: "📢",
+        hint: "en ejecución",
+        module: "campaigns",
+      },
+      {
+        label: "Suscriptores",
+        value: "847",
+        delta: "+24 esta semana",
+        deltaTone: "up",
+        icon: "👥",
+        hint: "newsletter MaalCa",
+        module: "customers",
+      },
+    ],
+    quickActions: [
+      { label: "Analíticas",    icon: "📈", module: "metrics"   },
+      { label: "Nueva campaña", icon: "📢", module: "campaigns" },
+      { label: "QR / Tarjeta",  icon: "📱", module: "qrCodes"   },
+      { label: "Suscriptores",  icon: "👥", module: "customers" },
+      { label: "Reportes",      icon: "📊", module: "reports"   },
+      { label: "Equipo",        icon: "👨‍💼", module: "team"      },
+    ],
+    alerts: [],
+    live: null,
+    topItems: {
+      enabledVia: "reports",
+      title: "Estado de afiliados",
+      items: [
+        { name: "The Little Dominican", count: 847, revenue: "Growth",   category: "Restaurante · Activo"  },
+        { name: "Masa Tina",            count: 412, revenue: "Pro",      category: "Catering · Activo"     },
+        { name: "Pegote Barbershop",    count: 156, revenue: "Starter",  category: "Barbería · Activo"     },
+        { name: "Dr. Pichardo",         count:  89, revenue: "Growth",   category: "Salud · Activo"        },
+      ],
+    },
+    trend: {
+      title: "Tráfico maalca.com",
+      subtitle: "Últimas 8 horas · hoy",
+      valueLabel: "Visitas",
+      data: [
+        { label: "8am",  value:  45 },
+        { label: "10am", value: 120 },
+        { label: "12pm", value: 280 },
+        { label: "2pm",  value: 310 },
+        { label: "4pm",  value: 190 },
+        { label: "6pm",  value: 160 },
+        { label: "8pm",  value: 135 },
+      ],
+    },
+  },
+
   // ─── Otros verticales: agregar cuando pasen a piloto ─────────────────────
   // barbershop:  {...}
   // beauty:      {...}
