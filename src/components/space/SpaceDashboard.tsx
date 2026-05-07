@@ -22,6 +22,14 @@ interface Business {
   primary_color: string | null;
 }
 
+interface CatalogItem {
+  id: string;
+  name: string;
+  category: string | null;
+  is_demo: boolean;
+  active: boolean;
+}
+
 interface Progress {
   first_product_added: boolean;
   whatsapp_configured: boolean;
@@ -30,6 +38,7 @@ interface Progress {
 
 interface Props {
   business: Business;
+  items: CatalogItem[];
   productCount: number;
   progress: Progress;
   isNew: boolean;
@@ -39,6 +48,7 @@ interface Props {
 
 export function SpaceDashboard({
   business,
+  items,
   productCount,
   progress,
   isNew,
@@ -53,6 +63,9 @@ export function SpaceDashboard({
   const remaining = remainingItems(business.plan, productCount);
   const showWarning = isNearItemLimit(business.plan, productCount);
   const atLimit = business.plan === 'free' && productCount >= limits.itemsPerBusiness;
+
+  const demoItems = items.filter((i) => i.is_demo);
+  const hasDemoItems = demoItems.length > 0;
 
   useEffect(() => {
     if (showAnimation) {
@@ -111,7 +124,7 @@ export function SpaceDashboard({
               ¡Bienvenido a Emprendedor! 🎉
             </h2>
             <p className="mt-2 text-sm text-neutral-700">
-              Productos ilimitados, pedidos en línea, y todo lo demás están desbloqueados.
+              Items ilimitados, pedidos en línea, y todo lo demás están desbloqueados.
             </p>
           </div>
         )}
@@ -145,12 +158,70 @@ export function SpaceDashboard({
           </div>
         </div>
 
+        {/* Demo items banner — only on first visit and while demo items exist */}
+        {isNew && hasDemoItems && (
+          <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-amber-900">
+                  Tu página ya se ve poblada ✨
+                </p>
+                <p className="mt-0.5 text-xs text-amber-700">
+                  Cargamos {demoItems.length} items de ejemplo — edítalos o elimínalos cuando quieras.
+                </p>
+              </div>
+              <a
+                href={`/${business.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-shrink-0 rounded-full border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-100"
+              >
+                Ver ↗
+              </a>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              {demoItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between rounded-xl bg-white px-4 py-3 ring-1 ring-amber-200"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="flex-shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                      Demo
+                    </span>
+                    <span className="truncate text-sm font-medium text-neutral-800">{item.name}</span>
+                    {item.category && (
+                      <span className="hidden truncate text-xs text-neutral-400 sm:block">
+                        {item.category}
+                      </span>
+                    )}
+                  </div>
+                  <Link
+                    href={`/space/${business.slug}/catalog/${item.id}/edit`}
+                    className="flex-shrink-0 text-xs font-medium text-[#C8102E] hover:underline"
+                  >
+                    Editar →
+                  </Link>
+                </div>
+              ))}
+            </div>
+
+            <Link
+              href={`/space/${business.slug}/catalog/new`}
+              className="mt-4 block w-full rounded-full bg-neutral-900 py-2.5 text-center text-sm font-medium text-white transition hover:bg-neutral-800"
+            >
+              + Agregar mi primer item real
+            </Link>
+          </div>
+        )}
+
         {showWarning && (
           <div className="mt-6 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
             <span className="text-xl">⚡</span>
             <div className="flex-1">
               <p className="text-sm font-medium text-amber-900">
-                Te quedan {remaining} {remaining === 1 ? 'producto' : 'productos'} en el plan gratis.
+                Te quedan {remaining} {remaining === 1 ? 'item' : 'items'} en el plan gratis.
               </p>
               <button
                 onClick={() => {
@@ -169,7 +240,7 @@ export function SpaceDashboard({
           <div className="mt-6 rounded-2xl border border-[#C8102E] bg-[#C8102E]/5 p-6">
             <p className="font-medium text-[#C8102E]">Estás creciendo 🔥</p>
             <p className="mt-1 text-sm text-neutral-700">
-              Llegaste al límite de 10 productos. Mejora a Emprendedor para productos ilimitados.
+              Llegaste al límite de 10 items. Mejora a Emprendedor para items ilimitados.
             </p>
             <button
               onClick={() => {
@@ -195,9 +266,9 @@ export function SpaceDashboard({
             />
             <ChecklistItem
               done={progress.first_product_added}
-              label="Agrega tu primer producto"
-              description="Sin productos no hay menú que mostrar"
-              href={`/space/${business.slug}/products/new`}
+              label="Edita o agrega tu primer item real"
+              description="Los items demo no cuentan — agrega el tuyo"
+              href={`/space/${business.slug}/catalog/new`}
               cta="Agregar"
             />
             <ChecklistItem
@@ -219,7 +290,7 @@ export function SpaceDashboard({
 
         <section className="mt-8 grid grid-cols-2 gap-4">
           <div className="rounded-2xl border border-neutral-200 bg-white p-5">
-            <p className="text-xs uppercase tracking-wider text-neutral-500">Productos</p>
+            <p className="text-xs uppercase tracking-wider text-neutral-500">Items reales</p>
             <p className="mt-1 text-2xl font-bold">
               {productCount}
               {business.plan === 'free' && (
