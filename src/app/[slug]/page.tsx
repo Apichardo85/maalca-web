@@ -2,14 +2,14 @@
 // Public business page — SSR via maalca-api public endpoint. No auth required.
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { TEMPLATES, type BusinessType, type PublicTemplateProps } from '@/lib/templates/registry';
+import { TEMPLATES, type BusinessType, type PublicTemplateProps, type Plan } from '@/lib/templates/registry';
 import { ApiError } from '@/lib/api-client';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-const API_BASE = process.env.API_BASE_URL ?? 'http://localhost:5000';
+const API_BASE = process.env.API_BASE_URL ?? 'http://localhost:8080';
 
 const RESERVED = new Set([
   'servicios', 'login', 'signup', 'register', 'onboarding', 'space',
@@ -19,6 +19,9 @@ const RESERVED = new Set([
   'favicon.ico', 'robots.txt', 'sitemap.xml',
   'catering', 'editorial', 'properties', 'ciriwhispers', 'pegote',
   'settings', 'catalog', 'categories', 'upgrade',
+  'pegote-barber', 'the-little-dominicana', 'britocolor', 'masa-tina',
+  'dr-pichardo', 'hablando-mierda', 'casos-estudio', 'ecosistema',
+  'affiliates', 'tarjeta',
 ]);
 
 async function getCatalog(slug: string): Promise<PublicCatalogResponse | null> {
@@ -31,7 +34,6 @@ async function getCatalog(slug: string): Promise<PublicCatalogResponse | null> {
     if (!res.ok) throw new ApiError(res.status, res.statusText);
     return res.json();
   } catch (e) {
-    if (e instanceof ApiError && e.status === 404) return null;
     console.error('[slug] getCatalog error', e);
     return null;
   }
@@ -61,9 +63,10 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
   const data = await getCatalog(slug);
   if (!data) notFound();
 
-  const { affiliate, categories, items, capabilities } = data;
 
-  const Template = TEMPLATES[affiliate.businessType as BusinessType];
+  const { affiliate, categories = [], items, capabilities } = data;
+
+  const Template = TEMPLATES[affiliate.businessType.toLowerCase() as BusinessType];
   if (!Template) notFound();
 
   return (
@@ -72,7 +75,7 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
         id: affiliate.id,
         slug: affiliate.slug,
         name: affiliate.name,
-        plan: affiliate.plan,
+        plan: (affiliate.plan?.toLowerCase() ?? 'free') as Plan,
         description: affiliate.description,
         logo_url: affiliate.logoUrl,
         primary_color: affiliate.primaryColor,
@@ -94,12 +97,12 @@ interface PublicCatalogResponse {
     name: string;
     description?: string | null;
     businessType: string;
-    plan: 'free' | 'entrepreneur';
+    plan: string;
     logoUrl?: string | null;
     primaryColor?: string | null;
     whatsapp?: string | null;
   };
-  categories: PublicTemplateProps['categories'];
+  categories?: PublicTemplateProps['categories'];
   items: PublicTemplateProps['items'];
   capabilities: PublicTemplateProps['capabilities'];
 }

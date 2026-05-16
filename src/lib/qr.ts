@@ -5,6 +5,24 @@
 
 import QRCode from "qrcode";
 
+export async function generateQRPng(url: string, size = 512): Promise<Buffer> {
+  return QRCode.toBuffer(url, {
+    type: 'png',
+    width: size,
+    margin: 2,
+    color: { dark: '#000000', light: '#FFFFFF' },
+    errorCorrectionLevel: 'M',
+  });
+}
+
+export async function generateQRDataURL(url: string, size = 256): Promise<string> {
+  return QRCode.toDataURL(url, {
+    width: size,
+    margin: 2,
+    errorCorrectionLevel: 'M',
+  });
+}
+
 export interface QrOptions {
   width?: number;
   margin?: number;

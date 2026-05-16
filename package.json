@@ -31,6 +31,7 @@
     "react-reader": "^2.0.13",
     "recharts": "^3.5.1",
     "resend": "^6.9.4",
+    "stripe": "^22.1.1",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {

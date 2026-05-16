@@ -459,6 +459,7 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
 
   "the-little-dominican": {
     id: "the-little-dominican",
+    active: true,
     businessType: "restaurant",
     plan: "growth", // menu + orders + inventory + QR + invoicing — todo incluido en Growth
     terminology: {},
@@ -529,6 +530,7 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
 
   "maalca": {
     id: "maalca",
+    active: false,
     businessType: "platform",
     plan: "enterprise",
     terminology: {},

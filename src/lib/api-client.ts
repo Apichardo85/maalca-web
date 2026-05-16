@@ -2,7 +2,7 @@
 // Central HTTP client for maalca-api. Attaches Supabase JWT and X-Affiliate-Id header.
 // Public endpoints (skipAuth: true) work without auth.
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:5000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 export class ApiError extends Error {
   constructor(

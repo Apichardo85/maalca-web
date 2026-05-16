@@ -106,7 +106,15 @@
       "Bash(mv docs/digital-reader-implementation.md docs/implementations/)",
       "Bash(dos2unix -q \"C:\\\\Users\\\\apich\\\\source\\\\maalca-web\\\\src\\\\hooks\\\\useSimpleLanguage.tsx\")",
       "Bash(sed -i 's/\\\\r$//' \"C:\\\\Users\\\\apich\\\\source\\\\maalca-web\\\\src\\\\hooks\\\\useSimpleLanguage.tsx\")",
-      "Bash(python3 -c \"import sys; content = sys.stdin.read\\(\\); print\\('=== FUNCTION EXPORTS ==='\\); import re; exports = re.findall\\(r'export\\\\s+\\(?:function|const\\)\\\\s+\\(\\\\w+\\)', content\\); print\\('\\\\n'.join\\(exports\\)\\); print\\('\\\\n=== CONTEXT USAGE ==='\\); context_usage = re.findall\\(r'\\(createContext|useContext|Provider|setLanguage\\)', content\\); print\\(dict\\([\\(m, context_usage.count\\(m\\)\\) for m in set\\(context_usage\\)]\\)\\)\")"
+      "Bash(python3 -c \"import sys; content = sys.stdin.read\\(\\); print\\('=== FUNCTION EXPORTS ==='\\); import re; exports = re.findall\\(r'export\\\\s+\\(?:function|const\\)\\\\s+\\(\\\\w+\\)', content\\); print\\('\\\\n'.join\\(exports\\)\\); print\\('\\\\n=== CONTEXT USAGE ==='\\); context_usage = re.findall\\(r'\\(createContext|useContext|Provider|setLanguage\\)', content\\); print\\(dict\\([\\(m, context_usage.count\\(m\\)\\) for m in set\\(context_usage\\)]\\)\\)\")",
+      "PowerShell(Get-Process *)",
+      "Bash(Get-ChildItem \"C:\\\\Users\\\\apich\\\\source\\\\maalca-web\\\\src\\\\app\" -Directory)",
+      "Bash(Select-Object Name)",
+      "PowerShell(Get-Content *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\apich\\\\source\\\\maalca-web\\\\src\\\\app\" -Directory)",
+      "Bash(dir \"C:\\\\Users\\\\apich\\\\source\\\\maalca-web\\\\docs\" /s /b)",
+      "Bash(git rm *)",
+      "Bash(git diff *)"
     ],
     "deny": [],
     "ask": []

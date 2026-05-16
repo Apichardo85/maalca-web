@@ -1,0 +1,288 @@
+<h2 class="sr-only">MaalCa analytics dashboard redesign with hero metric, KPI grid, revenue chart, and business breakdown.</h2>
+
+<div style="padding: 1rem 0;">
+
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 12px;">
+  <div>
+    <div style="font-size: 20px; font-weight: 500; color: var(--color-text-primary); line-height: 1.2;">Analytics</div>
+    <div style="font-size: 13px; color: var(--color-text-secondary); margin-top: 2px;">Ecosystem overview · last 30 days</div>
+  </div>
+  <div style="display: flex; gap: 8px; align-items: center;">
+    <select style="font-size: 13px;">
+      <option>Last 30 days</option>
+      <option>Last 7 days</option>
+      <option>Last quarter</option>
+      <option>This year</option>
+      <option>Custom range</option>
+    </select>
+    <button style="font-size: 13px;">Export</button>
+  </div>
+</div>
+
+<div style="background: #0a0a0f; border-radius: var(--border-radius-lg); padding: 24px; margin-bottom: 16px; position: relative; overflow: hidden;">
+  <div style="position: absolute; top: 0; left: 0; right: 0; height: 2px; background: #C8102E;"></div>
+  <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: center;">
+    <div>
+      <div style="font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 8px;">Total revenue · all businesses</div>
+      <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+        <div style="font-family: var(--font-serif); font-size: 38px; color: white; line-height: 1;">$172,631</div>
+        <div style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: #5DCAA5;">
+          <span>↑ 12.5%</span>
+          <span style="color: rgba(255,255,255,0.4);">vs last month</span>
+        </div>
+      </div>
+      <div style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 6px;">Goal: $200,000 · 86% reached</div>
+      <div style="margin-top: 10px; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden;">
+        <div style="width: 86%; height: 100%; background: #C8102E;"></div>
+      </div>
+    </div>
+    <div>
+      <canvas id="heroChart" role="img" aria-label="30-day revenue trend showing growth from $4,200 to $6,800 daily" style="max-height: 80px;">Revenue trend up.</canvas>
+    </div>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px;">
+  <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 14px;">
+    <div style="font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px;">Active customers</div>
+    <div style="font-size: 22px; font-weight: 500; color: var(--color-text-primary); line-height: 1;">1,248</div>
+    <div style="font-size: 11px; color: var(--color-text-success); margin-top: 4px;">↑ 8.2% · +94 this month</div>
+  </div>
+  <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 14px;">
+    <div style="font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px;">Conversion rate</div>
+    <div style="font-size: 22px; font-weight: 500; color: var(--color-text-primary); line-height: 1;">3.24%</div>
+    <div style="font-size: 11px; color: var(--color-text-success); margin-top: 4px;">↑ 0.8 pts vs last month</div>
+  </div>
+  <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 14px;">
+    <div style="font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px;">Avg ticket</div>
+    <div style="font-size: 22px; font-weight: 500; color: var(--color-text-primary); line-height: 1;">$156</div>
+    <div style="font-size: 11px; color: var(--color-text-success); margin-top: 4px;">↑ 5.3% vs last month</div>
+  </div>
+  <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 14px;">
+    <div style="font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px;">Retention</div>
+    <div style="font-size: 22px; font-weight: 500; color: var(--color-text-primary); line-height: 1;">78%</div>
+    <div style="font-size: 11px; color: var(--color-text-success); margin-top: 4px;">↑ 5 pts vs last month</div>
+  </div>
+</div>
+
+<div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 18px; margin-bottom: 16px;">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+    <div>
+      <div style="font-size: 14px; font-weight: 500; color: var(--color-text-primary);">Revenue by business unit</div>
+      <div style="font-size: 12px; color: var(--color-text-secondary); margin-top: 2px;">Stacked daily revenue · last 30 days</div>
+    </div>
+    <div style="display: flex; gap: 6px;">
+      <button style="font-size: 12px; padding: 4px 10px; height: auto;">Daily</button>
+      <button style="font-size: 12px; padding: 4px 10px; height: auto; background: var(--color-background-secondary);">Weekly</button>
+      <button style="font-size: 12px; padding: 4px 10px; height: auto;">Monthly</button>
+    </div>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 12px; font-size: 12px; color: var(--color-text-secondary);">
+    <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 2px; background: #C8102E;"></span>Studio · $68,420</span>
+    <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 2px; background: #1a1a1a;"></span>Consulting · $54,210</span>
+    <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 2px; background: #888780;"></span>Products · $32,001</span>
+    <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 10px; height: 10px; border-radius: 2px; background: #D3D1C7;"></span>Other · $18,000</span>
+  </div>
+  <div style="position: relative; height: 220px;">
+    <canvas id="revChart" role="img" aria-label="Stacked revenue chart by business unit over 30 days">Revenue by business unit.</canvas>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+  <div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 18px;">
+    <div style="font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 14px;">Traffic sources</div>
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div style="position: relative; width: 110px; height: 110px; flex-shrink: 0;">
+        <canvas id="trafficChart" role="img" aria-label="Traffic source breakdown: organic 45%, direct 25%, social 20%, referral 10%">Traffic sources.</canvas>
+      </div>
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="display: flex; align-items: center; gap: 6px; color: var(--color-text-primary);"><span style="width: 8px; height: 8px; border-radius: 2px; background: #C8102E;"></span>Organic</span>
+          <span style="font-weight: 500;">45%</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="display: flex; align-items: center; gap: 6px; color: var(--color-text-primary);"><span style="width: 8px; height: 8px; border-radius: 2px; background: #1a1a1a;"></span>Direct</span>
+          <span style="font-weight: 500;">25%</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="display: flex; align-items: center; gap: 6px; color: var(--color-text-primary);"><span style="width: 8px; height: 8px; border-radius: 2px; background: #888780;"></span>Social</span>
+          <span style="font-weight: 500;">20%</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="display: flex; align-items: center; gap: 6px; color: var(--color-text-primary);"><span style="width: 8px; height: 8px; border-radius: 2px; background: #D3D1C7;"></span>Referral</span>
+          <span style="font-weight: 500;">10%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 18px;">
+    <div style="font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 14px;">Customer satisfaction</div>
+    <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px;">
+      <span style="font-family: var(--font-serif); font-size: 32px; color: var(--color-text-primary); line-height: 1;">4.8</span>
+      <span style="font-size: 13px; color: var(--color-text-secondary);">/ 5.0</span>
+      <span style="font-size: 11px; color: var(--color-text-success); margin-left: auto;">↑ 0.2 vs last month</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="color: var(--color-text-secondary); width: 32px;">5★</span>
+        <div style="flex: 1; height: 6px; background: var(--color-background-secondary); border-radius: 3px; overflow: hidden;"><div style="width: 72%; height: 100%; background: #C8102E;"></div></div>
+        <span style="color: var(--color-text-secondary); width: 28px; text-align: right;">72%</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="color: var(--color-text-secondary); width: 32px;">4★</span>
+        <div style="flex: 1; height: 6px; background: var(--color-background-secondary); border-radius: 3px; overflow: hidden;"><div style="width: 18%; height: 100%; background: #C8102E;"></div></div>
+        <span style="color: var(--color-text-secondary); width: 28px; text-align: right;">18%</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="color: var(--color-text-secondary); width: 32px;">3★</span>
+        <div style="flex: 1; height: 6px; background: var(--color-background-secondary); border-radius: 3px; overflow: hidden;"><div style="width: 7%; height: 100%; background: #888780;"></div></div>
+        <span style="color: var(--color-text-secondary); width: 28px; text-align: right;">7%</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="color: var(--color-text-secondary); width: 32px;">≤2★</span>
+        <div style="flex: 1; height: 6px; background: var(--color-background-secondary); border-radius: 3px; overflow: hidden;"><div style="width: 3%; height: 100%; background: #D3D1C7;"></div></div>
+        <span style="color: var(--color-text-secondary); width: 28px; text-align: right;">3%</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 18px;">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+    <div>
+      <div style="font-size: 14px; font-weight: 500; color: var(--color-text-primary);">Top performers</div>
+      <div style="font-size: 12px; color: var(--color-text-secondary); margin-top: 2px;">Best-selling products and services</div>
+    </div>
+    <button style="font-size: 12px; padding: 4px 10px; height: auto;">View all</button>
+  </div>
+  <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+    <thead>
+      <tr style="border-bottom: 0.5px solid var(--color-border-tertiary);">
+        <th style="text-align: left; padding: 8px 0; font-weight: 500; font-size: 11px; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.05em;">Item</th>
+        <th style="text-align: left; padding: 8px 0; font-weight: 500; font-size: 11px; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.05em;">Unit</th>
+        <th style="text-align: right; padding: 8px 0; font-weight: 500; font-size: 11px; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.05em;">Sales</th>
+        <th style="text-align: right; padding: 8px 0; font-weight: 500; font-size: 11px; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.05em;">Revenue</th>
+        <th style="text-align: right; padding: 8px 0; font-weight: 500; font-size: 11px; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.05em;">Trend</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom: 0.5px solid var(--color-border-tertiary);">
+        <td style="padding: 12px 0; color: var(--color-text-primary);">Premium service</td>
+        <td style="padding: 12px 0; color: var(--color-text-secondary); font-size: 12px;">Studio</td>
+        <td style="padding: 12px 0; text-align: right;">156</td>
+        <td style="padding: 12px 0; text-align: right; font-weight: 500;">$24,680</td>
+        <td style="padding: 12px 0; text-align: right;">
+          <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px; background: rgba(15,110,86,0.1); color: #0F6E56; font-size: 11px;">↑ 18.2%</span>
+        </td>
+      </tr>
+      <tr style="border-bottom: 0.5px solid var(--color-border-tertiary);">
+        <td style="padding: 12px 0; color: var(--color-text-primary);">Basic package</td>
+        <td style="padding: 12px 0; color: var(--color-text-secondary); font-size: 12px;">Consulting</td>
+        <td style="padding: 12px 0; text-align: right;">243</td>
+        <td style="padding: 12px 0; text-align: right; font-weight: 500;">$13,645</td>
+        <td style="padding: 12px 0; text-align: right;">
+          <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px; background: rgba(15,110,86,0.1); color: #0F6E56; font-size: 11px;">↑ 9.4%</span>
+        </td>
+      </tr>
+      <tr style="border-bottom: 0.5px solid var(--color-border-tertiary);">
+        <td style="padding: 12px 0; color: var(--color-text-primary);">Featured product</td>
+        <td style="padding: 12px 0; color: var(--color-text-secondary); font-size: 12px;">Products</td>
+        <td style="padding: 12px 0; text-align: right;">89</td>
+        <td style="padding: 12px 0; text-align: right; font-weight: 500;">$12,670</td>
+        <td style="padding: 12px 0; text-align: right;">
+          <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px; background: rgba(163,45,45,0.1); color: #A32D2D; font-size: 11px;">↓ 4.1%</span>
+        </td>
+      </tr>
+      <tr style="border-bottom: 0.5px solid var(--color-border-tertiary);">
+        <td style="padding: 12px 0; color: var(--color-text-primary);">Express consult</td>
+        <td style="padding: 12px 0; color: var(--color-text-secondary); font-size: 12px;">Consulting</td>
+        <td style="padding: 12px 0; text-align: right;">67</td>
+        <td style="padding: 12px 0; text-align: right; font-weight: 500;">$11,340</td>
+        <td style="padding: 12px 0; text-align: right;">
+          <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px; background: rgba(15,110,86,0.1); color: #0F6E56; font-size: 11px;">↑ 12.0%</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 12px 0; color: var(--color-text-primary);">Full treatment</td>
+        <td style="padding: 12px 0; color: var(--color-text-secondary); font-size: 12px;">Studio</td>
+        <td style="padding: 12px 0; text-align: right;">45</td>
+        <td style="padding: 12px 0; text-align: right; font-weight: 500;">$13,375</td>
+        <td style="padding: 12px 0; text-align: right;">
+          <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px; background: rgba(163,45,45,0.1); color: #A32D2D; font-size: 11px;">↓ 2.8%</span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+(function() {
+  if (!window.Chart) return;
+  
+  new Chart(document.getElementById('heroChart'), {
+    type: 'line',
+    data: {
+      labels: Array.from({length: 30}, (_, i) => i + 1),
+      datasets: [{
+        data: [4200, 4400, 4100, 4600, 4800, 4500, 4900, 5100, 5300, 5000, 5400, 5600, 5500, 5800, 6100, 5900, 6200, 6400, 6300, 6500, 6700, 6500, 6800, 6600, 6900, 7100, 6900, 7200, 7000, 6800],
+        borderColor: '#C8102E',
+        backgroundColor: 'rgba(200,16,46,0.15)',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      scales: { x: { display: false }, y: { display: false } }
+    }
+  });
+  
+  new Chart(document.getElementById('revChart'), {
+    type: 'bar',
+    data: {
+      labels: ['W1','W2','W3','W4'],
+      datasets: [
+        { label: 'Studio', data: [14200, 16800, 17400, 20020], backgroundColor: '#C8102E', borderRadius: 2 },
+        { label: 'Consulting', data: [12100, 13400, 14200, 14510], backgroundColor: '#1a1a1a', borderRadius: 2 },
+        { label: 'Products', data: [7200, 7800, 8400, 8601], backgroundColor: '#888780', borderRadius: 2 },
+        { label: 'Other', data: [4200, 4500, 4600, 4700], backgroundColor: '#D3D1C7', borderRadius: 2 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 } } },
+        y: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11 }, callback: v => '$' + (v/1000) + 'k' } }
+      }
+    }
+  });
+  
+  new Chart(document.getElementById('trafficChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Organic','Direct','Social','Referral'],
+      datasets: [{
+        data: [45, 25, 20, 10],
+        backgroundColor: ['#C8102E','#1a1a1a','#888780','#D3D1C7'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '70%',
+      plugins: { legend: { display: false }, tooltip: { enabled: true } }
+    }
+  });
+})();
+</script>

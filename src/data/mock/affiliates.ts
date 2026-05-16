@@ -7,7 +7,7 @@ export const affiliates: Affiliate[] = [
     description: "Ecosistema creativo y tecnológico para negocios dominicanos. Plataforma multi-tenant con dashboards, QR, campañas de marketing, CRM y más. Fundado por Ciriaco Pichardo desde Elmira, NY.",
     category: "tecnologia-eventos",
     status: "premium",
-    active: true,
+    active: false,
     displayInitials: "MC",
     logo: "/logo-icon.svg",
     website: "https://maalca.com",
