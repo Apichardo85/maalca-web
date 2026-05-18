@@ -78,8 +78,11 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
         plan: (affiliate.plan?.toLowerCase() ?? 'free') as Plan,
         description: affiliate.description,
         logo_url: affiliate.logoUrl,
+        cover_image_url: affiliate.coverImageUrl ?? null,
         primary_color: affiliate.primaryColor,
         whatsapp: affiliate.whatsapp,
+        address: affiliate.address ?? null,
+        contactEmail: affiliate.contactEmail ?? null,
         business_type: affiliate.businessType as BusinessType,
       }}
       items={items}
@@ -99,8 +102,11 @@ interface PublicCatalogResponse {
     businessType: string;
     plan: string;
     logoUrl?: string | null;
+    coverImageUrl?: string | null;
     primaryColor?: string | null;
     whatsapp?: string | null;
+    address?: string | null;
+    contactEmail?: string | null;
   };
   categories?: PublicTemplateProps['categories'];
   items: PublicTemplateProps['items'];

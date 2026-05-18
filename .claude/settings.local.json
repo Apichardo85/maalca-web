@@ -114,7 +114,8 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\apich\\\\source\\\\maalca-web\\\\src\\\\app\" -Directory)",
       "Bash(dir \"C:\\\\Users\\\\apich\\\\source\\\\maalca-web\\\\docs\" /s /b)",
       "Bash(git rm *)",
-      "Bash(git diff *)"
+      "Bash(git diff *)",
+      "Bash(Select-String \"Barber\")"
     ],
     "deny": [],
     "ask": []
