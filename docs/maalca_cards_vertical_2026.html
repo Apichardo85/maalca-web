@@ -1,0 +1,165 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.wrap{display:flex;gap:28px;padding:2rem 0;font-family:var(--font-sans);justify-content:center;flex-wrap:wrap}
+.col{display:flex;flex-direction:column;align-items:center;gap:8px}
+.label{font-size:10px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.08em;font-weight:500}
+.card{width:200px;height:320px;border-radius:16px;padding:22px 20px;display:flex;flex-direction:column;justify-content:space-between}
+.card-dark{background:#111;border:0.5px solid #2a2a2a}
+.card-red{background:#C8102E;border:0.5px solid #a00c24}
+.logo-wrap{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.logo-wrap-center{align-items:center}
+.logo-circle{width:36px;height:36px;border-radius:50%;background:#C8102E;display:flex;align-items:center;justify-content:center}
+.logo-circle-glass{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3)}
+.brand-text{font-size:11px;font-weight:500;color:#fff;letter-spacing:0.05em}
+.mid{flex:1;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:16px 0}
+.name{font-size:17px;font-weight:500;color:#fff;letter-spacing:-0.01em;line-height:1.2;margin-bottom:4px}
+.role{font-size:9px;color:rgba(255,255,255,0.5);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px}
+.div{width:24px;height:1px;background:rgba(255,255,255,0.2);margin-bottom:12px}
+.div-red{background:rgba(255,255,255,0.35)}
+.info{display:flex;flex-direction:column;gap:5px}
+.info-row{display:flex;align-items:center;gap:6px}
+.info-row i{font-size:11px;color:rgba(255,255,255,0.35)}
+.info-row span{font-size:9.5px;color:rgba(255,255,255,0.65);line-height:1}
+.bottom{display:flex;flex-direction:column;align-items:center;gap:8px}
+.qr-wrap{background:#fff;border-radius:6px;padding:5px;display:flex;align-items:center;justify-content:center}
+.url{font-size:8.5px;color:rgba(255,255,255,0.3);letter-spacing:0.06em}
+.general-mid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:4px}
+.big-name{font-size:22px;font-weight:500;color:#fff;letter-spacing:-0.02em}
+.big-tag{font-size:8.5px;color:rgba(255,255,255,0.65);letter-spacing:0.12em;text-transform:uppercase;max-width:130px;line-height:1.4;text-align:center}
+</style>
+
+<div class="wrap">
+
+  <div class="col">
+    <div class="label">Ciriaco</div>
+    <div class="card card-dark">
+      <div class="logo-wrap">
+        <div class="logo-circle">
+          <svg width="22" height="22" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="11" r="4" fill="#fff"/>
+            <line x1="20" y1="15" x2="20" y2="27" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+            <line x1="10" y1="19" x2="30" y2="19" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+            <line x1="20" y1="27" x2="13" y2="35" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+            <line x1="20" y1="27" x2="27" y2="35" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="brand-text">MaalCa</span>
+      </div>
+      <div class="mid">
+        <div class="name">Ciriaco<br>Pichardo</div>
+        <div class="role">Founder · Systems Architect</div>
+        <div class="div"></div>
+        <div class="info">
+          <div class="info-row"><i class="ti ti-at" aria-hidden="true"></i><span>@CiriSonic · @CiriWhispers</span></div>
+          <div class="info-row"><i class="ti ti-phone" aria-hidden="true"></i><span>607-857-4226</span></div>
+          <div class="info-row"><i class="ti ti-mail" aria-hidden="true"></i><span>maalca@gmail.com</span></div>
+        </div>
+      </div>
+      <div class="bottom">
+        <div class="qr-wrap">
+          <svg id="qr-ciri" width="70" height="70"></svg>
+        </div>
+        <span class="url">maalca.com</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="label">Alexis</div>
+    <div class="card card-dark">
+      <div class="logo-wrap">
+        <div class="logo-circle">
+          <svg width="22" height="22" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="11" r="4" fill="#fff"/>
+            <line x1="20" y1="15" x2="20" y2="27" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+            <line x1="10" y1="19" x2="30" y2="19" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+            <line x1="20" y1="27" x2="13" y2="35" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+            <line x1="20" y1="27" x2="27" y2="35" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="brand-text">MaalCa</span>
+      </div>
+      <div class="mid">
+        <div class="name">Alexis<br>Ruiz</div>
+        <div class="role">Founder · Growth & Partnerships</div>
+        <div class="div"></div>
+        <div class="info">
+          <div class="info-row"><i class="ti ti-at" aria-hidden="true"></i><span>@MaalCa</span></div>
+          <div class="info-row"><i class="ti ti-phone" aria-hidden="true"></i><span>917-388-6156</span></div>
+          <div class="info-row"><i class="ti ti-mail" aria-hidden="true"></i><span>maalca@gmail.com</span></div>
+        </div>
+      </div>
+      <div class="bottom">
+        <div class="qr-wrap">
+          <svg id="qr-alexis" width="70" height="70"></svg>
+        </div>
+        <span class="url">maalca.com</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="col">
+    <div class="label">MaalCa general</div>
+    <div class="card card-red">
+      <div class="logo-wrap logo-wrap-center">
+        <div class="logo-circle logo-circle-glass">
+          <svg width="22" height="22" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="11" r="4" fill="#fff"/>
+            <line x1="20" y1="15" x2="20" y2="27" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+            <line x1="10" y1="19" x2="30" y2="19" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+            <line x1="20" y1="27" x2="13" y2="35" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+            <line x1="20" y1="27" x2="27" y2="35" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="general-mid">
+        <div class="big-name">MaalCa</div>
+        <div class="big-tag">Modern OS for Local Business</div>
+        <div class="div div-red" style="margin:12px auto"></div>
+        <div class="info" style="align-items:center">
+          <div class="info-row"><i class="ti ti-mail" aria-hidden="true"></i><span style="color:rgba(255,255,255,0.8)">maalca@gmail.com</span></div>
+          <div class="info-row"><i class="ti ti-world" aria-hidden="true"></i><span style="color:rgba(255,255,255,0.8)">maalca.com</span></div>
+        </div>
+      </div>
+      <div class="bottom">
+        <div class="qr-wrap">
+          <svg id="qr-maalca" width="70" height="70"></svg>
+        </div>
+        <span class="url" style="color:rgba(255,255,255,0.5)">maalca.com</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+function makeQR(svgId, url) {
+  const div = document.createElement('div');
+  document.body.appendChild(div);
+  new QRCode(div, {width:70, height:70, text:url, colorDark:'#111', colorLight:'#fff', correctLevel:QRCode.CorrectLevel.M});
+  setTimeout(() => {
+    const img = div.querySelector('img') || div.querySelector('canvas');
+    const svg = document.getElementById(svgId);
+    if (!svg) return;
+    if (img && img.tagName === 'IMG') {
+      const fo = document.createElementNS('http://www.w3.org/2000/svg','foreignObject');
+      fo.setAttribute('width','70');fo.setAttribute('height','70');
+      const i2 = document.createElement('img');
+      i2.src = img.src; i2.width = 70; i2.height = 70;
+      fo.appendChild(i2); svg.appendChild(fo);
+    } else if (img && img.tagName === 'CANVAS') {
+      const fo = document.createElementNS('http://www.w3.org/2000/svg','foreignObject');
+      fo.setAttribute('width','70');fo.setAttribute('height','70');
+      const i2 = document.createElement('img');
+      i2.src = img.toDataURL(); i2.width=70; i2.height=70;
+      fo.appendChild(i2); svg.appendChild(fo);
+    }
+    div.remove();
+  }, 300);
+}
+
+makeQR('qr-ciri', 'https://maalca.com');
+makeQR('qr-alexis', 'https://maalca.com');
+makeQR('qr-maalca', 'https://maalca.com');
+</script>

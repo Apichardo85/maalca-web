@@ -40,6 +40,7 @@ export default async function TarjetaPage({ params }: PageProps) {
   const { affiliateId } = await params;
   const config = getAffiliateConfig(affiliateId);
   if (!config) notFound();
+  if (config.businessType === "personal") notFound();
 
   const colors = getBrandColors(config.branding.primaryColor);
 

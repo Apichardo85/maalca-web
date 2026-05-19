@@ -11,7 +11,7 @@
 
 // ─── Business types ──────────────────────────────────────────────────────────
 
-export type BusinessType = 'barbershop' | 'restaurant' | 'beauty' | 'retail' | 'health' | 'media' | 'platform';
+export type BusinessType = 'barbershop' | 'restaurant' | 'beauty' | 'retail' | 'health' | 'media' | 'platform' | 'personal';
 
 export type ModuleKey = keyof AffiliateConfig['modules'];
 
@@ -171,6 +171,7 @@ export const DEFAULT_TERMINOLOGY: Record<BusinessType, ModuleTerminology> = {
   health:     { customers: 'Pacientes', appointments: 'Consultas', queue: 'Sala de Espera' },
   media:      { customers: 'Audiencia', ecommerce: 'Merch', campaigns: 'Contenido', team: 'Crew' },
   platform:   { customers: 'Suscriptores', campaigns: 'Campañas de Marca', reports: 'Ecosistema', team: 'Equipo' },
+  personal:   {},
 };
 
 // ─── Sidebar navigation groups ──────────────────────────────────────────────
@@ -530,7 +531,7 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
 
   "maalca": {
     id: "maalca",
-    active: false,
+    active: true,
     businessType: "platform",
     plan: "enterprise",
     terminology: {},
@@ -579,6 +580,95 @@ export const affiliatesConfig: Record<string, AffiliateConfig> = {
     settings: {
       currency:   "USD",
       timezone:   "America/New_York",
+      dateFormat: "MM/DD/YYYY",
+    },
+  },
+
+  "ciriaco": {
+    id: "ciriaco",
+    active: true,
+    businessType: "personal",
+    plan: "enterprise",
+    terminology: {},
+    contact: {
+      phone: "6078574226",
+      phoneDisplay: "607-857-4226",
+      email: "maalca@gmail.com",
+      website: "https://maalca.com",
+      social: {
+        instagram: "CiriSonic",
+        twitter: "CiriSonic",
+      },
+    },
+    branding: {
+      primaryColor: "red-600",
+      secondaryColor: "red-400",
+      name: "Ciriaco Pichardo",
+      logo: "/logo-icon.svg",
+      description: "Founder · Systems Architect",
+      palette: {
+        tagline: "Founder · Systems Architect",
+      },
+    },
+    modules: {
+      metrics: false, campaigns: false, customers: false, ecommerce: false,
+      appointments: false, inventory: false, invoicing: false, team: false,
+      queue: false, salon: false, giftcards: false, reports: false,
+      menu: false, orders: false, qrCodes: true,
+    },
+    features: {
+      multiLanguage: false,
+      darkMode: true,
+      notifications: false,
+      analytics: false,
+    },
+    settings: {
+      currency: "USD",
+      timezone: "America/New_York",
+      dateFormat: "MM/DD/YYYY",
+    },
+  },
+
+  "alexis": {
+    id: "alexis",
+    active: true,
+    businessType: "personal",
+    plan: "enterprise",
+    terminology: {},
+    contact: {
+      phone: "9173886156",
+      phoneDisplay: "917-388-6156",
+      email: "maalca@gmail.com",
+      website: "https://maalca.com",
+      social: {
+        instagram: "MaalCa",
+      },
+    },
+    branding: {
+      primaryColor: "red-600",
+      secondaryColor: "red-400",
+      name: "Alexis Ruiz",
+      logo: "/logo-icon.svg",
+      description: "Founder · Growth & Partnerships",
+      palette: {
+        tagline: "Founder · Growth & Partnerships",
+      },
+    },
+    modules: {
+      metrics: false, campaigns: false, customers: false, ecommerce: false,
+      appointments: false, inventory: false, invoicing: false, team: false,
+      queue: false, salon: false, giftcards: false, reports: false,
+      menu: false, orders: false, qrCodes: true,
+    },
+    features: {
+      multiLanguage: false,
+      darkMode: true,
+      notifications: false,
+      analytics: false,
+    },
+    settings: {
+      currency: "USD",
+      timezone: "America/New_York",
       dateFormat: "MM/DD/YYYY",
     },
   },

@@ -1,0 +1,166 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.wrap{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;padding:2rem 0;font-family:var(--font-sans)}
+.card{width:100%;aspect-ratio:1.75;border-radius:16px;padding:20px 22px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.card-dark{background:#111;border:0.5px solid #333}
+.card-red{background:#C8102E;border:0.5px solid #a00c24}
+.logo-row{display:flex;align-items:center;gap:8px}
+.logo-circle{width:28px;height:28px;border-radius:50%;background:#C8102E;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-circle-white{background:rgba(255,255,255,0.2)}
+.logo-icon{width:16px;height:16px}
+.brand{font-size:13px;font-weight:500;color:#fff;letter-spacing:0.01em}
+.mid{flex:1;display:flex;flex-direction:column;justify-content:center;padding:4px 0}
+.name{font-size:16px;font-weight:500;color:#fff;margin-bottom:3px;letter-spacing:-0.01em}
+.title{font-size:10px;color:rgba(255,255,255,0.55);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px}
+.divider{width:28px;height:1px;background:rgba(255,255,255,0.2);margin-bottom:10px}
+.divider-red{background:rgba(255,255,255,0.35)}
+.contact-row{display:flex;align-items:center;gap:5px;margin-bottom:3px}
+.contact-row span{font-size:9.5px;color:rgba(255,255,255,0.65)}
+.contact-row i{font-size:11px;color:rgba(255,255,255,0.45)}
+.bottom{display:flex;justify-content:space-between;align-items:flex-end}
+.qr-box{width:36px;height:36px;background:#fff;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tag{font-size:8.5px;color:rgba(255,255,255,0.35);letter-spacing:0.06em}
+.general-name{font-size:20px;font-weight:500;color:#fff;letter-spacing:-0.02em;margin-bottom:4px}
+.general-tag{font-size:9px;color:rgba(255,255,255,0.7);letter-spacing:0.12em;text-transform:uppercase}
+.general-mid{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;align-items:center}
+.card-label{font-size:10px;color:var(--color-text-secondary);text-align:center;margin-bottom:8px;font-weight:500;text-transform:uppercase;letter-spacing:0.06em}
+</style>
+
+<div class="wrap">
+  <div>
+    <div class="card-label">Ciriaco</div>
+    <div class="card card-dark">
+      <div class="logo-row">
+        <div class="logo-circle">
+          <svg class="logo-icon" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="19" fill="#C8102E" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="20" cy="11" r="3.5" fill="#fff"/>
+            <line x1="20" y1="14.5" x2="20" y2="26" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="11" y1="19" x2="29" y2="19" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="20" y1="26" x2="14" y2="33" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="20" y1="26" x2="26" y2="33" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="brand">MaalCa</span>
+      </div>
+      <div class="mid">
+        <div class="name">Ciriaco Pichardo</div>
+        <div class="title">Founder · Systems Architect</div>
+        <div class="divider"></div>
+        <div class="contact-row"><i class="ti ti-at" aria-hidden="true"></i><span>@CiriSonic · @CiriWhispers</span></div>
+        <div class="contact-row"><i class="ti ti-phone" aria-hidden="true"></i><span>607-857-4226</span></div>
+        <div class="contact-row"><i class="ti ti-mail" aria-hidden="true"></i><span>maalca@gmail.com</span></div>
+      </div>
+      <div class="bottom">
+        <div class="tag">maalca.com</div>
+        <div class="qr-box">
+          <svg width="28" height="28" viewBox="0 0 7 7">
+            <rect x="0" y="0" width="3" height="3" fill="#111"/>
+            <rect x="1" y="1" width="1" height="1" fill="#fff"/>
+            <rect x="4" y="0" width="3" height="3" fill="#111"/>
+            <rect x="5" y="1" width="1" height="1" fill="#fff"/>
+            <rect x="0" y="4" width="3" height="3" fill="#111"/>
+            <rect x="1" y="5" width="1" height="1" fill="#fff"/>
+            <rect x="3" y="3" width="1" height="1" fill="#111"/>
+            <rect x="4" y="3" width="1" height="1" fill="#111"/>
+            <rect x="6" y="3" width="1" height="1" fill="#111"/>
+            <rect x="3" y="4" width="1" height="1" fill="#111"/>
+            <rect x="5" y="4" width="1" height="1" fill="#111"/>
+            <rect x="4" y="5" width="1" height="1" fill="#111"/>
+            <rect x="6" y="5" width="1" height="1" fill="#111"/>
+            <rect x="3" y="6" width="1" height="1" fill="#111"/>
+            <rect x="5" y="6" width="1" height="1" fill="#111"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card-label">Alexis</div>
+    <div class="card card-dark">
+      <div class="logo-row">
+        <div class="logo-circle">
+          <svg class="logo-icon" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="19" fill="#C8102E" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="20" cy="11" r="3.5" fill="#fff"/>
+            <line x1="20" y1="14.5" x2="20" y2="26" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="11" y1="19" x2="29" y2="19" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="20" y1="26" x2="14" y2="33" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="20" y1="26" x2="26" y2="33" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="brand">MaalCa</span>
+      </div>
+      <div class="mid">
+        <div class="name">Alexis Ruiz</div>
+        <div class="title">Founder · Growth & Partnerships</div>
+        <div class="divider"></div>
+        <div class="contact-row"><i class="ti ti-at" aria-hidden="true"></i><span>@MaalCa</span></div>
+        <div class="contact-row"><i class="ti ti-phone" aria-hidden="true"></i><span>917-388-6156</span></div>
+        <div class="contact-row"><i class="ti ti-mail" aria-hidden="true"></i><span>maalca@gmail.com</span></div>
+      </div>
+      <div class="bottom">
+        <div class="tag">maalca.com</div>
+        <div class="qr-box">
+          <svg width="28" height="28" viewBox="0 0 7 7">
+            <rect x="0" y="0" width="3" height="3" fill="#111"/>
+            <rect x="1" y="1" width="1" height="1" fill="#fff"/>
+            <rect x="4" y="0" width="3" height="3" fill="#111"/>
+            <rect x="5" y="1" width="1" height="1" fill="#fff"/>
+            <rect x="0" y="4" width="3" height="3" fill="#111"/>
+            <rect x="1" y="5" width="1" height="1" fill="#fff"/>
+            <rect x="3" y="3" width="1" height="1" fill="#111"/>
+            <rect x="4" y="4" width="1" height="1" fill="#111"/>
+            <rect x="6" y="6" width="1" height="1" fill="#111"/>
+            <rect x="5" y="5" width="1" height="1" fill="#111"/>
+            <rect x="3" y="6" width="1" height="1" fill="#111"/>
+            <rect x="6" y="3" width="1" height="1" fill="#111"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card-label">MaalCa general</div>
+    <div class="card card-red">
+      <div class="logo-row" style="justify-content:center">
+        <div class="logo-circle logo-circle-white">
+          <svg class="logo-icon" viewBox="0 0 40 40" fill="none">
+            <circle cx="20" cy="20" r="19" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+            <circle cx="20" cy="11" r="3.5" fill="#fff"/>
+            <line x1="20" y1="14.5" x2="20" y2="26" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="11" y1="19" x2="29" y2="19" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="20" y1="26" x2="14" y2="33" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+            <line x1="20" y1="26" x2="26" y2="33" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="general-mid">
+        <div class="general-name">MaalCa</div>
+        <div class="general-tag">Modern OS for Local Business</div>
+        <div class="divider divider-red" style="margin:10px auto"></div>
+        <div class="contact-row" style="justify-content:center"><i class="ti ti-mail" aria-hidden="true"></i><span style="color:rgba(255,255,255,0.8)">maalca@gmail.com</span></div>
+        <div class="contact-row" style="justify-content:center;margin-top:2px"><i class="ti ti-world" aria-hidden="true"></i><span style="color:rgba(255,255,255,0.8)">maalca.com</span></div>
+      </div>
+      <div class="bottom" style="justify-content:center">
+        <div class="qr-box">
+          <svg width="28" height="28" viewBox="0 0 7 7">
+            <rect x="0" y="0" width="3" height="3" fill="#C8102E"/>
+            <rect x="1" y="1" width="1" height="1" fill="#fff"/>
+            <rect x="4" y="0" width="3" height="3" fill="#C8102E"/>
+            <rect x="5" y="1" width="1" height="1" fill="#fff"/>
+            <rect x="0" y="4" width="3" height="3" fill="#C8102E"/>
+            <rect x="1" y="5" width="1" height="1" fill="#fff"/>
+            <rect x="3" y="3" width="1" height="1" fill="#C8102E"/>
+            <rect x="4" y="4" width="1" height="1" fill="#C8102E"/>
+            <rect x="6" y="6" width="1" height="1" fill="#C8102E"/>
+            <rect x="5" y="5" width="1" height="1" fill="#C8102E"/>
+            <rect x="3" y="6" width="1" height="1" fill="#C8102E"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

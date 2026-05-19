@@ -167,7 +167,7 @@ export default function QRPage() {
   const brandColor = `var(--brand-primary)`;
   // For QR generation we need the actual hex, grab from CSS variable at runtime
   const [hexColor, setHexColor] = useState("#000000");
-  const [tab, setTab] = useState<Tab>(isPlatform ? "redes" : "mesas");
+  const [tab, setTab] = useState<Tab>(isPlatform ? "tarjeta" : "mesas");
   useEffect(() => {
     const el = document.querySelector("[style*='--brand-primary']");
     if (el) {

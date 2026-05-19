@@ -1,82 +1,60 @@
 "use client";
 
-/**
- * Tarjeta de presentación MaalCa — bilingüe, tres vistas.
- *
- * View "print"   → Frente (dark) + Reverso (white) para imprimir.
- * View "mobile"  → Card digital en mockup de phone.
- * View "digital" → AffiliateBusinessCard variant="digital" (tarjeta pública compartible).
- *
- * El toggle ES/EN solo cambia texto, nunca reordena ni redimensiona elementos.
- */
-
-import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAffiliate } from "@/contexts/AffiliateContext";
 import type { AffiliateConfig } from "@/config/affiliates-config";
 import { generateQrDataUrl } from "@/lib/qr";
 import { downloadVCard } from "@/lib/vcard";
 import { AffiliateBusinessCard } from "@/components/affiliate/AffiliateBusinessCard";
 
-// ─── Traducciones ─────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-const T = {
-  en: {
-    labelFront:    "Front side",
-    labelBack:     "Back side",
-    tagline:       "Creative ecosystem · multi-business hub",
-    mobileTagline: "Master hub · Creative ecosystem & multi-business platform",
-    scanLabel:     "Scan me",
-    mobileScan:    "Scan to see more",
-    location:      "Santo Domingo · Worldwide",
-    saveContact:   "Save contact",
-    webLabel:      "Website",
-    socialLabel:   "Social",
-  },
-  es: {
-    labelFront:    "Frente",
-    labelBack:     "Reverso",
-    tagline:       "Ecosistema creativo · hub multi-negocio",
-    mobileTagline: "Hub maestro · Ecosistema creativo y multi-negocio",
-    scanLabel:     "Escanéame",
-    mobileScan:    "Escanea para ver más",
-    location:      "Santo Domingo · Internacional",
-    saveContact:   "Guardar contacto",
-    webLabel:      "Sitio web",
-    socialLabel:   "Redes sociales",
-  },
-} as const;
-
-type Lang    = keyof typeof T;
-type View    = "print" | "mobile" | "digital";
-type Strings = typeof T[Lang];
-type Contact = AffiliateConfig["contact"];
+type Lang        = "en" | "es";
+type View        = "print" | "digital";
+type PrintFormat = "horizontal" | "vertical";
+type Contact     = AffiliateConfig["contact"];
 
 // ─── Paleta ───────────────────────────────────────────────────────────────────
 
-const RED      = "#C8102E";
-const RED_DIM  = "rgba(200,16,46,0.08)";
-const RED_MID  = "rgba(200,16,46,0.15)";
-const BG_DARK  = "#0a0a0f";
-const SERIF    = "var(--font-playfair, Georgia, serif)";
-const SANS     = "var(--font-inter, system-ui, sans-serif)";
+const RED  = "#C8102E";
+const SANS = "var(--font-inter, system-ui, sans-serif)";
 
-// ─── Hooks ────────────────────────────────────────────────────────────────────
+// ─── Datos fijos de founders ──────────────────────────────────────────────────
+
+const FOUNDERS = {
+  ciriaco: {
+    name:    "Ciriaco Pichardo",
+    title:   "Founder · Systems Architect",
+    handles: "@CiriSonic · @CiriWhispers",
+    phone:   "607-857-4226",
+    email:   "maalca@gmail.com",
+    url:     "maalca.com",
+  },
+  alexis: {
+    name:    "Alexis Ruiz",
+    title:   "Founder · Growth & Partnerships",
+    handles: "@MaalCa",
+    phone:   "917-388-6156",
+    email:   "maalca@gmail.com",
+    url:     "maalca.com",
+  },
+} as const;
+
+// ─── Lang hook ────────────────────────────────────────────────────────────────
 
 function useLang(): [Lang, (l: Lang) => void] {
   const [lang, setLang] = useState<Lang>("en");
   useEffect(() => {
-    const stored = localStorage.getItem("maalca-card-lang") as Lang | null;
-    if (stored === "en" || stored === "es") { setLang(stored); return; }
+    const s = localStorage.getItem("maalca-card-lang") as Lang | null;
+    if (s === "en" || s === "es") { setLang(s); return; }
     setLang(navigator.language.startsWith("es") ? "es" : "en");
   }, []);
   const set = (l: Lang) => { setLang(l); localStorage.setItem("maalca-card-lang", l); };
   return [lang, set];
 }
 
-// ─── Helpers UI ───────────────────────────────────────────────────────────────
+// ─── Seg control ─────────────────────────────────────────────────────────────
 
-/** Segmented control genérico — igual al patrón del dashboard. */
 function Seg<V extends string>({
   opts, value, onChange,
 }: { opts: { v: V; label: string }[]; value: V; onChange: (v: V) => void }) {
@@ -99,281 +77,371 @@ function Seg<V extends string>({
   );
 }
 
-/** Logo MaalCa sobre fondo blanco con anillo sutil. El SVG ya incluye su propio círculo rojo. */
-function LogoBadge({ size }: { size: number }) {
-  const pad = Math.round(size * 0.06);
+// ─── Shared helpers ───────────────────────────────────────────────────────────
+
+function QrPlaceholder({ size }: { size: number }) {
+  return <div style={{ width: size, height: size, borderRadius: 4, background: "#e5e7eb" }} className="animate-pulse" />;
+}
+
+function MaalCaPersonIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 40 40" fill="none">
+      <circle cx="20" cy="11" r="4" fill="#fff" />
+      <line x1="20" y1="15" x2="20" y2="27" stroke="#fff" strokeWidth="3" strokeLinecap="round" />
+      <line x1="10" y1="19" x2="30" y2="19" stroke="#fff" strokeWidth="3" strokeLinecap="round" />
+      <line x1="20" y1="27" x2="13" y2="35" stroke="#fff" strokeWidth="3" strokeLinecap="round" />
+      <line x1="20" y1="27" x2="27" y2="35" stroke="#fff" strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// ─── Contact icon SVGs ────────────────────────────────────────────────────────
+
+type CIconId = "at" | "phone" | "mail" | "web";
+
+function CIcon({ id }: { id: CIconId }) {
+  const s = { width: 11, height: 11, fill: "none", stroke: "rgba(255,255,255,0.45)", strokeWidth: 1.5, display: "block", flexShrink: 0 } as const;
+  if (id === "at")    return <svg {...s} viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/></svg>;
+  if (id === "phone") return <svg {...s} viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.38 2 2 0 0 1 3.6 1.21h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.81a16 16 0 0 0 6 6l.93-.93a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.72 16.92z"/></svg>;
+  if (id === "mail")  return <svg {...s} viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>;
+  return <svg {...s} viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>;
+}
+
+function InfoRow({ icon, text, center }: { icon: CIconId; text: string; center?: boolean }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 3, justifyContent: center ? "center" : undefined }}>
+      <CIcon id={icon} />
+      <span style={{ fontSize: 9.5, color: "rgba(255,255,255,0.65)", lineHeight: 1 }}>{text}</span>
+    </div>
+  );
+}
+
+// ─── FORMATO VERTICAL (200×320) ───────────────────────────────────────────────
+
+interface PersonalData { name: string; title: string; handles: string; phone: string; email: string; url: string; qrDataUrl: string; }
+
+function VerticalPersonalCard({ data }: { data: PersonalData }) {
   return (
     <div style={{
-      width: size, height: size,
-      borderRadius: "50%",
-      background: "white",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      padding: pad,
-      boxShadow: `0 0 0 ${Math.round(size * 0.055)}px ${RED_MID}`,
+      width: 200, height: 320, borderRadius: 16,
+      padding: "22px 20px",
+      display: "flex", flexDirection: "column", justifyContent: "space-between",
+      background: "#111", border: "0.5px solid #2a2a2a",
+      fontFamily: SANS, flexShrink: 0,
     }}>
-      <Image
-        src="/logo-icon.svg"
-        alt="MaalCa"
-        width={size - pad * 2}
-        height={size - pad * 2}
-        style={{ objectFit: "contain", width: "100%", height: "100%" }}
-        unoptimized
-      />
-    </div>
-  );
-}
-
-/** Placeholder animado mientras carga el QR. */
-function QrPlaceholder({ size }: { size: number }) {
-  return (
-    <div
-      style={{ width: size, height: size, borderRadius: 6, background: "#f3f4f6" }}
-      className="animate-pulse"
-    />
-  );
-}
-
-// ─── Print: Frente ────────────────────────────────────────────────────────────
-
-function PrintFront({ t }: { t: Strings }) {
-  return (
-    <article style={{
-      background: BG_DARK,
-      borderRadius: 12,
-      overflow: "hidden",
-      position: "relative",
-      aspectRatio: "1.75 / 1",
-      maxWidth: 520,
-      border: "0.5px solid rgba(255,255,255,0.06)",
-      fontFamily: SANS,
-    }}>
-      {/* Franjas rojas */}
-      <div style={{ position: "absolute", top: 0,    left: 0, right: 0, height: 3, background: RED }} />
-      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 3, background: RED }} />
-
-      {/* Meta esquinas */}
-      <span style={{ position: "absolute", top: 20, left: 24,  fontSize: 9,  color: "rgba(255,255,255,0.35)", letterSpacing: "0.15em", textTransform: "uppercase" }}>est. 2024</span>
-      <span style={{ position: "absolute", top: 20, right: 24, fontSize: 9,  color: "rgba(255,255,255,0.35)", letterSpacing: "0.15em", textTransform: "uppercase" }}>DR · INTL</span>
-
-      {/* Centro */}
-      <div style={{ height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 28px", gap: 10 }}>
-        <LogoBadge size={76} />
-
-        <h1 style={{ fontFamily: SERIF, fontSize: 32, color: "white", letterSpacing: "0.02em", lineHeight: 1, margin: "4px 0 0" }}>
-          MaalCa
-        </h1>
-
-        <div style={{ width: 32, height: 1, background: RED }} />
-
-        {/* min-height: reserva espacio para la versión ES (≈20% más larga) */}
-        <p style={{ fontSize: 10, color: "rgba(255,255,255,0.7)", letterSpacing: "0.22em", textTransform: "uppercase", textAlign: "center", margin: 0, minHeight: "2.8em", lineHeight: 1.4 }}>
-          {t.tagline}
-        </p>
-      </div>
-    </article>
-  );
-}
-
-// ─── Print: Reverso ───────────────────────────────────────────────────────────
-
-function PrintBack({ t, qrDataUrl, contact }: { t: Strings; qrDataUrl: string; contact: Contact }) {
-  const QR_SIZE = 114;
-  return (
-    <article style={{
-      background: "white",
-      borderRadius: 12,
-      overflow: "hidden",
-      position: "relative",
-      aspectRatio: "1.75 / 1",
-      maxWidth: 520,
-      border: "0.5px solid rgba(0,0,0,0.08)",
-      fontFamily: SANS,
-    }}>
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: RED }} />
-
-      <div style={{ height: "100%", display: "flex", padding: 28, gap: 24, alignItems: "center" }}>
-        {/* QR block */}
-        <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-          <div style={{ border: `2px solid ${RED}`, borderRadius: 6, padding: 8, background: "white", lineHeight: 0 }}>
-            {qrDataUrl
-              ? <img src={qrDataUrl} width={QR_SIZE} height={QR_SIZE} alt="QR MaalCa" style={{ display: "block", borderRadius: 4 }} />
-              : <QrPlaceholder size={QR_SIZE} />
-            }
-          </div>
-          <p style={{ fontSize: 8, color: RED, letterSpacing: "0.25em", textTransform: "uppercase", fontWeight: 500, margin: 0, minHeight: "1.4em", lineHeight: 1.4 }}>
-            {t.scanLabel}
-          </p>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 6 }}>
+        <div style={{ width: 36, height: 36, borderRadius: "50%", background: RED, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <MaalCaPersonIcon size={22} />
         </div>
-
-        {/* Contacto */}
-        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
-          <span style={{ fontFamily: SERIF, fontSize: 26, color: "#1a1a1a", lineHeight: 1 }}>MaalCa</span>
-          <div style={{ width: 28, height: 1, background: RED, margin: "6px 0 14px" }} />
-
-          <ul style={{ margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>
-            {contact?.email && <BackRow icon="mail"  text={contact.email} />}
-            {contact?.website && <BackRow icon="web" text={contact.website.replace(/^https?:\/\//, "")} />}
-            <BackRow icon="pin" text={t.location} />
-          </ul>
+        <span style={{ fontSize: 11, fontWeight: 500, color: "#fff", letterSpacing: "0.05em" }}>MaalCa</span>
+      </div>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "16px 0" }}>
+        <div style={{ fontSize: 17, fontWeight: 500, color: "#fff", letterSpacing: "-0.01em", lineHeight: 1.2, marginBottom: 4, whiteSpace: "pre-line" }}>{data.name}</div>
+        <div style={{ fontSize: 9, color: "rgba(255,255,255,0.5)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12 }}>{data.title}</div>
+        <div style={{ width: 24, height: 1, background: "rgba(255,255,255,0.2)", marginBottom: 12 }} />
+        <InfoRow icon="at"    text={data.handles} />
+        <InfoRow icon="phone" text={data.phone} />
+        <InfoRow icon="mail"  text={data.email} />
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+        <div style={{ background: "#fff", borderRadius: 6, padding: 5, lineHeight: 0 }}>
+          {data.qrDataUrl ? <img src={data.qrDataUrl} width={70} height={70} alt="QR" style={{ display: "block" }} /> : <QrPlaceholder size={70} />}
         </div>
-      </div>
-    </article>
-  );
-}
-
-type IconId = "mail" | "web" | "pin";
-
-function BackRow({ icon, text }: { icon: IconId; text: string }) {
-  return (
-    <li style={{ display: "flex", alignItems: "center", gap: 10, listStyle: "none" }}>
-      <div style={{ width: 24, height: 24, borderRadius: "50%", background: RED_DIM, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <ContactSvg id={icon} size={12} />
-      </div>
-      <span style={{ fontSize: 12, color: "#1a1a1a", lineHeight: 1.4 }}>{text}</span>
-    </li>
-  );
-}
-
-// ─── Mobile card ──────────────────────────────────────────────────────────────
-
-function MobileCard({ t, qrDataUrl, contact, onSave }: {
-  t: Strings;
-  qrDataUrl: string;
-  contact: Contact;
-  onSave: () => void;
-}) {
-  const QR_SIZE = 114;
-  return (
-    <div className="flex justify-center bg-gray-100 dark:bg-gray-800/60 rounded-2xl p-6">
-      {/* Phone shell */}
-      <div style={{ width: 320, background: "white", borderRadius: 24, overflow: "hidden", boxShadow: "0 0 0 8px #1a1a1a", fontFamily: SANS }}>
-
-        {/* Header rojo */}
-        <header style={{ background: `linear-gradient(180deg, ${RED} 0%, #8b0a20 100%)`, padding: "32px 24px 28px", textAlign: "center", position: "relative" }}>
-          {/* Notch */}
-          <div style={{ position: "absolute", top: 12, left: 0, right: 0, display: "flex", justifyContent: "center" }}>
-            <div style={{ width: 60, height: 4, background: "rgba(255,255,255,0.3)", borderRadius: 2 }} />
-          </div>
-          <div style={{ display: "inline-block", margin: "12px 0 14px" }}>
-            <LogoBadge size={72} />
-          </div>
-          <h1 style={{ fontFamily: SERIF, fontSize: 28, color: "white", margin: "0 0 4px", lineHeight: 1 }}>MaalCa</h1>
-          <div style={{ width: 28, height: 1, background: "rgba(255,255,255,0.5)", margin: "8px auto" }} />
-          {/* min-height absorbe ES (más largo que EN) */}
-          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.85)", letterSpacing: "0.05em", padding: "0 16px", lineHeight: 1.5, margin: 0, minHeight: "3.2em" }}>
-            {t.mobileTagline}
-          </p>
-        </header>
-
-        {/* QR section */}
-        <section style={{ padding: "24px 20px 20px", textAlign: "center", background: "#fafafa" }}>
-          <div style={{ width: 130, height: 130, margin: "0 auto 8px", background: "white", padding: 8, borderRadius: 8, border: `1px solid rgba(200,16,46,0.2)`, lineHeight: 0, display: "inline-block" }}>
-            {qrDataUrl
-              ? <img src={qrDataUrl} width={QR_SIZE} height={QR_SIZE} alt="QR MaalCa" style={{ display: "block", borderRadius: 4 }} />
-              : <QrPlaceholder size={QR_SIZE} />
-            }
-          </div>
-          <p style={{ fontSize: 9, color: RED, letterSpacing: "0.2em", textTransform: "uppercase", fontWeight: 500, margin: 0, minHeight: "1.4em", lineHeight: 1.4 }}>
-            {t.mobileScan}
-          </p>
-        </section>
-
-        {/* Links */}
-        <section style={{ padding: "8px 16px 20px", background: "white" }}>
-          {contact?.email && (
-            <MobileLink href={`mailto:${contact.email}`} icon="mail" label="Email" sub={contact.email} />
-          )}
-          {contact?.website && (
-            <MobileLink href={contact.website} icon="web" label={t.webLabel} sub={contact.website.replace(/^https?:\/\//, "")} external />
-          )}
-          {contact?.social?.instagram && (
-            <MobileLink href={`https://instagram.com/${contact.social.instagram}`} icon="insta" label={t.socialLabel} sub={`@${contact.social.instagram}`} external />
-          )}
-
-          <button
-            onClick={onSave}
-            style={{ width: "100%", padding: 14, background: RED, color: "white", border: "none", borderRadius: 12, fontSize: 13, fontWeight: 500, marginTop: 8, cursor: "pointer", letterSpacing: "0.02em", lineHeight: 1.5 }}
-          >
-            {t.saveContact}
-          </button>
-        </section>
-
+        <span style={{ fontSize: 8.5, color: "rgba(255,255,255,0.3)", letterSpacing: "0.06em" }}>{data.url}</span>
       </div>
     </div>
   );
 }
 
-type MobileIconId = "mail" | "web" | "pin" | "insta";
-
-function MobileLink({ href, icon, label, sub, external }: {
-  href: string; icon: MobileIconId; label: string; sub: string; external?: boolean;
-}) {
+function VerticalBrandCard({ tagline, qrDataUrl }: { tagline: string; qrDataUrl: string }) {
   return (
-    <a
-      href={href}
-      target={external ? "_blank" : undefined}
-      rel={external ? "noopener noreferrer" : undefined}
-      style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, borderRadius: 12, marginBottom: 8, background: "#fff5f5", border: `1px solid rgba(200,16,46,0.1)`, textDecoration: "none", color: "inherit" }}
+    <div style={{
+      width: 200, height: 320, borderRadius: 16,
+      padding: "22px 20px",
+      display: "flex", flexDirection: "column", justifyContent: "space-between",
+      background: RED, border: "0.5px solid #a00c24",
+      fontFamily: SANS, flexShrink: 0,
+    }}>
+      <div style={{ display: "flex", justifyContent: "center" }}>
+        <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <MaalCaPersonIcon size={22} />
+        </div>
+      </div>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: 4 }}>
+        <div style={{ fontSize: 22, fontWeight: 500, color: "#fff", letterSpacing: "-0.02em" }}>MaalCa</div>
+        <div style={{ fontSize: 8.5, color: "rgba(255,255,255,0.65)", letterSpacing: "0.12em", textTransform: "uppercase", maxWidth: 130, lineHeight: 1.4 }}>{tagline}</div>
+        <div style={{ width: 24, height: 1, background: "rgba(255,255,255,0.35)", margin: "12px auto" }} />
+        <InfoRow icon="mail" text="maalca@gmail.com" center />
+        <InfoRow icon="web"  text="maalca.com" center />
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+        <div style={{ background: "#fff", borderRadius: 6, padding: 5, lineHeight: 0 }}>
+          {qrDataUrl ? <img src={qrDataUrl} width={70} height={70} alt="QR MaalCa" style={{ display: "block" }} /> : <QrPlaceholder size={70} />}
+        </div>
+        <span style={{ fontSize: 8.5, color: "rgba(255,255,255,0.5)", letterSpacing: "0.06em" }}>maalca.com</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── FORMATO HORIZONTAL (3.5"×2", aspect-ratio 1.75:1) ───────────────────────
+
+function HorizontalPersonalCard({ data }: { data: PersonalData }) {
+  return (
+    <div style={{
+      width: "100%",
+      aspectRatio: "1.75 / 1",
+      borderRadius: 16,
+      padding: "20px 22px",
+      display: "flex", flexDirection: "column", justifyContent: "space-between",
+      background: "#111", border: "0.5px solid #333",
+      fontFamily: SANS,
+    }}>
+      {/* Logo row */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ width: 28, height: 28, borderRadius: "50%", background: RED, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <MaalCaPersonIcon size={16} />
+        </div>
+        <span style={{ fontSize: 13, fontWeight: 500, color: "#fff", letterSpacing: "0.01em" }}>MaalCa</span>
+      </div>
+
+      {/* Mid */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "4px 0" }}>
+        <div style={{ fontSize: 16, fontWeight: 500, color: "#fff", marginBottom: 3, letterSpacing: "-0.01em" }}>{data.name}</div>
+        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 10 }}>{data.title}</div>
+        <div style={{ width: 28, height: 1, background: "rgba(255,255,255,0.2)", marginBottom: 10 }} />
+        <InfoRow icon="at"    text={data.handles} />
+        <InfoRow icon="phone" text={data.phone} />
+        <InfoRow icon="mail"  text={data.email} />
+      </div>
+
+      {/* Bottom: url + QR */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+        <span style={{ fontSize: 8.5, color: "rgba(255,255,255,0.35)", letterSpacing: "0.06em" }}>{data.url}</span>
+        <div style={{ width: 52, height: 52, background: "#fff", borderRadius: 6, padding: 3, flexShrink: 0 }}>
+          {data.qrDataUrl ? <img src={data.qrDataUrl} width={46} height={46} alt="QR" style={{ display: "block" }} /> : <QrPlaceholder size={46} />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HorizontalBrandCard({ tagline, qrDataUrl }: { tagline: string; qrDataUrl: string }) {
+  return (
+    <div style={{
+      width: "100%",
+      aspectRatio: "1.75 / 1",
+      borderRadius: 16,
+      padding: "20px 22px",
+      display: "flex", flexDirection: "column", justifyContent: "space-between",
+      background: RED, border: "0.5px solid #a00c24",
+      fontFamily: SANS,
+    }}>
+      {/* Logo centrado */}
+      <div style={{ display: "flex", justifyContent: "center" }}>
+        <div style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <MaalCaPersonIcon size={16} />
+        </div>
+      </div>
+
+      {/* Mid centrado */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", gap: 4 }}>
+        <div style={{ fontSize: 20, fontWeight: 500, color: "#fff", letterSpacing: "-0.02em" }}>MaalCa</div>
+        <div style={{ fontSize: 9, color: "rgba(255,255,255,0.7)", letterSpacing: "0.12em", textTransform: "uppercase" }}>{tagline}</div>
+        <div style={{ width: 28, height: 1, background: "rgba(255,255,255,0.35)", margin: "4px 0 6px" }} />
+        <InfoRow icon="mail" text="maalca@gmail.com" center />
+        <InfoRow icon="web"  text="maalca.com" center />
+      </div>
+
+      {/* QR centrado */}
+      <div style={{ display: "flex", justifyContent: "center" }}>
+        <div style={{ width: 52, height: 52, background: "#fff", borderRadius: 6, padding: 3 }}>
+          {qrDataUrl ? <img src={qrDataUrl} width={46} height={46} alt="QR" style={{ display: "block" }} /> : <QrPlaceholder size={46} />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Download PNG ─────────────────────────────────────────────────────────────
+
+function DownloadCardBtn({ cardRef, filename }: { cardRef: React.RefObject<HTMLDivElement | null>; filename: string }) {
+  const [loading, setLoading] = useState(false);
+  const run = async () => {
+    if (!cardRef.current) return;
+    setLoading(true);
+    try {
+      const { toPng } = await import("html-to-image");
+      const dataUrl = await toPng(cardRef.current, { pixelRatio: 3, cacheBust: true });
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = `${filename}.png`;
+      a.click();
+    } catch (e) {
+      console.error("Error generando PNG:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <button
+      onClick={run}
+      disabled={loading}
+      className="px-4 py-1.5 rounded-full text-white text-xs font-bold transition-opacity disabled:opacity-60"
+      style={{ background: RED }}
     >
-      <div style={{ width: 36, height: 36, borderRadius: 10, background: RED_MID, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <ContactSvg id={icon} size={16} />
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: 13, fontWeight: 500, color: "#1a1a1a", margin: 0, lineHeight: 1.4 }}>{label}</p>
-        <p style={{ fontSize: 11, color: "#666", margin: 0, lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{sub}</p>
-      </div>
-      <span style={{ color: RED, fontSize: 16, flexShrink: 0 }}>→</span>
-    </a>
+      {loading ? "Generando..." : "⬇️ PNG"}
+    </button>
   );
 }
 
-// ─── SVG icons ────────────────────────────────────────────────────────────────
-// Inline SVG para evitar dependencias externas y mantener el color dinámico.
+// ─── Print ventana (ambos formatos) ──────────────────────────────────────────
 
-function ContactSvg({ id, size }: { id: IconId | MobileIconId; size: number }) {
-  const s = { width: size, height: size, fill: "none", stroke: RED, strokeWidth: 2 } as const;
-  if (id === "mail")  return <svg {...s} viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>;
-  if (id === "web")   return <svg {...s} viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>;
-  if (id === "pin")   return <svg {...s} viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>;
-  if (id === "insta") return <svg {...s} viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="18" cy="6" r="1.2" fill={RED} stroke="none"/></svg>;
-  return null;
+function PrintAllCardsBtn({ qrDataUrl, format }: { qrDataUrl: string; format: PrintFormat }) {
+  const open = () => {
+    const w = window.open("", "_blank");
+    if (!w) return;
+    const personSvg = `<svg width="16" height="16" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="11" r="4" fill="#fff"/><line x1="20" y1="15" x2="20" y2="27" stroke="#fff" stroke-width="3" stroke-linecap="round"/><line x1="10" y1="19" x2="30" y2="19" stroke="#fff" stroke-width="3" stroke-linecap="round"/><line x1="20" y1="27" x2="13" y2="35" stroke="#fff" stroke-width="3" stroke-linecap="round"/><line x1="20" y1="27" x2="27" y2="35" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>`;
+
+    const isH = format === "horizontal";
+
+    const cardStyle = isH
+      ? `width:100%;aspect-ratio:1.75/1;border-radius:16px;padding:20px 22px;`
+      : `width:200px;height:320px;border-radius:16px;padding:22px 20px;`;
+
+    const founders = [
+      { name: "Ciriaco Pichardo", title: "Founder · Systems Architect",      handles: "@CiriSonic · @CiriWhispers", phone: "607-857-4226", email: "maalca@gmail.com" },
+      { name: "Alexis Ruiz",      title: "Founder · Growth & Partnerships",  handles: "@MaalCa",                   phone: "917-388-6156", email: "maalca@gmail.com" },
+    ];
+
+    const logoCircleDark  = `<div style="width:${isH?28:36}px;height:${isH?28:36}px;border-radius:50%;background:#C8102E;display:flex;align-items:center;justify-content:center;flex-shrink:0">${personSvg}</div>`;
+    const logoCircleGlass = `<div style="width:${isH?28:36}px;height:${isH?28:36}px;border-radius:50%;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);display:flex;align-items:center;justify-content:center">${personSvg}</div>`;
+    const qrBox           = (size: number) => `<div style="width:${size}px;height:${size}px;background:#fff;border-radius:4px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0"><img src="${qrDataUrl}" width="${size-4}" height="${size-4}" style="display:block"/></div>`;
+
+    const darkCard = (d: typeof founders[0]) => isH ? `
+      <div style="${cardStyle}display:flex;flex-direction:column;justify-content:space-between;background:#111;border:.5px solid #333;font-family:system-ui,sans-serif;overflow:hidden">
+        <div style="display:flex;align-items:center;gap:8px">${logoCircleDark}<span style="font-size:13px;font-weight:500;color:#fff;letter-spacing:.01em">MaalCa</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:4px 0">
+          <div style="font-size:16px;font-weight:500;color:#fff;margin-bottom:3px;letter-spacing:-.01em">${d.name}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.55);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">${d.title}</div>
+          <div style="width:28px;height:1px;background:rgba(255,255,255,.2);margin-bottom:10px"></div>
+          <div style="font-size:9.5px;color:rgba(255,255,255,.65);margin-bottom:3px">@ ${d.handles}</div>
+          <div style="font-size:9.5px;color:rgba(255,255,255,.65);margin-bottom:3px">☎ ${d.phone}</div>
+          <div style="font-size:9.5px;color:rgba(255,255,255,.65)">✉ ${d.email}</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end">
+          <span style="font-size:8.5px;color:rgba(255,255,255,.35);letter-spacing:.06em">maalca.com</span>
+          ${qrBox(36)}
+        </div>
+      </div>` : `
+      <div style="${cardStyle}display:flex;flex-direction:column;justify-content:space-between;background:#111;border:.5px solid #2a2a2a;font-family:system-ui,sans-serif">
+        <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px">${logoCircleDark}<span style="font-size:11px;font-weight:500;color:#fff;letter-spacing:.05em">MaalCa</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:16px 0">
+          <div style="font-size:17px;font-weight:500;color:#fff;line-height:1.2;margin-bottom:4px">${d.name}</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.5);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px">${d.title}</div>
+          <div style="width:24px;height:1px;background:rgba(255,255,255,.2);margin-bottom:12px"></div>
+          <div style="font-size:9.5px;color:rgba(255,255,255,.65);margin-bottom:5px">@ ${d.handles}</div>
+          <div style="font-size:9.5px;color:rgba(255,255,255,.65);margin-bottom:5px">☎ ${d.phone}</div>
+          <div style="font-size:9.5px;color:rgba(255,255,255,.65)">✉ ${d.email}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+          ${qrBox(70)}
+          <span style="font-size:8.5px;color:rgba(255,255,255,.3);letter-spacing:.06em">maalca.com</span>
+        </div>
+      </div>`;
+
+    const redCard = isH ? `
+      <div style="${cardStyle}display:flex;flex-direction:column;justify-content:space-between;background:#C8102E;border:.5px solid #a00c24;font-family:system-ui,sans-serif;overflow:hidden">
+        <div style="display:flex;justify-content:center">${logoCircleGlass}</div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:4px">
+          <div style="font-size:20px;font-weight:500;color:#fff;letter-spacing:-.02em">MaalCa</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.7);letter-spacing:.12em;text-transform:uppercase">Modern OS for Local Business</div>
+          <div style="width:28px;height:1px;background:rgba(255,255,255,.35);margin:4px 0 6px"></div>
+          <div style="font-size:9.5px;color:rgba(255,255,255,.65);margin-bottom:3px">✉ maalca@gmail.com</div>
+          <div style="font-size:9.5px;color:rgba(255,255,255,.65)">🌐 maalca.com</div>
+        </div>
+        <div style="display:flex;justify-content:center">${qrBox(36)}</div>
+      </div>` : `
+      <div style="${cardStyle}display:flex;flex-direction:column;justify-content:space-between;background:#C8102E;border:.5px solid #a00c24;font-family:system-ui,sans-serif">
+        <div style="display:flex;justify-content:center">${logoCircleGlass}</div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:4px">
+          <div style="font-size:22px;font-weight:500;color:#fff;letter-spacing:-.02em">MaalCa</div>
+          <div style="font-size:8.5px;color:rgba(255,255,255,.65);letter-spacing:.12em;text-transform:uppercase;max-width:130px;line-height:1.4">Modern OS for Local Business</div>
+          <div style="width:24px;height:1px;background:rgba(255,255,255,.35);margin:12px auto"></div>
+          <div style="font-size:9.5px;color:rgba(255,255,255,.65);margin-bottom:5px">✉ maalca@gmail.com</div>
+          <div style="font-size:9.5px;color:rgba(255,255,255,.65)">🌐 maalca.com</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+          ${qrBox(70)}
+          <span style="font-size:8.5px;color:rgba(255,255,255,.5);letter-spacing:.06em">maalca.com</span>
+        </div>
+      </div>`;
+
+    const gridStyle = isH
+      ? `display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;max-width:1100px;margin:0 auto`
+      : `display:flex;gap:24px;justify-content:center;flex-wrap:wrap`;
+
+    w.document.write(`<!DOCTYPE html><html><head><title>Tarjetas MaalCa</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui,sans-serif;padding:24px;background:#f5f5f5}
+@media print{body{padding:8px;background:white}}</style></head><body>
+<div style="${gridStyle}">
+  ${founders.map(darkCard).join("")}
+  ${redCard}
+</div>
+<script>window.onload=()=>window.print()<\/script>
+</body></html>`);
+    w.document.close();
+  };
+  return (
+    <button
+      onClick={open}
+      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-white text-sm font-bold"
+      style={{ background: RED }}
+    >
+      🖨️ Imprimir las 3
+    </button>
+  );
 }
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 
 export function BusinessCard() {
   const { config } = useAffiliate();
-  const [lang, setLang]     = useLang();
-  const [view, setView]     = useState<View>("print");
-  const [qrDataUrl, setQr]  = useState("");
+  const [lang, setLang]           = useLang();
+  const [view, setView]           = useState<View>("print");
+  const [format, setFormat]       = useState<PrintFormat>("horizontal");
+  const [qrDataUrl, setQr]        = useState("");
 
-  const t       = T[lang];
+  const ciriRef   = useRef<HTMLDivElement>(null);
+  const alexisRef = useRef<HTMLDivElement>(null);
+  const maalcaRef = useRef<HTMLDivElement>(null);
+
   const contact = config?.contact;
   const cardUrl = contact?.website ?? "https://maalca.com";
 
+  const tagline = lang === "es" ? "OS moderno para negocios locales" : "Modern OS for Local Business";
+
   useEffect(() => {
-    generateQrDataUrl(cardUrl, { darkColor: RED, width: 512 }).then(setQr);
-  }, [cardUrl]);
+    generateQrDataUrl("https://maalca.com", { darkColor: RED, width: 512 }).then(setQr);
+  }, []);
 
   if (!config) return null;
+
+  const ciriData   = { ...FOUNDERS.ciriaco, qrDataUrl };
+  const alexisData = { ...FOUNDERS.alexis,  qrDataUrl };
 
   return (
     <div className="space-y-6">
       {/* ── Controles ── */}
       <div className="flex items-center justify-between flex-wrap gap-3">
-        {/* Lang toggle — solo visible en vistas print/mobile */}
-        {view !== "digital" && (
-          <Seg<Lang>
-            opts={[{ v: "en", label: "EN" }, { v: "es", label: "ES" }]}
-            value={lang}
-            onChange={setLang}
-          />
-        )}
-        {view === "digital" && <div />}
+        <Seg<Lang>
+          opts={[{ v: "en", label: "EN" }, { v: "es", label: "ES" }]}
+          value={lang}
+          onChange={setLang}
+        />
         <Seg<View>
           opts={[
             { v: "print",   label: "Print"   },
-            { v: "mobile",  label: "Mobile"  },
             { v: "digital", label: "Digital" },
           ]}
           value={view}
@@ -383,33 +451,58 @@ export function BusinessCard() {
 
       {/* ── Vista Print ── */}
       {view === "print" && (
-        <div className="space-y-6">
-          <div>
-            <p className="text-xs uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-3">{t.labelFront}</p>
-            <PrintFront t={t} />
+        <div className="space-y-5">
+          {/* Formato toggle */}
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Formato:</span>
+            <Seg<PrintFormat>
+              opts={[
+                { v: "horizontal", label: "Horizontal 3.5″×2″" },
+                { v: "vertical",   label: "Vertical"            },
+              ]}
+              value={format}
+              onChange={setFormat}
+            />
           </div>
-          <div>
-            <p className="text-xs uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-3">{t.labelBack}</p>
-            <PrintBack t={t} qrDataUrl={qrDataUrl} contact={contact} />
+
+          {/* Tarjetas */}
+          {format === "horizontal" ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              <CardWrapper label="Ciriaco"      cardRef={ciriRef}   filename="tarjeta-ciriaco">
+                <HorizontalPersonalCard data={ciriData} />
+              </CardWrapper>
+              <CardWrapper label="Alexis"       cardRef={alexisRef} filename="tarjeta-alexis">
+                <HorizontalPersonalCard data={alexisData} />
+              </CardWrapper>
+              <CardWrapper label="MaalCa general" cardRef={maalcaRef} filename="tarjeta-maalca">
+                <HorizontalBrandCard tagline={tagline} qrDataUrl={qrDataUrl} />
+              </CardWrapper>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-6 justify-center">
+              <CardWrapper label="Ciriaco"      cardRef={ciriRef}   filename="tarjeta-ciriaco">
+                <VerticalPersonalCard data={ciriData} />
+              </CardWrapper>
+              <CardWrapper label="Alexis"       cardRef={alexisRef} filename="tarjeta-alexis">
+                <VerticalPersonalCard data={alexisData} />
+              </CardWrapper>
+              <CardWrapper label="MaalCa general" cardRef={maalcaRef} filename="tarjeta-maalca">
+                <VerticalBrandCard tagline={tagline} qrDataUrl={qrDataUrl} />
+              </CardWrapper>
+            </div>
+          )}
+
+          <div className="flex justify-center">
+            <PrintAllCardsBtn qrDataUrl={qrDataUrl} format={format} />
           </div>
         </div>
-      )}
-
-      {/* ── Vista Mobile ── */}
-      {view === "mobile" && (
-        <MobileCard
-          t={t}
-          qrDataUrl={qrDataUrl}
-          contact={contact}
-          onSave={() => downloadVCard(config)}
-        />
       )}
 
       {/* ── Vista Digital (tarjeta pública compartible) ── */}
       {view === "digital" && (
         <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800">
           <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4 text-center">
-            Vista previa digital · maalca.com/tarjeta/maalca
+            Vista previa · maalca.com/tarjeta/maalca
           </p>
           <div className="flex justify-center">
             <div className="w-full max-w-sm">
@@ -441,6 +534,25 @@ export function BusinessCard() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Card wrapper (label + ref + download btn) ────────────────────────────────
+
+function CardWrapper({ label, cardRef, filename, children }: {
+  label: string;
+  cardRef: React.RefObject<HTMLDivElement | null>;
+  filename: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-xs font-bold uppercase tracking-widest text-gray-400 text-center">{label}</p>
+      <div ref={cardRef}>{children}</div>
+      <div className="flex justify-center">
+        <DownloadCardBtn cardRef={cardRef} filename={filename} />
+      </div>
     </div>
   );
 }
