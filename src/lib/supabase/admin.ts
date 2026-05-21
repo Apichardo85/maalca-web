@@ -20,7 +20,7 @@ const AFFILIATE_GUID_TO_SLUG: Record<string, string> = {
   'a1000000-0000-0000-0000-000000000003': 'the-little-dominican',
   'a1000000-0000-0000-0000-000000000004': 'dr-pichardo',
   'a1000000-0000-0000-0000-000000000005': 'masa-tina',
-  'a1000000-0000-0000-0000-000000000006': 'maalca-llc',
+  'a1000000-0000-0000-0000-000000000006': 'maalca',
 }
 
 export function guidToSlug(guid: string | undefined): string | null {
