@@ -79,8 +79,8 @@ function LoginForm() {
         body: JSON.stringify({ email, password }),
       });
       if (res.ok) {
-        const data = await res.json().catch(() => ({}));
-        window.location.href = (data as { redirectTo?: string }).redirectTo ?? "/space";
+        const data = await res.json().catch(() => ({})) as { redirectTo?: string; user?: { affiliateId?: string } };
+        window.location.href = data.redirectTo ?? (data.user?.affiliateId ? `/dashboard/${data.user.affiliateId}` : "/space");
       } else {
         setEmailError("Credenciales incorrectas.");
       }
