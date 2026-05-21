@@ -28,18 +28,22 @@ export async function middleware(request: NextRequest) {
   // Refresh session (also refreshes the cookie if expired)
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Email/password login sets auth_token cookie instead of Supabase session
+  const authToken = request.cookies.get("auth_token")?.value;
+  const isLoggedIn = !!user || !!authToken;
+
   const isProtected = pathname.startsWith("/dashboard") ||
                       pathname.startsWith("/onboarding") ||
                       pathname.startsWith("/space");
   const isAuthRoute  = pathname === "/login";
 
-  if (isProtected && !user) {
+  if (isProtected && !isLoggedIn) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isAuthRoute && user) {
+  if (isAuthRoute && isLoggedIn) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 

@@ -9,12 +9,12 @@ const KNOWN_AFFILIATES: Record<string, { affiliate_id: string; role: string }> =
 
 // Affiliate GUID mapping (backward compat with menu editor cookie)
 const AFFILIATE_GUIDS: Record<string, string> = {
-  "maalca":                "a1000000-0000-0000-0000-000000000001",
-  "the-little-dominican":  "a2000000-0000-0000-0000-000000000002",
-  "pegote-barbershop":     "a3000000-0000-0000-0000-000000000003",
-  "britocolor":            "a4000000-0000-0000-0000-000000000004",
-  "masa-tina":             "a5000000-0000-0000-0000-000000000005",
-  "dr-pichardo":           "a6000000-0000-0000-0000-000000000006",
+  "maalca":                "a1000000-0000-0000-0000-000000000006",
+  "the-little-dominican":  "a1000000-0000-0000-0000-000000000003",
+  "pegote-barbershop":     "a1000000-0000-0000-0000-000000000001",
+  "britocolor":            "a1000000-0000-0000-0000-000000000002",
+  "masa-tina":             "a1000000-0000-0000-0000-000000000005",
+  "dr-pichardo":           "a1000000-0000-0000-0000-000000000004",
 };
 
 export async function GET(request: NextRequest) {
