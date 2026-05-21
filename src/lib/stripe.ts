@@ -1,11 +1,9 @@
 // src/lib/stripe.ts
 import Stripe from 'stripe';
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not set');
-}
+const key = process.env.STRIPE_SECRET_KEY ?? '';
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+export const stripe = new Stripe(key || 'sk_placeholder_for_build');
 
 export const STRIPE_CONFIG = {
   priceEntrepreneur: process.env.STRIPE_PRICE_ENTREPRENEUR!,
