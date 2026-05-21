@@ -37,7 +37,7 @@ const allCaseStudies: CaseStudy[] = [
       { label: "Costo de distribución", value: "-90%", trend: "down" },
       { label: "Alcance global", value: "100%", trend: "up" }
     ],
-    image: "/images/projects/editorial-maalca.svg",
+    image: "/images/projects/editorial-maalca.png",
     testimonial: {
       text: "La estrategia digital nos permitió competir globalmente sin las limitaciones tradicionales de la industria editorial",
       author: "Equipo Editorial MaalCa"

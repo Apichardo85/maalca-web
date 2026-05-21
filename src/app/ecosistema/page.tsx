@@ -18,7 +18,7 @@ export default function EcosistemaPage() {
       categoryKey: "project.editorial.category",
       outcomeKey: "project.editorial.outcome",
       color: "red",
-      image: "/images/projects/editorial-maalca.svg",
+      image: "/images/projects/editorial-maalca.png",
       href: "/editorial",
       detailKeys: ["details.editorial.1", "details.editorial.2", "details.editorial.3", "details.editorial.4"],
       statusKey: "ecosystem.status.active",

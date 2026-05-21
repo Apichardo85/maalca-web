@@ -169,7 +169,7 @@ export default function HomePage() {
                 categoryKey: "project.editorial.category",
                 outcomeKey: "project.editorial.outcome",
                 color: "red",
-                image: "/images/projects/editorial-maalca.svg",
+                image: "/images/projects/editorial-maalca.png",
                 href: "/editorial"
               },
               {
