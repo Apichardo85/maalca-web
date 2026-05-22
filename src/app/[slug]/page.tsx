@@ -69,6 +69,10 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
   const Template = TEMPLATES[affiliate.businessType.toLowerCase() as BusinessType];
   if (!Template) notFound();
 
+  const rawAffiliate = affiliate as typeof affiliate & { whatsApp?: string | null };
+  const whatsappValue = affiliate.whatsapp ?? rawAffiliate.whatsApp ?? null;
+  console.log('[slug] whatsapp keys — whatsapp:', affiliate.whatsapp, 'whatsApp:', rawAffiliate.whatsApp, 'resolved:', whatsappValue);
+
   return (
     <Template
       business={{
@@ -80,7 +84,7 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
         logo_url: affiliate.logoUrl,
         cover_image_url: affiliate.coverImageUrl ?? null,
         primary_color: affiliate.primaryColor,
-        whatsapp: affiliate.whatsapp,
+        whatsapp: whatsappValue,
         address: affiliate.address ?? null,
         contactEmail: affiliate.contactEmail ?? null,
         business_type: affiliate.businessType as BusinessType,
