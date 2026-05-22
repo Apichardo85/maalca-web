@@ -1,174 +1,686 @@
-// src/components/public/templates/Restaurant.tsx
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
+import { useCart } from '@/components/public/cart/useCart';
+import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
 
-export function RestaurantTemplate({ business, items, categories, capabilities }: PublicTemplateProps) {
-  const accentColor = business.primary_color ?? '#C8102E';
-  const grouped = groupByCategory(items, categories);
+const ALL_TAB = '__all__';
+
+const priceFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  maximumFractionDigits: 2,
+});
+
+export function RestaurantTemplate({
+  business,
+  items,
+  categories: categoriesProp,
+  capabilities,
+}: PublicTemplateProps) {
+  const primaryColor = business.primary_color ?? '#C8102E';
+  const waRaw = business.whatsapp?.replace(/\D/g, '') ?? null;
+  const waHeroLink = waRaw
+    ? `https://wa.me/${waRaw}?text=${encodeURIComponent(`Hola, quiero info sobre ${business.name}`)}`
+    : null;
+
+  const { cart, addToCart, removeFromCart, cartTotal, cartCount } = useCart();
+
+  const categoryNames: string[] =
+    categoriesProp.length > 0
+      ? [...categoriesProp].sort((a, b) => a.sort_order - b.sort_order).map((c) => c.name)
+      : Array.from(new Set(items.map((i) => i.category).filter((c): c is string => !!c)));
+
+  const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
+
+  function itemsFor(tab: string): typeof items {
+    if (tab === ALL_TAB) return items;
+    const catId = categoriesProp.find((c) => c.name === tab)?.id;
+    return items.filter(
+      (i) => (catId !== undefined && i.category_id === catId) || i.category === tab,
+    );
+  }
+
+  const groupedForAll: Array<{ categoryName: string; groupItems: typeof items }> =
+    categoryNames.length > 0
+      ? categoryNames
+          .map((name) => ({ categoryName: name, groupItems: itemsFor(name) }))
+          .filter((g) => g.groupItems.length > 0)
+      : [{ categoryName: '', groupItems: items }];
+
+  const visibleItems = itemsFor(activeTab);
 
   return (
-    <div className="min-h-screen bg-neutral-50">
-      <Header business={business} accentColor={accentColor} />
+    <div style={{ minHeight: '100vh', backgroundColor: '#f8f6f1' }}>
 
-      <main className="mx-auto max-w-2xl px-4 py-8">
+      {/* ── HERO ── */}
+      <section
+        style={{
+          position: 'relative',
+          height: '380px',
+          backgroundColor: primaryColor,
+          overflow: 'hidden',
+        }}
+      >
+        {business.cover_image_url && (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={business.cover_image_url}
+              alt=""
+              style={{
+                position: 'absolute',
+                top: 0, left: 0, right: 0, bottom: 0,
+                width: '100%', height: '100%',
+                objectFit: 'cover',
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                top: 0, left: 0, right: 0, bottom: 0,
+                backgroundColor: 'rgba(0,0,0,0.55)',
+              }}
+            />
+          </>
+        )}
+
+        {/* content anchored bottom-left */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1,
+            maxWidth: '960px',
+            margin: '0 auto',
+            padding: '0 32px 48px',
+            color: '#fff',
+          }}
+        >
+          {business.logo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={business.logo_url}
+              alt={business.name}
+              style={{
+                display: 'block',
+                width: '64px',
+                height: '64px',
+                borderRadius: '12px',
+                objectFit: 'cover',
+                border: '2px solid rgba(255,255,255,0.2)',
+                marginBottom: '12px',
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '12px',
+                backgroundColor: 'rgba(255,255,255,0.15)',
+                border: '2px solid rgba(255,255,255,0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '28px',
+                marginBottom: '12px',
+              }}
+            >
+              🍽️
+            </div>
+          )}
+
+          <h1
+            style={{
+              margin: 0,
+              fontSize: '28px',
+              fontWeight: 800,
+              color: '#ffffff',
+              lineHeight: 1.2,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            {business.name}
+          </h1>
+
+          {business.address && (
+            <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
+              📍 {business.address}
+            </p>
+          )}
+
+          {business.description && (
+            <p
+              style={{
+                margin: '10px 0 0',
+                fontSize: '14px',
+                color: 'rgba(255,255,255,0.8)',
+                lineHeight: 1.5,
+                maxWidth: '480px',
+              }}
+            >
+              {business.description}
+            </p>
+          )}
+
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '18px' }}>
+            {waHeroLink && (
+              <a
+                href={waHeroLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  backgroundColor: '#25D366',
+                  color: '#ffffff',
+                  padding: '10px 20px',
+                  borderRadius: '9999px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                }}
+              >
+                <WhatsAppIcon className="h-4 w-4" />
+                WhatsApp
+              </a>
+            )}
+            {business.address && (
+              <a
+                href={`https://maps.google.com?q=${encodeURIComponent(business.address)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: 'transparent',
+                  border: '1px solid rgba(255,255,255,0.35)',
+                  color: '#ffffff',
+                  padding: '10px 20px',
+                  borderRadius: '9999px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                }}
+              >
+                📍 Cómo llegar
+              </a>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ── NAV TABS ── */}
+      {categoryNames.length > 0 && (
+        <div
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 20,
+            backgroundColor: '#ffffff',
+            borderBottom: '1px solid #e5e3de',
+          }}
+        >
+          <div style={{ maxWidth: '960px', margin: '0 auto', padding: '0 24px' }}>
+            <div
+              className="[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              style={{ display: 'flex', overflowX: 'auto' }}
+            >
+              {[
+                { key: ALL_TAB, label: 'Todos' },
+                ...categoryNames.map((n) => ({ key: n, label: n })),
+              ].map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setActiveTab(key)}
+                  style={{
+                    flexShrink: 0,
+                    padding: '12px 16px',
+                    fontSize: '14px',
+                    fontWeight: activeTab === key ? 600 : 400,
+                    color: activeTab === key ? '#1a1a1a' : '#888888',
+                    background: 'none',
+                    borderTop: 'none',
+                    borderLeft: 'none',
+                    borderRight: 'none',
+                    borderBottom: activeTab === key
+                      ? `2px solid ${primaryColor}`
+                      : '2px solid transparent',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── CONTENT ── */}
+      <main style={{ maxWidth: '960px', margin: '0 auto', padding: '32px 24px' }}>
         {items.length === 0 ? (
-          <EmptyState />
-        ) : (
-          <div className="space-y-10">
-            {Object.entries(grouped).map(([category, categoryItems]) => (
-              <section key={category}>
-                <h2 className="text-xs font-semibold uppercase tracking-widest text-neutral-500">
-                  {category}
-                </h2>
-                <div className="mt-3 divide-y divide-neutral-100 rounded-2xl bg-white shadow-sm">
-                  {categoryItems.map((item) => (
-                    <ItemRow
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '80px 0',
+              textAlign: 'center',
+            }}
+          >
+            <span style={{ fontSize: '48px' }}>🍽️</span>
+            <p style={{ marginTop: '16px', fontSize: '14px', color: '#aaa' }}>
+              El menú estará disponible pronto.
+            </p>
+          </div>
+        ) : activeTab === ALL_TAB ? (
+          groupedForAll.map(({ categoryName, groupItems }) => (
+            <div key={categoryName || '__ungrouped__'} style={{ marginBottom: '32px' }}>
+              {categoryName && <SectLabel label={categoryName} />}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {groupItems.map((item) => {
+                  const cartQty = cart.find(e => e.item.id === item.id)?.qty ?? 0;
+                  return (
+                    <MenuCard
                       key={item.id}
                       item={item}
-                      whatsapp={business.whatsapp}
-                      businessName={business.name}
-                      accentColor={accentColor}
+                      cartQty={cartQty}
+                      onAdd={() => addToCart({
+                        id: item.id,
+                        name: item.name,
+                        price: item.price ?? 0,
+                        image: item.imageUrl ?? item.image_url ?? undefined,
+                      })}
+                      onRemove={() => removeFromCart(item.id)}
                     />
-                  ))}
-                </div>
-              </section>
-            ))}
+                  );
+                })}
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {visibleItems.map((item) => {
+              const cartQty = cart.find(e => e.item.id === item.id)?.qty ?? 0;
+              return (
+                <MenuCard
+                  key={item.id}
+                  item={item}
+                  cartQty={cartQty}
+                  onAdd={() => addToCart({
+                    id: item.id,
+                    name: item.name,
+                    price: item.price ?? 0,
+                    image: item.imageUrl ?? item.image_url ?? undefined,
+                  })}
+                  onRemove={() => removeFromCart(item.id)}
+                />
+              );
+            })}
           </div>
         )}
       </main>
 
-      {!capabilities.hidePoweredBy && <PoweredBy />}
-      {business.whatsapp && <WhatsAppFAB whatsapp={business.whatsapp} accentColor={accentColor} />}
+      {/* ── CONTACTO ── */}
+      <ContactSection business={business} waHeroLink={waHeroLink} />
+
+      {/* ── FOOTER ── */}
+      {!capabilities.hidePoweredBy && (
+        <footer
+          style={{
+            backgroundColor: '#ffffff',
+            borderTop: '1px solid #e5e3de',
+            padding: '24px',
+            textAlign: 'center',
+          }}
+        >
+          <Link
+            href="/servicios"
+            style={{ fontSize: '12px', color: '#aaa', textDecoration: 'none' }}
+          >
+            Powered by <span style={{ fontWeight: 600, color: '#888' }}>MaalCa</span>
+          </Link>
+        </footer>
+      )}
+
+      {/* ── CART ── */}
+      <WhatsAppCart
+        cart={cart}
+        addToCart={addToCart}
+        removeFromCart={removeFromCart}
+        cartTotal={cartTotal}
+        cartCount={cartCount}
+        whatsappNumber={business.whatsapp ?? ''}
+        businessName={business.name}
+        taxRate={0}
+      />
     </div>
   );
 }
 
-function Header({ business, accentColor }: { business: PublicTemplateProps['business']; accentColor: string }) {
+// ── SUB-COMPONENTS ──────────────────────────────────────────────────────────
+
+function SectLabel({ label }: { label: string }) {
   return (
-    <header className="px-4 pt-12 pb-8 text-center">
-      {business.logo_url && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={business.logo_url}
-          alt={business.name}
-          className="mx-auto h-20 w-20 rounded-full object-cover shadow-md"
-        />
-      )}
-      <h1 className="mt-4 text-3xl font-bold tracking-tight">{business.name}</h1>
-      {business.description && (
-        <p className="mx-auto mt-2 max-w-md text-sm text-neutral-600">{business.description}</p>
-      )}
-      <div className="mx-auto mt-4 h-1 w-12 rounded-full" style={{ backgroundColor: accentColor }} />
-    </header>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+      <span
+        style={{
+          fontSize: '11px',
+          textTransform: 'uppercase',
+          color: '#aaa',
+          letterSpacing: '0.08em',
+          fontWeight: 600,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {label}
+      </span>
+      <div style={{ flex: 1, height: '1px', backgroundColor: '#e5e3de' }} />
+    </div>
   );
 }
 
-function ItemRow({
+function MenuCard({
   item,
-  whatsapp,
-  businessName,
-  accentColor,
+  cartQty,
+  onAdd,
+  onRemove,
 }: {
   item: PublicTemplateProps['items'][number];
-  whatsapp: string | null | undefined;
-  businessName: string;
-  accentColor: string;
+  cartQty: number;
+  onAdd: () => void;
+  onRemove: () => void;
 }) {
-  const orderUrl = whatsapp ? buildWhatsAppUrl(whatsapp, businessName, item.name) : null;
+  const imageUrl = item.imageUrl ?? item.image_url;
 
   return (
-    <div className="flex items-center gap-4 p-4">
-      {item.image_url && (
+    <div
+      style={{
+        backgroundColor: '#ffffff',
+        border: '0.5px solid #ece9e2',
+        borderRadius: '16px',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'row',
+        minHeight: '120px',
+      }}
+    >
+      {imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={item.image_url}
+          src={imageUrl}
           alt={item.name}
-          className="h-16 w-16 flex-shrink-0 rounded-lg object-cover"
+          style={{
+            display: 'block',
+            width: '120px',
+            height: '120px',
+            objectFit: 'cover',
+            flexShrink: 0,
+            borderRadius: '12px',
+            margin: '8px 0 8px 8px',
+          }}
         />
+      ) : (
+        <div
+          style={{
+            width: '120px',
+            height: '120px',
+            backgroundColor: '#f0ede8',
+            flexShrink: 0,
+            borderRadius: '12px',
+            margin: '8px 0 8px 8px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '28px',
+          }}
+        >
+          🍽️
+        </div>
       )}
-      <div className="flex-1 min-w-0">
-        <p className="font-medium">{item.name}</p>
-        {item.description && (
-          <p className="mt-0.5 text-sm text-neutral-500 line-clamp-2">{item.description}</p>
-        )}
-      </div>
-      <div className="flex flex-col items-end gap-2">
-        {item.price != null && (
-          <span className="text-sm font-semibold">${item.price.toFixed(2)}</span>
-        )}
-        {orderUrl && (
-          <a
-            href={orderUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-full px-3 py-1 text-xs font-medium text-white"
-            style={{ backgroundColor: accentColor }}
+
+      <div
+        style={{
+          flex: 1,
+          padding: '12px 14px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          minWidth: 0,
+        }}
+      >
+        {/* Name + description */}
+        <div>
+          <p
+            style={{
+              margin: 0,
+              fontWeight: 700,
+              fontSize: '14px',
+              color: '#1a1a1a',
+              lineHeight: 1.3,
+            }}
           >
-            Pedir
-          </a>
-        )}
+            {item.name}
+          </p>
+          {item.description && (
+            <p
+              className="line-clamp-2"
+              style={{
+                margin: '4px 0 0',
+                fontSize: '12px',
+                color: '#888',
+                lineHeight: 1.5,
+              }}
+            >
+              {item.description}
+            </p>
+          )}
+        </div>
+
+        {/* Price + cart controls */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginTop: '8px',
+            gap: '8px',
+          }}
+        >
+          {item.price != null ? (
+            <p style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1a1a1a' }}>
+              {priceFormatter.format(item.price)}
+            </p>
+          ) : (
+            <span />
+          )}
+
+          {cartQty === 0 ? (
+            <button
+              onClick={onAdd}
+              aria-label={`Agregar ${item.name}`}
+              style={{
+                backgroundColor: '#25D366',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '6px 12px',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+              }}
+            >
+              + Agregar
+            </button>
+          ) : (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                flexShrink: 0,
+              }}
+            >
+              <button
+                onClick={onRemove}
+                aria-label={`Quitar ${item.name}`}
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  backgroundColor: '#f0ede8',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  color: '#1a1a1a',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                −
+              </button>
+              <span
+                style={{
+                  fontWeight: 700,
+                  fontSize: '13px',
+                  minWidth: '16px',
+                  textAlign: 'center',
+                  color: '#1a1a1a',
+                }}
+              >
+                {cartQty}
+              </span>
+              <button
+                onClick={onAdd}
+                aria-label={`Agregar ${item.name}`}
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  backgroundColor: '#25D366',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                +
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-function EmptyState() {
+function ContactSection({
+  business,
+  waHeroLink,
+}: {
+  business: PublicTemplateProps['business'];
+  waHeroLink: string | null;
+}) {
+  type ContactItem = { icon: string; label: string; value: string; href: string };
+
+  const contacts: ContactItem[] = [
+    waHeroLink && business.whatsapp
+      ? { icon: '📱', label: 'WhatsApp', value: business.whatsapp, href: waHeroLink }
+      : null,
+    business.address
+      ? {
+          icon: '📍',
+          label: 'Dirección',
+          value: business.address,
+          href: `https://maps.google.com?q=${encodeURIComponent(business.address)}`,
+        }
+      : null,
+    business.contactEmail
+      ? {
+          icon: '✉️',
+          label: 'Email',
+          value: business.contactEmail,
+          href: `mailto:${business.contactEmail}`,
+        }
+      : null,
+  ].filter((c): c is ContactItem => c !== null);
+
+  if (contacts.length === 0) return null;
+
   return (
-    <div className="rounded-2xl bg-white p-12 text-center">
-      <p className="text-4xl">🍽️</p>
-      <p className="mt-4 text-sm text-neutral-500">El menú estará disponible pronto.</p>
-    </div>
+    <section style={{ borderTop: '1px solid #e5e3de' }}>
+      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '32px 24px' }}>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {contacts.map((c) => (
+            <a
+              key={c.label}
+              href={c.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                backgroundColor: '#ffffff',
+                border: '0.5px solid #ece9e2',
+                borderRadius: '12px',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px',
+                textDecoration: 'none',
+              }}
+            >
+              <span style={{ fontSize: '22px' }}>{c.icon}</span>
+              <span
+                style={{
+                  fontSize: '11px',
+                  color: '#aaa',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                }}
+              >
+                {c.label}
+              </span>
+              <span
+                style={{
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: '#1a1a1a',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {c.value}
+              </span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
-function WhatsAppFAB({ whatsapp, accentColor }: { whatsapp: string; accentColor: string }) {
+function WhatsAppIcon({ className }: { className?: string }) {
   return (
-    <a
-      href={`https://wa.me/${whatsapp.replace(/\D/g, '')}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg"
-      style={{ backgroundColor: '#25D366' }}
-      aria-label="WhatsApp"
-    >
-      <svg className="h-7 w-7" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-      </svg>
-    </a>
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+    </svg>
   );
-}
-
-function PoweredBy() {
-  return (
-    <footer className="py-8 text-center">
-      <Link href="/servicios" className="text-xs text-neutral-400 hover:text-neutral-600">
-        Powered by <span className="font-semibold">MaalCa</span>
-      </Link>
-    </footer>
-  );
-}
-
-function groupByCategory(
-  items: PublicTemplateProps['items'],
-  categories: PublicTemplateProps['categories'],
-): Record<string, PublicTemplateProps['items']> {
-  const order = categories.map((c) => c.name);
-  const grouped = items.reduce<Record<string, PublicTemplateProps['items']>>((acc, item) => {
-    const key = item.category || 'Menú';
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(item);
-    return acc;
-  }, {});
-
-  // Sort sections by category order from DB
-  const sorted: Record<string, PublicTemplateProps['items']> = {};
-  order.forEach((name) => { if (grouped[name]) sorted[name] = grouped[name]; });
-  Object.keys(grouped).forEach((name) => { if (!sorted[name]) sorted[name] = grouped[name]; });
-  return sorted;
-}
-
-function buildWhatsAppUrl(phone: string, businessName: string, itemName: string): string {
-  const cleaned = phone.replace(/\D/g, '');
-  const msg = encodeURIComponent(`Hola ${businessName}, quiero pedir: ${itemName}`);
-  return `https://wa.me/${cleaned}?text=${msg}`;
 }
