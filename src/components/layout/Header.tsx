@@ -13,7 +13,8 @@ export default function Header({
   className = "",
   variant = "default",
   showLogo = true,
-  showActions = true
+  showActions = true,
+  session = null,
 }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -233,16 +234,19 @@ export default function Header({
                     >
                       {t('nav.explore')}
                     </Button>
-                    <Link href="/login" className="w-full">
-                      <Button
-                        variant="outline"
-                        size="lg"
-                        className="w-full"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Iniciar sesión
-                      </Button>
-                    </Link>
+                    {session ? (
+                      <Link href="/dashboard" className="w-full">
+                        <Button variant="outline" size="lg" className="w-full" onClick={() => setIsMobileMenuOpen(false)}>
+                          {session.email.split('@')[0]}
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Link href="/login" className="w-full">
+                        <Button variant="outline" size="lg" className="w-full" onClick={() => setIsMobileMenuOpen(false)}>
+                          Iniciar sesión
+                        </Button>
+                      </Link>
+                    )}
                     <Button
                       variant="primary"
                       size="lg"
