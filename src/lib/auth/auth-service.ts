@@ -1,5 +1,6 @@
 // Auth service for handling authentication API calls
 // Login/logout use relative Next.js routes, not apiClient (which points to maalca-api)
+import { supabaseBrowser } from '@/lib/supabase/client'
 
 export interface LoginCredentials {
   email: string;
@@ -62,6 +63,11 @@ class AuthService {
   }
 
   async logout(): Promise<void> {
+    try {
+      await supabaseBrowser().auth.signOut()
+    } catch {
+      // Continue even if client-side signOut fails
+    }
     try {
       await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
     } catch {
