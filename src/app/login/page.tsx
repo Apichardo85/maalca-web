@@ -43,16 +43,15 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const errorParam   = searchParams?.get("error");
 
-  // Google OAuth state
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleError,   setGoogleError]   = useState<string | null>(null);
 
-  // Email/password state
-  const [email,         setEmail]         = useState("");
-  const [password,      setPassword]      = useState("");
-  const [showPassword,  setShowPassword]  = useState(false);
-  const [emailLoading,  setEmailLoading]  = useState(false);
-  const [emailError,    setEmailError]    = useState<string | null>(null);
+  const [email,        setEmail]        = useState("");
+  const [password,     setPassword]     = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailError,   setEmailError]   = useState<string | null>(null);
+  const [resetSent,    setResetSent]    = useState(false);
 
   const handleGoogle = async () => {
     setGoogleLoading(true);
@@ -72,21 +71,56 @@ function LoginForm() {
     e.preventDefault();
     setEmailLoading(true);
     setEmailError(null);
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      if (res.ok) {
-        const data = await res.json().catch(() => ({})) as { redirectTo?: string; user?: { affiliateId?: string } };
-        window.location.href = data.redirectTo ?? (data.user?.affiliateId ? `/dashboard/${data.user.affiliateId}` : "/space");
-      } else {
-        setEmailError("Credenciales incorrectas.");
+
+    const supabase = supabaseBrowser();
+
+    // 1. Try sign in
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (!signInError) {
+      window.location.href = "/dashboard";
+      return;
+    }
+
+    // 2. Invalid credentials → try sign up (new user)
+    if (signInError.message === "Invalid login credentials") {
+      const { error: signUpError } = await supabase.auth.signUp({ email, password });
+
+      if (!signUpError) {
+        window.location.href = "/onboarding";
+        return;
       }
-    } catch {
-      setEmailError("Error de conexión. Intenta de nuevo.");
-    } finally {
+
+      // Map "User already registered" back to a wrong-password message
+      const msg = signUpError.message.toLowerCase();
+      if (msg.includes("already registered") || msg.includes("already exists")) {
+        setEmailError("Contraseña incorrecta.");
+      } else {
+        setEmailError(signUpError.message);
+      }
+      setEmailLoading(false);
+      return;
+    }
+
+    setEmailError(signInError.message);
+    setEmailLoading(false);
+  };
+
+  const handlePasswordReset = async () => {
+    if (!email) {
+      setEmailError("Ingresa tu email para recuperar la contraseña.");
+      return;
+    }
+    setEmailLoading(true);
+    setEmailError(null);
+    const { error } = await supabaseBrowser().auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback`,
+    });
+    if (error) {
+      setEmailError(error.message);
+      setEmailLoading(false);
+    } else {
+      setResetSent(true);
       setEmailLoading(false);
     }
   };
@@ -146,50 +180,78 @@ function LoginForm() {
             <div className="flex-1 h-px bg-border" />
           </div>
 
-          {/* Email / password form */}
-          <form onSubmit={handleEmailLogin} className="flex flex-col gap-3">
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="tu@email.com"
-              required
-              autoComplete="email"
-              className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
-            />
-
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="Contraseña"
-                required
-                autoComplete="current-password"
-                className="w-full px-4 py-3 pr-11 rounded-xl border border-border bg-surface text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
-              />
+          {/* Reset sent confirmation */}
+          {resetSent ? (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+              <p className="text-sm font-semibold text-green-800 mb-1">Revisa tu correo</p>
+              <p className="text-xs text-green-700">
+                Te enviamos un enlace para restablecer tu contraseña a <strong>{email}</strong>.
+              </p>
               <button
-                type="button"
-                onClick={() => setShowPassword(v => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
-                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                onClick={() => setResetSent(false)}
+                className="mt-3 text-xs text-green-700 underline hover:text-green-900"
               >
-                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                Volver al inicio de sesión
               </button>
             </div>
+          ) : (
+            /* Email / password form */
+            <form onSubmit={handleEmailLogin} className="flex flex-col gap-3">
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="tu@email.com"
+                required
+                autoComplete="email"
+                className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+              />
 
-            {emailError && (
-              <p className="text-xs text-red-600">{emailError}</p>
-            )}
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="Contraseña"
+                  required
+                  autoComplete="current-password"
+                  className="w-full px-4 py-3 pr-11 rounded-xl border border-border bg-surface text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                </button>
+              </div>
 
-            <button
-              type="submit"
-              disabled={emailLoading}
-              className="w-full py-3 rounded-xl bg-brand-primary text-white text-sm font-semibold hover:bg-brand-primary-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {emailLoading ? "Iniciando sesión..." : "Iniciar sesión"}
-            </button>
-          </form>
+              {/* Forgot password */}
+              <div className="text-right -mt-1">
+                <button
+                  type="button"
+                  onClick={handlePasswordReset}
+                  disabled={emailLoading}
+                  className="text-xs text-text-muted hover:text-brand-primary transition-colors disabled:opacity-50"
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
+
+              {emailError && (
+                <p className="text-xs text-red-600">{emailError}</p>
+              )}
+
+              <button
+                type="submit"
+                disabled={emailLoading}
+                className="w-full py-3 rounded-xl bg-brand-primary text-white text-sm font-semibold hover:bg-brand-primary-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {emailLoading ? "Un momento..." : "Continuar"}
+              </button>
+            </form>
+          )}
 
           <p className="text-xs text-center text-gray-400 mt-5">
             Al continuar, aceptas los{" "}

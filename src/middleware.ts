@@ -28,7 +28,7 @@ export async function middleware(request: NextRequest) {
   // Refresh session (also refreshes the cookie if expired)
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Email/password login sets auth_token cookie instead of Supabase session
+  // auth_token cookie = hardcoded affiliate (mock/maalca-api login) — skip affiliate check
   const authToken = request.cookies.get("auth_token")?.value;
   const isLoggedIn = !!user || !!authToken;
 
@@ -45,6 +45,37 @@ export async function middleware(request: NextRequest) {
 
   if (isAuthRoute && isLoggedIn) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  // ── Affiliate-map guard for /dashboard/* ──────────────────────────────────
+  // Only applies to Supabase session users (not legacy auth_token holders).
+  // A user with no UserAffiliateMap entry must be sent to /onboarding.
+  if (pathname.startsWith("/dashboard") && user && !authToken) {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (session?.access_token) {
+      try {
+        const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+        const res = await fetch(`${apiBase}/api/me/affiliates`, {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+          signal: AbortSignal.timeout(3000),
+        });
+
+        if (res.status === 401) {
+          return NextResponse.redirect(new URL("/onboarding", request.url));
+        }
+
+        if (res.ok) {
+          const affiliates: unknown[] = await res.json().catch(() => []);
+          if (affiliates.length === 0) {
+            return NextResponse.redirect(new URL("/onboarding", request.url));
+          }
+        }
+        // Any other non-ok status (5xx, network issue) → fail open, let the page handle it
+      } catch {
+        // maalca-api unreachable or timed out → fail open
+      }
+    }
   }
 
   return response;
