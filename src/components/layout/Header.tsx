@@ -8,13 +8,12 @@ import ThemeToggle from "@/components/ui/ThemeToggle";
 import SimpleLanguageToggle from "@/components/ui/SimpleLanguageToggle";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
 import { NavigationItem, HeaderProps } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";import { AuthNav } from "@/components/layout/AuthNav";
 export default function Header({
   className = "",
   variant = "default",
   showLogo = true,
   showActions = true,
-  session = null,
 }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -131,13 +130,7 @@ export default function Header({
               </div>
               {showActions && (
                 <>
-                  <div className="animate-fade-in" style={{ animationDelay: '0.5s' }}>
-                    <Link href="/login">
-                      <Button variant="outline" size="sm">
-                        Iniciar sesión
-                      </Button>
-                    </Link>
-                  </div>
+                  <div className="animate-fade-in" style={{ animationDelay: '0.5s' }}><AuthNav size="sm" /></div>
                   <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
                     <Button variant="primary" size="sm">
                       {t('nav.join')}
@@ -234,19 +227,7 @@ export default function Header({
                     >
                       {t('nav.explore')}
                     </Button>
-                    {session ? (
-                      <Link href="/dashboard" className="w-full">
-                        <Button variant="outline" size="lg" className="w-full" onClick={() => setIsMobileMenuOpen(false)}>
-                          {session.email.split('@')[0]}
-                        </Button>
-                      </Link>
-                    ) : (
-                      <Link href="/login" className="w-full">
-                        <Button variant="outline" size="lg" className="w-full" onClick={() => setIsMobileMenuOpen(false)}>
-                          Iniciar sesión
-                        </Button>
-                      </Link>
-                    )}
+                    <AuthNav size="lg" className="w-full" onNavigate={() => setIsMobileMenuOpen(false)} />
                     <Button
                       variant="primary"
                       size="lg"

@@ -4,8 +4,6 @@ import "./globals.css";
 import { Header } from "@/components/layout";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { OrganizationJsonLd, WebSiteJsonLd } from "@/components/seo/JsonLd";
-import { supabaseServer } from "@/lib/supabase/server";
-
 export const dynamic = "force-dynamic";
 
 const playfairDisplay = Playfair_Display({
@@ -83,15 +81,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = await supabaseServer();
-  const { data: { user } } = await supabase.auth.getUser();
-  const session = user?.email ? { email: user.email } : null;
-
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
@@ -112,7 +106,7 @@ export default async function RootLayout({
           Skip to content
         </a>
         <GoogleAnalytics />
-        <Header session={session} />
+        <Header />
         <main id="main-content">{children}</main>
       </body>
     </html>

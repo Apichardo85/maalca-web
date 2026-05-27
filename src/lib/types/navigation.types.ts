@@ -17,7 +17,6 @@ export interface HeaderProps {
   variant?: "default" | "transparent" | "solid";
   showLogo?: boolean;
   showActions?: boolean;
-  session?: { email: string } | null;
 }
 
 export interface MobileMenuProps {
