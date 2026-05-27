@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { track } from '@/lib/analytics';
+import { apiFetch, ApiError } from '@/lib/api-client';
 
 const BUSINESS_TYPES = [
   { value: 'restaurant', label: 'Restaurante', emoji: '🍽️' },
@@ -23,25 +24,25 @@ export default function OnboardingPage() {
     setError(null);
 
     startTransition(async () => {
-      const res = await fetch('/api/onboarding/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), business_type: type }),
-      });
+      try {
+        const data = await apiFetch<{ affiliateId: string; slug: string }>('/api/onboarding', {
+          method: 'POST',
+          body: JSON.stringify({ name: name.trim(), businessType: type }),
+        });
 
-      const json = await res.json();
+        track('onboarding_completed', {
+          business_id: data.affiliateId,
+          business_type: type,
+        });
 
-      if (!res.ok) {
-        setError(json.error || 'Algo salió mal. Intenta de nuevo.');
-        return;
+        router.push(`/space/${data.slug}?new=1`);
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 409) {
+          setError('Ya tienes un negocio. Upgrade a Entrepreneur para crear más de uno.');
+        } else {
+          setError('Algo salió mal. Intenta de nuevo.');
+        }
       }
-
-      track('onboarding_completed', {
-        business_id: json.business.id,
-        business_type: type,
-      });
-
-      router.push(`/space/${json.business.slug}?new=1`);
     });
   };
 
