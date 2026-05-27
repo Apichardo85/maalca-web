@@ -6,6 +6,8 @@ import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { OrganizationJsonLd, WebSiteJsonLd } from "@/components/seo/JsonLd";
 import { supabaseServer } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 const playfairDisplay = Playfair_Display({
   variable: "--font-playfair",
   subsets: ["latin"],
