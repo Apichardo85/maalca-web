@@ -62,16 +62,18 @@ export async function middleware(request: NextRequest) {
         });
 
         if (res.status === 401) {
-          return NextResponse.redirect(new URL("/onboarding", request.url));
-        }
-
-        if (res.ok) {
+          // Only block when maalca-api explicitly signals no affiliate map exists.
+          // Any other 401 (expired token, CORS, etc.) → fail open to avoid false redirects.
+          if (res.headers.get("X-Onboarding-Required") === "true") {
+            return NextResponse.redirect(new URL("/onboarding", request.url));
+          }
+        } else if (res.ok) {
           const affiliates: unknown[] = await res.json().catch(() => []);
           if (affiliates.length === 0) {
             return NextResponse.redirect(new URL("/onboarding", request.url));
           }
         }
-        // Any other non-ok status (5xx, network issue) → fail open, let the page handle it
+        // Non-ok, non-401 (5xx, network issue) → fail open
       } catch {
         // maalca-api unreachable or timed out → fail open
       }
