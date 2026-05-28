@@ -9,6 +9,7 @@ import { useTranslation, useSimpleLanguage } from "@/hooks/useSimpleLanguage";
 import { NavigationItem, HeaderProps } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { AuthNav } from "@/components/layout/AuthNav";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 import { createBrowserClient } from "@supabase/ssr";
 import type { Session } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
@@ -140,6 +141,10 @@ export default function Header({
               <div className="flex-shrink-0 animate-fade-in" style={{ animationDelay: '0.3s' }}>
                 <SimpleLanguageToggle />
               </div>
+              {/* Theme Toggle */}
+              <div className="flex-shrink-0 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                <ThemeToggle />
+              </div>
               {showActions && (
                 <>
                   <div className="animate-fade-in" style={{ animationDelay: '0.5s' }}><AuthNav size="sm" /></div>
@@ -257,8 +262,8 @@ export default function Header({
                 className="mt-6 pt-4 border-t border-white/10 animate-fade-in-up"
                 style={{ animationDelay: '0.2s' }}
               >
-                {/* Compact language toggle */}
-                <div className="flex items-center mb-4">
+                {/* Language + Theme toggles */}
+                <div className="flex items-center gap-2 mb-4">
                   <button
                     onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
                     className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface-elevated border border-border text-text-secondary hover:text-text-primary text-sm transition-colors"
@@ -266,6 +271,7 @@ export default function Header({
                   >
                     <span>{language === 'es' ? '🇺🇸 EN' : '🇩🇴 ES'}</span>
                   </button>
+                  <ThemeToggle />
                 </div>
                 {showActions && (
                   <Button
