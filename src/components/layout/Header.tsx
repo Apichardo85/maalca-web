@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { AuthNav } from "@/components/layout/AuthNav";
 import { createBrowserClient } from "@supabase/ssr";
 import type { Session } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation";
 export default function Header({
   className = "",
   variant = "default",
@@ -21,6 +22,7 @@ export default function Header({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mobileSession, setMobileSession] = useState<Session | null>(null);
   const pathname = usePathname();
+  const router = useRouter();
   const { t } = useTranslation();
   const { language, setLanguage } = useSimpleLanguage();
   const navigationItems: NavigationItem[] = [
@@ -217,13 +219,29 @@ export default function Header({
               {/* Auth — mobile only */}
               <div className="px-4 pt-4">
                 {mobileSession ? (
-                  <Link
-                    href="/dashboard"
-                    className="block text-sm text-text-secondary hover:text-white py-2 transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {mobileSession.user.user_metadata?.name || mobileSession.user.email?.split('@')[0]}
-                  </Link>
+                  <div className="flex items-center justify-between">
+                    <Link
+                      href="/dashboard"
+                      className="text-sm text-text-secondary hover:text-text-primary py-2 transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {mobileSession.user.user_metadata?.name || mobileSession.user.email?.split('@')[0]}
+                    </Link>
+                    <button
+                      className="text-sm text-text-muted hover:text-brand-primary py-2 transition-colors"
+                      onClick={async () => {
+                        const supabase = createBrowserClient(
+                          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+                        );
+                        await supabase.auth.signOut();
+                        setIsMobileMenuOpen(false);
+                        router.push("/");
+                      }}
+                    >
+                      Cerrar sesión
+                    </button>
+                  </div>
                 ) : (
                   <Link
                     href="/login"
