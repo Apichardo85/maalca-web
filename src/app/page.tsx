@@ -13,7 +13,7 @@ function AffiliateLogo({ logo, fallback }: { logo?: string; fallback: string }) 
   const [failed, setFailed] = useState(!logo);
   if (failed || !logo) {
     return (
-      <span className="text-text-secondary group-hover:text-white font-bold text-lg transition-colors">
+      <span className="font-bold text-lg text-white/90 rounded-lg px-4 py-2 bg-gradient-to-br from-red-800 to-red-950">
         {fallback}
       </span>
     );
