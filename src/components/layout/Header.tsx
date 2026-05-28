@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/buttons";
 import { Logo } from "@/components/ui/Logo";
-import ThemeToggle from "@/components/ui/ThemeToggle";
 import SimpleLanguageToggle from "@/components/ui/SimpleLanguageToggle";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
 import { NavigationItem, HeaderProps } from "@/lib/types";
@@ -62,7 +61,7 @@ export default function Header({
       case "solid":
         return `${baseStyle} bg-background shadow-lg border-b border-border`;
       default:
-        return `${baseStyle} ${isScrolled ? "bg-background/95 backdrop-blur-lg shadow-lg border-b border-border" : "bg-background/90 backdrop-blur-sm"}`;
+        return `${baseStyle} ${isScrolled ? "bg-background/95 backdrop-blur-lg shadow-lg border-b border-border" : "bg-background/90 backdrop-blur-sm border-b border-border/30"}`;
     }
   };
   const isActive = (href: string) => {
@@ -123,10 +122,6 @@ export default function Header({
               {/* Language Toggle */}
               <div className="flex-shrink-0 animate-fade-in" style={{ animationDelay: '0.3s' }}>
                 <SimpleLanguageToggle />
-              </div>
-              {/* Theme Toggle */}
-              <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
-                <ThemeToggle />
               </div>
               {showActions && (
                 <>
@@ -209,10 +204,9 @@ export default function Header({
                 className="mt-8 pt-6 border-t border-border space-y-4 animate-fade-in-up"
                 style={{ animationDelay: '0.2s' }}
               >
-                {/* Language & Theme Toggles for Mobile */}
+                {/* Language Toggle for Mobile */}
                 <div className="flex justify-center gap-4">
                   <SimpleLanguageToggle />
-                  <ThemeToggle />
                 </div>
                 {showActions && (
                   <>
