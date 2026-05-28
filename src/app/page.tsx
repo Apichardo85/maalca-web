@@ -267,8 +267,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      {/* Affiliates Section — oculto en homepage; reactivar cuando tengamos casos de uso documentados */}
-      <section className="hidden py-16 md:py-24 bg-surface">
+      {/* Clients Section — clientes reales: Pegote + Little Dominicana */}
+      <section className="py-16 md:py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 animate-fade-in-up">
             <h2 className="font-display text-4xl lg:text-5xl font-bold text-text-primary mb-8">
