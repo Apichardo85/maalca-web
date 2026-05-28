@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/buttons";
 import { Logo } from "@/components/ui/Logo";
 import SimpleLanguageToggle from "@/components/ui/SimpleLanguageToggle";
-import { useTranslation } from "@/hooks/useSimpleLanguage";
+import { useTranslation, useSimpleLanguage } from "@/hooks/useSimpleLanguage";
 import { NavigationItem, HeaderProps } from "@/lib/types";
 import { cn } from "@/lib/utils";import { AuthNav } from "@/components/layout/AuthNav";
 export default function Header({
@@ -18,6 +18,7 @@ export default function Header({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const { t } = useTranslation();
+  const { language, setLanguage } = useSimpleLanguage();
   const navigationItems: NavigationItem[] = [
     { label: t('nav.home'), href: "/" },
     { label: t('nav.ecosystem'), href: "/ecosistema" },
@@ -201,36 +202,28 @@ export default function Header({
               </nav>
               {/* Mobile Actions */}
               <div
-                className="mt-8 pt-6 border-t border-border space-y-4 animate-fade-in-up"
+                className="mt-6 pt-4 border-t border-white/10 animate-fade-in-up"
                 style={{ animationDelay: '0.2s' }}
               >
-                {/* Language Toggle for Mobile */}
-                <div className="flex justify-center gap-4">
-                  <SimpleLanguageToggle />
+                {/* Compact language toggle */}
+                <div className="flex items-center mb-4">
+                  <button
+                    onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface-elevated border border-border text-text-secondary hover:text-text-primary text-sm transition-colors"
+                    aria-label={language === 'es' ? 'Switch to English' : 'Cambiar a Español'}
+                  >
+                    <span>{language === 'es' ? '🇺🇸 EN' : '🇩🇴 ES'}</span>
+                  </button>
                 </div>
                 {showActions && (
-                  <>
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="w-full"
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        document.getElementById('ecosistema')?.scrollIntoView({ behavior: 'smooth' });
-                      }}
-                    >
-                      {t('nav.explore')}
-                    </Button>
-                    <AuthNav size="lg" className="w-full" onNavigate={() => setIsMobileMenuOpen(false)} />
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      className="w-full"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {t('nav.join')}
-                    </Button>
-                  </>
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    className="w-full bg-brand-primary hover:bg-brand-primary-hover text-white"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {t('nav.join')}
+                  </Button>
                 )}
               </div>
             </div>
