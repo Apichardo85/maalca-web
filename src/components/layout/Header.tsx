@@ -7,7 +7,10 @@ import { Logo } from "@/components/ui/Logo";
 import SimpleLanguageToggle from "@/components/ui/SimpleLanguageToggle";
 import { useTranslation, useSimpleLanguage } from "@/hooks/useSimpleLanguage";
 import { NavigationItem, HeaderProps } from "@/lib/types";
-import { cn } from "@/lib/utils";import { AuthNav } from "@/components/layout/AuthNav";
+import { cn } from "@/lib/utils";
+import { AuthNav } from "@/components/layout/AuthNav";
+import { createBrowserClient } from "@supabase/ssr";
+import type { Session } from "@supabase/supabase-js";
 export default function Header({
   className = "",
   variant = "default",
@@ -16,6 +19,7 @@ export default function Header({
 }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mobileSession, setMobileSession] = useState<Session | null>(null);
   const pathname = usePathname();
   const { t } = useTranslation();
   const { language, setLanguage } = useSimpleLanguage();
@@ -49,6 +53,16 @@ export default function Header({
       document.body.style.overflow = "unset";
     };
   }, [isMobileMenuOpen]);
+  useEffect(() => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
+    supabase.auth.getSession().then(({ data: { session } }) => setMobileSession(session));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => setMobileSession(session));
+    return () => subscription.unsubscribe();
+  }, []);
+
   // CiriWhispers y Dashboard tienen su propio header/nav
   if (pathname.startsWith('/ciriwhispers') || pathname.startsWith('/dashboard')) {
     return null;
@@ -200,6 +214,22 @@ export default function Header({
                   </div>
                 ))}
               </nav>
+              {/* Auth — mobile only */}
+              <div className="px-4 pt-4">
+                {mobileSession ? (
+                  <span className="block text-sm text-text-secondary py-2">
+                    {mobileSession.user.user_metadata?.name || mobileSession.user.email?.split('@')[0]}
+                  </span>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="block text-sm text-text-secondary hover:text-white py-2 transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Iniciar sesión
+                  </Link>
+                )}
+              </div>
               {/* Mobile Actions */}
               <div
                 className="mt-6 pt-4 border-t border-white/10 animate-fade-in-up"
