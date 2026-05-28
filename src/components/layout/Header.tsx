@@ -217,9 +217,13 @@ export default function Header({
               {/* Auth — mobile only */}
               <div className="px-4 pt-4">
                 {mobileSession ? (
-                  <span className="block text-sm text-text-secondary py-2">
+                  <Link
+                    href="/dashboard"
+                    className="block text-sm text-text-secondary hover:text-white py-2 transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
                     {mobileSession.user.user_metadata?.name || mobileSession.user.email?.split('@')[0]}
-                  </span>
+                  </Link>
                 ) : (
                   <Link
                     href="/login"
