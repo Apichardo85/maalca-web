@@ -9,6 +9,14 @@ export interface EcosystemProject {
 
 export const ecosystemProjects: EcosystemProject[] = [
   {
+    id: "maalca-agent-platform",
+    title: "MaalCa Agent Platform",
+    description: "Plataforma SaaS de orquestación de agentes AI",
+    category: "Plataforma SaaS · Agentes AI",
+    color: "red",
+    active: true
+  },
+  {
     id: "editorial-maalca",
     title: "Editorial MaalCa",
     description: "Publicaciones que exploran cultura, creatividad y sociedad",
