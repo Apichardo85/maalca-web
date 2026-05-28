@@ -84,6 +84,17 @@ const booksData = [
     statusType: "development"
   }
 ];
+function getArticleGradient(title: string): string {
+  let h = 0;
+  for (let i = 0; i < title.length; i++) {
+    h = (Math.imul(31, h) + title.charCodeAt(i)) | 0;
+  }
+  h = Math.abs(h);
+  const h1 = h % 360;
+  const h2 = (h1 + 137) % 360;
+  return `linear-gradient(135deg, hsl(${h1},65%,22%) 0%, hsl(${h2},55%,14%) 100%)`;
+}
+
 // Category keys
 const categoryKeys = ["all", "philosophy", "technology", "business", "culture", "society", "art"];
 export default function EditorialPage() {
@@ -188,8 +199,13 @@ export default function EditorialPage() {
               >
                 <div className="bg-surface rounded-2xl overflow-hidden border border-border hover:border-brand-primary transition-all duration-300 shadow-sm hover:shadow-xl h-full">
                   {/* Article Image Placeholder */}
-                  <div className="aspect-[16/9] bg-gradient-to-br from-brand-primary/10 to-surface-elevated flex items-center justify-center">
-                    <div className="text-6xl opacity-30">📖</div>
+                  <div
+                    className="aspect-[16/9] flex items-center justify-center"
+                    style={{ background: getArticleGradient(article.title) }}
+                  >
+                    <span className="font-display text-7xl font-bold text-white/15 select-none">
+                      {article.title.charAt(0).toUpperCase()}
+                    </span>
                   </div>
                   {/* Content */}
                   <div className="p-8">
