@@ -103,7 +103,7 @@ export const affiliates: Affiliate[] = [
   {
     id: "pegote-barbershop",
     name: "Pegote Barbershop",
-    description: "Barbería dominicana en Elmira, NY. Cortes modernos con técnicas tradicionales, ambiente familiar y atención de primera clase.",
+    description: "Barbería en Elmira, NY — primer cliente piloto de MaalCa. Reservas, catálogo de servicios y presencia digital en configuración.",
     category: "comunicacion-visual-diseno",
     status: "active",
     active: true,
@@ -232,7 +232,7 @@ export const ecosystemAffiliates: Affiliate[] = [
   {
     id: "pegote-barbershop",
     name: "Pegote Barbershop",
-    description: "Barbería dominicana en Elmira, NY. Cortes modernos con técnicas tradicionales, ambiente familiar y atención de primera clase.",
+    description: "Barbería en Elmira, NY — primer cliente piloto de MaalCa. Reservas, catálogo de servicios y presencia digital en configuración.",
     category: "comunicacion-visual-diseno",
     status: "active",
     active: true,
@@ -426,7 +426,7 @@ export const ecosystemAffiliates: Affiliate[] = [
   {
     id: "the-little-dominican",
     name: "Little Dominicana Restaurant",
-    description: "Restaurante dominicano en Elmira, NY. Cocina tradicional con un toque moderno.",
+    description: "Restaurante dominicano en Elmira, NY — en proceso de onboarding con catálogo digital, QR y pedidos online.",
     category: "proveedor-ingredientes",
     status: "active",
     active: true,
