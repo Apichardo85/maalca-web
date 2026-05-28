@@ -117,7 +117,7 @@ export default function HomePage() {
             </p>
           </div>
           {/* Timeline */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
             {[
               {
                 year: "2020",
@@ -133,6 +133,11 @@ export default function HomePage() {
                 year: "2024",
                 titleKey: "about.consolidation",
                 descKey: "about.consolidation.desc"
+              },
+              {
+                year: "2026",
+                titleKey: "about.platform",
+                descKey: "about.platform.desc"
               }
             ].map((item, index) => (
               <div
@@ -162,6 +167,16 @@ export default function HomePage() {
           {/* Projects Grid — visibility controlled by active field in ecosystem-projects.ts */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
+              {
+                id: "maalca-agent-platform",
+                titleKey: "project.agent.title",
+                descriptionKey: "project.agent.description",
+                categoryKey: "project.agent.category",
+                outcomeKey: "project.agent.outcome",
+                color: "red",
+                image: "/images/projects/agent-platform.png",
+                href: "/servicios"
+              },
               {
                 id: "editorial-maalca",
                 titleKey: "project.editorial.title",
@@ -252,8 +267,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      {/* Affiliates Section */}
-      <section className="py-16 md:py-24 bg-surface">
+      {/* Affiliates Section — oculto en homepage; reactivar cuando tengamos casos de uso documentados */}
+      <section className="hidden py-16 md:py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 animate-fade-in-up">
             <h2 className="font-display text-4xl lg:text-5xl font-bold text-text-primary mb-8">
