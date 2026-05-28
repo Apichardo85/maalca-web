@@ -2,8 +2,13 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { createBrowserClient } from '@supabase/ssr';
 import { track } from '@/lib/analytics';
 import { apiFetch, ApiError } from '@/lib/api-client';
+
+// Set to true when /api/onboarding and /space/[slug] are production-ready
+const ONBOARDING_LIVE = false;
 
 const BUSINESS_TYPES = [
   { value: 'restaurant', label: 'Restaurante', emoji: '🍽️' },
@@ -12,12 +17,62 @@ const BUSINESS_TYPES = [
   { value: 'retail', label: 'Tienda', emoji: '🛍️' },
 ] as const;
 
+function OnboardingStub() {
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    );
+    await supabase.auth.signOut();
+    router.push('/');
+  };
+
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6">
+      <div className="w-full max-w-md text-center">
+        <div className="mb-8">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-surface-elevated border border-border">
+            <svg className="h-8 w-8 text-brand-primary" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+            </svg>
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-text-primary">
+            Estamos preparando tu espacio
+          </h1>
+          <p className="mt-4 text-text-secondary leading-relaxed">
+            Tu cuenta está lista. Estamos configurando las últimas piezas de la plataforma.
+            Pronto tendrás acceso completo a tu dashboard.
+          </p>
+        </div>
+        <div className="flex flex-col gap-3">
+          <Link
+            href="/"
+            className="w-full rounded-full bg-brand-primary py-3 text-sm font-medium text-white transition hover:bg-brand-primary-hover text-center"
+          >
+            Ir al inicio
+          </Link>
+          <button
+            onClick={handleSignOut}
+            className="w-full rounded-full border border-border py-3 text-sm font-medium text-text-secondary transition hover:border-border-muted hover:text-text-primary"
+          >
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function OnboardingPage() {
   const router = useRouter();
   const [name, setName] = useState('');
   const [type, setType] = useState<typeof BUSINESS_TYPES[number]['value'] | ''>('');
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  if (!ONBOARDING_LIVE) return <OnboardingStub />;
 
   const submit = () => {
     if (!name.trim() || !type) return;
