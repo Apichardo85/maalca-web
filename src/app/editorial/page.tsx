@@ -1,452 +1,250 @@
 "use client";
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/buttons";
-import { useAnalytics } from "@/hooks/useAnalytics";
+import Link from "next/link";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
-import ProfessionalReader from "@/components/editorial/ProfessionalReader";
-import ShareButton from "@/components/editorial/ShareButton";
-import { editorialArticles } from "@/data/editorialContent";
-// Article metadata (translation keys will be used for title/excerpt)
-const articlesData = [
-  {
-    id: "filosofia-calle-2024",
-    titleKey: "filosofia-calle",
-    categoryKey: "philosophy",
-    readTime: "12",
-    publishDate: "2024-03-15",
-    featured: true,
-    tags: ["Filosofía", "Cultura", "República Dominicana"]
-  },
-  {
-    id: "creatividad-humana-ia",
-    titleKey: "creatividad-ia",
-    categoryKey: "technology",
-    readTime: "8",
-    publishDate: "2024-02-28",
-    featured: false,
-    tags: ["IA", "Creatividad", "Tecnología"]
-  },
-  {
-    id: "ecosistemas-creativos",
-    titleKey: "ecosistemas-creativos",
-    categoryKey: "business",
-    readTime: "15",
-    publishDate: "2024-02-10",
-    featured: true,
-    tags: ["Negocios", "Creatividad", "Colaboración"]
-  },
-  {
-    id: "identidad-global-local",
-    titleKey: "identidad-global",
-    categoryKey: "culture",
-    readTime: "10",
-    publishDate: "2024-01-22",
-    featured: false,
-    tags: ["Cultura", "Globalización", "Identidad"]
-  },
-  {
-    id: "futuro-trabajo-humano",
-    titleKey: "futuro-trabajo",
-    categoryKey: "society",
-    readTime: "14",
-    publishDate: "2024-01-08",
-    featured: false,
-    tags: ["Trabajo", "Sociedad", "Bienestar"]
-  },
-  {
-    id: "arte-resistencia-digital",
-    titleKey: "arte-resistencia",
-    categoryKey: "art",
-    readTime: "11",
-    publishDate: "2023-12-18",
-    featured: false,
-    tags: ["Arte", "Digital", "Resistencia"]
-  }
-];
-// Book metadata (translation keys will be used)
-const booksData = [
-  {
-    key: "filosofia-callejera",
-    cover: "🏙️",
-    link: "#",
-    statusType: "available"
-  },
-  {
-    key: "ecosistemas",
-    cover: "🌱",
-    link: "#",
-    statusType: "coming"
-  },
-  {
-    key: "humanidad-digital",
-    cover: "🤖",
-    link: "#",
-    statusType: "development"
-  }
-];
-function getArticleGradient(title: string): string {
-  let h = 0;
-  for (let i = 0; i < title.length; i++) {
-    h = (Math.imul(31, h) + title.charCodeAt(i)) | 0;
-  }
-  h = Math.abs(h);
-  const h1 = h % 360;
-  const h2 = (h1 + 137) % 360;
-  return `linear-gradient(135deg, hsl(${h1},65%,22%) 0%, hsl(${h2},55%,14%) 100%)`;
-}
+import { books } from "@/data/ciriwhispers/books";
 
-// Category keys
-const categoryKeys = ["all", "philosophy", "technology", "business", "culture", "society", "art"];
+const assistedFeatures = [
+  "Pack completo: formateo, ISBN, portada, distribución",
+  "Tu libro en Amazon KDP en menos de 30 días",
+  "Las regalías son 100% tuyas",
+  "Sin upsells. Sin trampas. Un precio claro.",
+];
+
+const curatedFeatures = [
+  "Lectura editorial real del manuscrito",
+  "Revisión y sugerencias literarias",
+  "Publicación con difusión activa",
+  "Compartimos regalías — te damos voz",
+];
+
+const aiItems = [
+  "Formateo del manuscrito a estándares de impresión y eBook",
+  "Generación de propuestas de portada (tú eliges la final)",
+  "Optimización de metadatos para descubrimiento en Amazon",
+  "Setup de ISBN y distribución técnica",
+];
+
+const humanItems = [
+  "Lectura editorial del manuscrito",
+  "Decisión sobre obras del Track Curado",
+  "Comunicación contigo durante el proceso",
+  "Críticas y sugerencias literarias (Track Curado)",
+];
+
 export default function EditorialPage() {
-  const { t, language } = useTranslation();
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedArticle, setSelectedArticle] = useState<string | null>(null);
-  const [email, setEmail] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState('');
-  const { trackArticleClick } = useAnalytics('editorial');
-  // Deep-link: open reader automatically if URL has ?article=<id>
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    const articleParam = params.get('article');
-    if (articleParam && articlesData.some(a => a.id === articleParam)) {
-      setSelectedArticle(articleParam);
-    }
-  }, []);
-  // Transform articles data with translations
-  const articles = articlesData.map(article => ({
-    ...article,
-    title: t(`editorial.article.${article.titleKey}.title`),
-    excerpt: t(`editorial.article.${article.titleKey}.excerpt`),
-    category: t(`editorial.category.${article.categoryKey}`),
-    author: t('editorial.author')
-  }));
-  // Filter articles
-  const filteredArticles = selectedCategory === "all"
-    ? articles
-    : articles.filter(article => article.categoryKey === selectedCategory);
-  const featuredArticles = articles.filter(article => article.featured);
-  // Transform books data with translations
-  const books = booksData.map(book => ({
-    ...book,
-    title: t(`editorial.book.${book.key}.title`),
-    description: t(`editorial.book.${book.key}.description`),
-    status: t(`editorial.book.${book.key}.status`)
-  }));
-  const getArticleContent = (articleId: string) => {
-    return editorialArticles[articleId as keyof typeof editorialArticles] || t('editorial.contentNotAvailable');
-  };
-  const handleNewsletterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setMessage('');
-    try {
-      const response = await fetch('/api/newsletter/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setMessage(t('editorial.newsletter.success'));
-        setEmail('');
-      } else {
-        setMessage(data.error || t('editorial.newsletter.error'));
-      }
-    } catch (error) {
-      setMessage(t('editorial.newsletter.errorConnection'));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const { t } = useTranslation();
+
   return (
-    <main className="min-h-screen bg-background text-white pt-20">
-      {/* Hero Section */}
-      <section className="py-16 md:py-24 bg-surface relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="animate-fade-in-up">
-              <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-text-primary mb-6">
-                {t('editorial.hero.title')}
-                <span className="block text-brand-primary">{t('editorial.hero.brand')}</span>
-              </h1>
-              <p className="text-lg lg:text-xl text-text-secondary max-w-3xl mx-auto leading-relaxed">
-                {t('editorial.hero.description')}
-              </p>
+    <div>
+      {/* ─── HERO ───────────────────────────────────────────────────────────── */}
+      <section className="py-20 md:py-32 bg-stone-50 dark:bg-stone-950">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-sm font-medium text-amber-600 dark:text-amber-500 uppercase tracking-widest mb-6">
+            {t('editorial.hero.eyebrow')}
+          </p>
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-stone-900 dark:text-stone-100 leading-tight mb-8">
+            {t('editorial.hero.title')}
+          </h1>
+          <p className="text-lg text-stone-600 dark:text-stone-400 leading-relaxed mb-12 max-w-2xl mx-auto">
+            {t('editorial.hero.subtitle')}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="/editorial/publica"
+              className="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-8 py-3.5 rounded-full transition-colors text-base"
+            >
+              {t('editorial.hero.cta.primary')}
+            </Link>
+            <Link
+              href="/editorial/catalogo"
+              className="border-2 border-stone-800 dark:border-stone-300 text-stone-800 dark:text-stone-300 hover:bg-stone-800 dark:hover:bg-stone-300 hover:text-white dark:hover:text-stone-900 font-semibold px-8 py-3.5 rounded-full transition-colors text-base"
+            >
+              {t('editorial.hero.cta.secondary')}
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── TWO TRACKS ─────────────────────────────────────────────────────── */}
+      <section className="py-16 md:py-24 bg-white dark:bg-stone-900">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="font-serif text-3xl md:text-4xl font-bold text-stone-900 dark:text-stone-100 text-center mb-12">
+            {t('editorial.tracks.title')}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Track Asistido */}
+            <div className="rounded-2xl border-2 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/20 p-8 flex flex-col">
+              <div className="mb-6">
+                <p className="text-xs font-bold text-amber-600 dark:text-amber-500 uppercase tracking-widest mb-2">
+                  {t('editorial.track.assisted.title')}
+                </p>
+                <p className="font-serif text-4xl font-bold text-stone-900 dark:text-stone-100">
+                  {t('editorial.track.assisted.price')}
+                </p>
+                <p className="text-stone-500 dark:text-stone-500 text-sm mt-1">
+                  {t('editorial.track.assisted.subtitle')}
+                </p>
+              </div>
+              <ul className="space-y-3 mb-8 flex-1">
+                {assistedFeatures.map((f) => (
+                  <li key={f} className="flex items-start gap-2.5 text-sm text-stone-700 dark:text-stone-300">
+                    <span className="text-amber-500 mt-0.5 flex-shrink-0">✓</span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/editorial/publica"
+                className="block text-center bg-amber-600 hover:bg-amber-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
+              >
+                Empezar mi publicación →
+              </Link>
+            </div>
+
+            {/* Track Curado */}
+            <div className="rounded-2xl border-2 border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 p-8 flex flex-col">
+              <div className="mb-6">
+                <p className="text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-widest mb-2">
+                  {t('editorial.track.curated.title')}
+                </p>
+                <p className="font-serif text-4xl font-bold text-stone-900 dark:text-stone-100">
+                  {t('editorial.track.curated.price')}
+                </p>
+                <p className="text-stone-500 dark:text-stone-500 text-sm mt-1">
+                  {t('editorial.track.curated.subtitle')}
+                </p>
+              </div>
+              <ul className="space-y-3 mb-8 flex-1">
+                {curatedFeatures.map((f) => (
+                  <li key={f} className="flex items-start gap-2.5 text-sm text-stone-700 dark:text-stone-300">
+                    <span className="text-stone-400 mt-0.5 flex-shrink-0">✓</span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <a
+                href="mailto:editorial@maalca.com?subject=Track Curado — envío de manuscrito"
+                className="block text-center border-2 border-stone-800 dark:border-stone-300 text-stone-800 dark:text-stone-300 hover:bg-stone-800 dark:hover:bg-stone-300 hover:text-white dark:hover:text-stone-900 font-semibold py-3 px-6 rounded-xl transition-colors"
+              >
+                Enviar mi manuscrito →
+              </a>
             </div>
           </div>
         </div>
       </section>
-      {/* Featured Articles */}
-      <section className="py-16 md:py-24 bg-surface-elevated">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-12 animate-fade-in-up">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-4">
-              {t('editorial.featured.title')}
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {featuredArticles.map((article, index) => (
-              <article
-                key={article.id}
-                className="group cursor-pointer animate-fade-in-up"
-                style={{ animationDelay: `${index * 150}ms` }}
-                onClick={() => {
-                  trackArticleClick(article.id);
-                  setSelectedArticle(article.id);
-                }}
-              >
-                <div className="bg-surface rounded-2xl overflow-hidden border border-border hover:border-brand-primary transition-all duration-300 shadow-sm hover:shadow-xl h-full">
-                  {/* Article Image Placeholder */}
-                  <div
-                    className="aspect-[16/9] flex items-center justify-center"
-                    style={{ background: getArticleGradient(article.title) }}
-                  >
-                    <span className="font-display text-7xl font-bold text-white/15 select-none">
-                      {article.title.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  {/* Content */}
-                  <div className="p-8">
-                    {/* Category and Meta */}
-                    <div className="flex items-center gap-4 mb-4">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-brand-primary/20 text-brand-primary border border-brand-primary/30">
-                        {article.category}
-                      </span>
-                      <span className="text-sm text-gray-400">{article.readTime} {t('editorial.readTime')}</span>
-                    </div>
-                    {/* Title */}
-                    <h3 className="text-2xl font-bold text-text-primary mb-4 group-hover:text-brand-primary-hover transition-colors leading-tight">
-                      {article.title}
-                    </h3>
-                    {/* Excerpt */}
-                    <p className="text-text-secondary leading-relaxed mb-6">
-                      {article.excerpt}
-                    </p>
-                    {/* Meta Info */}
-                    <div className="flex items-center justify-between text-sm text-gray-400 gap-3">
-                      <span className="truncate">{article.author}</span>
-                      <div className="flex items-center gap-3 shrink-0">
-                        <time dateTime={article.publishDate}>
-                          {new Date(article.publishDate).toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
-                        </time>
-                        <ShareButton
-                          articleId={article.id}
-                          title={article.title}
-                          excerpt={article.excerpt}
-                          lang={language === 'en' ? 'en' : 'es'}
-                        />
-                      </div>
-                    </div>
-                  </div>
+
+      {/* ─── TECH vs HUMANS ─────────────────────────────────────────────────── */}
+      <section className="py-16 md:py-24 bg-stone-50 dark:bg-stone-950">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="font-serif text-3xl md:text-4xl font-bold text-stone-900 dark:text-stone-100 text-center mb-12">
+            {t('editorial.tech.title')}
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* AI */}
+            <div className="bg-white dark:bg-stone-900 rounded-2xl p-8 border border-stone-200 dark:border-stone-700">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-950 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
+                  </svg>
                 </div>
-              </article>
-            ))}
+                <h3 className="font-semibold text-stone-900 dark:text-stone-100">
+                  {t('editorial.tech.ai.title')}
+                </h3>
+              </div>
+              <ul className="space-y-3">
+                {aiItems.map((item) => (
+                  <li key={item} className="flex items-start gap-2.5 text-sm text-stone-600 dark:text-stone-400">
+                    <span className="text-amber-500 mt-0.5 flex-shrink-0">→</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Humans */}
+            <div className="bg-white dark:bg-stone-900 rounded-2xl p-8 border-2 border-stone-800 dark:border-stone-300">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-stone-700 dark:text-stone-300">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.182 15.182a4.5 4.5 0 01-6.364 0M21 12a9 9 0 11-18 0 9 9 0 0118 0zM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75zm-.375 0h.008v.015h-.008V9.75zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75zm-.375 0h.008v.015h-.008V9.75z" />
+                  </svg>
+                </div>
+                <h3 className="font-semibold text-stone-900 dark:text-stone-100">
+                  {t('editorial.tech.human.title')}
+                </h3>
+              </div>
+              <ul className="space-y-3">
+                {humanItems.map((item) => (
+                  <li key={item} className="flex items-start gap-2.5 text-sm text-stone-600 dark:text-stone-400">
+                    <span className="text-stone-800 dark:text-stone-300 font-bold mt-0.5 flex-shrink-0">✱</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </section>
-      {/* All Articles */}
-      <section className="py-16 md:py-24 bg-surface">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Header with Filters */}
-          <div className="mb-12 animate-fade-in-up">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-8">
-              {t('editorial.all.title')}
+
+      {/* ─── CATALOG PREVIEW ────────────────────────────────────────────────── */}
+      <section className="py-16 bg-white dark:bg-stone-900">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-10">
+            <h2 className="font-serif text-2xl md:text-3xl font-bold text-stone-900 dark:text-stone-100">
+              Obras publicadas
             </h2>
-            {/* Category Filter */}
-            <div className="flex flex-wrap gap-2">
-              {categoryKeys.map((categoryKey) => (
-                <button
-                  key={categoryKey}
-                  onClick={() => setSelectedCategory(categoryKey)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                    selectedCategory === categoryKey
-                      ? 'bg-brand-primary text-white'
-                      : 'bg-surface-elevated text-text-secondary hover:bg-brand-primary/20 hover:text-brand-primary border border-border'
-                  }`}
-                >
-                  {t(`editorial.category.${categoryKey}`)}
-                </button>
-              ))}
-            </div>
+            <Link
+              href="/editorial/catalogo"
+              className="text-sm font-medium text-amber-600 dark:text-amber-500 hover:text-amber-700 dark:hover:text-amber-400 transition-colors"
+            >
+              Ver todo →
+            </Link>
           </div>
-          {/* Articles Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredArticles.map((article, index) => (
-              <article
-                key={article.id}
-                className="group cursor-pointer animate-fade-in-up"
-                style={{ animationDelay: `${index * 100}ms` }}
-                onClick={() => {
-                  trackArticleClick(article.id);
-                  setSelectedArticle(article.id);
-                }}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {books.slice(0, 4).map((book) => (
+              <Link
+                key={book.id}
+                href={`/ciriwhispers/obras/${book.id}`}
+                className="group"
               >
-                  <div className="bg-surface-elevated rounded-2xl p-6 h-full border border-border hover:border-brand-primary transition-all duration-300 hover:shadow-lg">
-                  {/* Category */}
-                  <div className="mb-4">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-surface text-text-secondary border border-border">
-                      {article.category}
-                    </span>
-                  </div>
-                  {/* Title */}
-                  <h3 className="text-lg font-bold text-text-primary mb-3 group-hover:text-brand-primary-hover transition-colors leading-tight">
-                    {article.title}
-                  </h3>
-                  {/* Excerpt */}
-                  <p className="text-text-secondary text-sm leading-relaxed mb-4">
-                    {article.excerpt.slice(0, 120)}...
-                  </p>
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {article.tags.slice(0, 2).map((tag) => (
-                      <span
-                        key={tag}
-                        className="text-xs text-gray-400 bg-surface px-2 py-1 rounded-md"
-                      >
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
-                  {/* Meta */}
-                  <div className="flex items-center justify-between text-xs text-gray-400 pt-3 border-t border-border gap-2">
-                    <span className="shrink-0">{article.readTime} {t('editorial.readTime')}</span>
-                    <time dateTime={article.publishDate} className="truncate">
-                      {new Date(article.publishDate).toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US')}
-                    </time>
-                    <ShareButton
-                      articleId={article.id}
-                      title={article.title}
-                      excerpt={article.excerpt}
-                      lang={language === 'en' ? 'en' : 'es'}
+                <div className="rounded-lg overflow-hidden border border-stone-200 dark:border-stone-700 hover:border-amber-300 dark:hover:border-amber-700 transition-all bg-stone-50 dark:bg-stone-800">
+                  <div className="aspect-[2/3] overflow-hidden">
+                    <img
+                      src={book.cover}
+                      alt={book.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "/images/projects/ciriwhispers.png";
+                      }}
                     />
                   </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-      {/* Books Section */}
-      <section className="py-16 md:py-24 bg-surface-elevated">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div
-            className="text-center mb-12 animate-fade-in-up"
-          >
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-6">
-              {t('editorial.books.title')}
-            </h2>
-            <p className="text-lg text-text-secondary max-w-2xl mx-auto">
-              {t('editorial.books.description')}
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {books.map((book, index) => (
-              <div
-                key={book.title}
-                className="group animate-fade-in-up"
-                style={{ animationDelay: `${index * 150}ms` }}
-              >
-                <div className="bg-surface rounded-2xl p-8 text-center border border-border hover:border-brand-primary transition-all duration-300 shadow-sm hover:shadow-xl h-full">
-                  {/* Book Cover */}
-                  <div className="text-6xl mb-6">{book.cover}</div>
-                  {/* Title */}
-                  <h3 className="text-xl font-bold text-text-primary mb-4">
-                    {book.title}
-                  </h3>
-                  {/* Description */}
-                  <p className="text-text-secondary leading-relaxed mb-6">
-                    {book.description}
-                  </p>
-                  {/* Status */}
-                  <div className="mb-6">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                      book.statusType === 'available'
-                        ? 'bg-green-900/30 text-green-400 border border-green-700'
-                        : book.statusType === 'coming'
-                        ? 'bg-blue-900/30 text-blue-400 border border-blue-700'
-                        : 'bg-orange-900/30 text-orange-400 border border-orange-700'
-                    }`}>
-                      {book.status}
-                    </span>
+                  <div className="p-3">
+                    <p className="font-serif text-xs font-semibold text-stone-800 dark:text-stone-200 line-clamp-2 group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors">
+                      {book.title}
+                    </p>
                   </div>
-                  {/* CTA */}
-                  <Button
-                    variant={book.statusType === 'available' ? 'primary' : 'outline'}
-                    className={book.statusType === 'available'
-                      ? 'bg-brand-primary hover:bg-brand-primary-hover w-full text-white'
-                      : 'w-full border-brand-primary/50 text-brand-primary hover:bg-brand-primary hover:text-white'
-                    }
-                    disabled={book.statusType !== 'available'}
-                  >
-                    {book.statusType === 'available' ? t('editorial.book.cta.buy') : t('editorial.book.cta.comingSoon')}
-                  </Button>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
       </section>
-      {/* Newsletter Section */}
-      <section className="py-16 md:py-24 bg-surface">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="animate-fade-in-up">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-6">
-              {t('editorial.newsletter.title')}
-            </h2>
-            <p className="text-lg text-text-secondary mb-8 max-w-2xl mx-auto">
-              {t('editorial.newsletter.description')}
-            </p>
-            {/* Newsletter Form */}
-            <form onSubmit={handleNewsletterSubmit} className="max-w-md mx-auto">
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t('editorial.newsletter.placeholder')}
-                  required
-                  disabled={isSubmitting}
-                  className="flex-1 px-4 py-3 bg-surface-elevated border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-brand-primary transition-colors text-text-primary placeholder-gray-400 disabled:opacity-50"
-                />
-                <Button
-                  type="submit"
-                  variant="primary"
-                  disabled={isSubmitting}
-                  className="bg-brand-primary hover:bg-brand-primary-hover px-6 text-white disabled:opacity-50"
-                >
-                  {isSubmitting ? t('editorial.newsletter.submitting') : t('editorial.newsletter.submit')}
-                </Button>
-              </div>
-              {message && (
-                <p className={`text-sm mt-2 ${
-                  message.includes(t('editorial.newsletter.success')) || message.includes('exitosa') ? 'text-green-400' : 'text-brand-primary'
-                }`}>
-                  {message}
-                </p>
-              )}
-              <p className="text-xs text-gray-400 mt-2">
-                {t('editorial.newsletter.disclaimer')}
-              </p>
-            </form>
-          </div>
+
+      {/* ─── ARTICLES LINK ──────────────────────────────────────────────────── */}
+      <section className="py-12 bg-stone-50 dark:bg-stone-950 border-t border-stone-100 dark:border-stone-800">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
+          <p className="text-stone-500 dark:text-stone-500 text-sm mb-3">
+            También publicamos ensayos y reflexiones.
+          </p>
+          <Link
+            href="/editorial/articulos"
+            className="text-sm font-medium text-amber-600 dark:text-amber-500 hover:text-amber-700 dark:hover:text-amber-400 transition-colors"
+          >
+            Ver artículos →
+          </Link>
         </div>
       </section>
-      {/* Reader Modal */}
-      {selectedArticle && (
-        <ProfessionalReader
-          articleId={selectedArticle}
-          title={articles.find(a => a.id === selectedArticle)?.title || t('editorial.hero.title')}
-          author={t('editorial.author')}
-          content={getArticleContent(selectedArticle)}
-          onClose={() => setSelectedArticle(null)}
-        />
-      )}
-    </main>
+    </div>
   );
 }
