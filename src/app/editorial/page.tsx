@@ -4,32 +4,32 @@ import { useTranslation } from "@/hooks/useSimpleLanguage";
 import { books } from "@/data/ciriwhispers/books";
 import { EDITORIAL_ASSISTED_PRICE_DISPLAY } from "@/config/editorial-pricing";
 
-const assistedFeatures = [
-  "Pack completo: formateo, ISBN, portada, distribución",
-  "Tu libro en Amazon KDP en menos de 30 días",
-  "Las regalías son 100% tuyas",
-  "Sin upsells. Sin trampas. Un precio claro.",
+const assistedKeys = [
+  'editorial.track.assisted.b1',
+  'editorial.track.assisted.b2',
+  'editorial.track.assisted.b3',
+  'editorial.track.assisted.b4',
 ];
 
-const curatedFeatures = [
-  "Lectura editorial real del manuscrito",
-  "Revisión y sugerencias literarias",
-  "Publicación con difusión activa",
-  "Compartimos regalías — te damos voz",
+const curatedKeys = [
+  'editorial.track.curated.b1',
+  'editorial.track.curated.b2',
+  'editorial.track.curated.b3',
+  'editorial.track.curated.b4',
 ];
 
-const aiItems = [
-  "Formateo del manuscrito a estándares de impresión y eBook",
-  "Generación de propuestas de portada (tú eliges la final)",
-  "Optimización de metadatos para descubrimiento en Amazon",
-  "Setup de ISBN y distribución técnica",
+const aiKeys = [
+  'editorial.tech.ai.b1',
+  'editorial.tech.ai.b2',
+  'editorial.tech.ai.b3',
+  'editorial.tech.ai.b4',
 ];
 
-const humanItems = [
-  "Lectura editorial del manuscrito",
-  "Decisión sobre obras del Track Curado",
-  "Comunicación contigo durante el proceso",
-  "Críticas y sugerencias literarias (Track Curado)",
+const humanKeys = [
+  'editorial.tech.human.b1',
+  'editorial.tech.human.b2',
+  'editorial.tech.human.b3',
+  'editorial.tech.human.b4',
 ];
 
 export default function EditorialPage() {
@@ -87,10 +87,10 @@ export default function EditorialPage() {
                 </p>
               </div>
               <ul className="space-y-3 mb-8 flex-1">
-                {assistedFeatures.map((f) => (
-                  <li key={f} className="flex items-start gap-2.5 text-sm text-stone-700 dark:text-stone-300">
+                {assistedKeys.map((k) => (
+                  <li key={k} className="flex items-start gap-2.5 text-sm text-stone-700 dark:text-stone-300">
                     <span className="text-amber-500 mt-0.5 flex-shrink-0">✓</span>
-                    {f}
+                    {t(k)}
                   </li>
                 ))}
               </ul>
@@ -98,7 +98,7 @@ export default function EditorialPage() {
                 href="/editorial/publica"
                 className="block text-center bg-amber-600 hover:bg-amber-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
               >
-                Empezar mi publicación →
+                {t('editorial.track.assisted.cta')}
               </Link>
             </div>
 
@@ -116,10 +116,10 @@ export default function EditorialPage() {
                 </p>
               </div>
               <ul className="space-y-3 mb-8 flex-1">
-                {curatedFeatures.map((f) => (
-                  <li key={f} className="flex items-start gap-2.5 text-sm text-stone-700 dark:text-stone-300">
+                {curatedKeys.map((k) => (
+                  <li key={k} className="flex items-start gap-2.5 text-sm text-stone-700 dark:text-stone-300">
                     <span className="text-stone-400 mt-0.5 flex-shrink-0">✓</span>
-                    {f}
+                    {t(k)}
                   </li>
                 ))}
               </ul>
@@ -127,7 +127,7 @@ export default function EditorialPage() {
                 href="mailto:editorial@maalca.com?subject=Track Curado — envío de manuscrito"
                 className="block text-center border-2 border-stone-800 dark:border-stone-300 text-stone-800 dark:text-stone-300 hover:bg-stone-800 dark:hover:bg-stone-300 hover:text-white dark:hover:text-stone-900 font-semibold py-3 px-6 rounded-xl transition-colors"
               >
-                Enviar mi manuscrito →
+                {t('editorial.track.curated.cta')}
               </a>
             </div>
           </div>
@@ -154,10 +154,10 @@ export default function EditorialPage() {
                 </h3>
               </div>
               <ul className="space-y-3">
-                {aiItems.map((item) => (
-                  <li key={item} className="flex items-start gap-2.5 text-sm text-stone-600 dark:text-stone-400">
+                {aiKeys.map((k) => (
+                  <li key={k} className="flex items-start gap-2.5 text-sm text-stone-600 dark:text-stone-400">
                     <span className="text-amber-500 mt-0.5 flex-shrink-0">→</span>
-                    {item}
+                    {t(k)}
                   </li>
                 ))}
               </ul>
@@ -176,10 +176,10 @@ export default function EditorialPage() {
                 </h3>
               </div>
               <ul className="space-y-3">
-                {humanItems.map((item) => (
-                  <li key={item} className="flex items-start gap-2.5 text-sm text-stone-600 dark:text-stone-400">
+                {humanKeys.map((k) => (
+                  <li key={k} className="flex items-start gap-2.5 text-sm text-stone-600 dark:text-stone-400">
                     <span className="text-stone-800 dark:text-stone-300 font-bold mt-0.5 flex-shrink-0">✱</span>
-                    {item}
+                    {t(k)}
                   </li>
                 ))}
               </ul>

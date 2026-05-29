@@ -7,32 +7,28 @@ import { useTranslation } from "@/hooks/useSimpleLanguage";
 const cases = [
   {
     id: "pegote-barbershop",
-    name: "Pegote Barbershop",
-    location: "Elmira, NY",
-    type: "Barbería",
+    nameKey: "cases.pegote.title",
+    locationKey: "cases.pegote.location",
     logo: "/images/affiliates/pegote-logo.png",
     fallback: "PB",
-    status: "Piloto activo",
+    statusKey: "cases.pegote.status",
     statusColor: "text-green-600 bg-green-50 border-green-200",
-    description:
-      "Primer cliente piloto de MaalCa. Barbería dominicana con presencia en Elmira, NY.",
-    modules: ["Presencia digital", "Catálogo de servicios", "Reservas online"],
-    moduleStatus: "En configuración",
+    descKey: "cases.pegote.desc",
+    moduleKeys: ["cases.pegote.module1", "cases.pegote.module2", "cases.pegote.module3"],
+    moduleStatusKey: "cases.pegote.moduleStatus",
     href: "/pegote-barber",
   },
   {
     id: "the-little-dominican",
-    name: "Little Dominicana Restaurant",
-    location: "315 E Water St, Elmira NY 14901",
-    type: "Restaurante",
+    nameKey: "cases.tld.title",
+    locationKey: "cases.tld.location",
     logo: "/images/affiliates/tld/Logo.png",
     fallback: "TLD",
-    status: "En onboarding",
+    statusKey: "cases.tld.status",
     statusColor: "text-amber-600 bg-amber-50 border-amber-200",
-    description:
-      "Restaurante dominicano en Elmira, NY. Cocina tradicional con toque moderno.",
-    modules: ["Catálogo digital con QR", "Pedidos online", "Confirmaciones automáticas"],
-    moduleStatus: "En proceso",
+    descKey: "cases.tld.desc",
+    moduleKeys: ["cases.tld.module1", "cases.tld.module2", "cases.tld.module3"],
+    moduleStatusKey: "cases.tld.moduleStatus",
     href: "/the-little-dominicana",
   },
 ];
@@ -69,8 +65,7 @@ export default function CasosPage() {
               {t('casos.title')}
             </h1>
             <p className="text-lg text-text-secondary max-w-2xl mx-auto leading-relaxed">
-              Dos negocios de Elmira, NY que decidieron automatizar sus operaciones con MaalCa.
-              Somos una startup local — nuestros primeros clientes son nuestros vecinos.
+              {t('cases.hero.text')}
             </p>
           </div>
         </div>
@@ -100,28 +95,28 @@ export default function CasosPage() {
                 <div className="p-8">
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div>
-                      <h2 className="text-xl font-bold text-text-primary">{c.name}</h2>
-                      <p className="text-sm text-text-muted mt-0.5">{c.location}</p>
+                      <h2 className="text-xl font-bold text-text-primary">{t(c.nameKey)}</h2>
+                      <p className="text-sm text-text-muted mt-0.5">{t(c.locationKey)}</p>
                     </div>
                     <span className={`flex-shrink-0 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${c.statusColor}`}>
-                      {c.status}
+                      {t(c.statusKey)}
                     </span>
                   </div>
 
                   <p className="text-text-secondary text-sm leading-relaxed mb-6">
-                    {c.description}
+                    {t(c.descKey)}
                   </p>
 
                   {/* Modules */}
                   <div className="mb-6">
                     <p className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">
-                      Módulos MaalCa — {c.moduleStatus}
+                      {t('cases.modules.label')} — {t(c.moduleStatusKey)}
                     </p>
                     <ul className="space-y-2">
-                      {c.modules.map((mod) => (
-                        <li key={mod} className="flex items-center gap-2 text-sm text-text-secondary">
+                      {c.moduleKeys.map((key) => (
+                        <li key={key} className="flex items-center gap-2 text-sm text-text-secondary">
                           <span className="w-1.5 h-1.5 rounded-full bg-brand-primary flex-shrink-0" />
-                          {mod}
+                          {t(key)}
                         </li>
                       ))}
                     </ul>
@@ -131,7 +126,7 @@ export default function CasosPage() {
                     href={c.href}
                     className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-primary hover:text-brand-primary-hover transition-colors"
                   >
-                    Ver perfil del negocio →
+                    {t('cases.cta.profile')}
                   </Link>
                 </div>
               </div>
@@ -155,7 +150,7 @@ export default function CasosPage() {
             className="bg-brand-primary hover:bg-brand-primary-hover text-white"
             onClick={() => router.push('/servicios')}
           >
-            Empieza tu implementación →
+            {t('cases.cta.start')}
           </Button>
         </div>
       </section>

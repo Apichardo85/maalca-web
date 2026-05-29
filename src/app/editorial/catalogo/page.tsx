@@ -2,21 +2,24 @@
 import Link from "next/link";
 import { books } from "@/data/ciriwhispers/books";
 import { EDITORIAL_ASSISTED_PRICE_DISPLAY } from "@/config/editorial-pricing";
+import { useTranslation } from "@/hooks/useSimpleLanguage";
 
 export default function CatalogoPage() {
+  const { t } = useTranslation();
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <section className="py-16 md:py-24 bg-stone-50 dark:bg-stone-950">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <p className="text-sm font-medium text-amber-600 dark:text-amber-500 uppercase tracking-widest mb-4">
-              Catálogo
+              {t('catalogo.eyebrow')}
             </p>
             <h1 className="font-serif text-4xl md:text-5xl font-bold text-stone-900 dark:text-stone-100 mb-4">
-              Obras publicadas
+              {t('catalogo.title')}
             </h1>
             <p className="text-stone-600 dark:text-stone-400 max-w-2xl mx-auto">
-              Narrativa, poesía y prosa. Cada libro, una historia que merecía existir.
+              {t('catalogo.desc')}
             </p>
           </div>
 
@@ -51,16 +54,16 @@ export default function CatalogoPage() {
 
           <div className="text-center mt-16 p-8 rounded-2xl border border-dashed border-amber-200 dark:border-amber-800">
             <p className="font-serif text-lg font-semibold text-stone-900 dark:text-stone-100 mb-2">
-              ¿Tu obra aquí?
+              {t('catalogo.callout.title')}
             </p>
             <p className="text-sm text-stone-500 dark:text-stone-500 mb-4">
-              Desde {EDITORIAL_ASSISTED_PRICE_DISPLAY} o gratis si nos atraviesa.
+              {EDITORIAL_ASSISTED_PRICE_DISPLAY} {t('catalogo.callout.desc')}
             </p>
             <Link
               href="/editorial/publica"
               className="inline-flex items-center gap-1.5 text-sm font-medium text-amber-600 hover:text-amber-700 dark:text-amber-500 dark:hover:text-amber-400 transition-colors"
             >
-              Ver cómo publicar →
+              {t('catalogo.callout.link')}
             </Link>
           </div>
         </div>
