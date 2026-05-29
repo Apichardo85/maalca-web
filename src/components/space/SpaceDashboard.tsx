@@ -9,6 +9,7 @@ import {
   remainingItems,
   type Plan,
 } from '@/lib/plan-limits';
+import { PRICE_ENTREPRENEUR } from '@/config/pricing';
 import { CreatingSpaceAnimation } from './CreatingSpaceAnimation';
 import { UpgradeModal } from './UpgradeModal';
 
@@ -249,7 +250,7 @@ export function SpaceDashboard({
               }}
               className="mt-4 rounded-full bg-[#C8102E] px-5 py-2 text-sm font-medium text-white transition hover:bg-[#A00D26]"
             >
-              Mejorar — $38/mes
+              Mejorar — ${PRICE_ENTREPRENEUR}/mes
             </button>
           </div>
         )}

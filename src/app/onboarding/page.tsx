@@ -7,8 +7,8 @@ import { createBrowserClient } from '@supabase/ssr';
 import { track } from '@/lib/analytics';
 import { apiFetch, ApiError } from '@/lib/api-client';
 
-// Set to true when /api/onboarding and /space/[slug] are production-ready
-const ONBOARDING_LIVE = false;
+// Set to false to show the stub page instead of the live onboarding flow
+const ONBOARDING_LIVE = true;
 
 const BUSINESS_TYPES = [
   { value: 'restaurant', label: 'Restaurante', emoji: '🍽️' },
