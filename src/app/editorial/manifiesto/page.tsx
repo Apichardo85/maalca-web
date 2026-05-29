@@ -1,3 +1,5 @@
+import { EDITORIAL_ASSISTED_PRICE_DISPLAY } from "@/config/editorial-pricing";
+
 export default function ManifiestoPage() {
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -21,7 +23,7 @@ export default function ManifiestoPage() {
             Las editoriales tradicionales responden después de meses, si responden.
             Las plataformas de autoedición te cobran por cada servicio que necesitas.
             Los servicios de "publicación asistida" cobran entre $2,000 y $8,000 por hacer
-            lo mismo que nosotros hacemos por $100.
+            lo mismo que nosotros hacemos por {EDITORIAL_ASSISTED_PRICE_DISPLAY}.
           </p>
 
           <p className="text-stone-600 dark:text-stone-400 leading-relaxed">

@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
 import { books } from "@/data/ciriwhispers/books";
+import { EDITORIAL_ASSISTED_PRICE_DISPLAY } from "@/config/editorial-pricing";
 
 const assistedFeatures = [
   "Pack completo: formateo, ISBN, portada, distribución",
@@ -53,7 +54,7 @@ export default function EditorialPage() {
               href="/editorial/publica"
               className="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-8 py-3.5 rounded-full transition-colors text-base"
             >
-              {t('editorial.hero.cta.primary')}
+              {t('editorial.hero.cta.primary')} — {EDITORIAL_ASSISTED_PRICE_DISPLAY}
             </Link>
             <Link
               href="/editorial/catalogo"
@@ -79,7 +80,7 @@ export default function EditorialPage() {
                   {t('editorial.track.assisted.title')}
                 </p>
                 <p className="font-serif text-4xl font-bold text-stone-900 dark:text-stone-100">
-                  {t('editorial.track.assisted.price')}
+                  {EDITORIAL_ASSISTED_PRICE_DISPLAY}
                 </p>
                 <p className="text-stone-500 dark:text-stone-500 text-sm mt-1">
                   {t('editorial.track.assisted.subtitle')}

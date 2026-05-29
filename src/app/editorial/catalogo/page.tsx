@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { books } from "@/data/ciriwhispers/books";
+import { EDITORIAL_ASSISTED_PRICE_DISPLAY } from "@/config/editorial-pricing";
 
 export default function CatalogoPage() {
   return (
@@ -53,7 +54,7 @@ export default function CatalogoPage() {
               ¿Tu obra aquí?
             </p>
             <p className="text-sm text-stone-500 dark:text-stone-500 mb-4">
-              Desde $100 o gratis si nos atraviesa.
+              Desde {EDITORIAL_ASSISTED_PRICE_DISPLAY} o gratis si nos atraviesa.
             </p>
             <Link
               href="/editorial/publica"

@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { EDITORIAL_ASSISTED_PRICE_DISPLAY } from "@/config/editorial-pricing";
 
 const assistedBullets = [
   "Formateo del manuscrito a estándares de impresión y eBook",
@@ -48,7 +49,7 @@ export default function PublicaPage() {
                   Track Asistido
                 </p>
                 <p className="font-serif text-3xl font-bold text-stone-900 dark:text-stone-100">
-                  $100 USD
+                  {EDITORIAL_ASSISTED_PRICE_DISPLAY}
                 </p>
                 <p className="text-sm text-stone-500 dark:text-stone-500 mt-1">
                   Pago único. Sin sorpresas.
