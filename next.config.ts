@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  async redirects() {
+    return [
+      { source: '/ecosistema', destination: '/casos', permanent: true },
+    ];
+  },
   eslint: {
     // Warning: This allows production builds to complete even with ESLint errors
     ignoreDuringBuilds: true,
