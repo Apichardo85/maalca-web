@@ -3,7 +3,6 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/buttons";
-import { ProjectImage } from "@/components/ui/ProjectImage";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
 import { getActiveAffiliates } from "@/data";
 
@@ -153,26 +152,6 @@ export default function HomePage() {
     },
   ];
 
-  const secondaryProjects = [
-    {
-      titleKey: 'project.editorial.title',
-      descriptionKey: 'project.editorial.description',
-      categoryKey: 'project.editorial.category',
-      outcomeKey: 'project.editorial.outcome',
-      color: 'red',
-      image: '/images/projects/editorial-maalca.png',
-      href: '/editorial',
-    },
-    {
-      titleKey: 'project.ciriwhispers.title',
-      descriptionKey: 'project.ciriwhispers.description',
-      categoryKey: 'project.ciriwhispers.category',
-      outcomeKey: 'project.ciriwhispers.outcome',
-      color: 'gray',
-      image: '/images/projects/ciriwhispers.png',
-      href: '/ciriwhispers',
-    },
-  ];
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -406,57 +385,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── 6. ECOSYSTEM (secondary) ────────────────────────────────────────── */}
-      <section className="py-16 md:py-24 bg-surface">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 animate-fade-in-up">
-            <h2 className="font-display text-3xl lg:text-4xl font-bold text-text-primary mb-4">
-              {t('ecosystem.secondary.title')}
-            </h2>
-            <p className="text-text-secondary max-w-2xl mx-auto">
-              {t('ecosystem.secondary.subtitle')}
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-            {secondaryProjects.map((project, index) => (
-              <div
-                key={project.titleKey}
-                className="group relative bg-surface backdrop-blur-xl rounded-3xl p-8 border-2 border-border hover:border-brand-primary transition-all duration-500 shadow-lg hover:shadow-brand-primary/20 hover:-translate-y-3 cursor-pointer animate-fade-in-up"
-                style={{ animationDelay: `${index * 0.1}s` }}
-                onClick={() => router.push(project.href)}
-              >
-                <div className="relative overflow-hidden rounded-2xl mb-6 group-hover:shadow-2xl transition-shadow">
-                  <ProjectImage src={project.image} alt={t(project.titleKey)} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-red-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                </div>
-                <div className={`inline-block px-3 py-1 rounded-full text-xs font-medium mb-4 ${
-                  project.color === 'red'
-                    ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-300 dark:border-red-700'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600'
-                }`}>
-                  {t(project.categoryKey)}
-                </div>
-                <h3 className="text-xl font-bold text-text-primary mb-3 group-hover:text-brand-primary transition-colors">
-                  {t(project.titleKey)}
-                </h3>
-                <p className="text-text-secondary leading-relaxed text-sm mb-4">
-                  {t(project.descriptionKey)}
-                </p>
-                <div className="text-xs text-text-muted font-medium">
-                  ✓ {t(project.outcomeKey)}
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-8">
-            <Link href="/ecosistema" className="text-brand-primary hover:text-brand-primary-hover font-medium text-sm transition-colors">
-              Ver todo el ecosistema →
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── 7. ABOUT / TIMELINE ─────────────────────────────────────────────── */}
+      {/* ─── 6. ABOUT / TIMELINE ─────────────────────────────────────────────── */}
       <section id="about" className="py-16 md:py-24 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 animate-fade-in-up">
@@ -514,7 +443,63 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── 9. CONTACT ──────────────────────────────────────────────────────── */}
+      {/* ─── 9. BEYOND ───────────────────────────────────────────────────────── */}
+      <section className="py-16 md:py-20 bg-background">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12 animate-fade-in-up">
+            <h2 className="font-display text-3xl lg:text-4xl font-bold text-text-primary mb-3">
+              {t('beyond.title')}
+            </h2>
+            <p className="text-text-secondary max-w-xl mx-auto">
+              {t('beyond.subtitle')}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {/* Editorial MaalCa */}
+            <div className="group rounded-2xl border border-border bg-surface-elevated p-8 hover:border-amber-400 transition-all duration-300 hover:-translate-y-1">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/50 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-5">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                </svg>
+              </div>
+              <h3 className="font-semibold text-text-primary mb-2 group-hover:text-amber-600 transition-colors">
+                {t('beyond.editorial.title')}
+              </h3>
+              <p className="text-sm text-text-secondary leading-relaxed mb-5">
+                {t('beyond.editorial.desc')}
+              </p>
+              <Link
+                href="/editorial"
+                className="text-sm font-medium text-amber-600 hover:text-amber-700 transition-colors"
+              >
+                {t('beyond.editorial.cta')}
+              </Link>
+            </div>
+            {/* CiriWhispers */}
+            <div className="group rounded-2xl border border-border bg-surface-elevated p-8 hover:border-text-secondary transition-all duration-300 hover:-translate-y-1">
+              <div className="w-10 h-10 rounded-xl bg-surface flex items-center justify-center text-text-secondary mb-5">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                </svg>
+              </div>
+              <h3 className="font-semibold text-text-primary mb-2 group-hover:text-text-secondary transition-colors">
+                {t('beyond.ciri.title')}
+              </h3>
+              <p className="text-sm text-text-secondary leading-relaxed mb-5">
+                {t('beyond.ciri.desc')}
+              </p>
+              <Link
+                href="/ciriwhispers"
+                className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
+              >
+                {t('beyond.ciri.cta')}
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 10. CONTACT ─────────────────────────────────────────────────────── */}
       <section id="contacto" className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
