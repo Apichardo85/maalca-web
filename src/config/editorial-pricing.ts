@@ -1,6 +1,4 @@
 /**
- * Precio del Track Asistido de Editorial MaalCa.
- * Cambiar SOLO aquí — todos los componentes importan esta constante.
+ * Backward-compat re-export — use @/config/pricing as the canonical source.
  */
-export const EDITORIAL_ASSISTED_PRICE_USD = 185;
-export const EDITORIAL_ASSISTED_PRICE_DISPLAY = `$${EDITORIAL_ASSISTED_PRICE_USD} USD`;
+export { EDITORIAL_ASSISTED_PRICE_USD, EDITORIAL_ASSISTED_PRICE_DISPLAY } from './pricing';

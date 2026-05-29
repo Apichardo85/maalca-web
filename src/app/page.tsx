@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/buttons";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
 import { getActiveAffiliates } from "@/data";
+import { PRICE_FREE, PRICE_ENTREPRENEUR, PRICE_PROFESSIONAL } from "@/config/pricing";
 
 function AffiliateLogo({ logo, fallback }: { logo?: string; fallback: string }) {
   const [failed, setFailed] = useState(!logo);
@@ -119,7 +120,7 @@ export default function HomePage() {
   const pricingPlans = [
     {
       name: 'Gratis',
-      price: '$0',
+      price: `$${PRICE_FREE}`,
       period: '/mes',
       tag: null as string | null,
       bullets: [
@@ -130,7 +131,7 @@ export default function HomePage() {
     },
     {
       name: 'Emprendedor',
-      price: '$38',
+      price: `$${PRICE_ENTREPRENEUR}`,
       period: '/mes',
       tag: 'Más popular' as string | null,
       bullets: [
@@ -141,7 +142,7 @@ export default function HomePage() {
     },
     {
       name: 'Profesional',
-      price: '$95',
+      price: `$${PRICE_PROFESSIONAL}`,
       period: '/mes',
       tag: null as string | null,
       bullets: [

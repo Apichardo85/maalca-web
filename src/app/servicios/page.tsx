@@ -3,6 +3,17 @@ import { useState } from "react";
 import { Button } from "@/components/ui/buttons";
 import { useRouter } from "next/navigation";
 import { useTranslation, useSimpleLanguage } from "@/hooks/useSimpleLanguage";
+import {
+  PRICE_FREE,
+  PRICE_ENTREPRENEUR,
+  PRICE_PROFESSIONAL,
+  PRICE_PREMIUM,
+  ADDON_SOCIAL_POSTS,
+  ADDON_AI_AGENT,
+  ADDON_SUPPORT_247,
+  ADDON_CUSTOM_INTEGRATION,
+  ANNUAL_DISCOUNT,
+} from "@/config/pricing";
 
 type Plan = {
   id: string;
@@ -24,8 +35,6 @@ type AddOn = {
 };
 
 type ComparisonValue = boolean | string | { es: string; en: string };
-
-const ANNUAL_DISCOUNT = 0.17;
 
 const plans: Plan[] = [
   {
