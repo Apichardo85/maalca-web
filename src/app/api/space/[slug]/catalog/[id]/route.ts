@@ -1,67 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseServer } from '@/lib/supabase/server';
-import { supabaseAdmin } from '@/lib/supabase/admin';
+import { getMaalcaApiToken, resolveAffiliateIdBySlug } from '@/lib/api-auth';
 
-type Params = { params: Promise<{ slug: string; id: string }> };
+const API = process.env.MAALCA_API_URL
+  ?? process.env.NEXT_PUBLIC_API_BASE_URL
+  ?? 'http://localhost:8080';
 
-// PATCH /api/space/[slug]/catalog/[id] — update item; flips is_demo=false
-export async function PATCH(req: NextRequest, { params }: Params) {
-  const { slug, id } = await params;
-  const supabase = await supabaseServer();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ slug: string; id: string }> },
+) {
+  const token = await getMaalcaApiToken();
+  if (!token) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
-  const admin = supabaseAdmin();
-
-  // Verify ownership via business
-  const { data: biz } = await admin
-    .from('businesses')
-    .select('id')
-    .eq('slug', slug)
-    .eq('owner_id', user.id)
-    .maybeSingle();
-  if (!biz) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  const { slug, id: itemId } = await params;
+  const affiliate = await resolveAffiliateIdBySlug(slug, token);
+  if (!affiliate) return NextResponse.json({ error: 'not_found' }, { status: 404 });
 
   const body = await req.json();
-  const update: Record<string, unknown> = { is_demo: false };
-  if (body.name !== undefined) update.name = body.name;
-  if (body.description !== undefined) update.description = body.description;
-  if (body.category !== undefined) update.category = body.category || null;
-  if (body.price !== undefined) update.price = body.price !== '' ? Number(body.price) : null;
-  if (body.active !== undefined) update.active = body.active;
 
-  const { error } = await admin
-    .from('catalog_items')
-    .update(update)
-    .eq('id', id)
-    .eq('business_id', biz.id);
+  const apiRes = await fetch(
+    `${API}/api/affiliates/${affiliate.id}/catalog-items/${itemId}`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    },
+  );
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ ok: true });
+  const data = await apiRes.json();
+  return NextResponse.json(data, { status: apiRes.status });
 }
 
-// DELETE /api/space/[slug]/catalog/[id]
-export async function DELETE(_req: NextRequest, { params }: Params) {
-  const { slug, id } = await params;
-  const supabase = await supabaseServer();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ slug: string; id: string }> },
+) {
+  const token = await getMaalcaApiToken();
+  if (!token) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
-  const admin = supabaseAdmin();
-  const { data: biz } = await admin
-    .from('businesses')
-    .select('id')
-    .eq('slug', slug)
-    .eq('owner_id', user.id)
-    .maybeSingle();
-  if (!biz) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  const { slug, id: itemId } = await params;
+  const affiliate = await resolveAffiliateIdBySlug(slug, token);
+  if (!affiliate) return NextResponse.json({ error: 'not_found' }, { status: 404 });
 
-  const { error } = await admin
-    .from('catalog_items')
-    .delete()
-    .eq('id', id)
-    .eq('business_id', biz.id);
+  const apiRes = await fetch(
+    `${API}/api/affiliates/${affiliate.id}/catalog-items/${itemId}`,
+    {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ ok: true });
+  if (apiRes.status === 204) return new NextResponse(null, { status: 204 });
+
+  const data = await apiRes.json().catch(() => null);
+  return NextResponse.json(data ?? {}, { status: apiRes.status });
 }
