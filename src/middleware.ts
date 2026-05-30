@@ -28,13 +28,6 @@ export async function middleware(request: NextRequest) {
   // Refresh session (also refreshes the cookie if expired)
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (pathname.startsWith('/space')) {
-    console.log('[middleware] pathname:', pathname);
-    console.log('[middleware] user:', user?.email ?? 'null');
-    console.log('[middleware] isLoggedIn:', !!user || !!request.cookies.get('auth_token')?.value);
-    console.log('[middleware] all cookies:', request.cookies.getAll().map(c => c.name).join(', '));
-  }
-
   // auth_token cookie = hardcoded affiliate (mock/maalca-api login) — skip affiliate check
   const authToken = request.cookies.get("auth_token")?.value;
   const isLoggedIn = !!user || !!authToken;
