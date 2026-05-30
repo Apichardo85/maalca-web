@@ -24,6 +24,7 @@ export async function PATCH(
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
+        'X-Affiliate-Id': affiliate.id,
       },
       body: JSON.stringify(body),
     },
@@ -48,7 +49,7 @@ export async function DELETE(
     `${API}/api/affiliates/${affiliate.id}/catalog-items/${itemId}`,
     {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': affiliate.id },
     },
   );
 

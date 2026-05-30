@@ -20,6 +20,7 @@ export async function POST(
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
+      'X-Affiliate-Id': affiliate.id,
     },
     body: JSON.stringify(body),
   });
