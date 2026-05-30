@@ -2,8 +2,7 @@ import { redirect } from 'next/navigation';
 import { SpaceDashboard } from '@/components/space/SpaceDashboard';
 import { getMaalcaApiToken } from '@/lib/api-auth';
 
-const API = process.env.MAALCA_API_URL
-  ?? process.env.NEXT_PUBLIC_API_BASE_URL
+const API = process.env.NEXT_PUBLIC_API_BASE_URL
   ?? 'http://localhost:8080';
 
 interface SpaceResponse {
