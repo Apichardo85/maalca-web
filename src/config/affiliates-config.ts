@@ -289,48 +289,6 @@ export interface AffiliateConfig {
  * Cada key es el affiliateId que se usa en las rutas /dashboard/[affiliateId]
  */
 export const affiliatesConfig: Record<string, AffiliateConfig> = {
-  "pegote-barbershop": {
-    id: "pegote-barbershop",
-    businessType: "barbershop",
-    plan: "starter",
-    terminology: {},
-    branding: {
-      primaryColor: "blue-600",
-      secondaryColor: "blue-400",
-      logo: "/images/affiliates/pegote-logo.png",
-      name: "Pegote Barbershop",
-      description: "Barbería dominicana en Elmira, NY"
-    },
-    modules: {
-      metrics: true,
-      campaigns: true,
-      customers: true,
-      ecommerce: true,          // Productos de barbería
-      appointments: true,       // Sistema de citas
-      inventory: true,          // Stock de productos
-      invoicing: true,
-      team: true,
-      queue: true,              // Fila virtual
-      salon: true,              // Vista de salón
-      giftcards: true,          // Gift cards
-      reports: true,            // Reportes y análisis
-      menu: false,
-      orders: false,
-      qrCodes: false
-    },
-    features: {
-      multiLanguage: true,      // ES/EN
-      darkMode: true,
-      notifications: true,
-      analytics: true
-    },
-    settings: {
-      currency: "USD",
-      timezone: "America/New_York",
-      dateFormat: "MM/DD/YYYY"
-    }
-  },
-
   "britocolor": {
     id: "britocolor",
     businessType: "retail",
