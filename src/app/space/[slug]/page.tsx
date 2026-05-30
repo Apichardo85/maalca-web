@@ -41,12 +41,14 @@ export default async function SpacePage({
   const { new: isNew, upgraded } = await searchParams;
 
   const token = await getMaalcaApiToken();
+  console.log('[SpacePage] token:', token ? 'present' : 'null', '| slug:', slug);
   if (!token) redirect('/login');
 
   const apiRes = await fetch(`${API}/api/space/${slug}`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: 'no-store',
   });
+  console.log('[SpacePage] apiRes.status:', apiRes.status, '| API:', API);
 
   if (apiRes.status === 404) redirect('/onboarding');
   if (apiRes.status === 403) redirect('/');

@@ -25,6 +25,13 @@ export async function getMaalcaApiToken(): Promise<string | null> {
     },
   );
 
+  // Use getUser() instead of getSession() — getSession() reads from
+  // local cache and may return null in Server Components even when
+  // the user is authenticated. getUser() validates against Supabase.
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  // Re-read session to get the access token
   const { data: { session } } = await supabase.auth.getSession();
   return session?.access_token ?? null;
 }
