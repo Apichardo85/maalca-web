@@ -79,6 +79,14 @@ export function SpaceDashboard({
     await navigator.clipboard.writeText(publicUrl);
     setCopied(true);
     track('link_copied', { business_id: business.id });
+
+    // Fire link_shared milestone (fire-and-forget, don't block UI)
+    fetch(`/api/space/${business.slug}/events`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'link_shared' }),
+    }).catch(() => {}); // silent fail — milestone is best-effort
+
     setTimeout(() => setCopied(false), 2000);
   };
 
