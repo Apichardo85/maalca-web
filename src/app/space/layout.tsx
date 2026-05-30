@@ -1,35 +1,39 @@
 // src/app/space/layout.tsx
 import { redirect } from 'next/navigation';
-import { supabaseServer } from '@/lib/supabase/server';
+import { getMaalcaApiToken } from '@/lib/api-auth';
 import { canAddBusiness, type Plan } from '@/lib/plan-limits';
 import { SpaceSwitcherBar } from '@/components/space/SpaceSwitcherBar';
 
+const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
+
+interface Affiliate {
+  id: string;
+  slug: string;
+  name: string;
+  plan: Plan;
+}
+
 export default async function SpaceLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await supabaseServer();
+  const token = await getMaalcaApiToken();
+  if (!token) redirect('/login');
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  const res = await fetch(`${API}/api/me/affiliates`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  });
 
-  const { data: businesses } = await supabase
-    .from('businesses')
-    .select('id, slug, name, plan')
-    .eq('owner_id', user.id)
-    .neq('plan_status', 'downgraded_locked')
-    .order('created_at', { ascending: true });
+  if (res.status === 401) redirect('/login');
+  if (!res.ok) redirect('/onboarding');
 
-  const all = businesses ?? [];
-  if (all.length === 0) redirect('/onboarding');
+  const affiliates: Affiliate[] = await res.json().catch(() => []);
+  if (affiliates.length === 0) redirect('/onboarding');
 
-  // canCreate is true if the user's best plan supports another business
-  const highestPlan = all.some((b) => b.plan === 'entrepreneur') ? 'entrepreneur' : 'free';
-  const canCreate = canAddBusiness(highestPlan as Plan, all.length);
+  const highestPlan = affiliates.some((a) => a.plan === 'entrepreneur') ? 'entrepreneur' : 'free';
+  const canCreate = canAddBusiness(highestPlan, affiliates.length);
 
   return (
     <>
-      <SpaceSwitcherBar
-        businesses={all.map((b) => ({ ...b, plan: b.plan as Plan }))}
-        canCreateMore={canCreate}
-      />
+      <SpaceSwitcherBar businesses={affiliates} canCreateMore={canCreate} />
       {children}
     </>
   );
