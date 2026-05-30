@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch, ApiError } from "@/lib/api-client";
+import { getAffiliateConfig } from "@/config/affiliates-config";
 
 interface UserAffiliate {
   id: string;
@@ -82,7 +83,7 @@ export default function DashboardSelector() {
                 className="animate-fade-in-scale"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <Link href={`/dashboard/${affiliate.slug}`}>
+                <Link href={getAffiliateConfig(affiliate.slug) ? `/dashboard/${affiliate.slug}` : `/space/${affiliate.slug}`}>
                   <div className="bg-white dark:bg-gray-900 rounded-2xl border-2 border-gray-200 dark:border-gray-800 p-4 sm:p-6 lg:p-8 hover:border-red-600 dark:hover:border-red-600 transition-all hover:shadow-2xl group cursor-pointer">
                     <div className="flex items-center gap-3 sm:gap-4 mb-4">
                       <div className="w-12 h-12 sm:w-16 sm:h-16 bg-red-600 bg-opacity-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
