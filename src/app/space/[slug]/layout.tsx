@@ -27,7 +27,7 @@ export default async function SpaceSlugLayout({
   const { business } = await res.json();
 
   return (
-    <div className="flex min-h-screen bg-neutral-950">
+    <div className="flex min-h-screen bg-background">
       <SpaceSidebar
         slug={slug}
         businessName={business.name}

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { UpgradeModal } from './UpgradeModal';
 
 interface Props {
@@ -11,21 +12,6 @@ interface Props {
   plan: 'free' | 'entrepreneur';
   businessId: string;
 }
-
-const getFreeModules = (slug: string) => [
-  { label: 'Inicio', icon: '🏠', href: `/space/${slug}` },
-  { label: 'Catálogo', icon: '📦', href: `/space/${slug}/catalog` },
-  { label: 'QR', icon: '📱', href: `/space/${slug}/qr` },
-  { label: 'Configuración', icon: '⚙️', href: `/space/${slug}/settings` },
-];
-
-const getPaidModules = (slug: string) => [
-  { label: 'Métricas', icon: '📊', href: `/space/${slug}/metrics`, locked: true },
-  { label: 'Clientes', icon: '👥', href: `/space/${slug}/customers`, locked: true },
-  { label: 'Citas', icon: '📅', href: `/space/${slug}/appointments`, locked: true },
-  { label: 'Campañas', icon: '📢', href: `/space/${slug}/campaigns`, locked: true },
-  { label: 'Facturación', icon: '🧾', href: `/space/${slug}/invoicing`, locked: true },
-];
 
 function SidebarContent({
   slug,
@@ -36,9 +22,23 @@ function SidebarContent({
 }: Props & { onNavigate?: () => void }) {
   const [showUpgrade, setShowUpgrade] = useState(false);
   const pathname = usePathname();
+  const { language } = useSimpleLanguage();
+  const getText = (es: string, en: string) => language === 'es' ? es : en;
 
-  const freeModules = getFreeModules(slug);
-  const paidModules = getPaidModules(slug);
+  const freeModules = [
+    { label: getText('Inicio', 'Home'),         icon: '🏠', href: `/space/${slug}` },
+    { label: getText('Catálogo', 'Catalog'),    icon: '📦', href: `/space/${slug}/catalog` },
+    { label: 'QR',                              icon: '📱', href: `/space/${slug}/qr` },
+    { label: getText('Configuración', 'Settings'), icon: '⚙️', href: `/space/${slug}/settings` },
+  ];
+
+  const paidModules = [
+    { label: getText('Métricas', 'Metrics'),       icon: '📊', href: `/space/${slug}/metrics`,      locked: true },
+    { label: getText('Clientes', 'Customers'),     icon: '👥', href: `/space/${slug}/customers`,    locked: true },
+    { label: getText('Citas', 'Appointments'),     icon: '📅', href: `/space/${slug}/appointments`, locked: true },
+    { label: getText('Campañas', 'Campaigns'),     icon: '📢', href: `/space/${slug}/campaigns`,    locked: true },
+    { label: getText('Facturación', 'Billing'),    icon: '🧾', href: `/space/${slug}/invoicing`,    locked: true },
+  ];
 
   const isActive = (href: string) => {
     if (href === `/space/${slug}`) return pathname === href;
@@ -46,19 +46,23 @@ function SidebarContent({
   };
 
   return (
-    <aside className="flex h-full flex-col bg-neutral-900 w-60">
-      {/* Header */}
-      <div className="flex min-h-[64px] items-end px-4 pb-4 pt-16 border-b border-neutral-800">
+    <aside className="flex h-full flex-col bg-white dark:bg-neutral-900 w-60 border-r border-gray-200 dark:border-neutral-800">
+      {/* Header — pt-16 clears the SpaceSwitcherBar fixed at top-4 */}
+      <div className="flex min-h-[64px] items-end px-4 pb-4 pt-16 border-b border-gray-200 dark:border-neutral-800">
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-white">{businessName}</p>
+          <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
+            {businessName}
+          </p>
           <span
             className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
               plan === 'entrepreneur'
-                ? 'bg-[#C8102E]/20 text-[#C8102E]'
-                : 'bg-neutral-800 text-neutral-400'
+                ? 'bg-[#C8102E]/10 text-[#C8102E]'
+                : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400'
             }`}
           >
-            {plan === 'entrepreneur' ? 'Emprendedor' : 'Plan Gratis'}
+            {plan === 'entrepreneur'
+              ? getText('Emprendedor', 'Entrepreneur')
+              : getText('Plan Gratis', 'Free Plan')}
           </span>
         </div>
       </div>
@@ -75,7 +79,7 @@ function SidebarContent({
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                 active
                   ? 'bg-[#C8102E] text-white'
-                  : 'text-neutral-300 hover:bg-neutral-800 hover:text-white'
+                  : 'text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <span className="text-base">{mod.icon}</span>
@@ -84,9 +88,9 @@ function SidebarContent({
           );
         })}
 
-        <div className="my-3 border-t border-neutral-800" />
+        <div className="my-3 border-t border-gray-200 dark:border-neutral-800" />
 
-        <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-neutral-600">
+        <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-neutral-600">
           Pro
         </p>
 
@@ -100,7 +104,7 @@ function SidebarContent({
                 key={mod.href}
                 className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm"
               >
-                <div className="flex items-center gap-3 text-neutral-600">
+                <div className="flex items-center gap-3 text-gray-400 dark:text-neutral-600">
                   <span className="text-base opacity-40">{mod.icon}</span>
                   <span>{mod.label}</span>
                 </div>
@@ -110,7 +114,7 @@ function SidebarContent({
                     onClick={() => setShowUpgrade(true)}
                     className="text-xs font-medium text-[#C8102E] hover:underline"
                   >
-                    Mejorar
+                    {getText('Mejorar', 'Upgrade')}
                   </button>
                 </div>
               </div>
@@ -125,7 +129,7 @@ function SidebarContent({
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                 active
                   ? 'bg-[#C8102E] text-white'
-                  : 'text-neutral-300 hover:bg-neutral-800 hover:text-white'
+                  : 'text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <span className="text-base">{mod.icon}</span>
@@ -148,14 +152,16 @@ function SidebarContent({
 
 export function SpaceSidebar({ slug, businessName, plan, businessId }: Props) {
   const [open, setOpen] = useState(false);
+  const { language } = useSimpleLanguage();
+  const getText = (es: string, en: string) => language === 'es' ? es : en;
 
   return (
     <>
-      {/* Mobile hamburger */}
+      {/* Mobile hamburger — right side to avoid SpaceSwitcherBar (fixed top-4 left-4) */}
       <button
-        className="fixed top-3 right-3 z-50 rounded-md bg-neutral-800 p-2 text-neutral-300 md:hidden"
+        className="fixed top-3 right-3 z-50 rounded-md bg-gray-100 dark:bg-neutral-800 p-2 text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700 md:hidden transition-colors"
         onClick={() => setOpen(!open)}
-        aria-label="Toggle menu"
+        aria-label={open ? getText('Cerrar menú', 'Close menu') : getText('Abrir menú', 'Open menu')}
       >
         <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           {open ? (
@@ -169,7 +175,7 @@ export function SpaceSidebar({ slug, businessName, plan, businessId }: Props) {
       {/* Mobile overlay */}
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 md:hidden"
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
           onClick={() => setOpen(false)}
         />
       )}
