@@ -71,15 +71,19 @@ export default function Header({
     return () => subscription.unsubscribe();
   }, []);
 
-  // These routes have their own dashboard layouts — no global marketing header
+  // These routes have their own full-page layouts with no marketing shell
   if (
     pathname.startsWith('/ciriwhispers') ||
     pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/editorial') ||
-    pathname.startsWith('/space')
+    pathname.startsWith('/editorial')
   ) {
     return null;
   }
+
+  // On /space routes the sidebar handles desktop nav; the header provides
+  // mobile nav (language toggle, theme toggle, and space nav items).
+  const spaceSlug = pathname.match(/^\/space\/([^/]+)/)?.[1] ?? null;
+  const getText = (es: string, en: string) => language === 'es' ? es : en;
 
   const getHeaderStyle = () => {
     const base = "fixed top-0 left-0 right-0 z-50 transition-all duration-300";
@@ -254,6 +258,51 @@ export default function Header({
                   </Link>
                 )}
               </div>
+
+              {/* Space dashboard nav — injected when inside /space/[slug] */}
+              {spaceSlug && (
+                <div className="border-t border-border pt-4 mt-4">
+                  <p className="px-4 mb-2 text-[10px] font-bold uppercase tracking-widest text-text-muted">
+                    {getText('Mi negocio', 'My business')}
+                  </p>
+                  {[
+                    { label: getText('Inicio', 'Home'),            icon: '🏠', href: `/space/${spaceSlug}` },
+                    { label: getText('Catálogo', 'Catalog'),       icon: '📦', href: `/space/${spaceSlug}/catalog` },
+                    { label: 'QR',                                 icon: '📱', href: `/space/${spaceSlug}/qr` },
+                    { label: getText('Configuración', 'Settings'), icon: '⚙️', href: `/space/${spaceSlug}/settings` },
+                  ].map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-elevated transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <span>{item.icon}</span>
+                      <span>{item.label}</span>
+                    </Link>
+                  ))}
+                  {[
+                    { label: getText('Métricas', 'Metrics'),    icon: '📊' },
+                    { label: getText('Clientes', 'Customers'),  icon: '👥' },
+                    { label: getText('Citas', 'Appointments'), icon: '📅' },
+                    { label: getText('Campañas', 'Campaigns'), icon: '📢' },
+                    { label: getText('Facturación', 'Billing'), icon: '🧾' },
+                  ].map((item) => (
+                    <div
+                      key={item.label}
+                      className="flex items-center justify-between px-4 py-2 text-sm text-text-muted"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="opacity-40">{item.icon}</span>
+                        <span>{item.label}</span>
+                      </div>
+                      <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-surface-elevated border border-border text-text-muted">
+                        Pro
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Toggles */}
               <div className="border-t border-white/10 pt-4 mt-4 flex items-center gap-2 px-4">

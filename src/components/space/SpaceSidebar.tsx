@@ -13,13 +13,7 @@ interface Props {
   businessId: string;
 }
 
-function SidebarContent({
-  slug,
-  businessName,
-  plan,
-  businessId,
-  onNavigate,
-}: Props & { onNavigate?: () => void }) {
+export function SpaceSidebar({ slug, businessName, plan, businessId }: Props) {
   const [showUpgrade, setShowUpgrade] = useState(false);
   const pathname = usePathname();
   const { language } = useSimpleLanguage();
@@ -46,96 +40,101 @@ function SidebarContent({
   };
 
   return (
-    <aside className="flex h-full flex-col w-60 bg-white dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800">
-      {/* Business header */}
-      <div className="px-4 py-5 border-b border-gray-200 dark:border-neutral-800">
-        <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
-          {businessName}
-        </p>
-        <span
-          className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-            plan === 'entrepreneur'
-              ? 'bg-[#C8102E]/10 text-[#C8102E]'
-              : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400'
-          }`}
-        >
-          {plan === 'entrepreneur'
-            ? getText('Emprendedor', 'Entrepreneur')
-            : getText('Plan Gratis', 'Free Plan')}
-        </span>
-      </div>
+    <>
+      {/*
+       * Desktop-only sidebar — mobile navigation lives in the global Header's
+       * hamburger menu (language toggle + theme toggle + space nav items).
+       * Starts at top-16/top-20 to clear the global Header height.
+       */}
+      <aside className="hidden md:flex fixed top-16 lg:top-20 bottom-0 left-0 z-30 w-60 flex-col bg-white dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800">
+        {/* Business header */}
+        <div className="px-4 py-5 border-b border-gray-200 dark:border-neutral-800">
+          <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
+            {businessName}
+          </p>
+          <span
+            className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+              plan === 'entrepreneur'
+                ? 'bg-[#C8102E]/10 text-[#C8102E]'
+                : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400'
+            }`}
+          >
+            {plan === 'entrepreneur'
+              ? getText('Emprendedor', 'Entrepreneur')
+              : getText('Plan Gratis', 'Free Plan')}
+          </span>
+        </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
-        {freeModules.map((mod) => {
-          const active = isActive(mod.href);
-          return (
-            <Link
-              key={mod.href}
-              href={mod.href}
-              onClick={onNavigate}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                active
-                  ? 'bg-[#C8102E] text-white'
-                  : 'text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              <span className="text-base">{mod.icon}</span>
-              <span>{mod.label}</span>
-            </Link>
-          );
-        })}
-
-        <div className="my-3 border-t border-gray-200 dark:border-neutral-800" />
-
-        <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-neutral-600">
-          Pro
-        </p>
-
-        {paidModules.map((mod) => {
-          const locked = mod.locked && plan === 'free';
-          const active = !locked && isActive(mod.href);
-
-          if (locked) {
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
+          {freeModules.map((mod) => {
+            const active = isActive(mod.href);
             return (
-              <div
+              <Link
                 key={mod.href}
-                className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm"
+                href={mod.href}
+                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                  active
+                    ? 'bg-[#C8102E] text-white'
+                    : 'text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 hover:text-gray-900 dark:hover:text-white'
+                }`}
               >
-                <div className="flex items-center gap-3 text-gray-400 dark:text-neutral-600">
-                  <span className="text-base opacity-40">{mod.icon}</span>
-                  <span>{mod.label}</span>
-                </div>
-                <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
-                  <span className="text-xs">🔒</span>
-                  <button
-                    onClick={() => setShowUpgrade(true)}
-                    className="text-xs font-medium text-[#C8102E] hover:underline"
-                  >
-                    {getText('Mejorar', 'Upgrade')}
-                  </button>
-                </div>
-              </div>
+                <span className="text-base">{mod.icon}</span>
+                <span>{mod.label}</span>
+              </Link>
             );
-          }
+          })}
 
-          return (
-            <Link
-              key={mod.href}
-              href={mod.href}
-              onClick={onNavigate}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                active
-                  ? 'bg-[#C8102E] text-white'
-                  : 'text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              <span className="text-base">{mod.icon}</span>
-              <span>{mod.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
+          <div className="my-3 border-t border-gray-200 dark:border-neutral-800" />
+
+          <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-neutral-600">
+            Pro
+          </p>
+
+          {paidModules.map((mod) => {
+            const locked = mod.locked && plan === 'free';
+            const active = !locked && isActive(mod.href);
+
+            if (locked) {
+              return (
+                <div
+                  key={mod.href}
+                  className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm"
+                >
+                  <div className="flex items-center gap-3 text-gray-400 dark:text-neutral-600">
+                    <span className="text-base opacity-40">{mod.icon}</span>
+                    <span>{mod.label}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+                    <span className="text-xs">🔒</span>
+                    <button
+                      onClick={() => setShowUpgrade(true)}
+                      className="text-xs font-medium text-[#C8102E] hover:underline"
+                    >
+                      {getText('Mejorar', 'Upgrade')}
+                    </button>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <Link
+                key={mod.href}
+                href={mod.href}
+                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                  active
+                    ? 'bg-[#C8102E] text-white'
+                    : 'text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                <span className="text-base">{mod.icon}</span>
+                <span>{mod.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      </aside>
 
       {showUpgrade && (
         <UpgradeModal
@@ -144,68 +143,6 @@ function SidebarContent({
           onClose={() => setShowUpgrade(false)}
         />
       )}
-    </aside>
-  );
-}
-
-export function SpaceSidebar({ slug, businessName, plan, businessId }: Props) {
-  const [open, setOpen] = useState(false);
-  const { language } = useSimpleLanguage();
-  const getText = (es: string, en: string) => language === 'es' ? es : en;
-
-  return (
-    <>
-      {/*
-       * Mobile hamburger — left side, flush with sidebar edge at desktop.
-       * z-50 renders above SpaceSwitcherBar (z-40) for the rare multi-biz case.
-       * SpaceDashboard nav uses pl-14 md:pl-6 to clear this button's footprint.
-       */}
-      <button
-        className="fixed top-4 left-4 z-50 rounded-md bg-gray-100 dark:bg-neutral-800 p-2 text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700 md:hidden transition-colors shadow-sm"
-        onClick={() => setOpen(!open)}
-        aria-label={open ? getText('Cerrar menú', 'Close menu') : getText('Abrir menú', 'Open menu')}
-      >
-        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          {open ? (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          ) : (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          )}
-        </svg>
-      </button>
-
-      {/* Mobile overlay */}
-      {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
-          onClick={() => setOpen(false)}
-        />
-      )}
-
-      {/* Desktop sidebar — full height, no global header on /space routes */}
-      <div className="hidden md:flex fixed inset-y-0 left-0 z-30 w-60">
-        <SidebarContent
-          slug={slug}
-          businessName={businessName}
-          plan={plan}
-          businessId={businessId}
-        />
-      </div>
-
-      {/* Mobile sidebar — slide in from left */}
-      <div
-        className={`fixed inset-y-0 left-0 z-50 w-60 transform transition-transform duration-200 ease-in-out md:hidden ${
-          open ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <SidebarContent
-          slug={slug}
-          businessName={businessName}
-          plan={plan}
-          businessId={businessId}
-          onNavigate={() => setOpen(false)}
-        />
-      </div>
     </>
   );
 }

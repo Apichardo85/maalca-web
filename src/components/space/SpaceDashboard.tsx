@@ -101,8 +101,7 @@ export function SpaceDashboard({
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
       {/* In-page nav — marketing header is hidden on /space routes */}
       <nav className="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
-        {/* pl-14 on mobile clears the SpaceSidebar hamburger (fixed top-4 left-4, ~52px wide) */}
-        <div className="mx-auto flex max-w-5xl items-center justify-between pl-14 pr-6 py-4 md:px-6">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <Link href="/servicios" className="text-lg font-semibold text-gray-900 dark:text-white">
             MaalCa
           </Link>
