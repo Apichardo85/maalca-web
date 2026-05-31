@@ -155,9 +155,13 @@ export function SpaceSidebar({ slug, businessName, plan, businessId }: Props) {
 
   return (
     <>
-      {/* Mobile hamburger — top-right, clear of SpaceSwitcherBar (top-left) */}
+      {/*
+       * Mobile hamburger — left side, flush with sidebar edge at desktop.
+       * z-50 renders above SpaceSwitcherBar (z-40) for the rare multi-biz case.
+       * SpaceDashboard nav uses pl-14 md:pl-6 to clear this button's footprint.
+       */}
       <button
-        className="fixed top-3 right-3 z-50 rounded-md bg-gray-100 dark:bg-neutral-800 p-2 text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700 md:hidden transition-colors shadow-sm"
+        className="fixed top-4 left-4 z-50 rounded-md bg-gray-100 dark:bg-neutral-800 p-2 text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700 md:hidden transition-colors shadow-sm"
         onClick={() => setOpen(!open)}
         aria-label={open ? getText('Cerrar menú', 'Close menu') : getText('Abrir menú', 'Open menu')}
       >
