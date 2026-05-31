@@ -10,6 +10,7 @@ import {
   type Plan,
 } from '@/lib/plan-limits';
 import { PRICE_ENTREPRENEUR } from '@/config/pricing';
+import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { CreatingSpaceAnimation } from './CreatingSpaceAnimation';
 import { UpgradeModal } from './UpgradeModal';
 
@@ -60,6 +61,9 @@ export function SpaceDashboard({
   const [copied, setCopied] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
 
+  const { language } = useSimpleLanguage();
+  const getText = (es: string, en: string) => language === 'es' ? es : en;
+
   const limits = getPlanLimits(business.plan);
   const remaining = remainingItems(business.plan, productCount);
   const showWarning = isNearItemLimit(business.plan, productCount);
@@ -109,7 +113,9 @@ export function SpaceDashboard({
                   : 'bg-[#C8102E]/10 text-[#C8102E]'
               }`}
             >
-              {business.plan === 'free' ? 'Plan Gratis' : 'Emprendedor'}
+              {business.plan === 'free'
+                ? getText('Plan Gratis', 'Free Plan')
+                : getText('Emprendedor', 'Entrepreneur')}
             </span>
             {business.plan === 'free' && (
               <button
@@ -119,7 +125,7 @@ export function SpaceDashboard({
                 }}
                 className="text-xs font-medium text-[#C8102E] hover:underline"
               >
-                Mejorar
+                {getText('Mejorar', 'Upgrade')}
               </button>
             )}
           </div>
@@ -130,10 +136,13 @@ export function SpaceDashboard({
         {justUpgraded && (
           <div className="mb-6 rounded-2xl border border-[#C8102E] bg-[#C8102E]/5 p-6 text-center">
             <h2 className="text-xl font-semibold text-[#C8102E]">
-              ¡Bienvenido a Emprendedor! 🎉
+              {getText('¡Bienvenido a Emprendedor! 🎉', 'Welcome to Entrepreneur! 🎉')}
             </h2>
             <p className="mt-2 text-sm text-neutral-700">
-              Items ilimitados, pedidos en línea, y todo lo demás están desbloqueados.
+              {getText(
+                'Items ilimitados, pedidos en línea, y todo lo demás están desbloqueados.',
+                'Unlimited items, online orders, and everything else is unlocked.',
+              )}
             </p>
           </div>
         )}
@@ -141,7 +150,9 @@ export function SpaceDashboard({
         <div className="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-sm text-neutral-500">Tu negocio está en línea</p>
+              <p className="text-sm text-neutral-500">
+                {getText('Tu negocio está en línea', 'Your business is online')}
+              </p>
               <h1 className="mt-1 text-2xl font-bold tracking-tight">
                 {business.name} 🚀
               </h1>
@@ -152,7 +163,7 @@ export function SpaceDashboard({
               rel="noopener noreferrer"
               className="flex-shrink-0 rounded-full bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-800"
             >
-              Ver mi página ↗
+              {getText('Ver mi página ↗', 'View my page ↗')}
             </a>
           </div>
 
@@ -162,7 +173,7 @@ export function SpaceDashboard({
               onClick={copyLink}
               className="flex-shrink-0 rounded-md bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 shadow-sm ring-1 ring-neutral-200 transition hover:bg-neutral-100"
             >
-              {copied ? '✓ Copiado' : 'Copiar'}
+              {copied ? getText('✓ Copiado', '✓ Copied') : getText('Copiar', 'Copy')}
             </button>
           </div>
         </div>
@@ -173,10 +184,13 @@ export function SpaceDashboard({
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold text-amber-900">
-                  Tu página ya se ve poblada ✨
+                  {getText('Tu página ya se ve poblada ✨', 'Your page already looks populated ✨')}
                 </p>
                 <p className="mt-0.5 text-xs text-amber-700">
-                  Cargamos {demoItems.length} items de ejemplo — edítalos o elimínalos cuando quieras.
+                  {getText(
+                    `Cargamos ${demoItems.length} items de ejemplo — edítalos o elimínalos cuando quieras.`,
+                    `We loaded ${demoItems.length} demo items — edit or delete them whenever you want.`,
+                  )}
                 </p>
               </div>
               <a
@@ -185,7 +199,7 @@ export function SpaceDashboard({
                 rel="noopener noreferrer"
                 className="flex-shrink-0 rounded-full border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-100"
               >
-                Ver ↗
+                {getText('Ver ↗', 'View ↗')}
               </a>
             </div>
 
@@ -210,7 +224,7 @@ export function SpaceDashboard({
                     href={`/space/${business.slug}/catalog/${item.id}/edit`}
                     className="flex-shrink-0 text-xs font-medium text-[#C8102E] hover:underline"
                   >
-                    Editar →
+                    {getText('Editar →', 'Edit →')}
                   </Link>
                 </div>
               ))}
@@ -220,7 +234,7 @@ export function SpaceDashboard({
               href={`/space/${business.slug}/catalog/new`}
               className="mt-4 block w-full rounded-full bg-neutral-900 py-2.5 text-center text-sm font-medium text-white transition hover:bg-neutral-800"
             >
-              + Agregar mi primer item real
+              {getText('+ Agregar mi primer item real', '+ Add my first real item')}
             </Link>
           </div>
         )}
@@ -230,7 +244,10 @@ export function SpaceDashboard({
             <span className="text-xl">⚡</span>
             <div className="flex-1">
               <p className="text-sm font-medium text-amber-900">
-                Te quedan {remaining} {remaining === 1 ? 'item' : 'items'} en el plan gratis.
+                {getText(
+                  `Te quedan ${remaining} ${remaining === 1 ? 'item' : 'items'} en el plan gratis.`,
+                  `You have ${remaining} ${remaining === 1 ? 'item' : 'items'} left on the free plan.`,
+                )}
               </p>
               <button
                 onClick={() => {
@@ -239,7 +256,7 @@ export function SpaceDashboard({
                 }}
                 className="mt-1 text-sm font-medium text-[#C8102E] hover:underline"
               >
-                Mejorar a Emprendedor →
+                {getText('Mejorar a Emprendedor →', 'Upgrade to Entrepreneur →')}
               </button>
             </div>
           </div>
@@ -247,9 +264,14 @@ export function SpaceDashboard({
 
         {atLimit && (
           <div className="mt-6 rounded-2xl border border-[#C8102E] bg-[#C8102E]/5 p-6">
-            <p className="font-medium text-[#C8102E]">Estás creciendo 🔥</p>
+            <p className="font-medium text-[#C8102E]">
+              {getText('Estás creciendo 🔥', "You're growing 🔥")}
+            </p>
             <p className="mt-1 text-sm text-neutral-700">
-              Llegaste al límite de 10 items. Mejora a Emprendedor para items ilimitados.
+              {getText(
+                'Llegaste al límite de 10 items. Mejora a Emprendedor para items ilimitados.',
+                "You've reached the limit of 10 items. Upgrade to Entrepreneur for unlimited items.",
+              )}
             </p>
             <button
               onClick={() => {
@@ -258,48 +280,59 @@ export function SpaceDashboard({
               }}
               className="mt-4 rounded-full bg-[#C8102E] px-5 py-2 text-sm font-medium text-white transition hover:bg-[#A00D26]"
             >
-              Mejorar — ${PRICE_ENTREPRENEUR}/mes
+              {getText(`Mejorar — $${PRICE_ENTREPRENEUR}/mes`, `Upgrade — $${PRICE_ENTREPRENEUR}/mo`)}
             </button>
           </div>
         )}
 
         <section className="mt-8">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-neutral-500">
-            Próximos pasos
+            {getText('Próximos pasos', 'Next steps')}
           </h2>
           <div className="mt-3 space-y-2">
             <ChecklistItem
               done={true}
-              label="Crea tu espacio"
-              description="Listo"
+              label={getText('Crea tu espacio', 'Create your space')}
+              description={getText('Listo', 'Done')}
             />
             <ChecklistItem
               done={progress.first_product_added}
-              label="Edita o agrega tu primer item real"
-              description="Los items demo no cuentan — agrega el tuyo"
+              label={getText('Edita o agrega tu primer item real', 'Edit or add your first real item')}
+              description={getText(
+                'Los items demo no cuentan — agrega el tuyo',
+                "Demo items don't count — add yours",
+              )}
               href={`/space/${business.slug}/catalog/new`}
-              cta="Agregar"
+              cta={getText('Agregar', 'Add')}
             />
             <ChecklistItem
               done={progress.whatsapp_configured}
-              label="Conecta WhatsApp"
-              description="Para que tus clientes te escriban directo"
+              label={getText('Conecta WhatsApp', 'Connect WhatsApp')}
+              description={getText(
+                'Para que tus clientes te escriban directo',
+                'So your customers can message you directly',
+              )}
               href={`/space/${business.slug}/settings`}
-              cta="Configurar"
+              cta={getText('Configurar', 'Configure')}
             />
             <ChecklistItem
               done={progress.link_shared}
-              label="Comparte tu link"
-              description="Pégalo en Instagram, Facebook, WhatsApp"
+              label={getText('Comparte tu link', 'Share your link')}
+              description={getText(
+                'Pégalo en Instagram, Facebook, WhatsApp',
+                'Paste it on Instagram, Facebook, WhatsApp',
+              )}
               onClick={copyLink}
-              cta={copied ? '✓ Copiado' : 'Copiar link'}
+              cta={copied ? getText('✓ Copiado', '✓ Copied') : getText('Copiar link', 'Copy link')}
             />
           </div>
         </section>
 
         <section className="mt-8 grid grid-cols-2 gap-4">
           <div className="rounded-2xl border border-neutral-200 bg-white p-5">
-            <p className="text-xs uppercase tracking-wider text-neutral-500">Items reales</p>
+            <p className="text-xs uppercase tracking-wider text-neutral-500">
+              {getText('Items reales', 'Real items')}
+            </p>
             <p className="mt-1 text-2xl font-bold">
               {productCount}
               {business.plan === 'free' && (
@@ -308,9 +341,13 @@ export function SpaceDashboard({
             </p>
           </div>
           <div className="rounded-2xl border border-neutral-200 bg-white p-5">
-            <p className="text-xs uppercase tracking-wider text-neutral-500">Plan</p>
+            <p className="text-xs uppercase tracking-wider text-neutral-500">
+              {getText('Plan', 'Plan')}
+            </p>
             <p className="mt-1 text-2xl font-bold">
-              {business.plan === 'free' ? 'Gratis' : 'Emprendedor'}
+              {business.plan === 'free'
+                ? getText('Gratis', 'Free')
+                : getText('Emprendedor', 'Entrepreneur')}
             </p>
           </div>
         </section>

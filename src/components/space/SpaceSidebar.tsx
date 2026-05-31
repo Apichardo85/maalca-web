@@ -26,9 +26,9 @@ function SidebarContent({
   const getText = (es: string, en: string) => language === 'es' ? es : en;
 
   const freeModules = [
-    { label: getText('Inicio', 'Home'),         icon: '🏠', href: `/space/${slug}` },
-    { label: getText('Catálogo', 'Catalog'),    icon: '📦', href: `/space/${slug}/catalog` },
-    { label: 'QR',                              icon: '📱', href: `/space/${slug}/qr` },
+    { label: getText('Inicio', 'Home'),            icon: '🏠', href: `/space/${slug}` },
+    { label: getText('Catálogo', 'Catalog'),       icon: '📦', href: `/space/${slug}/catalog` },
+    { label: 'QR',                                 icon: '📱', href: `/space/${slug}/qr` },
     { label: getText('Configuración', 'Settings'), icon: '⚙️', href: `/space/${slug}/settings` },
   ];
 
@@ -46,9 +46,9 @@ function SidebarContent({
   };
 
   return (
-    <aside className="flex h-full flex-col bg-white dark:bg-neutral-900 w-60 border-r border-gray-200 dark:border-neutral-800">
-      {/* Header — pt-16 clears the SpaceSwitcherBar fixed at top-4 */}
-      <div className="flex min-h-[64px] items-end px-4 pb-4 pt-16 border-b border-gray-200 dark:border-neutral-800">
+    <aside className="flex h-full flex-col w-60 bg-white dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800">
+      {/* Business header */}
+      <div className="flex items-center px-4 py-4 border-b border-gray-200 dark:border-neutral-800">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
             {businessName}
@@ -157,9 +157,12 @@ export function SpaceSidebar({ slug, businessName, plan, businessId }: Props) {
 
   return (
     <>
-      {/* Mobile hamburger — right side to avoid SpaceSwitcherBar (fixed top-4 left-4) */}
+      {/*
+       * Mobile hamburger — placed just below the global Header (top-16 = 64px).
+       * The global Header is fixed top-0 z-50 h-16 lg:h-20, so we stay out of its area.
+       */}
       <button
-        className="fixed top-3 right-3 z-50 rounded-md bg-gray-100 dark:bg-neutral-800 p-2 text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700 md:hidden transition-colors"
+        className="fixed top-[4.5rem] right-3 z-50 rounded-md bg-gray-100 dark:bg-neutral-800 p-2 text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700 md:hidden transition-colors shadow-sm"
         onClick={() => setOpen(!open)}
         aria-label={open ? getText('Cerrar menú', 'Close menu') : getText('Abrir menú', 'Open menu')}
       >
@@ -172,16 +175,19 @@ export function SpaceSidebar({ slug, businessName, plan, businessId }: Props) {
         </svg>
       </button>
 
-      {/* Mobile overlay */}
+      {/* Mobile overlay — starts below the global Header */}
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+          className="fixed top-16 inset-x-0 bottom-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
           onClick={() => setOpen(false)}
         />
       )}
 
-      {/* Desktop sidebar — fixed */}
-      <div className="hidden md:flex fixed inset-y-0 left-0 z-30 w-60">
+      {/*
+       * Desktop sidebar — starts at top-16 (mobile header height) / top-20 (lg header height)
+       * so it never covers the global Header.
+       */}
+      <div className="hidden md:flex fixed top-16 lg:top-20 bottom-0 left-0 z-30 w-60">
         <SidebarContent
           slug={slug}
           businessName={businessName}
@@ -190,9 +196,9 @@ export function SpaceSidebar({ slug, businessName, plan, businessId }: Props) {
         />
       </div>
 
-      {/* Mobile sidebar — slide in from left */}
+      {/* Mobile sidebar — slide in from left, also starts below Header */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-60 transform transition-transform duration-200 ease-in-out md:hidden ${
+        className={`fixed top-16 bottom-0 left-0 z-50 w-60 transform transition-transform duration-200 ease-in-out md:hidden ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
