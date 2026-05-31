@@ -71,11 +71,12 @@ export default function Header({
     return () => subscription.unsubscribe();
   }, []);
 
-  // These routes have their own layouts
+  // These routes have their own dashboard layouts — no global marketing header
   if (
     pathname.startsWith('/ciriwhispers') ||
     pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/editorial')
+    pathname.startsWith('/editorial') ||
+    pathname.startsWith('/space')
   ) {
     return null;
   }

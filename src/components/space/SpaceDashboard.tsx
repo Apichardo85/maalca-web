@@ -84,12 +84,11 @@ export function SpaceDashboard({
     setCopied(true);
     track('link_copied', { business_id: business.id });
 
-    // Fire link_shared milestone (fire-and-forget, don't block UI)
     fetch(`/api/space/${business.slug}/events`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type: 'link_shared' }),
-    }).catch(() => {}); // silent fail — milestone is best-effort
+    }).catch(() => {});
 
     setTimeout(() => setCopied(false), 2000);
   };
@@ -99,17 +98,18 @@ export function SpaceDashboard({
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50">
-      <nav className="border-b border-neutral-200 bg-white">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
+      {/* In-page nav — marketing header is hidden on /space routes */}
+      <nav className="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <Link href="/servicios" className="text-lg font-semibold">
+          <Link href="/servicios" className="text-lg font-semibold text-gray-900 dark:text-white">
             MaalCa
           </Link>
           <div className="flex items-center gap-3">
             <span
               className={`rounded-full px-3 py-1 text-xs font-medium ${
                 business.plan === 'free'
-                  ? 'bg-neutral-100 text-neutral-700'
+                  ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300'
                   : 'bg-[#C8102E]/10 text-[#C8102E]'
               }`}
             >
@@ -138,7 +138,7 @@ export function SpaceDashboard({
             <h2 className="text-xl font-semibold text-[#C8102E]">
               {getText('¡Bienvenido a Emprendedor! 🎉', 'Welcome to Entrepreneur! 🎉')}
             </h2>
-            <p className="mt-2 text-sm text-neutral-700">
+            <p className="mt-2 text-sm text-neutral-700 dark:text-neutral-300">
               {getText(
                 'Items ilimitados, pedidos en línea, y todo lo demás están desbloqueados.',
                 'Unlimited items, online orders, and everything else is unlocked.',
@@ -147,13 +147,14 @@ export function SpaceDashboard({
           </div>
         )}
 
-        <div className="rounded-2xl border border-neutral-200 bg-white p-8 shadow-sm">
+        {/* Hero card */}
+        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-8 shadow-sm dark:shadow-none">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-sm text-neutral-500">
+              <p className="text-sm text-neutral-500 dark:text-neutral-400">
                 {getText('Tu negocio está en línea', 'Your business is online')}
               </p>
-              <h1 className="mt-1 text-2xl font-bold tracking-tight">
+              <h1 className="mt-1 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
                 {business.name} 🚀
               </h1>
             </div>
@@ -161,32 +162,34 @@ export function SpaceDashboard({
               href={`/${business.slug}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-shrink-0 rounded-full bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-800"
+              className="flex-shrink-0 rounded-full bg-neutral-900 dark:bg-white px-4 py-2 text-sm font-medium text-white dark:text-neutral-900 transition hover:bg-neutral-800 dark:hover:bg-neutral-100"
             >
               {getText('Ver mi página ↗', 'View my page ↗')}
             </a>
           </div>
 
-          <div className="mt-6 flex items-center gap-2 rounded-lg bg-neutral-50 p-3">
-            <code className="flex-1 truncate text-sm text-neutral-700">{publicUrl}</code>
+          <div className="mt-6 flex items-center gap-2 rounded-lg bg-neutral-50 dark:bg-neutral-800 p-3">
+            <code className="flex-1 truncate text-sm text-neutral-700 dark:text-neutral-300">
+              {publicUrl}
+            </code>
             <button
               onClick={copyLink}
-              className="flex-shrink-0 rounded-md bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 shadow-sm ring-1 ring-neutral-200 transition hover:bg-neutral-100"
+              className="flex-shrink-0 rounded-md bg-white dark:bg-neutral-700 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-200 shadow-sm ring-1 ring-neutral-200 dark:ring-neutral-600 transition hover:bg-neutral-100 dark:hover:bg-neutral-600"
             >
               {copied ? getText('✓ Copiado', '✓ Copied') : getText('Copiar', 'Copy')}
             </button>
           </div>
         </div>
 
-        {/* Demo items banner — only on first visit and while demo items exist */}
+        {/* Demo items banner */}
         {isNew && hasDemoItems && (
-          <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-6">
+          <div className="mt-6 rounded-2xl border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 p-6">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-semibold text-amber-900">
+                <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
                   {getText('Tu página ya se ve poblada ✨', 'Your page already looks populated ✨')}
                 </p>
-                <p className="mt-0.5 text-xs text-amber-700">
+                <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-300">
                   {getText(
                     `Cargamos ${demoItems.length} items de ejemplo — edítalos o elimínalos cuando quieras.`,
                     `We loaded ${demoItems.length} demo items — edit or delete them whenever you want.`,
@@ -197,7 +200,7 @@ export function SpaceDashboard({
                 href={`/${business.slug}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-shrink-0 rounded-full border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-100"
+                className="flex-shrink-0 rounded-full border border-amber-300 dark:border-amber-700 bg-white dark:bg-neutral-800 px-3 py-1.5 text-xs font-medium text-amber-900 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-neutral-700"
               >
                 {getText('Ver ↗', 'View ↗')}
               </a>
@@ -207,15 +210,17 @@ export function SpaceDashboard({
               {demoItems.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between rounded-xl bg-white px-4 py-3 ring-1 ring-amber-200"
+                  className="flex items-center justify-between rounded-xl bg-white dark:bg-neutral-800 px-4 py-3 ring-1 ring-amber-200 dark:ring-amber-800/50"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="flex-shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                    <span className="flex-shrink-0 rounded-full bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-300">
                       Demo
                     </span>
-                    <span className="truncate text-sm font-medium text-neutral-800">{item.name}</span>
+                    <span className="truncate text-sm font-medium text-neutral-800 dark:text-neutral-100">
+                      {item.name}
+                    </span>
                     {item.category && (
-                      <span className="hidden truncate text-xs text-neutral-400 sm:block">
+                      <span className="hidden truncate text-xs text-neutral-400 dark:text-neutral-500 sm:block">
                         {item.category}
                       </span>
                     )}
@@ -232,18 +237,19 @@ export function SpaceDashboard({
 
             <Link
               href={`/space/${business.slug}/catalog/new`}
-              className="mt-4 block w-full rounded-full bg-neutral-900 py-2.5 text-center text-sm font-medium text-white transition hover:bg-neutral-800"
+              className="mt-4 block w-full rounded-full bg-neutral-900 dark:bg-white py-2.5 text-center text-sm font-medium text-white dark:text-neutral-900 transition hover:bg-neutral-800 dark:hover:bg-neutral-100"
             >
               {getText('+ Agregar mi primer item real', '+ Add my first real item')}
             </Link>
           </div>
         )}
 
+        {/* Near-limit warning */}
         {showWarning && (
-          <div className="mt-6 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+          <div className="mt-6 flex items-start gap-3 rounded-2xl border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 p-4">
             <span className="text-xl">⚡</span>
             <div className="flex-1">
-              <p className="text-sm font-medium text-amber-900">
+              <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
                 {getText(
                   `Te quedan ${remaining} ${remaining === 1 ? 'item' : 'items'} en el plan gratis.`,
                   `You have ${remaining} ${remaining === 1 ? 'item' : 'items'} left on the free plan.`,
@@ -262,12 +268,13 @@ export function SpaceDashboard({
           </div>
         )}
 
+        {/* At-limit card */}
         {atLimit && (
           <div className="mt-6 rounded-2xl border border-[#C8102E] bg-[#C8102E]/5 p-6">
             <p className="font-medium text-[#C8102E]">
               {getText('Estás creciendo 🔥', "You're growing 🔥")}
             </p>
-            <p className="mt-1 text-sm text-neutral-700">
+            <p className="mt-1 text-sm text-neutral-700 dark:text-neutral-300">
               {getText(
                 'Llegaste al límite de 10 items. Mejora a Emprendedor para items ilimitados.',
                 "You've reached the limit of 10 items. Upgrade to Entrepreneur for unlimited items.",
@@ -285,8 +292,9 @@ export function SpaceDashboard({
           </div>
         )}
 
+        {/* Checklist */}
         <section className="mt-8">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-neutral-500">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
             {getText('Próximos pasos', 'Next steps')}
           </h2>
           <div className="mt-3 space-y-2">
@@ -328,23 +336,24 @@ export function SpaceDashboard({
           </div>
         </section>
 
+        {/* Stats */}
         <section className="mt-8 grid grid-cols-2 gap-4">
-          <div className="rounded-2xl border border-neutral-200 bg-white p-5">
-            <p className="text-xs uppercase tracking-wider text-neutral-500">
+          <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm dark:shadow-none">
+            <p className="text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
               {getText('Items reales', 'Real items')}
             </p>
-            <p className="mt-1 text-2xl font-bold">
+            <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
               {productCount}
               {business.plan === 'free' && (
-                <span className="text-sm font-normal text-neutral-400"> / 10</span>
+                <span className="text-sm font-normal text-neutral-400 dark:text-neutral-500"> / 10</span>
               )}
             </p>
           </div>
-          <div className="rounded-2xl border border-neutral-200 bg-white p-5">
-            <p className="text-xs uppercase tracking-wider text-neutral-500">
+          <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm dark:shadow-none">
+            <p className="text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
               {getText('Plan', 'Plan')}
             </p>
-            <p className="mt-1 text-2xl font-bold">
+            <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
               {business.plan === 'free'
                 ? getText('Gratis', 'Free')
                 : getText('Emprendedor', 'Entrepreneur')}
@@ -377,12 +386,14 @@ function ChecklistItem({ done, label, description, href, onClick, cta }: Checkli
   const Inner = (
     <div
       className={`flex items-center gap-4 rounded-xl border p-4 transition ${
-        done ? 'border-neutral-100 bg-neutral-50' : 'border-neutral-200 bg-white hover:border-neutral-300'
+        done
+          ? 'border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800/50'
+          : 'border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-600'
       }`}
     >
       <div
         className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border-2 ${
-          done ? 'border-[#C8102E] bg-[#C8102E]' : 'border-neutral-300'
+          done ? 'border-[#C8102E] bg-[#C8102E]' : 'border-neutral-300 dark:border-neutral-600'
         }`}
       >
         {done && (
@@ -392,10 +403,12 @@ function ChecklistItem({ done, label, description, href, onClick, cta }: Checkli
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium ${done ? 'text-neutral-500 line-through' : 'text-neutral-900'}`}>
+        <p className={`text-sm font-medium ${
+          done ? 'text-neutral-500 dark:text-neutral-500 line-through' : 'text-neutral-900 dark:text-white'
+        }`}>
           {label}
         </p>
-        <p className="text-xs text-neutral-500">{description}</p>
+        <p className="text-xs text-neutral-500 dark:text-neutral-400">{description}</p>
       </div>
       {!done && cta && (
         <span className="flex-shrink-0 text-xs font-medium text-[#C8102E]">{cta} →</span>
