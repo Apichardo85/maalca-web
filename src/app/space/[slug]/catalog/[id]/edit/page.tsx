@@ -1,6 +1,8 @@
 import { notFound, redirect } from 'next/navigation';
-import { supabaseServer } from '@/lib/supabase/server';
+import { getMaalcaApiToken, resolveAffiliateIdBySlug } from '@/lib/api-auth';
 import EditForm from './EditForm';
+
+const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 interface PageProps {
   params: Promise<{ slug: string; id: string }>;
@@ -8,28 +10,34 @@ interface PageProps {
 
 export default async function EditCatalogItemPage({ params }: PageProps) {
   const { slug, id } = await params;
-  const supabase = await supabaseServer();
+  const token = await getMaalcaApiToken();
+  if (!token) redirect('/login');
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  const affiliate = await resolveAffiliateIdBySlug(slug, token);
+  if (!affiliate) notFound();
 
-  const { data: biz } = await supabase
-    .from('businesses')
-    .select('id')
-    .eq('slug', slug)
-    .eq('owner_id', user.id)
-    .maybeSingle();
+  const res = await fetch(
+    `${API}/api/affiliates/${affiliate.id}/catalog-items/${id}`,
+    {
+      headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': affiliate.id },
+      cache: 'no-store',
+    },
+  );
 
-  if (!biz) notFound();
+  if (res.status === 404) notFound();
+  if (res.status === 403) redirect('/');
+  if (!res.ok) throw new Error(`Failed to load item: ${res.status}`);
 
-  const { data: item } = await supabase
-    .from('catalog_items')
-    .select('id, name, description, category, price, is_demo, active')
-    .eq('id', id)
-    .eq('business_id', biz.id)
-    .maybeSingle();
-
-  if (!item) notFound();
+  const raw = await res.json();
+  const item = {
+    id:          String(raw.id),
+    name:        String(raw.name),
+    description: raw.description ?? null,
+    category:    raw.category ?? null,
+    price:       raw.price != null ? Number(raw.price) : null,
+    is_demo:     raw.is_demo ?? raw.isDemo ?? false,
+    active:      raw.active ?? true,
+  };
 
   return <EditForm slug={slug} item={item} />;
 }
