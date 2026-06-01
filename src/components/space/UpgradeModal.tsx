@@ -55,13 +55,13 @@ export function UpgradeModal({ businessId, businessSlug, onClose }: Props) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl"
+        className="w-full max-w-md rounded-2xl bg-white dark:bg-neutral-900 p-8 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="text-center">
           <p className="text-3xl">🔥</p>
-          <h2 className="mt-2 text-2xl font-bold tracking-tight">Estás creciendo</h2>
-          <p className="mt-2 text-sm text-neutral-600">
+          <h2 className="mt-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Estás creciendo</h2>
+          <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
             Desbloquea el plan Emprendedor
           </p>
         </div>
@@ -72,21 +72,21 @@ export function UpgradeModal({ businessId, businessSlug, onClose }: Props) {
               <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#C8102E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
               </svg>
-              <span className="text-neutral-700">{f}</span>
+              <span className="text-neutral-700 dark:text-neutral-300">{f}</span>
             </li>
           ))}
         </ul>
 
-        <div className="mt-6 rounded-xl bg-neutral-50 p-4 text-center">
-          <p className="text-xs uppercase tracking-wider text-neutral-500">Emprendedor</p>
+        <div className="mt-6 rounded-xl bg-neutral-50 dark:bg-neutral-800 p-4 text-center">
+          <p className="text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Emprendedor</p>
           <p className="mt-1">
-            <span className="text-3xl font-bold">${ENTREPRENEUR_PRICE_USD}</span>
-            <span className="text-neutral-500">/mes</span>
+            <span className="text-3xl font-bold text-gray-900 dark:text-white">${ENTREPRENEUR_PRICE_USD}</span>
+            <span className="text-neutral-500 dark:text-neutral-400">/mes</span>
           </p>
         </div>
 
         {error && (
-          <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+          <p className="mt-4 rounded-lg bg-red-50 dark:bg-red-900/20 px-3 py-2 text-sm text-red-700 dark:text-red-400">{error}</p>
         )}
 
         <button
@@ -99,7 +99,7 @@ export function UpgradeModal({ businessId, businessSlug, onClose }: Props) {
 
         <button
           onClick={onClose}
-          className="mt-3 w-full text-center text-xs text-neutral-500 hover:text-neutral-700"
+          className="mt-3 w-full text-center text-xs text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
         >
           Más tarde
         </button>
