@@ -37,6 +37,7 @@ export default async function EditCatalogItemPage({ params }: PageProps) {
     price:       raw.price != null ? Number(raw.price) : null,
     is_demo:     raw.is_demo ?? raw.isDemo ?? false,
     active:      raw.active ?? true,
+    imageUrl:    raw.imageUrl ?? raw.image_url ?? null,
   };
 
   return <EditForm slug={slug} item={item} />;

@@ -4,25 +4,71 @@ import { useState, useTransition } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 
+function CameraIcon() {
+  return (
+    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+      <circle cx="12" cy="13" r="4"/>
+    </svg>
+  );
+}
+
 export default function NewCatalogItemPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageUploading, setImageUploading] = useState(false);
 
   const [form, setForm] = useState({ name: '', description: '', category: '', price: '' });
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImagePreview(null);
+  };
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     startTransition(async () => {
+      let imageUrl: string | undefined;
+
+      if (imageFile) {
+        setImageUploading(true);
+        const fd = new FormData();
+        fd.append('file', imageFile);
+        fd.append('itemId', 'new');
+        const uploadRes = await fetch(`/api/space/${slug}/catalog/upload-image`, {
+          method: 'POST',
+          body: fd,
+        });
+        setImageUploading(false);
+        if (!uploadRes.ok) {
+          const data = await uploadRes.json().catch(() => ({}));
+          setError(data.error ?? 'Error al subir la imagen');
+          return;
+        }
+        const { url } = await uploadRes.json();
+        imageUrl = url;
+      }
+
       const res = await fetch(`/api/space/${slug}/catalog`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, ...(imageUrl ? { imageUrl } : {}) }),
       });
       if (res.ok) {
         router.push(`/space/${slug}`);
@@ -32,6 +78,8 @@ export default function NewCatalogItemPage() {
       }
     });
   };
+
+  const busy = pending || imageUploading;
 
   return (
     <main className="min-h-screen bg-neutral-50 dark:bg-neutral-950 py-12 px-4">
@@ -44,6 +92,39 @@ export default function NewCatalogItemPage() {
         </div>
 
         <form onSubmit={submit} className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-8 shadow-sm space-y-5">
+
+          {/* Image upload */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+              Foto del item
+            </label>
+            {imagePreview ? (
+              <div className="relative w-full overflow-hidden rounded-xl bg-neutral-100 dark:bg-neutral-800" style={{ aspectRatio: '16/9' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={clearImage}
+                  className="absolute top-2 right-2 rounded-full bg-black/60 px-2 py-1 text-xs text-white hover:bg-black/80 transition"
+                >
+                  Cambiar
+                </button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center w-full rounded-xl border-2 border-dashed border-neutral-200 dark:border-neutral-700 cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-500 transition-colors bg-neutral-50 dark:bg-neutral-800/50 py-8 gap-2">
+                <span className="text-neutral-400 dark:text-neutral-500"><CameraIcon /></span>
+                <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Agregar foto / Add photo</span>
+                <span className="text-xs text-neutral-400 dark:text-neutral-600">JPEG, PNG, WebP · máx. 5 MB</span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={handleImageSelect}
+                />
+              </label>
+            )}
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Nombre *</label>
             <input
@@ -101,10 +182,10 @@ export default function NewCatalogItemPage() {
 
           <button
             type="submit"
-            disabled={!form.name.trim() || pending}
+            disabled={!form.name.trim() || busy}
             className="w-full rounded-full bg-[#C8102E] py-3 text-sm font-medium text-white transition hover:bg-[#A00D26] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {pending ? 'Guardando...' : 'Agregar item'}
+            {imageUploading ? 'Subiendo imagen...' : pending ? 'Guardando...' : 'Agregar item'}
           </button>
         </form>
       </div>
