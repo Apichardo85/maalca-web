@@ -65,13 +65,14 @@ export default function NewCatalogItemPage() {
         imageUrl = url;
       }
 
+      console.log('[catalog] submitting with imageUrl:', imageUrl);
       const res = await fetch(`/api/space/${slug}/catalog`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, ...(imageUrl ? { imageUrl } : {}) }),
       });
       if (res.ok) {
-        router.push(`/space/${slug}`);
+        router.push(`/space/${slug}/catalog`);
       } else {
         const data = await res.json().catch(() => ({}));
         setError(data.error ?? 'Algo salió mal');

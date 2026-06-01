@@ -96,13 +96,14 @@ export default function EditForm({ slug, item }: Props) {
       const body: Record<string, unknown> = { ...form };
       if (imageUrl) body.imageUrl = imageUrl;
 
+      console.log('[catalog] submitting with imageUrl:', imageUrl);
       const res = await fetch(`/api/space/${slug}/catalog/${item.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
       if (res.ok) {
-        router.push(`/space/${slug}`);
+        router.push(`/space/${slug}/catalog`);
       } else {
         const data = await res.json().catch(() => ({}));
         setError(data.error ?? 'Algo salió mal');
