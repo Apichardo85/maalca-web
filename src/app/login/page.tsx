@@ -128,27 +128,27 @@ function LoginForm() {
   const anyError = errorParam || googleError;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-red-50/20 to-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-red-50/20 to-slate-100 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+        <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-800 p-8">
 
           {/* Logo + headline */}
           <div className="text-center mb-8">
             <Link href="/" className="inline-block mb-5">
               <Logo variant="full" size="sm" />
             </Link>
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
               Empieza gratis en segundos
             </h1>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-neutral-400">
               Sin tarjeta. Sin compromiso.
             </p>
           </div>
 
           {/* OAuth error */}
           {anyError && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-5">
-              <p className="text-sm text-red-600">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-500/30 rounded-lg p-3 mb-5">
+              <p className="text-sm text-red-600 dark:text-red-400">
                 {errorParam === "auth_failed"
                   ? "No pudimos completar el login. Intenta de nuevo."
                   : (googleError ?? "Error inesperado.")}
@@ -160,7 +160,7 @@ function LoginForm() {
           <button
             onClick={handleGoogle}
             disabled={googleLoading}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-sm font-semibold text-gray-800 hover:border-gray-300 hover:bg-gray-50 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white dark:bg-neutral-800 border-2 border-gray-200 dark:border-neutral-700 rounded-xl text-sm font-semibold text-gray-800 dark:text-neutral-200 hover:border-gray-300 dark:hover:border-neutral-600 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {googleLoading ? (
               <svg className="animate-spin w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -182,14 +182,14 @@ function LoginForm() {
 
           {/* Reset sent confirmation */}
           {resetSent ? (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
-              <p className="text-sm font-semibold text-green-800 mb-1">Revisa tu correo</p>
-              <p className="text-xs text-green-700">
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-500/30 rounded-xl p-4 text-center">
+              <p className="text-sm font-semibold text-green-800 dark:text-green-300 mb-1">Revisa tu correo</p>
+              <p className="text-xs text-green-700 dark:text-green-400">
                 Te enviamos un enlace para restablecer tu contraseña a <strong>{email}</strong>.
               </p>
               <button
                 onClick={() => setResetSent(false)}
-                className="mt-3 text-xs text-green-700 underline hover:text-green-900"
+                className="mt-3 text-xs text-green-700 dark:text-green-400 underline hover:text-green-900 dark:hover:text-green-200"
               >
                 Volver al inicio de sesión
               </button>
@@ -253,15 +253,15 @@ function LoginForm() {
             </form>
           )}
 
-          <p className="text-xs text-center text-gray-400 mt-5">
+          <p className="text-xs text-center text-gray-400 dark:text-neutral-500 mt-5">
             Al continuar, aceptas los{" "}
-            <a href="/terminos" className="underline hover:text-gray-600">términos de uso</a>
+            <a href="/terminos" className="underline hover:text-gray-600 dark:hover:text-neutral-300">términos de uso</a>
             {" "}de MaalCa.
           </p>
         </div>
 
         <div className="mt-4 text-center">
-          <Link href="/" className="text-sm text-gray-500 hover:text-gray-800 transition-colors">
+          <Link href="/" className="text-sm text-gray-500 dark:text-neutral-400 hover:text-gray-800 dark:hover:text-white transition-colors">
             ← Volver al inicio
           </Link>
         </div>
@@ -272,10 +272,10 @@ function LoginForm() {
 
 function LoginLoading() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-red-50/20 to-slate-100 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-red-50/20 to-slate-100 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950 flex items-center justify-center">
       <div className="animate-pulse flex flex-col items-center gap-3">
-        <div className="h-8 w-40 bg-gray-200 rounded" />
-        <div className="h-4 w-56 bg-gray-200 rounded" />
+        <div className="h-8 w-40 bg-gray-200 dark:bg-neutral-800 rounded" />
+        <div className="h-4 w-56 bg-gray-200 dark:bg-neutral-800 rounded" />
       </div>
     </div>
   );
