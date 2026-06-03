@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
@@ -10,14 +10,18 @@ interface Props {
   name: string;
   whatsapp: string;
   primaryColor: string;
+  logoUrl: string | null;
 }
 
-export default function SettingsForm({ slug, name, whatsapp, primaryColor }: Props) {
+export default function SettingsForm({ slug, name, whatsapp, primaryColor, logoUrl: initialLogoUrl }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
-  const [form, setForm] = useState({ name, whatsapp, primaryColor });
+  const [form, setForm] = useState({ name, whatsapp, primaryColor, logoUrl: initialLogoUrl });
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [logoError, setLogoError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => language === 'es' ? es : en;
@@ -40,6 +44,31 @@ export default function SettingsForm({ slug, name, whatsapp, primaryColor }: Pro
     { name: 'Café',            hex: '#92400E' },
     { name: 'Índigo',          hex: '#4338CA' },
   ];
+
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setLogoError(getText('La imagen no puede superar 2MB.', 'Image cannot exceed 2MB.'));
+      return;
+    }
+    setLogoError(null);
+    setLogoUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('itemId', 'logo');
+      const res = await fetch(`/api/space/${slug}/catalog/upload-image`, { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Upload failed');
+      setForm((f) => ({ ...f, logoUrl: data.url }));
+    } catch (err) {
+      setLogoError(err instanceof Error ? err.message : getText('Error al subir imagen', 'Upload error'));
+    } finally {
+      setLogoUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,6 +109,42 @@ export default function SettingsForm({ slug, name, whatsapp, primaryColor }: Pro
           onSubmit={submit}
           className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-8 shadow-sm space-y-5"
         >
+          {/* Logo upload */}
+          <div className="flex flex-col items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleLogoChange}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={logoUploading}
+              className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-dashed border-gray-300 dark:border-neutral-600 bg-gray-100 dark:bg-neutral-800 transition hover:border-gray-400 dark:hover:border-neutral-500 focus:outline-none disabled:opacity-60"
+              title={getText('Cambiar logo', 'Change logo')}
+            >
+              {form.logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={form.logoUrl} alt="Logo" className="h-full w-full object-cover" />
+              ) : (
+                <CameraIcon className="mx-auto h-6 w-6 text-gray-400 dark:text-neutral-500" />
+              )}
+              {logoUploading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                </div>
+              )}
+            </button>
+            <p className="text-xs text-gray-400 dark:text-neutral-500">
+              {getText('Logo del negocio', 'Business logo')}
+            </p>
+            {logoError && (
+              <p className="text-xs text-red-500">{logoError}</p>
+            )}
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               {getText('Nombre del negocio *', 'Business name *')}
@@ -167,7 +232,7 @@ export default function SettingsForm({ slug, name, whatsapp, primaryColor }: Pro
 
           <button
             type="submit"
-            disabled={!form.name.trim() || pending}
+            disabled={!form.name.trim() || pending || logoUploading}
             className="w-full rounded-full bg-[#C8102E] py-3 text-sm font-medium text-white transition hover:bg-[#A00D26] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {pending
@@ -177,5 +242,14 @@ export default function SettingsForm({ slug, name, whatsapp, primaryColor }: Pro
         </form>
       </div>
     </main>
+  );
+}
+
+function CameraIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+      <circle cx="12" cy="13" r="4" />
+    </svg>
   );
 }
