@@ -55,6 +55,8 @@ export function RestaurantTemplate({
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f8f6f1' }}>
 
+      {/* TODO: Starter plan adds: gallery, hours, location */}
+
       {/* ── HERO ── */}
       <section
         style={{
