@@ -465,7 +465,7 @@ export default function ServiciosPage() {
                     {isFree ? (
                       <button
                         className="w-full py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-all duration-300 cursor-pointer"
-                        onClick={() => router.push("/contacto")}
+                        onClick={() => router.push("/login?redirect=/onboarding")}
                       >
                         {L(plan.cta)}
                       </button>
