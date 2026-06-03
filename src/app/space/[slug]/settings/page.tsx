@@ -32,6 +32,7 @@ export default async function SettingsPage({
       name={biz.name ?? ''}
       whatsapp={biz.whatsapp ?? ''}
       primaryColor={biz.primaryColor ?? '#C8102E'}
+      logoUrl={biz.logoUrl ?? null}
     />
   );
 }
