@@ -66,6 +66,11 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
 
   const { affiliate, categories = [], items, capabilities } = data;
 
+  const mappedItems = items.map((item) => ({
+    ...item,
+    image_url: item.image_url ?? (item as typeof item & { imageUrl?: string | null }).imageUrl ?? null,
+  }));
+
   const Template = TEMPLATES[affiliate.businessType.toLowerCase() as BusinessType];
   if (!Template) notFound();
 
@@ -89,7 +94,7 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
         contactEmail: affiliate.contactEmail ?? null,
         business_type: affiliate.businessType as BusinessType,
       }}
-      items={items}
+      items={mappedItems}
       categories={categories}
       capabilities={capabilities}
     />
