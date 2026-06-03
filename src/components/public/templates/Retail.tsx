@@ -7,14 +7,36 @@ export function RetailTemplate({ business, items, capabilities }: PublicTemplate
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="border-b border-neutral-100 px-4 pt-12 pb-8 text-center">
+      {/* TODO: Starter plan adds: gallery, hours, location */}
+      <header
+        className="relative px-4 pt-12 pb-8 text-center"
+        style={{ backgroundColor: accent }}
+      >
         {business.logo_url && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={business.logo_url} alt={business.name} className="mx-auto h-20 w-20 rounded-full object-cover" />
+          <img
+            src={business.logo_url}
+            alt={business.name}
+            className="mx-auto mb-4 h-20 w-20 rounded-full object-cover border-4 border-white/30"
+          />
         )}
-        <h1 className="mt-4 text-3xl font-bold tracking-tight">{business.name}</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow">
+          {business.name}
+        </h1>
         {business.description && (
-          <p className="mx-auto mt-2 max-w-md text-sm text-neutral-600">{business.description}</p>
+          <p className="mx-auto mt-2 max-w-md text-sm text-white/80">
+            {business.description}
+          </p>
+        )}
+        {business.whatsapp && (
+          <a
+            href={`https://wa.me/${business.whatsapp.replace(/\D/g, '')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur px-4 py-2 text-sm font-medium text-white hover:bg-white/30 transition"
+          >
+            💬 WhatsApp
+          </a>
         )}
       </header>
 

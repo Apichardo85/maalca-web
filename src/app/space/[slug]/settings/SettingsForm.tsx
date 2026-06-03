@@ -26,6 +26,21 @@ export default function SettingsForm({ slug, name, whatsapp, primaryColor }: Pro
     (e: React.ChangeEvent<HTMLInputElement>) =>
       setForm((f) => ({ ...f, [k]: e.target.value }));
 
+  const PALETTE = [
+    { name: 'Rojo MaalCa',     hex: '#C8102E' },
+    { name: 'Azul Océano',     hex: '#0066CC' },
+    { name: 'Verde Esmeralda', hex: '#10B981' },
+    { name: 'Morado',          hex: '#7C3AED' },
+    { name: 'Naranja',         hex: '#F97316' },
+    { name: 'Rosa',            hex: '#EC4899' },
+    { name: 'Amarillo',        hex: '#F59E0B' },
+    { name: 'Turquesa',        hex: '#06B6D4' },
+    { name: 'Negro',           hex: '#171717' },
+    { name: 'Gris Pizarra',    hex: '#475569' },
+    { name: 'Café',            hex: '#92400E' },
+    { name: 'Índigo',          hex: '#4338CA' },
+  ];
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -100,27 +115,38 @@ export default function SettingsForm({ slug, name, whatsapp, primaryColor }: Pro
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
-              {getText('Color primario', 'Primary color')}
-            </label>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                value={form.primaryColor}
-                onChange={set('primaryColor')}
-                className="h-10 w-12 cursor-pointer rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-0.5"
-              />
-              <input
-                type="text"
-                value={form.primaryColor}
-                onChange={set('primaryColor')}
-                maxLength={7}
-                placeholder="#C8102E"
-                pattern="^#[0-9A-Fa-f]{6}$"
-                className="flex-1 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 font-mono text-sm text-gray-900 dark:text-white focus:border-gray-400 dark:focus:border-neutral-500 focus:outline-none"
+            <div className="flex items-center gap-2 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300">
+                {getText('Color primario', 'Primary color')}
+              </label>
+              <span
+                className="inline-block h-5 w-5 rounded-full border border-white/20 shadow-sm flex-shrink-0"
+                style={{ backgroundColor: form.primaryColor }}
               />
             </div>
-            <p className="mt-1 text-xs text-gray-400 dark:text-neutral-500">
+            <div className="grid grid-cols-6 gap-2">
+              {PALETTE.map(({ name, hex }) => (
+                <button
+                  key={hex}
+                  type="button"
+                  title={name}
+                  onClick={() => setForm((f) => ({ ...f, primaryColor: hex }))}
+                  className="relative h-8 w-8 rounded-full border-2 transition focus:outline-none focus:ring-2 focus:ring-offset-2"
+                  style={{
+                    backgroundColor: hex,
+                    borderColor: form.primaryColor === hex ? '#ffffff' : 'transparent',
+                    boxShadow: form.primaryColor === hex ? `0 0 0 2px ${hex}` : undefined,
+                  }}
+                >
+                  {form.primaryColor === hex && (
+                    <svg className="absolute inset-0 m-auto h-4 w-4 text-white drop-shadow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-gray-400 dark:text-neutral-500">
               {getText(
                 'Se usa en tu página pública (botones, acentos).',
                 'Used on your public page (buttons, accents).',
