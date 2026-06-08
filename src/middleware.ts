@@ -47,10 +47,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // ── Affiliate-map guard for /dashboard/* ──────────────────────────────────
+  // ── /dashboard guard ──────────────────────────────────────────────────────
   // Only applies to Supabase session users (not legacy auth_token holders).
-  // A user with no UserAffiliateMap entry must be sent to /onboarding.
   if (pathname.startsWith("/dashboard") && user && !authToken) {
+    // Admin whitelist — only these emails can access /dashboard
+    const ADMIN_EMAILS = ["alejandropichardo85@gmail.com"];
+    if (!ADMIN_EMAILS.includes(user.email ?? "")) {
+      return NextResponse.redirect(new URL("/onboarding", request.url));
+    }
+
+    // Affiliate-map guard: admin must have a UserAffiliateMap entry in maalca-api
     const { data: { session } } = await supabase.auth.getSession();
 
     if (session?.access_token) {
