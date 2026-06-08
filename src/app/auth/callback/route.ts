@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 
+const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+
 // Known staff emails → affiliate mapping (hardcoded affiliates)
 const KNOWN_AFFILIATES: Record<string, { affiliate_id: string; role: string }> = {
   "alejandropichardo85@gmail.com":    { affiliate_id: "maalca",                role: "admin"  },
@@ -50,29 +52,47 @@ export async function GET(request: NextRequest) {
 
   // ── Routing logic ────────────────────────────────────────────────────────
   //
-  //  1. Known affiliate email  →  /dashboard/[affiliate_id]  (existing flow)
-  //  2. Self-service user with business already created  →  /space/[slug]
-  //  3. Brand-new self-service user  →  /onboarding
+  //  1. Known affiliate email (admin/staff)  →  /dashboard/[affiliate_id]
+  //  2. Self-service user with ?redirect param  →  honor it (e.g. /onboarding)
+  //  3. Self-service user with existing space  →  /space/[slug]
+  //  4. Brand-new self-service user  →  /onboarding
 
   let redirectPath: string;
 
   if (mapping?.affiliate_id) {
-    // 1. Hardcoded affiliate
+    // 1. Hardcoded staff affiliate — always go to their dashboard
     redirectPath = `/dashboard/${mapping.affiliate_id}`;
   } else {
-    // 2. Check if this user already has a business
-    const { data: businesses } = await supabase
-      .from("businesses")
-      .select("slug")
-      .eq("owner_id", data.user.id)
-      .order("created_at", { ascending: true })
-      .limit(1);
+    // Check for an explicit redirect param (e.g. from /login?redirect=/onboarding)
+    const redirectParam = searchParams.get("redirect") ?? searchParams.get("next");
+    const safeRedirect = redirectParam && redirectParam.startsWith("/") ? redirectParam : null;
 
-    if (businesses && businesses.length > 0) {
-      redirectPath = `/space/${businesses[0].slug}`;
+    if (safeRedirect) {
+      // 2. Honor the explicit redirect
+      redirectPath = safeRedirect;
     } else {
-      // 3. New user — go create their space
+      // 3 & 4. Check maalca-api for an existing space
+      const accessToken = data.session?.access_token;
       redirectPath = "/onboarding";
+
+      if (accessToken) {
+        try {
+          const res = await fetch(`${API}/api/me/affiliates`, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+            cache: "no-store",
+          });
+
+          if (res.ok) {
+            const affiliates: Array<{ id: string; slug: string }> =
+              await res.json().catch(() => []);
+            if (affiliates.length > 0) {
+              redirectPath = `/space/${affiliates[0].slug}`;
+            }
+          }
+        } catch {
+          // maalca-api unreachable — send to onboarding
+        }
+      }
     }
   }
 
