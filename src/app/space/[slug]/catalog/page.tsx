@@ -11,11 +11,16 @@ interface CatalogItem {
   category: string | null;
   isDemo: boolean;
   active: boolean;
+  imageUrl?: string | null;
+}
+
+interface RawCatalogItem extends CatalogItem {
+  image_url?: string | null;
 }
 
 interface SpaceData {
   business: { plan: Plan };
-  items: CatalogItem[];
+  items: RawCatalogItem[];
   productCount: number;
 }
 
@@ -40,11 +45,20 @@ export default async function CatalogPage({
 
   const data: SpaceData = await res.json();
 
+  const items: CatalogItem[] = data.items.map((item) => ({
+    id:       item.id,
+    name:     item.name,
+    category: item.category,
+    isDemo:   item.isDemo,
+    active:   item.active,
+    imageUrl: item.imageUrl ?? item.image_url ?? null,
+  }));
+
   return (
     <CatalogView
       slug={slug}
       plan={data.business.plan}
-      items={data.items}
+      items={items}
       productCount={data.productCount}
     />
   );

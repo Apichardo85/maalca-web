@@ -1,9 +1,19 @@
+'use client';
 // src/components/public/templates/Retail.tsx
 import Link from 'next/link';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
+import { useCart } from '@/components/public/cart/useCart';
+import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
+
+const priceFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  maximumFractionDigits: 2,
+});
 
 export function RetailTemplate({ business, items, capabilities }: PublicTemplateProps) {
   const accent = business.primary_color ?? '#C8102E';
+  const { cart, addToCart, removeFromCart, cartTotal, cartCount } = useCart();
 
   return (
     <div className="min-h-screen bg-white">
@@ -48,41 +58,74 @@ export function RetailTemplate({ business, items, capabilities }: PublicTemplate
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-            {items.map((item) => (
-              <div key={item.id} className="group">
-                <div className="aspect-square overflow-hidden rounded-xl bg-neutral-100">
-                  {item.image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={item.image_url}
-                      alt={item.name}
-                      className="h-full w-full object-cover transition group-hover:scale-105"
-                    />
+            {items.map((item) => {
+              const cartQty = cart.find(e => e.item.id === item.id)?.qty ?? 0;
+              const imageUrl = item.imageUrl ?? item.image_url;
+              return (
+                <div key={item.id} className="group">
+                  <div className="aspect-square overflow-hidden rounded-xl bg-neutral-100">
+                    {imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={imageUrl}
+                        alt={item.name}
+                        className="h-full w-full object-cover transition group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-3xl text-neutral-300">
+                        🛍️
+                      </div>
+                    )}
+                  </div>
+                  <p className="mt-2 text-sm font-medium line-clamp-1">{item.name}</p>
+                  {item.price != null && (
+                    <p className="text-sm text-neutral-600">{priceFormatter.format(item.price)}</p>
+                  )}
+                  {cartQty === 0 ? (
+                    <button
+                      onClick={() => addToCart({
+                        id: item.id,
+                        name: item.name,
+                        price: item.price ?? 0,
+                        image: imageUrl ?? undefined,
+                      })}
+                      aria-label={`Agregar ${item.name}`}
+                      className="mt-2 block w-full rounded-full py-1.5 text-center text-xs font-medium text-white transition hover:opacity-90"
+                      style={{ backgroundColor: accent }}
+                    >
+                      + Agregar
+                    </button>
                   ) : (
-                    <div className="flex h-full items-center justify-center text-3xl text-neutral-300">
-                      🛍️
+                    <div className="mt-2 flex items-center justify-between gap-1">
+                      <button
+                        onClick={() => removeFromCart(item.id)}
+                        aria-label={`Quitar ${item.name}`}
+                        className="flex h-7 w-7 items-center justify-center rounded-md text-sm font-bold"
+                        style={{ backgroundColor: '#f0ede8', color: '#1a1a1a' }}
+                      >
+                        −
+                      </button>
+                      <span className="text-sm font-bold" style={{ color: '#1a1a1a' }}>
+                        {cartQty}
+                      </span>
+                      <button
+                        onClick={() => addToCart({
+                          id: item.id,
+                          name: item.name,
+                          price: item.price ?? 0,
+                          image: imageUrl ?? undefined,
+                        })}
+                        aria-label={`Agregar ${item.name}`}
+                        className="flex h-7 w-7 items-center justify-center rounded-md text-sm font-bold text-white"
+                        style={{ backgroundColor: '#25D366' }}
+                      >
+                        +
+                      </button>
                     </div>
                   )}
                 </div>
-                <p className="mt-2 text-sm font-medium line-clamp-1">{item.name}</p>
-                {item.price != null && (
-                  <p className="text-sm text-neutral-600">${item.price.toFixed(2)}</p>
-                )}
-                {business.whatsapp && (
-                  <a
-                    href={`https://wa.me/${business.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(
-                      `Hola ${business.name}, me interesa: ${item.name}`
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-2 block rounded-full py-1.5 text-center text-xs font-medium text-white"
-                    style={{ backgroundColor: accent }}
-                  >
-                    {capabilities.onlinePayments ? 'Comprar' : 'Pedir por WhatsApp'}
-                  </a>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </main>
@@ -93,6 +136,18 @@ export function RetailTemplate({ business, items, capabilities }: PublicTemplate
             Powered by <span className="font-semibold">MaalCa</span>
           </Link>
         </footer>
+      )}
+
+      {business.whatsapp && (
+        <WhatsAppCart
+          cart={cart}
+          addToCart={addToCart}
+          removeFromCart={removeFromCart}
+          cartTotal={cartTotal}
+          cartCount={cartCount}
+          whatsappNumber={business.whatsapp}
+          businessName={business.name}
+        />
       )}
     </div>
   );

@@ -42,7 +42,7 @@ const plans: Plan[] = [
     name: { es: "Plan Inicial", en: "Starter Plan" },
     tagline: {
       es: "Todo lo esencial para tener presencia digital sin costo: página web, catálogo básico, QR y contacto directo.",
-      en: "Everything essential for digital presence at no cost: website, basic catalog, QR and direct contact.",
+      en: "Everything you need for a digital presence at no cost: website, basic catalog, QR code and direct contact.",
     },
     price: 0,
     setup: null,
@@ -60,10 +60,10 @@ const plans: Plan[] = [
   },
   {
     id: "emprendedor",
-    name: { es: "Emprendedor", en: "Entrepreneur" },
+    name: { es: "Emprendedor", en: "Growth" },
     tagline: {
       es: "Cuando ya vendes: reservas, pagos online, catálogo ilimitado y automatizaciones que te ahorran horas.",
-      en: "When you're already selling: bookings, online payments, unlimited catalog and time-saving automations.",
+      en: "Once you're selling: bookings, online payments, unlimited catalog and automations that save you hours.",
     },
     price: 38,
     setup: { es: "Setup único $150", en: "One-time setup $150" },
@@ -77,14 +77,14 @@ const plans: Plan[] = [
       { es: "Analytics de conversión", en: "Conversion analytics" },
       { es: "Soporte prioritario (24h)", en: "Priority support (24h)" },
     ],
-    cta: { es: "Contratar Emprendedor", en: "Get Entrepreneur" },
+    cta: { es: "Contratar Emprendedor", en: "Get Growth" },
   },
   {
     id: "profesional",
     name: { es: "Profesional", en: "Professional" },
     tagline: {
-      es: "CRM, agente de IA en chat y automatizaciones avanzadas para negocios que quieren escalar.",
-      en: "CRM, AI chat agent and advanced automations for businesses ready to scale.",
+      es: "CRM, automatizaciones avanzadas y un agente de IA en chat para negocios que quieren escalar.",
+      en: "CRM, advanced automations and an AI chat agent for businesses ready to scale.",
     },
     price: 95,
     setup: { es: "Setup único $500", en: "One-time setup $500" },
@@ -104,8 +104,8 @@ const plans: Plan[] = [
     id: "premium",
     name: { es: "Premium", en: "Premium" },
     tagline: {
-      es: "Operación multi-sede, IA avanzada y estrategia BI completa para líderes del mercado.",
-      en: "Multi-location operation, advanced AI and full BI strategy for market leaders.",
+      es: "Operación multi-sede, IA avanzada y estrategia BI completa para negocios en expansión.",
+      en: "Multi-location operations, advanced AI and full BI strategy for growing businesses.",
     },
     price: 195,
     setup: { es: "Setup desde $2,500 · primer mes incluido", en: "Setup from $2,500 · first month included" },
@@ -131,7 +131,7 @@ const addOns: AddOn[] = [
     unit: { es: "/mes", en: "/mo" },
     desc: {
       es: "8 publicaciones al mes (Instagram + Facebook) con diseño y copy.",
-      en: "8 posts per month (Instagram + Facebook) with design and copy.",
+      en: "8 posts a month (Instagram + Facebook) with design and copy.",
     },
   },
   {
@@ -141,7 +141,7 @@ const addOns: AddOn[] = [
     unit: { es: "/mes", en: "/mo" },
     desc: {
       es: "Agente entrenado en tu negocio (ventas, reservas, FAQs) sobre Emprendedor, Profesional o Premium.",
-      en: "AI agent trained on your business (sales, bookings, FAQs) on top of Entrepreneur, Professional or Premium.",
+      en: "AI agent trained on your business (sales, bookings, FAQs) on top of Growth, Professional or Premium.",
     },
   },
   {
@@ -161,45 +161,45 @@ const addOns: AddOn[] = [
     unit: { es: "/ 5h", en: "/ 5h" },
     desc: {
       es: "5 horas para integraciones, auditorías o estrategia. No expiran.",
-      en: "5 hours for integrations, audits or strategy. No expiration.",
+      en: "5 hours for integrations, audits or strategy. Never expires.",
     },
   },
 ];
 
 const faqItems = [
   {
-    q: { es: "¿Es realmente gratis? ¿Hay costos ocultos?", en: "Is it really free? Any hidden costs?" },
+    q: { es: "¿Es realmente gratis? ¿Hay costos ocultos?", en: "Is it really free? Are there hidden costs?" },
     a: {
       es: "Sí, sin costos ocultos ni sorpresas. Gratis significa $0/mes para siempre dentro de los límites descritos. No pedimos tarjeta de crédito. Si quieres más capacidades, puedes actualizar voluntariamente en cualquier momento.",
-      en: "Yes, no hidden costs or surprises. Free means $0/mo forever within the described limits. No credit card required. If you want more capabilities, you can upgrade voluntarily at any time.",
+      en: "Yes, no hidden costs or surprises. Free means $0/month forever within the limits described. No credit card required. You can voluntarily upgrade anytime you want more capabilities.",
     },
   },
   {
-    q: { es: "¿Cuándo necesitaría pasar al plan de pago?", en: "When would I need to upgrade to a paid plan?" },
+    q: { es: "¿Cuándo necesitaría pasar al plan de pago?", en: "When would I need to switch to a paid plan?" },
     a: {
-      es: "Cuando superes los límites (más productos, más tráfico, funciones avanzadas) o quieras automatizar procesos. Nuestro sistema te avisará cuando te acerques a los límites y podrás cambiar de plan sin perder ningún dato.",
-      en: "When you exceed the limits (more products, more traffic, advanced features) or want to automate processes. Our system will notify you as you approach limits and you can change plans without losing any data.",
+      es: "Cuando superes los límites del plan (más productos, más tráfico, funciones avanzadas) o quieras automatizar procesos. Te avisamos cuando te acerques a esos límites, y puedes cambiar de plan sin perder ningún dato.",
+      en: "When you exceed your plan's limits (more products, more traffic, advanced features) or want to automate processes. We'll let you know as you approach those limits, and you can switch plans without losing any data.",
     },
   },
   {
     q: { es: "¿Qué pasa con mis datos si dejo de usar el plan gratuito?", en: "What happens to my data if I stop using the free plan?" },
     a: {
       es: "Tus datos siempre te pertenecen. Puedes exportarlos en cualquier momento. Si decides no continuar, tu cuenta se inactiva sin penalización. Las cuentas inactivas por más de 6 meses pueden suspenderse con previo aviso.",
-      en: "Your data always belongs to you. You can export it at any time. If you decide to stop, your account is deactivated without penalty. Accounts inactive for more than 6 months may be suspended with prior notice.",
+      en: "Your data always belongs to you. You can export it at any time. If you decide not to continue, your account is deactivated without penalty. Accounts inactive for more than 6 months may be suspended with prior notice.",
     },
   },
   {
-    q: { es: "¿Qué soporte incluye el plan gratuito?", en: "What support does the free plan include?" },
+    q: { es: "¿Qué soporte incluye el plan gratuito?", en: "What support is included in the free plan?" },
     a: {
-      es: "Soporte básico por email con respuesta en máximo 72 horas, más acceso a documentación en línea y guía de onboarding paso a paso. Los planes de pago incluyen soporte prioritario o dedicado.",
-      en: "Basic email support with a maximum 72-hour response time, plus access to online documentation and a step-by-step onboarding guide. Paid plans include priority or dedicated support.",
+      es: "Soporte básico por email con respuesta en máximo 72 horas. Los planes de pago incluyen soporte prioritario o dedicado.",
+      en: "Basic email support with a response within 72 hours. Paid plans include priority or dedicated support.",
     },
   },
   {
-    q: { es: "¿La información de mi negocio está segura y es privada?", en: "Is my business information safe and private?" },
+    q: { es: "¿La información de mi negocio está segura y es privada?", en: "Is my business information secure and private?" },
     a: {
-      es: "Sí. Usamos SSL, backups regulares y los datos de tu negocio son tuyos: no los vendemos ni compartimos con terceros. Consulta nuestros Términos y Política de Privacidad para más detalles.",
-      en: "Yes. We use SSL, regular backups and your business data is yours — we don't sell or share it with third parties. See our Terms and Privacy Policy for details.",
+      es: "Sí. Usamos SSL y backups regulares. Los datos de tu negocio son tuyos: no los vendemos ni compartimos con terceros. Consulta nuestros Términos y Política de Privacidad para más detalles.",
+      en: "Yes. We use SSL and regular backups. Your business data is yours: we don't sell it or share it with third parties. See our Terms and Privacy Policy for details.",
     },
   },
 ];
@@ -285,10 +285,10 @@ export default function ServiciosPage() {
   };
 
   const process = [
-    { step: "01", titleKey: "services.process.step1.title", descriptionKey: "services.process.step1.description" },
-    { step: "02", titleKey: "services.process.step2.title", descriptionKey: "services.process.step2.description" },
-    { step: "03", titleKey: "services.process.step3.title", descriptionKey: "services.process.step3.description" },
-    { step: "04", titleKey: "services.process.step4.title", descriptionKey: "services.process.step4.description" },
+    { step: "01", titleKey: "how.step1.title", descriptionKey: "how.step1.desc" },
+    { step: "02", titleKey: "how.step2.title", descriptionKey: "how.step2.desc" },
+    { step: "03", titleKey: "how.step3.title", descriptionKey: "how.step3.desc" },
+    { step: "04", titleKey: "how.step4.title", descriptionKey: "how.step4.desc" },
   ];
 
   const stats = [
@@ -563,7 +563,7 @@ export default function ServiciosPage() {
             </h2>
             <p className="text-lg text-text-secondary max-w-2xl mx-auto">
               {language === "en"
-                ? "Find the plan that fits your stage of growth."
+                ? "Find the plan that matches your stage of growth."
                 : "Encuentra el plan que va con tu etapa de crecimiento."}
             </p>
           </div>
@@ -581,7 +581,9 @@ export default function ServiciosPage() {
                     <span className="text-xs text-text-muted">$0</span>
                   </th>
                   <th className="text-center py-4 px-3">
-                    <span className="text-xs font-bold text-text-primary block">Emprendedor</span>
+                    <span className="text-xs font-bold text-text-primary block">
+                      {language === "en" ? "Growth" : "Emprendedor"}
+                    </span>
                     <span className="text-xs text-text-muted">$38</span>
                   </th>
                   <th className="text-center py-4 px-3">
@@ -623,7 +625,7 @@ export default function ServiciosPage() {
             </h2>
             <p className="text-lg text-text-secondary max-w-2xl mx-auto">
               {language === "en"
-                ? "Scale your plan without jumping tiers. Stackable on Emprendedor, Profesional or Premium."
+                ? "Scale your plan without jumping tiers. Stackable on Growth, Professional or Premium."
                 : "Escala tu plan sin cambiar de tier. Combinables sobre Emprendedor, Profesional o Premium."}
             </p>
           </div>
@@ -697,10 +699,10 @@ export default function ServiciosPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 animate-fade-in-up">
             <h2 className="font-display text-3xl md:text-4xl font-bold text-text-primary mb-6">
-              {t("services.process.title")}
+              {t("how.title")}
             </h2>
             <p className="text-lg text-text-secondary max-w-2xl mx-auto">
-              {t("services.process.description")}
+              {t("how.subtitle")}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -777,6 +779,7 @@ export default function ServiciosPage() {
                 variant="primary"
                 size="lg"
                 className="bg-brand-primary hover:bg-brand-primary-hover"
+                onClick={() => router.push("/login?redirect=/onboarding")}
               >
                 {t("services.cta.consultation")}
               </Button>
@@ -784,6 +787,7 @@ export default function ServiciosPage() {
                 variant="outline"
                 size="lg"
                 className="border-border text-text-primary hover:bg-surface"
+                onClick={() => router.push("/casos")}
               >
                 {t("services.cta.portfolio")}
               </Button>
