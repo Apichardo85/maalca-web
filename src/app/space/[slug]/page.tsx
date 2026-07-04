@@ -5,6 +5,11 @@ import { getMaalcaApiToken } from '@/lib/api-auth';
 const API = process.env.NEXT_PUBLIC_API_BASE_URL
   ?? 'http://localhost:8080';
 
+interface SpaceKpi {
+  valor: number | null;
+  disponible: boolean;
+}
+
 interface SpaceResponse {
   business: {
     id: string;
@@ -14,6 +19,7 @@ interface SpaceResponse {
     plan: 'free' | 'entrepreneur';
     whatsapp: string | null;
     primaryColor: string | null;
+    modulosActivos: string[];
   };
   items: Array<{
     id: string;
@@ -27,6 +33,13 @@ interface SpaceResponse {
     firstProductAdded: boolean;
     whatsAppConfigured: boolean;
     linkShared: boolean;
+  };
+  /** Not yet deployed to production as of this writing — guarded with a fallback below. */
+  kpis?: {
+    visitas: SpaceKpi;
+    itemsPublicados: SpaceKpi;
+    escaneosQr: SpaceKpi;
+    clicsCanales: SpaceKpi;
   };
 }
 
@@ -58,20 +71,31 @@ export default async function SpacePage({
 
   const publicUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://maalca.com'}/${slug}`;
 
+  // `kpis` isn't deployed to production yet — fall back to a sane default (itemsPublicados
+  // from productCount, everything else unavailable) so the dashboard doesn't crash pre-deploy.
+  const kpis = data.kpis ?? {
+    visitas:         { valor: null, disponible: false },
+    itemsPublicados: { valor: data.productCount, disponible: true },
+    escaneosQr:      { valor: null, disponible: false },
+    clicsCanales:    { valor: null, disponible: false },
+  };
+
   // Adapt camelCase API response to SpaceDashboard's snake_case prop interface.
   // SpaceDashboard shape is unchanged; mapping lives here.
   // A future cleanup can rename SpaceDashboard props to camelCase and remove this adapter.
   return (
     <SpaceDashboard
       business={{
-        id:             data.business.id,
-        slug:           data.business.slug,
-        name:           data.business.name,
-        business_type:  data.business.businessType,
-        plan:           data.business.plan,
-        whatsapp:       data.business.whatsapp,
-        primary_color:  data.business.primaryColor,
+        id:               data.business.id,
+        slug:             data.business.slug,
+        name:             data.business.name,
+        business_type:    data.business.businessType,
+        plan:             data.business.plan,
+        whatsapp:         data.business.whatsapp,
+        primary_color:    data.business.primaryColor,
+        modulos_activos:  data.business.modulosActivos ?? [],
       }}
+      kpis={kpis}
       items={data.items.map((i) => ({
         id:       i.id,
         name:     i.name,

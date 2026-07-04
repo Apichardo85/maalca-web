@@ -1,14 +1,12 @@
 import { redirect } from 'next/navigation';
 import { getMaalcaApiToken } from '@/lib/api-auth';
-import { SpaceSidebar } from '@/components/space/SpaceSidebar';
+import { StatsContent } from './StatsContent';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
-export default async function SpaceSlugLayout({
-  children,
+export default async function StatsPage({
   params,
 }: {
-  children: React.ReactNode;
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
@@ -24,18 +22,5 @@ export default async function SpaceSlugLayout({
   if (res.status === 403) redirect('/');
   if (!res.ok) throw new Error(`Failed to load space: ${res.status}`);
 
-  const { business } = await res.json();
-
-  return (
-    <div className="flex min-h-screen bg-background">
-      <SpaceSidebar
-        slug={slug}
-        businessName={business.name}
-        plan={business.plan}
-      />
-      <div className="flex-1 min-w-0 md:pl-60">
-        {children}
-      </div>
-    </div>
-  );
+  return <StatsContent />;
 }

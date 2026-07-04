@@ -266,10 +266,12 @@ export default function Header({
                     {getText('Mi negocio', 'My business')}
                   </p>
                   {[
-                    { label: getText('Inicio', 'Home'),            icon: '🏠', href: `/space/${spaceSlug}` },
-                    { label: getText('Catálogo', 'Catalog'),       icon: '📦', href: `/space/${spaceSlug}/catalog` },
-                    { label: 'QR',                                 icon: '📱', href: `/space/${spaceSlug}/qr` },
-                    { label: getText('Configuración', 'Settings'), icon: '⚙️', href: `/space/${spaceSlug}/settings` },
+                    { label: getText('Dashboard', 'Dashboard'),               icon: '🏠', href: `/space/${spaceSlug}` },
+                    { label: getText('Diseñar mi Espacio', 'Design my Space'), icon: '🎨', href: `/space/${spaceSlug}/design` },
+                    { label: getText('Catálogo', 'Catalog'),                  icon: '📦', href: `/space/${spaceSlug}/catalog` },
+                    { label: getText('Módulos', 'Modules'),                   icon: '🧩', href: `/space/${spaceSlug}/modules` },
+                    { label: getText('Estadísticas', 'Stats'),                icon: '📊', href: `/space/${spaceSlug}/stats` },
+                    { label: getText('Configuración', 'Settings'),           icon: '⚙️', href: `/space/${spaceSlug}/settings` },
                   ].map((item) => (
                     <Link
                       key={item.href}
@@ -280,26 +282,6 @@ export default function Header({
                       <span>{item.icon}</span>
                       <span>{item.label}</span>
                     </Link>
-                  ))}
-                  {[
-                    { label: getText('Métricas', 'Metrics'),    icon: '📊' },
-                    { label: getText('Clientes', 'Customers'),  icon: '👥' },
-                    { label: getText('Citas', 'Appointments'), icon: '📅' },
-                    { label: getText('Campañas', 'Campaigns'), icon: '📢' },
-                    { label: getText('Facturación', 'Billing'), icon: '🧾' },
-                  ].map((item) => (
-                    <div
-                      key={item.label}
-                      className="flex items-center justify-between px-4 py-2 text-sm text-text-muted"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="opacity-40">{item.icon}</span>
-                        <span>{item.label}</span>
-                      </div>
-                      <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-surface-elevated border border-border text-text-muted">
-                        Pro
-                      </span>
-                    </div>
                   ))}
                 </div>
               )}

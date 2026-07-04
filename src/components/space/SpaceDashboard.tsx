@@ -22,6 +22,22 @@ interface Business {
   plan: Plan;
   whatsapp: string | null;
   primary_color: string | null;
+  modulos_activos: string[];
+}
+
+const KNOWN_MODULES = ['catalog', 'page', 'metrics'] as const;
+type ModuleKey = typeof KNOWN_MODULES[number];
+
+interface SpaceKpi {
+  valor: number | null;
+  disponible: boolean;
+}
+
+interface SpaceKpis {
+  visitas: SpaceKpi;
+  itemsPublicados: SpaceKpi;
+  escaneosQr: SpaceKpi;
+  clicsCanales: SpaceKpi;
 }
 
 interface CatalogItem {
@@ -46,6 +62,7 @@ interface Props {
   isNew: boolean;
   justUpgraded: boolean;
   publicUrl: string;
+  kpis: SpaceKpis;
 }
 
 export function SpaceDashboard({
@@ -56,6 +73,7 @@ export function SpaceDashboard({
   isNew,
   justUpgraded,
   publicUrl,
+  kpis,
 }: Props) {
   const [showAnimation, setShowAnimation] = useState(isNew);
   const [copied, setCopied] = useState(false);
@@ -71,6 +89,25 @@ export function SpaceDashboard({
 
   const demoItems = items.filter((i) => i.is_demo);
   const hasDemoItems = demoItems.length > 0;
+
+  const activeModules = business.modulos_activos.filter(
+    (m): m is ModuleKey => (KNOWN_MODULES as readonly string[]).includes(m),
+  );
+
+  const checklistDone = progress.first_product_added && progress.whatsapp_configured && progress.link_shared;
+  const [checklistOpen, setChecklistOpen] = useState(!checklistDone);
+
+  const now = new Date();
+  const hours = now.getHours();
+  const greeting = getText(
+    hours < 12 ? 'Buen día' : hours < 19 ? 'Buenas tardes' : 'Buenas noches',
+    hours < 12 ? 'Good morning' : hours < 19 ? 'Good afternoon' : 'Good evening',
+  );
+  const dateLabel = now.toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
 
   useEffect(() => {
     if (showAnimation) {
@@ -147,16 +184,23 @@ export function SpaceDashboard({
           </div>
         )}
 
-        {/* Hero card */}
-        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-8 shadow-sm dark:shadow-none">
-          <div className="flex items-start justify-between gap-4">
+        {/* Hero header */}
+        <div className="relative overflow-hidden rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm">
+          <div
+            className="absolute inset-0 opacity-[0.07] pointer-events-none"
+            style={{ background: 'radial-gradient(ellipse at top right, #C8102E, transparent 60%)' }}
+          />
+          <div className="relative px-6 sm:px-8 py-6 sm:py-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                {getText('Tu negocio está en línea', 'Your business is online')}
+              <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
+                {greeting} · {dateLabel}
               </p>
-              <h1 className="mt-1 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+              <h1 className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
                 {business.name} 🚀
               </h1>
+              <p className="mt-1 text-sm text-gray-600 dark:text-neutral-400">
+                {getText('Tu negocio está en línea', 'Your business is online')}
+              </p>
             </div>
             <a
               href={`/${business.slug}`}
@@ -168,16 +212,18 @@ export function SpaceDashboard({
             </a>
           </div>
 
-          <div className="mt-6 flex items-center gap-2 rounded-lg bg-neutral-50 dark:bg-neutral-800 p-3">
-            <code className="flex-1 truncate text-sm text-neutral-700 dark:text-neutral-300">
-              {publicUrl}
-            </code>
-            <button
-              onClick={copyLink}
-              className="flex-shrink-0 rounded-md bg-white dark:bg-neutral-700 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-200 shadow-sm ring-1 ring-neutral-200 dark:ring-neutral-600 transition hover:bg-neutral-100 dark:hover:bg-neutral-600"
-            >
-              {copied ? getText('✓ Copiado', '✓ Copied') : getText('Copiar', 'Copy')}
-            </button>
+          <div className="relative px-6 sm:px-8 pb-6 sm:pb-7">
+            <div className="flex items-center gap-2 rounded-lg bg-neutral-50 dark:bg-neutral-800 p-3">
+              <code className="flex-1 truncate text-sm text-neutral-700 dark:text-neutral-300">
+                {publicUrl}
+              </code>
+              <button
+                onClick={copyLink}
+                className="flex-shrink-0 rounded-md bg-white dark:bg-neutral-700 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-200 shadow-sm ring-1 ring-neutral-200 dark:ring-neutral-600 transition hover:bg-neutral-100 dark:hover:bg-neutral-600"
+              >
+                {copied ? getText('✓ Copiado', '✓ Copied') : getText('Copiar', 'Copy')}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -292,72 +338,201 @@ export function SpaceDashboard({
           </div>
         )}
 
-        {/* Checklist */}
-        <section className="mt-8">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
-            {getText('Próximos pasos', 'Next steps')}
-          </h2>
-          <div className="mt-3 space-y-2">
-            <ChecklistItem
-              done={true}
-              label={getText('Crea tu espacio', 'Create your space')}
-              description={getText('Listo', 'Done')}
-            />
-            <ChecklistItem
-              done={progress.first_product_added}
-              label={getText('Edita o agrega tu primer item real', 'Edit or add your first real item')}
-              description={getText(
-                'Los items demo no cuentan — agrega el tuyo',
-                "Demo items don't count — add yours",
-              )}
-              href={`/space/${business.slug}/catalog/new`}
-              cta={getText('Agregar', 'Add')}
-            />
-            <ChecklistItem
-              done={progress.whatsapp_configured}
-              label={getText('Conecta WhatsApp', 'Connect WhatsApp')}
-              description={getText(
-                'Para que tus clientes te escriban directo',
-                'So your customers can message you directly',
-              )}
-              href={`/space/${business.slug}/settings`}
-              cta={getText('Configurar', 'Configure')}
-            />
-            <ChecklistItem
-              done={progress.link_shared}
-              label={getText('Comparte tu link', 'Share your link')}
-              description={getText(
-                'Pégalo en Instagram, Facebook, WhatsApp',
-                'Paste it on Instagram, Facebook, WhatsApp',
-              )}
-              onClick={copyLink}
-              cta={copied ? getText('✓ Copiado', '✓ Copied') : getText('Copiar link', 'Copy link')}
-            />
+        {/* KPIs */}
+        <section className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <KpiTile
+            label={getText('Visitas a mi página', 'Visits to my page')}
+            value={kpis.visitas.disponible ? String(kpis.visitas.valor) : null}
+          />
+          <KpiTile
+            label={getText('Items publicados', 'Published items')}
+            value={kpis.itemsPublicados.disponible ? String(kpis.itemsPublicados.valor) : null}
+            suffix={business.plan === 'free' ? ' / 10' : undefined}
+          />
+          <KpiTile
+            label={getText('Escaneos de QR', 'QR scans')}
+            value={kpis.escaneosQr.disponible ? String(kpis.escaneosQr.valor) : null}
+          />
+          <KpiTile
+            label={getText('Clics a canales', 'Channel clicks')}
+            value={kpis.clicsCanales.disponible ? String(kpis.clicsCanales.valor) : null}
+          />
+        </section>
+
+        {/* Quick actions + Tu página */}
+        <section className="mt-6 grid gap-4 sm:grid-cols-2">
+          <div className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
+              {getText('Acciones rápidas', 'Quick actions')}
+            </h2>
+            <div className="mt-3 space-y-1.5">
+              <Link
+                href={`/space/${business.slug}/catalog/new`}
+                className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+              >
+                <span>➕</span> {getText('Agregar item', 'Add item')}
+              </Link>
+              <a
+                href={`/${business.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+              >
+                <span>👁️</span> {getText('Ver mi página', 'View my page')}
+              </a>
+              <Link
+                href={`/space/${business.slug}/settings`}
+                className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+              >
+                <span>💬</span> {getText('Configurar canales', 'Configure channels')}
+              </Link>
+              <button
+                onClick={copyLink}
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+              >
+                <span>🔗</span> {copied ? getText('✓ Link copiado', '✓ Link copied') : getText('Compartir link', 'Share link')}
+              </button>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
+              {getText('Tu página', 'Your page')}
+            </h2>
+            <div className="mt-3 flex items-center gap-3">
+              <div
+                className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl text-lg font-bold text-white"
+                style={{ backgroundColor: business.primary_color ?? '#C8102E' }}
+              >
+                {business.name.charAt(0).toUpperCase()}
+              </div>
+              <code className="min-w-0 flex-1 truncate text-xs text-gray-500 dark:text-neutral-400">
+                {publicUrl}
+              </code>
+            </div>
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              <a
+                href={`/${business.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-lg border border-gray-200 dark:border-neutral-700 px-2 py-1.5 text-center text-xs font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800"
+              >
+                {getText('Ver', 'View')}
+              </a>
+              <Link
+                href={`/space/${business.slug}/design`}
+                className="rounded-lg border border-gray-200 dark:border-neutral-700 px-2 py-1.5 text-center text-xs font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800"
+              >
+                {getText('Editar', 'Edit')}
+              </Link>
+              <button
+                onClick={copyLink}
+                className="rounded-lg border border-gray-200 dark:border-neutral-700 px-2 py-1.5 text-center text-xs font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800"
+              >
+                {copied ? getText('✓', '✓') : getText('Compartir', 'Share')}
+              </button>
+            </div>
           </div>
         </section>
 
-        {/* Stats */}
-        <section className="mt-8 grid grid-cols-2 gap-4">
-          <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm dark:shadow-none">
-            <p className="text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
-              {getText('Items reales', 'Real items')}
-            </p>
-            <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-              {productCount}
-              {business.plan === 'free' && (
-                <span className="text-sm font-normal text-neutral-400 dark:text-neutral-500"> / 10</span>
-              )}
-            </p>
-          </div>
-          <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm dark:shadow-none">
-            <p className="text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
-              {getText('Plan', 'Plan')}
-            </p>
-            <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-              {business.plan === 'free'
-                ? getText('Gratis', 'Free')
-                : getText('Emprendedor', 'Entrepreneur')}
-            </p>
+        {/* Checklist */}
+        <section className="mt-6">
+          <button
+            onClick={() => setChecklistOpen((v) => !v)}
+            className="flex w-full items-center justify-between text-left"
+          >
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+              {getText('Próximos pasos', 'Next steps')}
+              {checklistDone && ` · ${getText('Completado', 'Done')} ✓`}
+            </h2>
+            {checklistDone && (
+              <span className="text-xs text-neutral-400 dark:text-neutral-500">
+                {checklistOpen ? getText('Ocultar ▲', 'Hide ▲') : getText('Ver ▼', 'Show ▼')}
+              </span>
+            )}
+          </button>
+          {checklistOpen && (
+            <div className="mt-3 space-y-2">
+              <ChecklistItem
+                done={true}
+                label={getText('Crea tu espacio', 'Create your space')}
+                description={getText('Listo', 'Done')}
+              />
+              <ChecklistItem
+                done={progress.first_product_added}
+                label={getText('Edita o agrega tu primer item real', 'Edit or add your first real item')}
+                description={getText(
+                  'Los items demo no cuentan — agrega el tuyo',
+                  "Demo items don't count — add yours",
+                )}
+                href={`/space/${business.slug}/catalog/new`}
+                cta={getText('Agregar', 'Add')}
+              />
+              <ChecklistItem
+                done={progress.whatsapp_configured}
+                label={getText('Conecta WhatsApp', 'Connect WhatsApp')}
+                description={getText(
+                  'Para que tus clientes te escriban directo',
+                  'So your customers can message you directly',
+                )}
+                href={`/space/${business.slug}/settings`}
+                cta={getText('Configurar', 'Configure')}
+              />
+              <ChecklistItem
+                done={progress.link_shared}
+                label={getText('Comparte tu link', 'Share your link')}
+                description={getText(
+                  'Pégalo en Instagram, Facebook, WhatsApp',
+                  'Paste it on Instagram, Facebook, WhatsApp',
+                )}
+                onClick={copyLink}
+                cta={copied ? getText('✓ Copiado', '✓ Copied') : getText('Copiar link', 'Copy link')}
+              />
+            </div>
+          )}
+        </section>
+
+        {/* Módulos activos */}
+        <section className="mt-6">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+            {getText('Tus módulos', 'Your modules')}
+          </h2>
+          <div className="mt-3 grid gap-4 sm:grid-cols-3">
+            {activeModules.includes('catalog') && (
+              <ModuleCard
+                icon="📦"
+                title={getText('Catálogo', 'Catalog')}
+                body={getText(`${productCount} items publicados`, `${productCount} items published`)}
+                href={`/space/${business.slug}/catalog`}
+              />
+            )}
+            {activeModules.includes('page') && (
+              <ModuleCard
+                icon="🌐"
+                title={getText('Página', 'Page')}
+                body={publicUrl.replace(/^https?:\/\//, '')}
+                href={`/space/${business.slug}/design`}
+              />
+            )}
+            {activeModules.includes('metrics') && (
+              <ModuleCard
+                icon="📊"
+                title={getText('Métricas', 'Metrics')}
+                body={
+                  kpis.visitas.disponible
+                    ? getText(`${kpis.visitas.valor} visitas`, `${kpis.visitas.valor} visits`)
+                    : getText('Próximamente', 'Coming soon')
+                }
+                href={`/space/${business.slug}/stats`}
+              />
+            )}
+            <ModuleCard
+              icon="🧩"
+              title={getText('Explora más módulos', 'Explore more modules')}
+              body={getText('Ve qué más puedes activar →', 'See what else you can activate →')}
+              href={`/space/${business.slug}/modules`}
+              compact
+            />
           </div>
         </section>
       </main>
@@ -419,4 +594,60 @@ function ChecklistItem({ done, label, description, href, onClick, cta }: Checkli
   if (href) return <Link href={href}>{Inner}</Link>;
   if (onClick) return <button onClick={onClick} className="block w-full text-left">{Inner}</button>;
   return Inner;
+}
+
+interface KpiTileProps {
+  label: string;
+  /** null renders a "Próximamente" state instead of a fabricated number. */
+  value: string | null;
+  suffix?: string;
+}
+
+function KpiTile({ label, value, suffix }: KpiTileProps) {
+  const { language } = useSimpleLanguage();
+
+  return (
+    <div className="relative bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200/70 dark:border-neutral-800 p-5 shadow-sm">
+      <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500 mb-1">
+        {label}
+      </p>
+      {value === null ? (
+        <p className="text-sm font-semibold text-gray-400 dark:text-neutral-500">
+          {language === 'es' ? 'Próximamente' : 'Coming soon'}
+        </p>
+      ) : (
+        <p className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums">
+          {value}
+          {suffix && (
+            <span className="text-sm font-normal text-neutral-400 dark:text-neutral-500">{suffix}</span>
+          )}
+        </p>
+      )}
+    </div>
+  );
+}
+
+interface ModuleCardProps {
+  icon: string;
+  title: string;
+  body: string;
+  href: string;
+  compact?: boolean;
+}
+
+function ModuleCard({ icon, title, body, href, compact }: ModuleCardProps) {
+  return (
+    <Link
+      href={href}
+      className={`rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm hover:shadow-md transition-shadow ${
+        compact ? 'flex items-center gap-3 p-4' : 'p-5'
+      }`}
+    >
+      <span className={compact ? 'text-xl' : 'text-2xl'}>{icon}</span>
+      <div className={compact ? 'min-w-0' : 'mt-3'}>
+        <p className="text-sm font-semibold text-gray-900 dark:text-white">{title}</p>
+        <p className="mt-0.5 truncate text-xs text-gray-500 dark:text-neutral-400">{body}</p>
+      </div>
+    </Link>
+  );
 }

@@ -1,37 +1,27 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
-import { UpgradeModal } from './UpgradeModal';
 
 interface Props {
   slug: string;
   businessName: string;
   plan: 'free' | 'entrepreneur';
-  businessId: string;
 }
 
-export function SpaceSidebar({ slug, businessName, plan, businessId }: Props) {
-  const [showUpgrade, setShowUpgrade] = useState(false);
+export function SpaceSidebar({ slug, businessName, plan }: Props) {
   const pathname = usePathname();
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => language === 'es' ? es : en;
 
-  const freeModules = [
-    { label: getText('Inicio', 'Home'),            icon: '🏠', href: `/space/${slug}` },
-    { label: getText('Catálogo', 'Catalog'),       icon: '📦', href: `/space/${slug}/catalog` },
-    { label: 'QR',                                 icon: '📱', href: `/space/${slug}/qr` },
-    { label: getText('Configuración', 'Settings'), icon: '⚙️', href: `/space/${slug}/settings` },
-  ];
-
-  const paidModules = [
-    { label: getText('Métricas', 'Metrics'),    icon: '📊', href: `/space/${slug}/metrics`,      locked: true },
-    { label: getText('Clientes', 'Customers'),  icon: '👥', href: `/space/${slug}/customers`,    locked: true },
-    { label: getText('Citas', 'Appointments'), icon: '📅', href: `/space/${slug}/appointments`, locked: true },
-    { label: getText('Campañas', 'Campaigns'), icon: '📢', href: `/space/${slug}/campaigns`,    locked: true },
-    { label: getText('Facturación', 'Billing'), icon: '🧾', href: `/space/${slug}/invoicing`,   locked: true },
+  const navItems = [
+    { label: getText('Dashboard', 'Dashboard'),               icon: '🏠', href: `/space/${slug}` },
+    { label: getText('Diseñar mi Espacio', 'Design my Space'), icon: '🎨', href: `/space/${slug}/design` },
+    { label: getText('Catálogo', 'Catalog'),                  icon: '📦', href: `/space/${slug}/catalog` },
+    { label: getText('Módulos', 'Modules'),                   icon: '🧩', href: `/space/${slug}/modules` },
+    { label: getText('Estadísticas', 'Stats'),                icon: '📊', href: `/space/${slug}/stats` },
+    { label: getText('Configuración', 'Settings'),            icon: '⚙️', href: `/space/${slug}/settings` },
   ];
 
   const isActive = (href: string) => {
@@ -67,57 +57,8 @@ export function SpaceSidebar({ slug, businessName, plan, businessId }: Props) {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
-          {freeModules.map((mod) => {
+          {navItems.map((mod) => {
             const active = isActive(mod.href);
-            return (
-              <Link
-                key={mod.href}
-                href={mod.href}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                  active
-                    ? 'bg-[#C8102E] text-white'
-                    : 'text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 hover:text-gray-900 dark:hover:text-white'
-                }`}
-              >
-                <span className="text-base">{mod.icon}</span>
-                <span>{mod.label}</span>
-              </Link>
-            );
-          })}
-
-          <div className="my-3 border-t border-gray-200 dark:border-neutral-800" />
-
-          <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-neutral-600">
-            Pro
-          </p>
-
-          {paidModules.map((mod) => {
-            const locked = mod.locked && plan === 'free';
-            const active = !locked && isActive(mod.href);
-
-            if (locked) {
-              return (
-                <div
-                  key={mod.href}
-                  className="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm"
-                >
-                  <div className="flex items-center gap-3 text-gray-400 dark:text-neutral-600">
-                    <span className="text-base opacity-40">{mod.icon}</span>
-                    <span>{mod.label}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
-                    <span className="text-xs">🔒</span>
-                    <button
-                      onClick={() => setShowUpgrade(true)}
-                      className="text-xs font-medium text-[#C8102E] hover:underline"
-                    >
-                      {getText('Mejorar', 'Upgrade')}
-                    </button>
-                  </div>
-                </div>
-              );
-            }
-
             return (
               <Link
                 key={mod.href}
@@ -135,14 +76,6 @@ export function SpaceSidebar({ slug, businessName, plan, businessId }: Props) {
           })}
         </nav>
       </aside>
-
-      {showUpgrade && (
-        <UpgradeModal
-          businessId={businessId}
-          businessSlug={slug}
-          onClose={() => setShowUpgrade(false)}
-        />
-      )}
     </>
   );
 }
