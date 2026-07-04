@@ -10,6 +10,7 @@ interface CatalogItem {
   category: string | null;
   isDemo: boolean;
   active: boolean;
+  imageUrl?: string | null;
 }
 
 interface Props {
@@ -143,6 +144,21 @@ function ItemRow({
   return (
     <div className="flex items-center justify-between rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-3 shadow-sm dark:shadow-none">
       <div className="flex items-center gap-3 min-w-0">
+        {item.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={item.imageUrl}
+            alt={item.name}
+            className="h-10 w-10 flex-shrink-0 rounded-lg object-cover bg-gray-100 dark:bg-neutral-800"
+          />
+        ) : (
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-neutral-800 text-gray-300 dark:text-neutral-600">
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+          </div>
+        )}
         {item.isDemo && (
           <span className="flex-shrink-0 rounded-full bg-amber-100 dark:bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
             {getText('Demo', 'Demo')}

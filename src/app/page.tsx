@@ -28,7 +28,7 @@ function AffiliateLogo({ logo, fallback }: { logo?: string; fallback: string }) 
 
 export default function HomePage() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const scrollToSection = (sectionId: string) => {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -119,36 +119,36 @@ export default function HomePage() {
 
   const pricingPlans = [
     {
-      name: 'Gratis',
+      name: { es: 'Gratis', en: 'Free' },
       price: `$${PRICE_FREE}`,
-      period: '/mes',
-      tag: null as string | null,
+      period: language === 'en' ? '/mo' : '/mes',
+      tag: null as { es: string; en: string } | null,
       bullets: [
-        'Sitio web con tu marca',
-        'Catálogo básico (10 ítems)',
-        'Código QR + contacto directo',
+        { es: 'Sitio web con tu marca', en: 'Branded website' },
+        { es: 'Catálogo básico (10 ítems)', en: 'Basic catalog (10 items)' },
+        { es: 'Código QR + contacto directo', en: 'QR code + direct contact' },
       ],
     },
     {
-      name: 'Emprendedor',
+      name: { es: 'Emprendedor', en: 'Growth' },
       price: `$${PRICE_ENTREPRENEUR}`,
-      period: '/mes',
-      tag: 'Más popular' as string | null,
+      period: language === 'en' ? '/mo' : '/mes',
+      tag: { es: 'Más popular', en: 'Most popular' } as { es: string; en: string } | null,
       bullets: [
-        'Catálogo ilimitado + reservas online',
-        'Pagos con Stripe integrados',
-        'Automatizaciones básicas',
+        { es: 'Catálogo ilimitado + reservas online', en: 'Unlimited catalog + online bookings' },
+        { es: 'Pagos con Stripe integrados', en: 'Integrated Stripe payments' },
+        { es: 'Automatizaciones básicas', en: 'Basic automations' },
       ],
     },
     {
-      name: 'Profesional',
+      name: { es: 'Profesional', en: 'Professional' },
       price: `$${PRICE_PROFESSIONAL}`,
-      period: '/mes',
-      tag: null as string | null,
+      period: language === 'en' ? '/mo' : '/mes',
+      tag: null as { es: string; en: string } | null,
       bullets: [
-        'Agente IA entrenado en tu negocio',
-        'CRM completo con historial de clientes',
-        'Automatizaciones avanzadas + reportes BI',
+        { es: 'CRM completo con historial de clientes', en: 'Full CRM with customer history' },
+        { es: 'Agente IA entrenado en tu negocio', en: 'AI agent trained on your business' },
+        { es: 'Automatizaciones avanzadas + reportes BI', en: 'Advanced automations + BI reports' },
       ],
     },
   ];
@@ -177,12 +177,6 @@ export default function HomePage() {
               <span className="text-text-primary">{t('hero.maalca')}</span>
               <br />
               <span className="text-brand-primary">{t('hero.ecosystem')}</span>
-              {t('hero.creative') && (
-                <>
-                  <br />
-                  <span className="text-text-secondary">{t('hero.creative')}</span>
-                </>
-              )}
             </h1>
             <p
               className="text-lg sm:text-xl lg:text-2xl font-light mb-12 max-w-3xl mx-auto leading-relaxed text-text-secondary animate-fade-in-up"
@@ -265,9 +259,12 @@ export default function HomePage() {
       <section id="como-funciona" className="py-16 md:py-24 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 animate-fade-in-up">
-            <h2 className="font-display text-4xl lg:text-5xl font-bold text-text-primary">
+            <h2 className="font-display text-4xl lg:text-5xl font-bold text-text-primary mb-4">
               {t('how.title')}
             </h2>
+            <p className="text-lg text-text-secondary max-w-2xl mx-auto">
+              {t('how.subtitle')}
+            </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {howSteps.map((step, index) => (
@@ -296,9 +293,12 @@ export default function HomePage() {
       <section className="py-16 md:py-24 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 animate-fade-in-up">
-            <h2 className="font-display text-4xl lg:text-5xl font-bold text-text-primary mb-8">
+            <h2 className="font-display text-4xl lg:text-5xl font-bold text-text-primary mb-4">
               {t('cases.title')}
             </h2>
+            <p className="text-lg text-text-secondary max-w-2xl mx-auto">
+              {t('cases.preview.subtitle')}
+            </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
             {activeAffiliates.map((affiliate, index) => (
@@ -323,6 +323,11 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+          <div className="text-center mt-8">
+            <Link href="/casos" className="text-brand-primary hover:text-brand-primary-hover font-medium text-sm transition-colors">
+              {t('cases.preview.cta')}
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -330,14 +335,17 @@ export default function HomePage() {
       <section className="py-16 md:py-24 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16 animate-fade-in-up">
-            <h2 className="font-display text-4xl lg:text-5xl font-bold text-text-primary">
+            <h2 className="font-display text-4xl lg:text-5xl font-bold text-text-primary mb-4">
               {t('pricing.title')}
             </h2>
+            <p className="text-lg text-text-secondary max-w-2xl mx-auto">
+              {t('pricing.subtitle')}
+            </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {pricingPlans.map((plan, index) => (
               <div
-                key={plan.name}
+                key={plan.name.es}
                 className={`relative rounded-2xl p-8 border-2 transition-all duration-300 animate-fade-in-up flex flex-col ${
                   plan.tag
                     ? 'border-brand-primary bg-brand-primary/5'
@@ -347,11 +355,11 @@ export default function HomePage() {
               >
                 {plan.tag && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-primary text-white text-xs font-semibold px-3 py-1 rounded-full">
-                    {plan.tag}
+                    {plan.tag[language]}
                   </span>
                 )}
                 <div className="mb-6">
-                  <p className="text-sm font-medium text-text-secondary mb-1">{plan.name}</p>
+                  <p className="text-sm font-medium text-text-secondary mb-1">{plan.name[language]}</p>
                   <div className="flex items-baseline gap-1">
                     <span className="text-4xl font-bold text-text-primary font-display">{plan.price}</span>
                     <span className="text-text-muted text-sm">{plan.period}</span>
@@ -359,9 +367,9 @@ export default function HomePage() {
                 </div>
                 <ul className="space-y-3 mb-8 flex-1">
                   {plan.bullets.map((bullet) => (
-                    <li key={bullet} className="flex items-start gap-2 text-sm text-text-secondary">
+                    <li key={bullet.es} className="flex items-start gap-2 text-sm text-text-secondary">
                       <span className="text-brand-primary mt-0.5 flex-shrink-0">✓</span>
-                      {bullet}
+                      {bullet[language]}
                     </li>
                   ))}
                 </ul>
@@ -373,7 +381,7 @@ export default function HomePage() {
                       : 'border border-border text-text-primary hover:border-brand-primary hover:text-brand-primary'
                   }`}
                 >
-                  Ver plan completo →
+                  {t('pricing.plan.cta')}
                 </Link>
               </div>
             ))}

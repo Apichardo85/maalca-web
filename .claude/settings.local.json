@@ -115,7 +115,16 @@
       "Bash(dir \"C:\\\\Users\\\\apich\\\\source\\\\maalca-web\\\\docs\" /s /b)",
       "Bash(git rm *)",
       "Bash(git diff *)",
-      "Bash(Select-String \"Barber\")"
+      "Bash(Select-String \"Barber\")",
+      "Bash(python *)",
+      "PowerShell(npx tsc --noEmit 2>&1 | Select-Object -Last 30)",
+      "Bash(grep -r \"dark:\" src/app/space --include=\"*.tsx\" -l)",
+      "Bash(grep -r \"bg-surface\\\\|text-text-primary\\\\|bg-background\" src/app/space --include=\"*.tsx\" -l)",
+      "Bash(node -e ' *)",
+      "Bash(node --check src/hooks/useSimpleLanguage.tsx)",
+      "Bash(npx tsc *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" --max-time 2 http://localhost:3000/)",
+      "Bash(powershell -NoProfile -Command \"Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id \\\\$_ -Force; Write-Output \\\\\"killed \\\\$_\\\\\" }\")"
     ],
     "deny": [],
     "ask": []
