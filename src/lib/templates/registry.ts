@@ -6,6 +6,7 @@ import { RetailTemplate } from '@/components/public/templates/Retail';
 import type { Plan } from '@/lib/plan-limits';
 export type { Plan } from '@/lib/plan-limits';
 import type { PlanCapabilities } from '@/lib/capabilities';
+import type { PublicCanal } from '@/lib/public-contact';
 
 export type BusinessType = 'restaurant' | 'barber' | 'service' | 'retail';
 
@@ -28,6 +29,7 @@ export interface PublicTemplateProps {
     whatsapp?: string | null;
     address?: string | null;
     contactEmail?: string | null;
+    canales?: PublicCanal[];
     business_type: BusinessType;
   };
   items: Array<{

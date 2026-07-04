@@ -383,7 +383,7 @@ export function SpaceDashboard({
                 <span>👁️</span> {getText('Ver mi página', 'View my page')}
               </a>
               <Link
-                href={`/space/${business.slug}/settings`}
+                href={`/space/${business.slug}/design?tab=canales`}
                 className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
               >
                 <span>💬</span> {getText('Configurar canales', 'Configure channels')}
@@ -477,7 +477,7 @@ export function SpaceDashboard({
                   'Para que tus clientes te escriban directo',
                   'So your customers can message you directly',
                 )}
-                href={`/space/${business.slug}/settings`}
+                href={`/space/${business.slug}/design`}
                 cta={getText('Configurar', 'Configure')}
               />
               <ChecklistItem

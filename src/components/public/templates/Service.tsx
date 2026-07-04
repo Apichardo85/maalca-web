@@ -1,9 +1,11 @@
 // src/components/public/templates/Service.tsx
 import Link from 'next/link';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
+import { resolveWhatsAppDigits } from '@/lib/public-contact';
 
 export function ServiceTemplate({ business, items, capabilities }: PublicTemplateProps) {
   const accent = business.primary_color ?? '#C8102E';
+  const waRaw = resolveWhatsAppDigits(business);
 
   return (
     <div className="min-h-screen bg-white">
@@ -28,9 +30,9 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
             {business.description}
           </p>
         )}
-        {business.whatsapp && (
+        {waRaw && (
           <a
-            href={`https://wa.me/${business.whatsapp.replace(/\D/g, '')}`}
+            href={`https://wa.me/${waRaw}`}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur px-4 py-2 text-sm font-medium text-white hover:bg-white/30 transition"
@@ -54,9 +56,9 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
                 {item.description && <p className="mt-2 text-sm text-neutral-600">{item.description}</p>}
                 <div className="mt-4 flex items-center justify-between">
                   {item.price != null && <p className="font-semibold">${item.price.toFixed(2)}</p>}
-                  {business.whatsapp && (
+                  {waRaw && (
                     <a
-                      href={`https://wa.me/${business.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(
+                      href={`https://wa.me/${waRaw}?text=${encodeURIComponent(
                         `Hola ${business.name}, me interesa: ${item.name}`
                       )}`}
                       target="_blank"

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
 import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
+import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
 
 const ALL_TAB = '__all__';
 
@@ -21,7 +22,7 @@ export function RestaurantTemplate({
   capabilities,
 }: PublicTemplateProps) {
   const primaryColor = business.primary_color ?? '#C8102E';
-  const waRaw = business.whatsapp?.replace(/\D/g, '') ?? null;
+  const waRaw = resolveWhatsAppDigits(business);
   const waHeroLink = waRaw
     ? `https://wa.me/${waRaw}?text=${encodeURIComponent(`Hola, quiero info sobre ${business.name}`)}`
     : null;
@@ -334,7 +335,7 @@ export function RestaurantTemplate({
       </main>
 
       {/* ── CONTACTO ── */}
-      <ContactSection business={business} waHeroLink={waHeroLink} />
+      <ContactSection business={business} />
 
       {/* ── FOOTER ── */}
       {!capabilities.hidePoweredBy && (
@@ -362,7 +363,7 @@ export function RestaurantTemplate({
         removeFromCart={removeFromCart}
         cartTotal={cartTotal}
         cartCount={cartCount}
-        whatsappNumber={business.whatsapp ?? ''}
+        whatsappNumber={waRaw ?? ''}
         businessName={business.name}
         taxRate={0}
       />
@@ -594,36 +595,8 @@ function MenuCard({
   );
 }
 
-function ContactSection({
-  business,
-  waHeroLink,
-}: {
-  business: PublicTemplateProps['business'];
-  waHeroLink: string | null;
-}) {
-  type ContactItem = { icon: string; label: string; value: string; href: string };
-
-  const contacts: ContactItem[] = [
-    waHeroLink && business.whatsapp
-      ? { icon: '📱', label: 'WhatsApp', value: business.whatsapp, href: waHeroLink }
-      : null,
-    business.address
-      ? {
-          icon: '📍',
-          label: 'Dirección',
-          value: business.address,
-          href: `https://maps.google.com?q=${encodeURIComponent(business.address)}`,
-        }
-      : null,
-    business.contactEmail
-      ? {
-          icon: '✉️',
-          label: 'Email',
-          value: business.contactEmail,
-          href: `mailto:${business.contactEmail}`,
-        }
-      : null,
-  ].filter((c): c is ContactItem => c !== null);
+function ContactSection({ business }: { business: PublicTemplateProps['business'] }) {
+  const contacts = resolveContactItems(business);
 
   if (contacts.length === 0) return null;
 

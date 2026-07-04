@@ -274,7 +274,6 @@ export default function Header({
                     { label: getText('Catálogo', 'Catalog'),                  icon: '📦', href: `/space/${spaceSlug}/catalog` },
                     { label: getText('Módulos', 'Modules'),                   icon: '🧩', href: `/space/${spaceSlug}/modules` },
                     { label: getText('Estadísticas', 'Stats'),                icon: '📊', href: `/space/${spaceSlug}/stats` },
-                    { label: getText('Configuración', 'Settings'),           icon: '⚙️', href: `/space/${spaceSlug}/settings` },
                   ].map((item) => (
                     <Link
                       key={item.href}

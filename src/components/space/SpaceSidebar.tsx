@@ -21,7 +21,6 @@ export function SpaceSidebar({ slug, businessName, plan }: Props) {
     { label: getText('Catálogo', 'Catalog'),                  icon: '📦', href: `/space/${slug}/catalog` },
     { label: getText('Módulos', 'Modules'),                   icon: '🧩', href: `/space/${slug}/modules` },
     { label: getText('Estadísticas', 'Stats'),                icon: '📊', href: `/space/${slug}/stats` },
-    { label: getText('Configuración', 'Settings'),            icon: '⚙️', href: `/space/${slug}/settings` },
   ];
 
   const isActive = (href: string) => {

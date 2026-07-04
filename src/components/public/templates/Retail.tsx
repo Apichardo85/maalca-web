@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
 import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
+import { resolveWhatsAppDigits } from '@/lib/public-contact';
 
 const priceFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -13,6 +14,7 @@ const priceFormatter = new Intl.NumberFormat('en-US', {
 
 export function RetailTemplate({ business, items, capabilities }: PublicTemplateProps) {
   const accent = business.primary_color ?? '#C8102E';
+  const waRaw = resolveWhatsAppDigits(business);
   const { cart, addToCart, removeFromCart, cartTotal, cartCount } = useCart();
 
   return (
@@ -38,9 +40,9 @@ export function RetailTemplate({ business, items, capabilities }: PublicTemplate
             {business.description}
           </p>
         )}
-        {business.whatsapp && (
+        {waRaw && (
           <a
-            href={`https://wa.me/${business.whatsapp.replace(/\D/g, '')}`}
+            href={`https://wa.me/${waRaw}`}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur px-4 py-2 text-sm font-medium text-white hover:bg-white/30 transition"
@@ -138,14 +140,14 @@ export function RetailTemplate({ business, items, capabilities }: PublicTemplate
         </footer>
       )}
 
-      {business.whatsapp && (
+      {waRaw && (
         <WhatsAppCart
           cart={cart}
           addToCart={addToCart}
           removeFromCart={removeFromCart}
           cartTotal={cartTotal}
           cartCount={cartCount}
-          whatsappNumber={business.whatsapp}
+          whatsappNumber={waRaw}
           businessName={business.name}
         />
       )}

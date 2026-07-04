@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { TEMPLATES, type BusinessType, type PublicTemplateProps, type Plan } from '@/lib/templates/registry';
 import { ApiError } from '@/lib/api-client';
+import type { PublicCanal } from '@/lib/public-contact';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -92,6 +93,7 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
         whatsapp: whatsappValue,
         address: affiliate.address ?? null,
         contactEmail: affiliate.contactEmail ?? null,
+        canales: affiliate.canales ?? [],
         business_type: affiliate.businessType as BusinessType,
       }}
       items={mappedItems}
@@ -116,6 +118,7 @@ interface PublicCatalogResponse {
     whatsapp?: string | null;
     address?: string | null;
     contactEmail?: string | null;
+    canales?: PublicCanal[];
   };
   categories?: PublicTemplateProps['categories'];
   items: PublicTemplateProps['items'];
