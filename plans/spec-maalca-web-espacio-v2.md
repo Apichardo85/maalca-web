@@ -118,3 +118,9 @@ Hallazgo importante durante QA de Fase 1/2: el nuevo "Catálogo" genérico (`cat
 6. Fase 6 (Módulos) — sin dependencias, es principalmente contenido estático + los 3 módulos reales.
 
 QA de Ciri entre cada fase antes de avanzar a la siguiente, como en el resto del proyecto.
+
+---
+
+## Deuda técnica detectada (fuera de alcance — no tocar sin decisión explícita)
+
+**`src/hooks/useSimpleLanguage.tsx` — claves de traducción duplicadas.** El diccionario `translations` tiene al menos una clave definida dos veces dentro del mismo bloque de idioma: `editorial.hero.title` aparece 2 veces en `es` y 2 veces en `en`. Como en JS la última definición de una clave de objeto gana, la copy real de la página Editorial ("Publicar tu libro no debería costarte tus ahorros...") queda silenciosamente sobrescrita por una segunda definición genérica ("Editorial" / "MaalCa") que aparece más abajo en el mismo archivo — no rompe nada visible hoy porque `t('editorial.hero.title')` simplemente devuelve la última, pero es un bug latente si alguien reordena o edita el archivo sin saber que hay dos definiciones. No se detectaron más duplicados dentro de un mismo bloque de idioma en esta revisión (el archivo cruza ~1200 claves; sí hay ~29 claves presentes en `es` sin equivalente en `en`, que es un hallazgo relacionado pero distinto — quedaría bien auditarlo en la misma limpieza). Pendiente: consolidar duplicados, decidir cuál copy es la correcta para `editorial.hero.title`, y considerar partir este archivo (hoy un solo diccionario gigante) en algo más mantenible.

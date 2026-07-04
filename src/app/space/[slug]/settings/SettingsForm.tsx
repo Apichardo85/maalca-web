@@ -83,6 +83,7 @@ export default function SettingsForm({ slug, name, whatsapp, primaryColor, logoU
       if (res.ok) {
         setSaved(true);
         router.push(`/space/${slug}`);
+        router.refresh();
       } else {
         const data = await res.json().catch(() => ({}));
         setError(data.error ?? getText('Algo salió mal', 'Something went wrong'));
