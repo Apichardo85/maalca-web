@@ -6,7 +6,7 @@ import type { MealPeriod, WeekDay } from '@/lib/types'
 
 const AFFILIATE_ID = 'the-little-dominican'
 
-const API_BASE = process.env.API_BASE_URL ?? 'http://localhost:8080'
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080'
 const AFFILIATE_SLUG = 'the-little-dominicana'
 
 interface DbDish {

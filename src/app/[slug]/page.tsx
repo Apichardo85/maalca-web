@@ -10,7 +10,7 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-const API_BASE = process.env.API_BASE_URL ?? 'http://localhost:8080';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 const RESERVED = new Set([
   'servicios', 'login', 'signup', 'register', 'onboarding', 'space',
