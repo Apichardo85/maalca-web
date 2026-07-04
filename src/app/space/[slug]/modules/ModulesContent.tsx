@@ -22,7 +22,7 @@ export function ModulesContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
-      <div className="mx-auto max-w-3xl px-6 py-12">
+      <div className="px-6 py-12">
         <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
           {getText('Tu espacio', 'Your space')}
         </p>
@@ -40,7 +40,7 @@ export function ModulesContent() {
           <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-neutral-400">
             {getText('Activos', 'Active')}
           </h2>
-          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
             {ACTIVE_MODULES.map((mod) => (
               <div
                 key={mod.es}
@@ -62,7 +62,7 @@ export function ModulesContent() {
           <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-neutral-400">
             {getText('Próximamente', 'Coming soon')}
           </h2>
-          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
             {UPCOMING_MODULES.map((mod) => (
               <div
                 key={mod.es}

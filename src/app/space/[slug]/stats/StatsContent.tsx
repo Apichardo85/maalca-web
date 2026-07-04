@@ -8,7 +8,7 @@ export function StatsContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
-      <div className="mx-auto max-w-3xl px-6 py-12">
+      <div className="px-6 py-12">
         <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
           {getText('Tu espacio', 'Your space')}
         </p>

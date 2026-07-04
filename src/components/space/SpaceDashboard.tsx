@@ -11,6 +11,7 @@ import {
 } from '@/lib/plan-limits';
 import { PRICE_ENTREPRENEUR } from '@/config/pricing';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 import { CreatingSpaceAnimation } from './CreatingSpaceAnimation';
 import { UpgradeModal } from './UpgradeModal';
 
@@ -138,11 +139,12 @@ export function SpaceDashboard({
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
       {/* In-page nav — marketing header is hidden on /space routes */}
       <nav className="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+        <div className="flex items-center justify-between px-6 py-4">
           <Link href="/servicios" className="text-lg font-semibold text-gray-900 dark:text-white">
             MaalCa
           </Link>
           <div className="flex items-center gap-3">
+            <SimpleLanguageToggle variant="light" />
             <span
               className={`rounded-full px-3 py-1 text-xs font-medium ${
                 business.plan === 'free'
@@ -169,7 +171,7 @@ export function SpaceDashboard({
         </div>
       </nav>
 
-      <main className="mx-auto max-w-3xl px-6 py-8">
+      <main className="px-6 py-8">
         {justUpgraded && (
           <div className="mb-6 rounded-2xl border border-[#C8102E] bg-[#C8102E]/5 p-6 text-center">
             <h2 className="text-xl font-semibold text-[#C8102E]">
@@ -360,7 +362,7 @@ export function SpaceDashboard({
         </section>
 
         {/* Quick actions + Tu página */}
-        <section className="mt-6 grid gap-4 sm:grid-cols-2">
+        <section className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
               {getText('Acciones rápidas', 'Quick actions')}
@@ -497,7 +499,7 @@ export function SpaceDashboard({
           <h2 className="text-sm font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
             {getText('Tus módulos', 'Your modules')}
           </h2>
-          <div className="mt-3 grid gap-4 sm:grid-cols-3">
+          <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
             {activeModules.includes('catalog') && (
               <ModuleCard
                 icon="📦"

@@ -262,9 +262,12 @@ export default function Header({
               {/* Space dashboard nav — injected when inside /space/[slug] */}
               {spaceSlug && (
                 <div className="border-t border-border pt-4 mt-4">
-                  <p className="px-4 mb-2 text-[10px] font-bold uppercase tracking-widest text-text-muted">
-                    {getText('Mi negocio', 'My business')}
-                  </p>
+                  <div className="flex items-center justify-between px-4 mb-2">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted">
+                      {getText('Mi negocio', 'My business')}
+                    </p>
+                    <SimpleLanguageToggle />
+                  </div>
                   {[
                     { label: getText('Dashboard', 'Dashboard'),               icon: '🏠', href: `/space/${spaceSlug}` },
                     { label: getText('Diseñar mi Espacio', 'Design my Space'), icon: '🎨', href: `/space/${spaceSlug}/design` },
