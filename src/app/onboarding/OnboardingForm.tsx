@@ -4,15 +4,19 @@ import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { track } from '@/lib/analytics';
 import { apiFetch, ApiError } from '@/lib/api-client';
+import { sanitizeContactValue } from '@/lib/public-contact';
 
+// Only these 4 have a real public template (src/components/public/templates/).
+// Creator/Publisher/Professional stay visible but disabled until Fase 5 confirms
+// the existing 4 work end-to-end and those templates get built.
 const BUSINESS_TYPES = [
-  { value: 'restaurant', label: 'Restaurante', emoji: '🍽️' },
-  { value: 'barber', label: 'Barbería', emoji: '💈' },
-  { value: 'service', label: 'Servicios', emoji: '🛠️' },
-  { value: 'retail', label: 'Tienda', emoji: '🛍️' },
-  { value: 'creator', label: 'Creador', emoji: '🎨' },
-  { value: 'publisher', label: 'Editorial', emoji: '📚' },
-  { value: 'professional', label: 'Profesional', emoji: '💼' },
+  { value: 'restaurant', label: 'Restaurante', emoji: '🍽️', comingSoon: false },
+  { value: 'barber', label: 'Barbería', emoji: '💈', comingSoon: false },
+  { value: 'service', label: 'Servicios', emoji: '🛠️', comingSoon: false },
+  { value: 'retail', label: 'Tienda', emoji: '🛍️', comingSoon: false },
+  { value: 'creator', label: 'Creador', emoji: '🎨', comingSoon: true },
+  { value: 'publisher', label: 'Editorial', emoji: '📚', comingSoon: true },
+  { value: 'professional', label: 'Profesional', emoji: '💼', comingSoon: true },
 ] as const;
 
 const PALETTE = [
@@ -76,6 +80,7 @@ export function OnboardingForm() {
   const submit = () => {
     if (!name.trim() || !type || !whatsappValid) return;
     setError(null);
+    const cleanWhatsapp = sanitizeContactValue(whatsapp);
 
     startTransition(async () => {
       try {
@@ -85,7 +90,7 @@ export function OnboardingForm() {
             name: name.trim(),
             businessType: type,
             primaryColor,
-            ...(whatsapp.trim() ? { whatsapp: whatsapp.trim() } : {}),
+            ...(cleanWhatsapp ? { whatsapp: cleanWhatsapp } : {}),
           }),
         });
 
@@ -113,7 +118,7 @@ export function OnboardingForm() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   name: name.trim(),
-                  whatsapp: whatsapp.trim(),
+                  whatsapp: cleanWhatsapp,
                   primaryColor,
                   logoUrl: uploadData.url,
                 }),
@@ -194,15 +199,24 @@ export function OnboardingForm() {
                   <button
                     key={t.value}
                     type="button"
+                    disabled={t.comingSoon}
                     onClick={() => setType(t.value)}
+                    title={t.comingSoon ? 'Próximamente' : undefined}
                     className={`flex items-center gap-2 rounded-lg border px-3 py-3 text-sm transition ${
-                      type === t.value
-                        ? 'border-[#C8102E] bg-[#C8102E]/5 text-[#C8102E]'
-                        : 'border-neutral-200 hover:border-neutral-300'
+                      t.comingSoon
+                        ? 'cursor-not-allowed border-neutral-100 bg-neutral-50 text-neutral-300'
+                        : type === t.value
+                          ? 'border-[#C8102E] bg-[#C8102E]/5 text-[#C8102E]'
+                          : 'border-neutral-200 hover:border-neutral-300'
                     }`}
                   >
                     <span className="text-lg">{t.emoji}</span>
                     <span className="font-medium">{t.label}</span>
+                    {t.comingSoon && (
+                      <span className="ml-auto text-[10px] font-medium uppercase tracking-wide text-neutral-300">
+                        Pronto
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>

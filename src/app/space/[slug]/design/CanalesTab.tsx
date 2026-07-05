@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { sanitizeContactValue } from '@/lib/public-contact';
 import type { CanalDto } from './types';
 
 const TIPOS = [
@@ -59,7 +60,7 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
         body: JSON.stringify({
           tipo: newTipo,
           metodo: 'Manual',
-          valorCrudo: newValue.trim(),
+          valorCrudo: sanitizeContactValue(newValue),
           orden: canales.length,
         }),
       });
@@ -93,7 +94,7 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
       const res = await fetch(`/api/space/${slug}/canales/${canal.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ valorCrudo: editValue.trim() }),
+        body: JSON.stringify({ valorCrudo: sanitizeContactValue(editValue) }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {

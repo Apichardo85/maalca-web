@@ -25,6 +25,22 @@ function activeSorted(canales: PublicCanal[] = []): PublicCanal[] {
   return canales.filter((c) => c.activo).sort((a, b) => a.orden - b.orden);
 }
 
+const INVISIBLE_FORMATTING_CHARS = /[\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]/g;
+
+/**
+ * Strips invisible bidi/zero-width formatting characters and collapses any run of
+ * whitespace (including NBSP/narrow-NBSP often carried over from pasted phone numbers)
+ * into a single normal space, then trims the edges. Purely cosmetic cleanup for what
+ * gets displayed/persisted as the raw value — digit-extraction logic elsewhere already
+ * strips all of this correctly and is untouched.
+ */
+export function sanitizeContactValue(value: string): string {
+  return value
+    .replace(INVISIBLE_FORMATTING_CHARS, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 /**
  * Digits-only WhatsApp number for hero/cart CTA links. Prefers an active WhatsApp
  * canal (the new Diseñar mi Espacio editor); falls back to the legacy flat

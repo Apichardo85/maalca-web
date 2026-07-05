@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { sanitizeContactValue } from '@/lib/public-contact';
 import { ConfigTab } from './ConfigTab';
 import { CanalesTab } from './CanalesTab';
 import { QrTab } from './QrTab';
@@ -92,7 +93,7 @@ export function DesignEditor({
 
     const body: Record<string, unknown> = {
       name: liveForm.name,
-      whatsapp: liveForm.whatsapp,
+      whatsapp: sanitizeContactValue(liveForm.whatsapp),
       primaryColor: liveForm.primaryColor,
     };
     // The public-profile fetch can fail (see page.tsx) — only send gated fields we know are

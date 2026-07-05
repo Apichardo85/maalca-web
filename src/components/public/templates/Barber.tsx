@@ -26,6 +26,7 @@ export function BarberTemplate({
   categories: categoriesProp,
   capabilities,
 }: PublicTemplateProps) {
+  const primaryColor = business.primary_color ?? '#1a1a1a';
   const waRaw = resolveWhatsAppDigits(business);
   const waHeroLink = waRaw
     ? `https://wa.me/${waRaw}?text=${encodeURIComponent(`Hola, quiero info sobre ${business.name}`)}`
@@ -65,7 +66,7 @@ export function BarberTemplate({
         style={{
           position: 'relative',
           height: '420px',
-          backgroundColor: '#1a1a1a',
+          backgroundColor: primaryColor,
           overflow: 'hidden',
         }}
       >
@@ -263,7 +264,7 @@ export function BarberTemplate({
                     borderTop: 'none',
                     borderLeft: 'none',
                     borderRight: 'none',
-                    borderBottom: activeTab === key ? '2px solid #1a1a1a' : '2px solid transparent',
+                    borderBottom: activeTab === key ? `2px solid ${primaryColor}` : '2px solid transparent',
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
                   }}
