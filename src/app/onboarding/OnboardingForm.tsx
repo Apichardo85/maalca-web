@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { track } from '@/lib/analytics';
-import { apiFetch, ApiError } from '@/lib/api-client';
+import { ApiError } from '@/lib/api-client';
 import { sanitizeContactValue } from '@/lib/public-contact';
 
 // Only these 4 have a real public template (src/components/public/templates/).
@@ -84,8 +84,9 @@ export function OnboardingForm() {
 
     startTransition(async () => {
       try {
-        const data = await apiFetch<{ affiliateId: string; slug: string }>('/api/onboarding', {
+        const res = await fetch('/api/onboarding', {
           method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: name.trim(),
             businessType: type,
@@ -93,6 +94,11 @@ export function OnboardingForm() {
             ...(cleanWhatsapp ? { whatsapp: cleanWhatsapp } : {}),
           }),
         });
+        if (!res.ok) {
+          const body = await res.text().catch(() => res.statusText);
+          throw new ApiError(res.status, body);
+        }
+        const data: { affiliateId: string; slug: string } = await res.json();
 
         track('onboarding_completed', {
           business_id: data.affiliateId,

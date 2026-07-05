@@ -20,7 +20,7 @@ const RESERVED = new Set([
   'favicon.ico', 'robots.txt', 'sitemap.xml',
   'catering', 'editorial', 'properties', 'ciriwhispers', 'pegote',
   'settings', 'catalog', 'categories', 'upgrade',
-  'pegote-barber', 'the-little-dominicana', 'britocolor', 'masa-tina',
+  'the-little-dominicana', 'britocolor', 'masa-tina',
   'dr-pichardo', 'hablando-mierda', 'casos-estudio', 'ecosistema',
   'affiliates', 'tarjeta',
 ]);
