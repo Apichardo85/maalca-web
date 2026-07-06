@@ -5,6 +5,7 @@ import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
 import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
 import { resolveWhatsAppDigits } from '@/lib/public-contact';
+import { AboutSection } from '@/components/public/AboutSection';
 
 const priceFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -35,11 +36,6 @@ export function RetailTemplate({ business, items, capabilities }: PublicTemplate
         <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow">
           {business.name}
         </h1>
-        {business.description && (
-          <p className="mx-auto mt-2 max-w-md text-sm text-white/80">
-            {business.description}
-          </p>
-        )}
         {waRaw && (
           <a
             href={`https://wa.me/${waRaw}`}
@@ -51,6 +47,8 @@ export function RetailTemplate({ business, items, capabilities }: PublicTemplate
           </a>
         )}
       </header>
+
+      <AboutSection description={business.description} maxWidth="1024px" />
 
       <main className="mx-auto max-w-5xl px-4 py-10">
         {items.length === 0 ? (

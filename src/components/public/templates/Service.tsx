@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import type { FaqEntry, ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
 import { resolveWhatsAppDigits } from '@/lib/public-contact';
+import { AboutSection } from '@/components/public/AboutSection';
 
 export function ServiceTemplate({ business, items, capabilities }: PublicTemplateProps) {
   const accent = business.primary_color ?? '#C8102E';
@@ -37,12 +38,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
         )}
       </header>
 
-      {business.description && (
-        <section className="mx-auto max-w-3xl px-4 pt-10">
-          <h2 className="text-lg font-semibold text-neutral-900">Sobre nosotros</h2>
-          <p className="mt-2 text-sm leading-relaxed text-neutral-600">{business.description}</p>
-        </section>
-      )}
+      <AboutSection description={business.description} />
 
       <ProcessSection steps={business.processSteps} accent={accent} />
 

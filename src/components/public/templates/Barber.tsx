@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
+import { AboutSection } from '@/components/public/AboutSection';
 
 const ALL_TAB = '__all__';
 
@@ -168,20 +169,6 @@ export function BarberTemplate({
               </p>
             )}
 
-            {business.description && (
-              <p
-                style={{
-                  margin: '10px 0 0',
-                  fontSize: '14px',
-                  color: 'rgba(255,255,255,0.8)',
-                  lineHeight: 1.5,
-                  maxWidth: '480px',
-                }}
-              >
-                {business.description}
-              </p>
-            )}
-
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '18px' }}>
               {waHeroLink && (
                 <a
@@ -230,6 +217,8 @@ export function BarberTemplate({
             </div>
         </div>
       </section>
+
+      <AboutSection description={business.description} maxWidth="960px" />
 
       {/* ── NAV TABS ── */}
       {categoryNames.length > 0 && (

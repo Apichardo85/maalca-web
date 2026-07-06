@@ -1,8 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { getPlanLimits, type Plan } from '@/lib/plan-limits';
+
+function normalize(value: string): string {
+  return value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+}
 
 interface CatalogItem {
   id: string;
@@ -28,6 +33,16 @@ export function CatalogView({ slug, plan, items, productCount }: Props) {
   const demoItems = items.filter((i) => i.isDemo);
   const realItems = items.filter((i) => !i.isDemo);
 
+  const [query, setQuery] = useState('');
+  const normalizedQuery = normalize(query.trim());
+  const filteredRealItems = normalizedQuery
+    ? realItems.filter(
+        (item) =>
+          normalize(item.name).includes(normalizedQuery) ||
+          (item.category && normalize(item.category).includes(normalizedQuery)),
+      )
+    : realItems;
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
       <div className="px-6 py-8">
@@ -50,6 +65,19 @@ export function CatalogView({ slug, plan, items, productCount }: Props) {
             {getText('+ Agregar item', '+ Add item')}
           </Link>
         </div>
+
+        {/* Search */}
+        {realItems.length > 0 && (
+          <div className="mt-6">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={getText('Buscar por nombre o categoría...', 'Search by name or category...')}
+              className="w-full rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-[#C8102E]/40"
+            />
+          </div>
+        )}
 
         {/* Empty state */}
         {items.length === 0 && (
@@ -94,11 +122,20 @@ export function CatalogView({ slug, plan, items, productCount }: Props) {
                 {getText('Mis items', 'My items')}
               </p>
             )}
-            <div className="space-y-2">
-              {realItems.map((item) => (
-                <ItemRow key={item.id} item={item} slug={slug} getText={getText} />
-              ))}
-            </div>
+            {filteredRealItems.length === 0 ? (
+              <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 text-center text-sm text-gray-500 dark:text-neutral-400">
+                {getText(
+                  'No se encontraron items para tu búsqueda.',
+                  'No items found for your search.',
+                )}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {filteredRealItems.map((item) => (
+                  <ItemRow key={item.id} item={item} slug={slug} getText={getText} />
+                ))}
+              </div>
+            )}
           </section>
         )}
 

@@ -6,6 +6,7 @@ import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
 import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
 import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
+import { AboutSection } from '@/components/public/AboutSection';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { MEAL_PERIOD_LABELS, MEAL_PERIOD_ORDER } from '@/lib/menu-availability';
 import type { MealPeriod } from '@/lib/types';
@@ -183,20 +184,6 @@ export function RestaurantTemplate({
             </p>
           )}
 
-          {business.description && (
-            <p
-              style={{
-                margin: '10px 0 0',
-                fontSize: '14px',
-                color: 'rgba(255,255,255,0.8)',
-                lineHeight: 1.5,
-                maxWidth: '480px',
-              }}
-            >
-              {business.description}
-            </p>
-          )}
-
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '18px' }}>
             {waHeroLink && (
               <a
@@ -245,6 +232,8 @@ export function RestaurantTemplate({
           </div>
         </div>
       </section>
+
+      <AboutSection description={business.description} maxWidth="960px" />
 
       {/* ── NAV TABS ── */}
       {categoryNames.length > 0 && (
