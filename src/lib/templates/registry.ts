@@ -7,6 +7,7 @@ import type { Plan } from '@/lib/plan-limits';
 export type { Plan } from '@/lib/plan-limits';
 import type { PlanCapabilities } from '@/lib/capabilities';
 import type { PublicCanal } from '@/lib/public-contact';
+import type { MealPeriod, WeekDay, MenuItemFlags } from '@/lib/types';
 
 export type BusinessType = 'restaurant' | 'barber' | 'service' | 'retail';
 
@@ -14,6 +15,16 @@ export interface Category {
   id: string;
   name: string;
   sort_order: number;
+}
+
+export interface ProcessStep {
+  title: string;
+  description: string;
+}
+
+export interface FaqEntry {
+  question: string;
+  answer: string;
 }
 
 export interface PublicTemplateProps {
@@ -31,6 +42,8 @@ export interface PublicTemplateProps {
     contactEmail?: string | null;
     canales?: PublicCanal[];
     business_type: BusinessType;
+    processSteps?: ProcessStep[] | null;
+    faq?: FaqEntry[] | null;
   };
   items: Array<{
     id: string;
@@ -44,6 +57,15 @@ export interface PublicTemplateProps {
     durationMinutes?: number | null;
     status?: string | null;
     is_demo?: boolean;
+    /** English translation of `description`, when the catalog was migrated with i18n. */
+    descriptionEn?: string | null;
+    /** Meal periods the item is served in. Empty/undefined = available all day. */
+    periods?: MealPeriod[];
+    /** Days of the week the item is available. Empty/undefined = every day. */
+    weekDays?: WeekDay[];
+    flags?: Array<keyof MenuItemFlags>;
+    featured?: boolean;
+    popular?: boolean;
   }>;
   categories: Category[];
   capabilities: PlanCapabilities;

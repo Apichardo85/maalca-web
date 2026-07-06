@@ -1,6 +1,6 @@
 // src/components/public/templates/Service.tsx
 import Link from 'next/link';
-import type { PublicTemplateProps } from '@/lib/templates/registry';
+import type { FaqEntry, ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
 import { resolveWhatsAppDigits } from '@/lib/public-contact';
 
 export function ServiceTemplate({ business, items, capabilities }: PublicTemplateProps) {
@@ -25,11 +25,6 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
         <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow">
           {business.name}
         </h1>
-        {business.description && (
-          <p className="mx-auto mt-2 max-w-md text-sm text-white/80">
-            {business.description}
-          </p>
-        )}
         {waRaw && (
           <a
             href={`https://wa.me/${waRaw}`}
@@ -41,6 +36,15 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
           </a>
         )}
       </header>
+
+      {business.description && (
+        <section className="mx-auto max-w-3xl px-4 pt-10">
+          <h2 className="text-lg font-semibold text-neutral-900">Sobre nosotros</h2>
+          <p className="mt-2 text-sm leading-relaxed text-neutral-600">{business.description}</p>
+        </section>
+      )}
+
+      <ProcessSection steps={business.processSteps} accent={accent} />
 
       <main className="mx-auto max-w-3xl px-4 py-12">
         {items.length === 0 ? (
@@ -76,6 +80,8 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
         )}
       </main>
 
+      <FaqSection faq={business.faq} />
+
       {!capabilities.hidePoweredBy && (
         <footer className="py-8 text-center">
           <Link href="/servicios" className="text-xs text-neutral-400 hover:text-neutral-600">
@@ -84,5 +90,51 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
         </footer>
       )}
     </div>
+  );
+}
+
+function ProcessSection({ steps, accent }: { steps?: ProcessStep[] | null; accent: string }) {
+  if (!steps || steps.length === 0) return null;
+
+  return (
+    <section className="mx-auto max-w-3xl px-4 pt-10">
+      <h2 className="text-lg font-semibold text-neutral-900">Cómo funciona</h2>
+      <ol className="mt-4 space-y-4">
+        {steps.map((step, i) => (
+          <li key={`${i}-${step.title}`} className="flex gap-4">
+            <span
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white"
+              style={{ backgroundColor: accent }}
+            >
+              {i + 1}
+            </span>
+            <div>
+              <p className="font-semibold text-neutral-900">{step.title}</p>
+              <p className="mt-1 text-sm text-neutral-600">{step.description}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+function FaqSection({ faq }: { faq?: FaqEntry[] | null }) {
+  if (!faq || faq.length === 0) return null;
+
+  return (
+    <section className="mx-auto max-w-3xl px-4 pt-10">
+      <h2 className="text-lg font-semibold text-neutral-900">Preguntas frecuentes</h2>
+      <div className="mt-4 divide-y divide-neutral-200 rounded-2xl border border-neutral-200">
+        {faq.map((entry, i) => (
+          <details key={`${i}-${entry.question}`} className="group p-4">
+            <summary className="cursor-pointer list-none font-medium text-neutral-900 marker:content-none">
+              {entry.question}
+            </summary>
+            <p className="mt-2 text-sm text-neutral-600">{entry.answer}</p>
+          </details>
+        ))}
+      </div>
+    </section>
   );
 }

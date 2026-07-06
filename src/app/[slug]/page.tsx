@@ -95,6 +95,8 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
         contactEmail: affiliate.contactEmail ?? null,
         canales: affiliate.canales ?? [],
         business_type: affiliate.businessType as BusinessType,
+        processSteps: affiliate.processSteps ?? null,
+        faq: affiliate.faq ?? null,
       }}
       items={mappedItems}
       categories={categories}
@@ -119,6 +121,8 @@ interface PublicCatalogResponse {
     address?: string | null;
     contactEmail?: string | null;
     canales?: PublicCanal[];
+    processSteps?: PublicTemplateProps['business']['processSteps'];
+    faq?: PublicTemplateProps['business']['faq'];
   };
   categories?: PublicTemplateProps['categories'];
   items: PublicTemplateProps['items'];

@@ -6,8 +6,18 @@ import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
 import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
 import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
+import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { MEAL_PERIOD_LABELS, MEAL_PERIOD_ORDER } from '@/lib/menu-availability';
+import type { MealPeriod } from '@/lib/types';
 
 const ALL_TAB = '__all__';
+const ALL_PERIODS = '__all_periods__';
+
+const FLAG_ICONS: Record<string, string> = {
+  vegetarian: '🌱',
+  spicy: '🌶️',
+  glutenFree: '🌾',
+};
 
 const priceFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -28,6 +38,7 @@ export function RestaurantTemplate({
     : null;
 
   const { cart, addToCart, removeFromCart, cartTotal, cartCount } = useCart();
+  const { language } = useSimpleLanguage();
 
   const categoryNames: string[] =
     categoriesProp.length > 0
@@ -35,13 +46,28 @@ export function RestaurantTemplate({
       : Array.from(new Set(items.map((i) => i.category).filter((c): c is string => !!c)));
 
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
+  const [activePeriod, setActivePeriod] = useState<string>(ALL_PERIODS);
+
+  const availablePeriods = MEAL_PERIOD_ORDER.filter(
+    (p): p is Exclude<MealPeriod, 'all_day'> =>
+      p !== 'all_day' && items.some((i) => i.periods?.includes(p)),
+  );
+
+  function matchesPeriod(item: (typeof items)[number]): boolean {
+    if (activePeriod === ALL_PERIODS) return true;
+    if (!item.periods || item.periods.length === 0) return true;
+    return item.periods.includes(activePeriod as MealPeriod);
+  }
 
   function itemsFor(tab: string): typeof items {
-    if (tab === ALL_TAB) return items;
     const catId = categoriesProp.find((c) => c.name === tab)?.id;
-    return items.filter(
-      (i) => (catId !== undefined && i.category_id === catId) || i.category === tab,
-    );
+    const base =
+      tab === ALL_TAB
+        ? items
+        : items.filter(
+            (i) => (catId !== undefined && i.category_id === catId) || i.category === tab,
+          );
+    return base.filter(matchesPeriod);
   }
 
   const groupedForAll: Array<{ categoryName: string; groupItems: typeof items }> =
@@ -268,6 +294,40 @@ export function RestaurantTemplate({
         </div>
       )}
 
+      {/* ── PERIOD FILTER ── */}
+      {availablePeriods.length > 0 && (
+        <div style={{ maxWidth: '960px', margin: '0 auto', padding: '16px 24px 0' }}>
+          <div
+            className="[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            style={{ display: 'flex', gap: '8px', overflowX: 'auto' }}
+          >
+            {[
+              { key: ALL_PERIODS, label: 'Todos los horarios' },
+              ...availablePeriods.map((p) => ({ key: p, label: MEAL_PERIOD_LABELS[p] })),
+            ].map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setActivePeriod(key)}
+                style={{
+                  flexShrink: 0,
+                  padding: '6px 14px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  borderRadius: '9999px',
+                  border: activePeriod === key ? `1px solid ${primaryColor}` : '1px solid #e5e3de',
+                  backgroundColor: activePeriod === key ? primaryColor : '#ffffff',
+                  color: activePeriod === key ? '#ffffff' : '#888888',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── CONTENT ── */}
       <main style={{ maxWidth: '960px', margin: '0 auto', padding: '32px 24px' }}>
         {items.length === 0 ? (
@@ -287,30 +347,37 @@ export function RestaurantTemplate({
             </p>
           </div>
         ) : activeTab === ALL_TAB ? (
-          groupedForAll.map(({ categoryName, groupItems }) => (
-            <div key={categoryName || '__ungrouped__'} style={{ marginBottom: '32px' }}>
-              {categoryName && <SectLabel label={categoryName} />}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {groupItems.map((item) => {
-                  const cartQty = cart.find(e => e.item.id === item.id)?.qty ?? 0;
-                  return (
-                    <MenuCard
-                      key={item.id}
-                      item={item}
-                      cartQty={cartQty}
-                      onAdd={() => addToCart({
-                        id: item.id,
-                        name: item.name,
-                        price: item.price ?? 0,
-                        image: item.imageUrl ?? item.image_url ?? undefined,
-                      })}
-                      onRemove={() => removeFromCart(item.id)}
-                    />
-                  );
-                })}
+          groupedForAll.length === 0 ? (
+            <EmptyFilterState />
+          ) : (
+            groupedForAll.map(({ categoryName, groupItems }) => (
+              <div key={categoryName || '__ungrouped__'} style={{ marginBottom: '32px' }}>
+                {categoryName && <SectLabel label={categoryName} />}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {groupItems.map((item) => {
+                    const cartQty = cart.find(e => e.item.id === item.id)?.qty ?? 0;
+                    return (
+                      <MenuCard
+                        key={item.id}
+                        item={item}
+                        language={language}
+                        cartQty={cartQty}
+                        onAdd={() => addToCart({
+                          id: item.id,
+                          name: item.name,
+                          price: item.price ?? 0,
+                          image: item.imageUrl ?? item.image_url ?? undefined,
+                        })}
+                        onRemove={() => removeFromCart(item.id)}
+                      />
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))
+            ))
+          )
+        ) : visibleItems.length === 0 ? (
+          <EmptyFilterState />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {visibleItems.map((item) => {
@@ -319,6 +386,7 @@ export function RestaurantTemplate({
                 <MenuCard
                   key={item.id}
                   item={item}
+                  language={language}
                   cartQty={cartQty}
                   onAdd={() => addToCart({
                     id: item.id,
@@ -393,18 +461,41 @@ function SectLabel({ label }: { label: string }) {
   );
 }
 
+function EmptyFilterState() {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '48px 0',
+        textAlign: 'center',
+      }}
+    >
+      <span style={{ fontSize: '32px' }}>🍽️</span>
+      <p style={{ marginTop: '12px', fontSize: '14px', color: '#aaa' }}>
+        No hay platos para este filtro.
+      </p>
+    </div>
+  );
+}
+
 function MenuCard({
   item,
+  language,
   cartQty,
   onAdd,
   onRemove,
 }: {
   item: PublicTemplateProps['items'][number];
+  language: 'es' | 'en';
   cartQty: number;
   onAdd: () => void;
   onRemove: () => void;
 }) {
   const imageUrl = item.imageUrl ?? item.image_url;
+  const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
 
   return (
     <div
@@ -418,39 +509,69 @@ function MenuCard({
         minHeight: '120px',
       }}
     >
-      {imageUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={imageUrl}
-          alt={item.name}
-          style={{
-            display: 'block',
-            width: '120px',
-            height: '120px',
-            objectFit: 'cover',
-            flexShrink: 0,
-            borderRadius: '12px',
-            margin: '8px 0 8px 8px',
-          }}
-        />
-      ) : (
-        <div
-          style={{
-            width: '120px',
-            height: '120px',
-            backgroundColor: '#f0ede8',
-            flexShrink: 0,
-            borderRadius: '12px',
-            margin: '8px 0 8px 8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '28px',
-          }}
-        >
-          🍽️
-        </div>
-      )}
+      <div style={{ position: 'relative', flexShrink: 0, margin: '8px 0 8px 8px' }}>
+        {imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={imageUrl}
+            alt={item.name}
+            style={{
+              display: 'block',
+              width: '120px',
+              height: '120px',
+              objectFit: 'cover',
+              borderRadius: '12px',
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              width: '120px',
+              height: '120px',
+              backgroundColor: '#f0ede8',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '28px',
+            }}
+          >
+            🍽️
+          </div>
+        )}
+        {(item.featured || item.popular) && (
+          <div style={{ position: 'absolute', top: '4px', left: '4px', display: 'flex', gap: '4px' }}>
+            {item.featured && (
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  padding: '2px 6px',
+                  borderRadius: '9999px',
+                  backgroundColor: '#f5b301',
+                  color: '#1a1a1a',
+                }}
+              >
+                ⭐ Destacado
+              </span>
+            )}
+            {item.popular && (
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  padding: '2px 6px',
+                  borderRadius: '9999px',
+                  backgroundColor: '#ff5a3c',
+                  color: '#ffffff',
+                }}
+              >
+                🔥 Popular
+              </span>
+            )}
+          </div>
+        )}
+      </div>
 
       <div
         style={{
@@ -464,18 +585,25 @@ function MenuCard({
       >
         {/* Name + description */}
         <div>
-          <p
-            style={{
-              margin: 0,
-              fontWeight: 700,
-              fontSize: '14px',
-              color: '#1a1a1a',
-              lineHeight: 1.3,
-            }}
-          >
-            {item.name}
-          </p>
-          {item.description && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <p
+              style={{
+                margin: 0,
+                fontWeight: 700,
+                fontSize: '14px',
+                color: '#1a1a1a',
+                lineHeight: 1.3,
+              }}
+            >
+              {item.name}
+            </p>
+            {item.flags && item.flags.length > 0 && (
+              <span style={{ fontSize: '12px' }} title={item.flags.join(', ')}>
+                {item.flags.map((f) => FLAG_ICONS[f] ?? '').join(' ')}
+              </span>
+            )}
+          </div>
+          {description && (
             <p
               className="line-clamp-2"
               style={{
@@ -485,7 +613,7 @@ function MenuCard({
                 lineHeight: 1.5,
               }}
             >
-              {item.description}
+              {description}
             </p>
           )}
         </div>
