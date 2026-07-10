@@ -162,6 +162,29 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
         )}
       </div>
 
+      {/* Mobile secondary contacts — phone/email stay visible on every screen size;
+          only address is footer-only. Nobody should have to guess these exist. */}
+      {secondaryContacts.length > 0 && (
+        <div
+          className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b px-4 py-3 text-sm lg:hidden"
+          style={{ backgroundColor: PAPER, borderColor: MIST, color: STONE }}
+        >
+          {secondaryContacts.map((c) => (
+            <a
+              key={c.tipo}
+              href={c.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackCanalClick(business.slug, c.tipo, c.canalId)}
+              className="flex min-w-0 items-center gap-1.5 hover:underline"
+            >
+              {c.tipo === 'Telefono' ? <PhoneIcon className="h-3.5 w-3.5 shrink-0" /> : <MailIcon className="h-3.5 w-3.5 shrink-0" />}
+              <span className="truncate">{c.value}</span>
+            </a>
+          ))}
+        </div>
+      )}
+
       <div className="mx-auto max-w-[1180px] px-4 py-8 lg:grid lg:grid-cols-[288px_1fr] lg:gap-16 lg:px-8 lg:py-14">
         {/* Sidebar — desktop only */}
         <aside className="hidden lg:block">
