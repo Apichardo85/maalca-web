@@ -16,6 +16,14 @@ export default async function EditCatalogItemPage({ params }: PageProps) {
   const affiliate = await resolveAffiliateIdBySlug(slug, token);
   if (!affiliate) notFound();
 
+  // Needed to gate the Restaurant-only fields (periods/weekDays/flags/featured/popular).
+  const spaceRes = await fetch(`${API}/api/space/${slug}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  });
+  const spaceData = spaceRes.ok ? await spaceRes.json() : null;
+  const businessType: string | null = spaceData?.business?.businessType ?? null;
+
   const res = await fetch(
     `${API}/api/affiliates/${affiliate.id}/catalog-items/${id}`,
     {
@@ -33,12 +41,18 @@ export default async function EditCatalogItemPage({ params }: PageProps) {
     id:          String(raw.id),
     name:        String(raw.name),
     description: raw.description ?? null,
+    descriptionEn: raw.descriptionEn ?? null,
     category:    raw.category ?? null,
     price:       raw.price != null ? Number(raw.price) : null,
     is_demo:     raw.is_demo ?? raw.isDemo ?? false,
     active:      raw.active ?? true,
     imageUrl:    raw.imageUrl ?? raw.image_url ?? null,
+    periods:     Array.isArray(raw.periods) ? raw.periods : [],
+    weekDays:    Array.isArray(raw.weekDays) ? raw.weekDays : [],
+    flags:       Array.isArray(raw.flags) ? raw.flags : [],
+    featured:    raw.featured ?? false,
+    popular:     raw.popular ?? false,
   };
 
-  return <EditForm slug={slug} item={item} />;
+  return <EditForm slug={slug} item={item} businessType={businessType} />;
 }

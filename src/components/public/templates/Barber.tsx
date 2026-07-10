@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
-import { resolveWhatsAppDigits, resolveContactItems, resolveSocialLinks } from '@/lib/public-contact';
+import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
 import { trackCanalClick } from '@/lib/public-events';
 import { AboutSection } from '@/components/public/AboutSection';
+import { PublicFooter } from '@/components/public/PublicFooter';
 
 const ALL_TAB = '__all__';
 
@@ -310,23 +310,7 @@ export function BarberTemplate({
       <ContactSection business={business} />
 
       {/* ── FOOTER ── */}
-      {!capabilities.hidePoweredBy && (
-        <footer
-          style={{
-            backgroundColor: '#ffffff',
-            borderTop: '1px solid #e5e3de',
-            padding: '24px',
-            textAlign: 'center',
-          }}
-        >
-          <Link
-            href="/servicios"
-            style={{ fontSize: '12px', color: '#aaa', textDecoration: 'none' }}
-          >
-            Powered by <span style={{ fontWeight: 600, color: '#888' }}>MaalCa</span>
-          </Link>
-        </footer>
-      )}
+      <PublicFooter business={business} capabilities={capabilities} />
     </div>
   );
 }
@@ -475,88 +459,57 @@ function ServiceCard({
 
 function ContactSection({ business }: { business: PublicTemplateProps['business'] }) {
   const contacts = resolveContactItems(business);
-  const social = resolveSocialLinks(business);
 
-  if (contacts.length === 0 && social.length === 0) return null;
+  if (contacts.length === 0) return null;
 
   return (
     <section style={{ borderTop: '1px solid #e5e3de' }}>
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '32px 24px' }}>
-        {contacts.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {contacts.map((c) => (
-              <a
-                key={c.label}
-                href={c.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => trackCanalClick(business.slug, c.tipo, c.canalId)}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {contacts.map((c) => (
+            <a
+              key={c.label}
+              href={c.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackCanalClick(business.slug, c.tipo, c.canalId)}
+              style={{
+                backgroundColor: '#ffffff',
+                border: '0.5px solid #ece9e2',
+                borderRadius: '12px',
+                padding: '16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px',
+                textDecoration: 'none',
+              }}
+            >
+              <span style={{ fontSize: '22px' }}>{c.icon}</span>
+              <span
                 style={{
-                  backgroundColor: '#ffffff',
-                  border: '0.5px solid #ece9e2',
-                  borderRadius: '12px',
-                  padding: '16px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '4px',
-                  textDecoration: 'none',
+                  fontSize: '11px',
+                  color: '#aaa',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
                 }}
               >
-                <span style={{ fontSize: '22px' }}>{c.icon}</span>
-                <span
-                  style={{
-                    fontSize: '11px',
-                    color: '#aaa',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.06em',
-                  }}
-                >
-                  {c.label}
-                </span>
-                <span
-                  style={{
-                    fontSize: '13px',
-                    fontWeight: 600,
-                    color: '#1a1a1a',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {c.value}
-                </span>
-              </a>
-            ))}
-          </div>
-        )}
-        {social.length > 0 && (
-          <div className="mt-3 flex justify-center gap-3">
-            {social.map((s) => (
-              <a
-                key={s.tipo}
-                href={s.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={s.tipo}
-                onClick={() => trackCanalClick(business.slug, s.tipo, s.canalId)}
+                {c.label}
+              </span>
+              <span
                 style={{
-                  fontSize: '20px',
-                  backgroundColor: '#ffffff',
-                  border: '0.5px solid #ece9e2',
-                  borderRadius: '9999px',
-                  width: '40px',
-                  height: '40px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  textDecoration: 'none',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: '#1a1a1a',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
                 }}
               >
-                {s.icon}
-              </a>
-            ))}
-          </div>
-        )}
+                {c.value}
+              </span>
+            </a>
+          ))}
+        </div>
       </div>
     </section>
   );

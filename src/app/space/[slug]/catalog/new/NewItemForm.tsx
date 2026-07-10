@@ -9,26 +9,8 @@ import { MealPeriodEditor } from '@/app/dashboard/[affiliateId]/menu/components/
 import { WeekDayEditor } from '@/app/dashboard/[affiliateId]/menu/components/WeekDayEditor';
 import type { MealPeriod, WeekDay } from '@/lib/types';
 
-interface Item {
-  id: string;
-  name: string;
-  description: string | null;
-  descriptionEn: string | null;
-  category: string | null;
-  price: number | null;
-  is_demo: boolean;
-  active: boolean;
-  imageUrl?: string | null;
-  periods: MealPeriod[];
-  weekDays: WeekDay[];
-  flags: string[];
-  featured: boolean;
-  popular: boolean;
-}
-
 interface Props {
   slug: string;
-  item: Item;
   /** Gates the Restaurant-only fields (periods/weekDays/flags/featured/popular). */
   businessType: string | null;
 }
@@ -48,36 +30,25 @@ function CameraIcon() {
   );
 }
 
-export default function EditForm({ slug, item, businessType }: Props) {
-  const router = useRouter();
+export default function NewItemForm({ slug, businessType }: Props) {
   const isRestaurant = businessType === 'Restaurant';
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [newImageUrl, setNewImageUrl] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
 
-  const [form, setForm] = useState({
-    name:          item.name,
-    description:   item.description ?? '',
-    descriptionEn: item.descriptionEn ?? '',
-    category:      item.category ?? '',
-    price:         item.price != null ? String(item.price) : '',
-  });
+  const [form, setForm] = useState({ name: '', description: '', descriptionEn: '', category: '', price: '' });
 
-  const [periods, setPeriods] = useState<MealPeriod[]>(item.periods);
-  const [weekDays, setWeekDays] = useState<WeekDay[]>(item.weekDays);
-  const [flags, setFlags] = useState({
-    vegetarian: item.flags.includes('vegetarian'),
-    spicy:      item.flags.includes('spicy'),
-    glutenFree: item.flags.includes('glutenFree'),
-  });
-  const [featured, setFeatured] = useState(item.featured);
-  const [popular, setPopular] = useState(item.popular);
+  const [periods, setPeriods] = useState<MealPeriod[]>([]);
+  const [weekDays, setWeekDays] = useState<WeekDay[]>([]);
+  const [flags, setFlags] = useState({ vegetarian: false, spicy: false, glutenFree: false });
+  const [featured, setFeatured] = useState(false);
+  const [popular, setPopular] = useState(false);
 
-  const set = (k: keyof typeof form) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-      setForm((f) => ({ ...f, [k]: e.target.value }));
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setForm((f) => ({ ...f, [k]: e.target.value }));
 
   // Read a File into a dataURL so the cropper can load it without CORS
   const readFileAsDataUrl = (file: File): Promise<string> =>
@@ -101,8 +72,8 @@ export default function EditForm({ slug, item, businessType }: Props) {
 
   const uploadBlob = async (blob: Blob): Promise<string> => {
     const fd = new FormData();
-    fd.append('file', new File([blob], `${item.id}.jpg`, { type: 'image/jpeg' }));
-    fd.append('itemId', item.id);
+    fd.append('file', new File([blob], 'new.jpg', { type: 'image/jpeg' }));
+    fd.append('itemId', 'new');
     const res = await fetch(`/api/space/${slug}/catalog/upload-image`, {
       method: 'POST',
       body: fd,
@@ -129,23 +100,15 @@ export default function EditForm({ slug, item, businessType }: Props) {
     }
   };
 
-  const clearNewImage = () => {
+  const clearImage = () => {
     setNewImageUrl(null);
   };
 
-  // What to show in the image area:
-  // 1. New image cropped + uploaded → show it
-  // 2. Item has existing imageUrl and no new upload → show existing
-  // 3. Neither → show upload zone
-  const displayImage = newImageUrl ?? item.imageUrl ?? null;
-  const isNewPreview = !!newImageUrl;
-
-  const save = (e: React.FormEvent) => {
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     startTransition(async () => {
-      const body: Record<string, unknown> = { ...form };
-      if (newImageUrl) body.imageUrl = newImageUrl;
+      const body: Record<string, unknown> = { ...form, ...(newImageUrl ? { imageUrl: newImageUrl } : {}) };
       if (isRestaurant) {
         body.periods = periods;
         body.weekDays = weekDays;
@@ -154,8 +117,8 @@ export default function EditForm({ slug, item, businessType }: Props) {
         body.popular = popular;
       }
 
-      const res = await fetch(`/api/space/${slug}/catalog/${item.id}`, {
-        method: 'PATCH',
+      const res = await fetch(`/api/space/${slug}/catalog`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
@@ -168,13 +131,6 @@ export default function EditForm({ slug, item, businessType }: Props) {
     });
   };
 
-  const deleteItem = () => {
-    startTransition(async () => {
-      const res = await fetch(`/api/space/${slug}/catalog/${item.id}`, { method: 'DELETE' });
-      if (res.ok) router.push(`/space/${slug}`);
-    });
-  };
-
   const busy = pending || imageUploading;
 
   return (
@@ -184,51 +140,27 @@ export default function EditForm({ slug, item, businessType }: Props) {
           <Link href={`/space/${slug}`} className="text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-white">
             ← Volver
           </Link>
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Editar item
-            {item.is_demo && (
-              <span className="ml-2 rounded-full bg-amber-100 dark:bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
-                Demo
-              </span>
-            )}
-          </h1>
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Agregar item</h1>
         </div>
 
-        {item.is_demo && (
-          <div className="mb-4 rounded-xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-900/20 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
-            Este es un item de ejemplo. Al guardarlo se marcará como tuyo y saldrá del banner de demos.
-          </div>
-        )}
-
-        <form onSubmit={save} className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-8 shadow-sm space-y-5">
+        <form onSubmit={submit} className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-8 shadow-sm space-y-5">
 
           {/* Image upload */}
           <div>
             <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
               Foto del item
             </label>
-            {displayImage ? (
+            {newImageUrl ? (
               <div className="relative w-full overflow-hidden rounded-xl bg-neutral-100 dark:bg-neutral-800" style={{ aspectRatio: '16/9' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={displayImage} alt="Preview" className="w-full h-full object-cover" />
-                <label className="absolute top-2 right-2 rounded-full bg-black/60 px-2 py-1 text-xs text-white hover:bg-black/80 transition cursor-pointer">
-                  {isNewPreview ? 'Cambiar' : 'Reemplazar'}
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="hidden"
-                    onChange={handleImageSelect}
-                  />
-                </label>
-                {isNewPreview && (
-                  <button
-                    type="button"
-                    onClick={clearNewImage}
-                    className="absolute top-2 left-2 rounded-full bg-black/60 px-2 py-1 text-xs text-white hover:bg-black/80 transition"
-                  >
-                    ✕
-                  </button>
-                )}
+                <img src={newImageUrl} alt="Preview" className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={clearImage}
+                  className="absolute top-2 right-2 rounded-full bg-black/60 px-2 py-1 text-xs text-white hover:bg-black/80 transition"
+                >
+                  Cambiar
+                </button>
               </div>
             ) : (
               <label className="flex flex-col items-center justify-center w-full rounded-xl border-2 border-dashed border-neutral-200 dark:border-neutral-700 cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-500 transition-colors bg-neutral-50 dark:bg-neutral-800/50 py-8 gap-2">
@@ -253,6 +185,7 @@ export default function EditForm({ slug, item, businessType }: Props) {
               onChange={set('name')}
               required
               maxLength={80}
+              placeholder="Ej. Corte Clásico"
               className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-neutral-500 focus:border-neutral-400 dark:focus:border-neutral-500 focus:outline-none"
             />
           </div>
@@ -264,6 +197,7 @@ export default function EditForm({ slug, item, businessType }: Props) {
               onChange={set('description')}
               rows={3}
               maxLength={200}
+              placeholder="Breve descripción del item"
               className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-neutral-500 focus:border-neutral-400 dark:focus:border-neutral-500 focus:outline-none resize-none"
             />
           </div>
@@ -290,6 +224,7 @@ export default function EditForm({ slug, item, businessType }: Props) {
                 value={form.category}
                 onChange={set('category')}
                 maxLength={40}
+                placeholder="Ej. Cortes"
                 className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-neutral-500 focus:border-neutral-400 dark:focus:border-neutral-500 focus:outline-none"
               />
             </div>
@@ -301,6 +236,7 @@ export default function EditForm({ slug, item, businessType }: Props) {
                 onChange={set('price')}
                 min="0"
                 step="0.01"
+                placeholder="0.00"
                 className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-neutral-500 focus:border-neutral-400 dark:focus:border-neutral-500 focus:outline-none"
               />
             </div>
@@ -379,17 +315,9 @@ export default function EditForm({ slug, item, businessType }: Props) {
             disabled={!form.name.trim() || busy}
             className="w-full rounded-full bg-[#C8102E] py-3 text-sm font-medium text-white transition hover:bg-[#A00D26] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {imageUploading ? 'Subiendo imagen...' : pending ? 'Guardando...' : 'Guardar cambios'}
+            {imageUploading ? 'Subiendo imagen...' : pending ? 'Guardando...' : 'Agregar item'}
           </button>
         </form>
-
-        <button
-          onClick={deleteItem}
-          disabled={busy}
-          className="mt-3 w-full rounded-full border border-neutral-200 dark:border-neutral-700 py-2.5 text-sm font-medium text-neutral-500 dark:text-neutral-400 transition hover:border-red-200 dark:hover:border-red-500/50 hover:text-red-600 dark:hover:text-red-400 disabled:opacity-50"
-        >
-          Eliminar item
-        </button>
       </div>
 
       {cropSrc && (

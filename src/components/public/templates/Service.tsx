@@ -1,62 +1,59 @@
 'use client';
 // src/components/public/templates/Service.tsx
-import Link from 'next/link';
 import type { FaqEntry, ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
-import { resolveWhatsAppDigits, resolveSocialLinks } from '@/lib/public-contact';
+import { resolveWhatsAppDigits } from '@/lib/public-contact';
 import { trackCanalClick } from '@/lib/public-events';
 import { AboutSection } from '@/components/public/AboutSection';
+import { PublicFooter } from '@/components/public/PublicFooter';
+import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 
 export function ServiceTemplate({ business, items, capabilities }: PublicTemplateProps) {
   const accent = business.primary_color ?? '#C8102E';
   const waRaw = resolveWhatsAppDigits(business);
-  const social = resolveSocialLinks(business);
+  const { language } = useSimpleLanguage();
 
   return (
     <div className="min-h-screen bg-white">
       {/* TODO: Starter plan adds: gallery, hours, location */}
       <header
-        className="relative px-4 pt-12 pb-8 text-center"
+        className="relative overflow-hidden px-4 pt-12 pb-8 text-center"
         style={{ backgroundColor: accent }}
       >
-        {business.logo_url && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={business.logo_url}
-            alt={business.name}
-            className="mx-auto mb-4 h-20 w-20 rounded-full object-cover border-4 border-white/30"
-          />
+        {business.cover_image_url && (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={business.cover_image_url}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/45" />
+          </>
         )}
-        <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow">
-          {business.name}
-        </h1>
-        {waRaw && (
-          <a
-            href={`https://wa.me/${waRaw}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => trackCanalClick(business.slug, 'WhatsApp')}
-            className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur px-4 py-2 text-sm font-medium text-white hover:bg-white/30 transition"
-          >
-            💬 WhatsApp
-          </a>
-        )}
-        {social.length > 0 && (
-          <div className="mt-3 flex justify-center gap-2">
-            {social.map((s) => (
-              <a
-                key={s.tipo}
-                href={s.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                title={s.tipo}
-                onClick={() => trackCanalClick(business.slug, s.tipo, s.canalId)}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 backdrop-blur text-base text-white hover:bg-white/30 transition"
-              >
-                {s.icon}
-              </a>
-            ))}
-          </div>
-        )}
+        <div className="relative z-10">
+          {business.logo_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={business.logo_url}
+              alt={business.name}
+              className="mx-auto mb-4 h-20 w-20 rounded-full object-cover border-4 border-white/30"
+            />
+          )}
+          <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow">
+            {business.name}
+          </h1>
+          {waRaw && (
+            <a
+              href={`https://wa.me/${waRaw}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackCanalClick(business.slug, 'WhatsApp')}
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur px-4 py-2 text-sm font-medium text-white hover:bg-white/30 transition"
+            >
+              💬 WhatsApp
+            </a>
+          )}
+        </div>
       </header>
 
       <AboutSection description={business.description} />
@@ -71,41 +68,51 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
-            {items.map((item) => (
-              <div key={item.id} className="rounded-2xl border border-neutral-200 p-6">
-                <h3 className="font-semibold">{item.name}</h3>
-                {item.description && <p className="mt-2 text-sm text-neutral-600">{item.description}</p>}
-                <div className="mt-4 flex items-center justify-between">
-                  {item.price != null && <p className="font-semibold">${item.price.toFixed(2)}</p>}
-                  {waRaw && (
-                    <a
-                      href={`https://wa.me/${waRaw}?text=${encodeURIComponent(
-                        `Hola ${business.name}, me interesa: ${item.name}`
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="rounded-full px-4 py-1.5 text-xs font-medium text-white"
-                      style={{ backgroundColor: accent }}
-                    >
-                      {capabilities.bookingCalendar ? 'Reservar' : 'Cotizar por WhatsApp'}
-                    </a>
-                  )}
+            {items.map((item) => {
+              const imageUrl = item.imageUrl ?? item.image_url;
+              const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
+              return (
+                <div key={item.id} className="overflow-hidden rounded-2xl border border-neutral-200">
+                  <div className="aspect-video bg-neutral-100">
+                    {imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={imageUrl} alt={item.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-3xl text-neutral-300">
+                        🛠️
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-6">
+                    <h3 className="font-semibold">{item.name}</h3>
+                    {description && <p className="mt-2 text-sm text-neutral-600">{description}</p>}
+                    <div className="mt-4 flex items-center justify-between">
+                      {item.price != null && <p className="font-semibold">${item.price.toFixed(2)}</p>}
+                      {waRaw && (
+                        <a
+                          href={`https://wa.me/${waRaw}?text=${encodeURIComponent(
+                            `Hola ${business.name}, me interesa: ${item.name}`
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-full px-4 py-1.5 text-xs font-medium text-white"
+                          style={{ backgroundColor: accent }}
+                        >
+                          {capabilities.bookingCalendar ? 'Reservar' : 'Cotizar por WhatsApp'}
+                        </a>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </main>
 
       <FaqSection faq={business.faq} />
 
-      {!capabilities.hidePoweredBy && (
-        <footer className="py-8 text-center">
-          <Link href="/servicios" className="text-xs text-neutral-400 hover:text-neutral-600">
-            Powered by <span className="font-semibold">MaalCa</span>
-          </Link>
-        </footer>
-      )}
+      <PublicFooter business={business} capabilities={capabilities} />
     </div>
   );
 }
