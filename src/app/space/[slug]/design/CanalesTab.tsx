@@ -309,6 +309,14 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
+
+      <button
+        type="button"
+        onClick={() => document.getElementById('preview-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+        className="w-full rounded-full border border-gray-200 dark:border-neutral-700 py-2.5 text-sm font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800"
+      >
+        {getText('Ver cambios en la vista previa', 'View changes in preview')}
+      </button>
     </div>
   );
 }

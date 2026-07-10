@@ -101,23 +101,20 @@ export function resolveContactItems(business: ContactSourceBusiness): ResolvedCo
 
 export interface ResolvedSocialLink {
   tipo: string;
-  icon: string;
   href: string;
   canalId: string | null;
 }
 
-const SOCIAL_ICONS: Record<string, string> = {
-  Facebook: '📘',
-  Instagram: '📷',
-  TikTok: '🎵',
-};
+const SOCIAL_TIPOS = ['Facebook', 'Instagram', 'TikTok'];
 
 /**
  * Active Facebook/Instagram/TikTok canales, in `orden`. These are link-based (no legacy
  * flat-field fallback exists for social profiles, unlike WhatsApp/phone/email).
+ * Icon rendering (real brand SVGs, not emoji) lives in the consuming component —
+ * see PublicFooter.tsx's SOCIAL_ICON_BY_TIPO.
  */
 export function resolveSocialLinks(business: ContactSourceBusiness): ResolvedSocialLink[] {
   return activeSorted(business.canales)
-    .filter((c) => c.tipo in SOCIAL_ICONS)
-    .map((c) => ({ tipo: c.tipo, icon: SOCIAL_ICONS[c.tipo], href: c.enlaceGenerado || c.valorCrudo, canalId: c.id }));
+    .filter((c) => SOCIAL_TIPOS.includes(c.tipo))
+    .map((c) => ({ tipo: c.tipo, href: c.enlaceGenerado || c.valorCrudo, canalId: c.id }));
 }

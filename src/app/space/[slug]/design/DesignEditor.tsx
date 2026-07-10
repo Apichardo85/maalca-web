@@ -214,7 +214,7 @@ export function DesignEditor({
           )}
         </div>
 
-        <div className="border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-neutral-800 bg-gray-100 dark:bg-neutral-900/50 p-6 lg:max-h-[calc(100vh-8.5rem)] lg:overflow-y-auto">
+        <div id="preview-panel" className="border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-neutral-800 bg-gray-100 dark:bg-neutral-900/50 p-6 lg:max-h-[calc(100vh-8.5rem)] lg:overflow-y-auto">
           <p className="mb-3 text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
             {getText('Vista previa', 'Preview')}
           </p>
