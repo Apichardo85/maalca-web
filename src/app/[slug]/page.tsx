@@ -5,6 +5,7 @@ import type { Metadata } from 'next';
 import { TEMPLATES, type BusinessType, type PublicTemplateProps, type Plan } from '@/lib/templates/registry';
 import { ApiError } from '@/lib/api-client';
 import type { PublicCanal } from '@/lib/public-contact';
+import { PageViewTracker } from '@/components/public/PageViewTracker';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -80,28 +81,31 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
   console.log('[slug] whatsapp keys — whatsapp:', affiliate.whatsapp, 'whatsApp:', rawAffiliate.whatsApp, 'resolved:', whatsappValue);
 
   return (
-    <Template
-      business={{
-        id: affiliate.id,
-        slug: affiliate.slug,
-        name: affiliate.name,
-        plan: (affiliate.plan?.toLowerCase() ?? 'free') as Plan,
-        description: affiliate.description,
-        logo_url: affiliate.logoUrl,
-        cover_image_url: affiliate.coverImageUrl ?? null,
-        primary_color: affiliate.primaryColor,
-        whatsapp: whatsappValue,
-        address: affiliate.address ?? null,
-        contactEmail: affiliate.contactEmail ?? null,
-        canales: affiliate.canales ?? [],
-        business_type: affiliate.businessType as BusinessType,
-        processSteps: affiliate.processSteps ?? null,
-        faq: affiliate.faq ?? null,
-      }}
-      items={mappedItems}
-      categories={categories}
-      capabilities={capabilities}
-    />
+    <>
+      <PageViewTracker slug={affiliate.slug} />
+      <Template
+        business={{
+          id: affiliate.id,
+          slug: affiliate.slug,
+          name: affiliate.name,
+          plan: (affiliate.plan?.toLowerCase() ?? 'free') as Plan,
+          description: affiliate.description,
+          logo_url: affiliate.logoUrl,
+          cover_image_url: affiliate.coverImageUrl ?? null,
+          primary_color: affiliate.primaryColor,
+          whatsapp: whatsappValue,
+          address: affiliate.address ?? null,
+          contactEmail: affiliate.contactEmail ?? null,
+          canales: affiliate.canales ?? [],
+          business_type: affiliate.businessType as BusinessType,
+          processSteps: affiliate.processSteps ?? null,
+          faq: affiliate.faq ?? null,
+        }}
+        items={mappedItems}
+        categories={categories}
+        capabilities={capabilities}
+      />
+    </>
   );
 }
 

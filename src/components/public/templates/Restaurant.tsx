@@ -5,7 +5,8 @@ import Link from 'next/link';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
 import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
-import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
+import { resolveWhatsAppDigits, resolveContactItems, resolveSocialLinks } from '@/lib/public-contact';
+import { trackCanalClick } from '@/lib/public-events';
 import { AboutSection } from '@/components/public/AboutSection';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { MEAL_PERIOD_LABELS, MEAL_PERIOD_ORDER } from '@/lib/menu-availability';
@@ -190,6 +191,7 @@ export function RestaurantTemplate({
                 href={waHeroLink}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackCanalClick(business.slug, 'WhatsApp')}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -714,56 +716,88 @@ function MenuCard({
 
 function ContactSection({ business }: { business: PublicTemplateProps['business'] }) {
   const contacts = resolveContactItems(business);
+  const social = resolveSocialLinks(business);
 
-  if (contacts.length === 0) return null;
+  if (contacts.length === 0 && social.length === 0) return null;
 
   return (
     <section style={{ borderTop: '1px solid #e5e3de' }}>
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '32px 24px' }}>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {contacts.map((c) => (
-            <a
-              key={c.label}
-              href={c.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                backgroundColor: '#ffffff',
-                border: '0.5px solid #ece9e2',
-                borderRadius: '12px',
-                padding: '16px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '4px',
-                textDecoration: 'none',
-              }}
-            >
-              <span style={{ fontSize: '22px' }}>{c.icon}</span>
-              <span
+        {contacts.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {contacts.map((c) => (
+              <a
+                key={c.label}
+                href={c.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackCanalClick(business.slug, c.tipo, c.canalId)}
                 style={{
-                  fontSize: '11px',
-                  color: '#aaa',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
+                  backgroundColor: '#ffffff',
+                  border: '0.5px solid #ece9e2',
+                  borderRadius: '12px',
+                  padding: '16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                  textDecoration: 'none',
                 }}
               >
-                {c.label}
-              </span>
-              <span
+                <span style={{ fontSize: '22px' }}>{c.icon}</span>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    color: '#aaa',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                  }}
+                >
+                  {c.label}
+                </span>
+                <span
+                  style={{
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#1a1a1a',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {c.value}
+                </span>
+              </a>
+            ))}
+          </div>
+        )}
+        {social.length > 0 && (
+          <div className="mt-3 flex justify-center gap-3">
+            {social.map((s) => (
+              <a
+                key={s.tipo}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={s.tipo}
+                onClick={() => trackCanalClick(business.slug, s.tipo, s.canalId)}
                 style={{
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  color: '#1a1a1a',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
+                  fontSize: '20px',
+                  backgroundColor: '#ffffff',
+                  border: '0.5px solid #ece9e2',
+                  borderRadius: '9999px',
+                  width: '40px',
+                  height: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textDecoration: 'none',
                 }}
               >
-                {c.value}
-              </span>
-            </a>
-          ))}
-        </div>
+                {s.icon}
+              </a>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

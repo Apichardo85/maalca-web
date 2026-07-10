@@ -71,7 +71,10 @@ export default async function DesignPage({
   }
 
   const publicUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://maalca.com'}/${slug}`;
-  const qrDataUrl = await QRCode.toDataURL(publicUrl, { width: 240, margin: 1 });
+  // The QR image encodes the /r/{slug} tracking redirect (records qr_scan, then 302s to
+  // publicUrl) — publicUrl itself keeps being the clean link shown/copied in the UI.
+  const qrTargetUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://maalca.com'}/r/${slug}`;
+  const qrDataUrl = await QRCode.toDataURL(qrTargetUrl, { width: 240, margin: 1 });
 
   return (
     <DesignEditor

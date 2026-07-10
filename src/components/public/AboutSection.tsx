@@ -14,7 +14,7 @@ export function AboutSection({
   return (
     <section style={{ maxWidth, margin: '0 auto' }} className="px-4 pt-10">
       <h2 className="text-lg font-semibold text-neutral-900">Sobre nosotros</h2>
-      <p className="mt-2 text-sm leading-relaxed text-neutral-600">{description}</p>
+      <p className="mt-2 text-sm leading-relaxed text-neutral-600 whitespace-pre-line">{description}</p>
     </section>
   );
 }

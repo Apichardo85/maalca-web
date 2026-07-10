@@ -3,6 +3,8 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Modal } from '@/components/ui/Modal';
+import { ImageCropper } from '@/app/dashboard/[affiliateId]/menu/components/ImageCropper';
 
 interface Item {
   id: string;
@@ -33,8 +35,8 @@ export default function EditForm({ slug, item }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [newImageUrl, setNewImageUrl] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
 
   const [form, setForm] = useState({
@@ -48,55 +50,74 @@ export default function EditForm({ slug, item }: Props) {
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Read a File into a dataURL so the cropper can load it without CORS
+  const readFileAsDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = () => reject(r.error ?? new Error('No se pudo leer el archivo'));
+      r.readAsDataURL(file);
+    });
+
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      setCropSrc(dataUrl);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  const uploadBlob = async (blob: Blob): Promise<string> => {
+    const fd = new FormData();
+    fd.append('file', new File([blob], `${item.id}.jpg`, { type: 'image/jpeg' }));
+    fd.append('itemId', item.id);
+    const res = await fetch(`/api/space/${slug}/catalog/upload-image`, {
+      method: 'POST',
+      body: fd,
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error ?? 'Error al subir la imagen');
+    }
+    const { url } = await res.json();
+    return url as string;
+  };
+
+  const handleCropDone = async (blob: Blob) => {
+    setImageUploading(true);
+    try {
+      const url = await uploadBlob(blob);
+      setNewImageUrl(url);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al subir la imagen');
+    } finally {
+      setImageUploading(false);
+      setCropSrc(null);
+    }
   };
 
   const clearNewImage = () => {
-    setImageFile(null);
-    if (imagePreview) URL.revokeObjectURL(imagePreview);
-    setImagePreview(null);
+    setNewImageUrl(null);
   };
 
   // What to show in the image area:
-  // 1. New file selected → show local preview
-  // 2. Item has existing imageUrl and no new file → show existing
+  // 1. New image cropped + uploaded → show it
+  // 2. Item has existing imageUrl and no new upload → show existing
   // 3. Neither → show upload zone
-  const displayImage = imagePreview ?? item.imageUrl ?? null;
-  const isNewPreview = !!imagePreview;
+  const displayImage = newImageUrl ?? item.imageUrl ?? null;
+  const isNewPreview = !!newImageUrl;
 
   const save = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     startTransition(async () => {
-      let imageUrl: string | undefined;
-
-      if (imageFile) {
-        setImageUploading(true);
-        const fd = new FormData();
-        fd.append('file', imageFile);
-        fd.append('itemId', item.id);
-        const uploadRes = await fetch(`/api/space/${slug}/catalog/upload-image`, {
-          method: 'POST',
-          body: fd,
-        });
-        setImageUploading(false);
-        if (!uploadRes.ok) {
-          const data = await uploadRes.json().catch(() => ({}));
-          setError(data.error ?? 'Error al subir la imagen');
-          return;
-        }
-        const { url } = await uploadRes.json();
-        imageUrl = url;
-      }
-
       const body: Record<string, unknown> = { ...form };
-      if (imageUrl) body.imageUrl = imageUrl;
+      if (newImageUrl) body.imageUrl = newImageUrl;
 
-      console.log('[catalog] submitting with imageUrl:', imageUrl);
       const res = await fetch(`/api/space/${slug}/catalog/${item.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -256,6 +277,18 @@ export default function EditForm({ slug, item }: Props) {
           Eliminar item
         </button>
       </div>
+
+      {cropSrc && (
+        <Modal isOpen onClose={() => setCropSrc(null)} title="Ajustar foto">
+          <ImageCropper
+            src={cropSrc}
+            aspect={16 / 9}
+            onCancel={() => setCropSrc(null)}
+            onCropped={handleCropDone}
+            busy={imageUploading}
+          />
+        </Modal>
+      )}
     </main>
   );
 }

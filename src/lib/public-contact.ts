@@ -1,4 +1,5 @@
 export interface PublicCanal {
+  id: string;
   tipo: string;
   valorCrudo: string;
   enlaceGenerado: string;
@@ -12,6 +13,8 @@ export interface ResolvedContactItem {
   label: string;
   value: string;
   href: string;
+  tipo: string;
+  canalId: string | null;
 }
 
 interface ContactSourceBusiness {
@@ -65,14 +68,14 @@ export function resolveContactItems(business: ContactSourceBusiness): ResolvedCo
 
   const waCanal = canales.find((c) => c.tipo === 'WhatsApp');
   if (waCanal) {
-    items.push({ icon: '📱', label: 'WhatsApp', value: waCanal.nombreVisible ?? waCanal.valorCrudo, href: waCanal.enlaceGenerado });
+    items.push({ icon: '📱', label: 'WhatsApp', value: waCanal.nombreVisible ?? waCanal.valorCrudo, href: waCanal.enlaceGenerado, tipo: 'WhatsApp', canalId: waCanal.id });
   } else if (business.whatsapp) {
-    items.push({ icon: '📱', label: 'WhatsApp', value: business.whatsapp, href: `https://wa.me/${business.whatsapp.replace(/\D/g, '')}` });
+    items.push({ icon: '📱', label: 'WhatsApp', value: business.whatsapp, href: `https://wa.me/${business.whatsapp.replace(/\D/g, '')}`, tipo: 'WhatsApp', canalId: null });
   }
 
   const phoneCanal = canales.find((c) => c.tipo === 'Telefono');
   if (phoneCanal) {
-    items.push({ icon: '📞', label: 'Teléfono', value: phoneCanal.nombreVisible ?? phoneCanal.valorCrudo, href: phoneCanal.enlaceGenerado });
+    items.push({ icon: '📞', label: 'Teléfono', value: phoneCanal.nombreVisible ?? phoneCanal.valorCrudo, href: phoneCanal.enlaceGenerado, tipo: 'Telefono', canalId: phoneCanal.id });
   }
 
   if (business.address) {
@@ -81,15 +84,40 @@ export function resolveContactItems(business: ContactSourceBusiness): ResolvedCo
       label: 'Dirección',
       value: business.address,
       href: `https://maps.google.com?q=${encodeURIComponent(business.address)}`,
+      tipo: 'Direccion',
+      canalId: null,
     });
   }
 
   const emailCanal = canales.find((c) => c.tipo === 'Email');
   if (emailCanal) {
-    items.push({ icon: '✉️', label: 'Email', value: emailCanal.nombreVisible ?? emailCanal.valorCrudo, href: emailCanal.enlaceGenerado });
+    items.push({ icon: '✉️', label: 'Email', value: emailCanal.nombreVisible ?? emailCanal.valorCrudo, href: emailCanal.enlaceGenerado, tipo: 'Email', canalId: emailCanal.id });
   } else if (business.contactEmail) {
-    items.push({ icon: '✉️', label: 'Email', value: business.contactEmail, href: `mailto:${business.contactEmail}` });
+    items.push({ icon: '✉️', label: 'Email', value: business.contactEmail, href: `mailto:${business.contactEmail}`, tipo: 'Email', canalId: null });
   }
 
   return items;
+}
+
+export interface ResolvedSocialLink {
+  tipo: string;
+  icon: string;
+  href: string;
+  canalId: string | null;
+}
+
+const SOCIAL_ICONS: Record<string, string> = {
+  Facebook: '📘',
+  Instagram: '📷',
+  TikTok: '🎵',
+};
+
+/**
+ * Active Facebook/Instagram/TikTok canales, in `orden`. These are link-based (no legacy
+ * flat-field fallback exists for social profiles, unlike WhatsApp/phone/email).
+ */
+export function resolveSocialLinks(business: ContactSourceBusiness): ResolvedSocialLink[] {
+  return activeSorted(business.canales)
+    .filter((c) => c.tipo in SOCIAL_ICONS)
+    .map((c) => ({ tipo: c.tipo, icon: SOCIAL_ICONS[c.tipo], href: c.enlaceGenerado || c.valorCrudo, canalId: c.id }));
 }

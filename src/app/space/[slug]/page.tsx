@@ -33,6 +33,8 @@ interface SpaceResponse {
     firstProductAdded: boolean;
     whatsAppConfigured: boolean;
     linkShared: boolean;
+    /** Not yet deployed to production as of this writing — SpaceDashboard falls back to whatsAppConfigured. */
+    canalesConfigured?: boolean;
   };
   /** Not yet deployed to production as of this writing — guarded with a fallback below. */
   kpis?: {
@@ -108,6 +110,7 @@ export default async function SpacePage({
         first_product_added: data.progress.firstProductAdded,
         whatsapp_configured: data.progress.whatsAppConfigured,
         link_shared:         data.progress.linkShared,
+        canales_configured:  data.progress.canalesConfigured,
       }}
       isNew={isNew === '1'}
       justUpgraded={upgraded === '1'}

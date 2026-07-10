@@ -301,6 +301,7 @@ export function OnboardingForm() {
               </label>
               <input
                 type="tel"
+                inputMode="tel"
                 autoFocus
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}

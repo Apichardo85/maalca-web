@@ -4,7 +4,8 @@ import Link from 'next/link';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
 import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
-import { resolveWhatsAppDigits } from '@/lib/public-contact';
+import { resolveWhatsAppDigits, resolveSocialLinks } from '@/lib/public-contact';
+import { trackCanalClick } from '@/lib/public-events';
 import { AboutSection } from '@/components/public/AboutSection';
 
 const priceFormatter = new Intl.NumberFormat('en-US', {
@@ -16,6 +17,7 @@ const priceFormatter = new Intl.NumberFormat('en-US', {
 export function RetailTemplate({ business, items, capabilities }: PublicTemplateProps) {
   const accent = business.primary_color ?? '#C8102E';
   const waRaw = resolveWhatsAppDigits(business);
+  const social = resolveSocialLinks(business);
   const { cart, addToCart, removeFromCart, cartTotal, cartCount } = useCart();
 
   return (
@@ -41,10 +43,28 @@ export function RetailTemplate({ business, items, capabilities }: PublicTemplate
             href={`https://wa.me/${waRaw}`}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackCanalClick(business.slug, 'WhatsApp')}
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur px-4 py-2 text-sm font-medium text-white hover:bg-white/30 transition"
           >
             💬 WhatsApp
           </a>
+        )}
+        {social.length > 0 && (
+          <div className="mt-3 flex justify-center gap-2">
+            {social.map((s) => (
+              <a
+                key={s.tipo}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={s.tipo}
+                onClick={() => trackCanalClick(business.slug, s.tipo, s.canalId)}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 backdrop-blur text-base text-white hover:bg-white/30 transition"
+              >
+                {s.icon}
+              </a>
+            ))}
+          </div>
         )}
       </header>
 

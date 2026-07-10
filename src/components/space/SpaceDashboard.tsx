@@ -53,6 +53,8 @@ interface Progress {
   first_product_added: boolean;
   whatsapp_configured: boolean;
   link_shared: boolean;
+  /** Not yet deployed to production as of this writing — falls back to whatsapp_configured below. */
+  canales_configured?: boolean;
 }
 
 interface Props {
@@ -95,7 +97,8 @@ export function SpaceDashboard({
     (m): m is ModuleKey => (KNOWN_MODULES as readonly string[]).includes(m),
   );
 
-  const checklistDone = progress.first_product_added && progress.whatsapp_configured && progress.link_shared;
+  const canalesDone = progress.canales_configured ?? progress.whatsapp_configured;
+  const checklistDone = progress.first_product_added && canalesDone && progress.link_shared;
   const [checklistOpen, setChecklistOpen] = useState(!checklistDone);
 
   const now = new Date();
@@ -471,13 +474,13 @@ export function SpaceDashboard({
                 cta={getText('Agregar', 'Add')}
               />
               <ChecklistItem
-                done={progress.whatsapp_configured}
-                label={getText('Conecta WhatsApp', 'Connect WhatsApp')}
+                done={canalesDone}
+                label={getText('Conecta tus canales', 'Connect your channels')}
                 description={getText(
                   'Para que tus clientes te escriban directo',
                   'So your customers can message you directly',
                 )}
-                href={`/space/${business.slug}/design`}
+                href={`/space/${business.slug}/design?tab=canales`}
                 cta={getText('Configurar', 'Configure')}
               />
               <ChecklistItem

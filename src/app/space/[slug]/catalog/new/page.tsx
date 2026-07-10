@@ -3,6 +3,8 @@
 import { useState, useTransition } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import { Modal } from '@/components/ui/Modal';
+import { ImageCropper } from '@/app/dashboard/[affiliateId]/menu/components/ImageCropper';
 
 function CameraIcon() {
   return (
@@ -18,8 +20,8 @@ export default function NewCatalogItemPage() {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [newImageUrl, setNewImageUrl] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
 
   const [form, setForm] = useState({ name: '', description: '', category: '', price: '' });
@@ -27,49 +29,68 @@ export default function NewCatalogItemPage() {
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Read a File into a dataURL so the cropper can load it without CORS
+  const readFileAsDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = () => reject(r.error ?? new Error('No se pudo leer el archivo'));
+      r.readAsDataURL(file);
+    });
+
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      setCropSrc(dataUrl);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  const uploadBlob = async (blob: Blob): Promise<string> => {
+    const fd = new FormData();
+    fd.append('file', new File([blob], 'new.jpg', { type: 'image/jpeg' }));
+    fd.append('itemId', 'new');
+    const res = await fetch(`/api/space/${slug}/catalog/upload-image`, {
+      method: 'POST',
+      body: fd,
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error ?? 'Error al subir la imagen');
+    }
+    const { url } = await res.json();
+    return url as string;
+  };
+
+  const handleCropDone = async (blob: Blob) => {
+    setImageUploading(true);
+    try {
+      const url = await uploadBlob(blob);
+      setNewImageUrl(url);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al subir la imagen');
+    } finally {
+      setImageUploading(false);
+      setCropSrc(null);
+    }
   };
 
   const clearImage = () => {
-    setImageFile(null);
-    if (imagePreview) URL.revokeObjectURL(imagePreview);
-    setImagePreview(null);
+    setNewImageUrl(null);
   };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     startTransition(async () => {
-      let imageUrl: string | undefined;
-
-      if (imageFile) {
-        setImageUploading(true);
-        const fd = new FormData();
-        fd.append('file', imageFile);
-        fd.append('itemId', 'new');
-        const uploadRes = await fetch(`/api/space/${slug}/catalog/upload-image`, {
-          method: 'POST',
-          body: fd,
-        });
-        setImageUploading(false);
-        if (!uploadRes.ok) {
-          const data = await uploadRes.json().catch(() => ({}));
-          setError(data.error ?? 'Error al subir la imagen');
-          return;
-        }
-        const { url } = await uploadRes.json();
-        imageUrl = url;
-      }
-
-      console.log('[catalog] submitting with imageUrl:', imageUrl);
       const res = await fetch(`/api/space/${slug}/catalog`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, ...(imageUrl ? { imageUrl } : {}) }),
+        body: JSON.stringify({ ...form, ...(newImageUrl ? { imageUrl: newImageUrl } : {}) }),
       });
       if (res.ok) {
         router.push(`/space/${slug}/catalog`);
@@ -99,10 +120,10 @@ export default function NewCatalogItemPage() {
             <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
               Foto del item
             </label>
-            {imagePreview ? (
+            {newImageUrl ? (
               <div className="relative w-full overflow-hidden rounded-xl bg-neutral-100 dark:bg-neutral-800" style={{ aspectRatio: '16/9' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                <img src={newImageUrl} alt="Preview" className="w-full h-full object-cover" />
                 <button
                   type="button"
                   onClick={clearImage}
@@ -190,6 +211,18 @@ export default function NewCatalogItemPage() {
           </button>
         </form>
       </div>
+
+      {cropSrc && (
+        <Modal isOpen onClose={() => setCropSrc(null)} title="Ajustar foto">
+          <ImageCropper
+            src={cropSrc}
+            aspect={16 / 9}
+            onCancel={() => setCropSrc(null)}
+            onCropped={handleCropDone}
+            busy={imageUploading}
+          />
+        </Modal>
+      )}
     </main>
   );
 }

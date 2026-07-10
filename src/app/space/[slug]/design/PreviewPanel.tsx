@@ -68,7 +68,7 @@ export function PreviewPanel({
 
       <div className="p-4">
         {description && (
-          <p className="text-sm text-gray-600 dark:text-neutral-400">{description}</p>
+          <p className="text-sm leading-relaxed text-gray-600 dark:text-neutral-400 whitespace-pre-line">{description}</p>
         )}
 
         {waDigits && (

@@ -90,7 +90,7 @@ export function ConfigTab({ slug, form, onChange, onCommit, onCommitAll }: Props
   const textField = (
     key: keyof ProfileFormState,
     label: string,
-    opts?: { placeholder?: string; type?: string; maxLength?: number; textarea?: boolean },
+    opts?: { placeholder?: string; type?: string; inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode']; maxLength?: number; textarea?: boolean },
   ) => (
     <div>
       <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-neutral-300">{label}</label>
@@ -101,11 +101,13 @@ export function ConfigTab({ slug, form, onChange, onCommit, onCommitAll }: Props
           onBlur={() => onCommit(key)}
           placeholder={opts?.placeholder}
           rows={3}
+          maxLength={opts?.maxLength}
           className="w-full rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 focus:border-gray-400 dark:focus:border-neutral-500 focus:outline-none"
         />
       ) : (
         <input
           type={opts?.type ?? 'text'}
+          inputMode={opts?.inputMode}
           value={(form[key] as string) ?? ''}
           onChange={(e) => onChange(key, e.target.value)}
           onBlur={() => onCommit(key)}
@@ -208,11 +210,11 @@ export function ConfigTab({ slug, form, onChange, onCommit, onCommitAll }: Props
 
       {/* On-demand fields */}
       {textField('name', getText('Nombre del negocio', 'Business name'), { maxLength: 80 })}
-      {textField('description', getText('Descripción', 'Description'), { textarea: true, placeholder: getText('Cuéntale a tus clientes de qué se trata tu negocio', 'Tell customers what your business is about') })}
-      {textField('whatsapp', 'WhatsApp', { type: 'tel', placeholder: '809-555-1234', maxLength: 20 })}
-      {textField('contactEmail', getText('Email de contacto', 'Contact email'), { type: 'email', placeholder: 'contacto@negocio.com' })}
-      {textField('address', getText('Dirección', 'Address'))}
-      {textField('website', getText('Sitio web', 'Website'), { placeholder: 'https://...' })}
+      {textField('description', getText('Descripción', 'Description'), { textarea: true, maxLength: 500, placeholder: getText('Cuéntale a tus clientes de qué se trata tu negocio', 'Tell customers what your business is about') })}
+      {/* WhatsApp is edited exclusively in the Canales tab now — kept in ProfileFormState/save payload as the legacy fallback field for public rendering. */}
+      {textField('contactEmail', getText('Email de contacto', 'Contact email'), { type: 'email', placeholder: 'contacto@negocio.com', maxLength: 100 })}
+      {textField('address', getText('Dirección', 'Address'), { maxLength: 150 })}
+      {textField('website', getText('Sitio web', 'Website'), { type: 'url', placeholder: 'https://...', maxLength: 150 })}
 
       <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 p-3 text-xs text-amber-700 dark:text-amber-300">
         {getText(

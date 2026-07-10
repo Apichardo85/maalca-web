@@ -9,7 +9,13 @@ const TIPOS = [
   { value: 'WhatsApp', icon: '💬', labelEs: 'WhatsApp', labelEn: 'WhatsApp', placeholder: '809-555-1234' },
   { value: 'Email', icon: '✉️', labelEs: 'Email', labelEn: 'Email', placeholder: 'contacto@negocio.com' },
   { value: 'Telefono', icon: '📞', labelEs: 'Teléfono', labelEn: 'Phone', placeholder: '809-555-1234' },
+  { value: 'Facebook', icon: '📘', labelEs: 'Facebook', labelEn: 'Facebook', placeholder: 'facebook.com/tunegocio' },
+  { value: 'Instagram', icon: '📷', labelEs: 'Instagram', labelEn: 'Instagram', placeholder: 'instagram.com/tu_usuario' },
+  { value: 'TikTok', icon: '🎵', labelEs: 'TikTok', labelEn: 'TikTok', placeholder: 'tiktok.com/@tu_usuario' },
 ] as const;
+
+/** These 3 are link-based canales (Metodo="Enlace") — no digit-count validation applies. */
+const SOCIAL_TIPOS = ['Facebook', 'Instagram', 'TikTok'] as const;
 
 /** Mirrors the backend's own validation (CanalService.cs) plus the tighter 15-digit
  *  upper bound already used in onboarding, for a consistent UX. */
@@ -23,6 +29,21 @@ function isValueValid(tipo: string, value: string): boolean {
     return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value.trim());
   }
   return true;
+}
+
+/** HTML input attrs matching each canal type, so the browser itself enforces
+ *  the right keyboard/format before submit-time validation ever runs. */
+function inputAttrsForTipo(tipo: string) {
+  if (tipo === 'WhatsApp' || tipo === 'Telefono') {
+    return { type: 'tel' as const, inputMode: 'tel' as const, maxLength: 20 };
+  }
+  if (tipo === 'Email') {
+    return { type: 'email' as const, maxLength: 100 };
+  }
+  if ((SOCIAL_TIPOS as readonly string[]).includes(tipo)) {
+    return { type: 'url' as const, maxLength: 200 };
+  }
+  return { type: 'text' as const, maxLength: 100 };
 }
 
 interface Props {
@@ -59,7 +80,7 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           tipo: newTipo,
-          metodo: 'Manual',
+          metodo: (SOCIAL_TIPOS as readonly string[]).includes(newTipo) ? 'Enlace' : 'Manual',
           valorCrudo: sanitizeContactValue(newValue),
           orden: canales.length,
         }),
@@ -180,7 +201,7 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
                   </p>
                   {isEditing ? (
                     <input
-                      type="text"
+                      {...inputAttrsForTipo(canal.tipo)}
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
                       className="mt-0.5 w-full rounded-md border border-gray-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 px-2 py-1 text-sm text-gray-900 dark:text-white"
@@ -271,7 +292,7 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
             ))}
           </select>
           <input
-            type="text"
+            {...inputAttrsForTipo(newTipo)}
             value={newValue}
             onChange={(e) => setNewValue(e.target.value)}
             placeholder={tipoMeta(newTipo).placeholder}
