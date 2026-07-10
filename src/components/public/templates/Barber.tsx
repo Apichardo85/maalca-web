@@ -1,13 +1,31 @@
 'use client';
-
+// src/components/public/templates/Barber.tsx
+//
+// "Grid & Blade" — a high-contrast, condensed-type template for barbershops
+// and similarly precision/rhythm-driven trades. Deliberately cold (Escarcha
+// background, not the warm-cream family used by Service/Restaurant/Retail),
+// with a single bold accent rule ("the blade") as the recurring graphic
+// motif and a perforated "ticket stub" service card as the signature
+// element — distinct from Service's mono rate-card index.
 import { useState } from 'react';
+import { Oswald } from 'next/font/google';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
 import { trackCanalClick } from '@/lib/public-events';
 import { AboutSection } from '@/components/public/AboutSection';
 import { PublicFooter } from '@/components/public/PublicFooter';
 
+// Scoped to this template only — condensed uppercase display for headers,
+// duration and price (no separate mono role; the condensed weight already
+// carries the "precision" voice this template needs).
+const oswald = Oswald({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-barber-display' });
+
 const ALL_TAB = '__all__';
+
+const TINTA = '#151312';
+const ESCARCHA = '#EFF1F4';
+const ACERO = '#5B5B5B';
+const ACERO_LIGHT = '#E4E6EA';
 
 const priceFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -28,7 +46,7 @@ export function BarberTemplate({
   categories: categoriesProp,
   capabilities,
 }: PublicTemplateProps) {
-  const primaryColor = business.primary_color ?? '#1a1a1a';
+  const accent = business.primary_color ?? '#C8102E';
   const waRaw = resolveWhatsAppDigits(business);
   const waHeroLink = waRaw
     ? `https://wa.me/${waRaw}?text=${encodeURIComponent(`Hola, quiero info sobre ${business.name}`)}`
@@ -59,16 +77,13 @@ export function BarberTemplate({
   const visibleItems = itemsFor(activeTab);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8f6f1' }}>
-
-      {/* TODO: Starter plan adds: gallery, hours, location */}
-
-      {/* ── HERO ── */}
+    <div className={oswald.variable} style={{ minHeight: '100vh', backgroundColor: ESCARCHA }}>
+      {/* ── HERO — Tinta + duotone-leaning cover treatment ── */}
       <section
         style={{
           position: 'relative',
           height: '420px',
-          backgroundColor: primaryColor,
+          backgroundColor: TINTA,
           overflow: 'hidden',
         }}
       >
@@ -87,6 +102,7 @@ export function BarberTemplate({
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
+                filter: 'grayscale(55%) contrast(1.15)',
               }}
             />
             <div
@@ -96,7 +112,7 @@ export function BarberTemplate({
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundColor: 'rgba(0,0,0,0.5)',
+                background: `linear-gradient(180deg, rgba(21,19,18,0.35), rgba(21,19,18,0.85))`,
               }}
             />
           </>
@@ -110,132 +126,140 @@ export function BarberTemplate({
             left: 0,
             right: 0,
             zIndex: 1,
-            maxWidth: '960px',
+            maxWidth: '1000px',
             margin: '0 auto',
-            padding: '0 32px 48px',
+            padding: '0 32px 40px',
             color: '#fff',
           }}
         >
-
-            {business.logo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={business.logo_url}
-                alt={business.name}
-                style={{
-                  display: 'block',
-                  width: '64px',
-                  height: '64px',
-                  borderRadius: '12px',
-                  objectFit: 'cover',
-                  border: '2px solid rgba(255,255,255,0.2)',
-                  marginBottom: '12px',
-                }}
-              />
-            ) : (
-              <div
-                style={{
-                  width: '64px',
-                  height: '64px',
-                  borderRadius: '12px',
-                  backgroundColor: 'rgba(255,255,255,0.1)',
-                  border: '2px solid rgba(255,255,255,0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '28px',
-                  marginBottom: '12px',
-                }}
-              >
-                ✂️
-              </div>
-            )}
-
-            <h1
+          {business.logo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={business.logo_url}
+              alt={business.name}
               style={{
-                margin: 0,
-                fontSize: '28px',
-                fontWeight: 800,
-                color: '#ffffff',
-                lineHeight: 1.2,
-                letterSpacing: '-0.02em',
+                display: 'block',
+                width: '60px',
+                height: '60px',
+                borderRadius: '8px',
+                objectFit: 'cover',
+                border: '2px solid rgba(255,255,255,0.25)',
+                marginBottom: '14px',
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: '60px',
+                height: '60px',
+                borderRadius: '8px',
+                backgroundColor: 'rgba(255,255,255,0.1)',
+                border: '2px solid rgba(255,255,255,0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '26px',
+                marginBottom: '14px',
               }}
             >
-              {business.name}
-            </h1>
-
-            {business.address && (
-              <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-                📍 {business.address}
-              </p>
-            )}
-
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '18px' }}>
-              {waHeroLink && (
-                <a
-                  href={waHeroLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => trackCanalClick(business.slug, 'WhatsApp')}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    backgroundColor: '#25D366',
-                    color: '#ffffff',
-                    padding: '10px 20px',
-                    borderRadius: '9999px',
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    textDecoration: 'none',
-                  }}
-                >
-                  <WhatsAppIcon className="h-4 w-4" />
-                  WhatsApp
-                </a>
-              )}
-              {business.address && (
-                <a
-                  href={`https://maps.google.com?q=${encodeURIComponent(business.address)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    background: 'transparent',
-                    border: '1px solid rgba(255,255,255,0.35)',
-                    color: '#ffffff',
-                    padding: '10px 20px',
-                    borderRadius: '9999px',
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    textDecoration: 'none',
-                  }}
-                >
-                  📍 Cómo llegar
-                </a>
-              )}
+              ✂️
             </div>
+          )}
+
+          <h1
+            className={oswald.className}
+            style={{
+              margin: 0,
+              fontSize: '38px',
+              fontWeight: 700,
+              color: '#ffffff',
+              lineHeight: 1.05,
+              letterSpacing: '0.01em',
+              textTransform: 'uppercase',
+            }}
+          >
+            {business.name}
+          </h1>
+
+          {business.address && (
+            <p style={{ margin: '6px 0 0', fontSize: '13px', color: 'rgba(255,255,255,0.65)' }}>
+              📍 {business.address}
+            </p>
+          )}
+
+          {/* "the blade" — single bold accent rule, the recurring graphic motif */}
+          <div style={{ height: '4px', width: '64px', backgroundColor: accent, marginTop: '18px', marginBottom: '18px' }} />
+
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            {waHeroLink && (
+              <a
+                href={waHeroLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackCanalClick(business.slug, 'WhatsApp')}
+                className={oswald.className}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  backgroundColor: accent,
+                  color: '#ffffff',
+                  padding: '10px 22px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  textDecoration: 'none',
+                }}
+              >
+                <WhatsAppIcon className="h-4 w-4" />
+                WhatsApp
+              </a>
+            )}
+            {business.address && (
+              <a
+                href={`https://maps.google.com?q=${encodeURIComponent(business.address)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={oswald.className}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: 'transparent',
+                  border: '1px solid rgba(255,255,255,0.4)',
+                  color: '#ffffff',
+                  padding: '10px 22px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  textDecoration: 'none',
+                }}
+              >
+                Cómo llegar
+              </a>
+            )}
+          </div>
         </div>
       </section>
 
-      <AboutSection description={business.description} maxWidth="960px" />
+      <AboutSection description={business.description} maxWidth="1000px" />
 
-      {/* ── NAV TABS ── */}
+      {/* ── NAV TABS — bold, condensed, underlined ── */}
       {categoryNames.length > 0 && (
         <div
           style={{
             position: 'sticky',
             top: 0,
             zIndex: 20,
-            backgroundColor: '#ffffff',
-            borderBottom: '1px solid #e5e3de',
+            backgroundColor: ESCARCHA,
+            borderBottom: `1px solid #dcdfe3`,
           }}
         >
-          <div style={{ maxWidth: '960px', margin: '0 auto', padding: '0 24px' }}>
+          <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 24px' }}>
             <div
-              className="[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              className={`${oswald.className} [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden`}
               style={{ display: 'flex', overflowX: 'auto' }}
             >
               {[
@@ -247,15 +271,17 @@ export function BarberTemplate({
                   onClick={() => setActiveTab(key)}
                   style={{
                     flexShrink: 0,
-                    padding: '12px 16px',
-                    fontSize: '14px',
-                    fontWeight: activeTab === key ? 600 : 400,
-                    color: activeTab === key ? '#1a1a1a' : '#888888',
+                    padding: '14px 18px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.03em',
+                    color: activeTab === key ? TINTA : ACERO,
                     background: 'none',
                     borderTop: 'none',
                     borderLeft: 'none',
                     borderRight: 'none',
-                    borderBottom: activeTab === key ? `2px solid ${primaryColor}` : '2px solid transparent',
+                    borderBottom: activeTab === key ? `3px solid ${accent}` : '3px solid transparent',
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
                   }}
@@ -269,7 +295,7 @@ export function BarberTemplate({
       )}
 
       {/* ── CONTENT ── */}
-      <main style={{ maxWidth: '960px', margin: '0 auto', padding: '32px 24px' }}>
+      <main style={{ maxWidth: '1000px', margin: '0 auto', padding: '32px 24px' }}>
         {items.length === 0 ? (
           <div
             style={{
@@ -282,7 +308,7 @@ export function BarberTemplate({
             }}
           >
             <span style={{ fontSize: '48px' }}>✂️</span>
-            <p style={{ marginTop: '16px', fontSize: '14px', color: '#aaa' }}>
+            <p style={{ marginTop: '16px', fontSize: '14px', color: ACERO }}>
               Servicios disponibles pronto.
             </p>
           </div>
@@ -292,7 +318,7 @@ export function BarberTemplate({
               {categoryName && <SectLabel label={categoryName} />}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {groupItems.map((item) => (
-                  <ServiceCard key={item.id} item={item} waRaw={waRaw} businessName={business.name} />
+                  <ServiceCard key={item.id} item={item} waRaw={waRaw} businessName={business.name} accent={accent} displayClassName={oswald.className} />
                 ))}
               </div>
             </div>
@@ -300,7 +326,7 @@ export function BarberTemplate({
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {visibleItems.map((item) => (
-              <ServiceCard key={item.id} item={item} waRaw={waRaw} businessName={business.name} />
+              <ServiceCard key={item.id} item={item} waRaw={waRaw} businessName={business.name} accent={accent} displayClassName={oswald.className} />
             ))}
           </div>
         )}
@@ -324,7 +350,7 @@ function SectLabel({ label }: { label: string }) {
         style={{
           fontSize: '11px',
           textTransform: 'uppercase',
-          color: '#aaa',
+          color: ACERO,
           letterSpacing: '0.08em',
           fontWeight: 600,
           whiteSpace: 'nowrap',
@@ -332,7 +358,7 @@ function SectLabel({ label }: { label: string }) {
       >
         {label}
       </span>
-      <div style={{ flex: 1, height: '1px', backgroundColor: '#e5e3de' }} />
+      <div style={{ flex: 1, height: '1px', backgroundColor: '#dcdfe3' }} />
     </div>
   );
 }
@@ -341,10 +367,14 @@ function ServiceCard({
   item,
   waRaw,
   businessName,
+  accent,
+  displayClassName,
 }: {
   item: PublicTemplateProps['items'][number];
   waRaw: string | null;
   businessName: string;
+  accent: string;
+  displayClassName: string;
 }) {
   const imageUrl = item.imageUrl ?? item.image_url;
   const waLink = waRaw
@@ -357,8 +387,8 @@ function ServiceCard({
     <div
       style={{
         backgroundColor: '#ffffff',
-        border: '0.5px solid #ece9e2',
-        borderRadius: '16px',
+        border: '1px solid #dcdfe3',
+        borderRadius: '10px',
         overflow: 'hidden',
       }}
     >
@@ -374,7 +404,7 @@ function ServiceCard({
           style={{
             width: '100%',
             height: '110px',
-            backgroundColor: '#f0ede8',
+            backgroundColor: ACERO_LIGHT,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -385,14 +415,19 @@ function ServiceCard({
         </div>
       )}
 
-      <div style={{ padding: '12px' }}>
+      {/* ticket-stub perforation — the signature detail separating photo from price */}
+      <div style={{ borderTop: `2px dashed #c7cbd1`, margin: '0 10px' }} />
+
+      <div style={{ padding: '10px' }}>
         <p
+          className={displayClassName}
           style={{
             margin: 0,
-            fontWeight: 700,
+            fontWeight: 600,
             fontSize: '13px',
-            color: '#1a1a1a',
+            color: TINTA,
             lineHeight: 1.3,
+            textTransform: 'uppercase',
           }}
         >
           {item.name}
@@ -401,12 +436,12 @@ function ServiceCard({
         {item.durationMinutes != null && (
           <div
             style={{
-              marginTop: '3px',
+              marginTop: '4px',
               display: 'flex',
               alignItems: 'center',
               gap: '3px',
               fontSize: '11px',
-              color: '#aaa',
+              color: ACERO,
             }}
           >
             <ClockIcon className="w-[11px] h-[11px] shrink-0" />
@@ -423,7 +458,7 @@ function ServiceCard({
           }}
         >
           {item.price != null ? (
-            <p style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#1a1a1a' }}>
+            <p className={displayClassName} style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: accent }}>
               {priceFormatter.format(item.price)}
             </p>
           ) : (
@@ -440,15 +475,15 @@ function ServiceCard({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '30px',
-                height: '30px',
-                borderRadius: '50%',
-                backgroundColor: '#25D366',
+                width: '28px',
+                height: '28px',
+                borderRadius: '6px',
+                backgroundColor: accent,
                 flexShrink: 0,
                 textDecoration: 'none',
               }}
             >
-              <WhatsAppIcon className="w-[15px] h-[15px] text-white" />
+              <WhatsAppIcon className="w-[14px] h-[14px] text-white" />
             </a>
           )}
         </div>
@@ -463,8 +498,8 @@ function ContactSection({ business }: { business: PublicTemplateProps['business'
   if (contacts.length === 0) return null;
 
   return (
-    <section style={{ borderTop: '1px solid #e5e3de' }}>
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '32px 24px' }}>
+    <section style={{ borderTop: '1px solid #dcdfe3' }}>
+      <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '32px 24px' }}>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {contacts.map((c) => (
             <a
@@ -475,8 +510,8 @@ function ContactSection({ business }: { business: PublicTemplateProps['business'
               onClick={() => trackCanalClick(business.slug, c.tipo, c.canalId)}
               style={{
                 backgroundColor: '#ffffff',
-                border: '0.5px solid #ece9e2',
-                borderRadius: '12px',
+                border: '1px solid #dcdfe3',
+                borderRadius: '10px',
                 padding: '16px',
                 display: 'flex',
                 flexDirection: 'column',
@@ -488,7 +523,7 @@ function ContactSection({ business }: { business: PublicTemplateProps['business'
               <span
                 style={{
                   fontSize: '11px',
-                  color: '#aaa',
+                  color: ACERO,
                   textTransform: 'uppercase',
                   letterSpacing: '0.06em',
                 }}
@@ -499,7 +534,7 @@ function ContactSection({ business }: { business: PublicTemplateProps['business'
                 style={{
                   fontSize: '13px',
                   fontWeight: 600,
-                  color: '#1a1a1a',
+                  color: TINTA,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
