@@ -1,3 +1,4 @@
+'use client';
 // src/components/public/templates/Service.tsx
 import Link from 'next/link';
 import type { FaqEntry, ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
