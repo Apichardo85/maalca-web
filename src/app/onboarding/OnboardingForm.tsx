@@ -68,7 +68,7 @@ export function OnboardingForm() {
   };
 
   const digits = whatsapp.replace(/\D/g, '');
-  const whatsappValid = whatsapp.trim() === '' || (digits.length >= 7 && digits.length <= 15);
+  const whatsappValid = whatsapp.trim() === '' || (digits.length >= 11 && digits.length <= 15);
 
   const stepValid =
     (STEPS[step] === 'name' && name.trim().length >= 2) ||
@@ -305,15 +305,20 @@ export function OnboardingForm() {
                 autoFocus
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
-                placeholder="809-555-1234"
+                placeholder="18095551234"
                 maxLength={20}
                 className="mt-2 w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm focus:border-neutral-400 focus:outline-none"
               />
               <p className="mt-1 text-xs text-neutral-400">
                 Tus clientes te escribirán directamente a este número.
               </p>
+              <p className="mt-1 text-xs text-neutral-400">
+                Incluye el código de país (1 para República Dominicana/Estados Unidos).
+              </p>
               {!whatsappValid && (
-                <p className="mt-1 text-xs text-red-600">Ese número no se ve válido.</p>
+                <p className="mt-1 text-xs text-red-600">
+                  El número de WhatsApp debe incluir el código de país (ej. 1 para RD/USA): 18095551234
+                </p>
               )}
             </div>
           )}

@@ -6,7 +6,7 @@ import { sanitizeContactValue } from '@/lib/public-contact';
 import type { CanalDto } from './types';
 
 const TIPOS = [
-  { value: 'WhatsApp', icon: '💬', labelEs: 'WhatsApp', labelEn: 'WhatsApp', placeholder: '809-555-1234' },
+  { value: 'WhatsApp', icon: '💬', labelEs: 'WhatsApp', labelEn: 'WhatsApp', placeholder: '18095551234' },
   { value: 'Email', icon: '✉️', labelEs: 'Email', labelEn: 'Email', placeholder: 'contacto@negocio.com' },
   { value: 'Telefono', icon: '📞', labelEs: 'Teléfono', labelEn: 'Phone', placeholder: '809-555-1234' },
   { value: 'Facebook', icon: '📘', labelEs: 'Facebook', labelEn: 'Facebook', placeholder: 'facebook.com/tunegocio' },
@@ -18,10 +18,16 @@ const TIPOS = [
 const SOCIAL_TIPOS = ['Facebook', 'Instagram', 'TikTok'] as const;
 
 /** Mirrors the backend's own validation (CanalService.cs) plus the tighter 15-digit
- *  upper bound already used in onboarding, for a consistent UX. */
+ *  upper bound already used in onboarding, for a consistent UX. WhatsApp requires a
+ *  country code (11+ digits) since it's dialed internationally via wa.me links —
+ *  Telefono can stay a local number (7+ digits). */
 function isValueValid(tipo: string, value: string): boolean {
   if (!value.trim()) return false;
-  if (tipo === 'WhatsApp' || tipo === 'Telefono') {
+  if (tipo === 'WhatsApp') {
+    const digits = value.replace(/\D/g, '');
+    return digits.length >= 11 && digits.length <= 15;
+  }
+  if (tipo === 'Telefono') {
     const digits = value.replace(/\D/g, '');
     return digits.length >= 7 && digits.length <= 15;
   }
@@ -29,6 +35,19 @@ function isValueValid(tipo: string, value: string): boolean {
     return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value.trim());
   }
   return true;
+}
+
+/** Word-for-word identical to the backend's own validation message (CanalService.cs),
+ *  so the text is the same whether the client catches it first (the common case) or
+ *  it somehow reaches the backend. Not run through getText — the backend doesn't
+ *  localize this message either. */
+const WHATSAPP_INVALID_MESSAGE = 'El número de WhatsApp debe incluir el código de país (ej. 1 para RD/USA): 18095551234';
+
+function invalidMessage(tipo: string, getText: (es: string, en: string) => string): string {
+  if (tipo === 'WhatsApp') {
+    return WHATSAPP_INVALID_MESSAGE;
+  }
+  return getText('Ese valor no se ve válido.', "That value doesn't look valid.");
 }
 
 /** HTML input attrs matching each canal type, so the browser itself enforces
@@ -69,7 +88,7 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
 
   const addCanal = async () => {
     if (!isValueValid(newTipo, newValue)) {
-      setError(getText('Ese valor no se ve válido.', "That value doesn't look valid."));
+      setError(invalidMessage(newTipo, getText));
       return;
     }
     setError(null);
@@ -107,7 +126,7 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
 
   const saveEdit = async (canal: CanalDto) => {
     if (!isValueValid(canal.tipo, editValue)) {
-      setError(getText('Ese valor no se ve válido.', "That value doesn't look valid."));
+      setError(invalidMessage(canal.tipo, getText));
       return;
     }
     setBusyId(canal.id);
@@ -200,12 +219,22 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
                     {getText(meta.labelEs, meta.labelEn)}
                   </p>
                   {isEditing ? (
-                    <input
-                      {...inputAttrsForTipo(canal.tipo)}
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      className="mt-0.5 w-full rounded-md border border-gray-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 px-2 py-1 text-sm text-gray-900 dark:text-white"
-                    />
+                    <>
+                      <input
+                        {...inputAttrsForTipo(canal.tipo)}
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        className="mt-0.5 w-full rounded-md border border-gray-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 px-2 py-1 text-sm text-gray-900 dark:text-white"
+                      />
+                      {canal.tipo === 'WhatsApp' && (
+                        <p className="mt-1 text-[11px] text-gray-400 dark:text-neutral-500">
+                          {getText(
+                            'Incluye el código de país (1 para República Dominicana/Estados Unidos).',
+                            'Include the country code (1 for Dominican Republic/United States).',
+                          )}
+                        </p>
+                      )}
+                    </>
                   ) : (
                     <p className="truncate text-sm text-gray-900 dark:text-white">{canal.valorCrudo}</p>
                   )}
@@ -306,6 +335,14 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
             {adding ? getText('Agregando...', 'Adding...') : getText('Agregar', 'Add')}
           </button>
         </div>
+        {newTipo === 'WhatsApp' && (
+          <p className="mt-2 text-[11px] text-gray-400 dark:text-neutral-500">
+            {getText(
+              'Incluye el código de país (1 para República Dominicana/Estados Unidos).',
+              'Include the country code (1 for Dominican Republic/United States).',
+            )}
+          </p>
+        )}
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
