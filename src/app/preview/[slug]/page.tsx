@@ -77,6 +77,7 @@ export default async function PreviewAffiliatePage({ params }: PageProps) {
         business_type: affiliate.businessType as BusinessType,
         processSteps: affiliate.processSteps ?? null,
         faq: affiliate.faq ?? null,
+        timezone: affiliate.timezone ?? null,
       }}
       items={mappedItems}
       categories={categories}
@@ -103,6 +104,7 @@ interface PublicCatalogResponse {
     canales?: PublicCanal[];
     processSteps?: PublicTemplateProps['business']['processSteps'];
     faq?: PublicTemplateProps['business']['faq'];
+    timezone?: string | null;
   };
   categories?: PublicTemplateProps['categories'];
   items: PublicTemplateProps['items'];

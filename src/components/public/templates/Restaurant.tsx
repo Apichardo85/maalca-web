@@ -8,18 +8,13 @@
 // to the full menu — deliberately distinct from Service's mono rate-card
 // index, Barber's ticket-stub cards, and Retail's paint-chip motif.
 //
-// TODO(Vista Hoy): the plan calls for defaulting the menu to "what applies
-// right now" (current meal period + weekday), computed in the business's
-// OWN timezone. Deferred — confirmed against the real maalca-api payload
-// (GET /api/public/affiliates/{slug}/catalog) that `affiliate` has no
-// timezone field today (only id/name/slug/businessType/description/
-// primaryColor/logoUrl/coverImageUrl/whatsApp/contactEmail/address/city/
-// website/canales/processSteps/faq/horario — `city` exists but is null on
-// every real affiliate checked). Do NOT wire this from a guessed/hardcoded
-// zone (visitor's browser tz is wrong — it should reflect the restaurant's
-// location, not the visitor's). Once maalca-api exposes a real timezone
-// field on Affiliate, compute "now" in that zone and default `activePeriod`
-// / a weekday filter to it, with a "Ver menú completo" button to clear it.
+// "Vista Hoy" — defaults the menu to what applies right now (current meal
+// period + weekday), computed in the business's OWN timezone via
+// Intl.DateTimeFormat (not the visitor's browser clock, not the server's
+// unadjusted local time — see resolveNowInTimezone below). Only activates
+// when `business.timezone` is set AND at least one item has periods/
+// weekDays populated; otherwise the full menu shows with no filter, so a
+// business without that data configured never sees a confusing empty view.
 import { useState } from 'react';
 import { Fraunces, Inter } from 'next/font/google';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
@@ -31,7 +26,7 @@ import { AboutSection } from '@/components/public/AboutSection';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { MEAL_PERIOD_LABELS, MEAL_PERIOD_ORDER } from '@/lib/menu-availability';
-import type { MealPeriod } from '@/lib/types';
+import type { MealPeriod, WeekDay } from '@/lib/types';
 
 // Scoped to this template only — Fraunces italic gives names/Destacados a
 // warm, handwritten-menu feel; Inter carries the body copy.
@@ -62,6 +57,71 @@ const MEAL_PERIOD_LABELS_EN: Record<MealPeriod, string> = {
   all_day: 'All day',
 };
 
+const WEEK_DAY_LABELS_ES: Record<WeekDay, string> = {
+  monday: 'lunes', tuesday: 'martes', wednesday: 'miércoles', thursday: 'jueves',
+  friday: 'viernes', saturday: 'sábado', sunday: 'domingo',
+};
+const WEEK_DAY_LABELS_EN: Record<WeekDay, string> = {
+  monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday', thursday: 'Thursday',
+  friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday',
+};
+
+// Default meal-period time boundaries (24h, minutes since midnight). There is
+// no per-affiliate custom schedule in the new dynamic-tenant model — this is
+// a single fixed default applied to every restaurant, not a per-business
+// setting. late_night crosses midnight (22:00 -> 05:00).
+const DEFAULT_PERIOD_HOURS: Record<Exclude<MealPeriod, 'all_day'>, { start: number; end: number }> = {
+  breakfast: { start: 5 * 60, end: 11 * 60 },
+  lunch: { start: 11 * 60, end: 16 * 60 },
+  dinner: { start: 16 * 60, end: 22 * 60 },
+  late_night: { start: 22 * 60, end: 5 * 60 },
+};
+
+/**
+ * Resolves the current meal period + weekday AS SEEN IN the given IANA
+ * timezone — via Intl.DateTimeFormat's `timeZone` option, which correctly
+ * handles DST and day boundaries (unlike adding/subtracting a raw UTC
+ * offset, which breaks right at midnight). Returns null for an invalid/
+ * unsupported timezone string so the caller can fail safe (no filter).
+ */
+function resolveNowInTimezone(
+  timezone: string,
+  now: Date = new Date(),
+): { period: Exclude<MealPeriod, 'all_day'>; weekday: WeekDay } | null {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: false,
+      weekday: 'long',
+    }).formatToParts(now);
+
+    const hourStr = parts.find((p) => p.type === 'hour')?.value;
+    const minuteStr = parts.find((p) => p.type === 'minute')?.value;
+    const weekdayStr = parts.find((p) => p.type === 'weekday')?.value;
+    if (!hourStr || !minuteStr || !weekdayStr) return null;
+
+    // hour12: false can format midnight as "24" in some environments.
+    const totalMin = (Number(hourStr) % 24) * 60 + Number(minuteStr);
+    const weekday = weekdayStr.toLowerCase() as WeekDay;
+
+    let period: Exclude<MealPeriod, 'all_day'> = 'late_night';
+    for (const [p, range] of Object.entries(DEFAULT_PERIOD_HOURS) as Array<
+      [Exclude<MealPeriod, 'all_day'>, { start: number; end: number }]
+    >) {
+      const withinRange = range.end > range.start
+        ? totalMin >= range.start && totalMin < range.end
+        : totalMin >= range.start || totalMin < range.end; // crosses midnight
+      if (withinRange) { period = p; break; }
+    }
+
+    return { period, weekday };
+  } catch {
+    return null;
+  }
+}
+
 const priceFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'USD',
@@ -90,14 +150,42 @@ export function RestaurantTemplate({
       ? [...categoriesProp].sort((a, b) => a.sort_order - b.sort_order).map((c) => c.name)
       : Array.from(new Set(items.map((i) => i.category).filter((c): c is string => !!c)));
 
+  // Vista Hoy — only meaningful if the business has a timezone AND at least
+  // one item actually carries periods/weekDays; otherwise there is nothing
+  // to filter by, so we skip it entirely rather than show a confusing
+  // "everything is hidden" state to a business that never set this up.
+  const hasSchedulingData = items.some(
+    (i) => (i.periods && i.periods.length > 0) || (i.weekDays && i.weekDays.length > 0),
+  );
+  const nowInfo = business.timezone ? resolveNowInTimezone(business.timezone) : null;
+  const vistaHoyAvailable = Boolean(nowInfo) && hasSchedulingData;
+
+  const [vistaHoyActive, setVistaHoyActive] = useState(vistaHoyAvailable);
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
-  const [activePeriod, setActivePeriod] = useState<string>(ALL_PERIODS);
+  const [activePeriod, setActivePeriod] = useState<string>(
+    vistaHoyAvailable && nowInfo ? nowInfo.period : ALL_PERIODS,
+  );
+
+  function clearVistaHoy() {
+    setVistaHoyActive(false);
+    setActivePeriod(ALL_PERIODS);
+  }
+
+  function matchesWeekday(item: (typeof items)[number]): boolean {
+    if (!vistaHoyActive || !nowInfo) return true;
+    if (!item.weekDays || item.weekDays.length === 0) return true;
+    return item.weekDays.includes(nowInfo.weekday);
+  }
 
   const availablePeriods = MEAL_PERIOD_ORDER.filter(
     (p): p is Exclude<MealPeriod, 'all_day'> =>
       p !== 'all_day' && items.some((i) => i.periods?.includes(p)),
   );
 
+  // Destacados deliberately ignores Vista Hoy: it's a curated "best of the
+  // kitchen" showcase, not a "what can I order this instant" listing — if it
+  // filtered by time it could shrink to near-empty at odd hours, undermining
+  // the one section meant to build confidence right after the hero.
   const destacados = items.filter((i) => i.featured || i.popular).slice(0, MAX_DESTACADOS);
 
   function matchesPeriod(item: (typeof items)[number]): boolean {
@@ -114,7 +202,7 @@ export function RestaurantTemplate({
         : items.filter(
             (i) => (catId !== undefined && i.category_id === catId) || i.category === tab,
           );
-    return base.filter(matchesPeriod);
+    return base.filter(matchesPeriod).filter(matchesWeekday);
   }
 
   const groupedForAll: Array<{ categoryName: string; groupItems: typeof items }> =
@@ -431,6 +519,48 @@ export function RestaurantTemplate({
         </div>
       )}
 
+      {/* ── VISTA HOY BANNER — visible, not tucked away, per the brief ── */}
+      {vistaHoyActive && nowInfo && (
+        <div style={{ maxWidth: '960px', margin: '0 auto', padding: '16px 24px 0' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '10px',
+              backgroundColor: 'rgba(193,82,42,0.08)',
+              border: `1px solid ${TERRACOTA}`,
+              borderRadius: '12px',
+              padding: '10px 16px',
+            }}
+          >
+            <span style={{ fontSize: '13px', color: CAFE, fontWeight: 500 }}>
+              {getText(
+                `Mostrando el menú de ahora: ${periodLabel(nowInfo.period)} · ${WEEK_DAY_LABELS_ES[nowInfo.weekday]}`,
+                `Showing today's menu: ${periodLabel(nowInfo.period)} · ${WEEK_DAY_LABELS_EN[nowInfo.weekday]}`,
+              )}
+            </span>
+            <button
+              onClick={clearVistaHoy}
+              style={{
+                flexShrink: 0,
+                background: 'none',
+                border: 'none',
+                color: TERRACOTA,
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                padding: 0,
+              }}
+            >
+              {getText('Ver menú completo →', 'See full menu →')}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── CONTENT ── */}
       <main style={{ maxWidth: '960px', margin: '0 auto', padding: '32px 24px' }}>
         {items.length === 0 ? (
@@ -451,7 +581,7 @@ export function RestaurantTemplate({
           </div>
         ) : activeTab === ALL_TAB ? (
           groupedForAll.length === 0 ? (
-            <EmptyFilterState getText={getText} />
+            <EmptyFilterState getText={getText} vistaHoyActive={vistaHoyActive} onClearVistaHoy={clearVistaHoy} />
           ) : (
             groupedForAll.map(({ categoryName, groupItems }) => (
               <div key={categoryName || '__ungrouped__'} style={{ marginBottom: '32px' }}>
@@ -481,7 +611,7 @@ export function RestaurantTemplate({
             ))
           )
         ) : visibleItems.length === 0 ? (
-          <EmptyFilterState getText={getText} />
+          <EmptyFilterState getText={getText} vistaHoyActive={vistaHoyActive} onClearVistaHoy={clearVistaHoy} />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {visibleItems.map((item) => {
@@ -550,7 +680,15 @@ function SectLabel({ label }: { label: string }) {
   );
 }
 
-function EmptyFilterState({ getText }: { getText: (es: string, en: string) => string }) {
+function EmptyFilterState({
+  getText,
+  vistaHoyActive,
+  onClearVistaHoy,
+}: {
+  getText: (es: string, en: string) => string;
+  vistaHoyActive: boolean;
+  onClearVistaHoy: () => void;
+}) {
   return (
     <div
       style={{
@@ -564,8 +702,28 @@ function EmptyFilterState({ getText }: { getText: (es: string, en: string) => st
     >
       <span style={{ fontSize: '32px' }}>🍽️</span>
       <p style={{ marginTop: '12px', fontSize: '14px', color: MUTED }}>
-        {getText('No hay platos para este filtro.', 'No dishes match this filter.')}
+        {vistaHoyActive
+          ? getText('No hay platos disponibles para este momento.', 'No dishes available right now.')
+          : getText('No hay platos para este filtro.', 'No dishes match this filter.')}
       </p>
+      {vistaHoyActive && (
+        <button
+          onClick={onClearVistaHoy}
+          style={{
+            marginTop: '10px',
+            background: 'none',
+            border: 'none',
+            color: TERRACOTA,
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            textDecoration: 'underline',
+            padding: 0,
+          }}
+        >
+          {getText('Ver menú completo →', 'See full menu →')}
+        </button>
+      )}
     </div>
   );
 }

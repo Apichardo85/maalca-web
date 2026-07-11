@@ -44,6 +44,8 @@ export interface PublicTemplateProps {
     business_type: BusinessType;
     processSteps?: ProcessStep[] | null;
     faq?: FaqEntry[] | null;
+    /** IANA timezone (e.g. "America/New_York"). Null if not configured yet. */
+    timezone?: string | null;
   };
   items: Array<{
     id: string;
