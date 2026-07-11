@@ -1,6 +1,27 @@
 'use client';
-
+// src/components/public/templates/Restaurant.tsx
+//
+// "La Mesa" — a warm, generous template for restaurants (dine-in/pickup),
+// tuned to feel like an invitation rather than a consultation ficha. The
+// signature element is a "Destacados" strip right after the hero, surfacing
+// the kitchen's own featured/popular picks before the visitor even scrolls
+// to the full menu — deliberately distinct from Service's mono rate-card
+// index, Barber's ticket-stub cards, and Retail's paint-chip motif.
+//
+// TODO(Vista Hoy): the plan calls for defaulting the menu to "what applies
+// right now" (current meal period + weekday), computed in the business's
+// OWN timezone. Deferred — confirmed against the real maalca-api payload
+// (GET /api/public/affiliates/{slug}/catalog) that `affiliate` has no
+// timezone field today (only id/name/slug/businessType/description/
+// primaryColor/logoUrl/coverImageUrl/whatsApp/contactEmail/address/city/
+// website/canales/processSteps/faq/horario — `city` exists but is null on
+// every real affiliate checked). Do NOT wire this from a guessed/hardcoded
+// zone (visitor's browser tz is wrong — it should reflect the restaurant's
+// location, not the visitor's). Once maalca-api exposes a real timezone
+// field on Affiliate, compute "now" in that zone and default `activePeriod`
+// / a weekday filter to it, with a "Ver menú completo" button to clear it.
 import { useState } from 'react';
+import { Fraunces, Inter } from 'next/font/google';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
 import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
@@ -12,8 +33,20 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { MEAL_PERIOD_LABELS, MEAL_PERIOD_ORDER } from '@/lib/menu-availability';
 import type { MealPeriod } from '@/lib/types';
 
+// Scoped to this template only — Fraunces italic gives names/Destacados a
+// warm, handwritten-menu feel; Inter carries the body copy.
+const fraunces = Fraunces({ subsets: ['latin'], weight: ['500', '600'], style: ['italic'], variable: '--font-restaurant-display' });
+const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-restaurant-body' });
+
 const ALL_TAB = '__all__';
 const ALL_PERIODS = '__all_periods__';
+const MAX_DESTACADOS = 8;
+
+const TERRACOTA = '#C1522A';
+const CREMA = '#FBF3E7';
+const PALMA = '#3A5A40';
+const CAFE = '#2B1D14';
+const MUTED = '#8A7B6E';
 
 const FLAG_ICONS: Record<string, string> = {
   vegetarian: '🌱',
@@ -41,7 +74,7 @@ export function RestaurantTemplate({
   categories: categoriesProp,
   capabilities,
 }: PublicTemplateProps) {
-  const primaryColor = business.primary_color ?? '#C8102E';
+  const accent = business.primary_color ?? '#C8102E';
   const waRaw = resolveWhatsAppDigits(business);
   const waHeroLink = waRaw
     ? `https://wa.me/${waRaw}?text=${encodeURIComponent(`Hola, quiero info sobre ${business.name}`)}`
@@ -64,6 +97,8 @@ export function RestaurantTemplate({
     (p): p is Exclude<MealPeriod, 'all_day'> =>
       p !== 'all_day' && items.some((i) => i.periods?.includes(p)),
   );
+
+  const destacados = items.filter((i) => i.featured || i.popular).slice(0, MAX_DESTACADOS);
 
   function matchesPeriod(item: (typeof items)[number]): boolean {
     if (activePeriod === ALL_PERIODS) return true;
@@ -92,16 +127,13 @@ export function RestaurantTemplate({
   const visibleItems = itemsFor(activeTab);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f8f6f1' }}>
-
-      {/* TODO: Starter plan adds: gallery, hours, location */}
-
+    <div className={`${fraunces.variable} ${inter.variable}`} style={{ minHeight: '100vh', backgroundColor: CREMA, fontFamily: inter.style.fontFamily }}>
       {/* ── HERO ── */}
       <section
         style={{
           position: 'relative',
           height: '380px',
-          backgroundColor: primaryColor,
+          backgroundColor: accent,
           overflow: 'hidden',
         }}
       >
@@ -177,13 +209,13 @@ export function RestaurantTemplate({
           )}
 
           <h1
+            className={fraunces.className}
             style={{
               margin: 0,
-              fontSize: '28px',
-              fontWeight: 800,
+              fontSize: '30px',
+              fontWeight: 600,
               color: '#ffffff',
               lineHeight: 1.2,
-              letterSpacing: '-0.02em',
             }}
           >
             {business.name}
@@ -206,7 +238,8 @@ export function RestaurantTemplate({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '8px',
-                  backgroundColor: '#25D366',
+                  backgroundColor: accent,
+                  border: '1px solid rgba(255,255,255,0.8)',
                   color: '#ffffff',
                   padding: '10px 20px',
                   borderRadius: '9999px',
@@ -245,6 +278,75 @@ export function RestaurantTemplate({
         </div>
       </section>
 
+      {/* ── DESTACADOS — signature element: featured/popular picks, capped
+          so the strip never turns into an endless carousel ── */}
+      {destacados.length > 0 && (
+        <section style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 24px 0' }}>
+          <h2
+            className={fraunces.className}
+            style={{ margin: '0 0 12px', fontSize: '20px', fontWeight: 600, fontStyle: 'italic', color: TERRACOTA }}
+          >
+            {getText('Destacados', 'Highlights')}
+          </h2>
+          <div
+            className="[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '4px' }}
+          >
+            {destacados.map((item) => {
+              const imageUrl = item.imageUrl ?? item.image_url;
+              const isPopular = item.popular;
+              return (
+                <div
+                  key={item.id}
+                  style={{
+                    flexShrink: 0,
+                    width: '160px',
+                    backgroundColor: '#ffffff',
+                    border: '0.5px solid #ece2d3',
+                    borderRadius: '14px',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div style={{ position: 'relative', height: '110px', backgroundColor: '#f2e9db' }}>
+                    {imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={imageUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-2xl">🍽️</div>
+                    )}
+                    <span
+                      style={{
+                        position: 'absolute',
+                        top: '6px',
+                        left: '6px',
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        padding: '2px 6px',
+                        borderRadius: '9999px',
+                        backgroundColor: isPopular ? '#ff5a3c' : TERRACOTA,
+                        color: '#ffffff',
+                      }}
+                    >
+                      {isPopular ? `🔥 ${getText('Popular', 'Popular')}` : `⭐ ${getText('Destacado', 'Featured')}`}
+                    </span>
+                  </div>
+                  <div style={{ padding: '8px 10px' }}>
+                    <p className={fraunces.className} style={{ margin: 0, fontSize: '13px', fontWeight: 600, fontStyle: 'italic', color: CAFE, lineHeight: 1.3 }}>
+                      {item.name}
+                    </p>
+                    {item.price != null && (
+                      <p style={{ margin: '4px 0 0', fontSize: '13px', fontWeight: 700, color: CAFE }}>
+                        {priceFormatter.format(item.price)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       <AboutSection description={business.description} maxWidth="960px" language={language} />
 
       {/* ── NAV TABS ── */}
@@ -254,8 +356,8 @@ export function RestaurantTemplate({
             position: 'sticky',
             top: 0,
             zIndex: 20,
-            backgroundColor: '#ffffff',
-            borderBottom: '1px solid #e5e3de',
+            backgroundColor: CREMA,
+            borderBottom: '1px solid #e8ddc9',
           }}
         >
           <div style={{ maxWidth: '960px', margin: '0 auto', padding: '0 24px' }}>
@@ -275,13 +377,13 @@ export function RestaurantTemplate({
                     padding: '12px 16px',
                     fontSize: '14px',
                     fontWeight: activeTab === key ? 600 : 400,
-                    color: activeTab === key ? '#1a1a1a' : '#888888',
+                    color: activeTab === key ? CAFE : MUTED,
                     background: 'none',
                     borderTop: 'none',
                     borderLeft: 'none',
                     borderRight: 'none',
                     borderBottom: activeTab === key
-                      ? `2px solid ${primaryColor}`
+                      ? `2px solid ${TERRACOTA}`
                       : '2px solid transparent',
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
@@ -315,9 +417,9 @@ export function RestaurantTemplate({
                   fontSize: '13px',
                   fontWeight: 600,
                   borderRadius: '9999px',
-                  border: activePeriod === key ? `1px solid ${primaryColor}` : '1px solid #e5e3de',
-                  backgroundColor: activePeriod === key ? primaryColor : '#ffffff',
-                  color: activePeriod === key ? '#ffffff' : '#888888',
+                  border: activePeriod === key ? `1px solid ${TERRACOTA}` : '1px solid #e8ddc9',
+                  backgroundColor: activePeriod === key ? TERRACOTA : '#ffffff',
+                  color: activePeriod === key ? '#ffffff' : MUTED,
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
                 }}
@@ -343,7 +445,7 @@ export function RestaurantTemplate({
             }}
           >
             <span style={{ fontSize: '48px' }}>🍽️</span>
-            <p style={{ marginTop: '16px', fontSize: '14px', color: '#aaa' }}>
+            <p style={{ marginTop: '16px', fontSize: '14px', color: MUTED }}>
               {getText('El menú estará disponible pronto.', 'The menu will be available soon.')}
             </p>
           </div>
@@ -362,6 +464,7 @@ export function RestaurantTemplate({
                         key={item.id}
                         item={item}
                         language={language}
+                        accent={accent}
                         cartQty={cartQty}
                         onAdd={() => addToCart({
                           id: item.id,
@@ -388,6 +491,7 @@ export function RestaurantTemplate({
                   key={item.id}
                   item={item}
                   language={language}
+                  accent={accent}
                   cartQty={cartQty}
                   onAdd={() => addToCart({
                     id: item.id,
@@ -433,7 +537,7 @@ function SectLabel({ label }: { label: string }) {
         style={{
           fontSize: '11px',
           textTransform: 'uppercase',
-          color: '#aaa',
+          color: MUTED,
           letterSpacing: '0.08em',
           fontWeight: 600,
           whiteSpace: 'nowrap',
@@ -441,7 +545,7 @@ function SectLabel({ label }: { label: string }) {
       >
         {label}
       </span>
-      <div style={{ flex: 1, height: '1px', backgroundColor: '#e5e3de' }} />
+      <div style={{ flex: 1, height: '1px', backgroundColor: '#e8ddc9' }} />
     </div>
   );
 }
@@ -459,7 +563,7 @@ function EmptyFilterState({ getText }: { getText: (es: string, en: string) => st
       }}
     >
       <span style={{ fontSize: '32px' }}>🍽️</span>
-      <p style={{ marginTop: '12px', fontSize: '14px', color: '#aaa' }}>
+      <p style={{ marginTop: '12px', fontSize: '14px', color: MUTED }}>
         {getText('No hay platos para este filtro.', 'No dishes match this filter.')}
       </p>
     </div>
@@ -469,12 +573,14 @@ function EmptyFilterState({ getText }: { getText: (es: string, en: string) => st
 function MenuCard({
   item,
   language,
+  accent,
   cartQty,
   onAdd,
   onRemove,
 }: {
   item: PublicTemplateProps['items'][number];
   language: 'es' | 'en';
+  accent: string;
   cartQty: number;
   onAdd: () => void;
   onRemove: () => void;
@@ -487,7 +593,7 @@ function MenuCard({
     <div
       style={{
         backgroundColor: '#ffffff',
-        border: '0.5px solid #ece9e2',
+        border: '0.5px solid #ece2d3',
         borderRadius: '16px',
         overflow: 'hidden',
         display: 'flex',
@@ -514,7 +620,7 @@ function MenuCard({
             style={{
               width: '120px',
               height: '120px',
-              backgroundColor: '#f0ede8',
+              backgroundColor: '#f2e9db',
               borderRadius: '12px',
               display: 'flex',
               alignItems: 'center',
@@ -534,8 +640,8 @@ function MenuCard({
                   fontWeight: 700,
                   padding: '2px 6px',
                   borderRadius: '9999px',
-                  backgroundColor: '#f5b301',
-                  color: '#1a1a1a',
+                  backgroundColor: TERRACOTA,
+                  color: '#ffffff',
                 }}
               >
                 ⭐ {getText('Destacado', 'Featured')}
@@ -573,20 +679,35 @@ function MenuCard({
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <p
+              className={fraunces.className}
               style={{
                 margin: 0,
-                fontWeight: 700,
-                fontSize: '14px',
-                color: '#1a1a1a',
+                fontWeight: 600,
+                fontStyle: 'italic',
+                fontSize: '15px',
+                color: CAFE,
                 lineHeight: 1.3,
               }}
             >
               {item.name}
             </p>
             {item.flags && item.flags.length > 0 && (
-              <span style={{ fontSize: '12px' }} title={item.flags.join(', ')}>
-                {item.flags.map((f) => FLAG_ICONS[f] ?? '').join(' ')}
-              </span>
+              <div style={{ display: 'flex', gap: '3px' }} title={item.flags.join(', ')}>
+                {item.flags.map((f) => (
+                  <span
+                    key={f}
+                    style={{
+                      fontSize: '10px',
+                      padding: '1px 5px',
+                      borderRadius: '9999px',
+                      backgroundColor: 'rgba(58,90,64,0.12)',
+                      color: PALMA,
+                    }}
+                  >
+                    {FLAG_ICONS[f] ?? f}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
           {description && (
@@ -595,7 +716,7 @@ function MenuCard({
               style={{
                 margin: '4px 0 0',
                 fontSize: '12px',
-                color: '#888',
+                color: MUTED,
                 lineHeight: 1.5,
               }}
             >
@@ -615,7 +736,7 @@ function MenuCard({
           }}
         >
           {item.price != null ? (
-            <p style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1a1a1a' }}>
+            <p style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: CAFE }}>
               {priceFormatter.format(item.price)}
             </p>
           ) : (
@@ -627,7 +748,7 @@ function MenuCard({
               onClick={onAdd}
               aria-label={`${getText('Agregar', 'Add')} ${item.name}`}
               style={{
-                backgroundColor: '#25D366',
+                backgroundColor: accent,
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '8px',
@@ -658,11 +779,11 @@ function MenuCard({
                   height: '28px',
                   borderRadius: '6px',
                   border: 'none',
-                  backgroundColor: '#f0ede8',
+                  backgroundColor: '#f2e9db',
                   cursor: 'pointer',
                   fontWeight: 700,
                   fontSize: '14px',
-                  color: '#1a1a1a',
+                  color: CAFE,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -676,7 +797,7 @@ function MenuCard({
                   fontSize: '13px',
                   minWidth: '16px',
                   textAlign: 'center',
-                  color: '#1a1a1a',
+                  color: CAFE,
                 }}
               >
                 {cartQty}
@@ -689,7 +810,7 @@ function MenuCard({
                   height: '28px',
                   borderRadius: '6px',
                   border: 'none',
-                  backgroundColor: '#25D366',
+                  backgroundColor: accent,
                   cursor: 'pointer',
                   fontWeight: 700,
                   fontSize: '14px',
@@ -721,7 +842,7 @@ function ContactSection({
   if (contacts.length === 0) return null;
 
   return (
-    <section style={{ borderTop: '1px solid #e5e3de' }}>
+    <section style={{ borderTop: '1px solid #e8ddc9' }}>
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '32px 24px' }}>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {contacts.map((c) => (
@@ -733,7 +854,7 @@ function ContactSection({
               onClick={() => trackCanalClick(business.slug, c.tipo, c.canalId)}
               style={{
                 backgroundColor: '#ffffff',
-                border: '0.5px solid #ece9e2',
+                border: '0.5px solid #ece2d3',
                 borderRadius: '12px',
                 padding: '16px',
                 display: 'flex',
@@ -746,7 +867,7 @@ function ContactSection({
               <span
                 style={{
                   fontSize: '11px',
-                  color: '#aaa',
+                  color: MUTED,
                   textTransform: 'uppercase',
                   letterSpacing: '0.06em',
                 }}
@@ -757,7 +878,7 @@ function ContactSection({
                 style={{
                   fontSize: '13px',
                   fontWeight: 600,
-                  color: '#1a1a1a',
+                  color: CAFE,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
