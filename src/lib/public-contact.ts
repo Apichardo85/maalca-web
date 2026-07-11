@@ -62,9 +62,14 @@ export function resolveWhatsAppDigits(business: ContactSourceBusiness): string |
  * back independently to its legacy flat field when no matching active canal
  * exists — Address has no Canal equivalent, so it always comes from the flat field.
  */
-export function resolveContactItems(business: ContactSourceBusiness): ResolvedContactItem[] {
+export function resolveContactItems(
+  business: ContactSourceBusiness,
+  language: 'es' | 'en' = 'es',
+): ResolvedContactItem[] {
   const canales = activeSorted(business.canales);
   const items: ResolvedContactItem[] = [];
+  const phoneLabel = language === 'en' ? 'Phone' : 'Teléfono';
+  const addressLabel = language === 'en' ? 'Address' : 'Dirección';
 
   const waCanal = canales.find((c) => c.tipo === 'WhatsApp');
   if (waCanal) {
@@ -75,13 +80,13 @@ export function resolveContactItems(business: ContactSourceBusiness): ResolvedCo
 
   const phoneCanal = canales.find((c) => c.tipo === 'Telefono');
   if (phoneCanal) {
-    items.push({ icon: '📞', label: 'Teléfono', value: phoneCanal.nombreVisible ?? phoneCanal.valorCrudo, href: phoneCanal.enlaceGenerado, tipo: 'Telefono', canalId: phoneCanal.id });
+    items.push({ icon: '📞', label: phoneLabel, value: phoneCanal.nombreVisible ?? phoneCanal.valorCrudo, href: phoneCanal.enlaceGenerado, tipo: 'Telefono', canalId: phoneCanal.id });
   }
 
   if (business.address) {
     items.push({
       icon: '📍',
-      label: 'Dirección',
+      label: addressLabel,
       value: business.address,
       href: `https://maps.google.com?q=${encodeURIComponent(business.address)}`,
       tipo: 'Direccion',

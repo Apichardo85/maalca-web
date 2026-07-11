@@ -50,6 +50,7 @@ export function BarberTemplate({
   const accent = business.primary_color ?? '#C8102E';
   const waRaw = resolveWhatsAppDigits(business);
   const { language } = useSimpleLanguage();
+  const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const waHeroLink = waRaw
     ? `https://wa.me/${waRaw}?text=${encodeURIComponent(`Hola, quiero info sobre ${business.name}`)}`
     : null;
@@ -239,14 +240,14 @@ export function BarberTemplate({
                   textDecoration: 'none',
                 }}
               >
-                Cómo llegar
+                {getText('Cómo llegar', 'Get directions')}
               </a>
             )}
           </div>
         </div>
       </section>
 
-      <AboutSection description={business.description} maxWidth="1000px" />
+      <AboutSection description={business.description} maxWidth="1000px" language={language} />
 
       {/* ── NAV TABS — bold, condensed, underlined ── */}
       {categoryNames.length > 0 && (
@@ -265,7 +266,7 @@ export function BarberTemplate({
               style={{ display: 'flex', overflowX: 'auto' }}
             >
               {[
-                { key: ALL_TAB, label: 'Todos' },
+                { key: ALL_TAB, label: getText('Todos', 'All') },
                 ...categoryNames.map((n) => ({ key: n, label: n })),
               ].map(({ key, label }) => (
                 <button
@@ -311,7 +312,7 @@ export function BarberTemplate({
           >
             <span style={{ fontSize: '48px' }}>✂️</span>
             <p style={{ marginTop: '16px', fontSize: '14px', color: ACERO }}>
-              Servicios disponibles pronto.
+              {getText('Servicios disponibles pronto.', 'Services available soon.')}
             </p>
           </div>
         ) : activeTab === ALL_TAB ? (
@@ -335,7 +336,7 @@ export function BarberTemplate({
       </main>
 
       {/* ── CONTACTO ── */}
-      <ContactSection business={business} />
+      <ContactSection business={business} language={language} />
 
       {/* ── FOOTER ── */}
       <PublicFooter business={business} capabilities={capabilities} />
@@ -511,8 +512,14 @@ function ServiceCard({
   );
 }
 
-function ContactSection({ business }: { business: PublicTemplateProps['business'] }) {
-  const contacts = resolveContactItems(business);
+function ContactSection({
+  business,
+  language,
+}: {
+  business: PublicTemplateProps['business'];
+  language: 'es' | 'en';
+}) {
+  const contacts = resolveContactItems(business, language);
 
   if (contacts.length === 0) return null;
 

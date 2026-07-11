@@ -20,6 +20,7 @@ export function RetailTemplate({ business, items, capabilities }: PublicTemplate
   const waRaw = resolveWhatsAppDigits(business);
   const { cart, addToCart, removeFromCart, cartTotal, cartCount } = useCart();
   const { language } = useSimpleLanguage();
+  const getText = (es: string, en: string) => (language === 'es' ? es : en);
 
   return (
     <div className="min-h-screen bg-white">
@@ -65,13 +66,13 @@ export function RetailTemplate({ business, items, capabilities }: PublicTemplate
         </div>
       </header>
 
-      <AboutSection description={business.description} maxWidth="1024px" />
+      <AboutSection description={business.description} maxWidth="1024px" language={language} />
 
       <main className="mx-auto max-w-5xl px-4 py-10">
         {items.length === 0 ? (
           <div className="rounded-2xl border border-neutral-200 p-12 text-center">
             <p className="text-4xl">🛍️</p>
-            <p className="mt-4 text-sm text-neutral-500">Productos disponibles pronto.</p>
+            <p className="mt-4 text-sm text-neutral-500">{getText('Productos disponibles pronto.', 'Products available soon.')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
@@ -110,17 +111,17 @@ export function RetailTemplate({ business, items, capabilities }: PublicTemplate
                         price: item.price ?? 0,
                         image: imageUrl ?? undefined,
                       })}
-                      aria-label={`Agregar ${item.name}`}
+                      aria-label={`${getText('Agregar', 'Add')} ${item.name}`}
                       className="mt-2 block w-full rounded-full py-1.5 text-center text-xs font-medium text-white transition hover:opacity-90"
                       style={{ backgroundColor: accent }}
                     >
-                      + Agregar
+                      + {getText('Agregar', 'Add')}
                     </button>
                   ) : (
                     <div className="mt-2 flex items-center justify-between gap-1">
                       <button
                         onClick={() => removeFromCart(item.id)}
-                        aria-label={`Quitar ${item.name}`}
+                        aria-label={`${getText('Quitar', 'Remove')} ${item.name}`}
                         className="flex h-7 w-7 items-center justify-center rounded-md text-sm font-bold"
                         style={{ backgroundColor: '#f0ede8', color: '#1a1a1a' }}
                       >
@@ -136,7 +137,7 @@ export function RetailTemplate({ business, items, capabilities }: PublicTemplate
                           price: item.price ?? 0,
                           image: imageUrl ?? undefined,
                         })}
-                        aria-label={`Agregar ${item.name}`}
+                        aria-label={`${getText('Agregar', 'Add')} ${item.name}`}
                         className="flex h-7 w-7 items-center justify-center rounded-md text-sm font-bold text-white"
                         style={{ backgroundColor: '#25D366' }}
                       >

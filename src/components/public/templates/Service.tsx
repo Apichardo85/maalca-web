@@ -92,6 +92,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
   const accent = business.primary_color ?? '#C8102E';
   const waRaw = resolveWhatsAppDigits(business);
   const { language } = useSimpleLanguage();
+  const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const [openItems, setOpenItems] = useState<Set<string>>(new Set());
 
   const contacts = resolveContactItems(business);
@@ -252,7 +253,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
             className={`${plexMono.className} text-xs font-medium uppercase tracking-[0.18em]`}
             style={{ color: STONE }}
           >
-            Servicios profesionales
+            {getText('Servicios profesionales', 'Professional services')}
           </p>
           {business.description && (
             <p
@@ -263,10 +264,10 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
             </p>
           )}
 
-          <ProcessSection steps={business.processSteps} accent={accent} displayClassName={fraunces.className} />
+          <ProcessSection steps={business.processSteps} accent={accent} displayClassName={fraunces.className} getText={getText} />
 
           <section className="mt-12">
-            <h2 className={`${fraunces.className} text-lg font-semibold`}>Servicios</h2>
+            <h2 className={`${fraunces.className} text-lg font-semibold`}>{getText('Servicios', 'Services')}</h2>
 
             {items.length === 0 ? (
               <div
@@ -274,7 +275,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
                 style={{ borderColor: MIST }}
               >
                 <CaseIcon className="h-8 w-8" style={{ color: STONE }} />
-                <p className="text-sm" style={{ color: STONE }}>Información disponible pronto.</p>
+                <p className="text-sm" style={{ color: STONE }}>{getText('Información disponible pronto.', 'Information available soon.')}</p>
               </div>
             ) : (
               <div className="mt-4 border-t" style={{ borderColor: MIST }}>
@@ -330,7 +331,9 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
                                 className="inline-flex w-fit items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold text-white"
                                 style={{ backgroundColor: accent }}
                               >
-                                {capabilities.bookingCalendar ? 'Reservar' : 'Cotizar por WhatsApp'}
+                                {capabilities.bookingCalendar
+                                  ? getText('Reservar', 'Book')
+                                  : getText('Cotizar por WhatsApp', 'Get a quote via WhatsApp')}
                               </a>
                             )}
                           </div>
@@ -343,7 +346,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
             )}
           </section>
 
-          <FaqSection faq={business.faq} displayClassName={fraunces.className} />
+          <FaqSection faq={business.faq} displayClassName={fraunces.className} getText={getText} />
         </main>
       </div>
 
@@ -358,16 +361,18 @@ function ProcessSection({
   steps,
   accent,
   displayClassName,
+  getText,
 }: {
   steps?: ProcessStep[] | null;
   accent: string;
   displayClassName: string;
+  getText: (es: string, en: string) => string;
 }) {
   if (!steps || steps.length === 0) return null;
 
   return (
     <section className="mt-12">
-      <h2 className={`${displayClassName} text-lg font-semibold`}>Cómo trabajamos</h2>
+      <h2 className={`${displayClassName} text-lg font-semibold`}>{getText('Cómo trabajamos', 'How we work')}</h2>
       <ol className="mt-5 grid gap-6 sm:grid-cols-3">
         {steps.map((step, i) => (
           <li key={`${i}-${step.title}`}>
@@ -386,12 +391,20 @@ function ProcessSection({
   );
 }
 
-function FaqSection({ faq, displayClassName }: { faq?: FaqEntry[] | null; displayClassName: string }) {
+function FaqSection({
+  faq,
+  displayClassName,
+  getText,
+}: {
+  faq?: FaqEntry[] | null;
+  displayClassName: string;
+  getText: (es: string, en: string) => string;
+}) {
   if (!faq || faq.length === 0) return null;
 
   return (
     <section className="mt-12">
-      <h2 className={`${displayClassName} text-lg font-semibold`}>Preguntas frecuentes</h2>
+      <h2 className={`${displayClassName} text-lg font-semibold`}>{getText('Preguntas frecuentes', 'FAQ')}</h2>
       <div className="mt-4 border-t" style={{ borderColor: MIST }}>
         {faq.map((entry, i) => (
           <details key={`${i}-${entry.question}`} className="group border-b py-4" style={{ borderColor: MIST }}>

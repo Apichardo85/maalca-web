@@ -21,6 +21,14 @@ const FLAG_ICONS: Record<string, string> = {
   glutenFree: '🌾',
 };
 
+const MEAL_PERIOD_LABELS_EN: Record<MealPeriod, string> = {
+  breakfast: 'Breakfast',
+  lunch: 'Lunch',
+  dinner: 'Dinner',
+  late_night: 'Late night',
+  all_day: 'All day',
+};
+
 const priceFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'USD',
@@ -41,6 +49,8 @@ export function RestaurantTemplate({
 
   const { cart, addToCart, removeFromCart, cartTotal, cartCount } = useCart();
   const { language } = useSimpleLanguage();
+  const getText = (es: string, en: string) => (language === 'es' ? es : en);
+  const periodLabel = (p: MealPeriod) => (language === 'en' ? MEAL_PERIOD_LABELS_EN[p] : MEAL_PERIOD_LABELS[p]);
 
   const categoryNames: string[] =
     categoriesProp.length > 0
@@ -228,14 +238,14 @@ export function RestaurantTemplate({
                   textDecoration: 'none',
                 }}
               >
-                📍 Cómo llegar
+                📍 {getText('Cómo llegar', 'Get directions')}
               </a>
             )}
           </div>
         </div>
       </section>
 
-      <AboutSection description={business.description} maxWidth="960px" />
+      <AboutSection description={business.description} maxWidth="960px" language={language} />
 
       {/* ── NAV TABS ── */}
       {categoryNames.length > 0 && (
@@ -254,7 +264,7 @@ export function RestaurantTemplate({
               style={{ display: 'flex', overflowX: 'auto' }}
             >
               {[
-                { key: ALL_TAB, label: 'Todos' },
+                { key: ALL_TAB, label: getText('Todos', 'All') },
                 ...categoryNames.map((n) => ({ key: n, label: n })),
               ].map(({ key, label }) => (
                 <button
@@ -293,8 +303,8 @@ export function RestaurantTemplate({
             style={{ display: 'flex', gap: '8px', overflowX: 'auto' }}
           >
             {[
-              { key: ALL_PERIODS, label: 'Todos los horarios' },
-              ...availablePeriods.map((p) => ({ key: p, label: MEAL_PERIOD_LABELS[p] })),
+              { key: ALL_PERIODS, label: getText('Todos los horarios', 'All hours') },
+              ...availablePeriods.map((p) => ({ key: p, label: periodLabel(p) })),
             ].map(({ key, label }) => (
               <button
                 key={key}
@@ -334,12 +344,12 @@ export function RestaurantTemplate({
           >
             <span style={{ fontSize: '48px' }}>🍽️</span>
             <p style={{ marginTop: '16px', fontSize: '14px', color: '#aaa' }}>
-              El menú estará disponible pronto.
+              {getText('El menú estará disponible pronto.', 'The menu will be available soon.')}
             </p>
           </div>
         ) : activeTab === ALL_TAB ? (
           groupedForAll.length === 0 ? (
-            <EmptyFilterState />
+            <EmptyFilterState getText={getText} />
           ) : (
             groupedForAll.map(({ categoryName, groupItems }) => (
               <div key={categoryName || '__ungrouped__'} style={{ marginBottom: '32px' }}>
@@ -368,7 +378,7 @@ export function RestaurantTemplate({
             ))
           )
         ) : visibleItems.length === 0 ? (
-          <EmptyFilterState />
+          <EmptyFilterState getText={getText} />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {visibleItems.map((item) => {
@@ -394,7 +404,7 @@ export function RestaurantTemplate({
       </main>
 
       {/* ── CONTACTO ── */}
-      <ContactSection business={business} />
+      <ContactSection business={business} language={language} />
 
       {/* ── FOOTER ── */}
       <PublicFooter business={business} capabilities={capabilities} />
@@ -436,7 +446,7 @@ function SectLabel({ label }: { label: string }) {
   );
 }
 
-function EmptyFilterState() {
+function EmptyFilterState({ getText }: { getText: (es: string, en: string) => string }) {
   return (
     <div
       style={{
@@ -450,7 +460,7 @@ function EmptyFilterState() {
     >
       <span style={{ fontSize: '32px' }}>🍽️</span>
       <p style={{ marginTop: '12px', fontSize: '14px', color: '#aaa' }}>
-        No hay platos para este filtro.
+        {getText('No hay platos para este filtro.', 'No dishes match this filter.')}
       </p>
     </div>
   );
@@ -471,6 +481,7 @@ function MenuCard({
 }) {
   const imageUrl = item.imageUrl ?? item.image_url;
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
+  const getText = (es: string, en: string) => (language === 'es' ? es : en);
 
   return (
     <div
@@ -527,7 +538,7 @@ function MenuCard({
                   color: '#1a1a1a',
                 }}
               >
-                ⭐ Destacado
+                ⭐ {getText('Destacado', 'Featured')}
               </span>
             )}
             {item.popular && (
@@ -541,7 +552,7 @@ function MenuCard({
                   color: '#ffffff',
                 }}
               >
-                🔥 Popular
+                🔥 {getText('Popular', 'Popular')}
               </span>
             )}
           </div>
@@ -614,7 +625,7 @@ function MenuCard({
           {cartQty === 0 ? (
             <button
               onClick={onAdd}
-              aria-label={`Agregar ${item.name}`}
+              aria-label={`${getText('Agregar', 'Add')} ${item.name}`}
               style={{
                 backgroundColor: '#25D366',
                 color: '#ffffff',
@@ -628,7 +639,7 @@ function MenuCard({
                 flexShrink: 0,
               }}
             >
-              + Agregar
+              + {getText('Agregar', 'Add')}
             </button>
           ) : (
             <div
@@ -641,7 +652,7 @@ function MenuCard({
             >
               <button
                 onClick={onRemove}
-                aria-label={`Quitar ${item.name}`}
+                aria-label={`${getText('Quitar', 'Remove')} ${item.name}`}
                 style={{
                   width: '28px',
                   height: '28px',
@@ -672,7 +683,7 @@ function MenuCard({
               </span>
               <button
                 onClick={onAdd}
-                aria-label={`Agregar ${item.name}`}
+                aria-label={`${getText('Agregar', 'Add')} ${item.name}`}
                 style={{
                   width: '28px',
                   height: '28px',
@@ -698,8 +709,14 @@ function MenuCard({
   );
 }
 
-function ContactSection({ business }: { business: PublicTemplateProps['business'] }) {
-  const contacts = resolveContactItems(business);
+function ContactSection({
+  business,
+  language,
+}: {
+  business: PublicTemplateProps['business'];
+  language: 'es' | 'en';
+}) {
+  const contacts = resolveContactItems(business, language);
 
   if (contacts.length === 0) return null;
 
