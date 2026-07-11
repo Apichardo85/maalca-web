@@ -3,12 +3,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
 
-const EXCLUDED_PATHS = ["/dashboard", "/ciriwhispers", "/login", "/onboarding", "/editorial", "/space"];
+const EXCLUDED_PATHS = ["/dashboard", "/login", "/onboarding", "/editorial", "/space"];
 
 export default function Footer() {
   const pathname = usePathname();
   const { t } = useTranslation();
-  if (EXCLUDED_PATHS.some((p) => pathname.startsWith(p))) return null;
+  if (
+    pathname === '/ciriwhispers' ||
+    pathname.startsWith('/ciriwhispers/') ||
+    EXCLUDED_PATHS.some((p) => pathname.startsWith(p))
+  ) return null;
 
   const year = new Date().getFullYear();
 

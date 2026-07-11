@@ -77,7 +77,8 @@ export default function Header({
   // "Iniciar sesión" CTA, which makes no sense to someone already logged in)
   // never belonged on top of it.
   if (
-    pathname.startsWith('/ciriwhispers') ||
+    pathname === '/ciriwhispers' ||
+    pathname.startsWith('/ciriwhispers/') ||
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/editorial') ||
     pathname.startsWith('/space') ||

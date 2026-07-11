@@ -218,8 +218,8 @@ export function ConfigTab({ slug, form, onChange, onCommit, onCommitAll }: Props
 
       <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 p-3 text-xs text-amber-700 dark:text-amber-300">
         {getText(
-          'Horario de atención — pendiente: el backend todavía no tiene un campo para esto, así que no aparece aquí.',
-          'Business hours — pending: the backend has no field for this yet, so it doesn\'t appear here.',
+          'Horario de atención — próximamente: podrás configurarlo desde aquí en una futura actualización.',
+          'Business hours — coming soon: you\'ll be able to set this from here in a future update.',
         )}
       </div>
 
