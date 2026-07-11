@@ -350,7 +350,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
         </main>
       </div>
 
-      <PublicFooter business={business} capabilities={capabilities} />
+      <PublicFooter business={business} capabilities={capabilities} language={language} />
     </div>
   );
 }

@@ -12,6 +12,30 @@ import { trackCanalClick } from '@/lib/public-events';
 interface Props {
   business: PublicTemplateProps['business'];
   capabilities: PublicTemplateProps['capabilities'];
+  language?: 'es' | 'en';
+}
+
+const WEEK_DAY_ORDER = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+const WEEK_DAY_LABELS_ES: Record<string, string> = {
+  monday: 'Lunes', tuesday: 'Martes', wednesday: 'Miércoles', thursday: 'Jueves',
+  friday: 'Viernes', saturday: 'Sábado', sunday: 'Domingo',
+};
+const WEEK_DAY_LABELS_EN: Record<string, string> = {
+  monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday', thursday: 'Thursday',
+  friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday',
+};
+
+/** Weekday AS SEEN IN the given IANA timezone, via Intl.DateTimeFormat — not the
+ *  visitor's local day, which would be wrong for a business hours display. Returns
+ *  null for a missing/invalid timezone so the caller can skip the "today" line. */
+function todayInTimezone(timezone: string | null | undefined): string | null {
+  if (!timezone) return null;
+  try {
+    const weekday = new Intl.DateTimeFormat('en-US', { timeZone: timezone, weekday: 'long' }).format(new Date());
+    return weekday.toLowerCase();
+  } catch {
+    return null;
+  }
 }
 
 function FacebookIcon({ size }: { size: number }) {
@@ -46,8 +70,12 @@ const SOCIAL_ICON_BY_TIPO: Record<string, ComponentType<{ size: number }>> = {
   TikTok: TikTokIcon,
 };
 
-export function PublicFooter({ business, capabilities }: Props) {
+export function PublicFooter({ business, capabilities, language = 'es' }: Props) {
   const social = resolveSocialLinks(business);
+  const getText = (es: string, en: string) => (language === 'es' ? es : en);
+  const horario = business.horario ?? [];
+  const today = todayInTimezone(business.timezone);
+  const todayEntry = today ? horario.find((h) => h.dia === today) : null;
 
   return (
     <footer style={{ borderTop: '1px solid #e5e3de', backgroundColor: '#f8f6f1' }}>
@@ -93,6 +121,36 @@ export function PublicFooter({ business, capabilities }: Props) {
           <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#888' }}>
             📍 {business.address}
           </p>
+        )}
+
+        {horario.length > 0 && (
+          <div style={{ marginTop: '14px', fontSize: '13px', color: '#888' }}>
+            {todayEntry && (
+              <p style={{ margin: 0 }}>
+                🕒{' '}
+                {todayEntry.cerrado
+                  ? getText('Cerrado hoy', 'Closed today')
+                  : `${getText('Hoy', 'Today')}: ${todayEntry.abre} – ${todayEntry.cierra}`}
+              </p>
+            )}
+            <details style={{ marginTop: todayEntry ? '6px' : 0, display: 'inline-block', textAlign: 'left' }}>
+              <summary style={{ cursor: 'pointer', color: '#aaa', fontSize: '12px' }}>
+                {getText('Ver horario completo', 'View full hours')}
+              </summary>
+              <div style={{ marginTop: '8px' }}>
+                {WEEK_DAY_ORDER.map((day) => {
+                  const entry = horario.find((h) => h.dia === day);
+                  if (!entry) return null;
+                  const label = language === 'en' ? WEEK_DAY_LABELS_EN[day] : WEEK_DAY_LABELS_ES[day];
+                  return (
+                    <p key={day} style={{ margin: '2px 0', fontSize: '12px', fontWeight: day === today ? 700 : 400 }}>
+                      {label}: {entry.cerrado ? getText('Cerrado', 'Closed') : `${entry.abre} – ${entry.cierra}`}
+                    </p>
+                  );
+                })}
+              </div>
+            </details>
+          </div>
         )}
 
         {!capabilities.hidePoweredBy && (

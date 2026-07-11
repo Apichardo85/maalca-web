@@ -27,6 +27,14 @@ export interface FaqEntry {
   answer: string;
 }
 
+/** `dia` uses lowercase weekday keys (monday..sunday), matching WeekDay. */
+export interface HorarioDay {
+  dia: string;
+  abre: string;
+  cierra: string;
+  cerrado: boolean;
+}
+
 export interface PublicTemplateProps {
   business: {
     id: string;
@@ -46,6 +54,7 @@ export interface PublicTemplateProps {
     faq?: FaqEntry[] | null;
     /** IANA timezone (e.g. "America/New_York"). Null if not configured yet. */
     timezone?: string | null;
+    horario?: HorarioDay[] | null;
   };
   items: Array<{
     id: string;

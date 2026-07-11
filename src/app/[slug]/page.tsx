@@ -101,6 +101,7 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
           processSteps: affiliate.processSteps ?? null,
           faq: affiliate.faq ?? null,
           timezone: affiliate.timezone ?? null,
+          horario: affiliate.horario ?? null,
         }}
         items={mappedItems}
         categories={categories}
@@ -129,6 +130,7 @@ interface PublicCatalogResponse {
     processSteps?: PublicTemplateProps['business']['processSteps'];
     faq?: PublicTemplateProps['business']['faq'];
     timezone?: string | null;
+    horario?: PublicTemplateProps['business']['horario'];
   };
   categories?: PublicTemplateProps['categories'];
   items: PublicTemplateProps['items'];

@@ -637,11 +637,14 @@ export function RestaurantTemplate({
         )}
       </main>
 
+      {/* ── FAQ ── */}
+      <FaqSection faq={business.faq} getText={getText} />
+
       {/* ── CONTACTO ── */}
       <ContactSection business={business} language={language} />
 
       {/* ── FOOTER ── */}
-      <PublicFooter business={business} capabilities={capabilities} />
+      <PublicFooter business={business} capabilities={capabilities} language={language} />
 
       {/* ── CART ── */}
       <WhatsAppCart
@@ -985,6 +988,36 @@ function MenuCard({
         </div>
       </div>
     </div>
+  );
+}
+
+function FaqSection({
+  faq,
+  getText,
+}: {
+  faq?: PublicTemplateProps['business']['faq'];
+  getText: (es: string, en: string) => string;
+}) {
+  if (!faq || faq.length === 0) return null;
+
+  return (
+    <section style={{ maxWidth: '960px', margin: '0 auto', padding: '0 24px 32px' }}>
+      <h2 className={fraunces.className} style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 600, fontStyle: 'italic', color: TERRACOTA }}>
+        {getText('Preguntas frecuentes', 'FAQ')}
+      </h2>
+      <div style={{ borderTop: '1px solid #e8ddc9' }}>
+        {faq.map((entry, i) => (
+          <details key={`${i}-${entry.question}`} style={{ borderBottom: '1px solid #e8ddc9', padding: '14px 0' }}>
+            <summary style={{ cursor: 'pointer', listStyle: 'none', fontWeight: 500, color: CAFE, fontSize: '14px' }}>
+              {entry.question}
+            </summary>
+            <p style={{ margin: '8px 0 0', fontSize: '13px', lineHeight: 1.6, color: MUTED }}>
+              {entry.answer}
+            </p>
+          </details>
+        ))}
+      </div>
+    </section>
   );
 }
 

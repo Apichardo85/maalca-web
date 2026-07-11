@@ -7,9 +7,17 @@ import { sanitizeContactValue } from '@/lib/public-contact';
 import { ConfigTab } from './ConfigTab';
 import { CanalesTab } from './CanalesTab';
 import { QrTab } from './QrTab';
+import { ContenidoTab } from './ContenidoTab';
 import { PreviewPanel } from './PreviewPanel';
 import { SpaceTopBarControls } from '@/components/space/SpaceTopBarControls';
-import { GATED_FIELDS, type CanalDto, type ProfileFormState } from './types';
+import {
+  GATED_FIELDS,
+  type CanalDto,
+  type ProfileFormState,
+  type ProcessStepDto,
+  type FaqEntryDto,
+  type HorarioDayDto,
+} from './types';
 
 interface Props {
   slug: string;
@@ -24,11 +32,14 @@ interface Props {
   website: string;
   logoUrl: string | null;
   canales: CanalDto[];
+  processSteps: ProcessStepDto[];
+  faq: FaqEntryDto[];
+  horario: HorarioDayDto[];
   publicUrl: string;
   qrDataUrl: string;
 }
 
-type Tab = 'config' | 'canales' | 'qr';
+type Tab = 'config' | 'canales' | 'qr' | 'contenido';
 
 export function DesignEditor({
   slug,
@@ -43,6 +54,9 @@ export function DesignEditor({
   website,
   logoUrl,
   canales: initialCanales,
+  processSteps: initialProcessSteps,
+  faq: initialFaq,
+  horario: initialHorario,
   publicUrl,
   qrDataUrl,
 }: Props) {
@@ -53,7 +67,7 @@ export function DesignEditor({
 
   const initialTab = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState<Tab>(
-    initialTab === 'canales' || initialTab === 'qr' ? initialTab : 'config',
+    initialTab === 'canales' || initialTab === 'qr' || initialTab === 'contenido' ? initialTab : 'config',
   );
 
   const initialForm: ProfileFormState = {
@@ -131,6 +145,7 @@ export function DesignEditor({
   const tabs: { key: Tab; label: string; icon: string }[] = [
     { key: 'config', label: getText('Configuración', 'Settings'), icon: '⚙️' },
     { key: 'canales', label: getText('Canales', 'Channels'), icon: '💬' },
+    { key: 'contenido', label: getText('Contenido', 'Content'), icon: '📝' },
     { key: 'qr', label: 'QR', icon: '📱' },
   ];
 
@@ -210,6 +225,14 @@ export function DesignEditor({
           )}
           {activeTab === 'canales' && (
             <CanalesTab slug={slug} canales={canales} onChange={setCanales} />
+          )}
+          {activeTab === 'contenido' && (
+            <ContenidoTab
+              slug={slug}
+              processSteps={initialProcessSteps}
+              faq={initialFaq}
+              horario={initialHorario}
+            />
           )}
           {activeTab === 'qr' && (
             <QrTab slug={slug} publicUrl={publicUrl} qrDataUrl={qrDataUrl} />

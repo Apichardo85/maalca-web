@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import QRCode from 'qrcode';
 import { getMaalcaApiToken } from '@/lib/api-auth';
 import { DesignEditor } from './DesignEditor';
+import type { ProcessStepDto, FaqEntryDto, HorarioDayDto } from './types';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -51,6 +52,9 @@ export default async function DesignPage({
     website: string | null;
     logoUrl: string | null;
   } | null = null;
+  let processSteps: ProcessStepDto[] = [];
+  let faq: FaqEntryDto[] = [];
+  let horario: HorarioDayDto[] = [];
 
   try {
     const publicRes = await fetch(`${API}/api/public/affiliates/${slug}`, { cache: 'no-store' });
@@ -64,10 +68,15 @@ export default async function DesignPage({
         website: p.website ?? null,
         logoUrl: p.logoUrl ?? null,
       };
+      processSteps = p.processSteps ?? [];
+      faq = p.faq ?? [];
+      horario = p.horario ?? [];
     }
   } catch {
     // publicProfile stays null — DesignEditor omits these fields from any PATCH
     // unless the user explicitly edits them, so a failed fetch here can't cause data loss.
+    // processSteps/faq/horario stay empty — worst case Contenido tab starts blank
+    // instead of throwing; saving from there always sends a full explicit array.
   }
 
   const publicUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://maalca.com'}/${slug}`;
@@ -90,6 +99,9 @@ export default async function DesignPage({
       website={publicProfile?.website ?? ''}
       logoUrl={publicProfile?.logoUrl ?? null}
       canales={(biz.canales ?? []) as CanalDto[]}
+      processSteps={processSteps}
+      faq={faq}
+      horario={horario}
       publicUrl={publicUrl}
       qrDataUrl={qrDataUrl}
     />

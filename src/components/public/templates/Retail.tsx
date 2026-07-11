@@ -361,10 +361,13 @@ export function RetailTemplate({
         )}
       </main>
 
+      {/* ── FAQ ── */}
+      <FaqSection faq={business.faq} getText={getText} />
+
       {/* ── CONTACTO ── */}
       <ContactSection business={business} language={language} />
 
-      <PublicFooter business={business} capabilities={capabilities} />
+      <PublicFooter business={business} capabilities={capabilities} language={language} />
 
       {waRaw && (
         <WhatsAppCart
@@ -425,6 +428,36 @@ function ChipTab({
       />
       {label}
     </button>
+  );
+}
+
+function FaqSection({
+  faq,
+  getText,
+}: {
+  faq?: PublicTemplateProps['business']['faq'];
+  getText: (es: string, en: string) => string;
+}) {
+  if (!faq || faq.length === 0) return null;
+
+  return (
+    <section style={{ maxWidth: '1080px', margin: '0 auto', padding: '0 24px 28px' }}>
+      <h2 className={robotoSlab.className} style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 700, color: INK }}>
+        {getText('Preguntas frecuentes', 'FAQ')}
+      </h2>
+      <div style={{ borderTop: '1px solid #d9d4c8' }}>
+        {faq.map((entry, i) => (
+          <details key={`${i}-${entry.question}`} style={{ borderBottom: '1px solid #d9d4c8', padding: '14px 0' }}>
+            <summary style={{ cursor: 'pointer', listStyle: 'none', fontWeight: 600, color: INK, fontSize: '14px' }}>
+              {entry.question}
+            </summary>
+            <p style={{ margin: '8px 0 0', fontSize: '13px', lineHeight: 1.6, color: MUTED }}>
+              {entry.answer}
+            </p>
+          </details>
+        ))}
+      </div>
+    </section>
   );
 }
 
