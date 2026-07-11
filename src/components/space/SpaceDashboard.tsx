@@ -11,7 +11,7 @@ import {
 } from '@/lib/plan-limits';
 import { PRICE_ENTREPRENEUR } from '@/config/pricing';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
-import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
+import { SpaceTopBarControls } from './SpaceTopBarControls';
 import { CreatingSpaceAnimation } from './CreatingSpaceAnimation';
 import { UpgradeModal } from './UpgradeModal';
 
@@ -147,7 +147,6 @@ export function SpaceDashboard({
             MaalCa
           </Link>
           <div className="flex items-center gap-3">
-            <SimpleLanguageToggle variant="light" />
             <span
               className={`rounded-full px-3 py-1 text-xs font-medium ${
                 business.plan === 'free'
@@ -170,6 +169,7 @@ export function SpaceDashboard({
                 {getText('Mejorar', 'Upgrade')}
               </button>
             )}
+            <SpaceTopBarControls />
           </div>
         </div>
       </nav>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { getPlanLimits, type Plan } from '@/lib/plan-limits';
+import { SpaceTopBarControls } from '@/components/space/SpaceTopBarControls';
 
 function normalize(value: string): string {
   return value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
@@ -46,8 +47,13 @@ export function CatalogView({ slug, plan, items, productCount }: Props) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
       <div className="px-6 py-8">
+        {/* Top bar controls */}
+        <div className="flex items-center justify-end">
+          <SpaceTopBarControls />
+        </div>
+
         {/* Header */}
-        <div className="flex items-center justify-between gap-4">
+        <div className="mt-4 flex items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               {getText('Catálogo', 'Catalog')}

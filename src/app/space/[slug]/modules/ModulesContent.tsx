@@ -1,6 +1,7 @@
 'use client';
 
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { SpaceTopBarControls } from '@/components/space/SpaceTopBarControls';
 
 const ACTIVE_MODULES = [
   { icon: '📦', es: 'Catálogo', en: 'Catalog', descEs: 'Tus items y precios, siempre al día.', descEn: 'Your items and prices, always up to date.' },
@@ -23,12 +24,17 @@ export function ModulesContent() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
       <div className="px-6 py-12">
-        <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
-          {getText('Tu espacio', 'Your space')}
-        </p>
-        <h1 className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-          {getText('Módulos', 'Modules')}
-        </h1>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
+              {getText('Tu espacio', 'Your space')}
+            </p>
+            <h1 className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+              {getText('Módulos', 'Modules')}
+            </h1>
+          </div>
+          <SpaceTopBarControls />
+        </div>
         <p className="mt-2 text-sm text-gray-500 dark:text-neutral-400">
           {getText(
             'Esto es lo que ya tienes activo y lo que viene en camino.',

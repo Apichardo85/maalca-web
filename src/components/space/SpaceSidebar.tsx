@@ -31,11 +31,12 @@ export function SpaceSidebar({ slug, businessName, plan }: Props) {
   return (
     <>
       {/*
-       * Desktop-only sidebar — mobile navigation lives in the global Header's
-       * hamburger menu (language toggle + theme toggle + space nav items).
-       * Starts at top-16/top-20 to clear the global Header height.
+       * Desktop-only sidebar. The marketing Header (and its hamburger-menu
+       * language/theme toggles) is deliberately hidden on /space routes, so
+       * this starts at top-0 — each page's own top bar now carries its own
+       * SpaceTopBarControls instead of relying on the global Header for that.
        */}
-      <aside className="hidden md:flex fixed top-16 lg:top-20 bottom-0 left-0 z-30 w-60 flex-col bg-white dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800">
+      <aside className="hidden md:flex fixed top-0 bottom-0 left-0 z-30 w-60 flex-col bg-white dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800">
         {/* Business header */}
         <div className="px-4 py-5 border-b border-gray-200 dark:border-neutral-800">
           <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">

@@ -8,6 +8,7 @@ import { ConfigTab } from './ConfigTab';
 import { CanalesTab } from './CanalesTab';
 import { QrTab } from './QrTab';
 import { PreviewPanel } from './PreviewPanel';
+import { SpaceTopBarControls } from '@/components/space/SpaceTopBarControls';
 import { GATED_FIELDS, type CanalDto, type ProfileFormState } from './types';
 
 interface Props {
@@ -157,6 +158,7 @@ export function DesignEditor({
             {saved && (
               <span className="text-sm text-emerald-600">{getText('✓ Guardado', '✓ Saved')}</span>
             )}
+            <SpaceTopBarControls />
             <a
               href={publicUrl}
               target="_blank"
