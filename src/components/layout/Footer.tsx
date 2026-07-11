@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
 
-const EXCLUDED_PATHS = ["/dashboard", "/ciriwhispers", "/login", "/onboarding", "/editorial"];
+const EXCLUDED_PATHS = ["/dashboard", "/ciriwhispers", "/login", "/onboarding", "/editorial", "/space"];
 
 export default function Footer() {
   const pathname = usePathname();

@@ -14,6 +14,7 @@ import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact
 import { trackCanalClick } from '@/lib/public-events';
 import { AboutSection } from '@/components/public/AboutSection';
 import { PublicFooter } from '@/components/public/PublicFooter';
+import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 
 // Scoped to this template only — condensed uppercase display for headers,
 // duration and price (no separate mono role; the condensed weight already
@@ -48,6 +49,7 @@ export function BarberTemplate({
 }: PublicTemplateProps) {
   const accent = business.primary_color ?? '#C8102E';
   const waRaw = resolveWhatsAppDigits(business);
+  const { language } = useSimpleLanguage();
   const waHeroLink = waRaw
     ? `https://wa.me/${waRaw}?text=${encodeURIComponent(`Hola, quiero info sobre ${business.name}`)}`
     : null;
@@ -318,7 +320,7 @@ export function BarberTemplate({
               {categoryName && <SectLabel label={categoryName} />}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {groupItems.map((item) => (
-                  <ServiceCard key={item.id} item={item} waRaw={waRaw} businessName={business.name} accent={accent} displayClassName={oswald.className} />
+                  <ServiceCard key={item.id} item={item} waRaw={waRaw} businessName={business.name} accent={accent} displayClassName={oswald.className} language={language} />
                 ))}
               </div>
             </div>
@@ -326,7 +328,7 @@ export function BarberTemplate({
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {visibleItems.map((item) => (
-              <ServiceCard key={item.id} item={item} waRaw={waRaw} businessName={business.name} accent={accent} displayClassName={oswald.className} />
+              <ServiceCard key={item.id} item={item} waRaw={waRaw} businessName={business.name} accent={accent} displayClassName={oswald.className} language={language} />
             ))}
           </div>
         )}
@@ -369,14 +371,17 @@ function ServiceCard({
   businessName,
   accent,
   displayClassName,
+  language,
 }: {
   item: PublicTemplateProps['items'][number];
   waRaw: string | null;
   businessName: string;
   accent: string;
   displayClassName: string;
+  language: 'es' | 'en';
 }) {
   const imageUrl = item.imageUrl ?? item.image_url;
+  const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
   const waLink = waRaw
     ? `https://wa.me/${waRaw}?text=${encodeURIComponent(
         `Hola ${businessName}, quiero reservar: ${item.name}`,
@@ -432,6 +437,20 @@ function ServiceCard({
         >
           {item.name}
         </p>
+
+        {description && (
+          <p
+            className="line-clamp-2"
+            style={{
+              margin: '4px 0 0',
+              fontSize: '11px',
+              color: '#6b6f76',
+              lineHeight: 1.4,
+            }}
+          >
+            {description}
+          </p>
+        )}
 
         {item.durationMinutes != null && (
           <div

@@ -71,19 +71,21 @@ export default function Header({
     return () => subscription.unsubscribe();
   }, []);
 
-  // These routes have their own full-page layouts with no marketing shell
+  // These routes have their own full-page layouts with no marketing shell.
+  // /space is a logged-in affiliate's own app — SpaceSwitcherBar and each
+  // page's own header cover navigation there, so the marketing nav (and its
+  // "Iniciar sesión" CTA, which makes no sense to someone already logged in)
+  // never belonged on top of it.
   if (
     pathname.startsWith('/ciriwhispers') ||
     pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/editorial')
+    pathname.startsWith('/editorial') ||
+    pathname.startsWith('/space') ||
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/onboarding')
   ) {
     return null;
   }
-
-  // On /space routes the sidebar handles desktop nav; the header provides
-  // mobile nav (language toggle, theme toggle, and space nav items).
-  const spaceSlug = pathname.match(/^\/space\/([^/]+)/)?.[1] ?? null;
-  const getText = (es: string, en: string) => language === 'es' ? es : en;
 
   const getHeaderStyle = () => {
     const base = "fixed top-0 left-0 right-0 z-50 transition-all duration-300";
@@ -258,35 +260,6 @@ export default function Header({
                   </Link>
                 )}
               </div>
-
-              {/* Space dashboard nav — injected when inside /space/[slug] */}
-              {spaceSlug && (
-                <div className="border-t border-border pt-4 mt-4">
-                  <div className="flex items-center justify-between px-4 mb-2">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted">
-                      {getText('Mi negocio', 'My business')}
-                    </p>
-                    <SimpleLanguageToggle />
-                  </div>
-                  {[
-                    { label: getText('Dashboard', 'Dashboard'),               icon: '🏠', href: `/space/${spaceSlug}` },
-                    { label: getText('Diseñar mi Espacio', 'Design my Space'), icon: '🎨', href: `/space/${spaceSlug}/design` },
-                    { label: getText('Catálogo', 'Catalog'),                  icon: '📦', href: `/space/${spaceSlug}/catalog` },
-                    { label: getText('Módulos', 'Modules'),                   icon: '🧩', href: `/space/${spaceSlug}/modules` },
-                    { label: getText('Estadísticas', 'Stats'),                icon: '📊', href: `/space/${spaceSlug}/stats` },
-                  ].map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-elevated transition-colors"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <span>{item.icon}</span>
-                      <span>{item.label}</span>
-                    </Link>
-                  ))}
-                </div>
-              )}
 
               {/* Toggles */}
               <div className="border-t border-white/10 pt-4 mt-4 flex items-center gap-2 px-4">
