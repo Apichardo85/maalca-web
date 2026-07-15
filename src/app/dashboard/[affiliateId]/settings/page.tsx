@@ -5,6 +5,7 @@ import { useAffiliate } from "@/contexts/AffiliateContext";
 import { AffiliateConfig } from "@/config/affiliates-config";
 import { MODULE_NAV_CONFIG } from "@/lib/affiliate-branding";
 import { DashboardCard } from "@/components/dashboard/DashboardCard";
+import { parseApiError } from "@/lib/api-errors";
 
 type ModuleKey = keyof AffiliateConfig["modules"];
 
@@ -72,7 +73,7 @@ export default function SettingsPage() {
         const data = await res.json();
 
         if (!res.ok) {
-          setError(data.error ?? "Error al actualizar módulo");
+          setError(parseApiError(data, "Error al actualizar módulo").message);
           return;
         }
 

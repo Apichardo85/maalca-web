@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { parseApiError } from '@/lib/api-errors';
 import type { ProcessStepDto, FaqEntryDto, HorarioDayDto } from './types';
 
 const WEEK_DAYS: { key: string; es: string; en: string }[] = [
@@ -58,7 +59,7 @@ export function ContenidoTab({ slug, processSteps: initialProcessSteps, faq: ini
         setTimeout(() => setSaved(false), 2500);
       } else {
         const data = await res.json().catch(() => ({}));
-        setSaveError(data.error ?? getText('Algo salió mal', 'Something went wrong'));
+        setSaveError(parseApiError(data, getText('Algo salió mal', 'Something went wrong')).message);
       }
     } catch {
       setSaveError(getText('Algo salió mal', 'Something went wrong'));

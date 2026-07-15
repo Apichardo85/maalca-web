@@ -4,10 +4,12 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Modal } from '@/components/ui/Modal';
+import { PlanLimitNotice } from '@/components/space/PlanLimitNotice';
 import { ImageCropper } from '@/app/dashboard/[affiliateId]/menu/components/ImageCropper';
 import { MealPeriodEditor } from '@/app/dashboard/[affiliateId]/menu/components/MealPeriodEditor';
 import { WeekDayEditor } from '@/app/dashboard/[affiliateId]/menu/components/WeekDayEditor';
 import type { MealPeriod, WeekDay } from '@/lib/types';
+import { parseApiError } from '@/lib/api-errors';
 
 interface Props {
   slug: string;
@@ -35,6 +37,7 @@ export default function NewItemForm({ slug, businessType }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [planLimitReached, setPlanLimitReached] = useState(false);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [newImageUrl, setNewImageUrl] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
@@ -80,7 +83,7 @@ export default function NewItemForm({ slug, businessType }: Props) {
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      throw new Error(data.error ?? 'Error al subir la imagen');
+      throw new Error(parseApiError(data, 'Error al subir la imagen').message);
     }
     const { url } = await res.json();
     return url as string;
@@ -107,6 +110,7 @@ export default function NewItemForm({ slug, businessType }: Props) {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setPlanLimitReached(false);
     startTransition(async () => {
       const body: Record<string, unknown> = { ...form, ...(newImageUrl ? { imageUrl: newImageUrl } : {}) };
       if (isRestaurant) {
@@ -126,7 +130,9 @@ export default function NewItemForm({ slug, businessType }: Props) {
         router.push(`/space/${slug}/catalog`);
       } else {
         const data = await res.json().catch(() => ({}));
-        setError(data.error ?? 'Algo salió mal');
+        const parsed = parseApiError(data, 'Algo salió mal');
+        setPlanLimitReached(parsed.isPlanLimit);
+        setError(parsed.message);
       }
     });
   };
@@ -306,9 +312,11 @@ export default function NewItemForm({ slug, businessType }: Props) {
             </div>
           )}
 
-          {error && (
+          {planLimitReached ? (
+            <PlanLimitNotice slug={slug} />
+          ) : error ? (
             <p className="rounded-lg bg-red-50 dark:bg-red-900/20 px-3 py-2 text-sm text-red-700 dark:text-red-400">{error}</p>
-          )}
+          ) : null}
 
           <button
             type="submit"

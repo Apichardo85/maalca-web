@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { sanitizeContactValue } from '@/lib/public-contact';
+import { parseApiError } from '@/lib/api-errors';
 import { ConfigTab } from './ConfigTab';
 import { CanalesTab } from './CanalesTab';
 import { QrTab } from './QrTab';
@@ -133,7 +134,7 @@ export function DesignEditor({
         setTimeout(() => setSaved(false), 2500);
       } else {
         const data = await res.json().catch(() => ({}));
-        setSaveError(data.error ?? getText('Algo salió mal', 'Something went wrong'));
+        setSaveError(parseApiError(data, getText('Algo salió mal', 'Something went wrong')).message);
       }
     } catch {
       setSaveError(getText('Algo salió mal', 'Something went wrong'));
