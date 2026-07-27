@@ -41,3 +41,8 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# local tooling / scratch
+.claude/
+build.log
+docs/frontend-design-guide.md
