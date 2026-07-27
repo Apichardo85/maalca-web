@@ -36,6 +36,12 @@ const PALETTE = [
 
 const STEPS = ['name', 'type', 'color', 'logo', 'whatsapp'] as const;
 
+// Shared by every plain text input in this form — missing `text-neutral-900`
+// here is exactly the bug that made the Nombre and WhatsApp inputs render
+// invisible text, twice, independently. One definition instead of copies.
+const inputClass =
+  'mt-2 w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm text-neutral-900 focus:border-neutral-400 focus:outline-none';
+
 export function OnboardingForm() {
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -190,7 +196,7 @@ export function OnboardingForm() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ej. La Casa del Mofongo"
                 maxLength={50}
-                className="mt-2 w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm focus:border-neutral-400 focus:outline-none"
+                className={inputClass}
               />
             </div>
           )}
@@ -213,7 +219,7 @@ export function OnboardingForm() {
                         ? 'cursor-not-allowed border-neutral-100 bg-neutral-50 text-neutral-300'
                         : type === t.value
                           ? 'border-[#C8102E] bg-[#C8102E]/5 text-[#C8102E]'
-                          : 'border-neutral-200 hover:border-neutral-300'
+                          : 'border-neutral-200 text-neutral-700 hover:border-neutral-300'
                     }`}
                   >
                     <span className="text-lg">{t.emoji}</span>
@@ -307,7 +313,7 @@ export function OnboardingForm() {
                 onChange={(e) => setWhatsapp(e.target.value.replace(/\D/g, ''))}
                 placeholder="18095551234"
                 maxLength={20}
-                className="mt-2 w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm focus:border-neutral-400 focus:outline-none"
+                className={inputClass}
               />
               <p className="mt-1 text-xs text-neutral-400">
                 Tus clientes te escribirán directamente a este número.
