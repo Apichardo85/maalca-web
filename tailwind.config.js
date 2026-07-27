@@ -35,8 +35,8 @@ module.exports = {
         // grids (Restaurant/Barber/Retail) top out narrower than the
         // sidebar+content layout (Service), which needs more room since
         // 288px of it is the fixed sidebar.
-        'public-content': '1000px',
-        'public-content-wide': '1100px',
+        'public-content': '960px',
+        'public-content-wide': '1180px',
       },
     },
   },
