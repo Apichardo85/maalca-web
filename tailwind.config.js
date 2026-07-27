@@ -29,15 +29,6 @@ module.exports = {
         'inter': ['var(--font-inter)', 'sans-serif'],
         'display': ['var(--font-playfair)', 'serif'],
       },
-      maxWidth: {
-        // Public business-template content width, split by layout shape —
-        // not meant to be the same number by accident. Single-column card
-        // grids (Restaurant/Barber/Retail) top out narrower than the
-        // sidebar+content layout (Service), which needs more room since
-        // 288px of it is the fixed sidebar.
-        'public-content': '960px',
-        'public-content-wide': '1180px',
-      },
     },
   },
   plugins: [],

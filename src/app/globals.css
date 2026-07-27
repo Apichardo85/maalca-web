@@ -72,6 +72,15 @@
   --color-brand-secondary: var(--brand-secondary);
   --font-serif: var(--font-playfair);
   --font-sans: var(--font-inter);
+
+  /* Public business-template content width, split by layout shape — single-
+     column card grids (Restaurant/Barber/Retail) vs. sidebar+content
+     (Service, which needs more room since 288px of it is a fixed sidebar).
+     Tailwind v4 ignores tailwind.config.js without an explicit @config
+     directive (none exists here), so these must live in this @theme block —
+     not in theme.extend.maxWidth — to actually generate max-w-* utilities. */
+  --max-width-public-content: 960px;
+  --max-width-public-content-wide: 1180px;
 }
 
 /* Ensure smooth theme transitions */
