@@ -15,7 +15,7 @@
 // when `business.timezone` is set AND at least one item has periods/
 // weekDays populated; otherwise the full menu shows with no filter, so a
 // business without that data configured never sees a confusing empty view.
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Fraunces, Inter } from 'next/font/google';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
@@ -23,6 +23,8 @@ import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
 import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
 import { trackCanalClick } from '@/lib/public-events';
 import { AboutSection } from '@/components/public/AboutSection';
+import { ClampedDescription } from '@/components/public/ClampedDescription';
+import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { MEAL_PERIOD_LABELS, MEAL_PERIOD_ORDER } from '@/lib/menu-availability';
@@ -265,14 +267,13 @@ export function RestaurantTemplate({
 
         {/* content anchored bottom-left */}
         <div
+          className="mx-auto max-w-public-content"
           style={{
             position: 'absolute',
             bottom: 0,
             left: 0,
             right: 0,
             zIndex: 1,
-            maxWidth: '960px',
-            margin: '0 auto',
             padding: '0 32px 48px',
             color: '#fff',
           }}
@@ -385,7 +386,7 @@ export function RestaurantTemplate({
           MAX_DESTACADOS and laid out as a wrapping grid (not a scroll
           carousel) so no card ever gets cropped by a viewport edge ── */}
       {destacados.length > 0 && (
-        <section style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 24px 0' }}>
+        <section className="mx-auto max-w-public-content" style={{ padding: '24px 24px 0' }}>
           <h2
             className={fraunces.className}
             style={{ margin: '0 0 12px', fontSize: '20px', fontWeight: 600, fontStyle: 'italic', color: TERRACOTA }}
@@ -446,12 +447,12 @@ export function RestaurantTemplate({
         </section>
       )}
 
-      <AboutSection description={business.description} descriptionEn={business.descriptionEn} maxWidth="960px" language={language} />
+      <AboutSection description={business.description} descriptionEn={business.descriptionEn} maxWidthClassName="max-w-public-content" language={language} />
 
       {/* ── SEARCH — independent of category tabs so it's still there for a
           business with no categories set up yet ── */}
       {items.length > 0 && (
-        <div style={{ maxWidth: '960px', margin: '0 auto', padding: '20px 24px 0' }}>
+        <div className="mx-auto max-w-public-content" style={{ padding: '20px 24px 0' }}>
           <div style={{ position: 'relative' }}>
             <span
               style={{
@@ -518,7 +519,7 @@ export function RestaurantTemplate({
             borderBottom: '1px solid #e8ddc9',
           }}
         >
-          <div style={{ maxWidth: '960px', margin: '0 auto', padding: '0 24px' }}>
+          <div className="mx-auto max-w-public-content" style={{ padding: '0 24px' }}>
             <div
               className="[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
               style={{ display: 'flex', overflowX: 'auto' }}
@@ -557,7 +558,7 @@ export function RestaurantTemplate({
 
       {/* ── PERIOD FILTER ── */}
       {availablePeriods.length > 0 && (
-        <div style={{ maxWidth: '960px', margin: '0 auto', padding: '16px 24px 0' }}>
+        <div className="mx-auto max-w-public-content" style={{ padding: '16px 24px 0' }}>
           <div
             className="[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             style={{ display: 'flex', gap: '8px', overflowX: 'auto' }}
@@ -591,7 +592,7 @@ export function RestaurantTemplate({
 
       {/* ── VISTA HOY BANNER — visible, not tucked away, per the brief ── */}
       {vistaHoyActive && nowInfo && (
-        <div style={{ maxWidth: '960px', margin: '0 auto', padding: '16px 24px 0' }}>
+        <div className="mx-auto max-w-public-content" style={{ padding: '16px 24px 0' }}>
           <div
             style={{
               display: 'flex',
@@ -632,7 +633,7 @@ export function RestaurantTemplate({
       )}
 
       {/* ── CONTENT ── */}
-      <main style={{ maxWidth: '960px', margin: '0 auto', padding: '32px 24px' }}>
+      <main className="mx-auto max-w-public-content" style={{ padding: '32px 24px' }}>
         {items.length === 0 ? (
           <div
             style={{
@@ -842,14 +843,6 @@ function MenuCard({
   const imageUrl = item.imageUrl ?? item.image_url;
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
-  const [expanded, setExpanded] = useState(false);
-  const [isClamped, setIsClamped] = useState(false);
-  const descRef = useRef<HTMLParagraphElement>(null);
-
-  useEffect(() => {
-    const el = descRef.current;
-    if (el) setIsClamped(el.scrollHeight > el.clientHeight + 1);
-  }, [description]);
 
   return (
     <div
@@ -973,38 +966,13 @@ function MenuCard({
             )}
           </div>
           {description && (
-            <>
-              <p
-                ref={descRef}
-                className={expanded ? undefined : 'line-clamp-2'}
-                style={{
-                  margin: '4px 0 0',
-                  fontSize: '12px',
-                  color: MUTED,
-                  lineHeight: 1.5,
-                }}
-              >
-                {description}
-              </p>
-              {isClamped && (
-                <button
-                  type="button"
-                  onClick={() => setExpanded((v) => !v)}
-                  style={{
-                    marginTop: '2px',
-                    padding: 0,
-                    border: 'none',
-                    background: 'none',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    color: accent,
-                    cursor: 'pointer',
-                  }}
-                >
-                  {expanded ? getText('Ver menos', 'Show less') : getText('Ver más', 'Show more')}
-                </button>
-              )}
-            </>
+            <ClampedDescription
+              text={description}
+              language={language}
+              textStyle={{ margin: '4px 0 0', fontSize: '12px', color: MUTED, lineHeight: 1.5 }}
+              buttonColor={accent}
+              buttonStyle={{ fontSize: '12px' }}
+            />
           )}
         </div>
 
@@ -1123,7 +1091,7 @@ function FaqSection({
   if (!faq || faq.length === 0) return null;
 
   return (
-    <section style={{ maxWidth: '960px', margin: '0 auto', padding: '0 24px 32px' }}>
+    <section className="mx-auto max-w-public-content" style={{ padding: '0 24px 32px' }}>
       <h2 className={fraunces.className} style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 600, fontStyle: 'italic', color: TERRACOTA }}>
         {getText('Preguntas frecuentes', 'FAQ')}
       </h2>
@@ -1156,9 +1124,11 @@ function ContactSection({
 
   return (
     <section style={{ borderTop: '1px solid #e8ddc9' }}>
-      <div style={{ maxWidth: '960px', margin: '0 auto', padding: '32px 24px' }}>
+      <div className="mx-auto max-w-public-content" style={{ padding: '32px 24px' }}>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {contacts.map((c) => (
+          {contacts.map((c) => {
+            const Icon = CONTACT_ICON_BY_TIPO[c.tipo];
+            return (
             <a
               key={c.label}
               href={c.href}
@@ -1176,7 +1146,7 @@ function ContactSection({
                 textDecoration: 'none',
               }}
             >
-              <span style={{ fontSize: '22px' }}>{c.icon}</span>
+              {Icon && <span style={{ color: CAFE }}><Icon size={22} /></span>}
               <span
                 style={{
                   fontSize: '11px',
@@ -1200,7 +1170,8 @@ function ContactSection({
                 {c.value}
               </span>
             </a>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

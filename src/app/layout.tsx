@@ -26,6 +26,10 @@ const caveat = Caveat({
 });
 
 export const metadata: Metadata = {
+  // Required so relative openGraph.images (affiliate pages' /logo-icon.svg
+  // fallback, etc.) resolve to an absolute URL instead of localhost when link
+  // previews are unfurled in production.
+  metadataBase: new URL("https://maalca.com"),
   title: "MaalCa - Ecosistema Creativo",
   description:
     "Ecosistema creativo y empresarial que conecta ideas, personas y proyectos desde República Dominicana hacia el mundo",

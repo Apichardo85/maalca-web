@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { AuthNav } from "@/components/layout/AuthNav";
 import { createBrowserClient } from "@supabase/ssr";
 import type { Session } from "@supabase/supabase-js";
+import { MARKETING_PATHS } from "@/lib/marketing-paths";
 
 export default function Header({
   className = "",
@@ -71,20 +72,13 @@ export default function Header({
     return () => subscription.unsubscribe();
   }, []);
 
-  // These routes have their own full-page layouts with no marketing shell.
-  // /space is a logged-in affiliate's own app — SpaceSwitcherBar and each
-  // page's own header cover navigation there, so the marketing nav (and its
-  // "Iniciar sesión" CTA, which makes no sense to someone already logged in)
-  // never belonged on top of it.
-  if (
-    pathname === '/ciriwhispers' ||
-    pathname.startsWith('/ciriwhispers/') ||
-    pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/editorial') ||
-    pathname.startsWith('/space') ||
-    pathname.startsWith('/login') ||
-    pathname.startsWith('/onboarding')
-  ) {
+  // Whitelist, not blacklist — same MARKETING_PATHS Footer.tsx uses. A
+  // dynamic business slug (or any other non-marketing route) never belonged
+  // under MaalCa's own nav + logged-in session state; that's someone else's
+  // storefront, not ours. /ciriwhispers, /editorial and /space ship their
+  // own header via their own layout.tsx, so they're deliberately excluded
+  // too — showing this one on top would double up.
+  if (!MARKETING_PATHS.includes(pathname)) {
     return null;
   }
 

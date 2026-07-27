@@ -2,6 +2,7 @@
 
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
+import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import type { CanalDto } from './types';
 
 interface Props {
@@ -95,18 +96,21 @@ export function PreviewPanel({
               {getText('Contacto', 'Contact')}
             </p>
             <div className="flex flex-wrap gap-2">
-              {contactItems.map((c) => (
-                <a
-                  key={c.label}
-                  href={c.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 rounded-full border border-gray-200 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-neutral-300"
-                >
-                  <span>{c.icon}</span>
-                  {c.value}
-                </a>
-              ))}
+              {contactItems.map((c) => {
+                const Icon = CONTACT_ICON_BY_TIPO[c.tipo];
+                return (
+                  <a
+                    key={c.label}
+                    href={c.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 rounded-full border border-gray-200 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-neutral-300"
+                  >
+                    {Icon && <Icon size={12} />}
+                    {c.value}
+                  </a>
+                );
+              })}
             </div>
           </div>
         )}

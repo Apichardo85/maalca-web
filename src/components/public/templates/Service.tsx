@@ -186,7 +186,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
         </div>
       )}
 
-      <div className="mx-auto max-w-[1180px] px-4 py-8 lg:grid lg:grid-cols-[288px_1fr] lg:gap-16 lg:px-8 lg:py-14">
+      <div className="mx-auto max-w-public-content-wide px-4 py-8 lg:grid lg:grid-cols-[288px_1fr] lg:gap-16 lg:px-8 lg:py-14">
         {/* Sidebar — desktop only */}
         <aside className="hidden lg:block">
           <div className="sticky top-8 space-y-5">

@@ -9,7 +9,6 @@ export interface PublicCanal {
 }
 
 export interface ResolvedContactItem {
-  icon: string;
   label: string;
   value: string;
   href: string;
@@ -61,6 +60,8 @@ export function resolveWhatsAppDigits(business: ContactSourceBusiness): string |
  * Full contact grid (WhatsApp / phone / address / email). Each channel type falls
  * back independently to its legacy flat field when no matching active canal
  * exists — Address has no Canal equivalent, so it always comes from the flat field.
+ * Icon rendering (real brand SVGs, not emoji) lives in the consuming component —
+ * see ContactIcons.tsx's CONTACT_ICON_BY_TIPO, keyed by `tipo`.
  */
 export function resolveContactItems(
   business: ContactSourceBusiness,
@@ -73,19 +74,18 @@ export function resolveContactItems(
 
   const waCanal = canales.find((c) => c.tipo === 'WhatsApp');
   if (waCanal) {
-    items.push({ icon: '📱', label: 'WhatsApp', value: waCanal.nombreVisible ?? waCanal.valorCrudo, href: waCanal.enlaceGenerado, tipo: 'WhatsApp', canalId: waCanal.id });
+    items.push({ label: 'WhatsApp', value: waCanal.nombreVisible ?? waCanal.valorCrudo, href: waCanal.enlaceGenerado, tipo: 'WhatsApp', canalId: waCanal.id });
   } else if (business.whatsapp) {
-    items.push({ icon: '📱', label: 'WhatsApp', value: business.whatsapp, href: `https://wa.me/${business.whatsapp.replace(/\D/g, '')}`, tipo: 'WhatsApp', canalId: null });
+    items.push({ label: 'WhatsApp', value: business.whatsapp, href: `https://wa.me/${business.whatsapp.replace(/\D/g, '')}`, tipo: 'WhatsApp', canalId: null });
   }
 
   const phoneCanal = canales.find((c) => c.tipo === 'Telefono');
   if (phoneCanal) {
-    items.push({ icon: '📞', label: phoneLabel, value: phoneCanal.nombreVisible ?? phoneCanal.valorCrudo, href: phoneCanal.enlaceGenerado, tipo: 'Telefono', canalId: phoneCanal.id });
+    items.push({ label: phoneLabel, value: phoneCanal.nombreVisible ?? phoneCanal.valorCrudo, href: phoneCanal.enlaceGenerado, tipo: 'Telefono', canalId: phoneCanal.id });
   }
 
   if (business.address) {
     items.push({
-      icon: '📍',
       label: addressLabel,
       value: business.address,
       href: `https://maps.google.com?q=${encodeURIComponent(business.address)}`,
@@ -96,9 +96,9 @@ export function resolveContactItems(
 
   const emailCanal = canales.find((c) => c.tipo === 'Email');
   if (emailCanal) {
-    items.push({ icon: '✉️', label: 'Email', value: emailCanal.nombreVisible ?? emailCanal.valorCrudo, href: emailCanal.enlaceGenerado, tipo: 'Email', canalId: emailCanal.id });
+    items.push({ label: 'Email', value: emailCanal.nombreVisible ?? emailCanal.valorCrudo, href: emailCanal.enlaceGenerado, tipo: 'Email', canalId: emailCanal.id });
   } else if (business.contactEmail) {
-    items.push({ icon: '✉️', label: 'Email', value: business.contactEmail, href: `mailto:${business.contactEmail}`, tipo: 'Email', canalId: null });
+    items.push({ label: 'Email', value: business.contactEmail, href: `mailto:${business.contactEmail}`, tipo: 'Email', canalId: null });
   }
 
   return items;

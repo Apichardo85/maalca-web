@@ -7,6 +7,11 @@ import { getDishes } from './_dishes-loader'
 export const metadata: Metadata = {
   title: 'Little Dominicana Restaurant | Elmira, NY',
   description: "Comida dominicana tradicional — auténtica y sabrosa. Dine-in y pickup en Elmira, NY.",
+  openGraph: {
+    title: 'Little Dominicana Restaurant | Elmira, NY',
+    description: "Comida dominicana tradicional — auténtica y sabrosa. Dine-in y pickup en Elmira, NY.",
+    images: ['/images/affiliates/tld/Logo.png'],
+  },
 }
 
 export const revalidate = 60

@@ -48,12 +48,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const data = await getCatalog(slug);
   if (!data) return { title: 'MaalCa' };
 
+  const description = data.affiliate.description ?? `Visita ${data.affiliate.name} en MaalCa`;
+  const ogImage = data.affiliate.logoUrl || '/logo-icon.svg';
+
   return {
     title: `${data.affiliate.name} | MaalCa`,
-    description: data.affiliate.description ?? `Visita ${data.affiliate.name} en MaalCa`,
+    description,
     openGraph: {
       title: data.affiliate.name,
-      description: data.affiliate.description ?? undefined,
+      description,
+      images: [ogImage],
     },
   };
 }

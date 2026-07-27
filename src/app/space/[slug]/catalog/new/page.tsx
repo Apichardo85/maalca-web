@@ -6,10 +6,12 @@ const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ from?: string }>;
 }
 
-export default async function NewCatalogItemPage({ params }: PageProps) {
+export default async function NewCatalogItemPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
+  const { from } = await searchParams;
   const token = await getMaalcaApiToken();
   if (!token) redirect('/login');
 
@@ -21,5 +23,5 @@ export default async function NewCatalogItemPage({ params }: PageProps) {
   const spaceData = spaceRes.ok ? await spaceRes.json() : null;
   const businessType: string | null = spaceData?.business?.businessType ?? null;
 
-  return <NewItemForm slug={slug} businessType={businessType} />;
+  return <NewItemForm slug={slug} businessType={businessType} from={from} />;
 }

@@ -157,13 +157,17 @@ export function PublicFooter({ business, capabilities, language = 'es' }: Props)
           <Link
             href="/servicios"
             style={{
-              display: 'inline-block',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
               marginTop: '20px',
               fontSize: '12px',
               color: '#aaa',
               textDecoration: 'none',
             }}
           >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-icon.svg" alt="" width={14} height={14} style={{ display: 'block' }} />
             Powered by <span style={{ fontWeight: 600, color: '#888' }}>MaalCa</span>
           </Link>
         )}

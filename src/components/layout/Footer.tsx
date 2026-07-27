@@ -2,23 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
-
-// Marketing pages that get this footer. Everything else — every dynamic business
-// slug, dashboard, /space, /editorial, /ciriwhispers (those two ship their own
-// EditorialFooter/CiriFooter via their own layout.tsx, so adding this one back
-// would double up) — renders nothing here by default.
-// /ecosistema is a permanent redirect to /casos (next.config.ts) — it never
-// actually renders as its own pathname, so it isn't listed separately here.
-const MARKETING_PATHS = [
-  "/",
-  "/casos",
-  "/casos-estudio",
-  "/docs",
-  "/servicios",
-  "/contacto",
-  "/privacidad",
-  "/terminos",
-];
+import { MARKETING_PATHS } from "@/lib/marketing-paths";
 
 export default function Footer() {
   const pathname = usePathname();

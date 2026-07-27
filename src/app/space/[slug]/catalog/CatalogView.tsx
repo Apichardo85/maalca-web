@@ -75,7 +75,7 @@ export function CatalogView({ slug, plan, items, productCount }: Props) {
             </p>
           </div>
           <Link
-            href={`/space/${slug}/catalog/new`}
+            href={`/space/${slug}/catalog/new?from=catalog`}
             className="flex-shrink-0 rounded-full bg-[#C8102E] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#A00D26]"
           >
             {getText('+ Agregar item', '+ Add item')}
@@ -95,7 +95,7 @@ export function CatalogView({ slug, plan, items, productCount }: Props) {
               )}
             </p>
             <Link
-              href={`/space/${slug}/catalog/new`}
+              href={`/space/${slug}/catalog/new?from=catalog`}
               className="mt-5 inline-block rounded-full bg-[#C8102E] px-5 py-2 text-sm font-medium text-white transition hover:bg-[#A00D26]"
             >
               {getText('+ Agregar primer item', '+ Add first item')}

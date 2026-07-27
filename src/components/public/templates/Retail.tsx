@@ -8,7 +8,7 @@
 // and finishes) becomes the page's own graphic device instead of a generic
 // icon-and-card grid — deliberately distinct from Service's mono rate-card
 // index and Barber's ticket-stub cards.
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Roboto_Slab } from 'next/font/google';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
@@ -16,6 +16,8 @@ import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
 import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
 import { trackCanalClick } from '@/lib/public-events';
 import { AboutSection } from '@/components/public/AboutSection';
+import { ClampedDescription } from '@/components/public/ClampedDescription';
+import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 
@@ -108,14 +110,13 @@ export function RetailTemplate({
         )}
 
         <div
+          className="mx-auto max-w-public-content"
           style={{
             position: 'absolute',
             bottom: 0,
             left: 0,
             right: 0,
             zIndex: 1,
-            maxWidth: '1080px',
-            margin: '0 auto',
             padding: '0 32px 32px',
             color: '#fff',
           }}
@@ -202,11 +203,11 @@ export function RetailTemplate({
         ))}
       </div>
 
-      <AboutSection description={business.description} descriptionEn={business.descriptionEn} maxWidth="1080px" language={language} />
+      <AboutSection description={business.description} descriptionEn={business.descriptionEn} maxWidthClassName="max-w-public-content" language={language} />
 
       {/* ── CATEGORY TABS — rendered as paint chips, cycling the swatch palette ── */}
       {categoryNames.length > 0 && (
-        <div style={{ maxWidth: '1080px', margin: '0 auto', padding: '20px 24px 0' }}>
+        <div className="mx-auto max-w-public-content" style={{ padding: '20px 24px 0' }}>
           <div
             className="[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             style={{ display: 'flex', gap: '10px', overflowX: 'auto' }}
@@ -231,7 +232,7 @@ export function RetailTemplate({
       )}
 
       {/* ── CONTENT ── */}
-      <main style={{ maxWidth: '1080px', margin: '0 auto', padding: '28px 24px 40px' }}>
+      <main className="mx-auto max-w-public-content" style={{ padding: '28px 24px 40px' }}>
         {items.length === 0 ? (
           <div
             style={{
@@ -319,14 +320,6 @@ function ProductCard({
 }) {
   const imageUrl = item.imageUrl ?? item.image_url;
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
-  const [expanded, setExpanded] = useState(false);
-  const [isClamped, setIsClamped] = useState(false);
-  const descRef = useRef<HTMLParagraphElement>(null);
-
-  useEffect(() => {
-    const el = descRef.current;
-    if (el) setIsClamped(el.scrollHeight > el.clientHeight + 1);
-  }, [description]);
 
   return (
     <div
@@ -363,33 +356,13 @@ function ProductCard({
           {item.name}
         </p>
         {description && (
-          <>
-            <p
-              ref={descRef}
-              className={expanded ? undefined : 'line-clamp-2'}
-              style={{ margin: '4px 0 0', fontSize: '11px', color: MUTED, lineHeight: 1.4 }}
-            >
-              {description}
-            </p>
-            {isClamped && (
-              <button
-                type="button"
-                onClick={() => setExpanded((v) => !v)}
-                style={{
-                  marginTop: '2px',
-                  padding: 0,
-                  border: 'none',
-                  background: 'none',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  color: accent,
-                  cursor: 'pointer',
-                }}
-              >
-                {expanded ? getText('Ver menos', 'Show less') : getText('Ver más', 'Show more')}
-              </button>
-            )}
-          </>
+          <ClampedDescription
+            text={description}
+            language={language}
+            textStyle={{ margin: '4px 0 0', fontSize: '11px', color: MUTED, lineHeight: 1.4 }}
+            buttonColor={accent}
+            buttonStyle={{ fontSize: '11px' }}
+          />
         )}
         {item.price != null && (
           <p style={{ margin: '6px 0 0', fontSize: '14px', fontWeight: 700, color: INK }}>
@@ -499,7 +472,7 @@ function FaqSection({
   if (!faq || faq.length === 0) return null;
 
   return (
-    <section style={{ maxWidth: '1080px', margin: '0 auto', padding: '0 24px 28px' }}>
+    <section className="mx-auto max-w-public-content" style={{ padding: '0 24px 28px' }}>
       <h2 className={robotoSlab.className} style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 700, color: INK }}>
         {getText('Preguntas frecuentes', 'FAQ')}
       </h2>
@@ -532,9 +505,11 @@ function ContactSection({
 
   return (
     <section style={{ borderTop: '1px solid #d9d4c8' }}>
-      <div style={{ maxWidth: '1080px', margin: '0 auto', padding: '28px 24px' }}>
+      <div className="mx-auto max-w-public-content" style={{ padding: '28px 24px' }}>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {contacts.map((c) => (
+          {contacts.map((c) => {
+            const Icon = CONTACT_ICON_BY_TIPO[c.tipo];
+            return (
             <a
               key={c.label}
               href={c.href}
@@ -552,7 +527,7 @@ function ContactSection({
                 textDecoration: 'none',
               }}
             >
-              <span style={{ fontSize: '20px' }}>{c.icon}</span>
+              {Icon && <span style={{ color: INK }}><Icon size={20} /></span>}
               <span
                 style={{
                   fontSize: '11px',
@@ -576,7 +551,8 @@ function ContactSection({
                 {c.value}
               </span>
             </a>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

@@ -7,12 +7,14 @@
 // with a single bold accent rule ("the blade") as the recurring graphic
 // motif and a perforated "ticket stub" service card as the signature
 // element — distinct from Service's mono rate-card index.
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Oswald } from 'next/font/google';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
 import { trackCanalClick } from '@/lib/public-events';
 import { AboutSection } from '@/components/public/AboutSection';
+import { ClampedDescription } from '@/components/public/ClampedDescription';
+import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 
@@ -123,14 +125,13 @@ export function BarberTemplate({
 
         {/* content: anchored bottom-left */}
         <div
+          className="mx-auto max-w-public-content"
           style={{
             position: 'absolute',
             bottom: 0,
             left: 0,
             right: 0,
             zIndex: 1,
-            maxWidth: '1000px',
-            margin: '0 auto',
             padding: '0 32px 40px',
             color: '#fff',
           }}
@@ -247,7 +248,7 @@ export function BarberTemplate({
         </div>
       </section>
 
-      <AboutSection description={business.description} descriptionEn={business.descriptionEn} maxWidth="1000px" language={language} />
+      <AboutSection description={business.description} descriptionEn={business.descriptionEn} maxWidthClassName="max-w-public-content" language={language} />
 
       {/* ── NAV TABS — bold, condensed, underlined ── */}
       {categoryNames.length > 0 && (
@@ -260,7 +261,7 @@ export function BarberTemplate({
             borderBottom: `1px solid #dcdfe3`,
           }}
         >
-          <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 24px' }}>
+          <div className="mx-auto max-w-public-content" style={{ padding: '0 24px' }}>
             <div
               className={`${oswald.className} [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden`}
               style={{ display: 'flex', overflowX: 'auto' }}
@@ -298,7 +299,7 @@ export function BarberTemplate({
       )}
 
       {/* ── CONTENT ── */}
-      <main style={{ maxWidth: '1000px', margin: '0 auto', padding: '32px 24px' }}>
+      <main className="mx-auto max-w-public-content" style={{ padding: '32px 24px' }}>
         {items.length === 0 ? (
           <div
             style={{
@@ -386,20 +387,11 @@ function ServiceCard({
 }) {
   const imageUrl = item.imageUrl ?? item.image_url;
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
-  const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const waLink = waRaw
     ? `https://wa.me/${waRaw}?text=${encodeURIComponent(
         `Hola ${businessName}, quiero reservar: ${item.name}`,
       )}`
     : null;
-  const [expanded, setExpanded] = useState(false);
-  const [isClamped, setIsClamped] = useState(false);
-  const descRef = useRef<HTMLParagraphElement>(null);
-
-  useEffect(() => {
-    const el = descRef.current;
-    if (el) setIsClamped(el.scrollHeight > el.clientHeight + 1);
-  }, [description]);
 
   return (
     <div
@@ -452,38 +444,13 @@ function ServiceCard({
         </p>
 
         {description && (
-          <>
-            <p
-              ref={descRef}
-              className={expanded ? undefined : 'line-clamp-2'}
-              style={{
-                margin: '4px 0 0',
-                fontSize: '11px',
-                color: '#6b6f76',
-                lineHeight: 1.4,
-              }}
-            >
-              {description}
-            </p>
-            {isClamped && (
-              <button
-                type="button"
-                onClick={() => setExpanded((v) => !v)}
-                style={{
-                  marginTop: '2px',
-                  padding: 0,
-                  border: 'none',
-                  background: 'none',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  color: accent,
-                  cursor: 'pointer',
-                }}
-              >
-                {expanded ? getText('Ver menos', 'Show less') : getText('Ver más', 'Show more')}
-              </button>
-            )}
-          </>
+          <ClampedDescription
+            text={description}
+            language={language}
+            textStyle={{ margin: '4px 0 0', fontSize: '11px', color: '#6b6f76', lineHeight: 1.4 }}
+            buttonColor={accent}
+            buttonStyle={{ fontSize: '11px' }}
+          />
         )}
 
         {item.durationMinutes != null && (
@@ -555,7 +522,7 @@ function FaqSection({
   if (!faq || faq.length === 0) return null;
 
   return (
-    <section style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 24px 32px' }}>
+    <section className="mx-auto max-w-public-content" style={{ padding: '0 24px 32px' }}>
       <h2 className={oswald.className} style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 700, textTransform: 'uppercase', color: TINTA }}>
         {getText('Preguntas frecuentes', 'FAQ')}
       </h2>
@@ -588,9 +555,11 @@ function ContactSection({
 
   return (
     <section style={{ borderTop: '1px solid #dcdfe3' }}>
-      <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '32px 24px' }}>
+      <div className="mx-auto max-w-public-content" style={{ padding: '32px 24px' }}>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {contacts.map((c) => (
+          {contacts.map((c) => {
+            const Icon = CONTACT_ICON_BY_TIPO[c.tipo];
+            return (
             <a
               key={c.label}
               href={c.href}
@@ -608,7 +577,7 @@ function ContactSection({
                 textDecoration: 'none',
               }}
             >
-              <span style={{ fontSize: '22px' }}>{c.icon}</span>
+              {Icon && <span style={{ color: TINTA }}><Icon size={22} /></span>}
               <span
                 style={{
                   fontSize: '11px',
@@ -632,7 +601,8 @@ function ContactSection({
                 {c.value}
               </span>
             </a>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

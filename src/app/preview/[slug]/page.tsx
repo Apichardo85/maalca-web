@@ -35,9 +35,22 @@ async function getCatalog(slug: string): Promise<PublicCatalogResponse | null> {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const data = await getCatalog(slug);
+  if (!data) {
+    return { title: 'MaalCa preview', robots: { index: false, follow: false } };
+  }
+
+  const description = data.affiliate.description ?? `Visita ${data.affiliate.name} en MaalCa`;
+  const ogImage = data.affiliate.logoUrl || '/logo-icon.svg';
+
   return {
-    title: data ? `[preview] ${data.affiliate.name} | MaalCa` : 'MaalCa preview',
+    title: `[preview] ${data.affiliate.name} | MaalCa`,
+    description,
     robots: { index: false, follow: false },
+    openGraph: {
+      title: `[preview] ${data.affiliate.name}`,
+      description,
+      images: [ogImage],
+    },
   };
 }
 
