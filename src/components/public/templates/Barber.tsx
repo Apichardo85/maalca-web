@@ -7,7 +7,7 @@
 // with a single bold accent rule ("the blade") as the recurring graphic
 // motif and a perforated "ticket stub" service card as the signature
 // element — distinct from Service's mono rate-card index.
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Oswald } from 'next/font/google';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
@@ -386,11 +386,20 @@ function ServiceCard({
 }) {
   const imageUrl = item.imageUrl ?? item.image_url;
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
+  const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const waLink = waRaw
     ? `https://wa.me/${waRaw}?text=${encodeURIComponent(
         `Hola ${businessName}, quiero reservar: ${item.name}`,
       )}`
     : null;
+  const [expanded, setExpanded] = useState(false);
+  const [isClamped, setIsClamped] = useState(false);
+  const descRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const el = descRef.current;
+    if (el) setIsClamped(el.scrollHeight > el.clientHeight + 1);
+  }, [description]);
 
   return (
     <div
@@ -443,17 +452,38 @@ function ServiceCard({
         </p>
 
         {description && (
-          <p
-            className="line-clamp-2"
-            style={{
-              margin: '4px 0 0',
-              fontSize: '11px',
-              color: '#6b6f76',
-              lineHeight: 1.4,
-            }}
-          >
-            {description}
-          </p>
+          <>
+            <p
+              ref={descRef}
+              className={expanded ? undefined : 'line-clamp-2'}
+              style={{
+                margin: '4px 0 0',
+                fontSize: '11px',
+                color: '#6b6f76',
+                lineHeight: 1.4,
+              }}
+            >
+              {description}
+            </p>
+            {isClamped && (
+              <button
+                type="button"
+                onClick={() => setExpanded((v) => !v)}
+                style={{
+                  marginTop: '2px',
+                  padding: 0,
+                  border: 'none',
+                  background: 'none',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  color: accent,
+                  cursor: 'pointer',
+                }}
+              >
+                {expanded ? getText('Ver menos', 'Show less') : getText('Ver más', 'Show more')}
+              </button>
+            )}
+          </>
         )}
 
         {item.durationMinutes != null && (

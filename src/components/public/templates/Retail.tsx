@@ -8,7 +8,7 @@
 // and finishes) becomes the page's own graphic device instead of a generic
 // icon-and-card grid — deliberately distinct from Service's mono rate-card
 // index and Barber's ticket-stub cards.
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Roboto_Slab } from 'next/font/google';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
@@ -256,107 +256,19 @@ export function RetailTemplate({
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {visibleItems.map((item, i) => {
-              const cartQty = cart.find((e) => e.item.id === item.id)?.qty ?? 0;
-              const imageUrl = item.imageUrl ?? item.image_url;
-              const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
-              const chipColor = SWATCHES[i % SWATCHES.length].hex;
-
-              return (
-                <div
-                  key={item.id}
-                  style={{
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #d9d4c8',
-                    borderRadius: '10px',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {/* swatch tab — every card carries a corner of the strip above */}
-                  <div style={{ height: '5px', backgroundColor: chipColor }} />
-
-                  <div className="aspect-square" style={{ backgroundColor: '#f1efe9' }}>
-                    {imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={imageUrl}
-                        alt={item.name}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-3xl" style={{ color: '#c7c2b4' }}>
-                        🖌️
-                      </div>
-                    )}
-                  </div>
-
-                  <div style={{ padding: '10px' }}>
-                    <p
-                      className={robotoSlab.className}
-                      style={{ margin: 0, fontWeight: 700, fontSize: '13px', color: INK, lineHeight: 1.3 }}
-                    >
-                      {item.name}
-                    </p>
-                    {description && (
-                      <p
-                        className="line-clamp-2"
-                        style={{ margin: '4px 0 0', fontSize: '11px', color: MUTED, lineHeight: 1.4 }}
-                      >
-                        {description}
-                      </p>
-                    )}
-                    {item.price != null && (
-                      <p style={{ margin: '6px 0 0', fontSize: '14px', fontWeight: 700, color: INK }}>
-                        {priceFormatter.format(item.price)}
-                      </p>
-                    )}
-
-                    {cartQty === 0 ? (
-                      <button
-                        onClick={() => addToCart({
-                          id: item.id,
-                          name: item.name,
-                          price: item.price ?? 0,
-                          image: imageUrl ?? undefined,
-                        })}
-                        aria-label={`${getText('Agregar', 'Add')} ${item.name}`}
-                        className="mt-2 block w-full rounded-full py-1.5 text-center text-xs font-semibold text-white transition hover:opacity-90"
-                        style={{ backgroundColor: accent }}
-                      >
-                        + {getText('Agregar', 'Add')}
-                      </button>
-                    ) : (
-                      <div className="mt-2 flex items-center justify-between gap-1">
-                        <button
-                          onClick={() => removeFromCart(item.id)}
-                          aria-label={`${getText('Quitar', 'Remove')} ${item.name}`}
-                          className="flex h-7 w-7 items-center justify-center rounded-md text-sm font-bold"
-                          style={{ backgroundColor: '#f0ede4', color: INK }}
-                        >
-                          −
-                        </button>
-                        <span className="text-sm font-bold" style={{ color: INK }}>
-                          {cartQty}
-                        </span>
-                        <button
-                          onClick={() => addToCart({
-                            id: item.id,
-                            name: item.name,
-                            price: item.price ?? 0,
-                            image: imageUrl ?? undefined,
-                          })}
-                          aria-label={`${getText('Agregar', 'Add')} ${item.name}`}
-                          className="flex h-7 w-7 items-center justify-center rounded-md text-sm font-bold text-white"
-                          style={{ backgroundColor: accent }}
-                        >
-                          +
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+            {visibleItems.map((item, i) => (
+              <ProductCard
+                key={item.id}
+                item={item}
+                chipColor={SWATCHES[i % SWATCHES.length].hex}
+                cartQty={cart.find((e) => e.item.id === item.id)?.qty ?? 0}
+                accent={accent}
+                language={language}
+                getText={getText}
+                addToCart={addToCart}
+                removeFromCart={removeFromCart}
+              />
+            ))}
           </div>
         )}
       </main>
@@ -385,6 +297,152 @@ export function RetailTemplate({
 }
 
 // ── SUB-COMPONENTS ──────────────────────────────────────────────────────────
+
+function ProductCard({
+  item,
+  chipColor,
+  cartQty,
+  accent,
+  language,
+  getText,
+  addToCart,
+  removeFromCart,
+}: {
+  item: PublicTemplateProps['items'][number];
+  chipColor: string;
+  cartQty: number;
+  accent: string;
+  language: 'es' | 'en';
+  getText: (es: string, en: string) => string;
+  addToCart: (item: { id: string; name: string; price: number; image?: string }) => void;
+  removeFromCart: (itemId: string) => void;
+}) {
+  const imageUrl = item.imageUrl ?? item.image_url;
+  const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
+  const [expanded, setExpanded] = useState(false);
+  const [isClamped, setIsClamped] = useState(false);
+  const descRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const el = descRef.current;
+    if (el) setIsClamped(el.scrollHeight > el.clientHeight + 1);
+  }, [description]);
+
+  return (
+    <div
+      style={{
+        backgroundColor: '#ffffff',
+        border: '1px solid #d9d4c8',
+        borderRadius: '10px',
+        overflow: 'hidden',
+      }}
+    >
+      {/* swatch tab — every card carries a corner of the strip above */}
+      <div style={{ height: '5px', backgroundColor: chipColor }} />
+
+      <div className="aspect-square" style={{ backgroundColor: '#f1efe9' }}>
+        {imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={imageUrl}
+            alt={item.name}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center text-3xl" style={{ color: '#c7c2b4' }}>
+            🖌️
+          </div>
+        )}
+      </div>
+
+      <div style={{ padding: '10px' }}>
+        <p
+          className={robotoSlab.className}
+          style={{ margin: 0, fontWeight: 700, fontSize: '13px', color: INK, lineHeight: 1.3 }}
+        >
+          {item.name}
+        </p>
+        {description && (
+          <>
+            <p
+              ref={descRef}
+              className={expanded ? undefined : 'line-clamp-2'}
+              style={{ margin: '4px 0 0', fontSize: '11px', color: MUTED, lineHeight: 1.4 }}
+            >
+              {description}
+            </p>
+            {isClamped && (
+              <button
+                type="button"
+                onClick={() => setExpanded((v) => !v)}
+                style={{
+                  marginTop: '2px',
+                  padding: 0,
+                  border: 'none',
+                  background: 'none',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  color: accent,
+                  cursor: 'pointer',
+                }}
+              >
+                {expanded ? getText('Ver menos', 'Show less') : getText('Ver más', 'Show more')}
+              </button>
+            )}
+          </>
+        )}
+        {item.price != null && (
+          <p style={{ margin: '6px 0 0', fontSize: '14px', fontWeight: 700, color: INK }}>
+            {priceFormatter.format(item.price)}
+          </p>
+        )}
+
+        {cartQty === 0 ? (
+          <button
+            onClick={() => addToCart({
+              id: item.id,
+              name: item.name,
+              price: item.price ?? 0,
+              image: imageUrl ?? undefined,
+            })}
+            aria-label={`${getText('Agregar', 'Add')} ${item.name}`}
+            className="mt-2 block w-full rounded-full py-1.5 text-center text-xs font-semibold text-white transition hover:opacity-90"
+            style={{ backgroundColor: accent }}
+          >
+            + {getText('Agregar', 'Add')}
+          </button>
+        ) : (
+          <div className="mt-2 flex items-center justify-between gap-1">
+            <button
+              onClick={() => removeFromCart(item.id)}
+              aria-label={`${getText('Quitar', 'Remove')} ${item.name}`}
+              className="flex h-7 w-7 items-center justify-center rounded-md text-sm font-bold"
+              style={{ backgroundColor: '#f0ede4', color: INK }}
+            >
+              −
+            </button>
+            <span className="text-sm font-bold" style={{ color: INK }}>
+              {cartQty}
+            </span>
+            <button
+              onClick={() => addToCart({
+                id: item.id,
+                name: item.name,
+                price: item.price ?? 0,
+                image: imageUrl ?? undefined,
+              })}
+              aria-label={`${getText('Agregar', 'Add')} ${item.name}`}
+              className="flex h-7 w-7 items-center justify-center rounded-md text-sm font-bold text-white"
+              style={{ backgroundColor: accent }}
+            >
+              +
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function ChipTab({
   label,

@@ -15,7 +15,7 @@
 // when `business.timezone` is set AND at least one item has periods/
 // weekDays populated; otherwise the full menu shows with no filter, so a
 // business without that data configured never sees a confusing empty view.
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Fraunces, Inter } from 'next/font/google';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
@@ -749,6 +749,14 @@ function MenuCard({
   const imageUrl = item.imageUrl ?? item.image_url;
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
+  const [expanded, setExpanded] = useState(false);
+  const [isClamped, setIsClamped] = useState(false);
+  const descRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const el = descRef.current;
+    if (el) setIsClamped(el.scrollHeight > el.clientHeight + 1);
+  }, [description]);
 
   return (
     <div
@@ -872,17 +880,38 @@ function MenuCard({
             )}
           </div>
           {description && (
-            <p
-              className="line-clamp-2"
-              style={{
-                margin: '4px 0 0',
-                fontSize: '12px',
-                color: MUTED,
-                lineHeight: 1.5,
-              }}
-            >
-              {description}
-            </p>
+            <>
+              <p
+                ref={descRef}
+                className={expanded ? undefined : 'line-clamp-2'}
+                style={{
+                  margin: '4px 0 0',
+                  fontSize: '12px',
+                  color: MUTED,
+                  lineHeight: 1.5,
+                }}
+              >
+                {description}
+              </p>
+              {isClamped && (
+                <button
+                  type="button"
+                  onClick={() => setExpanded((v) => !v)}
+                  style={{
+                    marginTop: '2px',
+                    padding: 0,
+                    border: 'none',
+                    background: 'none',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: accent,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {expanded ? getText('Ver menos', 'Show less') : getText('Ver más', 'Show more')}
+                </button>
+              )}
+            </>
           )}
         </div>
 

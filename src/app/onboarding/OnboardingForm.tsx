@@ -161,7 +161,7 @@ export function OnboardingForm() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 px-6">
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
-          <h1 className="text-3xl font-bold tracking-tight">Crea tu espacio</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-neutral-900">Crea tu espacio</h1>
           <p className="mt-2 text-sm text-neutral-500">Unos segundos y estás en línea.</p>
         </div>
 
@@ -304,7 +304,7 @@ export function OnboardingForm() {
                 inputMode="tel"
                 autoFocus
                 value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
+                onChange={(e) => setWhatsapp(e.target.value.replace(/\D/g, ''))}
                 placeholder="18095551234"
                 maxLength={20}
                 className="mt-2 w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm focus:border-neutral-400 focus:outline-none"
