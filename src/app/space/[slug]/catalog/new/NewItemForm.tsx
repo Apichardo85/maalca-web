@@ -23,6 +23,17 @@ const FLAG_OPTIONS = [
   ['glutenFree', '🌾 Sin gluten'],
 ] as const;
 
+/** businessType comes straight from the backend's PascalCase enum (e.g. "Restaurant") —
+ *  matches the isRestaurant check below. Falls back to a neutral placeholder for
+ *  business types without a specific example yet (Creator/Publisher/Professional). */
+const NAME_PLACEHOLDERS: Record<string, string> = {
+  Restaurant: 'Ej. Mofongo con camarones',
+  Barber: 'Ej. Corte de cabello',
+  Service: 'Ej. Consulta inicial',
+  Retail: 'Ej. Aretes de plata 925',
+};
+const DEFAULT_NAME_PLACEHOLDER = 'Ej. Nombre del item';
+
 function CameraIcon() {
   return (
     <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -34,6 +45,7 @@ function CameraIcon() {
 
 export default function NewItemForm({ slug, businessType }: Props) {
   const isRestaurant = businessType === 'Restaurant';
+  const namePlaceholder = (businessType && NAME_PLACEHOLDERS[businessType]) || DEFAULT_NAME_PLACEHOLDER;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -191,7 +203,7 @@ export default function NewItemForm({ slug, businessType }: Props) {
               onChange={set('name')}
               required
               maxLength={80}
-              placeholder="Ej. Corte Clásico"
+              placeholder={namePlaceholder}
               className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-neutral-500 focus:border-neutral-400 dark:focus:border-neutral-500 focus:outline-none"
             />
           </div>
