@@ -4,11 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { getPlanLimits, type Plan } from '@/lib/plan-limits';
+import { matchesCatalogQuery } from '@/lib/catalog-search';
 import { SpaceTopBarControls } from '@/components/space/SpaceTopBarControls';
-
-function normalize(value: string): string {
-  return value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
-}
 
 interface CatalogItem {
   id: string;
@@ -35,14 +32,7 @@ export function CatalogView({ slug, plan, items, productCount }: Props) {
   const realItems = items.filter((i) => !i.isDemo);
 
   const [query, setQuery] = useState('');
-  const normalizedQuery = normalize(query.trim());
-  const filteredRealItems = normalizedQuery
-    ? realItems.filter(
-        (item) =>
-          normalize(item.name).includes(normalizedQuery) ||
-          (item.category && normalize(item.category).includes(normalizedQuery)),
-      )
-    : realItems;
+  const filteredRealItems = realItems.filter((item) => matchesCatalogQuery(query, [item.name, item.category]));
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">

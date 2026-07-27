@@ -26,6 +26,7 @@ import { AboutSection } from '@/components/public/AboutSection';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { MEAL_PERIOD_LABELS, MEAL_PERIOD_ORDER } from '@/lib/menu-availability';
+import { matchesCatalogQuery } from '@/lib/catalog-search';
 import type { MealPeriod, WeekDay } from '@/lib/types';
 
 // Scoped to this template only — Fraunces italic gives names/Destacados a
@@ -165,6 +166,12 @@ export function RestaurantTemplate({
   const [activePeriod, setActivePeriod] = useState<string>(
     vistaHoyAvailable && nowInfo ? nowInfo.period : ALL_PERIODS,
   );
+  const [query, setQuery] = useState('');
+  const searchActive = query.trim().length > 0;
+
+  function clearSearch() {
+    setQuery('');
+  }
 
   function clearVistaHoy() {
     setVistaHoyActive(false);
@@ -194,6 +201,10 @@ export function RestaurantTemplate({
     return item.periods.includes(activePeriod as MealPeriod);
   }
 
+  function matchesQuery(item: (typeof items)[number]): boolean {
+    return matchesCatalogQuery(query, [item.name, item.category]);
+  }
+
   function itemsFor(tab: string): typeof items {
     const catId = categoriesProp.find((c) => c.name === tab)?.id;
     const base =
@@ -202,11 +213,15 @@ export function RestaurantTemplate({
         : items.filter(
             (i) => (catId !== undefined && i.category_id === catId) || i.category === tab,
           );
-    return base.filter(matchesPeriod).filter(matchesWeekday);
+    return base.filter(matchesPeriod).filter(matchesWeekday).filter(matchesQuery);
   }
 
+  // While searching, a per-category breakdown reads as sparse/confusing for a
+  // handful of cross-category matches — show one flat matched list instead.
   const groupedForAll: Array<{ categoryName: string; groupItems: typeof items }> =
-    categoryNames.length > 0
+    searchActive
+      ? []
+      : categoryNames.length > 0
       ? categoryNames
           .map((name) => ({ categoryName: name, groupItems: itemsFor(name) }))
           .filter((g) => g.groupItems.length > 0)
@@ -433,6 +448,65 @@ export function RestaurantTemplate({
 
       <AboutSection description={business.description} descriptionEn={business.descriptionEn} maxWidth="960px" language={language} />
 
+      {/* ── SEARCH — independent of category tabs so it's still there for a
+          business with no categories set up yet ── */}
+      {items.length > 0 && (
+        <div style={{ maxWidth: '960px', margin: '0 auto', padding: '20px 24px 0' }}>
+          <div style={{ position: 'relative' }}>
+            <span
+              style={{
+                position: 'absolute',
+                left: '14px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                fontSize: '15px',
+                color: MUTED,
+                pointerEvents: 'none',
+              }}
+            >
+              🔍
+            </span>
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={getText('Buscar en el menú...', 'Search the menu...')}
+              style={{
+                width: '100%',
+                padding: '10px 14px 10px 38px',
+                fontSize: '14px',
+                borderRadius: '12px',
+                border: '1px solid #e8ddc9',
+                backgroundColor: '#ffffff',
+                color: CAFE,
+                outline: 'none',
+              }}
+            />
+            {searchActive && (
+              <button
+                type="button"
+                onClick={clearSearch}
+                aria-label={getText('Borrar búsqueda', 'Clear search')}
+                style={{
+                  position: 'absolute',
+                  right: '10px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  color: MUTED,
+                  fontSize: '16px',
+                  cursor: 'pointer',
+                  padding: '4px',
+                }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ── NAV TABS ── */}
       {categoryNames.length > 0 && (
         <div
@@ -575,9 +649,9 @@ export function RestaurantTemplate({
               {getText('El menú estará disponible pronto.', 'The menu will be available soon.')}
             </p>
           </div>
-        ) : activeTab === ALL_TAB ? (
+        ) : activeTab === ALL_TAB && !searchActive ? (
           groupedForAll.length === 0 ? (
-            <EmptyFilterState getText={getText} vistaHoyActive={vistaHoyActive} onClearVistaHoy={clearVistaHoy} />
+            <EmptyFilterState getText={getText} vistaHoyActive={vistaHoyActive} onClearVistaHoy={clearVistaHoy} searchActive={searchActive} onClearSearch={clearSearch} />
           ) : (
             groupedForAll.map(({ categoryName, groupItems }) => (
               <div key={categoryName || '__ungrouped__'} style={{ marginBottom: '32px' }}>
@@ -607,7 +681,7 @@ export function RestaurantTemplate({
             ))
           )
         ) : visibleItems.length === 0 ? (
-          <EmptyFilterState getText={getText} vistaHoyActive={vistaHoyActive} onClearVistaHoy={clearVistaHoy} />
+          <EmptyFilterState getText={getText} vistaHoyActive={vistaHoyActive} onClearVistaHoy={clearVistaHoy} searchActive={searchActive} onClearSearch={clearSearch} />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {visibleItems.map((item) => {
@@ -683,10 +757,14 @@ function EmptyFilterState({
   getText,
   vistaHoyActive,
   onClearVistaHoy,
+  searchActive,
+  onClearSearch,
 }: {
   getText: (es: string, en: string) => string;
   vistaHoyActive: boolean;
   onClearVistaHoy: () => void;
+  searchActive?: boolean;
+  onClearSearch?: () => void;
 }) {
   return (
     <div
@@ -701,11 +779,30 @@ function EmptyFilterState({
     >
       <span style={{ fontSize: '32px' }}>🍽️</span>
       <p style={{ marginTop: '12px', fontSize: '14px', color: MUTED }}>
-        {vistaHoyActive
+        {searchActive
+          ? getText('No hay platos que coincidan con tu búsqueda.', 'No dishes match your search.')
+          : vistaHoyActive
           ? getText('No hay platos disponibles para este momento.', 'No dishes available right now.')
           : getText('No hay platos para este filtro.', 'No dishes match this filter.')}
       </p>
-      {vistaHoyActive && (
+      {searchActive ? (
+        <button
+          onClick={onClearSearch}
+          style={{
+            marginTop: '10px',
+            background: 'none',
+            border: 'none',
+            color: TERRACOTA,
+            fontSize: '13px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            textDecoration: 'underline',
+            padding: 0,
+          }}
+        >
+          {getText('Borrar búsqueda', 'Clear search')}
+        </button>
+      ) : vistaHoyActive && (
         <button
           onClick={onClearVistaHoy}
           style={{
