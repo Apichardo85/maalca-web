@@ -2,8 +2,15 @@
 
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { SpaceTopBarControls } from '@/components/space/SpaceTopBarControls';
+import { KpiTile, type SpaceKpis } from '@/components/space/KpiTile';
+import type { Plan } from '@/lib/plan-limits';
 
-export function StatsContent() {
+interface Props {
+  kpis: SpaceKpis;
+  plan: Plan;
+}
+
+export function StatsContent({ kpis, plan }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
 
@@ -22,18 +29,35 @@ export function StatsContent() {
           <SpaceTopBarControls />
         </div>
 
-        <div className="mt-8 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-8 text-center shadow-sm">
-          <span className="text-3xl">📊</span>
-          <p className="mt-3 text-sm font-semibold text-gray-900 dark:text-white">
-            {getText('Muy pronto', 'Coming soon')}
-          </p>
-          <p className="mt-1 text-sm text-gray-500 dark:text-neutral-400">
+        {/* Same KpiTile cards as the Dashboard's own KPI row — same data, same component. */}
+        <section className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <KpiTile
+            label={getText('Visitas a mi página', 'Visits to my page')}
+            value={kpis.visitas.disponible ? String(kpis.visitas.valor) : null}
+          />
+          <KpiTile
+            label={getText('Items publicados', 'Published items')}
+            value={kpis.itemsPublicados.disponible ? String(kpis.itemsPublicados.valor) : null}
+            suffix={plan === 'free' ? ' / 10' : undefined}
+          />
+          <KpiTile
+            label={getText('Escaneos de QR', 'QR scans')}
+            value={kpis.escaneosQr.disponible ? String(kpis.escaneosQr.valor) : null}
+          />
+          <KpiTile
+            label={getText('Clics a canales', 'Channel clicks')}
+            value={kpis.clicsCanales.disponible ? String(kpis.clicsCanales.valor) : null}
+          />
+        </section>
+
+        {(!kpis.visitas.disponible || !kpis.escaneosQr.disponible || !kpis.clicsCanales.disponible) && (
+          <p className="mt-4 text-xs text-gray-400 dark:text-neutral-600">
             {getText(
-              'Aquí verás visitas a tu página, escaneos de QR y clics a tus canales en cuanto estén conectados.',
-              "Here you'll see visits to your page, QR scans, and clicks to your channels once they're wired up.",
+              'Las métricas marcadas "Próximamente" se activan a medida que se conectan.',
+              'Metrics marked "Coming soon" turn on as they get wired up.',
             )}
           </p>
-        </div>
+        )}
       </div>
     </div>
   );

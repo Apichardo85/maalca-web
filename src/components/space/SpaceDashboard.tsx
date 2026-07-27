@@ -14,6 +14,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { SpaceTopBarControls } from './SpaceTopBarControls';
 import { CreatingSpaceAnimation } from './CreatingSpaceAnimation';
 import { UpgradeModal } from './UpgradeModal';
+import { KpiTile, type SpaceKpis } from './KpiTile';
 
 interface Business {
   id: string;
@@ -28,18 +29,6 @@ interface Business {
 
 const KNOWN_MODULES = ['catalog', 'page', 'metrics'] as const;
 type ModuleKey = typeof KNOWN_MODULES[number];
-
-interface SpaceKpi {
-  valor: number | null;
-  disponible: boolean;
-}
-
-interface SpaceKpis {
-  visitas: SpaceKpi;
-  itemsPublicados: SpaceKpi;
-  escaneosQr: SpaceKpi;
-  clicsCanales: SpaceKpi;
-}
 
 interface CatalogItem {
   id: string;
@@ -599,37 +588,6 @@ function ChecklistItem({ done, label, description, href, onClick, cta }: Checkli
   if (href) return <Link href={href}>{Inner}</Link>;
   if (onClick) return <button onClick={onClick} className="block w-full text-left">{Inner}</button>;
   return Inner;
-}
-
-interface KpiTileProps {
-  label: string;
-  /** null renders a "Próximamente" state instead of a fabricated number. */
-  value: string | null;
-  suffix?: string;
-}
-
-function KpiTile({ label, value, suffix }: KpiTileProps) {
-  const { language } = useSimpleLanguage();
-
-  return (
-    <div className="relative bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200/70 dark:border-neutral-800 p-5 shadow-sm">
-      <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500 mb-1">
-        {label}
-      </p>
-      {value === null ? (
-        <p className="text-sm font-semibold text-gray-400 dark:text-neutral-500">
-          {language === 'es' ? 'Próximamente' : 'Coming soon'}
-        </p>
-      ) : (
-        <p className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums">
-          {value}
-          {suffix && (
-            <span className="text-sm font-normal text-neutral-400 dark:text-neutral-500">{suffix}</span>
-          )}
-        </p>
-      )}
-    </div>
-  );
 }
 
 interface ModuleCardProps {
