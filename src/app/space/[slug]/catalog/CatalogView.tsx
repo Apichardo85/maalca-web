@@ -254,7 +254,7 @@ function ItemRow({
         )}
       </div>
       <Link
-        href={`/space/${slug}/catalog/${item.id}/edit`}
+        href={`/space/${slug}/catalog/${item.id}/edit?from=catalog`}
         className="ml-4 flex-shrink-0 text-xs font-medium text-gray-400 dark:text-neutral-500 transition hover:text-gray-900 dark:hover:text-white"
       >
         {getText('Editar →', 'Edit →')}

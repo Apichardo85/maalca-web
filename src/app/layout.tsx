@@ -91,8 +91,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" data-theme="dark" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning>
       <head>
+        {/* Blocking, runs before first paint — sets data-theme from the
+            saved preference (or system preference) so every screen loads in
+            the right theme from the start, not just after ThemeToggle's
+            post-hydration effect corrects it. Must stay inline/synchronous;
+            a useEffect would flash the wrong theme first. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme');var d=window.matchMedia('(prefers-color-scheme: dark)').matches;if(t==='dark'||(!t&&d)){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();`,
+          }}
+        />
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link

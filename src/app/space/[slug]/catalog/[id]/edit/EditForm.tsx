@@ -33,6 +33,8 @@ interface Props {
   item: Item;
   /** Gates the Restaurant-only fields (periods/weekDays/flags/featured/popular). */
   businessType: string | null;
+  /** Where "Volver" should go back to — set via ?from= by the link that got us here. */
+  from?: string;
 }
 
 const FLAG_OPTIONS = [
@@ -61,10 +63,11 @@ function CameraIcon() {
   );
 }
 
-export default function EditForm({ slug, item, businessType }: Props) {
+export default function EditForm({ slug, item, businessType, from }: Props) {
   const router = useRouter();
   const isRestaurant = businessType === 'Restaurant';
   const namePlaceholder = (businessType && NAME_PLACEHOLDERS[businessType]) || DEFAULT_NAME_PLACEHOLDER;
+  const backHref = from === 'catalog' ? `/space/${slug}/catalog` : `/space/${slug}`;
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [planLimitReached, setPlanLimitReached] = useState(false);
@@ -199,7 +202,7 @@ export default function EditForm({ slug, item, businessType }: Props) {
     <main className="min-h-screen bg-neutral-50 dark:bg-neutral-950 py-12 px-4">
       <div className="mx-auto max-w-md">
         <div className="mb-6 flex items-center gap-3">
-          <Link href={`/space/${slug}`} className="text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-white">
+          <Link href={backHref} className="text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-white">
             ← Volver
           </Link>
           <h1 className="text-xl font-semibold text-gray-900 dark:text-white">

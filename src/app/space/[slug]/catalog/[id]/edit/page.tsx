@@ -6,10 +6,12 @@ const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 interface PageProps {
   params: Promise<{ slug: string; id: string }>;
+  searchParams: Promise<{ from?: string }>;
 }
 
-export default async function EditCatalogItemPage({ params }: PageProps) {
+export default async function EditCatalogItemPage({ params, searchParams }: PageProps) {
   const { slug, id } = await params;
+  const { from } = await searchParams;
   const token = await getMaalcaApiToken();
   if (!token) redirect('/login');
 
@@ -54,5 +56,5 @@ export default async function EditCatalogItemPage({ params }: PageProps) {
     popular:     raw.popular ?? false,
   };
 
-  return <EditForm slug={slug} item={item} businessType={businessType} />;
+  return <EditForm slug={slug} item={item} businessType={businessType} from={from} />;
 }
