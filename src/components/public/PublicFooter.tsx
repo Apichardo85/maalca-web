@@ -15,24 +15,33 @@ interface Props {
   language?: 'es' | 'en';
 }
 
-const WEEK_DAY_ORDER = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+// Matches HorarioDayDto.dia values, which come from the backend's
+// DiaSemanaTokens.Whitelist (lunes/martes/miercoles/jueves/viernes/sabado/
+// domingo, no accents) — not English weekday names.
+const WEEK_DAY_ORDER = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
 const WEEK_DAY_LABELS_ES: Record<string, string> = {
-  monday: 'Lunes', tuesday: 'Martes', wednesday: 'Miércoles', thursday: 'Jueves',
-  friday: 'Viernes', saturday: 'Sábado', sunday: 'Domingo',
+  lunes: 'Lunes', martes: 'Martes', miercoles: 'Miércoles', jueves: 'Jueves',
+  viernes: 'Viernes', sabado: 'Sábado', domingo: 'Domingo',
 };
 const WEEK_DAY_LABELS_EN: Record<string, string> = {
-  monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday', thursday: 'Thursday',
-  friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday',
+  lunes: 'Monday', martes: 'Tuesday', miercoles: 'Wednesday', jueves: 'Thursday',
+  viernes: 'Friday', sabado: 'Saturday', domingo: 'Sunday',
+};
+const EN_TO_ES_DAY: Record<string, string> = {
+  monday: 'lunes', tuesday: 'martes', wednesday: 'miercoles', thursday: 'jueves',
+  friday: 'viernes', saturday: 'sabado', sunday: 'domingo',
 };
 
 /** Weekday AS SEEN IN the given IANA timezone, via Intl.DateTimeFormat — not the
- *  visitor's local day, which would be wrong for a business hours display. Returns
- *  null for a missing/invalid timezone so the caller can skip the "today" line. */
+ *  visitor's local day, which would be wrong for a business hours display. Intl
+ *  only gives us the day in English reliably; mapped to the Spanish key used by
+ *  HorarioDayDto.dia so callers can match it directly. Returns null for a
+ *  missing/invalid timezone so the caller can skip the "today" line. */
 function todayInTimezone(timezone: string | null | undefined): string | null {
   if (!timezone) return null;
   try {
     const weekday = new Intl.DateTimeFormat('en-US', { timeZone: timezone, weekday: 'long' }).format(new Date());
-    return weekday.toLowerCase();
+    return EN_TO_ES_DAY[weekday.toLowerCase()] ?? null;
   } catch {
     return null;
   }

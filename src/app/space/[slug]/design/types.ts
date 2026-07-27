@@ -37,9 +37,10 @@ export interface FaqEntryDto {
   answer: string;
 }
 
-/** `dia` uses the same lowercase weekday keys as the rest of the app's WeekDay type
- *  (monday..sunday) — the PATCH /content contract only specifies `dia: string`, so this
- *  is the one existing day-key convention in the codebase rather than a new one. */
+/** `dia` must match the backend's DiaSemanaTokens.Whitelist exactly: lunes,
+ *  martes, miercoles, jueves, viernes, sabado, domingo (Spanish, no accents)
+ *  — NOT the app's WeekDay type (monday..sunday), which is a separate,
+ *  English-keyed convention used only by the menu-item scheduling system. */
 export interface HorarioDayDto {
   dia: string;
   abre: string;

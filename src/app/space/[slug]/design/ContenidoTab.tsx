@@ -5,14 +5,18 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { parseApiError } from '@/lib/api-errors';
 import type { ProcessStepDto, FaqEntryDto, HorarioDayDto } from './types';
 
+// `key` is what gets sent as HorarioDayDto.dia — must match the backend's
+// DiaSemanaTokens.Whitelist exactly (lunes/martes/miercoles/jueves/viernes/
+// sabado/domingo, no accents), not the English WeekDay keys the menu-item
+// system uses. `es`/`en` are display-only.
 const WEEK_DAYS: { key: string; es: string; en: string }[] = [
-  { key: 'monday', es: 'Lunes', en: 'Monday' },
-  { key: 'tuesday', es: 'Martes', en: 'Tuesday' },
-  { key: 'wednesday', es: 'Miércoles', en: 'Wednesday' },
-  { key: 'thursday', es: 'Jueves', en: 'Thursday' },
-  { key: 'friday', es: 'Viernes', en: 'Friday' },
-  { key: 'saturday', es: 'Sábado', en: 'Saturday' },
-  { key: 'sunday', es: 'Domingo', en: 'Sunday' },
+  { key: 'lunes', es: 'Lunes', en: 'Monday' },
+  { key: 'martes', es: 'Martes', en: 'Tuesday' },
+  { key: 'miercoles', es: 'Miércoles', en: 'Wednesday' },
+  { key: 'jueves', es: 'Jueves', en: 'Thursday' },
+  { key: 'viernes', es: 'Viernes', en: 'Friday' },
+  { key: 'sabado', es: 'Sábado', en: 'Saturday' },
+  { key: 'domingo', es: 'Domingo', en: 'Sunday' },
 ];
 
 /** Always renders exactly 7 rows (Monday-Sunday), seeding sensible defaults
