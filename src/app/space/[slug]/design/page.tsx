@@ -46,6 +46,7 @@ export default async function DesignPage({
   // against it failing anyway so a fetch failure can never silently wipe real saved data.
   let publicProfile: {
     description: string | null;
+    descriptionEn: string | null;
     coverImageUrl: string | null;
     contactEmail: string | null;
     address: string | null;
@@ -62,6 +63,7 @@ export default async function DesignPage({
       const p = await publicRes.json();
       publicProfile = {
         description: p.description ?? null,
+        descriptionEn: p.descriptionEn ?? null,
         coverImageUrl: p.coverImageUrl ?? null,
         contactEmail: p.contactEmail ?? null,
         address: p.address ?? null,
@@ -93,6 +95,7 @@ export default async function DesignPage({
       primaryColor={biz.primaryColor ?? '#C8102E'}
       profileLoaded={publicProfile !== null}
       description={publicProfile?.description ?? ''}
+      descriptionEn={publicProfile?.descriptionEn ?? ''}
       coverImageUrl={publicProfile?.coverImageUrl ?? null}
       contactEmail={publicProfile?.contactEmail ?? ''}
       address={publicProfile?.address ?? ''}

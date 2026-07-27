@@ -42,6 +42,8 @@ export interface PublicTemplateProps {
     name: string;
     plan: Plan;
     description?: string | null;
+    /** English translation of `description`, shown to visitors with English selected. */
+    descriptionEn?: string | null;
     logo_url?: string | null;
     cover_image_url?: string | null;
     primary_color?: string | null;

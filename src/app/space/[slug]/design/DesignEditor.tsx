@@ -27,6 +27,7 @@ interface Props {
   primaryColor: string;
   profileLoaded: boolean;
   description: string;
+  descriptionEn: string;
   coverImageUrl: string | null;
   contactEmail: string;
   address: string;
@@ -49,6 +50,7 @@ export function DesignEditor({
   primaryColor,
   profileLoaded,
   description,
+  descriptionEn,
   coverImageUrl,
   contactEmail,
   address,
@@ -72,7 +74,7 @@ export function DesignEditor({
   );
 
   const initialForm: ProfileFormState = {
-    name, description, whatsapp, contactEmail, address, website, primaryColor, logoUrl, coverImageUrl,
+    name, description, descriptionEn, whatsapp, contactEmail, address, website, primaryColor, logoUrl, coverImageUrl,
   };
 
   // liveForm updates on every keystroke/click/upload. previewSnapshot only updates for the

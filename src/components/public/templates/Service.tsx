@@ -255,12 +255,12 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
           >
             {getText('Servicios profesionales', 'Professional services')}
           </p>
-          {business.description && (
+          {(language === 'en' && business.descriptionEn ? business.descriptionEn : business.description) && (
             <p
               className={`${fraunces.className} mt-3 max-w-[38rem] text-[26px] font-medium leading-[1.35] lg:text-[30px]`}
               style={{ whiteSpace: 'pre-line' }}
             >
-              {business.description}
+              {language === 'en' && business.descriptionEn ? business.descriptionEn : business.description}
             </p>
           )}
 

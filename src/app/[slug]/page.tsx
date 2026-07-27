@@ -90,6 +90,7 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
           name: affiliate.name,
           plan: (affiliate.plan?.toLowerCase() ?? 'free') as Plan,
           description: affiliate.description,
+          descriptionEn: affiliate.descriptionEn ?? null,
           logo_url: affiliate.logoUrl,
           cover_image_url: affiliate.coverImageUrl ?? null,
           primary_color: affiliate.primaryColor,
@@ -118,6 +119,7 @@ interface PublicCatalogResponse {
     slug: string;
     name: string;
     description?: string | null;
+    descriptionEn?: string | null;
     businessType: string;
     plan: string;
     logoUrl?: string | null;

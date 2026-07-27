@@ -431,7 +431,7 @@ export function RestaurantTemplate({
         </section>
       )}
 
-      <AboutSection description={business.description} maxWidth="960px" language={language} />
+      <AboutSection description={business.description} descriptionEn={business.descriptionEn} maxWidth="960px" language={language} />
 
       {/* ── NAV TABS ── */}
       {categoryNames.length > 0 && (

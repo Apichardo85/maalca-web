@@ -212,6 +212,7 @@ export function ConfigTab({ slug, form, onChange, onCommit, onCommitAll, onGoToC
       {/* On-demand fields */}
       {textField('name', getText('Nombre del negocio', 'Business name'), { maxLength: 80 })}
       {textField('description', getText('Descripción', 'Description'), { textarea: true, maxLength: 500, placeholder: getText('Cuéntale a tus clientes de qué se trata tu negocio', 'Tell customers what your business is about') })}
+      {textField('descriptionEn', getText('Descripción (EN)', 'Description (EN)'), { textarea: true, maxLength: 500, placeholder: getText('Opcional — se muestra a visitantes con inglés seleccionado', 'Optional — shown to visitors with English selected') })}
       {/* WhatsApp is edited exclusively in the Canales tab now — kept in ProfileFormState/save payload as the legacy fallback field for public rendering. */}
       {textField('contactEmail', getText('Email de contacto', 'Contact email'), { type: 'email', placeholder: 'contacto@negocio.com', maxLength: 100 })}
       {textField('address', getText('Dirección', 'Address'), { maxLength: 150 })}

@@ -13,6 +13,7 @@ export interface CanalDto {
 export interface ProfileFormState {
   name: string;
   description: string;
+  descriptionEn: string;
   whatsapp: string;
   contactEmail: string;
   address: string;
@@ -23,7 +24,7 @@ export interface ProfileFormState {
 }
 
 /** Fields only reachable via the public-profile fallback fetch — gated on load/touch before submit. */
-export const GATED_FIELDS = ['description', 'logoUrl', 'coverImageUrl', 'contactEmail', 'address', 'website'] as const;
+export const GATED_FIELDS = ['description', 'descriptionEn', 'logoUrl', 'coverImageUrl', 'contactEmail', 'address', 'website'] as const;
 export type GatedField = typeof GATED_FIELDS[number];
 
 export interface ProcessStepDto {

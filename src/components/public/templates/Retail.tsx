@@ -202,7 +202,7 @@ export function RetailTemplate({
         ))}
       </div>
 
-      <AboutSection description={business.description} maxWidth="1080px" language={language} />
+      <AboutSection description={business.description} descriptionEn={business.descriptionEn} maxWidth="1080px" language={language} />
 
       {/* ── CATEGORY TABS — rendered as paint chips, cycling the swatch palette ── */}
       {categoryNames.length > 0 && (

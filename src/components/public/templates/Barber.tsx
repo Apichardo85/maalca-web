@@ -247,7 +247,7 @@ export function BarberTemplate({
         </div>
       </section>
 
-      <AboutSection description={business.description} maxWidth="1000px" language={language} />
+      <AboutSection description={business.description} descriptionEn={business.descriptionEn} maxWidth="1000px" language={language} />
 
       {/* ── NAV TABS — bold, condensed, underlined ── */}
       {categoryNames.length > 0 && (
