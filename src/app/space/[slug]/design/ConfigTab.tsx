@@ -25,6 +25,7 @@ interface Props {
   onChange: (key: keyof ProfileFormState, value: string | null) => void;
   onCommit: (key: keyof ProfileFormState) => void;
   onCommitAll: () => void;
+  onGoToContenido?: () => void;
 }
 
 async function uploadImage(slug: string, file: File, itemId: string): Promise<string> {
@@ -37,7 +38,7 @@ async function uploadImage(slug: string, file: File, itemId: string): Promise<st
   return data.url as string;
 }
 
-export function ConfigTab({ slug, form, onChange, onCommit, onCommitAll }: Props) {
+export function ConfigTab({ slug, form, onChange, onCommit, onCommitAll, onGoToContenido }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
 
@@ -216,12 +217,18 @@ export function ConfigTab({ slug, form, onChange, onCommit, onCommitAll }: Props
       {textField('address', getText('Dirección', 'Address'), { maxLength: 150 })}
       {textField('website', getText('Sitio web', 'Website'), { type: 'url', placeholder: 'https://...', maxLength: 150 })}
 
-      <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 p-3 text-xs text-amber-700 dark:text-amber-300">
-        {getText(
-          'Horario de atención — próximamente: podrás configurarlo desde aquí en una futura actualización.',
-          'Business hours — coming soon: you\'ll be able to set this from here in a future update.',
-        )}
-      </div>
+      {onGoToContenido && (
+        <button
+          type="button"
+          onClick={onGoToContenido}
+          className="w-full rounded-lg bg-amber-50 dark:bg-amber-900/20 p-3 text-left text-xs text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/30"
+        >
+          {getText(
+            'Horario de atención — se configura desde la pestaña Contenido →',
+            'Business hours — set this from the Content tab →',
+          )}
+        </button>
+      )}
 
       <button
         type="button"

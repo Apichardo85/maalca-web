@@ -366,8 +366,9 @@ export function RestaurantTemplate({
         </div>
       </section>
 
-      {/* ── DESTACADOS — signature element: featured/popular picks, capped
-          so the strip never turns into an endless carousel ── */}
+      {/* ── DESTACADOS — signature element: featured/popular picks, capped at
+          MAX_DESTACADOS and laid out as a wrapping grid (not a scroll
+          carousel) so no card ever gets cropped by a viewport edge ── */}
       {destacados.length > 0 && (
         <section style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 24px 0' }}>
           <h2
@@ -376,10 +377,7 @@ export function RestaurantTemplate({
           >
             {getText('Destacados', 'Highlights')}
           </h2>
-          <div
-            className="[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-            style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '4px' }}
-          >
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {destacados.map((item) => {
               const imageUrl = item.imageUrl ?? item.image_url;
               const isPopular = item.popular;
@@ -387,8 +385,6 @@ export function RestaurantTemplate({
                 <div
                   key={item.id}
                   style={{
-                    flexShrink: 0,
-                    width: '160px',
                     backgroundColor: '#ffffff',
                     border: '0.5px solid #ece2d3',
                     borderRadius: '14px',

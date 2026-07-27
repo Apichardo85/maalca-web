@@ -3,16 +3,27 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
 
-const EXCLUDED_PATHS = ["/dashboard", "/login", "/onboarding", "/editorial", "/space"];
+// Marketing pages that get this footer. Everything else — every dynamic business
+// slug, dashboard, /space, /editorial, /ciriwhispers (those two ship their own
+// EditorialFooter/CiriFooter via their own layout.tsx, so adding this one back
+// would double up) — renders nothing here by default.
+// /ecosistema is a permanent redirect to /casos (next.config.ts) — it never
+// actually renders as its own pathname, so it isn't listed separately here.
+const MARKETING_PATHS = [
+  "/",
+  "/casos",
+  "/casos-estudio",
+  "/docs",
+  "/servicios",
+  "/contacto",
+  "/privacidad",
+  "/terminos",
+];
 
 export default function Footer() {
   const pathname = usePathname();
   const { t } = useTranslation();
-  if (
-    pathname === '/ciriwhispers' ||
-    pathname.startsWith('/ciriwhispers/') ||
-    EXCLUDED_PATHS.some((p) => pathname.startsWith(p))
-  ) return null;
+  if (!MARKETING_PATHS.includes(pathname)) return null;
 
   const year = new Date().getFullYear();
 
