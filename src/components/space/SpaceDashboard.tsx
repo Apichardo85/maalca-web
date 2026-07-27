@@ -136,28 +136,6 @@ export function SpaceDashboard({
             MaalCa
           </Link>
           <div className="flex items-center gap-3">
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-medium ${
-                business.plan === 'free'
-                  ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300'
-                  : 'bg-[#C8102E]/10 text-[#C8102E]'
-              }`}
-            >
-              {business.plan === 'free'
-                ? getText('Plan Gratis', 'Free Plan')
-                : getText('Emprendedor', 'Entrepreneur')}
-            </span>
-            {business.plan === 'free' && (
-              <button
-                onClick={() => {
-                  track('upgrade_clicked', { source: 'header_badge', business_id: business.id });
-                  setShowUpgrade(true);
-                }}
-                className="text-xs font-medium text-[#C8102E] hover:underline"
-              >
-                {getText('Mejorar', 'Upgrade')}
-              </button>
-            )}
             <SpaceTopBarControls />
           </div>
         </div>
