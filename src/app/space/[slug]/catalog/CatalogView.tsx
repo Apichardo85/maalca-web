@@ -7,6 +7,8 @@ import { getPlanLimits, type Plan } from '@/lib/plan-limits';
 import { matchesCatalogQuery } from '@/lib/catalog-search';
 import { SpaceTopBarControls } from '@/components/space/SpaceTopBarControls';
 
+const ALL_TAB = '__all__';
+
 interface CatalogItem {
   id: string;
   name: string;
@@ -31,8 +33,26 @@ export function CatalogView({ slug, plan, items, productCount }: Props) {
   const demoItems = items.filter((i) => i.isDemo);
   const realItems = items.filter((i) => !i.isDemo);
 
+  // No canonical sort_order source today (unlike the public catalog's Category[] with
+  // sort_order) — alphabetical keeps the tab order predictable as items are added/removed.
+  const categoryNames = Array.from(
+    new Set(realItems.map((i) => i.category).filter((c): c is string => !!c)),
+  ).sort((a, b) => a.localeCompare(b));
+
+  const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [query, setQuery] = useState('');
-  const filteredRealItems = realItems.filter((item) => matchesCatalogQuery(query, [item.name, item.category]));
+
+  function itemsFor(tab: string): CatalogItem[] {
+    const base = tab === ALL_TAB ? realItems : realItems.filter((i) => i.category === tab);
+    return base.filter((item) => matchesCatalogQuery(query, [item.name, item.category]));
+  }
+
+  const filteredRealItems = itemsFor(activeTab);
+
+  function clearFilters() {
+    setActiveTab(ALL_TAB);
+    setQuery('');
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
@@ -61,19 +81,6 @@ export function CatalogView({ slug, plan, items, productCount }: Props) {
             {getText('+ Agregar item', '+ Add item')}
           </Link>
         </div>
-
-        {/* Search */}
-        {realItems.length > 0 && (
-          <div className="mt-6">
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={getText('Buscar por nombre o categoría...', 'Search by name or category...')}
-              className="w-full rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-[#C8102E]/40"
-            />
-          </div>
-        )}
 
         {/* Empty state */}
         {items.length === 0 && (
@@ -110,7 +117,7 @@ export function CatalogView({ slug, plan, items, productCount }: Props) {
           </section>
         )}
 
-        {/* Real items */}
+        {/* Real items — the only section with tabs/search; demo items above stay unfiltered. */}
         {realItems.length > 0 && (
           <section className={demoItems.length > 0 ? 'mt-6' : 'mt-8'}>
             {demoItems.length > 0 && (
@@ -118,12 +125,52 @@ export function CatalogView({ slug, plan, items, productCount }: Props) {
                 {getText('Mis items', 'My items')}
               </p>
             )}
+
+            {categoryNames.length > 0 && (
+              <div className="-mx-1 mb-3 flex gap-2 overflow-x-auto px-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {[
+                  { key: ALL_TAB, label: getText('Todos', 'All') },
+                  ...categoryNames.map((name) => ({ key: name, label: name })),
+                ].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setActiveTab(key)}
+                    className={`flex-shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
+                      activeTab === key
+                        ? 'bg-[#C8102E] text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={getText('Buscar por nombre o categoría...', 'Search by name or category...')}
+              className="mb-3 w-full rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-[#C8102E]/40"
+            />
+
             {filteredRealItems.length === 0 ? (
               <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 text-center text-sm text-gray-500 dark:text-neutral-400">
-                {getText(
-                  'No se encontraron items para tu búsqueda.',
-                  'No items found for your search.',
-                )}
+                <p>
+                  {getText(
+                    'No se encontraron items para este filtro.',
+                    'No items found for this filter.',
+                  )}
+                </p>
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="mt-2 text-xs font-medium text-[#C8102E] hover:underline"
+                >
+                  {getText('Quitar filtros', 'Clear filters')}
+                </button>
               </div>
             ) : (
               <div className="space-y-2">
