@@ -400,7 +400,7 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
           </p>
         ) : (
           <>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <div ref={pickerRef} className="relative flex-shrink-0">
                 <button
                   type="button"

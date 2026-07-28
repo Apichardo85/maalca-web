@@ -147,11 +147,11 @@ export function RetailTemplate({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '26px',
+                color: '#ffffff',
                 marginBottom: '14px',
               }}
             >
-              🖌️
+              <NoImageIcon size={26} />
             </div>
           )}
 
@@ -244,7 +244,9 @@ export function RetailTemplate({
               textAlign: 'center',
             }}
           >
-            <span style={{ fontSize: '40px' }}>🖌️</span>
+            <span style={{ color: MUTED }}>
+              <NoImageIcon size={40} />
+            </span>
             <p style={{ marginTop: '16px', fontSize: '14px', color: MUTED }}>
               {getText('Productos disponibles pronto.', 'Products available soon.')}
             </p>
@@ -299,6 +301,17 @@ export function RetailTemplate({
 
 // ── SUB-COMPONENTS ──────────────────────────────────────────────────────────
 
+// Same outline used for the "no image" state in the dashboard's catalog
+// ItemRow (CatalogView.tsx) — reused here instead of the 🖌️ emoji placeholder.
+function NoImageIcon({ size }: { size: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+      <circle cx="12" cy="13" r="4" />
+    </svg>
+  );
+}
+
 function ProductCard({
   item,
   chipColor,
@@ -324,6 +337,9 @@ function ProductCard({
   return (
     <div
       style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
         backgroundColor: '#ffffff',
         border: '1px solid #d9d4c8',
         borderRadius: '10px',
@@ -331,9 +347,9 @@ function ProductCard({
       }}
     >
       {/* swatch tab — every card carries a corner of the strip above */}
-      <div style={{ height: '5px', backgroundColor: chipColor }} />
+      <div style={{ height: '5px', backgroundColor: chipColor, flexShrink: 0 }} />
 
-      <div className="aspect-square" style={{ backgroundColor: '#f1efe9' }}>
+      <div className="aspect-square" style={{ backgroundColor: '#f1efe9', flexShrink: 0 }}>
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -342,13 +358,13 @@ function ProductCard({
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-3xl" style={{ color: '#c7c2b4' }}>
-            🖌️
+          <div className="flex h-full items-center justify-center" style={{ color: '#c7c2b4' }}>
+            <NoImageIcon size={32} />
           </div>
         )}
       </div>
 
-      <div style={{ padding: '10px' }}>
+      <div style={{ padding: '10px', display: 'flex', flexDirection: 'column', flex: 1 }}>
         <p
           className={robotoSlab.className}
           style={{ margin: 0, fontWeight: 700, fontSize: '13px', color: INK, lineHeight: 1.3 }}
@@ -379,13 +395,13 @@ function ProductCard({
               image: imageUrl ?? undefined,
             })}
             aria-label={`${getText('Agregar', 'Add')} ${item.name}`}
-            className="mt-2 block w-full rounded-full py-1.5 text-center text-xs font-semibold text-white transition hover:opacity-90"
-            style={{ backgroundColor: accent }}
+            className="block w-full rounded-full py-1.5 text-center text-xs font-semibold text-white transition hover:opacity-90"
+            style={{ backgroundColor: accent, marginTop: 'auto' }}
           >
             + {getText('Agregar', 'Add')}
           </button>
         ) : (
-          <div className="mt-2 flex items-center justify-between gap-1">
+          <div className="flex items-center justify-between gap-1" style={{ marginTop: 'auto' }}>
             <button
               onClick={() => removeFromCart(item.id)}
               aria-label={`${getText('Quitar', 'Remove')} ${item.name}`}
