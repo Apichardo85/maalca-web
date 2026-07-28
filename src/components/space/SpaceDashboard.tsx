@@ -11,7 +11,6 @@ import {
 } from '@/lib/plan-limits';
 import { PRICE_ENTREPRENEUR } from '@/config/pricing';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
-import { SpaceTopBarControls } from './SpaceTopBarControls';
 import { CreatingSpaceAnimation } from './CreatingSpaceAnimation';
 import { UpgradeModal } from './UpgradeModal';
 import { KpiTile, type SpaceKpis } from './KpiTile';
@@ -129,18 +128,6 @@ export function SpaceDashboard({
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
-      {/* In-page nav — marketing header is hidden on /space routes */}
-      <nav className="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
-        <div className="flex items-center justify-between px-6 py-4">
-          <Link href="/servicios" className="text-lg font-semibold text-gray-900 dark:text-white">
-            MaalCa
-          </Link>
-          <div className="flex items-center gap-3">
-            <SpaceTopBarControls />
-          </div>
-        </div>
-      </nav>
-
       <main className="px-6 py-8">
         {justUpgraded && (
           <div className="mb-6 rounded-2xl border border-[#C8102E] bg-[#C8102E]/5 p-6 text-center">

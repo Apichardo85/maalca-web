@@ -10,7 +10,6 @@ import { CanalesTab } from './CanalesTab';
 import { QrTab } from './QrTab';
 import { ContenidoTab } from './ContenidoTab';
 import { PreviewPanel } from './PreviewPanel';
-import { SpaceTopBarControls } from '@/components/space/SpaceTopBarControls';
 import {
   GATED_FIELDS,
   type CanalDto,
@@ -176,7 +175,6 @@ export function DesignEditor({
             {saved && (
               <span className="text-sm text-emerald-600">{getText('✓ Guardado', '✓ Saved')}</span>
             )}
-            <SpaceTopBarControls />
             <a
               href={publicUrl}
               target="_blank"

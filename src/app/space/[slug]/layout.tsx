@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getMaalcaApiToken } from '@/lib/api-auth';
 import { SpaceSidebar } from '@/components/space/SpaceSidebar';
+import { SpaceMobileNav } from '@/components/space/SpaceMobileNav';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -34,6 +35,11 @@ export default async function SpaceSlugLayout({
         plan={business.plan}
       />
       <div className="flex-1 min-w-0 md:pl-60">
+        <SpaceMobileNav
+          slug={slug}
+          businessName={business.name}
+          plan={business.plan}
+        />
         {children}
       </div>
     </div>

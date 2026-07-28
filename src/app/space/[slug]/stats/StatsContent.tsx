@@ -1,7 +1,6 @@
 'use client';
 
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
-import { SpaceTopBarControls } from '@/components/space/SpaceTopBarControls';
 import { KpiTile, type SpaceKpis } from '@/components/space/KpiTile';
 import type { Plan } from '@/lib/plan-limits';
 
@@ -17,16 +16,13 @@ export function StatsContent({ kpis, plan }: Props) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
       <div className="px-6 py-12">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
-              {getText('Tu espacio', 'Your space')}
-            </p>
-            <h1 className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
-              {getText('Estadísticas', 'Stats')}
-            </h1>
-          </div>
-          <SpaceTopBarControls />
+        <div>
+          <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
+            {getText('Tu espacio', 'Your space')}
+          </p>
+          <h1 className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+            {getText('Estadísticas', 'Stats')}
+          </h1>
         </div>
 
         {/* Same KpiTile cards as the Dashboard's own KPI row — same data, same component. */}
