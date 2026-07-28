@@ -5,12 +5,23 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { SpaceTopBarControls } from '@/components/space/SpaceTopBarControls';
+import { BusinessSwitcher } from '@/components/space/BusinessSwitcher';
 import { cn } from '@/lib/utils';
+import type { Plan } from '@/lib/plan-limits';
+
+interface Business {
+  id: string;
+  slug: string;
+  name: string;
+  plan: Plan;
+}
 
 interface Props {
   slug: string;
   businessName: string;
   plan: 'free' | 'entrepreneur';
+  businesses: Business[];
+  canCreateMore: boolean;
 }
 
 /**
@@ -22,11 +33,15 @@ interface Props {
  * interaction pattern as the corporate Header.tsx (3-line -> X, blurred
  * overlay, click-outside close, body scroll lock) — reused, not reinvented.
  */
-export function SpaceMobileNav({ slug, businessName, plan }: Props) {
+export function SpaceMobileNav({ slug, businessName, plan, businesses, canCreateMore }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
+
+  const current = businesses.find((b) => b.slug === slug);
+  const others = businesses.filter((b) => b.slug !== slug);
+  const showSwitcher = !!current && (others.length > 0 || canCreateMore);
 
   const navItems = [
     { label: getText('Dashboard', 'Dashboard'), icon: '🏠', href: `/space/${slug}` },
@@ -86,9 +101,13 @@ export function SpaceMobileNav({ slug, businessName, plan }: Props) {
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsOpen(false)} aria-hidden="true" />
           <div className="animate-fade-in-left absolute bottom-0 left-0 top-0 flex w-72 max-w-[80vw] flex-col bg-white shadow-2xl dark:bg-neutral-900">
             <div className="border-b border-gray-200 px-4 py-5 dark:border-neutral-800">
-              <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
-                {businessName}
-              </p>
+              {showSwitcher && current ? (
+                <BusinessSwitcher current={current} others={others} canCreateMore={canCreateMore} />
+              ) : (
+                <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                  {businessName}
+                </p>
+              )}
               <span
                 className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                   plan === 'entrepreneur'

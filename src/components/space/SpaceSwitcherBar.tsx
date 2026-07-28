@@ -27,7 +27,11 @@ export function SpaceSwitcherBar({ businesses, canCreateMore }: Props) {
   if (others.length === 0 && !canCreateMore) return null;
 
   return (
-    <div className="fixed left-4 top-4 z-40">
+    // Mobile has its own switcher inside SpaceMobileNav's drawer — this fixed
+    // floating pill only ever competed with it for the same top-left corner,
+    // since the two components are mounted from different layouts and never
+    // coordinated. Desktop is unaffected (SpaceMobileNav is md:hidden there).
+    <div className="fixed left-4 top-4 z-40 hidden md:block">
       <BusinessSwitcher
         current={current}
         others={others}
