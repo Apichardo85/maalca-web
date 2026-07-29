@@ -22,7 +22,7 @@ import {
   FEATURED_DISHES,
   type MenuItem,
   type HourEntry,
-} from "@/app/the-little-dominicana/_data";
+} from "@/lib/menu-types";
 
 // Slugify helper for generating dish IDs from a name
 function slugify(s: string): string {

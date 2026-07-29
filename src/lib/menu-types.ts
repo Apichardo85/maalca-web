@@ -1,5 +1,13 @@
-// The Little Dominicana Restaurant — menu data
-// Lun–Sáb abierto. Dom cerrado.
+// Shared menu types + seed data for the legacy dashboard menu editor
+// (MenuClientV2.tsx, PrintableMenu.tsx — used by every affiliate with
+// modules.menu: true in the old affiliates-config system, e.g. Masa Tina).
+//
+// This data originated as The Little Dominicana's real menu (moved out of
+// src/app/the-little-dominicana/_data.ts when that legacy static page was
+// migrated to the dynamic /space system). It's real restaurant content, not
+// generic placeholder text — MOCK_DISHES/HOURS/MENU_CATEGORIES/
+// FEATURED_DISHES are still load-bearing: MenuClientV2 seeds its initial
+// render from them before the real per-affiliate fetch replaces it.
 //
 // MODELO DE PRECIOS:
 //   El precio está en la CARNE — incluye arroz y habichuela a elegir al ordenar.
@@ -23,28 +31,11 @@ export interface MenuItem {
   weekDays?: WeekDay[]
 }
 
-export interface LiveEvent {
-  id: string
-  title: string
-  artistName: string
-  date: string
-  startTime: string
-}
-
 export interface HourEntry {
   day: string
   closed?: boolean
   open?: string
   close?: string
-}
-
-export interface GalleryImage {
-  id: string
-  src: string
-  alt: string
-  category: string
-  wide?: boolean
-  tall?: boolean
 }
 
 export const MOCK_DISHES: MenuItem[] = [
@@ -673,11 +664,6 @@ export const MENU_CATEGORIES = [
 
 export const FEATURED_DISHES = ['la-bandera', 'chivo-guisado', 'sancocho', 'camarones']
 
-export const MOCK_EVENTS: LiveEvent[] = [
-  { id: '1', title: 'Noche de Bachata',  artistName: 'DJ Caribe',       date: '2026-03-28', startTime: '8:00 PM' },
-  { id: '2', title: 'Merengue en Vivo',  artistName: 'Grupo Quisqueya', date: '2026-04-04', startTime: '7:30 PM' },
-]
-
 export const HOURS: HourEntry[] = [
   { day: 'Lunes',      open: '9:00 AM', close: '8:00 PM' },
   { day: 'Martes',     open: '9:00 AM', close: '8:00 PM' },
@@ -686,23 +672,4 @@ export const HOURS: HourEntry[] = [
   { day: 'Viernes',    open: '9:00 AM', close: '8:00 PM' },
   { day: 'Sábado',     open: '9:00 AM', close: '8:00 PM' },
   { day: 'Domingo',    closed: true },
-]
-
-export const GALLERY_IMAGES: GalleryImage[] = [
-  { id: 'g-parrillada-hero', src: '/images/affiliates/tld/photos/parrillada-mixta-01.jpg', alt: 'Parrillada mixta — pollo, chorizo, costilla con tostones', category: 'Platos', wide: true },
-  { id: 'g-pollo-plancha',   src: '/images/affiliates/tld/photos/pollo-plancha-01.jpg',    alt: 'Pollo a la plancha con arroz y yuca frita', category: 'Platos' },
-  { id: 'g-habichuelas-02',  src: '/images/affiliates/tld/photos/habichuelas-con-dulce-02.jpg', alt: 'Habichuelas con dulce con galleticas', category: 'Postres', wide: true },
-  { id: 'g-moros-maduro',    src: '/images/affiliates/tld/photos/moros-con-maduro-01.jpg', alt: 'Moros con maduro y papas criollas', category: 'Platos' },
-  { id: 'g1',  src: 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=800&h=600&fit=crop&q=80', alt: 'Chicharrón crujiente',      category: 'Platos', tall: true },
-  { id: 'g2',  src: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800&h=500&fit=crop&q=80', alt: 'Camarones al ajillo',       category: 'Platos', wide: true },
-  { id: 'g3',  src: 'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=800&h=500&fit=crop&q=80', alt: 'Costillas BBQ',             category: 'Platos' },
-  { id: 'g4',  src: '/images/affiliates/tld/photos/pezcado-frito.jpg',                     alt: 'Pescado frito entero',      category: 'Platos', tall: true },
-  { id: 'g5',  src: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=800&h=500&fit=crop&q=80', alt: 'Pollo guisado dominicano',  category: 'Platos' },
-  { id: 'g6',  src: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=500&fit=crop&q=80', alt: 'Pernil asado',              category: 'Platos', wide: true },
-  { id: 'g7',  src: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800&h=600&fit=crop&q=80', alt: 'Ambiente del restaurante',  category: 'Ambiente', tall: true },
-  { id: 'g8',  src: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=500&fit=crop&q=80', alt: 'Salón principal',          category: 'Ambiente', wide: true },
-  { id: 'g9',  src: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=500&fit=crop&q=80', alt: 'Mesa preparada',           category: 'Ambiente' },
-  { id: 'g10', src: 'https://images.unsplash.com/photo-1562967914-608f82629710?w=800&h=500&fit=crop&q=80', alt: 'Yaroa de pollo',            category: 'Especiales' },
-  { id: 'g11', src: '/images/affiliates/tld/photos/mofongo-con-camaraones-01.jpg',          alt: 'Mofongo bowl',             category: 'Especiales', tall: true },
-  { id: 'g12', src: 'https://images.unsplash.com/photo-1534939561126-855b8675edd7?w=800&h=500&fit=crop&q=80', alt: 'Rabo guisado',            category: 'Especiales', wide: true },
 ]

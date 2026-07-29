@@ -21,7 +21,7 @@ const RESERVED = new Set([
   'favicon.ico', 'robots.txt', 'sitemap.xml',
   'catering', 'editorial', 'properties', 'ciriwhispers', 'pegote',
   'settings', 'catalog', 'categories', 'upgrade',
-  'the-little-dominicana', 'masa-tina',
+  'masa-tina',
   'dr-pichardo', 'hablando-mierda', 'casos-estudio', 'ecosistema',
   'affiliates', 'tarjeta',
 ]);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { MenuItem } from "@/app/the-little-dominicana/_data";
+import type { MenuItem } from "@/lib/menu-types";
 import type { MealPeriod, WeekDay } from "@/lib/types";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
