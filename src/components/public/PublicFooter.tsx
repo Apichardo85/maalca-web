@@ -8,6 +8,7 @@ import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { resolveSocialLinks } from '@/lib/public-contact';
 import { trackCanalClick } from '@/lib/public-events';
 import { SOCIAL_ICON_BY_TIPO } from '@/components/public/SocialIcons';
+import { WEEK_DAY_ORDER, WEEK_DAY_LABELS_ES, WEEK_DAY_LABELS_EN } from '@/lib/business-hours';
 
 interface Props {
   business: PublicTemplateProps['business'];
@@ -15,18 +16,6 @@ interface Props {
   language?: 'es' | 'en';
 }
 
-// Matches HorarioDayDto.dia values, which come from the backend's
-// DiaSemanaTokens.Whitelist (lunes/martes/miercoles/jueves/viernes/sabado/
-// domingo, no accents) — not English weekday names.
-const WEEK_DAY_ORDER = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
-const WEEK_DAY_LABELS_ES: Record<string, string> = {
-  lunes: 'Lunes', martes: 'Martes', miercoles: 'Miércoles', jueves: 'Jueves',
-  viernes: 'Viernes', sabado: 'Sábado', domingo: 'Domingo',
-};
-const WEEK_DAY_LABELS_EN: Record<string, string> = {
-  lunes: 'Monday', martes: 'Tuesday', miercoles: 'Wednesday', jueves: 'Thursday',
-  viernes: 'Friday', sabado: 'Saturday', domingo: 'Sunday',
-};
 const EN_TO_ES_DAY: Record<string, string> = {
   monday: 'lunes', tuesday: 'martes', wednesday: 'miercoles', thursday: 'jueves',
   friday: 'viernes', saturday: 'sabado', sunday: 'domingo',

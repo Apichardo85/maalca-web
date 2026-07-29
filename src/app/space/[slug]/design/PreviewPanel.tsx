@@ -4,7 +4,8 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { resolveWhatsAppDigits, resolveContactItems, resolveSocialLinks } from '@/lib/public-contact';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { SOCIAL_ICON_BY_TIPO } from '@/components/public/SocialIcons';
-import type { CanalDto } from './types';
+import { WEEK_DAY_ORDER, WEEK_DAY_LABELS_ES, WEEK_DAY_LABELS_EN } from '@/lib/business-hours';
+import type { CanalDto, ProcessStepDto, FaqEntryDto, HorarioDayDto } from './types';
 
 interface Props {
   name: string;
@@ -17,6 +18,9 @@ interface Props {
   logoUrl: string | null;
   coverImageUrl: string | null;
   canales: CanalDto[];
+  processSteps: ProcessStepDto[];
+  faq: FaqEntryDto[];
+  horario: HorarioDayDto[];
 }
 
 export function PreviewPanel({
@@ -30,6 +34,9 @@ export function PreviewPanel({
   logoUrl,
   coverImageUrl,
   canales,
+  processSteps,
+  faq,
+  horario,
 }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -90,6 +97,69 @@ export function PreviewPanel({
           <p className="mt-3 flex items-center gap-1.5 text-xs text-gray-500 dark:text-neutral-400">
             <span>🌐</span> {website}
           </p>
+        )}
+
+        {horario.length > 0 && (
+          <div className="mt-3 border-t border-gray-100 dark:border-neutral-800 pt-3">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">
+              {getText('Horario', 'Hours')}
+            </p>
+            <div className="space-y-0.5">
+              {WEEK_DAY_ORDER.map((day) => {
+                const entry = horario.find((h) => h.dia === day);
+                if (!entry) return null;
+                const label = language === 'en' ? WEEK_DAY_LABELS_EN[day] : WEEK_DAY_LABELS_ES[day];
+                return (
+                  <p key={day} className="flex justify-between text-xs text-gray-600 dark:text-neutral-400">
+                    <span>{label}</span>
+                    <span>{entry.cerrado ? getText('Cerrado', 'Closed') : `${entry.abre} – ${entry.cierra}`}</span>
+                  </p>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {processSteps.length > 0 && (
+          <div className="mt-3 border-t border-gray-100 dark:border-neutral-800 pt-3">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">
+              {getText('Cómo trabajamos', 'How we work')}
+            </p>
+            <ol className="space-y-2">
+              {processSteps.map((step, i) => (
+                <li key={`${i}-${step.title}`} className="flex gap-2">
+                  <span
+                    className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    {i + 1}
+                  </span>
+                  <span className="text-xs text-gray-700 dark:text-neutral-300">
+                    <span className="font-semibold">{step.title}</span>
+                    {step.description && <> — {step.description}</>}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+
+        {faq.length > 0 && (
+          <div className="mt-3 border-t border-gray-100 dark:border-neutral-800 pt-3">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">
+              {getText('Preguntas frecuentes', 'FAQ')}
+            </p>
+            <div className="space-y-1.5">
+              {faq.map((entry, i) => (
+                <details key={`${i}-${entry.question}`} className="text-xs">
+                  <summary className="cursor-pointer font-medium text-gray-700 dark:text-neutral-300">
+                    {entry.question}
+                  </summary>
+                  <p className="mt-1 text-gray-500 dark:text-neutral-400">{entry.answer}</p>
+                </details>
+              ))}
+            </div>
+          </div>
         )}
 
         {contactItems.length > 0 && (

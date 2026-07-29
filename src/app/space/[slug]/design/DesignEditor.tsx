@@ -256,6 +256,12 @@ export function DesignEditor({
             logoUrl={liveForm.logoUrl}
             coverImageUrl={liveForm.coverImageUrl}
             canales={canales}
+            // Page-load snapshot, not ContenidoTab's live edits — that tab keeps
+            // its own local state, disconnected from here. Edits made in
+            // Contenido this session won't reflect here until the page reloads.
+            processSteps={initialProcessSteps}
+            faq={initialFaq}
+            horario={initialHorario}
           />
         </div>
       </div>
