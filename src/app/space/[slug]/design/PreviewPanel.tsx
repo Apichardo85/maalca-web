@@ -1,8 +1,9 @@
 'use client';
 
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
-import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
+import { resolveWhatsAppDigits, resolveContactItems, resolveSocialLinks } from '@/lib/public-contact';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
+import { SOCIAL_ICON_BY_TIPO } from '@/components/public/SocialIcons';
 import type { CanalDto } from './types';
 
 interface Props {
@@ -38,6 +39,7 @@ export function PreviewPanel({
   // actually publishes, not an approximation of it.
   const waDigits = resolveWhatsAppDigits({ whatsapp, canales });
   const contactItems = resolveContactItems({ whatsapp, address, contactEmail, canales });
+  const social = resolveSocialLinks({ canales });
 
   return (
     <div className="mx-auto max-w-sm overflow-hidden rounded-2xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-sm">
@@ -108,6 +110,31 @@ export function PreviewPanel({
                   >
                     {Icon && <Icon size={12} />}
                     {c.value}
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {social.length > 0 && (
+          <div className="mt-3 border-t border-gray-100 dark:border-neutral-800 pt-3">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">
+              {getText('Redes sociales', 'Social media')}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {social.map((s) => {
+                const Icon = SOCIAL_ICON_BY_TIPO[s.tipo];
+                return (
+                  <a
+                    key={s.tipo}
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={s.tipo}
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-neutral-300"
+                  >
+                    {Icon && <Icon size={14} />}
                   </a>
                 );
               })}
