@@ -11,6 +11,7 @@ const ALL_TAB = '__all__';
 interface CatalogItem {
   id: string;
   name: string;
+  description: string | null;
   category: string | null;
   isDemo: boolean;
   active: boolean;
@@ -233,19 +234,28 @@ function ItemRow({
             </svg>
           </div>
         )}
-        {item.isDemo && (
-          <span className="flex-shrink-0 rounded-full bg-amber-100 dark:bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
-            {getText('Demo', 'Demo')}
-          </span>
-        )}
-        <span className="truncate text-sm font-medium text-gray-900 dark:text-white">
-          {item.name}
-        </span>
-        {item.category && (
-          <span className="hidden truncate text-xs text-gray-400 dark:text-neutral-500 sm:block">
-            {item.category}
-          </span>
-        )}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-3">
+            {item.isDemo && (
+              <span className="flex-shrink-0 rounded-full bg-amber-100 dark:bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
+                {getText('Demo', 'Demo')}
+              </span>
+            )}
+            <span className="truncate text-sm font-medium text-gray-900 dark:text-white">
+              {item.name}
+            </span>
+            {item.category && (
+              <span className="hidden truncate text-xs text-gray-400 dark:text-neutral-500 sm:block">
+                {item.category}
+              </span>
+            )}
+          </div>
+          {item.description && (
+            <p className="mt-0.5 line-clamp-2 text-xs text-gray-400 dark:text-neutral-500">
+              {item.description}
+            </p>
+          )}
+        </div>
       </div>
       <Link
         href={`/space/${slug}/catalog/${item.id}/edit?from=catalog`}

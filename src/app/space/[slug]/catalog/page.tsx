@@ -8,6 +8,7 @@ const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 interface CatalogItem {
   id: string;
   name: string;
+  description: string | null;
   category: string | null;
   isDemo: boolean;
   active: boolean;
@@ -46,12 +47,13 @@ export default async function CatalogPage({
   const data: SpaceData = await res.json();
 
   const items: CatalogItem[] = data.items.map((item) => ({
-    id:       item.id,
-    name:     item.name,
-    category: item.category,
-    isDemo:   item.isDemo,
-    active:   item.active,
-    imageUrl: item.imageUrl ?? item.image_url ?? null,
+    id:          item.id,
+    name:        item.name,
+    description: item.description ?? null,
+    category:    item.category,
+    isDemo:      item.isDemo,
+    active:      item.active,
+    imageUrl:    item.imageUrl ?? item.image_url ?? null,
   }));
 
   return (
