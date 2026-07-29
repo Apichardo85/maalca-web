@@ -112,7 +112,7 @@ export function ImageCropper({
         </label>
         <input
           type="range"
-          min={1}
+          min={0.5}
           max={3}
           step={0.01}
           value={zoom}
