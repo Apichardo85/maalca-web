@@ -223,6 +223,7 @@ export function DesignEditor({
               onCommit={commitField}
               onCommitAll={commitAll}
               onGoToContenido={() => setActiveTab('contenido')}
+              canales={canales}
             />
           )}
           {activeTab === 'canales' && (

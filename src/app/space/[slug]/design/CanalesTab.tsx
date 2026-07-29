@@ -267,8 +267,8 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
         </h2>
         <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
           {getText(
-            'Estos se publican de verdad en tu página pública. Si agregas un canal de WhatsApp aquí, reemplaza al campo WhatsApp de Configuración en los botones de contacto.',
-            'These are published for real on your public page. Adding a WhatsApp channel here takes priority over the WhatsApp field in Settings for your contact buttons.',
+            'Estos se publican de verdad en tu página pública. Si agregas un canal de WhatsApp o Email aquí, reemplaza al campo correspondiente de Configuración en los botones de contacto.',
+            'These are published for real on your public page. Adding a WhatsApp or Email channel here takes priority over the matching field in Settings for your contact buttons.',
           )}
         </p>
       </div>

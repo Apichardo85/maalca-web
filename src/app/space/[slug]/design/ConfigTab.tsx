@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
-import type { ProfileFormState } from './types';
+import type { ProfileFormState, CanalDto } from './types';
 
 const PALETTE = [
   { name: 'Rojo MaalCa', hex: '#C8102E' },
@@ -26,6 +26,7 @@ interface Props {
   onCommit: (key: keyof ProfileFormState) => void;
   onCommitAll: () => void;
   onGoToContenido?: () => void;
+  canales: CanalDto[];
 }
 
 async function uploadImage(slug: string, file: File, itemId: string): Promise<string> {
@@ -38,9 +39,14 @@ async function uploadImage(slug: string, file: File, itemId: string): Promise<st
   return data.url as string;
 }
 
-export function ConfigTab({ slug, form, onChange, onCommit, onCommitAll, onGoToContenido }: Props) {
+export function ConfigTab({ slug, form, onChange, onCommit, onCommitAll, onGoToContenido, canales }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
+
+  // Mirrors resolveContactItems' priority rule (src/lib/public-contact.ts) — an
+  // active Email canal wins over this field on the public page, so surface that
+  // here instead of letting it be a surprise on the live site.
+  const hasEmailCanal = canales.some((c) => c.tipo === 'Email' && c.activo);
 
   const logoInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -91,7 +97,7 @@ export function ConfigTab({ slug, form, onChange, onCommit, onCommitAll, onGoToC
   const textField = (
     key: keyof ProfileFormState,
     label: string,
-    opts?: { placeholder?: string; type?: string; inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode']; maxLength?: number; textarea?: boolean },
+    opts?: { placeholder?: string; type?: string; inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode']; maxLength?: number; textarea?: boolean; note?: string },
   ) => (
     <div>
       <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-neutral-300">{label}</label>
@@ -116,6 +122,9 @@ export function ConfigTab({ slug, form, onChange, onCommit, onCommitAll, onGoToC
           maxLength={opts?.maxLength}
           className="w-full rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 focus:border-gray-400 dark:focus:border-neutral-500 focus:outline-none"
         />
+      )}
+      {opts?.note && (
+        <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">{opts.note}</p>
       )}
     </div>
   );
@@ -214,7 +223,17 @@ export function ConfigTab({ slug, form, onChange, onCommit, onCommitAll, onGoToC
       {textField('description', getText('Descripción', 'Description'), { textarea: true, maxLength: 500, placeholder: getText('Cuéntale a tus clientes de qué se trata tu negocio', 'Tell customers what your business is about') })}
       {textField('descriptionEn', getText('Descripción (EN)', 'Description (EN)'), { textarea: true, maxLength: 500, placeholder: getText('Opcional — se muestra a visitantes con inglés seleccionado', 'Optional — shown to visitors with English selected') })}
       {/* WhatsApp is edited exclusively in the Canales tab now — kept in ProfileFormState/save payload as the legacy fallback field for public rendering. */}
-      {textField('contactEmail', getText('Email de contacto', 'Contact email'), { type: 'email', placeholder: 'contacto@negocio.com', maxLength: 100 })}
+      {textField('contactEmail', getText('Email de contacto', 'Contact email'), {
+        type: 'email',
+        placeholder: 'contacto@negocio.com',
+        maxLength: 100,
+        note: hasEmailCanal
+          ? getText(
+              'Este campo está siendo reemplazado por un canal de Email activo en Canales.',
+              'This field is currently being overridden by an active Email channel in Canales.',
+            )
+          : undefined,
+      })}
       {textField('address', getText('Dirección', 'Address'), { maxLength: 150 })}
       {textField('website', getText('Sitio web', 'Website'), { type: 'url', placeholder: 'https://...', maxLength: 150 })}
 
