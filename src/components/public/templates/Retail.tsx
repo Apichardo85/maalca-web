@@ -54,6 +54,10 @@ export function RetailTemplate({
 }: PublicTemplateProps) {
   const accent = business.primary_color ?? SWATCHES[0].hex;
   const waRaw = resolveWhatsAppDigits(business);
+  // Resolved canal (with canalId) for click tracking — waRaw above is digits-only, used for
+  // the href; the canalId is what lets maalca-api attribute this click to a specific canal row
+  // instead of excluding it from the byCanal breakdown (Program.cs:854).
+  const whatsappEntry = resolveContactItems(business).find((c) => c.tipo === 'WhatsApp');
   const { cart, addToCart, removeFromCart, cartTotal, cartCount } = useCart();
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -180,7 +184,7 @@ export function RetailTemplate({
               href={`https://wa.me/${waRaw}`}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => trackCanalClick(business.slug, 'WhatsApp')}
+              onClick={() => trackCanalClick(business.slug, 'WhatsApp', whatsappEntry?.canalId)}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',

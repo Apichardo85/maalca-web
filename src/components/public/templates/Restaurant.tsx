@@ -143,6 +143,10 @@ export function RestaurantTemplate({
   const waHeroLink = waRaw
     ? `https://wa.me/${waRaw}?text=${encodeURIComponent(`Hola, quiero info sobre ${business.name}`)}`
     : null;
+  // Resolved canal (with canalId) for click tracking — waRaw/waHeroLink above are digits-only,
+  // used for the href/message; the canalId is what lets maalca-api attribute this click to a
+  // specific canal row instead of excluding it from the byCanal breakdown (Program.cs:854).
+  const whatsappEntry = resolveContactItems(business).find((c) => c.tipo === 'WhatsApp');
 
   const { cart, addToCart, removeFromCart, cartTotal, cartCount } = useCart();
   const { language } = useSimpleLanguage();
@@ -344,7 +348,7 @@ export function RestaurantTemplate({
                 href={waHeroLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => trackCanalClick(business.slug, 'WhatsApp')}
+                onClick={() => trackCanalClick(business.slug, 'WhatsApp', whatsappEntry?.canalId)}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',

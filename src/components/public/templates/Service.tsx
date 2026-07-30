@@ -99,6 +99,10 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
   const contacts = resolveContactItems(business);
   const secondaryContacts = contacts.filter((c) => c.tipo === 'Telefono' || c.tipo === 'Email');
   const addressEntry = contacts.find((c) => c.tipo === 'Direccion');
+  // Resolved canal (with canalId) for click tracking — waRaw/waHeroLink are digits-only, used
+  // for the href/message; the canalId is what lets maalca-api attribute this click to a
+  // specific canal row instead of excluding it from the byCanal breakdown (Program.cs:854).
+  const whatsappEntry = contacts.find((c) => c.tipo === 'WhatsApp');
 
   const toggleItem = (id: string) => {
     setOpenItems((prev) => {
@@ -157,7 +161,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
             href={waHeroLink}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => trackCanalClick(business.slug, 'WhatsApp')}
+            onClick={() => trackCanalClick(business.slug, 'WhatsApp', whatsappEntry?.canalId)}
             className="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold text-white"
             style={{ backgroundColor: accent }}
           >
@@ -231,7 +235,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
                 href={waHeroLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => trackCanalClick(business.slug, 'WhatsApp')}
+                onClick={() => trackCanalClick(business.slug, 'WhatsApp', whatsappEntry?.canalId)}
                 className="flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold text-white transition hover:opacity-90"
                 style={{ backgroundColor: accent }}
               >
@@ -341,7 +345,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
                                 href={itemWaLink}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                onClick={() => trackCanalClick(business.slug, 'WhatsApp')}
+                                onClick={() => trackCanalClick(business.slug, 'WhatsApp', whatsappEntry?.canalId)}
                                 className="inline-flex w-fit items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold text-white"
                                 style={{ backgroundColor: accent }}
                               >
