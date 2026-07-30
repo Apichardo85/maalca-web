@@ -5,11 +5,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { sanitizeContactValue } from '@/lib/public-contact';
 import { parseApiError } from '@/lib/api-errors';
+import { getCapabilities } from '@/lib/capabilities';
+import type { BusinessType, Plan, PublicTemplateProps } from '@/lib/templates/registry';
 import { ConfigTab } from './ConfigTab';
 import { CanalesTab } from './CanalesTab';
 import { QrTab } from './QrTab';
-import { ContenidoTab } from './ContenidoTab';
-import { PreviewPanel } from './PreviewPanel';
+import { ContenidoTab, withAllDays } from './ContenidoTab';
+import { PreviewFrame } from './PreviewFrame';
 import {
   GATED_FIELDS,
   type CanalDto,
@@ -21,6 +23,10 @@ import {
 
 interface Props {
   slug: string;
+  id: string;
+  businessType: BusinessType;
+  plan: Plan;
+  timezone: string;
   name: string;
   whatsapp: string;
   primaryColor: string;
@@ -44,6 +50,10 @@ type Tab = 'config' | 'canales' | 'qr' | 'contenido';
 
 export function DesignEditor({
   slug,
+  id,
+  businessType,
+  plan,
+  timezone,
   name,
   whatsapp,
   primaryColor,
@@ -85,6 +95,12 @@ export function DesignEditor({
   const [previewSnapshot, setPreviewSnapshot] = useState<ProfileFormState>(initialForm);
   const [touched, setTouched] = useState<Set<string>>(new Set());
   const [canales, setCanales] = useState<CanalDto[]>(initialCanales);
+
+  // Lifted out of ContenidoTab so PreviewFrame (the real public template, scaled) can render
+  // them live as the user edits — ContenidoTab still owns the editing UI and its own save().
+  const [processSteps, setProcessSteps] = useState<ProcessStepDto[]>(initialProcessSteps);
+  const [faq, setFaq] = useState<FaqEntryDto[]>(initialFaq);
+  const [horario, setHorario] = useState<HorarioDayDto[]>(withAllDays(initialHorario));
 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -150,6 +166,33 @@ export function DesignEditor({
     { key: 'contenido', label: getText('Contenido', 'Content'), icon: '📝' },
     { key: 'qr', label: 'QR', icon: '📱' },
   ];
+
+  const capabilities = getCapabilities(plan);
+
+  // Exact shape of PublicTemplateProps['business'] (registry.ts) — same fields the real
+  // public page and /preview/[slug] build, so PreviewFrame can render the actual template
+  // component instead of a hand-maintained approximation of it. items/categories are fixed
+  // empty: the catalog preview is out of scope here.
+  const previewBusiness: PublicTemplateProps['business'] = {
+    id,
+    slug,
+    name: previewSnapshot.name,
+    plan,
+    description: previewSnapshot.description || null,
+    descriptionEn: previewSnapshot.descriptionEn || null,
+    logo_url: liveForm.logoUrl,
+    cover_image_url: liveForm.coverImageUrl,
+    primary_color: liveForm.primaryColor,
+    whatsapp: previewSnapshot.whatsapp || null,
+    address: previewSnapshot.address || null,
+    contactEmail: previewSnapshot.contactEmail || null,
+    canales,
+    business_type: businessType,
+    processSteps: processSteps.length > 0 ? processSteps : null,
+    faq: faq.length > 0 ? faq : null,
+    timezone,
+    horario: horario.length > 0 ? horario : null,
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950">
@@ -232,9 +275,12 @@ export function DesignEditor({
           {activeTab === 'contenido' && (
             <ContenidoTab
               slug={slug}
-              processSteps={initialProcessSteps}
-              faq={initialFaq}
-              horario={initialHorario}
+              processSteps={processSteps}
+              onProcessStepsChange={setProcessSteps}
+              faq={faq}
+              onFaqChange={setFaq}
+              horario={horario}
+              onHorarioChange={setHorario}
             />
           )}
           {activeTab === 'qr' && (
@@ -246,24 +292,7 @@ export function DesignEditor({
           <p className="mb-3 text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
             {getText('Vista previa', 'Preview')}
           </p>
-          <PreviewPanel
-            name={previewSnapshot.name}
-            description={previewSnapshot.description}
-            address={previewSnapshot.address}
-            website={previewSnapshot.website}
-            whatsapp={previewSnapshot.whatsapp}
-            contactEmail={previewSnapshot.contactEmail}
-            primaryColor={liveForm.primaryColor}
-            logoUrl={liveForm.logoUrl}
-            coverImageUrl={liveForm.coverImageUrl}
-            canales={canales}
-            // Page-load snapshot, not ContenidoTab's live edits — that tab keeps
-            // its own local state, disconnected from here. Edits made in
-            // Contenido this session won't reflect here until the page reloads.
-            processSteps={initialProcessSteps}
-            faq={initialFaq}
-            horario={initialHorario}
-          />
+          <PreviewFrame business={previewBusiness} capabilities={capabilities} />
         </div>
       </div>
     </div>

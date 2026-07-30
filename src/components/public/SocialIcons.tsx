@@ -1,10 +1,11 @@
 // src/components/public/SocialIcons.tsx
 // Brand SVG icons for Facebook/Instagram/TikTok, keyed by the same `tipo`
-// string resolveSocialLinks() returns. Extracted out of PublicFooter.tsx so
-// PreviewPanel.tsx (the Diseñar mi Espacio live preview) can render the same
-// social section instead of silently omitting it — that gap (PreviewPanel
-// never calling resolveSocialLinks() at all) was found in QA on a real
-// business with an active Facebook canal.
+// string resolveSocialLinks() returns. Extracted out of PublicFooter.tsx —
+// originally so the old hand-maintained Diseñar mi Espacio preview
+// (PreviewPanel.tsx, since replaced by PreviewFrame rendering the real
+// template) could render the same social section instead of silently
+// omitting it, a gap found in QA on a real business with an active
+// Facebook canal.
 import type { ComponentType } from 'react';
 
 function FacebookIcon({ size }: { size: number }) {

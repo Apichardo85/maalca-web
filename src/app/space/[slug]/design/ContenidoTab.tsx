@@ -21,24 +21,33 @@ const WEEK_DAYS: { key: string; es: string; en: string }[] = [
 
 /** Always renders exactly 7 rows (Monday-Sunday), seeding sensible defaults
  *  for any day missing from what the backend returned (e.g. never configured). */
-function withAllDays(existing: HorarioDayDto[]): HorarioDayDto[] {
+export function withAllDays(existing: HorarioDayDto[]): HorarioDayDto[] {
   return WEEK_DAYS.map((d) => existing.find((h) => h.dia === d.key) ?? { dia: d.key, abre: '09:00', cierra: '18:00', cerrado: false });
 }
 
 interface Props {
   slug: string;
   processSteps: ProcessStepDto[];
+  onProcessStepsChange: (steps: ProcessStepDto[]) => void;
   faq: FaqEntryDto[];
+  onFaqChange: (faq: FaqEntryDto[]) => void;
   horario: HorarioDayDto[];
+  onHorarioChange: (horario: HorarioDayDto[]) => void;
 }
 
-export function ContenidoTab({ slug, processSteps: initialProcessSteps, faq: initialFaq, horario: initialHorario }: Props) {
+// processSteps/faq/horario are now owned by DesignEditor (lifted so the real-template
+// PreviewFrame can reflect edits live) — this tab only edits them and PATCHes on save.
+export function ContenidoTab({
+  slug,
+  processSteps,
+  onProcessStepsChange: setProcessSteps,
+  faq,
+  onFaqChange: setFaq,
+  horario,
+  onHorarioChange: setHorario,
+}: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
-
-  const [processSteps, setProcessSteps] = useState<ProcessStepDto[]>(initialProcessSteps);
-  const [faq, setFaq] = useState<FaqEntryDto[]>(initialFaq);
-  const [horario, setHorario] = useState<HorarioDayDto[]>(withAllDays(initialHorario));
 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);

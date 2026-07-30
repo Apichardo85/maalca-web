@@ -3,6 +3,11 @@ import QRCode from 'qrcode';
 import { getMaalcaApiToken } from '@/lib/api-auth';
 import { DesignEditor } from './DesignEditor';
 import type { ProcessStepDto, FaqEntryDto, HorarioDayDto } from './types';
+import type { BusinessType, Plan } from '@/lib/templates/registry';
+
+// The public template's default timezone fallback when a business hasn't configured one yet —
+// matches the default used across affiliates-config.ts for Dominican-based businesses.
+const DEFAULT_TIMEZONE = 'America/Santo_Domingo';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -90,6 +95,10 @@ export default async function DesignPage({
   return (
     <DesignEditor
       slug={slug}
+      id={biz.id}
+      businessType={(biz.businessType as string).toLowerCase() as BusinessType}
+      plan={((biz.plan as string) ?? 'free').toLowerCase() as Plan}
+      timezone={biz.timezone ?? DEFAULT_TIMEZONE}
       name={biz.name ?? ''}
       whatsapp={biz.whatsapp ?? ''}
       primaryColor={biz.primaryColor ?? '#C8102E'}
