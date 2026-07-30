@@ -50,8 +50,27 @@ export default async function StatsPage({
       headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': data.business.id },
       cache: 'no-store',
     });
-    if (metricsRes.ok) detailed = await metricsRes.json();
-  } catch {
+    if (metricsRes.ok) {
+      detailed = await metricsRes.json();
+      // TEMPORARY diagnostic — the KpisDto on /api/space/{slug} above counts ALL-TIME events
+      // (no date filter), while /metrics/detailed filters to the last 30 days. If real events
+      // are older than 30 days, this logs a legitimate zero — not a fetch failure — and the
+      // "contradiction" is actually two endpoints answering two different questions. Remove
+      // once the real cause here is confirmed.
+      const totals = detailed?.dailyCounts.reduce(
+        (acc, d) => ({ pv: acc.pv + d.pageViews, qr: acc.qr + d.qrScans, cc: acc.cc + d.canalClicks }),
+        { pv: 0, qr: 0, cc: 0 },
+      );
+      console.log(
+        `[stats] /metrics/detailed OK for affiliate ${data.business.id} — ` +
+        `30d totals: pageViews=${totals?.pv}, qrScans=${totals?.qr}, canalClicks=${totals?.cc}, byCanal=${detailed?.byCanal.length} rows`,
+      );
+    } else {
+      const body = await metricsRes.text().catch(() => '<unreadable body>');
+      console.error(`[stats] /metrics/detailed FAILED for affiliate ${data.business.id} — status ${metricsRes.status}: ${body}`);
+    }
+  } catch (err) {
+    console.error(`[stats] /metrics/detailed THREW for affiliate ${data.business.id}:`, err);
     // detailed stays null — StatsContent renders the empty state rather than crashing the page.
   }
 
