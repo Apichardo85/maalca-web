@@ -16,6 +16,7 @@ import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact
 import { trackCanalClick } from '@/lib/public-events';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 
 // Scoped to this template only — Fraunces gives the pull-quote/headers real
 // character; Plex Mono is the "spec sheet" voice for numbers, prices, labels.
@@ -148,6 +149,9 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
         <p className={`${fraunces.className} min-w-0 flex-1 truncate text-[17px] font-semibold`}>
           {business.name}
         </p>
+        <div className="shrink-0">
+          <SimpleLanguageToggle variant="light" />
+        </div>
         {waHeroLink && (
           <a
             href={waHeroLink}
@@ -190,17 +194,20 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
         {/* Sidebar — desktop only */}
         <aside className="hidden lg:block">
           <div className="sticky top-8 space-y-5">
-            {business.logo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={business.logo_url} alt={business.name} className="h-16 w-16 rounded-2xl object-cover" />
-            ) : (
-              <div
-                className="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-semibold text-white"
-                style={{ backgroundColor: accent }}
-              >
-                {business.name.charAt(0).toUpperCase()}
-              </div>
-            )}
+            <div className="flex items-start justify-between gap-3">
+              {business.logo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={business.logo_url} alt={business.name} className="h-16 w-16 rounded-2xl object-cover" />
+              ) : (
+                <div
+                  className="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-semibold text-white"
+                  style={{ backgroundColor: accent }}
+                >
+                  {business.name.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <SimpleLanguageToggle variant="light" />
+            </div>
 
             <div>
               <p className={`${fraunces.className} text-xl font-semibold leading-tight`}>{business.name}</p>

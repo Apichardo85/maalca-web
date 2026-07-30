@@ -20,6 +20,7 @@ import { ClampedDescription } from '@/components/public/ClampedDescription';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 
 // Scoped to this template only — a slab serif reads as "catalog/hardware
 // store signage", distinct from Service's editorial Fraunces and Barber's
@@ -108,6 +109,12 @@ export function RetailTemplate({
             />
           </>
         )}
+
+        {/* language toggle — top-right corner, clear of the bottom-anchored
+            content below and never covered by it at any viewport */}
+        <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 2 }}>
+          <SimpleLanguageToggle variant="dark" />
+        </div>
 
         <div
           className="mx-auto max-w-public-content"

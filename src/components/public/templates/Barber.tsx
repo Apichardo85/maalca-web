@@ -17,6 +17,7 @@ import { ClampedDescription } from '@/components/public/ClampedDescription';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 
 // Scoped to this template only — condensed uppercase display for headers,
 // duration and price (no separate mono role; the condensed weight already
@@ -122,6 +123,12 @@ export function BarberTemplate({
             />
           </>
         )}
+
+        {/* language toggle — top-right corner, clear of the bottom-anchored
+            content below and never covered by it at any viewport */}
+        <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 2 }}>
+          <SimpleLanguageToggle variant="dark" />
+        </div>
 
         {/* content: anchored bottom-left */}
         <div
