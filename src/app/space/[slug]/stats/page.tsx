@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getMaalcaApiToken } from '@/lib/api-auth';
-import { StatsContent, type DetailedMetrics, type MetricsDebugInfo } from './StatsContent';
+import { StatsContent, type DetailedMetrics } from './StatsContent';
 import type { SpaceKpis } from '@/components/space/KpiTile';
 import type { Plan } from '@/lib/plan-limits';
 
@@ -44,43 +44,16 @@ export default async function StatsPage({
   // API's auth middleware resolves the `active_affiliate_id` claim from that header (falling
   // back to the user's oldest affiliate otherwise), not from the token alone — a user managing
   // more than one business would silently get the wrong one's data without it.
-  //
-  // TEMPORARY — debugInfo is surfaced as a visible banner on the page itself (see
-  // StatsContent's DebugBanner) so this can be diagnosed without pulling Vercel Runtime Logs.
-  // The KpisDto on /api/space/{slug} above counts ALL-TIME events (no date filter), while
-  // /metrics/detailed filters to the last 30 days — if real events are older than 30 days,
-  // a 200 OK with all-zero totals is a legitimate answer, not a fetch failure. Remove
-  // debugInfo/DebugBanner once the real cause here is confirmed.
   let detailed: DetailedMetrics | null = null;
-  let debugInfo: MetricsDebugInfo;
   try {
     const metricsRes = await fetch(`${API}/api/affiliates/${data.business.id}/metrics/detailed?days=30`, {
       headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': data.business.id },
       cache: 'no-store',
     });
-    if (metricsRes.ok) {
-      detailed = await metricsRes.json();
-      const totals = detailed!.dailyCounts.reduce(
-        (acc, d) => ({ pv: acc.pv + d.pageViews, qr: acc.qr + d.qrScans, cc: acc.cc + d.canalClicks }),
-        { pv: 0, qr: 0, cc: 0 },
-      );
-      debugInfo = {
-        ok: true,
-        status: metricsRes.status,
-        dailyCountsLength: detailed!.dailyCounts.length,
-        pageViewsSum: totals.pv,
-        qrScansSum: totals.qr,
-        canalClicksSum: totals.cc,
-        byCanalLength: detailed!.byCanal.length,
-      };
-    } else {
-      const body = await metricsRes.text().catch(() => '<unreadable body>');
-      debugInfo = { ok: false, status: metricsRes.status, error: body || '<empty body>' };
-    }
-  } catch (err) {
-    debugInfo = { ok: false, status: 0, error: err instanceof Error ? err.message : String(err) };
+    if (metricsRes.ok) detailed = await metricsRes.json();
+  } catch {
     // detailed stays null — StatsContent renders the empty state rather than crashing the page.
   }
 
-  return <StatsContent kpis={kpis} plan={data.business.plan} detailed={detailed} debugInfo={debugInfo} />;
+  return <StatsContent kpis={kpis} plan={data.business.plan} detailed={detailed} />;
 }

@@ -28,17 +28,10 @@ export interface DetailedMetrics {
   byCanal: CanalBreakdown[];
 }
 
-// TEMPORARY — diagnostic for the /metrics/detailed "empty despite real KPI activity"
-// investigation. Remove alongside DebugBanner once the real cause is confirmed.
-export type MetricsDebugInfo =
-  | { ok: true; status: number; dailyCountsLength: number; pageViewsSum: number; qrScansSum: number; canalClicksSum: number; byCanalLength: number }
-  | { ok: false; status: number; error: string };
-
 interface Props {
   kpis: SpaceKpis;
   plan: Plan;
   detailed: DetailedMetrics | null;
-  debugInfo: MetricsDebugInfo;
 }
 
 type MetricKey = 'pageViews' | 'qrScans' | 'canalClicks';
@@ -58,7 +51,7 @@ function formatShortDate(date: string, language: 'es' | 'en'): string {
   return new Intl.DateTimeFormat(language === 'es' ? 'es-DO' : 'en-US', { day: 'numeric', month: 'short' }).format(d);
 }
 
-export function StatsContent({ kpis, plan, detailed, debugInfo }: Props) {
+export function StatsContent({ kpis, plan, detailed }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
 
@@ -98,8 +91,6 @@ export function StatsContent({ kpis, plan, detailed, debugInfo }: Props) {
             {getText('Estadísticas', 'Stats')}
           </h1>
         </div>
-
-        <DebugBanner info={debugInfo} />
 
         {/* Same KpiTile cards as the Dashboard's own KPI row — same data, same component. */}
         <section className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -241,25 +232,6 @@ export function StatsContent({ kpis, plan, detailed, debugInfo }: Props) {
           )}
         </section>
       </div>
-    </div>
-  );
-}
-
-// TEMPORARY — remove once the /metrics/detailed "empty despite real KPI activity"
-// investigation is closed. Surfaces the raw fetch outcome on-page so it can be read without
-// pulling Vercel Runtime Logs.
-function DebugBanner({ info }: { info: MetricsDebugInfo }) {
-  return (
-    <div className="mt-4 rounded-xl border-2 border-dashed border-yellow-500 bg-yellow-100 dark:bg-yellow-900/30 px-4 py-3 text-xs text-yellow-900 dark:text-yellow-200">
-      <p className="font-bold uppercase tracking-wide">DEBUG — quitar después</p>
-      {info.ok ? (
-        <p className="mt-1 font-mono">
-          status={info.status} · dailyCounts.length={info.dailyCountsLength} · pageViews sum={info.pageViewsSum} ·
-          {' '}qrScans sum={info.qrScansSum} · canalClicks sum={info.canalClicksSum} · byCanal.length={info.byCanalLength}
-        </p>
-      ) : (
-        <p className="mt-1 font-mono">Error {info.status}: {info.error}</p>
-      )}
     </div>
   );
 }
