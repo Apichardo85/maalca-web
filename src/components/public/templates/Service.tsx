@@ -205,10 +205,17 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
             <div>
               <p className={`${fraunces.className} text-xl font-semibold leading-tight`}>{business.name}</p>
               {addressEntry && (
-                <p className="mt-2 flex items-start gap-1.5 text-sm" style={{ color: STONE }}>
+                <a
+                  href={addressEntry.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackCanalClick(business.slug, addressEntry.tipo, addressEntry.canalId)}
+                  className="mt-2 flex items-start gap-1.5 text-sm hover:underline"
+                  style={{ color: STONE }}
+                >
                   <PinIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                   {addressEntry.value}
-                </p>
+                </a>
               )}
             </div>
 
