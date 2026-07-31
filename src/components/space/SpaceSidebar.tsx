@@ -3,15 +3,29 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { UserBadge } from './UserBadge';
 
 interface Props {
   slug: string;
   businessName: string;
   plan: 'free' | 'entrepreneur';
   primaryColor?: string | null;
+  userFullName?: string | null;
+  userAvatarUrl?: string | null;
+  userEmail?: string | null;
+  userRole?: string | null;
 }
 
-export function SpaceSidebar({ slug, businessName, plan, primaryColor }: Props) {
+export function SpaceSidebar({
+  slug,
+  businessName,
+  plan,
+  primaryColor,
+  userFullName = null,
+  userAvatarUrl = null,
+  userEmail = null,
+  userRole = null,
+}: Props) {
   const pathname = usePathname();
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => language === 'es' ? es : en;
@@ -61,6 +75,7 @@ export function SpaceSidebar({ slug, businessName, plan, primaryColor }: Props) 
               ? getText('Emprendedor', 'Entrepreneur')
               : getText('Plan Gratis', 'Free Plan')}
           </span>
+          <UserBadge fullName={userFullName} avatarUrl={userAvatarUrl} email={userEmail} role={userRole} />
         </div>
 
         {/* Navigation */}

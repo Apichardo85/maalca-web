@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { SpaceTopBarControls } from '@/components/space/SpaceTopBarControls';
 import { BusinessSwitcher } from '@/components/space/BusinessSwitcher';
+import { UserBadge } from '@/components/space/UserBadge';
 import { cn } from '@/lib/utils';
 import type { Plan } from '@/lib/plan-limits';
 
@@ -21,6 +22,10 @@ interface Props {
   businessName: string;
   plan: 'free' | 'entrepreneur';
   primaryColor?: string | null;
+  userFullName?: string | null;
+  userAvatarUrl?: string | null;
+  userEmail?: string | null;
+  userRole?: string | null;
   businesses: Business[];
   canCreateMore: boolean;
 }
@@ -34,7 +39,18 @@ interface Props {
  * interaction pattern as the corporate Header.tsx (3-line -> X, blurred
  * overlay, click-outside close, body scroll lock) — reused, not reinvented.
  */
-export function SpaceMobileNav({ slug, businessName, plan, primaryColor, businesses, canCreateMore }: Props) {
+export function SpaceMobileNav({
+  slug,
+  businessName,
+  plan,
+  primaryColor,
+  userFullName = null,
+  userAvatarUrl = null,
+  userEmail = null,
+  userRole = null,
+  businesses,
+  canCreateMore,
+}: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const { language } = useSimpleLanguage();
@@ -134,6 +150,7 @@ export function SpaceMobileNav({ slug, businessName, plan, primaryColor, busines
                   ? getText('Emprendedor', 'Entrepreneur')
                   : getText('Plan Gratis', 'Free Plan')}
               </span>
+              <UserBadge fullName={userFullName} avatarUrl={userAvatarUrl} email={userEmail} role={userRole} />
             </div>
             <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
               {navItems.map((item) => {

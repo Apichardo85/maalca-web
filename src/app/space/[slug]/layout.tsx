@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getMaalcaApiToken } from '@/lib/api-auth';
+import { getCurrentSpaceUser } from '@/lib/api-auth';
 import { canAddBusiness, type Plan } from '@/lib/plan-limits';
 import { SpaceSidebar } from '@/components/space/SpaceSidebar';
 import { SpaceMobileNav } from '@/components/space/SpaceMobileNav';
@@ -21,8 +21,9 @@ export default async function SpaceSlugLayout({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const token = await getMaalcaApiToken();
-  if (!token) redirect('/login');
+  const currentUser = await getCurrentSpaceUser();
+  if (!currentUser) redirect('/login');
+  const { token } = currentUser;
 
   const res = await fetch(`${API}/api/space/${slug}`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -33,7 +34,7 @@ export default async function SpaceSlugLayout({
   if (res.status === 403) redirect('/');
   if (!res.ok) throw new Error(`Failed to load space: ${res.status}`);
 
-  const { business } = await res.json();
+  const { business, role } = await res.json();
 
   // Needed so SpaceMobileNav's drawer can show the real business switcher on
   // mobile (SpaceSwitcherBar, mounted one layout up, is desktop-only now —
@@ -53,6 +54,10 @@ export default async function SpaceSlugLayout({
         businessName={business.name}
         plan={business.plan}
         primaryColor={business.primaryColor}
+        userFullName={currentUser.fullName}
+        userAvatarUrl={currentUser.avatarUrl}
+        userEmail={currentUser.email}
+        userRole={role}
       />
       <div className="flex-1 min-w-0 md:pl-60">
         <SpaceMobileNav
@@ -60,6 +65,10 @@ export default async function SpaceSlugLayout({
           businessName={business.name}
           plan={business.plan}
           primaryColor={business.primaryColor}
+          userFullName={currentUser.fullName}
+          userAvatarUrl={currentUser.avatarUrl}
+          userEmail={currentUser.email}
+          userRole={role}
           businesses={affiliates}
           canCreateMore={canCreateMore}
         />
