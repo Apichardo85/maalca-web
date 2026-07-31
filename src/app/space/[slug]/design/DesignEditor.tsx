@@ -116,6 +116,37 @@ export function DesignEditor({
     setPreviewSnapshot(liveForm);
   };
 
+  // contactEmail stays a fallback field (unlike WhatsApp, which moved to Canales entirely) so
+  // the owner isn't forced through Canales just to have a contact email at all. But that means
+  // the same address can end up typed twice — here and in Canales — so on every successful
+  // profile save, auto-create the Email canal from it. Only when none exists yet (by tipo,
+  // regardless of activo — an owner who deliberately deactivated theirs shouldn't get a new
+  // one silently recreated), so this only ever fires once per affiliate; every save after that
+  // sees the canal already in `canales` state and skips it.
+  const ensureEmailCanal = async () => {
+    const email = liveForm.contactEmail.trim();
+    if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return;
+    if (canales.some((c) => c.tipo === 'Email')) return;
+
+    try {
+      const res = await fetch(`/api/space/${slug}/canales`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipo: 'Email',
+          metodo: 'Manual',
+          valorCrudo: sanitizeContactValue(email),
+          orden: canales.length,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data) setCanales((c) => [...c, data]);
+    } catch {
+      // Best-effort — the profile save itself already succeeded; a failure here just means
+      // the owner keeps seeing the "Este campo está siendo reemplazado..." note next time.
+    }
+  };
+
   const save = async () => {
     setSaving(true);
     setSaveError(null);
@@ -144,6 +175,7 @@ export function DesignEditor({
       if (res.ok) {
         setSaved(true);
         commitAll();
+        await ensureEmailCanal();
         router.refresh();
         setTimeout(() => setSaved(false), 2500);
       } else {
