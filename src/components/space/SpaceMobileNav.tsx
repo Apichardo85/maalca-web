@@ -68,6 +68,7 @@ export function SpaceMobileNav({
   const navItems = [
     { label: getText('Dashboard', 'Dashboard'), icon: '🏠', href: `/space/${slug}` },
     { label: getText('Diseñar mi Espacio', 'Design my Space'), icon: '🎨', href: `/space/${slug}/design` },
+    { label: getText('Identidad', 'Identity'), icon: '🪪', href: `/space/${slug}/identidad` },
     { label: catalogLabel, icon: '📦', href: `/space/${slug}/catalog` },
     { label: getText('Módulos', 'Modules'), icon: '🧩', href: `/space/${slug}/modules` },
     { label: getText('Estadísticas', 'Stats'), icon: '📊', href: `/space/${slug}/stats` },

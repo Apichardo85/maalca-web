@@ -9,7 +9,6 @@ import { getCapabilities } from '@/lib/capabilities';
 import type { BusinessType, Plan, PublicTemplateProps } from '@/lib/templates/registry';
 import { ConfigTab } from './ConfigTab';
 import { CanalesTab } from './CanalesTab';
-import { QrTab } from './QrTab';
 import { ContenidoTab, withAllDays } from './ContenidoTab';
 import { PreviewFrame } from './PreviewFrame';
 import {
@@ -43,11 +42,9 @@ interface Props {
   faq: FaqEntryDto[];
   horario: HorarioDayDto[];
   publicUrl: string;
-  qrTargetUrl: string;
-  qrDataUrl: string;
 }
 
-type Tab = 'config' | 'canales' | 'qr' | 'contenido';
+type Tab = 'config' | 'canales' | 'contenido';
 
 export function DesignEditor({
   slug,
@@ -71,8 +68,6 @@ export function DesignEditor({
   faq: initialFaq,
   horario: initialHorario,
   publicUrl,
-  qrTargetUrl,
-  qrDataUrl,
 }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -81,7 +76,7 @@ export function DesignEditor({
 
   const initialTab = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState<Tab>(
-    initialTab === 'canales' || initialTab === 'qr' || initialTab === 'contenido' ? initialTab : 'config',
+    initialTab === 'canales' || initialTab === 'contenido' ? initialTab : 'config',
   );
 
   const initialForm: ProfileFormState = {
@@ -166,7 +161,6 @@ export function DesignEditor({
     { key: 'config', label: getText('Configuración', 'Settings'), icon: '⚙️' },
     { key: 'canales', label: getText('Canales', 'Channels'), icon: '💬' },
     { key: 'contenido', label: getText('Contenido', 'Content'), icon: '📝' },
-    { key: 'qr', label: getText('Identidad', 'Identity'), icon: '🪪' },
   ];
 
   const capabilities = getCapabilities(plan);
@@ -284,16 +278,6 @@ export function DesignEditor({
               onFaqChange={setFaq}
               horario={horario}
               onHorarioChange={setHorario}
-            />
-          )}
-          {activeTab === 'qr' && (
-            <QrTab
-              slug={slug}
-              publicUrl={publicUrl}
-              qrTargetUrl={qrTargetUrl}
-              qrDataUrl={qrDataUrl}
-              primaryColor={liveForm.primaryColor}
-              business={previewBusiness}
             />
           )}
         </div>

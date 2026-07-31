@@ -1,5 +1,4 @@
 import { redirect } from 'next/navigation';
-import QRCode from 'qrcode';
 import { getMaalcaApiToken } from '@/lib/api-auth';
 import { DesignEditor } from './DesignEditor';
 import type { ProcessStepDto, FaqEntryDto, HorarioDayDto } from './types';
@@ -87,10 +86,6 @@ export default async function DesignPage({
   }
 
   const publicUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://maalca.com'}/${slug}`;
-  // The QR image encodes the /r/{slug} tracking redirect (records qr_scan, then 302s to
-  // publicUrl) — publicUrl itself keeps being the clean link shown/copied in the UI.
-  const qrTargetUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://maalca.com'}/r/${slug}`;
-  const qrDataUrl = await QRCode.toDataURL(qrTargetUrl, { width: 240, margin: 1 });
 
   return (
     <DesignEditor
@@ -115,8 +110,6 @@ export default async function DesignPage({
       faq={faq}
       horario={horario}
       publicUrl={publicUrl}
-      qrTargetUrl={qrTargetUrl}
-      qrDataUrl={qrDataUrl}
     />
   );
 }

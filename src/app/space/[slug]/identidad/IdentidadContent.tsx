@@ -12,17 +12,17 @@ interface Props {
   publicUrl: string;
   qrTargetUrl: string;
   qrDataUrl: string;
-  primaryColor: string;
   business: PublicTemplateProps['business'];
 }
 
-export function QrTab({ slug, publicUrl, qrTargetUrl, qrDataUrl, primaryColor, business }: Props) {
+export function IdentidadContent({ slug, publicUrl, qrTargetUrl, qrDataUrl, business }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
+  const primaryColor = business.primary_color || '#C8102E';
 
   // qrDataUrl (server prop) is the plain black fallback shown on first paint — generateQrDataUrl
   // is async, so it can't run synchronously during render. Re-generated here in the business's
-  // primaryColor once mounted, and again whenever the color changes (swatch is a live preview).
+  // primaryColor once mounted.
   const [dataUrl, setDataUrl] = useState(qrDataUrl);
   const [svgDataUrl, setSvgDataUrl] = useState<string | null>(null);
 
@@ -40,7 +40,7 @@ export function QrTab({ slug, publicUrl, qrTargetUrl, qrDataUrl, primaryColor, b
   }, [qrTargetUrl, primaryColor]);
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="mx-auto flex max-w-lg flex-col items-center p-6">
       <h2 className="self-start text-sm font-semibold text-gray-900 dark:text-white">
         {getText('Tu código QR', 'Your QR code')}
       </h2>
