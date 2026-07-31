@@ -43,6 +43,7 @@ interface Props {
   faq: FaqEntryDto[];
   horario: HorarioDayDto[];
   publicUrl: string;
+  qrTargetUrl: string;
   qrDataUrl: string;
 }
 
@@ -70,6 +71,7 @@ export function DesignEditor({
   faq: initialFaq,
   horario: initialHorario,
   publicUrl,
+  qrTargetUrl,
   qrDataUrl,
 }: Props) {
   const router = useRouter();
@@ -164,7 +166,7 @@ export function DesignEditor({
     { key: 'config', label: getText('Configuración', 'Settings'), icon: '⚙️' },
     { key: 'canales', label: getText('Canales', 'Channels'), icon: '💬' },
     { key: 'contenido', label: getText('Contenido', 'Content'), icon: '📝' },
-    { key: 'qr', label: 'QR', icon: '📱' },
+    { key: 'qr', label: getText('Identidad', 'Identity'), icon: '🪪' },
   ];
 
   const capabilities = getCapabilities(plan);
@@ -284,7 +286,14 @@ export function DesignEditor({
             />
           )}
           {activeTab === 'qr' && (
-            <QrTab slug={slug} publicUrl={publicUrl} qrDataUrl={qrDataUrl} />
+            <QrTab
+              slug={slug}
+              publicUrl={publicUrl}
+              qrTargetUrl={qrTargetUrl}
+              qrDataUrl={qrDataUrl}
+              primaryColor={liveForm.primaryColor}
+              business={previewBusiness}
+            />
           )}
         </div>
 

@@ -115,6 +115,7 @@ export default async function DesignPage({
       faq={faq}
       horario={horario}
       publicUrl={publicUrl}
+      qrTargetUrl={qrTargetUrl}
       qrDataUrl={qrDataUrl}
     />
   );

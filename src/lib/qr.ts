@@ -54,3 +54,29 @@ export async function generateQrDataUrl(
     color: { dark: darkColor, light: lightColor },
   });
 }
+
+/**
+ * Genera un QR como SVG, envuelto en un data URL (`data:image/svg+xml,...`)
+ * listo para `<a download>` o `<img src=...>`. Hermana de generateQrDataUrl
+ * (PNG) — mismas opciones, mismos defaults.
+ */
+export async function generateQrSvgDataUrl(
+  url: string,
+  options: QrOptions = {},
+): Promise<string> {
+  const {
+    margin = 1,
+    darkColor = "#000000",
+    lightColor = "#FFFFFF",
+    errorCorrectionLevel = "H",
+  } = options;
+
+  const svg = await QRCode.toString(url, {
+    type: "svg",
+    errorCorrectionLevel,
+    margin,
+    color: { dark: darkColor, light: lightColor },
+  });
+
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
