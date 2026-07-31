@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { BUSINESS_TYPE_LABELS, BUSINESS_TYPE_ICONS, type BusinessType } from '@/lib/templates/registry';
 import type { ProfileFormState, CanalDto } from './types';
 
 const PALETTE = [
@@ -22,6 +23,7 @@ const PALETTE = [
 interface Props {
   slug: string;
   form: ProfileFormState;
+  businessType: BusinessType;
   onChange: (key: keyof ProfileFormState, value: string | null) => void;
   onCommit: (key: keyof ProfileFormState) => void;
   onCommitAll: () => void;
@@ -39,7 +41,7 @@ async function uploadImage(slug: string, file: File, itemId: string): Promise<st
   return data.url as string;
 }
 
-export function ConfigTab({ slug, form, onChange, onCommit, onCommitAll, onGoToContenido, canales }: Props) {
+export function ConfigTab({ slug, form, businessType, onChange, onCommit, onCommitAll, onGoToContenido, canales }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
 
@@ -131,6 +133,21 @@ export function ConfigTab({ slug, form, onChange, onCommit, onCommitAll, onGoToC
 
   return (
     <div className="space-y-6">
+      {/* Tipo de negocio — read-only. Changing it is a bigger decision (template,
+          catalog fields, etc. all key off it) than a quick edit from this tab. */}
+      <div>
+        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-neutral-300">
+          {getText('Tipo de negocio', 'Business type')}
+        </label>
+        <div className="flex items-center gap-2 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800/50 px-3 py-2.5 text-sm text-gray-700 dark:text-neutral-300">
+          <span className="text-base">{BUSINESS_TYPE_ICONS[businessType]}</span>
+          <span>{BUSINESS_TYPE_LABELS[businessType]}</span>
+        </div>
+        <p className="mt-1 text-xs text-gray-400 dark:text-neutral-500">
+          {getText('Contáctanos para cambiar el tipo de negocio.', 'Contact us to change the business type.')}
+        </p>
+      </div>
+
       {/* Logo + color — instant preview */}
       <div className="flex items-start gap-6">
         <div className="flex flex-col items-center gap-2">

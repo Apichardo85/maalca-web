@@ -98,6 +98,16 @@ export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
   retail: 'Tienda',
 };
 
+/** Same emoji as the onboarding business-type selector (BUSINESS_TYPES in
+ *  OnboardingForm.tsx) — kept here instead of imported from there so the read-only
+ *  display in ConfigTab.tsx doesn't reach into an unrelated route's form file. */
+export const BUSINESS_TYPE_ICONS: Record<BusinessType, string> = {
+  restaurant: '🍽️',
+  barber: '💈',
+  service: '🛠️',
+  retail: '🛍️',
+};
+
 /** Label for the /space nav item that leads to the catalog editor — the generic
  *  "Catálogo" doesn't match what a restaurant or barbershop actually calls it. */
 export const CATALOG_NAV_LABELS: Record<BusinessType, { es: string; en: string }> = {

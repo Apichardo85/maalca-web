@@ -264,6 +264,7 @@ export function DesignEditor({
             <ConfigTab
               slug={slug}
               form={liveForm}
+              businessType={businessType}
               onChange={updateField}
               onCommit={commitField}
               onCommitAll={commitAll}
