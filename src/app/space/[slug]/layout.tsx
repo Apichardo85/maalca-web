@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getCurrentSpaceUser } from '@/lib/api-auth';
 import { canAddBusiness, type Plan } from '@/lib/plan-limits';
+import type { BusinessType } from '@/lib/templates/registry';
 import { SpaceSidebar } from '@/components/space/SpaceSidebar';
 import { SpaceMobileNav } from '@/components/space/SpaceMobileNav';
 
@@ -35,6 +36,7 @@ export default async function SpaceSlugLayout({
   if (!res.ok) throw new Error(`Failed to load space: ${res.status}`);
 
   const { business, role } = await res.json();
+  const businessType = (business.businessType as string).toLowerCase() as BusinessType;
 
   // Needed so SpaceMobileNav's drawer can show the real business switcher on
   // mobile (SpaceSwitcherBar, mounted one layout up, is desktop-only now —
@@ -52,6 +54,7 @@ export default async function SpaceSlugLayout({
       <SpaceSidebar
         slug={slug}
         businessName={business.name}
+        businessType={businessType}
         plan={business.plan}
         primaryColor={business.primaryColor}
         userFullName={currentUser.fullName}
@@ -63,6 +66,7 @@ export default async function SpaceSlugLayout({
         <SpaceMobileNav
           slug={slug}
           businessName={business.name}
+          businessType={businessType}
           plan={business.plan}
           primaryColor={business.primaryColor}
           userFullName={currentUser.fullName}

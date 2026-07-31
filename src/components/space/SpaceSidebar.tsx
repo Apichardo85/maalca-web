@@ -3,11 +3,13 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { CATALOG_NAV_LABELS, type BusinessType } from '@/lib/templates/registry';
 import { UserBadge } from './UserBadge';
 
 interface Props {
   slug: string;
   businessName: string;
+  businessType: BusinessType;
   plan: 'free' | 'entrepreneur';
   primaryColor?: string | null;
   userFullName?: string | null;
@@ -19,6 +21,7 @@ interface Props {
 export function SpaceSidebar({
   slug,
   businessName,
+  businessType,
   plan,
   primaryColor,
   userFullName = null,
@@ -30,10 +33,12 @@ export function SpaceSidebar({
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => language === 'es' ? es : en;
 
+  const catalogLabel = CATALOG_NAV_LABELS[businessType][language];
+
   const navItems = [
     { label: getText('Dashboard', 'Dashboard'),               icon: '🏠', href: `/space/${slug}` },
     { label: getText('Diseñar mi Espacio', 'Design my Space'), icon: '🎨', href: `/space/${slug}/design` },
-    { label: getText('Catálogo', 'Catalog'),                  icon: '📦', href: `/space/${slug}/catalog` },
+    { label: catalogLabel,                                    icon: '📦', href: `/space/${slug}/catalog` },
     { label: getText('Módulos', 'Modules'),                   icon: '🧩', href: `/space/${slug}/modules` },
     { label: getText('Estadísticas', 'Stats'),                icon: '📊', href: `/space/${slug}/stats` },
   ];

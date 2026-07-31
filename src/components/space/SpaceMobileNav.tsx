@@ -9,6 +9,7 @@ import { BusinessSwitcher } from '@/components/space/BusinessSwitcher';
 import { UserBadge } from '@/components/space/UserBadge';
 import { cn } from '@/lib/utils';
 import type { Plan } from '@/lib/plan-limits';
+import { CATALOG_NAV_LABELS, type BusinessType } from '@/lib/templates/registry';
 
 interface Business {
   id: string;
@@ -20,6 +21,7 @@ interface Business {
 interface Props {
   slug: string;
   businessName: string;
+  businessType: BusinessType;
   plan: 'free' | 'entrepreneur';
   primaryColor?: string | null;
   userFullName?: string | null;
@@ -42,6 +44,7 @@ interface Props {
 export function SpaceMobileNav({
   slug,
   businessName,
+  businessType,
   plan,
   primaryColor,
   userFullName = null,
@@ -60,10 +63,12 @@ export function SpaceMobileNav({
   const others = businesses.filter((b) => b.slug !== slug);
   const showSwitcher = !!current && (others.length > 0 || canCreateMore);
 
+  const catalogLabel = CATALOG_NAV_LABELS[businessType][language];
+
   const navItems = [
     { label: getText('Dashboard', 'Dashboard'), icon: '🏠', href: `/space/${slug}` },
     { label: getText('Diseñar mi Espacio', 'Design my Space'), icon: '🎨', href: `/space/${slug}/design` },
-    { label: getText('Catálogo', 'Catalog'), icon: '📦', href: `/space/${slug}/catalog` },
+    { label: catalogLabel, icon: '📦', href: `/space/${slug}/catalog` },
     { label: getText('Módulos', 'Modules'), icon: '🧩', href: `/space/${slug}/modules` },
     { label: getText('Estadísticas', 'Stats'), icon: '📊', href: `/space/${slug}/stats` },
   ];

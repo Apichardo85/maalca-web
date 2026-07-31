@@ -97,3 +97,12 @@ export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
   service: 'Servicios',
   retail: 'Tienda',
 };
+
+/** Label for the /space nav item that leads to the catalog editor — the generic
+ *  "Catálogo" doesn't match what a restaurant or barbershop actually calls it. */
+export const CATALOG_NAV_LABELS: Record<BusinessType, { es: string; en: string }> = {
+  restaurant: { es: 'Menú', en: 'Menu' },
+  barber: { es: 'Servicios', en: 'Services' },
+  service: { es: 'Servicios', en: 'Services' },
+  retail: { es: 'Catálogo', en: 'Catalog' },
+};
