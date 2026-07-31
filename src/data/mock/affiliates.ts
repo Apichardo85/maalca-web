@@ -108,7 +108,10 @@ export const affiliates: Affiliate[] = [
     status: "active",
     active: true,
     displayInitials: "PB",
-    logo: "/images/affiliates/pegote-logo.png",
+    // Pegote's real logo, uploaded by the owner via their own /space dashboard — pointing
+    // straight at the Supabase Storage URL (public bucket) instead of copying a static file
+    // into the repo, so a logo change from their dashboard shows up here too with no code edit.
+    logo: "https://nyiocxrrbrphfczsbqpf.supabase.co/storage/v1/object/public/affiliate-media/a1000000-0000-0000-0000-000000000001/logo-1783382514452.jpg",
     website: "/pegote-barber",
     contact: {
       name: "Pegote Team",
@@ -237,7 +240,10 @@ export const ecosystemAffiliates: Affiliate[] = [
     status: "active",
     active: true,
     displayInitials: "PB",
-    logo: "/images/affiliates/pegote-logo.png",
+    // Pegote's real logo, uploaded by the owner via their own /space dashboard — pointing
+    // straight at the Supabase Storage URL (public bucket) instead of copying a static file
+    // into the repo, so a logo change from their dashboard shows up here too with no code edit.
+    logo: "https://nyiocxrrbrphfczsbqpf.supabase.co/storage/v1/object/public/affiliate-media/a1000000-0000-0000-0000-000000000001/logo-1783382514452.jpg",
     website: "/pegote-barber",
     contact: {
       name: "Pegote Team",
