@@ -20,6 +20,7 @@ interface Props {
   slug: string;
   businessName: string;
   plan: 'free' | 'entrepreneur';
+  primaryColor?: string | null;
   businesses: Business[];
   canCreateMore: boolean;
 }
@@ -33,7 +34,7 @@ interface Props {
  * interaction pattern as the corporate Header.tsx (3-line -> X, blurred
  * overlay, click-outside close, body scroll lock) — reused, not reinvented.
  */
-export function SpaceMobileNav({ slug, businessName, plan, businesses, canCreateMore }: Props) {
+export function SpaceMobileNav({ slug, businessName, plan, primaryColor, businesses, canCreateMore }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const { language } = useSimpleLanguage();
@@ -86,8 +87,15 @@ export function SpaceMobileNav({ slug, businessName, plan, businesses, canCreate
               <span className={cn('block h-0.5 w-5 rounded-full bg-current transition-all duration-300', isOpen && '-translate-y-2 -rotate-45')} />
             </div>
           </button>
-          <span className="truncate text-sm font-semibold text-gray-900 dark:text-white">
-            {businessName}
+          <span className="flex min-w-0 items-center gap-1.5 truncate text-sm font-semibold text-gray-900 dark:text-white">
+            {primaryColor && (
+              <span
+                className="h-2 w-2 flex-shrink-0 rounded-full"
+                style={{ background: primaryColor }}
+                aria-hidden="true"
+              />
+            )}
+            <span className="truncate">{businessName}</span>
           </span>
         </div>
         <SpaceTopBarControls />
@@ -104,8 +112,15 @@ export function SpaceMobileNav({ slug, businessName, plan, businesses, canCreate
               {showSwitcher && current ? (
                 <BusinessSwitcher current={current} others={others} canCreateMore={canCreateMore} />
               ) : (
-                <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
-                  {businessName}
+                <p className="flex items-center gap-1.5 truncate text-sm font-semibold text-gray-900 dark:text-white">
+                  {primaryColor && (
+                    <span
+                      className="h-2 w-2 flex-shrink-0 rounded-full"
+                      style={{ background: primaryColor }}
+                      aria-hidden="true"
+                    />
+                  )}
+                  <span className="truncate">{businessName}</span>
                 </p>
               )}
               <span

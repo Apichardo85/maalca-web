@@ -8,9 +8,10 @@ interface Props {
   slug: string;
   businessName: string;
   plan: 'free' | 'entrepreneur';
+  primaryColor?: string | null;
 }
 
-export function SpaceSidebar({ slug, businessName, plan }: Props) {
+export function SpaceSidebar({ slug, businessName, plan, primaryColor }: Props) {
   const pathname = usePathname();
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => language === 'es' ? es : en;
@@ -39,8 +40,15 @@ export function SpaceSidebar({ slug, businessName, plan }: Props) {
       <aside className="hidden md:flex fixed top-0 bottom-0 left-0 z-30 w-60 flex-col bg-white dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800">
         {/* Business header */}
         <div className="px-4 py-5 border-b border-gray-200 dark:border-neutral-800">
-          <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
-            {businessName}
+          <p className="flex items-center gap-1.5 truncate text-sm font-semibold text-gray-900 dark:text-white">
+            {primaryColor && (
+              <span
+                className="h-2 w-2 flex-shrink-0 rounded-full"
+                style={{ background: primaryColor }}
+                aria-hidden="true"
+              />
+            )}
+            <span className="truncate">{businessName}</span>
           </p>
           <span
             className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${

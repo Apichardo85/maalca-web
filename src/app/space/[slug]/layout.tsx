@@ -52,12 +52,14 @@ export default async function SpaceSlugLayout({
         slug={slug}
         businessName={business.name}
         plan={business.plan}
+        primaryColor={business.primaryColor}
       />
       <div className="flex-1 min-w-0 md:pl-60">
         <SpaceMobileNav
           slug={slug}
           businessName={business.name}
           plan={business.plan}
+          primaryColor={business.primaryColor}
           businesses={affiliates}
           canCreateMore={canCreateMore}
         />
