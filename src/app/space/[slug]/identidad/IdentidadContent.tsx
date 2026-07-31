@@ -40,66 +40,68 @@ export function IdentidadContent({ slug, publicUrl, qrTargetUrl, qrDataUrl, busi
   }, [qrTargetUrl, primaryColor]);
 
   return (
-    <div className="mx-auto flex max-w-lg flex-col items-center p-6">
-      <h2 className="self-start text-sm font-semibold text-gray-900 dark:text-white">
-        {getText('Tu código QR', 'Your QR code')}
-      </h2>
-      <p className="mt-1 self-start text-xs text-gray-500 dark:text-neutral-400">
-        {getText(
-          'Comparte este código para que tus clientes accedan a tu catálogo.',
-          'Share this code so your customers can access your catalog.',
-        )}
-      </p>
-
-      <div className="mt-6 flex flex-col items-center rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-8 shadow-sm">
-        <div className="rounded-xl bg-white p-3 shadow-md">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={dataUrl}
-            alt={`${getText('Código QR para', 'QR code for')} ${publicUrl}`}
-            width={216}
-            height={216}
-            className="block"
-          />
-        </div>
-
-        <p className="mt-5 break-all text-center text-xs text-gray-400 dark:text-neutral-500">
-          {publicUrl}
+    <div className="mx-auto flex max-w-lg flex-col items-center gap-10 p-6 lg:max-w-5xl lg:flex-row lg:items-start lg:justify-center lg:gap-8">
+      <div className="flex w-full flex-col items-center lg:flex-1">
+        <h2 className="self-start text-sm font-semibold text-gray-900 dark:text-white">
+          {getText('Tu código QR', 'Your QR code')}
+        </h2>
+        <p className="mt-1 self-start text-xs text-gray-500 dark:text-neutral-400">
+          {getText(
+            'Comparte este código para que tus clientes accedan a tu catálogo.',
+            'Share this code so your customers can access your catalog.',
+          )}
         </p>
 
-        <div className="mt-6 flex w-full flex-col gap-3">
-          <a
-            href={`/${slug}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full rounded-full border border-gray-200 dark:border-neutral-700 px-4 py-2.5 text-center text-sm font-medium text-gray-700 dark:text-neutral-300 transition hover:bg-gray-100 dark:hover:bg-neutral-800"
-          >
-            {getText('Ver mi página →', 'View my page →')}
-          </a>
-          <QrCopyButton text={publicUrl} />
-          <div className="flex gap-3">
+        <div className="mt-6 flex w-full flex-col items-center rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-8 shadow-sm">
+          <div className="rounded-xl bg-white p-3 shadow-md">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={dataUrl}
+              alt={`${getText('Código QR para', 'QR code for')} ${publicUrl}`}
+              width={216}
+              height={216}
+              className="block"
+            />
+          </div>
+
+          <p className="mt-5 break-all text-center text-xs text-gray-400 dark:text-neutral-500">
+            {publicUrl}
+          </p>
+
+          <div className="mt-6 flex w-full flex-col gap-3">
             <a
-              href={dataUrl}
-              download={`qr-${slug}.png`}
-              className="flex-1 rounded-full bg-gray-100 dark:bg-neutral-800 px-4 py-2.5 text-center text-sm font-medium text-gray-700 dark:text-neutral-200 transition hover:bg-gray-200 dark:hover:bg-neutral-700"
+              href={`/${slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full rounded-full border border-gray-200 dark:border-neutral-700 px-4 py-2.5 text-center text-sm font-medium text-gray-700 dark:text-neutral-300 transition hover:bg-gray-100 dark:hover:bg-neutral-800"
             >
-              {getText('Descargar PNG', 'Download PNG')}
+              {getText('Ver mi página →', 'View my page →')}
             </a>
-            <a
-              href={svgDataUrl ?? undefined}
-              download={`qr-${slug}.svg`}
-              aria-disabled={!svgDataUrl}
-              className={`flex-1 rounded-full bg-gray-100 dark:bg-neutral-800 px-4 py-2.5 text-center text-sm font-medium text-gray-700 dark:text-neutral-200 transition hover:bg-gray-200 dark:hover:bg-neutral-700 ${
-                svgDataUrl ? '' : 'pointer-events-none opacity-50'
-              }`}
-            >
-              {getText('Descargar SVG', 'Download SVG')}
-            </a>
+            <QrCopyButton text={publicUrl} />
+            <div className="flex gap-3">
+              <a
+                href={dataUrl}
+                download={`qr-${slug}.png`}
+                className="flex-1 rounded-full bg-gray-100 dark:bg-neutral-800 px-4 py-2.5 text-center text-sm font-medium text-gray-700 dark:text-neutral-200 transition hover:bg-gray-200 dark:hover:bg-neutral-700"
+              >
+                {getText('Descargar PNG', 'Download PNG')}
+              </a>
+              <a
+                href={svgDataUrl ?? undefined}
+                download={`qr-${slug}.svg`}
+                aria-disabled={!svgDataUrl}
+                className={`flex-1 rounded-full bg-gray-100 dark:bg-neutral-800 px-4 py-2.5 text-center text-sm font-medium text-gray-700 dark:text-neutral-200 transition hover:bg-gray-200 dark:hover:bg-neutral-700 ${
+                  svgDataUrl ? '' : 'pointer-events-none opacity-50'
+                }`}
+              >
+                {getText('Descargar SVG', 'Download SVG')}
+              </a>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="mt-10 w-full">
+      <div className="flex w-full flex-col items-center lg:flex-1">
         <h2 className="self-start text-sm font-semibold text-gray-900 dark:text-white">
           {getText('Tarjeta de negocio', 'Business card')}
         </h2>
@@ -109,7 +111,7 @@ export function IdentidadContent({ slug, publicUrl, qrTargetUrl, qrDataUrl, busi
             'A ready-to-share card with your logo, contact info and QR.',
           )}
         </p>
-        <div className="mt-6 flex justify-center">
+        <div className="mt-6 flex w-full justify-center">
           <BusinessCard business={business} qrDataUrl={dataUrl} />
         </div>
       </div>
