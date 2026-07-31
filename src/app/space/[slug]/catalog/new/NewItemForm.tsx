@@ -47,6 +47,7 @@ function CameraIcon() {
 
 export default function NewItemForm({ slug, businessType, from }: Props) {
   const isRestaurant = businessType === 'Restaurant';
+  const isBarberOrService = businessType === 'Barber' || businessType === 'Service';
   const namePlaceholder = (businessType && NAME_PLACEHOLDERS[businessType]) || DEFAULT_NAME_PLACEHOLDER;
   const backHref = from === 'catalog' ? `/space/${slug}/catalog` : `/space/${slug}`;
   const router = useRouter();
@@ -64,6 +65,7 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
   const [flags, setFlags] = useState({ vegetarian: false, spicy: false, glutenFree: false });
   const [featured, setFeatured] = useState(false);
   const [popular, setPopular] = useState(false);
+  const [durationMinutes, setDurationMinutes] = useState('');
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -134,6 +136,9 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
         body.flags = Object.entries(flags).filter(([, v]) => v).map(([k]) => k);
         body.featured = featured;
         body.popular = popular;
+      }
+      if (isBarberOrService && durationMinutes) {
+        body.durationMinutes = Number(durationMinutes);
       }
 
       const res = await fetch(`/api/space/${slug}/catalog`, {
@@ -262,6 +267,21 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
               />
             </div>
           </div>
+
+          {isBarberOrService && (
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Duración (minutos)</label>
+              <input
+                type="number"
+                value={durationMinutes}
+                onChange={(e) => setDurationMinutes(e.target.value)}
+                min="1"
+                step="5"
+                placeholder="30"
+                className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-neutral-500 focus:border-neutral-400 dark:focus:border-neutral-500 focus:outline-none"
+              />
+            </div>
+          )}
 
           {isRestaurant && (
             <div className="space-y-5 border-t border-neutral-100 dark:border-neutral-800 pt-5">

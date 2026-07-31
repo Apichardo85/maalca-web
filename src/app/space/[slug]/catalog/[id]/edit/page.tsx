@@ -54,6 +54,7 @@ export default async function EditCatalogItemPage({ params, searchParams }: Page
     flags:       Array.isArray(raw.flags) ? raw.flags : [],
     featured:    raw.featured ?? false,
     popular:     raw.popular ?? false,
+    durationMinutes: raw.durationMinutes ?? null,
   };
 
   return <EditForm slug={slug} item={item} businessType={businessType} from={from} />;

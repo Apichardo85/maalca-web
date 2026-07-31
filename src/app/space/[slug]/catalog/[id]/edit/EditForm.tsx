@@ -26,6 +26,7 @@ interface Item {
   flags: string[];
   featured: boolean;
   popular: boolean;
+  durationMinutes: number | null;
 }
 
 interface Props {
@@ -66,6 +67,7 @@ function CameraIcon() {
 export default function EditForm({ slug, item, businessType, from }: Props) {
   const router = useRouter();
   const isRestaurant = businessType === 'Restaurant';
+  const isBarberOrService = businessType === 'Barber' || businessType === 'Service';
   const namePlaceholder = (businessType && NAME_PLACEHOLDERS[businessType]) || DEFAULT_NAME_PLACEHOLDER;
   const backHref = from === 'catalog' ? `/space/${slug}/catalog` : `/space/${slug}`;
   const [pending, startTransition] = useTransition();
@@ -92,6 +94,9 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
   });
   const [featured, setFeatured] = useState(item.featured);
   const [popular, setPopular] = useState(item.popular);
+  const [durationMinutes, setDurationMinutes] = useState(
+    item.durationMinutes != null ? String(item.durationMinutes) : '',
+  );
 
   const set = (k: keyof typeof form) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -171,6 +176,9 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
         body.flags = Object.entries(flags).filter(([, v]) => v).map(([k]) => k);
         body.featured = featured;
         body.popular = popular;
+      }
+      if (isBarberOrService) {
+        body.durationMinutes = durationMinutes ? Number(durationMinutes) : null;
       }
 
       const res = await fetch(`/api/space/${slug}/catalog/${item.id}`, {
@@ -327,6 +335,21 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
               />
             </div>
           </div>
+
+          {isBarberOrService && (
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Duración (minutos)</label>
+              <input
+                type="number"
+                value={durationMinutes}
+                onChange={(e) => setDurationMinutes(e.target.value)}
+                min="1"
+                step="5"
+                placeholder="30"
+                className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-neutral-500 focus:border-neutral-400 dark:focus:border-neutral-500 focus:outline-none"
+              />
+            </div>
+          )}
 
           {isRestaurant && (
             <div className="space-y-5 border-t border-neutral-100 dark:border-neutral-800 pt-5">
