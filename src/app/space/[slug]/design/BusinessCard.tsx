@@ -42,8 +42,8 @@ export function BusinessCard({ business, qrDataUrl }: Props) {
     <div className="flex flex-col items-center">
       <div
         ref={cardRef}
-        className="flex w-full max-w-xs flex-col items-center rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 text-center"
-        style={{ aspectRatio: '9 / 16' }}
+        className="flex w-full max-w-xs flex-col items-center rounded-2xl p-6 text-center"
+        style={{ aspectRatio: '9 / 16', background: primaryColor }}
       >
         {business.logo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -58,16 +58,16 @@ export function BusinessCard({ business, qrDataUrl }: Props) {
         ) : (
           <div
             className="flex items-center justify-center rounded-full text-xl font-bold text-white"
-            style={{ width: 72, height: 72, background: primaryColor }}
+            style={{ width: 72, height: 72, background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)' }}
           >
             {business.name.charAt(0).toUpperCase()}
           </div>
         )}
 
-        <p className="mt-3 text-base font-bold text-gray-900 dark:text-white">{business.name}</p>
+        <p className="mt-3 text-base font-bold text-white">{business.name}</p>
 
         {description && (
-          <p className="mt-1 line-clamp-3 text-xs text-gray-500 dark:text-neutral-400">
+          <p className="mt-1 line-clamp-3 text-xs text-white/70">
             {description}
           </p>
         )}
@@ -79,7 +79,7 @@ export function BusinessCard({ business, qrDataUrl }: Props) {
               return (
                 <div
                   key={c.tipo}
-                  className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-neutral-300"
+                  className="flex items-center gap-1.5 text-xs text-white/80"
                 >
                   {Icon && <Icon size={12} />}
                   <span>{c.value}</span>
@@ -96,8 +96,8 @@ export function BusinessCard({ business, qrDataUrl }: Props) {
               return (
                 <span
                   key={s.tipo}
-                  className="flex h-6 w-6 items-center justify-center rounded-full text-gray-500 dark:text-neutral-400"
-                  style={{ background: 'rgba(128,128,128,0.12)' }}
+                  className="flex h-6 w-6 items-center justify-center rounded-full text-white"
+                  style={{ background: 'rgba(255,255,255,0.15)' }}
                 >
                   {Icon && <Icon size={12} />}
                 </span>
@@ -117,7 +117,7 @@ export function BusinessCard({ business, qrDataUrl }: Props) {
               className="rounded-md"
             />
           )}
-          <span className="text-[10px] text-gray-400 dark:text-neutral-500">maalca.com/{business.slug}</span>
+          <span className="text-[10px] text-white/50">maalca.com/{business.slug}</span>
         </div>
       </div>
 
