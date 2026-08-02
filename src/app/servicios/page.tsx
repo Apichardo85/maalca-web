@@ -51,8 +51,8 @@ const plans: Plan[] = [
       { es: "Sitio web one-page con tu marca", en: "One-page website with your branding" },
       { es: "Catálogo básico (hasta 10 ítems)", en: "Basic catalog (up to 10 items)" },
       { es: "Código QR promocional descargable", en: "Downloadable promotional QR code" },
-      { es: "Formulario de contacto + WhatsApp directo", en: "Contact form + WhatsApp direct" },
-      { es: "Dashboard métricas básicas (hasta 100 visitas/mes)", en: "Basic metrics dashboard (up to 100 visits/mo)" },
+      { es: "WhatsApp directo", en: "WhatsApp direct" },
+      { es: "Dashboard métricas básicas", en: "Basic metrics dashboard" },
       { es: "Hosting y SSL incluidos", en: "Hosting and SSL included" },
       { es: "Soporte básico por email (72h)", en: "Basic email support (72h)" },
     ],
@@ -77,7 +77,7 @@ const plans: Plan[] = [
       { es: "Analytics de conversión", en: "Conversion analytics" },
       { es: "Soporte prioritario (24h)", en: "Priority support (24h)" },
     ],
-    cta: { es: "Contratar Emprendedor", en: "Get Growth" },
+    cta: { es: "Contactar ventas", en: "Contact sales" },
   },
   {
     id: "profesional",
@@ -98,7 +98,7 @@ const plans: Plan[] = [
       { es: "Integraciones ERP / contabilidad", en: "ERP / accounting integrations" },
       { es: "Soporte dedicado (4h/mes)", en: "Dedicated support (4h/mo)" },
     ],
-    cta: { es: "Contratar Profesional", en: "Get Professional" },
+    cta: { es: "Contactar ventas", en: "Contact sales" },
   },
   {
     id: "premium",
@@ -119,7 +119,7 @@ const plans: Plan[] = [
       { es: "Reuniones estratégicas mensuales", en: "Monthly strategic meetings" },
       { es: "Soporte asignado + SLA", en: "Assigned support + SLA" },
     ],
-    cta: { es: "Contratar Premium", en: "Get Premium" },
+    cta: { es: "Contactar ventas", en: "Contact sales" },
   },
 ];
 
