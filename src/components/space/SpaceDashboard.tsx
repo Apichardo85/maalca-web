@@ -24,6 +24,8 @@ interface Business {
   whatsapp: string | null;
   primary_color: string | null;
   modulos_activos: string[];
+  /** Free plan only — null for paid plans (no trial concept for them). */
+  trial_days_remaining: number | null;
 }
 
 const KNOWN_MODULES = ['catalog', 'page', 'metrics'] as const;
@@ -77,6 +79,12 @@ export function SpaceDashboard({
   const remaining = remainingItems(business.plan, productCount);
   const showWarning = isNearItemLimit(business.plan, productCount);
   const atLimit = business.plan === 'free' && productCount >= limits.itemsPerBusiness;
+
+  // trial_days_remaining is null for paid plans — never shown there. 0 means the trial already
+  // expired (editing is blocked API-side); this banner is only the ~7-day-out countdown warning.
+  const trialDaysRemaining = business.trial_days_remaining;
+  const showTrialWarning = trialDaysRemaining !== null && trialDaysRemaining > 0 && trialDaysRemaining <= 7;
+  const trialExpired = trialDaysRemaining !== null && trialDaysRemaining <= 0;
 
   const demoItems = items.filter((i) => i.is_demo);
   const hasDemoItems = demoItems.length > 0;
@@ -288,6 +296,54 @@ export function SpaceDashboard({
             <button
               onClick={() => {
                 track('upgrade_clicked', { source: 'limit_reached', business_id: business.id });
+                setShowUpgrade(true);
+              }}
+              className="mt-4 rounded-full bg-[#C8102E] px-5 py-2 text-sm font-medium text-white transition hover:bg-[#A00D26]"
+            >
+              {getText(`Mejorar — $${PRICE_ENTREPRENEUR}/mes`, `Upgrade — $${PRICE_ENTREPRENEUR}/mo`)}
+            </button>
+          </div>
+        )}
+
+        {/* Trial countdown warning (~7 days out) */}
+        {showTrialWarning && (
+          <div className="mt-6 flex items-start gap-3 rounded-2xl border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 p-4">
+            <span className="text-xl">⏳</span>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
+                {getText(
+                  `Te quedan ${trialDaysRemaining} ${trialDaysRemaining === 1 ? 'día' : 'días'} de tu período gratuito.`,
+                  `You have ${trialDaysRemaining} ${trialDaysRemaining === 1 ? 'day' : 'days'} left of your free trial.`,
+                )}
+              </p>
+              <button
+                onClick={() => {
+                  track('upgrade_clicked', { source: 'trial_warning_banner', business_id: business.id });
+                  setShowUpgrade(true);
+                }}
+                className="mt-1 text-sm font-medium text-[#C8102E] hover:underline"
+              >
+                {getText('Mejorar a Emprendedor →', 'Upgrade to Entrepreneur →')}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Trial expired card */}
+        {trialExpired && (
+          <div className="mt-6 rounded-2xl border border-[#C8102E] bg-[#C8102E]/5 p-6">
+            <p className="font-medium text-[#C8102E]">
+              {getText('Tu período gratuito terminó', 'Your free trial has ended')}
+            </p>
+            <p className="mt-1 text-sm text-neutral-700 dark:text-neutral-300">
+              {getText(
+                'Mejora a Emprendedor para seguir editando tu espacio. Tu página pública sigue funcionando igual mientras tanto.',
+                'Upgrade to Entrepreneur to keep editing your space. Your public page keeps working the same either way.',
+              )}
+            </p>
+            <button
+              onClick={() => {
+                track('upgrade_clicked', { source: 'trial_expired', business_id: business.id });
                 setShowUpgrade(true);
               }}
               className="mt-4 rounded-full bg-[#C8102E] px-5 py-2 text-sm font-medium text-white transition hover:bg-[#A00D26]"

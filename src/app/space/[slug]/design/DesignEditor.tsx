@@ -6,6 +6,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { sanitizeContactValue } from '@/lib/public-contact';
 import { parseApiError } from '@/lib/api-errors';
 import { getCapabilities } from '@/lib/capabilities';
+import { TrialExpiredNotice } from '@/components/space/TrialExpiredNotice';
 import type { BusinessType, Plan, PublicTemplateProps } from '@/lib/templates/registry';
 import { ConfigTab } from './ConfigTab';
 import { CanalesTab } from './CanalesTab';
@@ -101,6 +102,7 @@ export function DesignEditor({
 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [trialExpired, setTrialExpired] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const updateField = (key: keyof ProfileFormState, value: string | null) => {
@@ -150,6 +152,7 @@ export function DesignEditor({
   const save = async () => {
     setSaving(true);
     setSaveError(null);
+    setTrialExpired(false);
     setSaved(false);
 
     const body: Record<string, unknown> = {
@@ -180,7 +183,9 @@ export function DesignEditor({
         setTimeout(() => setSaved(false), 2500);
       } else {
         const data = await res.json().catch(() => ({}));
-        setSaveError(parseApiError(data, getText('Algo salió mal', 'Something went wrong')).message);
+        const parsed = parseApiError(data, getText('Algo salió mal', 'Something went wrong'));
+        setTrialExpired(parsed.isTrialExpired);
+        setSaveError(parsed.message);
       }
     } catch {
       setSaveError(getText('Algo salió mal', 'Something went wrong'));
@@ -242,7 +247,7 @@ export function DesignEditor({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {saveError && <span className="text-sm text-red-600">{saveError}</span>}
+            {saveError && !trialExpired && <span className="text-sm text-red-600">{saveError}</span>}
             {saved && (
               <span className="text-sm text-emerald-600">{getText('✓ Guardado', '✓ Saved')}</span>
             )}
@@ -263,6 +268,12 @@ export function DesignEditor({
             </button>
           </div>
         </div>
+
+        {trialExpired && (
+          <div className="mt-4">
+            <TrialExpiredNotice slug={slug} />
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="mt-4 flex gap-1 overflow-x-auto">

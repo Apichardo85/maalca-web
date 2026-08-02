@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { parseApiError } from '@/lib/api-errors';
+import { TrialExpiredNotice } from '@/components/space/TrialExpiredNotice';
 import type { ProcessStepDto, FaqEntryDto, HorarioDayDto } from './types';
 
 // `key` is what gets sent as HorarioDayDto.dia — must match the backend's
@@ -51,11 +52,13 @@ export function ContenidoTab({
 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [trialExpired, setTrialExpired] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const save = async () => {
     setSaving(true);
     setSaveError(null);
+    setTrialExpired(false);
     setSaved(false);
     try {
       const res = await fetch(`/api/space/${slug}/content`, {
@@ -72,7 +75,9 @@ export function ContenidoTab({
         setTimeout(() => setSaved(false), 2500);
       } else {
         const data = await res.json().catch(() => ({}));
-        setSaveError(parseApiError(data, getText('Algo salió mal', 'Something went wrong')).message);
+        const parsed = parseApiError(data, getText('Algo salió mal', 'Something went wrong'));
+        setTrialExpired(parsed.isTrialExpired);
+        setSaveError(parsed.message);
       }
     } catch {
       setSaveError(getText('Algo salió mal', 'Something went wrong'));
@@ -119,7 +124,11 @@ export function ContenidoTab({
         getText={getText}
       />
 
-      {saveError && <p className="text-sm text-red-600">{saveError}</p>}
+      {trialExpired ? (
+        <TrialExpiredNotice slug={slug} />
+      ) : saveError ? (
+        <p className="text-sm text-red-600">{saveError}</p>
+      ) : null}
 
       <button
         onClick={save}

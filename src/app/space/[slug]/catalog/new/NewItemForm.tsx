@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Modal } from '@/components/ui/Modal';
 import { PlanLimitNotice } from '@/components/space/PlanLimitNotice';
+import { TrialExpiredNotice } from '@/components/space/TrialExpiredNotice';
 import { ImageCropper } from '@/app/dashboard/[affiliateId]/menu/components/ImageCropper';
 import { MealPeriodEditor } from '@/app/dashboard/[affiliateId]/menu/components/MealPeriodEditor';
 import { WeekDayEditor } from '@/app/dashboard/[affiliateId]/menu/components/WeekDayEditor';
@@ -54,6 +55,7 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [planLimitReached, setPlanLimitReached] = useState(false);
+  const [trialExpired, setTrialExpired] = useState(false);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [newImageUrl, setNewImageUrl] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
@@ -128,6 +130,7 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
     e.preventDefault();
     setError(null);
     setPlanLimitReached(false);
+    setTrialExpired(false);
     startTransition(async () => {
       const body: Record<string, unknown> = { ...form, ...(newImageUrl ? { imageUrl: newImageUrl } : {}) };
       if (isRestaurant) {
@@ -152,6 +155,7 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
         const data = await res.json().catch(() => ({}));
         const parsed = parseApiError(data, 'Algo salió mal');
         setPlanLimitReached(parsed.isPlanLimit);
+        setTrialExpired(parsed.isTrialExpired);
         setError(parsed.message);
       }
     });
@@ -349,6 +353,8 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
 
           {planLimitReached ? (
             <PlanLimitNotice slug={slug} />
+          ) : trialExpired ? (
+            <TrialExpiredNotice slug={slug} />
           ) : error ? (
             <p className="rounded-lg bg-red-50 dark:bg-red-900/20 px-3 py-2 text-sm text-red-700 dark:text-red-400">{error}</p>
           ) : null}

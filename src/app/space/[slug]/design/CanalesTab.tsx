@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { sanitizeContactValue } from '@/lib/public-contact';
+import { parseApiError } from '@/lib/api-errors';
+import { TrialExpiredNotice } from '@/components/space/TrialExpiredNotice';
 import type { CanalDto } from './types';
 
 /** Same marks as PublicFooter/Restaurant/Service's own icon sets (this codebase
@@ -139,6 +141,7 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
   const [newValue, setNewValue] = useState('');
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [trialExpired, setTrialExpired] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -170,6 +173,7 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
       return;
     }
     setError(null);
+    setTrialExpired(false);
     setAdding(true);
     try {
       const res = await fetch(`/api/space/${slug}/canales`, {
@@ -184,7 +188,12 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
-        setError(data?.error?.message ?? getText('No se pudo agregar el canal.', "Couldn't add the channel."));
+        const parsed = parseApiError(data, getText('No se pudo agregar el canal.', "Couldn't add the channel."));
+        if (parsed.isTrialExpired) {
+          setTrialExpired(true);
+        } else {
+          setError(parsed.message);
+        }
         return;
       }
       onChange([...canales, data]);
@@ -201,6 +210,7 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
     setEditingId(canal.id);
     setEditValue(canal.valorCrudo);
     setError(null);
+    setTrialExpired(false);
   };
 
   const saveEdit = async (canal: CanalDto) => {
@@ -217,7 +227,12 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
-        setError(data?.error?.message ?? getText('No se pudo guardar.', "Couldn't save."));
+        const parsed = parseApiError(data, getText('No se pudo guardar.', "Couldn't save."));
+        if (parsed.isTrialExpired) {
+          setTrialExpired(true);
+        } else {
+          setError(parsed.message);
+        }
         return;
       }
       onChange(canales.map((c) => (c.id === canal.id ? data : c)));
@@ -473,7 +488,11 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
         )}
       </div>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {trialExpired ? (
+        <TrialExpiredNotice slug={slug} />
+      ) : error ? (
+        <p className="text-sm text-red-600">{error}</p>
+      ) : null}
 
       <button
         type="button"

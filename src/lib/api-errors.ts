@@ -11,11 +11,13 @@
 // actionable UI instead of a generic message.
 
 export const PLAN_LIMIT_CODE = 'PLAN_LIMIT_REACHED';
+export const TRIAL_EXPIRED_CODE = 'TRIAL_EXPIRED';
 
 export interface ParsedApiError {
   message: string;
   code: string | null;
   isPlanLimit: boolean;
+  isTrialExpired: boolean;
 }
 
 export function parseApiError(data: unknown, fallback: string): ParsedApiError {
@@ -23,21 +25,26 @@ export function parseApiError(data: unknown, fallback: string): ParsedApiError {
   const err = d.error;
 
   if (typeof err === 'string' && err.trim()) {
-    return { message: err, code: null, isPlanLimit: false };
+    return { message: err, code: null, isPlanLimit: false, isTrialExpired: false };
   }
 
   if (err && typeof err === 'object') {
     const e = err as Record<string, unknown>;
     const code = typeof e.code === 'string' ? e.code : null;
     const message = typeof e.message === 'string' && e.message.trim() ? e.message : fallback;
-    return { message, code, isPlanLimit: code === PLAN_LIMIT_CODE };
+    return {
+      message,
+      code,
+      isPlanLimit: code === PLAN_LIMIT_CODE,
+      isTrialExpired: code === TRIAL_EXPIRED_CODE,
+    };
   }
 
   // Older/ProblemDetails shape safety net: { title, status, detail }.
   if (typeof d.detail === 'string' && d.detail.trim()) {
     const isPlanLimit = d.status === 402 || /plan limit/i.test(d.detail);
-    return { message: d.detail, code: isPlanLimit ? PLAN_LIMIT_CODE : null, isPlanLimit };
+    return { message: d.detail, code: isPlanLimit ? PLAN_LIMIT_CODE : null, isPlanLimit, isTrialExpired: false };
   }
 
-  return { message: fallback, code: null, isPlanLimit: false };
+  return { message: fallback, code: null, isPlanLimit: false, isTrialExpired: false };
 }

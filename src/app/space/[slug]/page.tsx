@@ -20,6 +20,9 @@ interface SpaceResponse {
     whatsapp: string | null;
     primaryColor: string | null;
     modulosActivos: string[];
+    /** Free plan only — null for paid plans (no trial concept for them). */
+    trialDaysRemaining: number | null;
+    trialEndsAt: string | null;
   };
   items: Array<{
     id: string;
@@ -96,6 +99,7 @@ export default async function SpacePage({
         whatsapp:         data.business.whatsapp,
         primary_color:    data.business.primaryColor,
         modulos_activos:  data.business.modulosActivos ?? [],
+        trial_days_remaining: data.business.trialDaysRemaining,
       }}
       kpis={kpis}
       items={data.items.map((i) => ({
