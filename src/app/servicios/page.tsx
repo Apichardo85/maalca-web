@@ -118,8 +118,8 @@ const faqItems = [
   {
     q: { es: "¿Es realmente gratis? ¿Hay costos ocultos?", en: "Is it really free? Are there hidden costs?" },
     a: {
-      es: "Sí, sin costos ocultos ni sorpresas. Gratis significa $0/mes para siempre dentro de los límites descritos. No pedimos tarjeta de crédito. Si quieres más capacidades, puedes actualizar voluntariamente en cualquier momento.",
-      en: "Yes, no hidden costs or surprises. Free means $0/month forever within the limits described. No credit card required. You can voluntarily upgrade anytime you want more capabilities.",
+      es: "Sí, sin costos ocultos ni sorpresas. Tienes 30 días gratis con $0/mes dentro de los límites descritos, sin necesidad de tarjeta de crédito. Pasado ese período, necesitas actualizar a un plan pago para seguir editando tu espacio — tu página pública sigue funcionando igual mientras tanto.",
+      en: "Yes, no hidden costs or surprises. You get 30 days free at $0/month within the limits described, no credit card required. After that, you'll need to upgrade to a paid plan to keep editing your space — your public page keeps working the same either way.",
     },
   },
   {
