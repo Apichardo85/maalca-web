@@ -51,7 +51,7 @@ const plans: Plan[] = [
       { es: "Sitio web one-page con tu marca", en: "One-page website with your branding" },
       { es: "Catálogo básico (hasta 10 ítems)", en: "Basic catalog (up to 10 items)" },
       { es: "Código QR promocional descargable", en: "Downloadable promotional QR code" },
-      { es: "WhatsApp directo", en: "WhatsApp direct" },
+      { es: "WhatsApp directo", en: "Direct contact channel" },
       { es: "Dashboard métricas básicas", en: "Basic metrics dashboard" },
       { es: "Hosting y SSL incluidos", en: "Hosting and SSL included" },
       { es: "Soporte básico por email (72h)", en: "Basic email support (72h)" },
@@ -679,7 +679,7 @@ export default function ServiciosPage() {
             <Button
               variant="outline"
               size="lg"
-              className="border-border text-text-primary hover:bg-surface"
+              className="border-border text-text-primary hover:bg-brand-primary hover:text-white hover:border-brand-primary"
               onClick={() => router.push("/casos-estudio")}
             >
               {t("services.results.cta")}

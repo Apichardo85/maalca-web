@@ -19,24 +19,6 @@ function GoogleIcon() {
   );
 }
 
-function EyeIcon() {
-  return (
-    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-      <circle cx="12" cy="12" r="3"/>
-    </svg>
-  );
-}
-
-function EyeOffIcon() {
-  return (
-    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-      <line x1="1" y1="1" x2="23" y2="23"/>
-    </svg>
-  );
-}
-
 // ─── Login form ───────────────────────────────────────────────────────────────
 
 function LoginForm() {
@@ -45,13 +27,6 @@ function LoginForm() {
 
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleError,   setGoogleError]   = useState<string | null>(null);
-
-  const [email,        setEmail]        = useState("");
-  const [password,     setPassword]     = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [emailLoading, setEmailLoading] = useState(false);
-  const [emailError,   setEmailError]   = useState<string | null>(null);
-  const [resetSent,    setResetSent]    = useState(false);
 
   const handleGoogle = async () => {
     setGoogleLoading(true);
@@ -64,64 +39,6 @@ function LoginForm() {
     if (error) {
       setGoogleError(error.message);
       setGoogleLoading(false);
-    }
-  };
-
-  const handleEmailLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setEmailLoading(true);
-    setEmailError(null);
-
-    const supabase = supabaseBrowser();
-
-    // 1. Try sign in
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (!signInError) {
-      window.location.href = "/dashboard";
-      return;
-    }
-
-    // 2. Invalid credentials → try sign up (new user)
-    if (signInError.message === "Invalid login credentials") {
-      const { error: signUpError } = await supabase.auth.signUp({ email, password });
-
-      if (!signUpError) {
-        window.location.href = "/onboarding";
-        return;
-      }
-
-      // Map "User already registered" back to a wrong-password message
-      const msg = signUpError.message.toLowerCase();
-      if (msg.includes("already registered") || msg.includes("already exists")) {
-        setEmailError("Contraseña incorrecta.");
-      } else {
-        setEmailError(signUpError.message);
-      }
-      setEmailLoading(false);
-      return;
-    }
-
-    setEmailError(signInError.message);
-    setEmailLoading(false);
-  };
-
-  const handlePasswordReset = async () => {
-    if (!email) {
-      setEmailError("Ingresa tu email para recuperar la contraseña.");
-      return;
-    }
-    setEmailLoading(true);
-    setEmailError(null);
-    const { error } = await supabaseBrowser().auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback`,
-    });
-    if (error) {
-      setEmailError(error.message);
-      setEmailLoading(false);
-    } else {
-      setResetSent(true);
-      setEmailLoading(false);
     }
   };
 
@@ -172,86 +89,6 @@ function LoginForm() {
             )}
             {googleLoading ? "Conectando..." : "Continuar con Google"}
           </button>
-
-          {/* Separator */}
-          <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-border" />
-            <span className="text-xs text-text-muted whitespace-nowrap">o continúa con email</span>
-            <div className="flex-1 h-px bg-border" />
-          </div>
-
-          {/* Reset sent confirmation */}
-          {resetSent ? (
-            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-500/30 rounded-xl p-4 text-center">
-              <p className="text-sm font-semibold text-green-800 dark:text-green-300 mb-1">Revisa tu correo</p>
-              <p className="text-xs text-green-700 dark:text-green-400">
-                Te enviamos un enlace para restablecer tu contraseña a <strong>{email}</strong>.
-              </p>
-              <button
-                onClick={() => setResetSent(false)}
-                className="mt-3 text-xs text-green-700 dark:text-green-400 underline hover:text-green-900 dark:hover:text-green-200"
-              >
-                Volver al inicio de sesión
-              </button>
-            </div>
-          ) : (
-            /* Email / password form */
-            <form onSubmit={handleEmailLogin} className="flex flex-col gap-3">
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="tu@email.com"
-                required
-                autoComplete="email"
-                className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
-              />
-
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="Contraseña"
-                  required
-                  autoComplete="current-password"
-                  className="w-full px-4 py-3 pr-11 rounded-xl border border-border bg-surface text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
-                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                >
-                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-                </button>
-              </div>
-
-              {/* Forgot password */}
-              <div className="text-right -mt-1">
-                <button
-                  type="button"
-                  onClick={handlePasswordReset}
-                  disabled={emailLoading}
-                  className="text-xs text-text-muted hover:text-brand-primary transition-colors disabled:opacity-50"
-                >
-                  ¿Olvidaste tu contraseña?
-                </button>
-              </div>
-
-              {emailError && (
-                <p className="text-xs text-red-600">{emailError}</p>
-              )}
-
-              <button
-                type="submit"
-                disabled={emailLoading}
-                className="w-full py-3 rounded-xl bg-brand-primary text-white text-sm font-semibold hover:bg-brand-primary-hover transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {emailLoading ? "Un momento..." : "Continuar"}
-              </button>
-            </form>
-          )}
 
           <p className="text-xs text-center text-gray-400 dark:text-neutral-500 mt-5">
             Al continuar, aceptas los{" "}

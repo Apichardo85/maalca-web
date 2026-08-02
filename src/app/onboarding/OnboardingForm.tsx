@@ -167,6 +167,8 @@ export function OnboardingForm() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 px-6">
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-icon.svg" alt="MaalCa" width={32} height={32} className="mx-auto mb-4" />
           <h1 className="text-3xl font-bold tracking-tight text-neutral-900">Crea tu espacio</h1>
           <p className="mt-2 text-sm text-neutral-500">Unos segundos y estás en línea.</p>
         </div>
