@@ -79,48 +79,6 @@ const plans: Plan[] = [
     ],
     cta: { es: "Contactar ventas", en: "Contact sales" },
   },
-  {
-    id: "profesional",
-    name: { es: "Profesional", en: "Professional" },
-    tagline: {
-      es: "CRM, automatizaciones avanzadas y un agente de IA en chat para negocios que quieren escalar.",
-      en: "CRM, advanced automations and an AI chat agent for businesses ready to scale.",
-    },
-    price: 95,
-    setup: { es: "Setup único $500", en: "One-time setup $500" },
-    highlight: false,
-    features: [
-      { es: "Todo lo del plan Emprendedor", en: "Everything in Entrepreneur" },
-      { es: "CRM integrado (clientes, historial, seguimiento)", en: "Integrated CRM (customers, history, follow-up)" },
-      { es: "Agente de IA en chat (ventas / atención al cliente)", en: "AI chat agent (sales / customer service)" },
-      { es: "Automatizaciones avanzadas (facturación, marketing)", en: "Advanced automations (billing, marketing)" },
-      { es: "Reportes personalizados + BI", en: "Custom reports + BI" },
-      { es: "Integraciones ERP / contabilidad", en: "ERP / accounting integrations" },
-      { es: "Soporte dedicado (4h/mes)", en: "Dedicated support (4h/mo)" },
-    ],
-    cta: { es: "Contactar ventas", en: "Contact sales" },
-  },
-  {
-    id: "premium",
-    name: { es: "Premium", en: "Premium" },
-    tagline: {
-      es: "Operación multi-sede, IA avanzada y estrategia BI completa para negocios en expansión.",
-      en: "Multi-location operations, advanced AI and full BI strategy for growing businesses.",
-    },
-    price: 195,
-    setup: { es: "Setup desde $2,500 · primer mes incluido", en: "Setup from $2,500 · first month included" },
-    highlight: false,
-    features: [
-      { es: "Todo lo del plan Profesional", en: "Everything in Professional" },
-      { es: "Multi-sede / multi-marca con branding independiente", en: "Multi-location / multi-brand with independent branding" },
-      { es: "IA avanzada (reportes proactivos, análisis predictivo)", en: "Advanced AI (proactive reports, predictive analytics)" },
-      { es: "Estrategia BI completa", en: "Complete BI strategy" },
-      { es: "Integración con POS / Ticketing", en: "POS / Ticketing integration" },
-      { es: "Reuniones estratégicas mensuales", en: "Monthly strategic meetings" },
-      { es: "Soporte asignado + SLA", en: "Assigned support + SLA" },
-    ],
-    cta: { es: "Contactar ventas", en: "Contact sales" },
-  },
 ];
 
 const addOns: AddOn[] = [
@@ -132,16 +90,6 @@ const addOns: AddOn[] = [
     desc: {
       es: "8 publicaciones al mes (Instagram + Facebook) con diseño y copy.",
       en: "8 posts a month (Instagram + Facebook) with design and copy.",
-    },
-  },
-  {
-    id: "extra-ai-agent",
-    name: { es: "Agente de IA adicional", en: "Extra AI agent" },
-    price: 150,
-    unit: { es: "/mes", en: "/mo" },
-    desc: {
-      es: "Agente entrenado en tu negocio (ventas, reservas, FAQs) sobre Emprendedor, Profesional o Premium.",
-      en: "AI agent trained on your business (sales, bookings, FAQs) on top of Growth, Professional or Premium.",
     },
   },
   {
@@ -207,56 +155,40 @@ const faqItems = [
 const comparisonRows: { label: { es: string; en: string }; values: ComparisonValue[] }[] = [
   {
     label: { es: "Usuarios", en: "Users" },
-    values: ["1", { es: "Ilimitados", en: "Unlimited" }, { es: "Ilimitados", en: "Unlimited" }, { es: "Ilimitados", en: "Unlimited" }],
+    values: ["1", { es: "Ilimitados", en: "Unlimited" }],
   },
   {
     label: { es: "Catálogo de productos / servicios", en: "Product / service catalog" },
     values: [
       { es: "Hasta 10 ítems", en: "Up to 10 items" },
       { es: "Sin límite", en: "No limit" },
-      { es: "Sin límite", en: "No limit" },
-      { es: "Sin límite", en: "No limit" },
     ],
   },
   {
     label: { es: "Sitio web y código QR", en: "Website and QR code" },
-    values: [true, true, true, true],
+    values: [true, true],
   },
   {
     label: { es: "Reservas / pedidos online", en: "Online bookings / orders" },
-    values: [false, true, true, true],
+    values: [false, true],
   },
   {
     label: { es: "Pagos integrados", en: "Integrated payments" },
-    values: [false, true, true, true],
+    values: [false, true],
   },
   {
     label: { es: "Automatizaciones básicas", en: "Basic automations" },
-    values: [false, true, true, true],
-  },
-  {
-    label: { es: "Automatizaciones avanzadas", en: "Advanced automations" },
-    values: [false, false, true, true],
-  },
-  {
-    label: { es: "Agente IA (chat / ventas)", en: "AI agent (chat / sales)" },
-    values: [false, false, true, true],
+    values: [false, true],
   },
   {
     label: { es: "Analíticas avanzadas", en: "Advanced analytics" },
-    values: [false, true, true, true],
-  },
-  {
-    label: { es: "Multi-sede / multi-marca", en: "Multi-location / multi-brand" },
-    values: [false, false, false, true],
+    values: [false, true],
   },
   {
     label: { es: "Soporte", en: "Support" },
     values: [
       { es: "Email (72h)", en: "Email (72h)" },
       { es: "Prioritario (24h)", en: "Priority (24h)" },
-      { es: "Dedicado (4h/mes)", en: "Dedicated (4h/mo)" },
-      { es: "Asignado + SLA", en: "Assigned + SLA" },
     ],
   },
 ];
@@ -361,7 +293,7 @@ export default function ServiciosPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
             {plans.map((plan, index) => {
               const isFree = plan.price === 0;
               const effectivePrice = isFree
@@ -586,14 +518,6 @@ export default function ServiciosPage() {
                     </span>
                     <span className="text-xs text-text-muted">$38</span>
                   </th>
-                  <th className="text-center py-4 px-3">
-                    <span className="text-xs font-bold text-text-primary block">Profesional</span>
-                    <span className="text-xs text-text-muted">$95</span>
-                  </th>
-                  <th className="text-center py-4 px-3">
-                    <span className="text-xs font-bold text-text-primary block">Premium</span>
-                    <span className="text-xs text-text-muted">$195</span>
-                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -625,8 +549,8 @@ export default function ServiciosPage() {
             </h2>
             <p className="text-lg text-text-secondary max-w-2xl mx-auto">
               {language === "en"
-                ? "Scale your plan without jumping tiers. Stackable on Growth, Professional or Premium."
-                : "Escala tu plan sin cambiar de tier. Combinables sobre Emprendedor, Profesional o Premium."}
+                ? "Scale your plan without jumping tiers. Stackable on Growth or Corporate."
+                : "Escala tu plan sin cambiar de tier. Combinables sobre Emprendedor o Corporativo."}
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
