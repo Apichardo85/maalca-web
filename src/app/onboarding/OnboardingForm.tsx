@@ -10,13 +10,13 @@ import { sanitizeContactValue } from '@/lib/public-contact';
 // Creator/Publisher/Professional stay visible but disabled until Fase 5 confirms
 // the existing 4 work end-to-end and those templates get built.
 const BUSINESS_TYPES = [
-  { value: 'restaurant', label: 'Restaurante', emoji: '🍽️', comingSoon: false },
-  { value: 'barber', label: 'Barbería', emoji: '💈', comingSoon: false },
-  { value: 'service', label: 'Servicios', emoji: '🛠️', comingSoon: false },
-  { value: 'retail', label: 'Tienda', emoji: '🛍️', comingSoon: false },
-  { value: 'creator', label: 'Creador', emoji: '🎨', comingSoon: true },
-  { value: 'publisher', label: 'Editorial', emoji: '📚', comingSoon: true },
-  { value: 'professional', label: 'Profesional', emoji: '💼', comingSoon: true },
+  { value: 'restaurant', label: 'Restaurante', emoji: '🍽️', examples: 'Comida, bebidas, delivery', comingSoon: false },
+  { value: 'barber', label: 'Barbería', emoji: '💈', examples: 'Cortes, salones de belleza, spa', comingSoon: false },
+  { value: 'service', label: 'Servicios', emoji: '🛠️', examples: 'Consultoría, talleres, profesionales', comingSoon: false },
+  { value: 'retail', label: 'Tienda', emoji: '🛍️', examples: 'Ropa, ferretería, regalos, artículos varios', comingSoon: false },
+  { value: 'creator', label: 'Creador', emoji: '🎨', examples: null, comingSoon: true },
+  { value: 'publisher', label: 'Editorial', emoji: '📚', examples: null, comingSoon: true },
+  { value: 'professional', label: 'Profesional', emoji: '💼', examples: null, comingSoon: true },
 ] as const;
 
 const PALETTE = [
@@ -216,7 +216,9 @@ export function OnboardingForm() {
                     disabled={t.comingSoon}
                     onClick={() => setType(t.value)}
                     title={t.comingSoon ? 'Próximamente' : undefined}
-                    className={`flex items-center gap-2 rounded-lg border px-3 py-3 text-sm transition ${
+                    className={`relative flex flex-col gap-0.5 rounded-lg border px-3 py-3 text-left text-sm transition ${
+                      t.comingSoon ? 'pr-11' : ''
+                    } ${
                       t.comingSoon
                         ? 'cursor-not-allowed border-neutral-100 bg-neutral-50 text-neutral-300'
                         : type === t.value
@@ -224,10 +226,15 @@ export function OnboardingForm() {
                           : 'border-neutral-200 text-neutral-700 hover:border-neutral-300'
                     }`}
                   >
-                    <span className="text-lg">{t.emoji}</span>
-                    <span className="font-medium">{t.label}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="flex-shrink-0 text-lg">{t.emoji}</span>
+                      <span className="font-medium">{t.label}</span>
+                    </div>
+                    {t.examples && (
+                      <span className="text-xs text-neutral-400">{t.examples}</span>
+                    )}
                     {t.comingSoon && (
-                      <span className="ml-auto text-[10px] font-medium uppercase tracking-wide text-neutral-300">
+                      <span className="absolute right-1.5 top-1.5 rounded-full bg-neutral-100 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-neutral-400">
                         Pronto
                       </span>
                     )}
