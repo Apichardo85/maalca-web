@@ -125,8 +125,8 @@ const faqItems = [
   {
     q: { es: "¿Cuándo necesitaría pasar al plan de pago?", en: "When would I need to switch to a paid plan?" },
     a: {
-      es: "Cuando superes los límites del plan (más productos, más tráfico, funciones avanzadas) o quieras automatizar procesos. Te avisamos cuando te acerques a esos límites, y puedes cambiar de plan sin perder ningún dato.",
-      en: "When you exceed your plan's limits (more products, more traffic, advanced features) or want to automate processes. We'll let you know as you approach those limits, and you can switch plans without losing any data.",
+      es: "Cuando pasen 30 días desde que creas tu espacio (para seguir editando), cuando superes los límites del plan (más productos, más tráfico), o cuando quieras funciones avanzadas. Te avisamos antes de que se cumplan los 30 días, y puedes cambiar de plan sin perder ningún dato.",
+      en: "After 30 days from creating your space (to keep editing), when you exceed your plan's limits (more products, more traffic), or when you want advanced features. We'll let you know before your 30 days are up, and you can switch plans without losing any data.",
     },
   },
   {
