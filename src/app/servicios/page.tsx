@@ -318,7 +318,7 @@ export default function ServiciosPage() {
                   {isFree && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
                       <span className="inline-block bg-emerald-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg uppercase tracking-wide">
-                        {language === "en" ? "Free forever" : "Gratis siempre"}
+                        {language === "en" ? "30 days free" : "30 días gratis"}
                       </span>
                     </div>
                   )}
