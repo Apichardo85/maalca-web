@@ -108,6 +108,26 @@ Hallazgo importante durante QA de Fase 1/2: el nuevo "Catálogo" genérico (`cat
 
 ---
 
+## Fase 7 — Menu Board público (Smart TV) — pendiente, sin empezar
+
+**Origen:** pedido directo de Little Dominicana (2026-08-08). Vista pública nueva, en 16:9, pensada para quedar abierta a pantalla completa en el navegador de una Smart TV como menú digital rotativo — no es un rediseño del template público existente, es una vista separada.
+
+- [ ] Nueva ruta pública (ej. `/{slug}/board` o `/menu-board/{slug}`) — 16:9, sin nav/footer de marketing, sin chrome de ningún tipo (aplica el mismo checklist de "Nav/footer de marketing NO debe aparecer" que ya rige para `/space`, `/login`, `/onboarding`).
+- [ ] Consume los **items reales del Smart Catalog** del afiliado (mismo principio que Fase 5: no hay contenido duplicado — si se agrega/edita/oculta un producto desde el dashboard, el board lo refleja sin que el afiliado tenga que tocar nada aparte).
+- [ ] **Actualización remota:** el board no se edita in-place — se administra igual que el resto del catálogo desde el dashboard (`/space/{slug}/catalog`); el board solo necesita revalidar datos con la frecuencia suficiente para notar cambios sin depender de un refresh manual (polling o revalidación periódica, a definir esfuerzo vs. necesidad real — no hace falta websocket/tiempo real).
+- [ ] **Rotación automática de contenido:** ciclo entre items/categorías con transición e intervalo configurable (valor por defecto razonable, ej. 8–10s por slide).
+- [ ] **Soporte de foto y video:** el catálogo hoy solo tiene `ImageUrl` (una imagen por item) — **video es un campo nuevo, no existe en el schema actual** (`CatalogItemDto`/`CreateCatalogItemRequest` en `maalca-api`). Esto es dependencia de backend antes de poder cablear el board a video real, no solo trabajo de frontend.
+- [ ] Diseño debe asumir visión a distancia (tipografía grande, alto contraste) — es una pantalla para verse desde varios metros, no un layout de página web normal.
+- [ ] Sin interacción táctil ni de mouse esperada una vez abierto — la única "interacción" es dejarlo corriendo en la TV.
+
+**Dependencias:**
+- Backend: agregar soporte de video al item de catálogo (campo `VideoUrl` o similar + validación de tipo/tamaño) — no existe hoy.
+- Sin dependencia de Stripe/planes — a definir si esta vista es exclusiva de plan Emprendedor o viene con el plan gratis (no decidido todavía).
+
+**Criterio de aceptación:** un TV con el navegador abierto en esa URL, en modo pantalla completa, muestra el catálogo real del negocio rotando solo, se actualiza cuando el afiliado cambia algo en el dashboard (sin recargar manualmente ni re-abrir la pestaña), y es legible a distancia.
+
+---
+
 ## Orden de construcción recomendado y dependencias
 
 1. Fase 1 (shell) — sin dependencias de API nuevas.
@@ -116,6 +136,7 @@ Hallazgo importante durante QA de Fase 1/2: el nuevo "Catálogo" genérico (`cat
 4. Fase 4 (editor) — Configuración ya tiene backend listo (`PATCH /profile`); Canales depende de la Fase A del spec de API.
 5. Fase 5 (layout por categoría) — sin dependencia de backend nueva más allá del catálogo existente; es el bloque de mayor esfuerzo, planificar aparte.
 6. Fase 6 (Módulos) — sin dependencias, es principalmente contenido estático + los 3 módulos reales.
+7. Fase 7 (Menu Board Smart TV) — depende de agregar soporte de video al catálogo en `maalca-api` (no existe hoy); el resto (rotación, layout 16:9, consumo del catálogo real) no tiene dependencia de backend nueva.
 
 QA de Ciri entre cada fase antes de avanzar a la siguiente, como en el resto del proyecto.
 
