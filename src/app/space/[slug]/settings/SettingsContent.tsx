@@ -1,0 +1,184 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+
+interface Props {
+  slug: string;
+  plan: 'free' | 'entrepreneur';
+  trialDaysRemaining: number | null;
+}
+
+const FEATURES: { es: string; en: string; free: boolean; entrepreneur: boolean }[] = [
+  { es: 'Catálogo (10 items)', en: 'Catalog (10 items)', free: true, entrepreneur: false },
+  { es: 'Catálogo ilimitado', en: 'Unlimited catalog', free: false, entrepreneur: true },
+  { es: 'Reservas online', en: 'Online booking', free: false, entrepreneur: true },
+  { es: 'Pagos con Stripe integrados', en: 'Integrated Stripe payments', free: false, entrepreneur: true },
+  { es: 'Automatizaciones básicas', en: 'Basic automations', free: false, entrepreneur: true },
+  { es: 'Código QR + contacto directo', en: 'QR code + direct contact', free: true, entrepreneur: true },
+];
+
+export function SettingsContent({ slug, plan, trialDaysRemaining }: Props) {
+  const { language } = useSimpleLanguage();
+  const getText = (es: string, en: string) => (language === 'es' ? es : en);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const upgraded = searchParams.get('upgraded') === 'true';
+  const canceled = searchParams.get('canceled') === 'true';
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const pollCount = useRef(0);
+
+  // Stripe's webhook flips the plan async — right after a successful checkout the
+  // affiliate is still "free" here for a few seconds. Poll the server component's
+  // data (via router.refresh) until the plan updates, capped so it doesn't spin forever
+  // if the webhook is misconfigured.
+  useEffect(() => {
+    if (!upgraded || plan !== 'free') return;
+    if (pollCount.current >= 8) return;
+
+    const timer = setTimeout(() => {
+      pollCount.current += 1;
+      router.refresh();
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [upgraded, plan, router]);
+
+  async function handleUpgrade() {
+    setLoading(true);
+    setError(null);
+    try {
+      const origin = window.location.origin;
+      const res = await fetch(`/api/space/${slug}/billing/checkout-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          successUrl: `${origin}/space/${slug}/settings?upgraded=true`,
+          cancelUrl: `${origin}/space/${slug}/settings?canceled=true`,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.url) {
+        throw new Error(
+          getText(
+            'No pudimos iniciar el pago. Intenta de nuevo en unos minutos.',
+            "We couldn't start checkout. Please try again in a few minutes.",
+          ),
+        );
+      }
+      window.location.href = data.url;
+    } catch (e) {
+      setError(e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.'));
+      setLoading(false);
+    }
+  }
+
+  const trialExpired = plan === 'free' && trialDaysRemaining !== null && trialDaysRemaining <= 0;
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
+      <div className="px-6 py-12 max-w-2xl">
+        <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
+          {getText('Tu espacio', 'Your space')}
+        </p>
+        <h1 className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+          {getText('Facturación y plan', 'Billing and plan')}
+        </h1>
+
+        {upgraded && (
+          <div className="mt-6 rounded-lg border border-green-200 dark:border-green-900/40 bg-green-50 dark:bg-green-900/20 px-4 py-3">
+            <p className="text-sm text-green-700 dark:text-green-400">
+              {plan === 'entrepreneur'
+                ? getText('¡Listo! Ya estás en el plan Emprendedor. 🎉', "You're all set on the Emprendedor plan. 🎉")
+                : getText(
+                    'Pago recibido — estamos activando tu plan Emprendedor, puede tardar unos segundos.',
+                    'Payment received — activating your Emprendedor plan, this can take a few seconds.',
+                  )}
+            </p>
+          </div>
+        )}
+
+        {canceled && (
+          <div className="mt-6 rounded-lg border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-3">
+            <p className="text-sm text-gray-600 dark:text-neutral-400">
+              {getText('Pago cancelado — no se te hizo ningún cargo.', 'Checkout canceled — you were not charged.')}
+            </p>
+          </div>
+        )}
+
+        {/* Current plan card */}
+        <div className="mt-6 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-wider text-gray-400 dark:text-neutral-500">
+                {getText('Plan actual', 'Current plan')}
+              </p>
+              <p className="mt-1 text-lg font-bold">
+                {plan === 'entrepreneur' ? getText('Emprendedor', 'Entrepreneur') : getText('Plan Gratis', 'Free plan')}
+              </p>
+            </div>
+            {plan === 'entrepreneur' && (
+              <span className="rounded-full bg-[#C8102E]/10 px-3 py-1 text-xs font-medium text-[#C8102E]">
+                $38/{getText('mes', 'mo')}
+              </span>
+            )}
+          </div>
+
+          {plan === 'free' && (
+            <p className={`mt-3 text-sm ${trialExpired ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-neutral-400'}`}>
+              {trialExpired
+                ? getText('Tu período gratuito de 30 días terminó.', 'Your 30-day free trial has ended.')
+                : trialDaysRemaining !== null
+                ? getText(
+                    `Te quedan ${trialDaysRemaining} día${trialDaysRemaining === 1 ? '' : 's'} de tu período gratuito.`,
+                    `${trialDaysRemaining} day${trialDaysRemaining === 1 ? '' : 's'} left in your free trial.`,
+                  )
+                : null}
+            </p>
+          )}
+
+          {plan === 'entrepreneur' && (
+            <p className="mt-3 text-sm text-gray-500 dark:text-neutral-400">
+              {getText(
+                '¿Necesitas cambiar o cancelar tu suscripción? Escríbenos a hello@maalca.com.',
+                'Need to change or cancel your subscription? Email us at hello@maalca.com.',
+              )}
+            </p>
+          )}
+        </div>
+
+        {/* Feature comparison */}
+        {plan === 'free' && (
+          <div className="mt-6 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6">
+            <p className="text-sm font-semibold">{getText('Qué desbloqueas con Emprendedor', 'What Entrepreneur unlocks')}</p>
+            <ul className="mt-3 space-y-2">
+              {FEATURES.filter((f) => f.entrepreneur).map((f) => (
+                <li key={f.es} className="flex items-center gap-2 text-sm text-gray-600 dark:text-neutral-300">
+                  <span className="text-green-600 dark:text-green-400">✓</span>
+                  {getText(f.es, f.en)}
+                </li>
+              ))}
+            </ul>
+
+            {error && (
+              <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>
+            )}
+
+            <button
+              onClick={handleUpgrade}
+              disabled={loading}
+              className="mt-5 w-full rounded-full bg-[#C8102E] py-3 text-sm font-medium text-white transition hover:bg-[#A00D26] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading
+                ? getText('Redirigiendo a Stripe...', 'Redirecting to Stripe...')
+                : getText('Actualizar a Emprendedor — $38/mes', 'Upgrade to Entrepreneur — $38/mo')}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
