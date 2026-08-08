@@ -77,7 +77,7 @@ const plans: Plan[] = [
       { es: "Analytics de conversión", en: "Conversion analytics" },
       { es: "Soporte prioritario (24h)", en: "Priority support (24h)" },
     ],
-    cta: { es: "Contactar ventas", en: "Contact sales" },
+    cta: { es: "Comienza tu prueba gratis", en: "Start your free trial" },
   },
 ];
 
@@ -409,7 +409,7 @@ export default function ServiciosPage() {
                             ? "bg-brand-primary hover:bg-brand-primary-hover text-white"
                             : "bg-transparent border-brand-primary/30 text-brand-primary hover:bg-brand-primary hover:text-white"
                         } transition-all duration-300`}
-                        onClick={() => router.push("/contacto")}
+                        onClick={() => router.push("/login?redirect=/onboarding")}
                       >
                         {L(plan.cta)}
                       </Button>

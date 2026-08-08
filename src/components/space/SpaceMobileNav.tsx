@@ -71,8 +71,8 @@ export function SpaceMobileNav({
     { label: getText('Identidad', 'Identity'), icon: '🪪', href: `/space/${slug}/identidad` },
     { label: catalogLabel, icon: '📦', href: `/space/${slug}/catalog` },
     { label: getText('Módulos', 'Modules'), icon: '🧩', href: `/space/${slug}/modules` },
-    { label: getText('Facturación', 'Billing'), icon: '💳', href: `/space/${slug}/settings` },
     { label: getText('Estadísticas', 'Stats'), icon: '📊', href: `/space/${slug}/stats` },
+    { label: getText('Facturación', 'Billing'), icon: '💳', href: `/space/${slug}/settings` },
   ];
 
   const isActive = (href: string) =>
