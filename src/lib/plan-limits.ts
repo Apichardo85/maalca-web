@@ -13,6 +13,11 @@ export interface PlanLimits {
   brandingFull: boolean;
   customDomain: boolean;
   hidePoweredBy: boolean;
+  /** Public /{slug}/board digital menu board (Fase 7). Single toggle — mirrors the
+   *  backend's BuildCapabilities() in PublicCatalogService.cs, which is the actual
+   *  enforcement point for the public route; this copy is for dashboard-side gating
+   *  (teasers, CTAs) so the two stay in sync by convention, not by shared code. */
+  menuBoard: boolean;
   warningThresholdItems: number;
 }
 
@@ -29,6 +34,7 @@ const LIMITS: Record<Plan, PlanLimits> = {
     brandingFull: false,
     customDomain: false,
     hidePoweredBy: false,
+    menuBoard: false,
     warningThresholdItems: 7,
   },
   entrepreneur: {
@@ -43,6 +49,7 @@ const LIMITS: Record<Plan, PlanLimits> = {
     brandingFull: true,
     customDomain: true,
     hidePoweredBy: true,
+    menuBoard: true,
     warningThresholdItems: Infinity,
   },
 };

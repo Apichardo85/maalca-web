@@ -54,6 +54,20 @@ export default async function MenuBoardPage({ params }: PageProps) {
   const data = await getCatalog(slug);
   if (!data) notFound();
 
+  // Gated by plan (see PublicCatalogService.BuildCapabilities in maalca-api — that's the
+  // real enforcement point; this just renders a diagnosable message instead of a bare 404
+  // so whoever set up the TV knows *why* nothing's showing, not just that it's broken).
+  if (!data.capabilities?.menuBoard) {
+    return (
+      <div className="fixed inset-0 flex flex-col items-center justify-center gap-3 bg-neutral-950 px-10 text-center text-white">
+        <p className="text-2xl font-bold">{data.affiliate.name}</p>
+        <p className="max-w-md text-white/60">
+          El Menu Board es una función del plan Emprendedor. Actualiza tu plan desde el dashboard para activarlo.
+        </p>
+      </div>
+    );
+  }
+
   const mappedItems = data.items.map((item) => ({
     ...item,
     image_url: item.image_url ?? (item as typeof item & { imageUrl?: string | null }).imageUrl ?? null,
@@ -81,4 +95,5 @@ interface BoardCatalogResponse {
   };
   categories?: PublicTemplateProps['categories'];
   items: PublicTemplateProps['items'];
+  capabilities?: PublicTemplateProps['capabilities'];
 }

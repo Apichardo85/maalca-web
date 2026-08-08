@@ -8,6 +8,7 @@ export interface PlanCapabilities {
   brandingFull: boolean;
   customDomain: boolean;
   hidePoweredBy: boolean;
+  menuBoard: boolean;
   maxImagesPerItem: number;
 }
 
@@ -21,6 +22,7 @@ export function getCapabilities(plan: Plan): PlanCapabilities {
     brandingFull: l.brandingFull,
     customDomain: l.customDomain,
     hidePoweredBy: l.hidePoweredBy,
+    menuBoard: l.menuBoard,
     maxImagesPerItem: l.imagesPerItem,
   };
 }
