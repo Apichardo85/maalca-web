@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
-import { generateQrDataUrl, generateQrSvgDataUrl } from '@/lib/qr';
+import { generateBrandedQrDataUrl, generateQrDataUrl, generateQrSvgDataUrl } from '@/lib/qr';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { QrCopyButton } from './QrCopyButton';
 import { BusinessCard } from './BusinessCard';
@@ -20,10 +20,17 @@ export function IdentidadContent({ slug, publicUrl, qrTargetUrl, qrDataUrl, busi
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const primaryColor = business.primary_color || '#C8102E';
 
-  // qrDataUrl (server prop) is the plain black fallback shown on first paint — generateQrDataUrl
-  // is async, so it can't run synchronously during render. Re-generated here in the business's
-  // primaryColor once mounted.
+  // qrDataUrl (server prop) is the plain black fallback shown on first paint — generation
+  // is async, so it can't run synchronously during render. Re-generated here in the
+  // business's primaryColor once mounted.
+  //
+  // Two variants on purpose: `dataUrl` is the plain QR, used inside BusinessCard — that
+  // card already surrounds the QR with the logo and business name, so branding the QR
+  // itself there would just duplicate them. `brandedDataUrl` is logo+name-on-QR, used for
+  // the standalone "Tu código QR" panel/download, which has to work printed on its own
+  // with no surrounding card giving it context.
   const [dataUrl, setDataUrl] = useState(qrDataUrl);
+  const [brandedDataUrl, setBrandedDataUrl] = useState(qrDataUrl);
   const [svgDataUrl, setSvgDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -31,13 +38,22 @@ export function IdentidadContent({ slug, publicUrl, qrTargetUrl, qrDataUrl, busi
     generateQrDataUrl(qrTargetUrl, { darkColor: primaryColor }).then((url) => {
       if (!cancelled) setDataUrl(url);
     });
+    // errorCorrectionLevel defaults to "H" (30% tolerance), specifically so the centered
+    // logo stays scannable.
+    generateBrandedQrDataUrl(qrTargetUrl, {
+      darkColor: primaryColor,
+      logoUrl: business.logo_url,
+      caption: business.name,
+    }).then((url) => {
+      if (!cancelled) setBrandedDataUrl(url);
+    });
     generateQrSvgDataUrl(qrTargetUrl, { darkColor: primaryColor }).then((url) => {
       if (!cancelled) setSvgDataUrl(url);
     });
     return () => {
       cancelled = true;
     };
-  }, [qrTargetUrl, primaryColor]);
+  }, [qrTargetUrl, primaryColor, business.logo_url, business.name]);
 
   return (
     <div className="mx-auto flex max-w-lg flex-col items-center gap-10 p-6 lg:max-w-5xl lg:flex-row lg:items-start lg:justify-center lg:gap-8">
@@ -56,10 +72,9 @@ export function IdentidadContent({ slug, publicUrl, qrTargetUrl, qrDataUrl, busi
           <div className="rounded-xl bg-white p-3 shadow-md">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={dataUrl}
+              src={brandedDataUrl}
               alt={`${getText('Código QR para', 'QR code for')} ${publicUrl}`}
               width={216}
-              height={216}
               className="block"
             />
           </div>
@@ -80,7 +95,7 @@ export function IdentidadContent({ slug, publicUrl, qrTargetUrl, qrDataUrl, busi
             <QrCopyButton text={publicUrl} />
             <div className="flex gap-3">
               <a
-                href={dataUrl}
+                href={brandedDataUrl}
                 download={`qr-${slug}.png`}
                 className="flex-1 rounded-full bg-gray-100 dark:bg-neutral-800 px-4 py-2.5 text-center text-sm font-medium text-gray-700 dark:text-neutral-200 transition hover:bg-gray-200 dark:hover:bg-neutral-700"
               >
