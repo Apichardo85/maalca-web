@@ -738,6 +738,8 @@ export function RestaurantTemplate({
         whatsappNumber={waRaw ?? ''}
         businessName={business.name}
         taxRate={0}
+        slug={business.slug}
+        onlinePayments={capabilities.onlinePayments}
       />
     </div>
   );

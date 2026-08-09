@@ -304,6 +304,8 @@ export function RetailTemplate({
           cartCount={cartCount}
           whatsappNumber={waRaw}
           businessName={business.name}
+          slug={business.slug}
+          onlinePayments={capabilities.onlinePayments}
         />
       )}
     </div>

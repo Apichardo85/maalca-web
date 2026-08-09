@@ -1,6 +1,8 @@
 'use client'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { CartEntry, CartItem } from './useCart'
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080'
 
 const FALLBACK_IMG =
   'data:image/svg+xml;base64,' +
@@ -52,6 +54,11 @@ interface CartDrawerProps {
   whatsappNumber: string
   businessName: string
   currency?: string
+  /** Slug del afiliado — requerido solo si onlinePayments está activo (para crear el pedido). */
+  slug?: string
+  /** capabilities.onlinePayments del plan — gatea el botón de pago con tarjeta, no garantiza
+   *  que el afiliado ya conectó Stripe (eso lo confirma el backend al crear el pedido). */
+  onlinePayments?: boolean
 }
 
 export function CartDrawer({
@@ -66,17 +73,51 @@ export function CartDrawer({
   whatsappNumber,
   businessName,
   currency = 'USD',
+  slug,
+  onlinePayments = false,
 }: CartDrawerProps) {
   const fmt = useMemo(
     () => new Intl.NumberFormat('en-US', { style: 'currency', currency }),
     [currency],
   )
+  const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'unavailable'>('idle')
 
   if (!isOpen) return null
 
   const tax = cartTotal * taxRate
   const total = cartTotal + tax
   const waUrl = buildWhatsAppUrl(cart, cartTotal, tax, total, whatsappNumber, businessName, taxRate)
+
+  async function handleCardCheckout() {
+    if (!slug) return
+    setCheckoutState('loading')
+    try {
+      const origin = window.location.origin
+      const res = await fetch(`${API_BASE}/api/public/affiliates/${slug}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: cart.map(e => ({ itemId: e.item.id, name: e.item.name, price: e.item.price, qty: e.qty })),
+          subtotal: cartTotal,
+          tax,
+          total,
+          currency,
+          successUrl: `${origin}${window.location.pathname}?paid=true`,
+          cancelUrl: `${origin}${window.location.pathname}?paid=false`,
+        }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data?.checkoutUrl) {
+        // El pedido queda guardado igual (visible para el afiliado) aunque no haya cobro —
+        // esto solo significa que el afiliado no completó su conexión de Stripe todavía.
+        setCheckoutState('unavailable')
+        return
+      }
+      window.location.href = data.checkoutUrl
+    } catch {
+      setCheckoutState('unavailable')
+    }
+  }
 
   return (
     <div
@@ -292,6 +333,41 @@ export function CartDrawer({
               <span style={{ fontWeight: 700, color: '#1a1a1a' }}>{fmt.format(total)}</span>
             </div>
           </div>
+
+          {onlinePayments && slug && (
+            <>
+              <button
+                onClick={handleCardCheckout}
+                disabled={checkoutState === 'loading'}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  width: '100%',
+                  backgroundColor: '#1a1a1a',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '9999px',
+                  padding: '14px',
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  minHeight: '48px',
+                  boxSizing: 'border-box',
+                  cursor: checkoutState === 'loading' ? 'default' : 'pointer',
+                  opacity: checkoutState === 'loading' ? 0.7 : 1,
+                  marginBottom: '10px',
+                }}
+              >
+                {checkoutState === 'loading' ? 'Redirigiendo...' : `Pagar ${fmt.format(total)} con tarjeta`}
+              </button>
+              {checkoutState === 'unavailable' && (
+                <p style={{ margin: '0 0 10px', fontSize: '12px', color: '#b91c1c', textAlign: 'center' }}>
+                  Los pagos en línea no están disponibles ahora mismo — confirma por WhatsApp.
+                </p>
+              )}
+            </>
+          )}
 
           <a
             href={waUrl}

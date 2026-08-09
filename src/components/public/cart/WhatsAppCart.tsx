@@ -16,6 +16,8 @@ export interface WhatsAppCartProps {
   taxRate?: number
   /** ISO 4217 currency code. Default: 'USD' */
   currency?: string
+  slug?: string
+  onlinePayments?: boolean
 }
 
 export function WhatsAppCart({
@@ -28,6 +30,8 @@ export function WhatsAppCart({
   businessName,
   taxRate = 0,
   currency = 'USD',
+  slug,
+  onlinePayments = false,
 }: WhatsAppCartProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [toast, setToast] = useState({ message: '', visible: false })
@@ -75,6 +79,8 @@ export function WhatsAppCart({
         currency={currency}
         whatsappNumber={whatsappNumber}
         businessName={businessName}
+        slug={slug}
+        onlinePayments={onlinePayments}
       />
     </>
   )

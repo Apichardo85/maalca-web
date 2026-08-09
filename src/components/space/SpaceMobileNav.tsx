@@ -70,6 +70,7 @@ export function SpaceMobileNav({
     { label: getText('Diseñar mi Espacio', 'Design my Space'), icon: '🎨', href: `/space/${slug}/design` },
     { label: getText('Identidad', 'Identity'), icon: '🪪', href: `/space/${slug}/identidad` },
     { label: catalogLabel, icon: '📦', href: `/space/${slug}/catalog` },
+    { label: getText('Pedidos', 'Orders'), icon: '🧾', href: `/space/${slug}/orders` },
     { label: getText('Módulos', 'Modules'), icon: '🧩', href: `/space/${slug}/modules` },
     { label: getText('Estadísticas', 'Stats'), icon: '📊', href: `/space/${slug}/stats` },
     { label: getText('Facturación', 'Billing'), icon: '💳', href: `/space/${slug}/settings` },

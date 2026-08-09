@@ -38,9 +38,13 @@ export function SettingsContent({ slug, plan, trialDaysRemaining }: Props) {
     chargesEnabled: boolean;
     payoutsEnabled: boolean;
     detailsSubmitted: boolean;
+    country: string | null;
   } | null>(null);
   const [connectLoading, setConnectLoading] = useState(false);
   const [connectError, setConnectError] = useState<string | null>(null);
+  // Solo se usa una vez, antes de la primera conexión — Stripe no permite cambiar el país
+  // de una cuenta conectada después de creada, así que no se vuelve a pedir.
+  const [countryChoice, setCountryChoice] = useState('US');
 
   useEffect(() => {
     if (plan !== 'entrepreneur') return;
@@ -54,6 +58,7 @@ export function SettingsContent({ slug, plan, trialDaysRemaining }: Props) {
           chargesEnabled: !!data?.chargesEnabled,
           payoutsEnabled: !!data?.payoutsEnabled,
           detailsSubmitted: !!data?.detailsSubmitted,
+          country: data?.country ?? null,
         });
       })
       .catch(() => {});
@@ -66,6 +71,15 @@ export function SettingsContent({ slug, plan, trialDaysRemaining }: Props) {
     setConnectLoading(true);
     setConnectError(null);
     try {
+      // Primera vez conectando y todavía sin país guardado: lo fijamos antes de crear la
+      // cuenta en Stripe, porque después no se puede cambiar.
+      if (!connectStatus?.connected && !connectStatus?.country) {
+        await fetch(`/api/space/${slug}/settings`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ country: countryChoice }),
+        });
+      }
       const origin = window.location.origin;
       const res = await fetch(`/api/space/${slug}/connect/onboarding-link`, {
         method: 'POST',
@@ -230,6 +244,28 @@ export function SettingsContent({ slug, plan, trialDaysRemaining }: Props) {
               </p>
             ) : (
               <>
+                {!connectStatus?.connected && !connectStatus?.country && (
+                  <div className="mt-4">
+                    <label className="text-xs font-medium text-gray-500 dark:text-neutral-400">
+                      {getText(
+                        'País de tu negocio (no se puede cambiar después)',
+                        "Your business's country (can't be changed later)",
+                      )}
+                    </label>
+                    <select
+                      value={countryChoice}
+                      onChange={(e) => setCountryChoice(e.target.value)}
+                      className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm"
+                    >
+                      <option value="US">{getText('Estados Unidos', 'United States')}</option>
+                      <option value="DO">{getText('República Dominicana', 'Dominican Republic')}</option>
+                      <option value="PR">{getText('Puerto Rico', 'Puerto Rico')}</option>
+                      <option value="MX">México</option>
+                      <option value="ES">España</option>
+                      <option value="CA">Canadá / Canada</option>
+                    </select>
+                  </div>
+                )}
                 {connectError && (
                   <p className="mt-4 text-sm text-red-600 dark:text-red-400">{connectError}</p>
                 )}
