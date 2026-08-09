@@ -91,11 +91,15 @@ export function SettingsContent({ slug, plan, trialDaysRemaining }: Props) {
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.url) {
+        // Muestra el mensaje real de Stripe/backend cuando viene (error.message), en vez de
+        // un genérico siempre igual — así se puede diagnosticar sin tener que ir a los logs.
+        const detail = data?.error?.message as string | undefined;
         throw new Error(
-          getText(
-            'No pudimos iniciar la conexión con Stripe. Intenta de nuevo.',
-            "We couldn't start the Stripe connection. Please try again.",
-          ),
+          detail ??
+            getText(
+              'No pudimos iniciar la conexión con Stripe. Intenta de nuevo.',
+              "We couldn't start the Stripe connection. Please try again.",
+            ),
         );
       }
       window.location.href = data.url;
