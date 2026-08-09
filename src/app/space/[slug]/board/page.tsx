@@ -38,18 +38,22 @@ export default async function BoardPage({
     // ads stays [] — BoardContent renders the empty state rather than crashing the page.
   }
 
-  // AdFrequency no vive en el aggregator de /api/space/{slug} — se lee del catálogo público
-  // (el mismo endpoint que ya consume el board en vivo), sin agregar un endpoint autenticado
-  // nuevo solo para esto.
+  // AdFrequency/Language/BoardTheme no viven en el aggregator de /api/space/{slug} — se leen
+  // del catálogo público (el mismo endpoint que ya consume el board en vivo), sin agregar un
+  // endpoint autenticado nuevo solo para esto.
   let adFrequency: number | null = null;
+  let language: 'es' | 'en' = 'es';
+  let boardTheme: 'Dark' | 'Light' = 'Dark';
   try {
     const catalogRes = await fetch(`${API}/api/public/affiliates/${slug}/catalog`, { cache: 'no-store' });
     if (catalogRes.ok) {
       const catalog = await catalogRes.json();
       adFrequency = catalog.adFrequency ?? null;
+      language = catalog.language === 'en' ? 'en' : 'es';
+      boardTheme = catalog.boardTheme === 'Light' ? 'Light' : 'Dark';
     }
   } catch {
-    // adFrequency stays null
+    // se quedan en sus defaults
   }
 
   return (
@@ -58,6 +62,8 @@ export default async function BoardPage({
       plan={space.business.plan}
       initialAds={ads}
       initialAdFrequency={adFrequency}
+      initialLanguage={language}
+      initialBoardTheme={boardTheme}
     />
   );
 }

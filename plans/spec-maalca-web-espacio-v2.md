@@ -174,15 +174,27 @@ La más cercana a lo que ya existe — mismo `MenuBoard.tsx`, mismo modelo de "p
 
 **Esfuerzo:** medio — es extender infraestructura que ya funciona, no construir desde cero. Es lo lógico para empezar.
 
+### Mejora previa a B — Idioma y tema del board (deuda de Etapa A)
+
+**Origen:** pedido 2026-08-09. Hoy `MenuBoard.tsx` tiene el idioma (español) y el tema (oscuro) escritos a mano en el código — no hay ningún ajuste. Es una laguna real de Etapa A: una TV no tiene usuario que le dé click a un toggle de idioma como sí lo tiene el sitio público (`useSimpleLanguage` es una preferencia de visitante, no aplica a una pantalla que nadie toca). Necesita ser una preferencia **del negocio**, no del visitante.
+
+- [ ] Backend: `Affiliate.Language` (`"es" | "en"`, default `"es"`) y `Affiliate.BoardTheme` (`Light | Dark`, default `Dark` — preserva el comportamiento actual sin romper nada para quien ya tiene un board abierto).
+- [ ] Se exponen en el mismo `PublicCatalogResponse` que ya trae `screenAds`/`adFrequency` — el board los lee del mismo fetch, sin llamada nueva.
+- [ ] `MenuBoard.tsx`: strings fijos ("Catálogo no disponible...", etc.) pasan a un diccionario ES/EN chico (no es el sistema de traducción completo del sitio — el board no necesita eso), y las clases de color cambian según `BoardTheme`.
+- [ ] Dashboard: se agrega al panel de `/space/{slug}/board` que ya existe (Etapa A) — dos selects más, mismo patrón que `AdFrequency` (guarda vía `PATCH /profile`).
+
+**Esfuerzo:** bajo. Es la base que Etapa B va a reusar (ver abajo) — por eso va primero, no después.
+
 ### Etapa B — Múltiples pantallas por afiliado (una TV = un rol)
 
 Hoy `/{slug}/board` es una sola vista fija. Un negocio con 2+ TVs (una de menú, una de comerciales) no puede configurarlas distinto con la ruta actual.
 
-- [ ] Backend: entidad `Screen` por afiliado (`Id`, `Nombre` ej. "TV Entrada", `Tipo`: MenuBoard | Comerciales | Mixta, `ConfigJson`).
-- [ ] Ruta pasa a `/{slug}/board/{screenId}` (o `?screen=` como query) — cada URL se abre en una TV distinta y muestra solo lo que esa pantalla tiene configurado.
-- [ ] Dashboard: gestión de pantallas (crear/nombrar/configurar cada una, generar su link/QR para abrirla en la TV correspondiente — mismo patrón que el QR de Identidad ya existente).
+- [ ] Backend: entidad `Screen` por afiliado (`Id`, `Nombre` ej. "TV Entrada", `Tipo`: MenuBoard | Comerciales | Mixta).
+- [ ] **Herencia de configuración:** cada `Screen` puede *heredar* Idioma/Tema/Frecuencia de comerciales del afiliado (comportamiento por defecto, sin tocar nada) o *sobreescribirlos* puntualmente (campos nullable en `Screen` — null = usa el del afiliado). Mismo patrón para categorías visibles: null = todas, o una lista para limitar una TV a, ej., solo "Bebidas".
+- [ ] Ruta pasa a `/{slug}/board/{screenId}` — cada URL se abre en una TV distinta. `/{slug}/board` (sin id) se mantiene como alias a la "pantalla por defecto" del afiliado, para no romper QRs ya impresos de Etapa A.
+- [ ] Dashboard: la pantalla `/space/{slug}/board` (ya existe) pasa de "un board" a "lista de pantallas" — crear/nombrar/configurar cada una (con la opción de heredar o sobreescribir), generar su link/QR — mismo patrón que el QR de Identidad ya existente.
 
-**Esfuerzo:** medio-alto, sobre todo por la superficie de UI de administración nueva. Depende de la Etapa A (el `ConfigJson` de cada pantalla referencia comerciales/categorías que Etapa A ya debe poder crear).
+**Esfuerzo:** medio-alto, sobre todo por la UI de administración (pasar de un formulario a una lista con estado por pantalla). El modelo de datos es directo porque ya viene diseñado para heredar en vez de duplicar configuración.
 
 ### Etapa C — Pantalla de cocina (Kitchen Display System)
 

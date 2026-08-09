@@ -58,11 +58,14 @@ export default async function MenuBoardPage({ params }: PageProps) {
   // real enforcement point; this just renders a diagnosable message instead of a bare 404
   // so whoever set up the TV knows *why* nothing's showing, not just that it's broken).
   if (!data.capabilities?.menuBoard) {
+    const isEn = data.language === 'en';
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center gap-3 bg-neutral-950 px-10 text-center text-white">
         <p className="text-2xl font-bold">{data.affiliate.name}</p>
         <p className="max-w-md text-white/60">
-          El Menu Board es una función del plan Emprendedor. Actualiza tu plan desde el dashboard para activarlo.
+          {isEn
+            ? 'The Menu Board is a feature of the Entrepreneur plan. Upgrade your plan from the dashboard to activate it.'
+            : 'El Menu Board es una función del plan Emprendedor. Actualiza tu plan desde el dashboard para activarlo.'}
         </p>
       </div>
     );
@@ -86,6 +89,8 @@ export default async function MenuBoardPage({ params }: PageProps) {
       initialCategories={data.categories ?? []}
       initialScreenAds={data.screenAds ?? []}
       initialAdFrequency={data.adFrequency ?? null}
+      language={data.language === 'en' ? 'en' : 'es'}
+      theme={data.boardTheme === 'Light' ? 'Light' : 'Dark'}
     />
   );
 }
@@ -108,4 +113,6 @@ interface BoardCatalogResponse {
   capabilities?: PublicTemplateProps['capabilities'];
   screenAds?: BoardScreenAd[];
   adFrequency?: number | null;
+  language?: string | null;
+  boardTheme?: string | null;
 }

@@ -19,6 +19,8 @@ interface Props {
   plan: 'free' | 'entrepreneur';
   initialAds: ScreenAdRow[];
   initialAdFrequency: number | null;
+  initialLanguage: 'es' | 'en';
+  initialBoardTheme: 'Dark' | 'Light';
 }
 
 /**
@@ -27,16 +29,21 @@ interface Props {
  * OrdersContent.tsx (tarjetas + acciones inline), mismo bucket de Supabase que el upload de
  * imágenes de catálogo (ver screen-ads/upload-media/route.ts).
  */
-export function BoardContent({ slug, plan, initialAds, initialAdFrequency }: Props) {
+export function BoardContent({
+  slug, plan, initialAds, initialAdFrequency, initialLanguage, initialBoardTheme,
+}: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
 
   const [ads, setAds] = useState(initialAds);
   const [adFrequency, setAdFrequency] = useState(initialAdFrequency ?? 0);
+  const [boardLanguage, setBoardLanguage] = useState(initialLanguage);
+  const [boardTheme, setBoardTheme] = useState(initialBoardTheme);
   const [uploading, setUploading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [savingFrequency, setSavingFrequency] = useState(false);
+  const [savingPrefs, setSavingPrefs] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleUpload(file: File) {
@@ -117,6 +124,21 @@ export function BoardContent({ slug, plan, initialAds, initialAdFrequency }: Pro
     }
   }
 
+  // Idioma y tema del board — preferencia del NEGOCIO (nadie interactúa con una TV para
+  // cambiarlos), separado de `language` de arriba que es la del visitante viendo este panel.
+  async function savePrefs(next: { language?: 'es' | 'en'; boardTheme?: 'Dark' | 'Light' }) {
+    setSavingPrefs(true);
+    try {
+      await fetch(`/api/space/${slug}/settings`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(next),
+      });
+    } finally {
+      setSavingPrefs(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
       <div className="px-6 py-12 max-w-3xl">
@@ -168,6 +190,51 @@ export function BoardContent({ slug, plan, initialAds, initialAdFrequency }: Pro
             >
               {savingFrequency ? getText('Guardando…', 'Saving…') : getText('Guardar', 'Save')}
             </button>
+          </div>
+        </div>
+
+        {/* Idioma y tema del board */}
+        <div className="mt-4 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
+          <h2 className="text-sm font-semibold">{getText('Idioma y tema de la pantalla', 'Screen language and theme')}</h2>
+          <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
+            {getText(
+              'Como nadie interactúa con la TV, esto se configura acá — no cambia con el idioma de este panel.',
+              "Since nobody interacts with the TV, this is set here — it doesn't change with this panel's language.",
+            )}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-4">
+            <label className="flex flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
+              {getText('Idioma', 'Language')}
+              <select
+                value={boardLanguage}
+                onChange={(e) => {
+                  const value = e.target.value as 'es' | 'en';
+                  setBoardLanguage(value);
+                  savePrefs({ language: value });
+                }}
+                disabled={savingPrefs}
+                className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white"
+              >
+                <option value="es">Español</option>
+                <option value="en">English</option>
+              </select>
+            </label>
+            <label className="flex flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
+              {getText('Tema', 'Theme')}
+              <select
+                value={boardTheme}
+                onChange={(e) => {
+                  const value = e.target.value as 'Dark' | 'Light';
+                  setBoardTheme(value);
+                  savePrefs({ boardTheme: value });
+                }}
+                disabled={savingPrefs}
+                className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white"
+              >
+                <option value="Dark">{getText('Oscuro', 'Dark')}</option>
+                <option value="Light">{getText('Claro', 'Light')}</option>
+              </select>
+            </label>
           </div>
         </div>
 

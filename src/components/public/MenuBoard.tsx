@@ -24,7 +24,35 @@ interface Props {
   initialCategories: BoardCategory[];
   initialScreenAds?: ScreenAd[];
   initialAdFrequency?: number | null;
+  /** Preferencia del negocio, no del visitante — nadie interactúa con la TV para cambiarla. */
+  language?: 'es' | 'en';
+  theme?: 'Dark' | 'Light';
 }
+
+// Diccionario chico a propósito — el board tiene un puñado de strings fijos, no justifica
+// traer el sistema de traducción completo del sitio (useSimpleLanguage), que además es una
+// preferencia de VISITANTE y esto es una preferencia de NEGOCIO.
+const BOARD_STRINGS = {
+  es: { unavailable: 'Catálogo no disponible por el momento.' },
+  en: { unavailable: 'Catalog not available right now.' },
+};
+
+const THEME_CLASSES = {
+  Dark: {
+    root: 'bg-neutral-950 text-white',
+    card: 'bg-white/5 ring-1 ring-white/10',
+    mediaFallback: 'bg-neutral-800',
+    dotInactive: 'rgba(255,255,255,0.25)',
+    unavailableText: 'text-white/60',
+  },
+  Light: {
+    root: 'bg-white text-neutral-900',
+    card: 'bg-black/5 ring-1 ring-black/10',
+    mediaFallback: 'bg-neutral-200',
+    dotInactive: 'rgba(0,0,0,0.15)',
+    unavailableText: 'text-neutral-500',
+  },
+};
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -100,7 +128,11 @@ function formatPrice(price: number | null | undefined) {
 export function MenuBoard({
   slug, business, initialItems, initialCategories,
   initialScreenAds = [], initialAdFrequency = null,
+  language = 'es', theme = 'Dark',
 }: Props) {
+  const t = BOARD_STRINGS[language];
+  const c = THEME_CLASSES[theme];
+
   const [catalog, setCatalog] = useState<CatalogPayload>({
     items: initialItems,
     categories: initialCategories,
@@ -158,7 +190,7 @@ export function MenuBoard({
 
   return (
     <div
-      className="fixed inset-0 flex flex-col overflow-hidden bg-neutral-950 text-white"
+      className={`fixed inset-0 flex flex-col overflow-hidden ${c.root}`}
       style={{ aspectRatio: '16 / 9' }}
     >
       {/* Header band — logo + business name, always visible so the board is
@@ -186,7 +218,7 @@ export function MenuBoard({
       {/* Slide content */}
       <main className="flex flex-1 items-center justify-center px-10 py-8">
         {!slide ? (
-          <p className="text-2xl text-white/60">Catálogo no disponible por el momento.</p>
+          <p className={`text-2xl ${c.unavailableText}`}>{t.unavailable}</p>
         ) : slide.kind === 'ad' ? (
           // Comercial — a pantalla completa dentro del área de contenido, sin la grilla de
           // items ni precios (no es un producto, es contenido promocional).
@@ -211,9 +243,9 @@ export function MenuBoard({
             {slide.items.map((item) => (
               <div
                 key={item.id}
-                className="flex flex-col overflow-hidden rounded-2xl bg-white/5 ring-1 ring-white/10"
+                className={`flex flex-col overflow-hidden rounded-2xl ${c.card}`}
               >
-                <div className="relative flex-1 overflow-hidden bg-neutral-800">
+                <div className={`relative flex-1 overflow-hidden ${c.mediaFallback}`}>
                   {item.video_url ? (
                     <video
                       src={item.video_url}
@@ -256,7 +288,7 @@ export function MenuBoard({
               className="h-2 rounded-full transition-all"
               style={{
                 width: i === slideIndex ? 24 : 8,
-                background: i === slideIndex ? business.primaryColor : 'rgba(255,255,255,0.25)',
+                background: i === slideIndex ? business.primaryColor : c.dotInactive,
               }}
             />
           ))}
