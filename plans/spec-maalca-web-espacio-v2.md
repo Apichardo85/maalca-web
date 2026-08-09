@@ -128,6 +128,32 @@ Hallazgo importante durante QA de Fase 1/2: el nuevo "Catálogo" genérico (`cat
 
 ---
 
+## Fase 8 — Plan Emprendedor completo (goal real del negocio) — pendiente, sin empezar
+
+**Origen:** copy de venta ya publicado en `/servicios` para el plan Emprendedor ($38/mes): *"Cuando ya vendes: reservas, pagos online, catálogo ilimitado y automatizaciones que te ahorran horas."* Este es el checklist de qué falta construir para que esa promesa sea real, no solo copy. Investigado 2026-08-09: `onlinePayments` y `bookingCalendar` ya existen como **flags de capability** (frontend `plan-limits.ts`/`capabilities.ts`, backend `PlanCapabilitiesDto`) pero no están respaldados por ninguna feature real — es deuda de producto, no solo de código.
+
+| Item del plan | Estado real (2026-08-09) |
+|---|---|
+| Catálogo ilimitado | ✅ Ya funciona (`itemsPerBusiness: Infinity` en plan Emprendedor). |
+| Reservas / pedidos online con panel admin | ❌ No existe. El "carrito" (`CartDrawer.tsx`) solo arma un mensaje de WhatsApp — no hay orden real guardada en el sistema, ni panel admin para verla/gestionarla. No hay modelo `Order`/`Booking` en el backend. |
+| Dashboard multiusuario con roles | ❌ No existe. No hay modelo de roles/usuarios múltiples por afiliado en el backend (`UserAffiliateMap` mapea un usuario a un afiliado, pero no hay roles ni invitaciones). |
+| Automatizaciones básicas (confirmaciones, recordatorios) | ❌ No existe. No hay ningún sistema de notificación automática — depende de que existan órdenes/reservas primero. |
+| Pagos con Stripe (tarjeta, Apple Pay, Google Pay) | ❌ No existe. El único Stripe en el proyecto es la suscripción MaalCa→afiliado (`StripeBillingService`, `Mode = "subscription"`). No hay Stripe Connect ni ningún mecanismo para que el afiliado cobre a SU cliente. `onlinePayments: true` es un flag sin feature detrás. |
+| Analytics de conversión | ⚠️ Parcial. Hoy solo hay KPIs de tráfico (visitas, escaneos QR, clics a canales) — no hay funnel de conversión porque no hay eventos de "orden completada" que medir. Depende de que exista Pedidos/Pagos primero. |
+| Soporte prioritario (24h) | ⚪ No es código — es operativo (proceso de soporte, no feature de producto). |
+
+**Orden de dependencia real** (no se puede saltar sin quedar a medias):
+1. **Pagos con Stripe Connect** — sin esto, "pedidos online" es solo un formulario sin cobro real, y "analytics de conversión" no tiene qué medir. Es la base de todo lo demás.
+2. **Reservas / pedidos online con panel admin** — modelo `Order`/`Booking` en el backend + pantalla de gestión en `/space/{slug}`. Usa Stripe Connect del paso 1 para el cobro.
+3. **Automatizaciones básicas** — confirmaciones/recordatorios sobre las órdenes/reservas del paso 2 (email o WhatsApp).
+4. **Analytics de conversión** — una vez hay eventos de orden real, agregar el funnel (visita → item visto → orden iniciada → orden pagada).
+5. **Dashboard multiusuario con roles** — independiente de los anteriores, se puede hacer en paralelo si hace falta.
+6. **Soporte prioritario 24h** — decisión operativa, no bloquea desarrollo.
+
+**Criterio de aceptación de la Fase completa:** un afiliado Emprendedor puede recibir un pedido, cobrarlo con tarjeta/Apple Pay/Google Pay directo a su cuenta, verlo en un panel admin, y el cliente recibe confirmación automática — sin que WhatsApp sea el único canal de venta real.
+
+---
+
 ## Orden de construcción recomendado y dependencias
 
 1. Fase 1 (shell) — sin dependencias de API nuevas.
@@ -137,6 +163,7 @@ Hallazgo importante durante QA de Fase 1/2: el nuevo "Catálogo" genérico (`cat
 5. Fase 5 (layout por categoría) — sin dependencia de backend nueva más allá del catálogo existente; es el bloque de mayor esfuerzo, planificar aparte.
 6. Fase 6 (Módulos) — sin dependencias, es principalmente contenido estático + los 3 módulos reales.
 7. Fase 7 (Menu Board Smart TV) — depende de agregar soporte de video al catálogo en `maalca-api` (no existe hoy); el resto (rotación, layout 16:9, consumo del catálogo real) no tiene dependencia de backend nueva.
+8. Fase 8 (Plan Emprendedor completo) — la de mayor esfuerzo del programa, es multi-sprint. Empieza por Stripe Connect (pagos), todo lo demás depende de eso en cascada. Ver orden de dependencia dentro de la Fase 8.
 
 QA de Ciri entre cada fase antes de avanzar a la siguiente, como en el resto del proyecto.
 

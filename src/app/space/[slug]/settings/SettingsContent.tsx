@@ -31,6 +31,66 @@ export function SettingsContent({ slug, plan, trialDaysRemaining }: Props) {
   const [error, setError] = useState<string | null>(null);
   const pollCount = useRef(0);
 
+  // Stripe Connect — cuenta donde el afiliado recibe el dinero de SUS clientes.
+  // Distinta de la suscripción de arriba. Solo aplica a plan Emprendedor.
+  const [connectStatus, setConnectStatus] = useState<{
+    connected: boolean;
+    chargesEnabled: boolean;
+    payoutsEnabled: boolean;
+    detailsSubmitted: boolean;
+  } | null>(null);
+  const [connectLoading, setConnectLoading] = useState(false);
+  const [connectError, setConnectError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (plan !== 'entrepreneur') return;
+    let cancelled = false;
+    fetch(`/api/space/${slug}/connect/status`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        setConnectStatus({
+          connected: !!data?.connected,
+          chargesEnabled: !!data?.chargesEnabled,
+          payoutsEnabled: !!data?.payoutsEnabled,
+          detailsSubmitted: !!data?.detailsSubmitted,
+        });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [plan, slug]);
+
+  async function handleConnectPayments() {
+    setConnectLoading(true);
+    setConnectError(null);
+    try {
+      const origin = window.location.origin;
+      const res = await fetch(`/api/space/${slug}/connect/onboarding-link`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          returnUrl: `${origin}/space/${slug}/settings?connected=true`,
+          refreshUrl: `${origin}/space/${slug}/settings`,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.url) {
+        throw new Error(
+          getText(
+            'No pudimos iniciar la conexión con Stripe. Intenta de nuevo.',
+            "We couldn't start the Stripe connection. Please try again.",
+          ),
+        );
+      }
+      window.location.href = data.url;
+    } catch (e) {
+      setConnectError(e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.'));
+      setConnectLoading(false);
+    }
+  }
+
   // Stripe's webhook flips the plan async — right after a successful checkout the
   // affiliate is still "free" here for a few seconds. Poll the server component's
   // data (via router.refresh) until the plan updates, capped so it doesn't spin forever
@@ -149,6 +209,45 @@ export function SettingsContent({ slug, plan, trialDaysRemaining }: Props) {
             </p>
           )}
         </div>
+
+        {/* Stripe Connect — recibir pagos de tus propios clientes */}
+        {plan === 'entrepreneur' && (
+          <div className="mt-6 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6">
+            <p className="text-xs uppercase tracking-wider text-gray-400 dark:text-neutral-500">
+              {getText('Recibir pagos', 'Accept payments')}
+            </p>
+            <p className="mt-1 text-sm text-gray-600 dark:text-neutral-300">
+              {getText(
+                'Conecta tu cuenta de Stripe para cobrar a tus clientes con tarjeta, Apple Pay y Google Pay — el dinero va directo a tu cuenta.',
+                'Connect your Stripe account to charge your customers with card, Apple Pay, and Google Pay — the money goes straight to your account.',
+              )}
+            </p>
+
+            {connectStatus?.chargesEnabled ? (
+              <p className="mt-4 flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400">
+                <span>✓</span>
+                {getText('Cuenta conectada — ya puedes recibir pagos.', 'Account connected — you can accept payments.')}
+              </p>
+            ) : (
+              <>
+                {connectError && (
+                  <p className="mt-4 text-sm text-red-600 dark:text-red-400">{connectError}</p>
+                )}
+                <button
+                  onClick={handleConnectPayments}
+                  disabled={connectLoading}
+                  className="mt-4 w-full rounded-full border border-gray-300 dark:border-neutral-700 py-3 text-sm font-medium text-gray-900 dark:text-white transition hover:border-[#C8102E] hover:text-[#C8102E] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {connectLoading
+                    ? getText('Redirigiendo a Stripe...', 'Redirecting to Stripe...')
+                    : connectStatus?.connected
+                    ? getText('Terminar configuración en Stripe', 'Finish setup on Stripe')
+                    : getText('Conectar cuenta para recibir pagos', 'Connect account to accept payments')}
+                </button>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Feature comparison */}
         {plan === 'free' && (
