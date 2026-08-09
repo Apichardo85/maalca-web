@@ -6,6 +6,13 @@ import type { PublicTemplateProps } from '@/lib/templates/registry';
 type BoardItem = PublicTemplateProps['items'][number];
 type BoardCategory = PublicTemplateProps['categories'][number];
 
+export interface ScreenAd {
+  id: string;
+  mediaUrl: string;
+  mediaType: 'Image' | 'Video';
+  durationSeconds: number;
+}
+
 interface Props {
   slug: string;
   business: {
@@ -15,6 +22,8 @@ interface Props {
   };
   initialItems: BoardItem[];
   initialCategories: BoardCategory[];
+  initialScreenAds?: ScreenAd[];
+  initialAdFrequency?: number | null;
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
@@ -29,12 +38,18 @@ const ITEMS_PER_SLIDE = 6;
 interface CatalogPayload {
   items: BoardItem[];
   categories?: BoardCategory[];
+  screenAds?: ScreenAd[];
+  adFrequency?: number | null;
 }
+
+type Slide =
+  | { kind: 'menu'; category: string; items: BoardItem[] }
+  | { kind: 'ad'; ad: ScreenAd };
 
 /** Groups items by category into fixed-size chunks — each chunk is one slide, so a
  *  category with more items than fit on screen spills into a second, third, etc. slide
  *  instead of shrinking everything down to fit (bad for distance viewing). */
-function buildSlides(items: BoardItem[], categories: BoardCategory[]) {
+function buildMenuSlides(items: BoardItem[], categories: BoardCategory[]): Slide[] {
   const visible = items.filter((i) => (i.status ?? 'Active') === 'Active' && !i.is_demo);
   const byCategory = new Map<string, BoardItem[]>();
   for (const item of visible) {
@@ -48,15 +63,33 @@ function buildSlides(items: BoardItem[], categories: BoardCategory[]) {
       ? [...categories.map((c) => c.name), ...[...byCategory.keys()].filter((k) => !categories.some((c) => c.name === k))]
       : [...byCategory.keys()];
 
-  const slides: { category: string; items: BoardItem[] }[] = [];
+  const slides: Slide[] = [];
   for (const key of orderedKeys) {
     const catItems = byCategory.get(key);
     if (!catItems || catItems.length === 0) continue;
     for (let i = 0; i < catItems.length; i += ITEMS_PER_SLIDE) {
-      slides.push({ category: key, items: catItems.slice(i, i + ITEMS_PER_SLIDE) });
+      slides.push({ kind: 'menu', category: key, items: catItems.slice(i, i + ITEMS_PER_SLIDE) });
     }
   }
   return slides;
+}
+
+/** Fase 9 Etapa A — intercala un slide de comercial cada `frequency` slides de menú.
+ *  frequency <= 0 o sin comerciales activos = sin cambios (comportamiento previo intacto). Los
+ *  comerciales rotan en round-robin, no se repite siempre el mismo primero. */
+function interleaveAds(menuSlides: Slide[], ads: ScreenAd[], frequency: number | null | undefined): Slide[] {
+  if (!frequency || frequency <= 0 || ads.length === 0) return menuSlides;
+
+  const result: Slide[] = [];
+  let adIndex = 0;
+  menuSlides.forEach((slide, i) => {
+    result.push(slide);
+    if ((i + 1) % frequency === 0) {
+      result.push({ kind: 'ad', ad: ads[adIndex % ads.length] });
+      adIndex += 1;
+    }
+  });
+  return result;
 }
 
 function formatPrice(price: number | null | undefined) {
@@ -64,19 +97,33 @@ function formatPrice(price: number | null | undefined) {
   return `$${price.toFixed(2)}`;
 }
 
-export function MenuBoard({ slug, business, initialItems, initialCategories }: Props) {
-  const [catalog, setCatalog] = useState<CatalogPayload>({ items: initialItems, categories: initialCategories });
+export function MenuBoard({
+  slug, business, initialItems, initialCategories,
+  initialScreenAds = [], initialAdFrequency = null,
+}: Props) {
+  const [catalog, setCatalog] = useState<CatalogPayload>({
+    items: initialItems,
+    categories: initialCategories,
+    screenAds: initialScreenAds,
+    adFrequency: initialAdFrequency,
+  });
   const [slideIndex, setSlideIndex] = useState(0);
 
   // Poll for catalog changes made from the dashboard — this is the whole point of the
-  // board being "remote-updatable": the TV never needs to be touched.
+  // board being "remote-updatable": the TV never needs to be touched. Now also picks up
+  // comerciales nuevos/pausados y cambios de frecuencia sin reabrir la pestaña.
   useEffect(() => {
     const poll = setInterval(async () => {
       try {
         const res = await fetch(`${API_BASE}/api/public/affiliates/${slug}/catalog`, { cache: 'no-store' });
         if (!res.ok) return;
         const data = await res.json();
-        setCatalog({ items: data.items ?? [], categories: data.categories ?? [] });
+        setCatalog({
+          items: data.items ?? [],
+          categories: data.categories ?? [],
+          screenAds: data.screenAds ?? [],
+          adFrequency: data.adFrequency ?? null,
+        });
       } catch {
         // Transient network hiccup — keep showing the last good catalog, try again next tick.
       }
@@ -84,26 +131,30 @@ export function MenuBoard({ slug, business, initialItems, initialCategories }: P
     return () => clearInterval(poll);
   }, [slug]);
 
-  const slides = useMemo(
-    () => buildSlides(catalog.items, catalog.categories ?? []),
-    [catalog],
-  );
+  const slides = useMemo(() => {
+    const menuSlides = buildMenuSlides(catalog.items, catalog.categories ?? []);
+    return interleaveAds(menuSlides, catalog.screenAds ?? [], catalog.adFrequency);
+  }, [catalog]);
 
-  // Reset to slide 0 whenever the slide set changes shape (items added/removed) so the
-  // index never points past the end.
+  // Reset to slide 0 whenever the slide set changes shape (items added/removed, comerciales
+  // agregados/quitados) so the index never points past the end.
   useEffect(() => {
     setSlideIndex(0);
   }, [slides.length]);
 
+  const slide = slides[slideIndex];
+
+  // Duración variable por slide — un comercial puede durar distinto que un slide de menú
+  // (ad.durationSeconds vs SLIDE_INTERVAL_MS fijo). Se re-arma el timer cada vez que cambia
+  // el slide activo en vez de un solo interval fijo para toda la rotación.
   useEffect(() => {
     if (slides.length <= 1) return;
-    const timer = setInterval(() => {
+    const durationMs = slide?.kind === 'ad' ? slide.ad.durationSeconds * 1000 : SLIDE_INTERVAL_MS;
+    const timer = setTimeout(() => {
       setSlideIndex((i) => (i + 1) % slides.length);
-    }, SLIDE_INTERVAL_MS);
-    return () => clearInterval(timer);
-  }, [slides.length]);
-
-  const slide = slides[slideIndex];
+    }, durationMs);
+    return () => clearTimeout(timer);
+  }, [slideIndex, slides, slide]);
 
   return (
     <div
@@ -125,7 +176,7 @@ export function MenuBoard({ slug, business, initialItems, initialCategories }: P
           />
         )}
         <h1 className="text-3xl font-bold tracking-tight">{business.name}</h1>
-        {slide && (
+        {slide?.kind === 'menu' && (
           <span className="ml-auto text-xl font-semibold uppercase tracking-widest text-white/80">
             {slide.category}
           </span>
@@ -136,6 +187,25 @@ export function MenuBoard({ slug, business, initialItems, initialCategories }: P
       <main className="flex flex-1 items-center justify-center px-10 py-8">
         {!slide ? (
           <p className="text-2xl text-white/60">Catálogo no disponible por el momento.</p>
+        ) : slide.kind === 'ad' ? (
+          // Comercial — a pantalla completa dentro del área de contenido, sin la grilla de
+          // items ni precios (no es un producto, es contenido promocional).
+          <div className="relative h-full w-full overflow-hidden rounded-2xl bg-neutral-900">
+            {slide.ad.mediaType === 'Video' ? (
+              <video
+                key={slide.ad.id}
+                src={slide.ad.mediaUrl}
+                className="absolute inset-0 h-full w-full object-cover"
+                autoPlay
+                muted
+                loop
+                playsInline
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={slide.ad.mediaUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            )}
+          </div>
         ) : (
           <div className="grid h-full w-full grid-cols-3 grid-rows-2 gap-6">
             {slide.items.map((item) => (
@@ -144,7 +214,16 @@ export function MenuBoard({ slug, business, initialItems, initialCategories }: P
                 className="flex flex-col overflow-hidden rounded-2xl bg-white/5 ring-1 ring-white/10"
               >
                 <div className="relative flex-1 overflow-hidden bg-neutral-800">
-                  {item.image_url ? (
+                  {item.video_url ? (
+                    <video
+                      src={item.video_url}
+                      className="absolute inset-0 h-full w-full object-cover"
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                    />
+                  ) : item.image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={item.image_url}
@@ -154,9 +233,6 @@ export function MenuBoard({ slug, business, initialItems, initialCategories }: P
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-6xl opacity-30">🍽️</div>
                   )}
-                  {/* TODO(Fase 7): if/when items carry a videoUrl (not in the schema yet —
-                      see plans/spec-maalca-web-espacio-v2.md), swap the <img> above for a
-                      looping muted <video> here when videoUrl is present. */}
                 </div>
                 <div className="flex items-center justify-between gap-3 px-5 py-4">
                   <span className="text-2xl font-bold leading-tight">{item.name}</span>
@@ -176,7 +252,7 @@ export function MenuBoard({ slug, business, initialItems, initialCategories }: P
         <div className="flex items-center justify-center gap-2 pb-6">
           {slides.map((s, i) => (
             <span
-              key={`${s.category}-${i}`}
+              key={s.kind === 'menu' ? `${s.category}-${i}` : `${s.ad.id}-${i}`}
               className="h-2 rounded-full transition-all"
               style={{
                 width: i === slideIndex ? 24 : 8,

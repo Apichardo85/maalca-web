@@ -14,6 +14,7 @@ export interface DailyCount {
   pageViews: number;
   qrScans: number;
   canalClicks: number;
+  paidOrders: number;
 }
 
 export interface CanalBreakdown {
@@ -23,9 +24,18 @@ export interface CanalBreakdown {
   clicks: number;
 }
 
+export interface ConversionSummary {
+  visits: number;
+  paidOrders: number;
+  conversionRatePct: number;
+  revenue: number;
+  currency: string;
+}
+
 export interface DetailedMetrics {
   dailyCounts: DailyCount[];
   byCanal: CanalBreakdown[];
+  conversion: ConversionSummary;
 }
 
 interface Props {
@@ -34,7 +44,7 @@ interface Props {
   detailed: DetailedMetrics | null;
 }
 
-type MetricKey = 'pageViews' | 'qrScans' | 'canalClicks';
+type MetricKey = 'pageViews' | 'qrScans' | 'canalClicks' | 'paidOrders';
 
 // WhatsApp/Telefono/Email (ContactIcons) + Facebook/Instagram/TikTok (SocialIcons) — the full
 // CanalTipo enum (CanalTipo.cs) — same icon set the public templates already render, reused
@@ -56,7 +66,8 @@ export function StatsContent({ kpis, plan, detailed }: Props) {
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
 
   const hasEvents = !!detailed && (
-    detailed.byCanal.length > 0 || detailed.dailyCounts.some((d) => d.pageViews > 0 || d.qrScans > 0 || d.canalClicks > 0)
+    detailed.byCanal.length > 0 ||
+    detailed.dailyCounts.some((d) => d.pageViews > 0 || d.qrScans > 0 || d.canalClicks > 0 || d.paidOrders > 0)
   );
 
   // Defaults to whichever metric actually has data this period, so a business that only gets
@@ -67,6 +78,7 @@ export function StatsContent({ kpis, plan, detailed }: Props) {
       pageViews: sumMetric(detailed.dailyCounts, 'pageViews'),
       qrScans: sumMetric(detailed.dailyCounts, 'qrScans'),
       canalClicks: sumMetric(detailed.dailyCounts, 'canalClicks'),
+      paidOrders: sumMetric(detailed.dailyCounts, 'paidOrders'),
     };
     return (Object.keys(sums) as MetricKey[]).reduce((best, k) => (sums[k] > sums[best] ? k : best), 'pageViews');
   });
@@ -75,6 +87,7 @@ export function StatsContent({ kpis, plan, detailed }: Props) {
     { key: 'pageViews', label: getText('Visitas', 'Visits'), color: '#C8102E' },
     { key: 'qrScans', label: getText('Escaneos QR', 'QR scans'), color: '#0EA5E9' },
     { key: 'canalClicks', label: getText('Clics a canales', 'Channel clicks'), color: '#16A34A' },
+    { key: 'paidOrders', label: getText('Pedidos pagados', 'Paid orders'), color: '#9333EA' },
   ];
   const activeColor = METRIC_TABS.find((t) => t.key === activeMetric)!.color;
   const maxValue = detailed ? Math.max(1, ...detailed.dailyCounts.map((d) => d[activeMetric])) : 1;
@@ -112,6 +125,62 @@ export function StatsContent({ kpis, plan, detailed }: Props) {
             value={kpis.clicsCanales.disponible ? String(kpis.clicsCanales.valor) : null}
           />
         </section>
+
+        {/* Conversión: la pregunta que las 4 tarjetas de arriba no responden — de esas visitas,
+            ¿cuántas se volvieron ventas reales? Solo aparece si hay `detailed` (requiere al
+            menos un pedido pagado en el historial para que "Próximamente" no aplique aquí — a
+            diferencia de los KPIs de arriba, esto nace ya con datos reales de Orders). */}
+        {detailed && (
+          <section className="mt-6">
+            <div className="rounded-2xl border border-[#C8102E]/20 bg-[#C8102E]/[0.03] dark:bg-[#C8102E]/[0.06] p-5">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-[#C8102E]">
+                {getText('Conversión', 'Conversion')}
+              </h2>
+              <div className="mt-3 grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <p className="text-[11px] font-medium text-gray-500 dark:text-neutral-400">
+                    {getText('Visitas', 'Visits')}
+                  </p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white tabular-nums">
+                    {detailed.conversion.visits}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] font-medium text-gray-500 dark:text-neutral-400">
+                    {getText('Pedidos pagados', 'Paid orders')}
+                  </p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white tabular-nums">
+                    {detailed.conversion.paidOrders}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] font-medium text-gray-500 dark:text-neutral-400">
+                    {getText('Tasa de conversión', 'Conversion rate')}
+                  </p>
+                  <p className="text-xl font-bold text-[#C8102E] tabular-nums">
+                    {detailed.conversion.conversionRatePct}%
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] font-medium text-gray-500 dark:text-neutral-400">
+                    {getText('Ingresos', 'Revenue')}
+                  </p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white tabular-nums">
+                    {detailed.conversion.currency} {detailed.conversion.revenue.toFixed(2)}
+                  </p>
+                </div>
+              </div>
+              {detailed.conversion.visits === 0 && (
+                <p className="mt-3 text-xs text-gray-400 dark:text-neutral-600">
+                  {getText(
+                    'Sin visitas registradas en este período — la tasa de conversión se activa junto con las visitas.',
+                    'No visits recorded this period — conversion rate turns on alongside visits.',
+                  )}
+                </p>
+              )}
+            </div>
+          </section>
+        )}
 
         {(!kpis.visitas.disponible || !kpis.escaneosQr.disponible || !kpis.clicsCanales.disponible) && (
           <p className="mt-4 text-xs text-gray-400 dark:text-neutral-600">

@@ -67,6 +67,8 @@ export interface PublicTemplateProps {
     category_id?: string | null;
     image_url?: string | null;
     imageUrl?: string | null;
+    /** Menu Board only (Fase 9 Etapa A) — clip corto de video en vez de foto. Product-only en el backend. */
+    video_url?: string | null;
     durationMinutes?: number | null;
     status?: string | null;
     is_demo?: boolean;

@@ -108,7 +108,11 @@ Hallazgo importante durante QA de Fase 1/2: el nuevo "Catálogo" genérico (`cat
 
 ---
 
-## Fase 7 — Menu Board público (Smart TV) — pendiente, sin empezar
+## Fase 7 — Menu Board público (Smart TV) — ✅ Hecho (base)
+
+**Nota 2026-08-09:** esta fase ya está construida (`/{slug}/board`, `MenuBoard.tsx`) — rotación por categoría, polling de 3 min, gate por `capabilities.menuBoard`. Lo que sigue pendiente de la lista original de abajo es solo **video por item** (seguía sin campo `VideoUrl` en el catálogo — ver Fase 9, que además amplía el alcance más allá de un menú). El resto del checklist original queda como referencia histórica.
+
+## Fase 7 — Menu Board público (Smart TV) — pendiente, sin empezar (checklist original)
 
 **Origen:** pedido directo de Little Dominicana (2026-08-08). Vista pública nueva, en 16:9, pensada para quedar abierta a pantalla completa en el navegador de una Smart TV como menú digital rotativo — no es un rediseño del template público existente, es una vista separada.
 
@@ -154,6 +158,51 @@ Hallazgo importante durante QA de Fase 1/2: el nuevo "Catálogo" genérico (`cat
 
 ---
 
+## Fase 9 — Pantallas del negocio (menú + comerciales + cocina + POS) — pendiente, sin empezar
+
+**Origen:** pedido directo 2026-08-09, a partir de la Fase 7 ya construida. El caso real: Little Dominicana Restaurant quiere varias pantallas físicas en el local, cada una con un rol distinto — una que solo muestre el menú, otra rotando comerciales/promos, o una sola pantalla que alterne entre menú y comercial según configuración. A futuro, pantalla de cocina (qué pedidos hay que preparar) y punto de venta. Son 4 productos de complejidad muy distinta bajo el mismo paraguas de "pantallas" — se separan en etapas independientes, no es una sola feature.
+
+### Etapa A — Comerciales + rotación configurable (extiende Fase 7 directamente)
+
+La más cercana a lo que ya existe — mismo `MenuBoard.tsx`, mismo modelo de "playlist rotativa", pero agrega un tipo de slide nuevo que no es un item del catálogo.
+
+- [ ] Backend: nueva entidad `ScreenContent` (o similar) — no reutilizar `CatalogItem`, un comercial no es un producto: `MediaUrl` (imagen o video), `MediaType`, `DurationSeconds`, `Order`, `Active`, rango de fechas opcional (para promos con vigencia).
+- [ ] Backend: `VideoUrl` en `CatalogItem` (el pendiente que ya estaba anotado en Fase 7) — para que un item del menú también pueda ser un video corto, no solo foto.
+- [ ] Backend: endpoint de configuración de rotación por afiliado — qué mezcla de menú/comerciales, en qué orden (ej. "cada 3 slides de categoría, 1 comercial" o una lista explícita ordenada — a decidir el modelo exacto, empezar simple).
+- [ ] Frontend dashboard: pantalla nueva en `/space/{slug}` para subir/gestionar comerciales (imagen o video) y configurar el orden de rotación — mismo patrón de upload que ya existe para imágenes de catálogo.
+- [ ] Frontend board: `MenuBoard.tsx` intercala slides de comercial entre los de categoría según la configuración, reutilizando el mismo motor de rotación (`SLIDE_INTERVAL_MS`, polling) que ya existe.
+
+**Esfuerzo:** medio — es extender infraestructura que ya funciona, no construir desde cero. Es lo lógico para empezar.
+
+### Etapa B — Múltiples pantallas por afiliado (una TV = un rol)
+
+Hoy `/{slug}/board` es una sola vista fija. Un negocio con 2+ TVs (una de menú, una de comerciales) no puede configurarlas distinto con la ruta actual.
+
+- [ ] Backend: entidad `Screen` por afiliado (`Id`, `Nombre` ej. "TV Entrada", `Tipo`: MenuBoard | Comerciales | Mixta, `ConfigJson`).
+- [ ] Ruta pasa a `/{slug}/board/{screenId}` (o `?screen=` como query) — cada URL se abre en una TV distinta y muestra solo lo que esa pantalla tiene configurado.
+- [ ] Dashboard: gestión de pantallas (crear/nombrar/configurar cada una, generar su link/QR para abrirla en la TV correspondiente — mismo patrón que el QR de Identidad ya existente).
+
+**Esfuerzo:** medio-alto, sobre todo por la superficie de UI de administración nueva. Depende de la Etapa A (el `ConfigJson` de cada pantalla referencia comerciales/categorías que Etapa A ya debe poder crear).
+
+### Etapa C — Pantalla de cocina (Kitchen Display System)
+
+A diferencia de A y B, esto no es contenido rotativo — es **operación en vivo**: qué pedidos hay que preparar ahora mismo. Depende 100% de Orders (Fase 8, ya construido).
+
+- [ ] Vista tipo tablero: pedidos `Paid` sin `Fulfilled`, agrupados por antigüedad, con acción rápida para marcar en preparación / listo (reusa `PATCH /orders/{orderId}/status` que ya existe).
+- [ ] Tiempo real en vez de polling: el proyecto **ya tiene infraestructura de SignalR** (`QueueHub.cs`, usada hoy para la fila de la barbería) — mismo patrón aplicable aquí en vez de inventar algo nuevo: un hub que notifica "nuevo pedido" al instante en lugar de esperar el próximo poll.
+
+**Esfuerzo:** medio. Técnicamente más simple que A/B (no hay media, no hay rotación) pero es un flujo operativo real, no una pantalla pasiva — necesita más cuidado de UX (un cocinero no puede perderse un pedido).
+
+### Etapa D — Punto de venta (POS)
+
+Esta es categóricamente distinta a las otras tres — no es "una pantalla más", es un producto completo (cobro en persona, turnos de caja, posiblemente impresión de recibos). Antes de estimar esfuerzo hay una decisión estratégica pendiente:
+
+- **Decisión (2026-08-09): POS propio**, no integración con terceros (Square/Clover). Implica: manejo de efectivo, hardware compatible (impresora de recibos, cajón/lector de tarjeta), y cumplimiento fiscal según el negocio — alcance real de meses, se planifica en detalle cuando le toque el turno (después de A/B/C), no ahora.
+
+**Orden confirmado:** A → B → C → D. Arrancando por Etapa A.
+
+---
+
 ## Orden de construcción recomendado y dependencias
 
 1. Fase 1 (shell) — sin dependencias de API nuevas.
@@ -164,6 +213,7 @@ Hallazgo importante durante QA de Fase 1/2: el nuevo "Catálogo" genérico (`cat
 6. Fase 6 (Módulos) — sin dependencias, es principalmente contenido estático + los 3 módulos reales.
 7. Fase 7 (Menu Board Smart TV) — depende de agregar soporte de video al catálogo en `maalca-api` (no existe hoy); el resto (rotación, layout 16:9, consumo del catálogo real) no tiene dependencia de backend nueva.
 8. Fase 8 (Plan Emprendedor completo) — la de mayor esfuerzo del programa, es multi-sprint. Empieza por Stripe Connect (pagos), todo lo demás depende de eso en cascada. Ver orden de dependencia dentro de la Fase 8.
+9. Fase 9 (Pantallas: menú + comerciales + cocina + POS) — Etapa A extiende Fase 7 (ya hecha). Etapa C depende de Orders (Fase 8, ya hecha). Etapa D es decisión de producto, no de código — no programar sin definir build-vs-integrar primero.
 
 QA de Ciri entre cada fase antes de avanzar a la siguiente, como en el resto del proyecto.
 

@@ -71,6 +71,7 @@ export default async function MenuBoardPage({ params }: PageProps) {
   const mappedItems = data.items.map((item) => ({
     ...item,
     image_url: item.image_url ?? (item as typeof item & { imageUrl?: string | null }).imageUrl ?? null,
+    video_url: (item as typeof item & { videoUrl?: string | null }).videoUrl ?? null,
   }));
 
   return (
@@ -83,8 +84,17 @@ export default async function MenuBoardPage({ params }: PageProps) {
       }}
       initialItems={mappedItems}
       initialCategories={data.categories ?? []}
+      initialScreenAds={data.screenAds ?? []}
+      initialAdFrequency={data.adFrequency ?? null}
     />
   );
+}
+
+interface BoardScreenAd {
+  id: string;
+  mediaUrl: string;
+  mediaType: 'Image' | 'Video';
+  durationSeconds: number;
 }
 
 interface BoardCatalogResponse {
@@ -96,4 +106,6 @@ interface BoardCatalogResponse {
   categories?: PublicTemplateProps['categories'];
   items: PublicTemplateProps['items'];
   capabilities?: PublicTemplateProps['capabilities'];
+  screenAds?: BoardScreenAd[];
+  adFrequency?: number | null;
 }
