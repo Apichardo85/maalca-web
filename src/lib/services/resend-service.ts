@@ -205,6 +205,134 @@ function buildNewSpaceNotificationEmail(
   `;
 }
 
+export interface OrderEmailItem {
+  name: string;
+  price: number;
+  qty: number;
+}
+
+/**
+ * Confirmación de pago al cliente — disparada por maalca-api cuando un Order pasa a Paid
+ * (ver OrderService.ConfirmCheckoutAsync). El afiliado es el merchant of record (direct
+ * charge de Stripe Connect); este correo solo confirma que el pedido quedó registrado.
+ */
+export async function sendOrderConfirmationEmail(params: {
+  customerEmail: string;
+  customerName: string | null;
+  businessName: string;
+  slug: string;
+  orderId: string;
+  items: OrderEmailItem[];
+  total: number;
+  currency: string;
+}): Promise<boolean> {
+  if (!resend) {
+    console.log('[Resend] Skipped order confirmation — RESEND_API_KEY not set');
+    return false;
+  }
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: params.customerEmail,
+      subject: `Pedido confirmado — ${params.businessName}`,
+      html: buildOrderStatusEmail({ ...params, kind: 'confirmed' }),
+    });
+    return true;
+  } catch (err: unknown) {
+    console.error('[Resend] Order confirmation failed:', err instanceof Error ? err.message : String(err));
+    return false;
+  }
+}
+
+/**
+ * Aviso de "pedido listo" al cliente — disparado cuando el afiliado marca un Order como
+ * Fulfilled desde el panel admin (ver OrderService.UpdateStatusAsync).
+ */
+export async function sendOrderFulfilledEmail(params: {
+  customerEmail: string;
+  customerName: string | null;
+  businessName: string;
+  slug: string;
+  orderId: string;
+  items: OrderEmailItem[];
+  total: number;
+  currency: string;
+}): Promise<boolean> {
+  if (!resend) {
+    console.log('[Resend] Skipped order fulfilled notice — RESEND_API_KEY not set');
+    return false;
+  }
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: params.customerEmail,
+      subject: `Tu pedido está listo — ${params.businessName}`,
+      html: buildOrderStatusEmail({ ...params, kind: 'fulfilled' }),
+    });
+    return true;
+  } catch (err: unknown) {
+    console.error('[Resend] Order fulfilled notice failed:', err instanceof Error ? err.message : String(err));
+    return false;
+  }
+}
+
+function buildOrderStatusEmail(params: {
+  kind: 'confirmed' | 'fulfilled';
+  customerName: string | null;
+  businessName: string;
+  orderId: string;
+  items: OrderEmailItem[];
+  total: number;
+  currency: string;
+}): string {
+  const brandColor = '#DC2626';
+  const greeting = params.customerName ? `¡Hola, ${params.customerName}!` : '¡Hola!';
+  const title =
+    params.kind === 'confirmed'
+      ? `Tu pedido en ${params.businessName} fue confirmado ✅`
+      : `Tu pedido en ${params.businessName} está listo 🎉`;
+  const body =
+    params.kind === 'confirmed'
+      ? 'Recibimos tu pago y tu pedido ya está en proceso. Te avisaremos cuando esté listo.'
+      : 'Tu pedido ya está listo. Si tienes dudas, responde a este correo o contacta directamente al negocio.';
+
+  const itemRows = params.items
+    .map(
+      (i) => `
+        <tr>
+          <td style="padding: 8px 0; color: #525252; font-size: 14px;">${i.qty}× ${i.name}</td>
+          <td style="padding: 8px 0; color: #525252; font-size: 14px; text-align: right;">${params.currency} ${(i.price * i.qty).toFixed(2)}</td>
+        </tr>`,
+    )
+    .join('');
+
+  return `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 32px 24px; background: #fafafa;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <h1 style="color: ${brandColor}; font-size: 24px; margin: 0;">MaalCa</h1>
+      </div>
+      <div style="background: white; border-radius: 12px; padding: 32px; border: 1px solid #e5e5e5;">
+        <h2 style="color: #1a1a1a; font-size: 20px; margin-top: 0;">${title}</h2>
+        <p style="color: #525252; line-height: 1.6; font-size: 15px;">${greeting} ${body}</p>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border-top: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5;">
+          ${itemRows}
+          <tr>
+            <td style="padding: 12px 0 0; font-weight: 600; color: #1a1a1a; font-size: 15px;">Total</td>
+            <td style="padding: 12px 0 0; font-weight: 600; color: #1a1a1a; font-size: 15px; text-align: right;">${params.currency} ${params.total.toFixed(2)}</td>
+          </tr>
+        </table>
+        <p style="color: #a3a3a3; font-size: 12px; margin: 0;">Pedido #${params.orderId.slice(0, 8)}</p>
+        <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;" />
+        <p style="color: #a3a3a3; font-size: 12px; margin: 0;">
+          Recibes este correo porque hiciste un pedido a través de <a href="https://maalca.com" style="color: ${brandColor};">maalca.com</a>.
+        </p>
+      </div>
+    </div>
+  `;
+}
+
 function sourceGreeting(source: string): { title: string; body: string } {
   switch (source) {
     case 'ciriwhispers':
