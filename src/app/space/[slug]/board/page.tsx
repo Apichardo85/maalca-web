@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getMaalcaApiToken } from '@/lib/api-auth';
-import { BoardContent, type ScreenAdRow } from './BoardContent';
+import { BoardContent, type ScreenAdRow, type ScreenRow } from './BoardContent';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -38,6 +38,18 @@ export default async function BoardPage({
     // ads stays [] — BoardContent renders the empty state rather than crashing the page.
   }
 
+  // Fase 9 Etapa B — pantallas adicionales (más allá de la base /{slug}/board).
+  let screens: ScreenRow[] = [];
+  try {
+    const screensRes = await fetch(`${API}/api/affiliates/${space.business.id}/screens`, {
+      headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': space.business.id },
+      cache: 'no-store',
+    });
+    if (screensRes.ok) screens = await screensRes.json();
+  } catch {
+    // screens stays [] — BoardContent renders the empty state rather than crashing the page.
+  }
+
   // AdFrequency/Language/BoardTheme no viven en el aggregator de /api/space/{slug} — se leen
   // del catálogo público (el mismo endpoint que ya consume el board en vivo), sin agregar un
   // endpoint autenticado nuevo solo para esto.
@@ -64,6 +76,7 @@ export default async function BoardPage({
       initialAdFrequency={adFrequency}
       initialLanguage={language}
       initialBoardTheme={boardTheme}
+      initialScreens={screens}
     />
   );
 }

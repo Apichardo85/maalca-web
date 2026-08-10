@@ -14,6 +14,19 @@ export interface ScreenAdRow {
   endsAt: string | null;
 }
 
+// Fase 9 Etapa B — una pantalla adicional. Los 4 overrides son null = "hereda del negocio"
+// (los valores de arriba: adFrequency/boardLanguage/boardTheme), consistente con cómo el
+// backend resuelve /{slug}/board/{screenId} en PublicCatalogService.
+export interface ScreenRow {
+  id: string;
+  name: string;
+  sortOrder: number;
+  language: string | null;
+  boardTheme: string | null;
+  adFrequency: number | null;
+  categoryFilter: string | null;
+}
+
 interface Props {
   slug: string;
   plan: 'free' | 'entrepreneur';
@@ -21,6 +34,7 @@ interface Props {
   initialAdFrequency: number | null;
   initialLanguage: 'es' | 'en';
   initialBoardTheme: 'Dark' | 'Light';
+  initialScreens: ScreenRow[];
 }
 
 /**
@@ -30,7 +44,7 @@ interface Props {
  * imágenes de catálogo (ver screen-ads/upload-media/route.ts).
  */
 export function BoardContent({
-  slug, plan, initialAds, initialAdFrequency, initialLanguage, initialBoardTheme,
+  slug, plan, initialAds, initialAdFrequency, initialLanguage, initialBoardTheme, initialScreens,
 }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -45,6 +59,69 @@ export function BoardContent({
   const [savingFrequency, setSavingFrequency] = useState(false);
   const [savingPrefs, setSavingPrefs] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Fase 9 Etapa B — pantallas adicionales
+  const [screens, setScreens] = useState(initialScreens);
+  const [addingScreen, setAddingScreen] = useState(false);
+  const [newScreenName, setNewScreenName] = useState('');
+  const [creatingScreen, setCreatingScreen] = useState(false);
+  const [screenBusyId, setScreenBusyId] = useState<string | null>(null);
+  const [editingScreenId, setEditingScreenId] = useState<string | null>(null);
+
+  async function createScreen() {
+    if (!newScreenName.trim()) return;
+    setCreatingScreen(true);
+    try {
+      const res = await fetch(`/api/space/${slug}/screens`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newScreenName.trim() }),
+      });
+      const created = await res.json().catch(() => null);
+      if (res.ok && created?.id) {
+        setScreens((prev) => [...prev, created]);
+        setNewScreenName('');
+        setAddingScreen(false);
+      }
+    } finally {
+      setCreatingScreen(false);
+    }
+  }
+
+  async function updateScreen(screen: ScreenRow, patch: Partial<ScreenRow>) {
+    setScreenBusyId(screen.id);
+    try {
+      const next = { ...screen, ...patch };
+      const res = await fetch(`/api/space/${slug}/screens/${screen.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: next.name,
+          sortOrder: next.sortOrder,
+          language: next.language,
+          boardTheme: next.boardTheme,
+          adFrequency: next.adFrequency,
+          categoryFilter: next.categoryFilter,
+        }),
+      });
+      const updated = await res.json().catch(() => null);
+      if (res.ok && updated?.id) {
+        setScreens((prev) => prev.map((s) => (s.id === screen.id ? updated : s)));
+      }
+    } finally {
+      setScreenBusyId(null);
+    }
+  }
+
+  async function deleteScreen(screenId: string) {
+    setScreenBusyId(screenId);
+    try {
+      const res = await fetch(`/api/space/${slug}/screens/${screenId}`, { method: 'DELETE' });
+      if (res.ok) setScreens((prev) => prev.filter((s) => s.id !== screenId));
+    } finally {
+      setScreenBusyId(null);
+    }
+  }
 
   async function handleUpload(file: File) {
     setError(null);
@@ -236,6 +313,147 @@ export function BoardContent({
               </select>
             </label>
           </div>
+        </div>
+
+        {/* Pantallas adicionales — Fase 9 Etapa B */}
+        <div className="mt-4 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-semibold">{getText('Pantallas adicionales', 'Additional screens')}</h2>
+              <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
+                {getText(
+                  'Más TVs con su propia configuración (ej. solo comerciales, o en inglés). Lo que no cambies acá hereda lo del negocio, arriba.',
+                  'More TVs with their own settings (e.g. ads-only, or in English). Anything you leave unset here inherits the business default above.',
+                )}
+              </p>
+            </div>
+            <button
+              onClick={() => setAddingScreen((v) => !v)}
+              className="shrink-0 rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium hover:border-[#C8102E] hover:text-[#C8102E]"
+            >
+              {addingScreen ? getText('Cancelar', 'Cancel') : getText('+ Agregar', '+ Add')}
+            </button>
+          </div>
+
+          {addingScreen && (
+            <div className="mt-3 flex items-center gap-2">
+              <input
+                type="text"
+                value={newScreenName}
+                onChange={(e) => setNewScreenName(e.target.value)}
+                placeholder={getText('Nombre (ej. Pantalla cocina)', 'Name (e.g. Kitchen screen)')}
+                className="flex-1 rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm"
+              />
+              <button
+                onClick={createScreen}
+                disabled={creatingScreen || !newScreenName.trim()}
+                className="rounded-full bg-[#C8102E] px-4 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+              >
+                {creatingScreen ? getText('Creando…', 'Creating…') : getText('Crear', 'Create')}
+              </button>
+            </div>
+          )}
+
+          {screens.length === 0 ? (
+            <p className="mt-4 text-xs text-gray-400 dark:text-neutral-500">
+              {getText('Todavía no tienes pantallas adicionales.', "You don't have additional screens yet.")}
+            </p>
+          ) : (
+            <div className="mt-4 space-y-2">
+              {screens.map((screen) => (
+                <div key={screen.id} className="rounded-xl border border-gray-200/70 dark:border-neutral-800 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">{screen.name}</p>
+                      <a
+                        href={`/${slug}/board/${screen.id}`}
+                        target="_blank"
+                        rel="noopener"
+                        className="text-xs text-[#C8102E] underline truncate block"
+                      >
+                        maalca.com/{slug}/board/{screen.id}
+                      </a>
+                    </div>
+                    <div className="flex shrink-0 gap-2">
+                      <button
+                        onClick={() => setEditingScreenId((id) => (id === screen.id ? null : screen.id))}
+                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium hover:border-[#C8102E] hover:text-[#C8102E]"
+                      >
+                        {editingScreenId === screen.id ? getText('Cerrar', 'Close') : getText('Editar', 'Edit')}
+                      </button>
+                      <button
+                        onClick={() => deleteScreen(screen.id)}
+                        disabled={screenBusyId === screen.id}
+                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-red-400 hover:text-red-500 disabled:opacity-50"
+                      >
+                        {getText('Eliminar', 'Delete')}
+                      </button>
+                    </div>
+                  </div>
+
+                  {editingScreenId === screen.id && (
+                    <div className="mt-3 flex flex-wrap gap-4 border-t border-gray-100 dark:border-neutral-800 pt-3">
+                      <label className="flex flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
+                        {getText('Idioma', 'Language')}
+                        <select
+                          value={screen.language ?? ''}
+                          disabled={screenBusyId === screen.id}
+                          onChange={(e) => updateScreen(screen, { language: e.target.value || null })}
+                          className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white"
+                        >
+                          <option value="">{getText('Heredar del negocio', 'Inherit from business')}</option>
+                          <option value="es">Español</option>
+                          <option value="en">English</option>
+                        </select>
+                      </label>
+                      <label className="flex flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
+                        {getText('Tema', 'Theme')}
+                        <select
+                          value={screen.boardTheme ?? ''}
+                          disabled={screenBusyId === screen.id}
+                          onChange={(e) => updateScreen(screen, { boardTheme: e.target.value || null })}
+                          className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white"
+                        >
+                          <option value="">{getText('Heredar del negocio', 'Inherit from business')}</option>
+                          <option value="Dark">{getText('Oscuro', 'Dark')}</option>
+                          <option value="Light">{getText('Claro', 'Light')}</option>
+                        </select>
+                      </label>
+                      <label className="flex flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
+                        {getText('Frecuencia de comerciales', 'Ad frequency')}
+                        <input
+                          type="number"
+                          min={0}
+                          max={20}
+                          value={screen.adFrequency ?? ''}
+                          disabled={screenBusyId === screen.id}
+                          placeholder={getText('Heredar', 'Inherit')}
+                          onChange={(e) =>
+                            updateScreen(screen, { adFrequency: e.target.value === '' ? null : Number(e.target.value) })
+                          }
+                          className="w-28 rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm"
+                        />
+                      </label>
+                      <label className="flex flex-1 min-w-[200px] flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
+                        {getText('Categorías (separadas por coma)', 'Categories (comma-separated)')}
+                        <input
+                          type="text"
+                          defaultValue={screen.categoryFilter ?? ''}
+                          disabled={screenBusyId === screen.id}
+                          placeholder={getText('Todas', 'All')}
+                          onBlur={(e) => {
+                            const value = e.target.value.trim() || null;
+                            if (value !== screen.categoryFilter) updateScreen(screen, { categoryFilter: value });
+                          }}
+                          className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm"
+                        />
+                      </label>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Subir comercial */}

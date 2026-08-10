@@ -125,6 +125,28 @@ function formatPrice(price: number | null | undefined) {
   return `$${price.toFixed(2)}`;
 }
 
+/** Fade suave al entrar cada slide — se re-dispara cada vez que `slideKey` cambia (remonta el
+ *  contenido vía `key` en el llamador, así que siempre arranca en opacity 0). Un solo efecto de
+ *  entrada es suficiente para que el cambio de categoría/comercial no se sienta como un corte
+ *  seco; no hace falta animar la salida del slide anterior también. */
+function FadeSlide({ slideKey, children }: { slideKey: string | number; children: React.ReactNode }) {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    setVisible(false);
+    const raf = requestAnimationFrame(() => setVisible(true));
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slideKey]);
+  return (
+    <div
+      className="h-full w-full transition-opacity duration-700 ease-in-out"
+      style={{ opacity: visible ? 1 : 0 }}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function MenuBoard({
   slug, business, initialItems, initialCategories,
   initialScreenAds = [], initialAdFrequency = null,
@@ -215,8 +237,10 @@ export function MenuBoard({
         )}
       </header>
 
-      {/* Slide content */}
+      {/* Slide content — FadeSlide remonta (key=slideIndex) y hace fade-in en cada cambio,
+          para que pasar de una categoría/comercial a otra no se sienta como un corte seco. */}
       <main className="flex flex-1 items-center justify-center px-10 py-8">
+        <FadeSlide slideKey={slideIndex}>
         {!slide ? (
           <p className={`text-2xl ${c.unavailableText}`}>{t.unavailable}</p>
         ) : slide.kind === 'ad' ? (
@@ -276,6 +300,7 @@ export function MenuBoard({
             ))}
           </div>
         )}
+        </FadeSlide>
       </main>
 
       {/* Pagination dots — subtle, just enough to signal "there's more" without being

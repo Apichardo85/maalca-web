@@ -15,8 +15,9 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080'
 
 // Same reserved list as [slug]/page.tsx would apply to — a board only makes sense for a
 // real affiliate slug, so any of those top-level paths 404 here too rather than trying
-// (and failing) to resolve them as a business.
-const RESERVED = new Set([
+// (and failing) to resolve them as a business. Exportado para que /{slug}/board/{screenId}
+// aplique el mismo chequeo (Fase 9 Etapa B).
+export const RESERVED = new Set([
   'servicios', 'login', 'signup', 'register', 'onboarding', 'space',
   'dashboard', 'admin', 'api', 'auth', 'app', 'www',
   'about', 'contact', 'contacto', 'pricing', 'terms', 'privacy', 'legal',
@@ -27,9 +28,13 @@ const RESERVED = new Set([
   'affiliates', 'tarjeta',
 ]);
 
-async function getCatalog(slug: string): Promise<BoardCatalogResponse | null> {
+/** Exportado para que /{slug}/board/{screenId}/page.tsx (Fase 9 Etapa B) reuse exactamente la
+ *  misma resolución — pasar screenId solo agrega ?screenId= a la query, el backend hace el
+ *  resto (aplica los overrides de esa pantalla, o 404 si no existe / es de otro afiliado). */
+export async function getCatalog(slug: string, screenId?: string): Promise<BoardCatalogResponse | null> {
   try {
-    const res = await fetch(`${API_BASE}/api/public/affiliates/${slug}/catalog`, {
+    const qs = screenId ? `?screenId=${encodeURIComponent(screenId)}` : '';
+    const res = await fetch(`${API_BASE}/api/public/affiliates/${slug}/catalog${qs}`, {
       next: { revalidate: 30, tags: [`affiliate:${slug}`] },
     });
     if (res.status === 404) return null;
@@ -47,13 +52,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return { title: data ? `${data.affiliate.name} — Menu` : 'MaalCa' };
 }
 
-export default async function MenuBoardPage({ params }: PageProps) {
-  const { slug } = await params;
-  if (RESERVED.has(slug)) notFound();
-
-  const data = await getCatalog(slug);
-  if (!data) notFound();
-
+/** Exportado para que /{slug}/board/{screenId}/page.tsx (Fase 9 Etapa B) renderice
+ *  exactamente lo mismo — la única diferencia entre pantallas es qué `data` les llegó
+ *  (según los overrides que resolvió el backend), no el markup. */
+export function renderBoard(slug: string, data: BoardCatalogResponse) {
   // Gated by plan (see PublicCatalogService.BuildCapabilities in maalca-api — that's the
   // real enforcement point; this just renders a diagnosable message instead of a bare 404
   // so whoever set up the TV knows *why* nothing's showing, not just that it's broken).
@@ -93,6 +95,16 @@ export default async function MenuBoardPage({ params }: PageProps) {
       theme={data.boardTheme === 'Light' ? 'Light' : 'Dark'}
     />
   );
+}
+
+export default async function MenuBoardPage({ params }: PageProps) {
+  const { slug } = await params;
+  if (RESERVED.has(slug)) notFound();
+
+  const data = await getCatalog(slug);
+  if (!data) notFound();
+
+  return renderBoard(slug, data);
 }
 
 interface BoardScreenAd {
