@@ -11,7 +11,12 @@ export interface ScreenAd {
   mediaUrl: string;
   mediaType: 'Image' | 'Video';
   durationSeconds: number;
+  /** "Contain" (default, nunca recorta — deja franjas si la proporción no coincide) |
+   *  "Cover" (llena el recuadro, puede recortar). Se elige por comercial en el dashboard. */
+  fit?: 'Contain' | 'Cover';
 }
+
+type TransitionEffect = 'Fade' | 'Slide' | 'Zoom' | 'None';
 
 interface Props {
   slug: string;
@@ -27,6 +32,7 @@ interface Props {
   /** Preferencia del negocio, no del visitante — nadie interactúa con la TV para cambiarla. */
   language?: 'es' | 'en';
   theme?: 'Dark' | 'Light';
+  transitionEffect?: TransitionEffect;
 }
 
 // Diccionario chico a propósito — el board tiene un puñado de strings fijos, no justifica
@@ -125,11 +131,38 @@ function formatPrice(price: number | null | undefined) {
   return `$${price.toFixed(2)}`;
 }
 
-/** Fade suave al entrar cada slide — se re-dispara cada vez que `slideKey` cambia (remonta el
- *  contenido vía `key` en el llamador, así que siempre arranca en opacity 0). Un solo efecto de
- *  entrada es suficiente para que el cambio de categoría/comercial no se sienta como un corte
- *  seco; no hace falta animar la salida del slide anterior también. */
-function FadeSlide({ slideKey, children }: { slideKey: string | number; children: React.ReactNode }) {
+/** Estilo inicial (oculto) y final (visible) por efecto — solo animamos la ENTRADA de cada
+ *  slide, no la salida del anterior (el remount vía `key` ya los separa limpio). "None" existe
+ *  para quien prefiera el corte seco de antes de que hubiera transiciones. */
+const TRANSITION_STYLES: Record<TransitionEffect, { hidden: React.CSSProperties; visible: React.CSSProperties; className: string }> = {
+  Fade: {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+    className: 'transition-opacity duration-700 ease-in-out',
+  },
+  Slide: {
+    hidden: { opacity: 0, transform: 'translateX(40px)' },
+    visible: { opacity: 1, transform: 'translateX(0)' },
+    className: 'transition-[opacity,transform] duration-700 ease-out',
+  },
+  Zoom: {
+    hidden: { opacity: 0, transform: 'scale(0.92)' },
+    visible: { opacity: 1, transform: 'scale(1)' },
+    className: 'transition-[opacity,transform] duration-700 ease-out',
+  },
+  None: {
+    hidden: { opacity: 1 },
+    visible: { opacity: 1 },
+    className: '',
+  },
+};
+
+/** Anima la entrada de cada slide — se re-dispara cada vez que `slideKey` cambia (remonta el
+ *  contenido vía `key` en el llamador, así que siempre arranca en el estado "hidden" del
+ *  efecto elegido). Configurable por negocio/pantalla (Fade/Slide/Zoom/None). */
+function TransitionSlide({
+  slideKey, effect, children,
+}: { slideKey: string | number; effect: TransitionEffect; children: React.ReactNode }) {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     setVisible(false);
@@ -137,11 +170,9 @@ function FadeSlide({ slideKey, children }: { slideKey: string | number; children
     return () => cancelAnimationFrame(raf);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slideKey]);
+  const t = TRANSITION_STYLES[effect];
   return (
-    <div
-      className="h-full w-full transition-opacity duration-700 ease-in-out"
-      style={{ opacity: visible ? 1 : 0 }}
-    >
+    <div className={`h-full w-full ${t.className}`} style={visible ? t.visible : t.hidden}>
       {children}
     </div>
   );
@@ -150,7 +181,7 @@ function FadeSlide({ slideKey, children }: { slideKey: string | number; children
 export function MenuBoard({
   slug, business, initialItems, initialCategories,
   initialScreenAds = [], initialAdFrequency = null,
-  language = 'es', theme = 'Dark',
+  language = 'es', theme = 'Dark', transitionEffect = 'Fade',
 }: Props) {
   const t = BOARD_STRINGS[language];
   const c = THEME_CLASSES[theme];
@@ -237,21 +268,24 @@ export function MenuBoard({
         )}
       </header>
 
-      {/* Slide content — FadeSlide remonta (key=slideIndex) y hace fade-in en cada cambio,
-          para que pasar de una categoría/comercial a otra no se sienta como un corte seco. */}
+      {/* Slide content — TransitionSlide remonta (key=slideIndex) y anima la entrada en cada
+          cambio, para que pasar de una categoría/comercial a otra no se sienta como un corte
+          seco. Efecto configurable (Fade/Slide/Zoom/None) por negocio o por pantalla. */}
       <main className="flex flex-1 items-center justify-center px-10 py-8">
-        <FadeSlide slideKey={slideIndex}>
+        <TransitionSlide slideKey={slideIndex} effect={transitionEffect}>
         {!slide ? (
           <p className={`text-2xl ${c.unavailableText}`}>{t.unavailable}</p>
         ) : slide.kind === 'ad' ? (
           // Comercial — a pantalla completa dentro del área de contenido, sin la grilla de
-          // items ni precios (no es un producto, es contenido promocional).
-          <div className="relative h-full w-full overflow-hidden rounded-2xl bg-neutral-900">
+          // items ni precios (no es un producto, es contenido promocional). object-contain por
+          // default (nunca recorta) — "Cover" es opt-in por comercial desde el dashboard para
+          // quien prefiera llenar la pantalla a costa de recortar.
+          <div className={`relative h-full w-full overflow-hidden rounded-2xl ${c.mediaFallback}`}>
             {slide.ad.mediaType === 'Video' ? (
               <video
                 key={slide.ad.id}
                 src={slide.ad.mediaUrl}
-                className="absolute inset-0 h-full w-full object-cover"
+                className={`absolute inset-0 h-full w-full ${slide.ad.fit === 'Cover' ? 'object-cover' : 'object-contain'}`}
                 autoPlay
                 muted
                 loop
@@ -259,7 +293,11 @@ export function MenuBoard({
               />
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={slide.ad.mediaUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+              <img
+                src={slide.ad.mediaUrl}
+                alt=""
+                className={`absolute inset-0 h-full w-full ${slide.ad.fit === 'Cover' ? 'object-cover' : 'object-contain'}`}
+              />
             )}
           </div>
         ) : (
@@ -300,7 +338,7 @@ export function MenuBoard({
             ))}
           </div>
         )}
-        </FadeSlide>
+        </TransitionSlide>
       </main>
 
       {/* Pagination dots — subtle, just enough to signal "there's more" without being

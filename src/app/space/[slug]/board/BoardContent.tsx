@@ -12,11 +12,13 @@ export interface ScreenAdRow {
   active: boolean;
   startsAt: string | null;
   endsAt: string | null;
+  /** "Contain" (default, nunca recorta) | "Cover" (llena el recuadro, puede recortar). */
+  fit: 'Contain' | 'Cover';
 }
 
-// Fase 9 Etapa B — una pantalla adicional. Los 4 overrides son null = "hereda del negocio"
-// (los valores de arriba: adFrequency/boardLanguage/boardTheme), consistente con cómo el
-// backend resuelve /{slug}/board/{screenId} en PublicCatalogService.
+// Fase 9 Etapa B — una pantalla adicional. Los overrides son null = "hereda del negocio"
+// (los valores de arriba: adFrequency/boardLanguage/boardTheme/transitionEffect), consistente
+// con cómo el backend resuelve /{slug}/board/{screenId} en PublicCatalogService.
 export interface ScreenRow {
   id: string;
   name: string;
@@ -25,6 +27,7 @@ export interface ScreenRow {
   boardTheme: string | null;
   adFrequency: number | null;
   categoryFilter: string | null;
+  transitionEffect: string | null;
 }
 
 interface Props {
@@ -34,6 +37,7 @@ interface Props {
   initialAdFrequency: number | null;
   initialLanguage: 'es' | 'en';
   initialBoardTheme: 'Dark' | 'Light';
+  initialTransitionEffect: 'Fade' | 'Slide' | 'Zoom' | 'None';
   initialScreens: ScreenRow[];
 }
 
@@ -44,7 +48,8 @@ interface Props {
  * imágenes de catálogo (ver screen-ads/upload-media/route.ts).
  */
 export function BoardContent({
-  slug, plan, initialAds, initialAdFrequency, initialLanguage, initialBoardTheme, initialScreens,
+  slug, plan, initialAds, initialAdFrequency, initialLanguage, initialBoardTheme,
+  initialTransitionEffect, initialScreens,
 }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -53,6 +58,7 @@ export function BoardContent({
   const [adFrequency, setAdFrequency] = useState(initialAdFrequency ?? 0);
   const [boardLanguage, setBoardLanguage] = useState(initialLanguage);
   const [boardTheme, setBoardTheme] = useState(initialBoardTheme);
+  const [transitionEffect, setTransitionEffect] = useState(initialTransitionEffect);
   const [uploading, setUploading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -102,6 +108,7 @@ export function BoardContent({
           boardTheme: next.boardTheme,
           adFrequency: next.adFrequency,
           categoryFilter: next.categoryFilter,
+          transitionEffect: next.transitionEffect,
         }),
       });
       const updated = await res.json().catch(() => null);
@@ -201,9 +208,13 @@ export function BoardContent({
     }
   }
 
-  // Idioma y tema del board — preferencia del NEGOCIO (nadie interactúa con una TV para
-  // cambiarlos), separado de `language` de arriba que es la del visitante viendo este panel.
-  async function savePrefs(next: { language?: 'es' | 'en'; boardTheme?: 'Dark' | 'Light' }) {
+  // Idioma, tema y efecto del board — preferencia del NEGOCIO (nadie interactúa con una TV
+  // para cambiarlos), separado de `language` de arriba que es la del visitante viendo este panel.
+  async function savePrefs(next: {
+    language?: 'es' | 'en';
+    boardTheme?: 'Dark' | 'Light';
+    transitionEffect?: 'Fade' | 'Slide' | 'Zoom' | 'None';
+  }) {
     setSavingPrefs(true);
     try {
       await fetch(`/api/space/${slug}/settings`, {
@@ -213,6 +224,23 @@ export function BoardContent({
       });
     } finally {
       setSavingPrefs(false);
+    }
+  }
+
+  async function updateAdFit(ad: ScreenAdRow, fit: 'Contain' | 'Cover') {
+    setBusyId(ad.id);
+    try {
+      const res = await fetch(`/api/space/${slug}/screen-ads/${ad.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fit }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setAds((prev) => prev.map((a) => (a.id === ad.id ? updated : a)));
+      }
+    } finally {
+      setBusyId(null);
     }
   }
 
@@ -270,9 +298,9 @@ export function BoardContent({
           </div>
         </div>
 
-        {/* Idioma y tema del board */}
+        {/* Idioma, tema y efecto del board */}
         <div className="mt-4 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
-          <h2 className="text-sm font-semibold">{getText('Idioma y tema de la pantalla', 'Screen language and theme')}</h2>
+          <h2 className="text-sm font-semibold">{getText('Idioma, tema y efecto de la pantalla', 'Screen language, theme and effect')}</h2>
           <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
             {getText(
               'Como nadie interactúa con la TV, esto se configura acá — no cambia con el idioma de este panel.',
@@ -310,6 +338,24 @@ export function BoardContent({
               >
                 <option value="Dark">{getText('Oscuro', 'Dark')}</option>
                 <option value="Light">{getText('Claro', 'Light')}</option>
+              </select>
+            </label>
+            <label className="flex flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
+              {getText('Efecto de transición', 'Transition effect')}
+              <select
+                value={transitionEffect}
+                onChange={(e) => {
+                  const value = e.target.value as 'Fade' | 'Slide' | 'Zoom' | 'None';
+                  setTransitionEffect(value);
+                  savePrefs({ transitionEffect: value });
+                }}
+                disabled={savingPrefs}
+                className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white"
+              >
+                <option value="Fade">{getText('Desvanecer', 'Fade')}</option>
+                <option value="Slide">{getText('Deslizar', 'Slide')}</option>
+                <option value="Zoom">{getText('Acercar', 'Zoom')}</option>
+                <option value="None">{getText('Ninguno', 'None')}</option>
               </select>
             </label>
           </div>
@@ -434,6 +480,21 @@ export function BoardContent({
                           className="w-28 rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm"
                         />
                       </label>
+                      <label className="flex flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
+                        {getText('Efecto de transición', 'Transition effect')}
+                        <select
+                          value={screen.transitionEffect ?? ''}
+                          disabled={screenBusyId === screen.id}
+                          onChange={(e) => updateScreen(screen, { transitionEffect: e.target.value || null })}
+                          className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white"
+                        >
+                          <option value="">{getText('Heredar del negocio', 'Inherit from business')}</option>
+                          <option value="Fade">{getText('Desvanecer', 'Fade')}</option>
+                          <option value="Slide">{getText('Deslizar', 'Slide')}</option>
+                          <option value="Zoom">{getText('Acercar', 'Zoom')}</option>
+                          <option value="None">{getText('Ninguno', 'None')}</option>
+                        </select>
+                      </label>
                       <label className="flex flex-1 min-w-[200px] flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
                         {getText('Categorías (separadas por coma)', 'Categories (comma-separated)')}
                         <input
@@ -491,12 +552,12 @@ export function BoardContent({
                 key={ad.id}
                 className="flex items-center gap-4 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4"
               >
-                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-neutral-800">
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100 dark:bg-neutral-800">
                   {ad.mediaType === 'Video' ? (
-                    <video src={ad.mediaUrl} className="h-full w-full object-cover" muted />
+                    <video src={ad.mediaUrl} className="h-full w-full object-contain" muted />
                   ) : (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={ad.mediaUrl} alt="" className="h-full w-full object-cover" />
+                    <img src={ad.mediaUrl} alt="" className="h-full w-full object-contain" />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -513,6 +574,18 @@ export function BoardContent({
                     {ad.active ? getText('Activo', 'Active') : getText('Inactivo', 'Inactive')}
                   </span>
                 </div>
+                <label className="flex shrink-0 flex-col gap-1 text-[11px] font-medium text-gray-500 dark:text-neutral-400">
+                  {getText('Ajuste', 'Fit')}
+                  <select
+                    value={ad.fit}
+                    disabled={busyId === ad.id}
+                    onChange={(e) => updateAdFit(ad, e.target.value as 'Contain' | 'Cover')}
+                    className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-1 text-xs text-gray-900 dark:text-white"
+                  >
+                    <option value="Contain">{getText('Ajustar (sin recortar)', 'Fit (no crop)')}</option>
+                    <option value="Cover">{getText('Llenar (recorta)', 'Fill (crops)')}</option>
+                  </select>
+                </label>
                 <div className="flex shrink-0 gap-2">
                   <button
                     onClick={() => toggleActive(ad)}

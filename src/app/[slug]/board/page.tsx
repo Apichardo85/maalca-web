@@ -93,6 +93,11 @@ export function renderBoard(slug: string, data: BoardCatalogResponse) {
       initialAdFrequency={data.adFrequency ?? null}
       language={data.language === 'en' ? 'en' : 'es'}
       theme={data.boardTheme === 'Light' ? 'Light' : 'Dark'}
+      transitionEffect={
+        data.transitionEffect === 'Slide' || data.transitionEffect === 'Zoom' || data.transitionEffect === 'None'
+          ? data.transitionEffect
+          : 'Fade'
+      }
     />
   );
 }
@@ -112,6 +117,7 @@ interface BoardScreenAd {
   mediaUrl: string;
   mediaType: 'Image' | 'Video';
   durationSeconds: number;
+  fit?: 'Contain' | 'Cover';
 }
 
 interface BoardCatalogResponse {
@@ -127,4 +133,5 @@ interface BoardCatalogResponse {
   adFrequency?: number | null;
   language?: string | null;
   boardTheme?: string | null;
+  transitionEffect?: string | null;
 }

@@ -56,6 +56,7 @@ export default async function BoardPage({
   let adFrequency: number | null = null;
   let language: 'es' | 'en' = 'es';
   let boardTheme: 'Dark' | 'Light' = 'Dark';
+  let transitionEffect: 'Fade' | 'Slide' | 'Zoom' | 'None' = 'Fade';
   try {
     const catalogRes = await fetch(`${API}/api/public/affiliates/${slug}/catalog`, { cache: 'no-store' });
     if (catalogRes.ok) {
@@ -63,6 +64,10 @@ export default async function BoardPage({
       adFrequency = catalog.adFrequency ?? null;
       language = catalog.language === 'en' ? 'en' : 'es';
       boardTheme = catalog.boardTheme === 'Light' ? 'Light' : 'Dark';
+      transitionEffect =
+        catalog.transitionEffect === 'Slide' || catalog.transitionEffect === 'Zoom' || catalog.transitionEffect === 'None'
+          ? catalog.transitionEffect
+          : 'Fade';
     }
   } catch {
     // se quedan en sus defaults
@@ -76,6 +81,7 @@ export default async function BoardPage({
       initialAdFrequency={adFrequency}
       initialLanguage={language}
       initialBoardTheme={boardTheme}
+      initialTransitionEffect={transitionEffect}
       initialScreens={screens}
     />
   );
