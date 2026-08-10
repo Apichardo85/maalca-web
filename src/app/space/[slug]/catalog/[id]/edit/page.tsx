@@ -49,6 +49,7 @@ export default async function EditCatalogItemPage({ params, searchParams }: Page
     is_demo:     raw.is_demo ?? raw.isDemo ?? false,
     active:      raw.active ?? true,
     imageUrl:    raw.imageUrl ?? raw.image_url ?? null,
+    images:      Array.isArray(raw.images) ? raw.images : [],
     periods:     Array.isArray(raw.periods) ? raw.periods : [],
     weekDays:    Array.isArray(raw.weekDays) ? raw.weekDays : [],
     flags:       Array.isArray(raw.flags) ? raw.flags : [],

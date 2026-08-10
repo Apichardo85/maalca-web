@@ -3,10 +3,9 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Modal } from '@/components/ui/Modal';
 import { PlanLimitNotice } from '@/components/space/PlanLimitNotice';
 import { TrialExpiredNotice } from '@/components/space/TrialExpiredNotice';
-import { ImageCropper } from '@/app/dashboard/[affiliateId]/menu/components/ImageCropper';
+import { ImageGalleryEditor } from '@/components/space/catalog/ImageGalleryEditor';
 import { MealPeriodEditor } from '@/app/dashboard/[affiliateId]/menu/components/MealPeriodEditor';
 import { WeekDayEditor } from '@/app/dashboard/[affiliateId]/menu/components/WeekDayEditor';
 import type { MealPeriod, WeekDay } from '@/lib/types';
@@ -22,6 +21,7 @@ interface Item {
   is_demo: boolean;
   active: boolean;
   imageUrl?: string | null;
+  images: string[];
   periods: MealPeriod[];
   weekDays: WeekDay[];
   flags: string[];
@@ -56,15 +56,6 @@ const NAME_PLACEHOLDERS: Record<string, string> = {
 };
 const DEFAULT_NAME_PLACEHOLDER = 'Ej. Nombre del item';
 
-function CameraIcon() {
-  return (
-    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-      <circle cx="12" cy="13" r="4"/>
-    </svg>
-  );
-}
-
 export default function EditForm({ slug, item, businessType, from }: Props) {
   const router = useRouter();
   const isRestaurant = businessType === 'Restaurant';
@@ -75,9 +66,11 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [planLimitReached, setPlanLimitReached] = useState(false);
   const [trialExpired, setTrialExpired] = useState(false);
-  const [cropSrc, setCropSrc] = useState<string | null>(null);
-  const [newImageUrl, setNewImageUrl] = useState<string | null>(null);
-  const [imageUploading, setImageUploading] = useState(false);
+  // Legacy items may only have imageUrl (no gallery yet) — seed the gallery from it so
+  // the existing photo isn't lost when the item is next saved.
+  const [images, setImages] = useState<string[]>(
+    item.images.length > 0 ? item.images : (item.imageUrl ? [item.imageUrl] : []),
+  );
 
   const [form, setForm] = useState({
     name:          item.name,
@@ -104,75 +97,13 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  // Read a File into a dataURL so the cropper can load it without CORS
-  const readFileAsDataUrl = (file: File): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const r = new FileReader();
-      r.onload = () => resolve(r.result as string);
-      r.onerror = () => reject(r.error ?? new Error('No se pudo leer el archivo'));
-      r.readAsDataURL(file);
-    });
-
-  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const dataUrl = await readFileAsDataUrl(file);
-      setCropSrc(dataUrl);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    }
-  };
-
-  const uploadBlob = async (blob: Blob): Promise<string> => {
-    const fd = new FormData();
-    fd.append('file', new File([blob], `${item.id}.jpg`, { type: 'image/jpeg' }));
-    fd.append('itemId', item.id);
-    const res = await fetch(`/api/space/${slug}/catalog/upload-image`, {
-      method: 'POST',
-      body: fd,
-    });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw new Error(parseApiError(data, 'Error al subir la imagen').message);
-    }
-    const { url } = await res.json();
-    return url as string;
-  };
-
-  const handleCropDone = async (blob: Blob) => {
-    setImageUploading(true);
-    try {
-      const url = await uploadBlob(blob);
-      setNewImageUrl(url);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al subir la imagen');
-    } finally {
-      setImageUploading(false);
-      setCropSrc(null);
-    }
-  };
-
-  const clearNewImage = () => {
-    setNewImageUrl(null);
-  };
-
-  // What to show in the image area:
-  // 1. New image cropped + uploaded → show it
-  // 2. Item has existing imageUrl and no new upload → show existing
-  // 3. Neither → show upload zone
-  const displayImage = newImageUrl ?? item.imageUrl ?? null;
-  const isNewPreview = !!newImageUrl;
-
   const save = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setPlanLimitReached(false);
     setTrialExpired(false);
     startTransition(async () => {
-      const body: Record<string, unknown> = { ...form };
-      if (newImageUrl) body.imageUrl = newImageUrl;
+      const body: Record<string, unknown> = { ...form, images };
       if (isRestaurant) {
         body.periods = periods;
         body.weekDays = weekDays;
@@ -208,7 +139,7 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
     });
   };
 
-  const busy = pending || imageUploading;
+  const busy = pending;
 
   return (
     <main className="min-h-screen bg-neutral-50 dark:bg-neutral-950 py-12 px-4">
@@ -235,48 +166,7 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
 
         <form onSubmit={save} className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-8 shadow-sm space-y-5">
 
-          {/* Image upload */}
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-              Foto del item
-            </label>
-            {displayImage ? (
-              <div className="relative w-full overflow-hidden rounded-xl bg-neutral-100 dark:bg-neutral-800" style={{ aspectRatio: '16/9' }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={displayImage} alt="Preview" className="w-full h-full object-cover" />
-                <label className="absolute top-2 right-2 rounded-full bg-black/60 px-2 py-1 text-xs text-white hover:bg-black/80 transition cursor-pointer">
-                  {isNewPreview ? 'Cambiar' : 'Reemplazar'}
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="hidden"
-                    onChange={handleImageSelect}
-                  />
-                </label>
-                {isNewPreview && (
-                  <button
-                    type="button"
-                    onClick={clearNewImage}
-                    className="absolute top-2 left-2 rounded-full bg-black/60 px-2 py-1 text-xs text-white hover:bg-black/80 transition"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            ) : (
-              <label className="flex flex-col items-center justify-center w-full rounded-xl border-2 border-dashed border-neutral-200 dark:border-neutral-700 cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-500 transition-colors bg-neutral-50 dark:bg-neutral-800/50 py-8 gap-2">
-                <span className="text-neutral-400 dark:text-neutral-500"><CameraIcon /></span>
-                <span className="text-sm font-medium text-neutral-500 dark:text-neutral-400">Agregar foto / Add photo</span>
-                <span className="text-xs text-neutral-400 dark:text-neutral-600">JPEG, PNG, WebP · máx. 5 MB</span>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  className="hidden"
-                  onChange={handleImageSelect}
-                />
-              </label>
-            )}
-          </div>
+          <ImageGalleryEditor slug={slug} itemId={item.id} images={images} onChange={setImages} onError={setError} />
 
           <div>
             <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Nombre *</label>
@@ -432,7 +322,7 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
             disabled={!form.name.trim() || busy}
             className="w-full rounded-full bg-[#C8102E] py-3 text-sm font-medium text-white transition hover:bg-[#A00D26] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {imageUploading ? 'Subiendo imagen...' : pending ? 'Guardando...' : 'Guardar cambios'}
+            {pending ? 'Guardando...' : 'Guardar cambios'}
           </button>
         </form>
 
@@ -444,18 +334,6 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
           Eliminar item
         </button>
       </div>
-
-      {cropSrc && (
-        <Modal isOpen onClose={() => setCropSrc(null)} title="Ajustar foto">
-          <ImageCropper
-            src={cropSrc}
-            aspect={16 / 9}
-            onCancel={() => setCropSrc(null)}
-            onCropped={handleCropDone}
-            busy={imageUploading}
-          />
-        </Modal>
-      )}
     </main>
   );
 }
