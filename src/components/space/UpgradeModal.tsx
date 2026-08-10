@@ -28,10 +28,14 @@ export function UpgradeModal({ businessId, businessSlug, onClose }: Props) {
     track('upgrade_clicked', { source: 'modal_cta', business_id: businessId });
 
     try {
-      const res = await fetch('/api/checkout', {
+      const origin = window.location.origin;
+      const res = await fetch(`/api/space/${businessSlug}/billing/checkout-session`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ business_id: businessId, return_slug: businessSlug }),
+        body: JSON.stringify({
+          successUrl: `${origin}/space/${businessSlug}?upgraded=1`,
+          cancelUrl: `${origin}/space/${businessSlug}`,
+        }),
       });
 
       const json = await res.json();
