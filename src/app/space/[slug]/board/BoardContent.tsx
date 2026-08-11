@@ -307,7 +307,7 @@ export function BoardContent({
               "Since nobody interacts with the TV, this is set here — it doesn't change with this panel's language.",
             )}
           </p>
-          <div className="mt-3 flex flex-wrap gap-4">
+          <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-4">
             <label className="flex flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
               {getText('Idioma', 'Language')}
               <select
@@ -318,7 +318,7 @@ export function BoardContent({
                   savePrefs({ language: value });
                 }}
                 disabled={savingPrefs}
-                className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white"
+                className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white"
               >
                 <option value="es">Español</option>
                 <option value="en">English</option>
@@ -334,7 +334,7 @@ export function BoardContent({
                   savePrefs({ boardTheme: value });
                 }}
                 disabled={savingPrefs}
-                className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white"
+                className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white"
               >
                 <option value="Dark">{getText('Oscuro', 'Dark')}</option>
                 <option value="Light">{getText('Claro', 'Light')}</option>
@@ -350,7 +350,7 @@ export function BoardContent({
                   savePrefs({ transitionEffect: value });
                 }}
                 disabled={savingPrefs}
-                className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white"
+                className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white"
               >
                 <option value="Fade">{getText('Desvanecer', 'Fade')}</option>
                 <option value="Slide">{getText('Deslizar', 'Slide')}</option>
@@ -438,14 +438,14 @@ export function BoardContent({
                   </div>
 
                   {editingScreenId === screen.id && (
-                    <div className="mt-3 flex flex-wrap gap-4 border-t border-gray-100 dark:border-neutral-800 pt-3">
+                    <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-gray-100 dark:border-neutral-800 pt-3">
                       <label className="flex flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
                         {getText('Idioma', 'Language')}
                         <select
                           value={screen.language ?? ''}
                           disabled={screenBusyId === screen.id}
                           onChange={(e) => updateScreen(screen, { language: e.target.value || null })}
-                          className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white"
+                          className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white"
                         >
                           <option value="">{getText('Heredar del negocio', 'Inherit from business')}</option>
                           <option value="es">Español</option>
@@ -458,7 +458,7 @@ export function BoardContent({
                           value={screen.boardTheme ?? ''}
                           disabled={screenBusyId === screen.id}
                           onChange={(e) => updateScreen(screen, { boardTheme: e.target.value || null })}
-                          className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white"
+                          className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white"
                         >
                           <option value="">{getText('Heredar del negocio', 'Inherit from business')}</option>
                           <option value="Dark">{getText('Oscuro', 'Dark')}</option>
@@ -477,7 +477,7 @@ export function BoardContent({
                           onChange={(e) =>
                             updateScreen(screen, { adFrequency: e.target.value === '' ? null : Number(e.target.value) })
                           }
-                          className="w-28 rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm"
+                          className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm"
                         />
                       </label>
                       <label className="flex flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
@@ -486,7 +486,7 @@ export function BoardContent({
                           value={screen.transitionEffect ?? ''}
                           disabled={screenBusyId === screen.id}
                           onChange={(e) => updateScreen(screen, { transitionEffect: e.target.value || null })}
-                          className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white"
+                          className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white"
                         >
                           <option value="">{getText('Heredar del negocio', 'Inherit from business')}</option>
                           <option value="Fade">{getText('Desvanecer', 'Fade')}</option>
@@ -495,7 +495,7 @@ export function BoardContent({
                           <option value="None">{getText('Ninguno', 'None')}</option>
                         </select>
                       </label>
-                      <label className="flex flex-1 min-w-[200px] flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
+                      <label className="col-span-2 sm:col-span-4 flex flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
                         {getText('Categorías (separadas por coma)', 'Categories (comma-separated)')}
                         <input
                           type="text"
@@ -506,7 +506,7 @@ export function BoardContent({
                             const value = e.target.value.trim() || null;
                             if (value !== screen.categoryFilter) updateScreen(screen, { categoryFilter: value });
                           }}
-                          className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm"
+                          className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm"
                         />
                       </label>
                     </div>

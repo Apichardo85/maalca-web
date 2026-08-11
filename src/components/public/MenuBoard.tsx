@@ -110,7 +110,12 @@ function buildMenuSlides(items: BoardItem[], categories: BoardCategory[]): Slide
 
 /** Fase 9 Etapa A — intercala un slide de comercial cada `frequency` slides de menú.
  *  frequency <= 0 o sin comerciales activos = sin cambios (comportamiento previo intacto). Los
- *  comerciales rotan en round-robin, no se repite siempre el mismo primero. */
+ *  comerciales rotan en round-robin, no se repite siempre el mismo primero.
+ *
+ *  Si el negocio tiene menos slides de menú que `frequency` (ej. 1 sola categoría con
+ *  frecuencia 2), el múltiplo exacto nunca se alcanza y el comercial jamás aparecería —
+ *  se agrega al final como fallback para garantizar que, si hay comerciales activos y
+ *  frecuencia > 0, al menos uno entre en la rotación sin importar cuántos slides de menú haya. */
 function interleaveAds(menuSlides: Slide[], ads: ScreenAd[], frequency: number | null | undefined): Slide[] {
   if (!frequency || frequency <= 0 || ads.length === 0) return menuSlides;
 
@@ -123,6 +128,11 @@ function interleaveAds(menuSlides: Slide[], ads: ScreenAd[], frequency: number |
       adIndex += 1;
     }
   });
+
+  if (adIndex === 0) {
+    result.push({ kind: 'ad', ad: ads[0] });
+  }
+
   return result;
 }
 
