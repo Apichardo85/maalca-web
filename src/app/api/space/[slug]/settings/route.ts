@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { getMaalcaApiToken, resolveAffiliateIdBySlug } from '@/lib/api-auth';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
@@ -26,7 +27,11 @@ export async function PATCH(
     body: JSON.stringify(body),
   });
 
-  if (apiRes.status === 204) return new NextResponse(null, { status: 204 });
+  if (apiRes.status === 204) {
+    revalidateTag(`affiliate:${slug}`);
+    return new NextResponse(null, { status: 204 });
+  }
   const data = await apiRes.json().catch(() => null);
+  if (apiRes.ok) revalidateTag(`affiliate:${slug}`);
   return NextResponse.json(data ?? {}, { status: apiRes.status });
 }

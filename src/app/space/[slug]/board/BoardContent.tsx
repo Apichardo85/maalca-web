@@ -467,7 +467,7 @@ export function BoardContent({
                   </div>
 
                   {editingScreenId === screen.id && (
-                    <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-gray-100 dark:border-neutral-800 pt-3">
+                    <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-4 border-t border-gray-100 dark:border-neutral-800 pt-3">
                       <label className="flex flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
                         {getText('Idioma', 'Language')}
                         <select
@@ -539,7 +539,7 @@ export function BoardContent({
                       </label>
 
                       {screen.contentMode !== 'AdsOnly' && categories.length > 0 && (
-                        <div className="col-span-2 sm:col-span-4 flex flex-col gap-1.5 text-xs font-medium text-gray-500 dark:text-neutral-400">
+                        <div className="col-span-2 sm:col-span-3 flex flex-col gap-1.5 text-xs font-medium text-gray-500 dark:text-neutral-400">
                           {getText('Categorías (vacío = todas)', 'Categories (empty = all)')}
                           <div className="flex flex-wrap gap-2">
                             {categories.map((category) => {
@@ -567,7 +567,7 @@ export function BoardContent({
                       )}
 
                       {ads.length > 0 && (
-                        <div className="col-span-2 sm:col-span-4 flex flex-col gap-1.5 text-xs font-medium text-gray-500 dark:text-neutral-400">
+                        <div className="col-span-2 sm:col-span-3 flex flex-col gap-1.5 text-xs font-medium text-gray-500 dark:text-neutral-400">
                           {getText('Comerciales en esta pantalla (vacío = ninguno)', 'Ads on this screen (empty = none)')}
                           <div className="flex flex-wrap gap-2">
                             {ads.map((ad) => {

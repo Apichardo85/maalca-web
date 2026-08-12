@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { getMaalcaApiToken, resolveAffiliateIdBySlug } from '@/lib/api-auth';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
@@ -48,5 +49,9 @@ export async function POST(
   });
 
   const data = await apiRes.json().catch(() => null);
+  // Sin esto, el board público (cacheado por ISR con revalidate:30 y esta misma tag) sigue
+  // sirviendo la lista de pantallas vieja hasta el próximo hit después de esos 30s — una
+  // pantalla recién creada no aparece de inmediato en /{slug}/board/{screenId}.
+  if (apiRes.ok) revalidateTag(`affiliate:${slug}`);
   return NextResponse.json(data ?? {}, { status: apiRes.status });
 }
