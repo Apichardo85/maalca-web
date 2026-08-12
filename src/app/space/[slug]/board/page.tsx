@@ -57,6 +57,9 @@ export default async function BoardPage({
   let language: 'es' | 'en' = 'es';
   let boardTheme: 'Dark' | 'Light' = 'Dark';
   let transitionEffect: 'Fade' | 'Slide' | 'Zoom' | 'None' = 'Fade';
+  // No hay una entidad de categorías separada todavía — se derivan de los items del catálogo
+  // (item.category), igual que hace el filtro de categorías del board público.
+  let categories: string[] = [];
   try {
     const catalogRes = await fetch(`${API}/api/public/affiliates/${slug}/catalog`, { cache: 'no-store' });
     if (catalogRes.ok) {
@@ -68,6 +71,8 @@ export default async function BoardPage({
         catalog.transitionEffect === 'Slide' || catalog.transitionEffect === 'Zoom' || catalog.transitionEffect === 'None'
           ? catalog.transitionEffect
           : 'Fade';
+      const items: Array<{ category?: string | null }> = Array.isArray(catalog.items) ? catalog.items : [];
+      categories = [...new Set(items.map((i) => i.category).filter((c): c is string => !!c))].sort();
     }
   } catch {
     // se quedan en sus defaults
@@ -83,6 +88,7 @@ export default async function BoardPage({
       initialBoardTheme={boardTheme}
       initialTransitionEffect={transitionEffect}
       initialScreens={screens}
+      categories={categories}
     />
   );
 }

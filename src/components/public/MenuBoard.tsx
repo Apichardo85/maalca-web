@@ -228,7 +228,13 @@ export function MenuBoard({
 
   const slides = useMemo(() => {
     const menuSlides = buildMenuSlides(catalog.items, catalog.categories ?? []);
-    return interleaveAds(menuSlides, catalog.screenAds ?? [], catalog.adFrequency);
+    const ads = catalog.screenAds ?? [];
+    // Pantalla "solo comerciales" (Fase 9 Etapa C) — sin items de menú, la rotación entera
+    // son los comerciales, uno por slide, no solo el primero.
+    if (menuSlides.length === 0 && ads.length > 0) {
+      return ads.map((ad): Slide => ({ kind: 'ad', ad }));
+    }
+    return interleaveAds(menuSlides, ads, catalog.adFrequency);
   }, [catalog]);
 
   // Reset to slide 0 whenever the slide set changes shape (items added/removed, comerciales

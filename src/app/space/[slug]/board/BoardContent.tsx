@@ -19,6 +19,9 @@ export interface ScreenAdRow {
 // Fase 9 Etapa B — una pantalla adicional. Los overrides son null = "hereda del negocio"
 // (los valores de arriba: adFrequency/boardLanguage/boardTheme/transitionEffect), consistente
 // con cómo el backend resuelve /{slug}/board/{screenId} en PublicCatalogService.
+// Fase 9 Etapa C — contentMode ('Menu' | 'AdsOnly' | 'FeaturedOnly') y adIds (null = todos los
+// comerciales del negocio; lista = solo esos, puede ser vacía = ninguno) permiten armar una
+// pantalla de un solo propósito (ej. solo comerciales) sin tocar la pantalla base.
 export interface ScreenRow {
   id: string;
   name: string;
@@ -28,6 +31,8 @@ export interface ScreenRow {
   adFrequency: number | null;
   categoryFilter: string | null;
   transitionEffect: string | null;
+  contentMode: string;
+  adIds: string[] | null;
 }
 
 interface Props {
@@ -39,6 +44,9 @@ interface Props {
   initialBoardTheme: 'Dark' | 'Light';
   initialTransitionEffect: 'Fade' | 'Slide' | 'Zoom' | 'None';
   initialScreens: ScreenRow[];
+  /** Categorías reales del catálogo (derivadas de los items) — para elegir por checkbox en vez
+   *  de escribirlas a mano. */
+  categories: string[];
 }
 
 /**
@@ -49,7 +57,7 @@ interface Props {
  */
 export function BoardContent({
   slug, plan, initialAds, initialAdFrequency, initialLanguage, initialBoardTheme,
-  initialTransitionEffect, initialScreens,
+  initialTransitionEffect, initialScreens, categories,
 }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -109,6 +117,8 @@ export function BoardContent({
           adFrequency: next.adFrequency,
           categoryFilter: next.categoryFilter,
           transitionEffect: next.transitionEffect,
+          contentMode: next.contentMode,
+          adIds: next.adIds,
         }),
       });
       const updated = await res.json().catch(() => null);
@@ -118,6 +128,25 @@ export function BoardContent({
     } finally {
       setScreenBusyId(null);
     }
+  }
+
+  // adIds null = hereda todos los comerciales del negocio (todos "marcados" visualmente).
+  // Al desmarcar/marcar, si el resultado termina siendo el set completo se vuelve a guardar
+  // como null (misma semántica, más limpio que guardar una lista igual a "todos").
+  function toggleScreenAd(screen: ScreenRow, adId: string) {
+    const current = screen.adIds ?? ads.map((a) => a.id);
+    const next = current.includes(adId) ? current.filter((id) => id !== adId) : [...current, adId];
+    updateScreen(screen, { adIds: next.length === ads.length ? null : next });
+  }
+
+  // categoryFilter sigue siendo el string comma-separated que ya entiende el backend — el
+  // checkbox solo arma/desarma esa lista a partir de las categorías reales del catálogo.
+  function toggleScreenCategory(screen: ScreenRow, category: string) {
+    const current = screen.categoryFilter
+      ? screen.categoryFilter.split(',').map((c) => c.trim()).filter(Boolean)
+      : [];
+    const next = current.includes(category) ? current.filter((c) => c !== category) : [...current, category];
+    updateScreen(screen, { categoryFilter: next.length === 0 ? null : next.join(',') });
   }
 
   async function deleteScreen(screenId: string) {
@@ -495,20 +524,74 @@ export function BoardContent({
                           <option value="None">{getText('Ninguno', 'None')}</option>
                         </select>
                       </label>
-                      <label className="col-span-2 sm:col-span-4 flex flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
-                        {getText('Categorías (separadas por coma)', 'Categories (comma-separated)')}
-                        <input
-                          type="text"
-                          defaultValue={screen.categoryFilter ?? ''}
+                      <label className="flex flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
+                        {getText('Modo de contenido', 'Content mode')}
+                        <select
+                          value={screen.contentMode}
                           disabled={screenBusyId === screen.id}
-                          placeholder={getText('Todas', 'All')}
-                          onBlur={(e) => {
-                            const value = e.target.value.trim() || null;
-                            if (value !== screen.categoryFilter) updateScreen(screen, { categoryFilter: value });
-                          }}
-                          className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm"
-                        />
+                          onChange={(e) => updateScreen(screen, { contentMode: e.target.value })}
+                          className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white"
+                        >
+                          <option value="Menu">{getText('Menú normal', 'Normal menu')}</option>
+                          <option value="AdsOnly">{getText('Solo comerciales', 'Ads only')}</option>
+                          <option value="FeaturedOnly">{getText('Solo destacados', 'Featured only')}</option>
+                        </select>
                       </label>
+
+                      {screen.contentMode !== 'AdsOnly' && categories.length > 0 && (
+                        <div className="col-span-2 sm:col-span-4 flex flex-col gap-1.5 text-xs font-medium text-gray-500 dark:text-neutral-400">
+                          {getText('Categorías (vacío = todas)', 'Categories (empty = all)')}
+                          <div className="flex flex-wrap gap-2">
+                            {categories.map((category) => {
+                              const selected = (screen.categoryFilter ?? '')
+                                .split(',').map((c) => c.trim()).filter(Boolean)
+                                .includes(category);
+                              return (
+                                <button
+                                  key={category}
+                                  type="button"
+                                  disabled={screenBusyId === screen.id}
+                                  onClick={() => toggleScreenCategory(screen, category)}
+                                  className={`rounded-full border px-3 py-1 text-xs font-medium transition disabled:opacity-50 ${
+                                    selected
+                                      ? 'border-[#C8102E] bg-[#C8102E]/10 text-[#C8102E]'
+                                      : 'border-gray-300 dark:border-neutral-700 text-gray-600 dark:text-neutral-300 hover:border-[#C8102E]'
+                                  }`}
+                                >
+                                  {category}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {ads.length > 0 && (
+                        <div className="col-span-2 sm:col-span-4 flex flex-col gap-1.5 text-xs font-medium text-gray-500 dark:text-neutral-400">
+                          {getText('Comerciales en esta pantalla (vacío = ninguno)', 'Ads on this screen (empty = none)')}
+                          <div className="flex flex-wrap gap-2">
+                            {ads.map((ad) => {
+                              const selected = (screen.adIds ?? ads.map((a) => a.id)).includes(ad.id);
+                              const label = `${ad.mediaType === 'Video' ? getText('Video', 'Video') : getText('Imagen', 'Image')} · ${ad.durationSeconds}s`;
+                              return (
+                                <button
+                                  key={ad.id}
+                                  type="button"
+                                  disabled={screenBusyId === screen.id}
+                                  onClick={() => toggleScreenAd(screen, ad.id)}
+                                  className={`rounded-full border px-3 py-1 text-xs font-medium transition disabled:opacity-50 ${
+                                    selected
+                                      ? 'border-[#C8102E] bg-[#C8102E]/10 text-[#C8102E]'
+                                      : 'border-gray-300 dark:border-neutral-700 text-gray-600 dark:text-neutral-300 hover:border-[#C8102E]'
+                                  }`}
+                                >
+                                  {label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
