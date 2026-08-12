@@ -25,9 +25,28 @@ interface Props {
   productCount: number;
 }
 
-export function CatalogView({ slug, plan, items, productCount }: Props) {
+export function CatalogView({ slug, plan, items: initialItems, productCount }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => language === 'es' ? es : en;
+
+  const [items, setItems] = useState(initialItems);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+
+  async function toggleActive(item: CatalogItem) {
+    setTogglingId(item.id);
+    try {
+      const res = await fetch(`/api/space/${slug}/catalog/${item.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: item.active ? 'Inactive' : 'Active' }),
+      });
+      if (res.ok) {
+        setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, active: !i.active } : i)));
+      }
+    } finally {
+      setTogglingId(null);
+    }
+  }
 
   const limits = getPlanLimits(plan);
   const demoItems = items.filter((i) => i.isDemo);
@@ -106,7 +125,14 @@ export function CatalogView({ slug, plan, items, productCount }: Props) {
             </p>
             <div className="space-y-2">
               {demoItems.map((item) => (
-                <ItemRow key={item.id} item={item} slug={slug} getText={getText} />
+                <ItemRow
+                  key={item.id}
+                  item={item}
+                  slug={slug}
+                  getText={getText}
+                  onToggleActive={toggleActive}
+                  toggling={togglingId === item.id}
+                />
               ))}
             </div>
           </section>
@@ -170,7 +196,14 @@ export function CatalogView({ slug, plan, items, productCount }: Props) {
             ) : (
               <div className="space-y-2">
                 {filteredRealItems.map((item) => (
-                  <ItemRow key={item.id} item={item} slug={slug} getText={getText} />
+                  <ItemRow
+                    key={item.id}
+                    item={item}
+                    slug={slug}
+                    getText={getText}
+                    onToggleActive={toggleActive}
+                    toggling={togglingId === item.id}
+                  />
                 ))}
               </div>
             )}
@@ -211,13 +244,21 @@ function ItemRow({
   item,
   slug,
   getText,
+  onToggleActive,
+  toggling,
 }: {
   item: CatalogItem;
   slug: string;
   getText: (es: string, en: string) => string;
+  onToggleActive: (item: CatalogItem) => void;
+  toggling: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-3 shadow-sm dark:shadow-none">
+    <div
+      className={`flex items-center justify-between rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-3 shadow-sm dark:shadow-none ${
+        item.active ? '' : 'opacity-60'
+      }`}
+    >
       <div className="flex items-center gap-3 min-w-0">
         {item.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -241,6 +282,11 @@ function ItemRow({
                 {getText('Demo', 'Demo')}
               </span>
             )}
+            {!item.active && (
+              <span className="flex-shrink-0 rounded-full bg-gray-100 dark:bg-neutral-800 px-2 py-0.5 text-xs font-medium text-gray-500 dark:text-neutral-400">
+                {getText('Inactivo', 'Inactive')}
+              </span>
+            )}
             <span className="truncate text-sm font-medium text-gray-900 dark:text-white">
               {item.name}
             </span>
@@ -257,12 +303,30 @@ function ItemRow({
           )}
         </div>
       </div>
-      <Link
-        href={`/space/${slug}/catalog/${item.id}/edit?from=catalog`}
-        className="ml-4 flex-shrink-0 text-xs font-medium text-gray-400 dark:text-neutral-500 transition hover:text-gray-900 dark:hover:text-white"
-      >
-        {getText('Editar →', 'Edit →')}
-      </Link>
+      <div className="ml-4 flex flex-shrink-0 items-center gap-3">
+        <button
+          type="button"
+          onClick={() => onToggleActive(item)}
+          disabled={toggling}
+          className={`rounded-full border px-3 py-1 text-xs font-medium transition disabled:opacity-50 ${
+            item.active
+              ? 'border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 hover:border-red-400 hover:text-red-500'
+              : 'border-green-300 dark:border-green-700 text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20'
+          }`}
+        >
+          {toggling
+            ? getText('...', '...')
+            : item.active
+              ? getText('Desactivar', 'Deactivate')
+              : getText('Activar', 'Activate')}
+        </button>
+        <Link
+          href={`/space/${slug}/catalog/${item.id}/edit?from=catalog`}
+          className="text-xs font-medium text-gray-400 dark:text-neutral-500 transition hover:text-gray-900 dark:hover:text-white"
+        >
+          {getText('Editar →', 'Edit →')}
+        </Link>
+      </div>
     </div>
   );
 }
