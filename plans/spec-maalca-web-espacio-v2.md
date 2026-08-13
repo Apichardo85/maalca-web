@@ -5,6 +5,29 @@
 
 ---
 
+## 🔄 ACTUALIZACIÓN DE ESTADO — 2026-08-13 (leer esto primero)
+
+Este documento quedó desactualizado muy rápido — casi todo el programa original ya se construyó en las sesiones siguientes al 2026-08-09. Verificado contra el código real hoy:
+
+| Fase | Estado real |
+|---|---|
+| Fase 1 — Shell y navegación | ✅ Hecho. `SpaceSidebar.tsx`/`SpaceMobileNav.tsx` ya tienen la nav completa (y más: Pedidos, Cocina, Pantalla, que ni estaban contempladas acá). |
+| Fase 2 — Dashboard compositivo | ✅ Hecho. `page.tsx` consume `modulosActivos` + KPIs con fallback, tal cual el criterio de aceptación. |
+| Fase 3 — Onboarding rápido | ⚠️ Existe (`/app/onboarding`) — no re-auditado a fondo si cumple el flujo de 2-3 min exacto, pero no es prioridad. |
+| Fase 4 — Editor "Diseñar mi Espacio" | ✅ Hecho. `CanalesTab.tsx`, `ConfigTab.tsx`, `ContenidoTab.tsx`, `PreviewFrame.tsx` ya existen. |
+| Fase 5 — Layout por categoría | ✅ Hecho. Templates separados: `Restaurant.tsx`, `Barber.tsx`, `Service.tsx`, `Retail.tsx` (el doc original decía que solo existía una plantilla única). Selector de imagen destacada: parcialmente cubierto por la galería multi-imagen ya construida (primera imagen = destacada, reordenable). |
+| Fase 6 — Módulos (marketplace) | ✅ Hecho. `ModulesContent.tsx`. |
+| Fase 7 — Menu Board Smart TV | ✅ Hecho y superado — ver Fase 9 abajo. |
+| Fase 8 — Plan Emprendedor | ✅ Casi completo: Stripe Connect (con validación de país obligatoria), Pedidos con panel admin, Kitchen Display en tiempo real (SignalR) — todo construido. **Solo falta el ítem 5: dashboard multiusuario con roles** (sin empezar). |
+| Fase 9 Etapa A — Comerciales | ✅ Hecho. |
+| Fase 9 Etapa B — Múltiples pantallas | ✅ Hecho (incluye modo de contenido: Menú/Solo comerciales/Solo destacados, y selección de categorías/comerciales por pantalla — más de lo que pedía el doc original). |
+| Fase 9 Etapa C — Kitchen Display | ✅ Hecho — `OrderStatus.Preparing`, `OrdersHub` (SignalR), ruta `/space/{slug}/kitchen`, filtrado por `BusinessType.Restaurant`. |
+| Fase 9 Etapa D — POS propio | ❌ Sin empezar. Decisión de producto ya tomada (POS propio, no integración de terceros), pendiente de diseñar cuando le toque el turno. |
+
+**Lo único que realmente sigue pendiente del programa completo:** dashboard multiusuario con roles, y Etapa D (POS propio). Todo lo demás en este documento es referencia histórica de cómo se llegó hasta acá, no un roadmap activo. Además, fuera de este programa, hay una idea nueva en investigación: un panel de operaciones real para el Admin general de MaalCa (hoy "maalca" es tratado como un afiliado más, lo cual no es correcto) — no estaba contemplado en este spec porque surgió después.
+
+---
+
 ## Fase 0 — Contexto (ya resuelto, sin trabajo de frontend)
 
 El bug de "límite 10 / 66 items reales" en `/space/the-little-dominicana` **no era un problema de frontend ni de routing**. Era un dato de `Plan` mal seteado en el backend, ya corregido en producción. `business.id` (usado aquí) y `affiliate.id` (usado en el `/dashboard/[affiliateId]` viejo) son el mismo GUID — no hay unificación de tenant pendiente. Esto se documenta aquí solo para que quede registrado que no requiere acción de frontend.
