@@ -71,7 +71,10 @@ export function SpaceMobileNav({
     { label: getText('Identidad', 'Identity'), icon: '🪪', href: `/space/${slug}/identidad` },
     { label: catalogLabel, icon: '📦', href: `/space/${slug}/catalog` },
     { label: getText('Pedidos', 'Orders'), icon: '🧾', href: `/space/${slug}/orders` },
-    { label: getText('Cocina', 'Kitchen'), icon: '🍳', href: `/space/${slug}/kitchen` },
+    // Cocina solo aplica a negocios de comida — ver el mismo comentario en SpaceSidebar.tsx.
+    ...(businessType === 'restaurant'
+      ? [{ label: getText('Cocina', 'Kitchen'), icon: '🍳', href: `/space/${slug}/kitchen` }]
+      : []),
     { label: getText('Pantalla', 'Screen'), icon: '📺', href: `/space/${slug}/board` },
     { label: getText('Módulos', 'Modules'), icon: '🧩', href: `/space/${slug}/modules` },
     { label: getText('Estadísticas', 'Stats'), icon: '📊', href: `/space/${slug}/stats` },

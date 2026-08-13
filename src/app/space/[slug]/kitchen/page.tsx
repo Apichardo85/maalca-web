@@ -6,7 +6,7 @@ import type { OrderRow } from '../orders/OrdersContent';
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 interface SpaceResponse {
-  business: { id: string; plan: 'free' | 'entrepreneur' };
+  business: { id: string; plan: 'free' | 'entrepreneur'; businessType: string };
 }
 
 // Misma carga que orders/page.tsx (mismo endpoint, mismo shape de OrderRow) — el Kitchen
@@ -30,6 +30,11 @@ export default async function KitchenPage({
   if (!spaceRes.ok) throw new Error(`Failed to load space: ${spaceRes.status}`);
 
   const space: SpaceResponse = await spaceRes.json();
+
+  // Cocina solo aplica a negocios de comida — mismo filtro que en SpaceSidebar/SpaceMobileNav,
+  // repetido acá para que la ruta no sea alcanzable escribiendo la URL a mano si el negocio no
+  // es Restaurant (ej. una barbería o retail no tienen nada que "preparar" en cocina).
+  if (space.business.businessType.toLowerCase() !== 'restaurant') redirect(`/space/${slug}/orders`);
 
   let orders: OrderRow[] = [];
   try {
