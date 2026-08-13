@@ -158,7 +158,7 @@ export function SettingsContent({ slug, plan, trialDaysRemaining }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
-      <div className="px-6 py-12 max-w-2xl">
+      <div className="px-6 py-12">
         <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
           {getText('Tu espacio', 'Your space')}
         </p>
@@ -167,7 +167,7 @@ export function SettingsContent({ slug, plan, trialDaysRemaining }: Props) {
         </h1>
 
         {upgraded && (
-          <div className="mt-6 rounded-lg border border-green-200 dark:border-green-900/40 bg-green-50 dark:bg-green-900/20 px-4 py-3">
+          <div className="mt-6 max-w-3xl rounded-lg border border-green-200 dark:border-green-900/40 bg-green-50 dark:bg-green-900/20 px-4 py-3">
             <p className="text-sm text-green-700 dark:text-green-400">
               {plan === 'entrepreneur'
                 ? getText('¡Listo! Ya estás en el plan Emprendedor. 🎉', "You're all set on the Emprendedor plan. 🎉")
@@ -180,143 +180,145 @@ export function SettingsContent({ slug, plan, trialDaysRemaining }: Props) {
         )}
 
         {canceled && (
-          <div className="mt-6 rounded-lg border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-3">
+          <div className="mt-6 max-w-3xl rounded-lg border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-3">
             <p className="text-sm text-gray-600 dark:text-neutral-400">
               {getText('Pago cancelado — no se te hizo ningún cargo.', 'Checkout canceled — you were not charged.')}
             </p>
           </div>
         )}
 
-        {/* Current plan card */}
-        <div className="mt-6 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-wider text-gray-400 dark:text-neutral-500">
-                {getText('Plan actual', 'Current plan')}
-              </p>
-              <p className="mt-1 text-lg font-bold">
-                {plan === 'entrepreneur' ? getText('Emprendedor', 'Entrepreneur') : getText('Plan Gratis', 'Free plan')}
-              </p>
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+          {/* Current plan card */}
+          <div className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-wider text-gray-400 dark:text-neutral-500">
+                  {getText('Plan actual', 'Current plan')}
+                </p>
+                <p className="mt-1 text-lg font-bold">
+                  {plan === 'entrepreneur' ? getText('Emprendedor', 'Entrepreneur') : getText('Plan Gratis', 'Free plan')}
+                </p>
+              </div>
+              {plan === 'entrepreneur' && (
+                <span className="rounded-full bg-[#C8102E]/10 px-3 py-1 text-xs font-medium text-[#C8102E]">
+                  $38/{getText('mes', 'mo')}
+                </span>
+              )}
             </div>
+
+            {plan === 'free' && (
+              <p className={`mt-3 text-sm ${trialExpired ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-neutral-400'}`}>
+                {trialExpired
+                  ? getText('Tu período gratuito de 30 días terminó.', 'Your 30-day free trial has ended.')
+                  : trialDaysRemaining !== null
+                  ? getText(
+                      `Te quedan ${trialDaysRemaining} día${trialDaysRemaining === 1 ? '' : 's'} de tu período gratuito.`,
+                      `${trialDaysRemaining} day${trialDaysRemaining === 1 ? '' : 's'} left in your free trial.`,
+                    )
+                  : null}
+              </p>
+            )}
+
             {plan === 'entrepreneur' && (
-              <span className="rounded-full bg-[#C8102E]/10 px-3 py-1 text-xs font-medium text-[#C8102E]">
-                $38/{getText('mes', 'mo')}
-              </span>
+              <p className="mt-3 text-sm text-gray-500 dark:text-neutral-400">
+                {getText(
+                  '¿Necesitas cambiar o cancelar tu suscripción? Escríbenos a hello@maalca.com.',
+                  'Need to change or cancel your subscription? Email us at hello@maalca.com.',
+                )}
+              </p>
             )}
           </div>
 
-          {plan === 'free' && (
-            <p className={`mt-3 text-sm ${trialExpired ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-neutral-400'}`}>
-              {trialExpired
-                ? getText('Tu período gratuito de 30 días terminó.', 'Your 30-day free trial has ended.')
-                : trialDaysRemaining !== null
-                ? getText(
-                    `Te quedan ${trialDaysRemaining} día${trialDaysRemaining === 1 ? '' : 's'} de tu período gratuito.`,
-                    `${trialDaysRemaining} day${trialDaysRemaining === 1 ? '' : 's'} left in your free trial.`,
-                  )
-                : null}
-            </p>
+          {/* Stripe Connect — recibir pagos de tus propios clientes */}
+          {plan === 'entrepreneur' && (
+            <div className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6">
+              <p className="text-xs uppercase tracking-wider text-gray-400 dark:text-neutral-500">
+                {getText('Recibir pagos', 'Accept payments')}
+              </p>
+              <p className="mt-1 text-sm text-gray-600 dark:text-neutral-300">
+                {getText(
+                  'Conecta tu cuenta de Stripe para cobrar a tus clientes con tarjeta, Apple Pay y Google Pay — el dinero va directo a tu cuenta.',
+                  'Connect your Stripe account to charge your customers with card, Apple Pay, and Google Pay — the money goes straight to your account.',
+                )}
+              </p>
+
+              {connectStatus?.chargesEnabled ? (
+                <p className="mt-4 flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400">
+                  <span>✓</span>
+                  {getText('Cuenta conectada — ya puedes recibir pagos.', 'Account connected — you can accept payments.')}
+                </p>
+              ) : (
+                <>
+                  {!connectStatus?.connected && !connectStatus?.country && (
+                    <div className="mt-4">
+                      <label className="text-xs font-medium text-gray-500 dark:text-neutral-400">
+                        {getText(
+                          'País de tu negocio (no se puede cambiar después)',
+                          "Your business's country (can't be changed later)",
+                        )}
+                      </label>
+                      <select
+                        value={countryChoice}
+                        onChange={(e) => setCountryChoice(e.target.value)}
+                        className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm"
+                      >
+                        <option value="US">{getText('Estados Unidos', 'United States')}</option>
+                        <option value="DO">{getText('República Dominicana', 'Dominican Republic')}</option>
+                        <option value="PR">{getText('Puerto Rico', 'Puerto Rico')}</option>
+                        <option value="MX">México</option>
+                        <option value="ES">España</option>
+                        <option value="CA">Canadá / Canada</option>
+                      </select>
+                    </div>
+                  )}
+                  {connectError && (
+                    <p className="mt-4 text-sm text-red-600 dark:text-red-400">{connectError}</p>
+                  )}
+                  <button
+                    onClick={handleConnectPayments}
+                    disabled={connectLoading}
+                    className="mt-4 w-full rounded-full border border-gray-300 dark:border-neutral-700 py-3 text-sm font-medium text-gray-900 dark:text-white transition hover:border-[#C8102E] hover:text-[#C8102E] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {connectLoading
+                      ? getText('Redirigiendo a Stripe...', 'Redirecting to Stripe...')
+                      : connectStatus?.connected
+                      ? getText('Terminar configuración en Stripe', 'Finish setup on Stripe')
+                      : getText('Conectar cuenta para recibir pagos', 'Connect account to accept payments')}
+                  </button>
+                </>
+              )}
+            </div>
           )}
 
-          {plan === 'entrepreneur' && (
-            <p className="mt-3 text-sm text-gray-500 dark:text-neutral-400">
-              {getText(
-                '¿Necesitas cambiar o cancelar tu suscripción? Escríbenos a hello@maalca.com.',
-                'Need to change or cancel your subscription? Email us at hello@maalca.com.',
+          {/* Feature comparison */}
+          {plan === 'free' && (
+            <div className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6">
+              <p className="text-sm font-semibold">{getText('Qué desbloqueas con Emprendedor', 'What Entrepreneur unlocks')}</p>
+              <ul className="mt-3 space-y-2">
+                {FEATURES.filter((f) => f.entrepreneur).map((f) => (
+                  <li key={f.es} className="flex items-center gap-2 text-sm text-gray-600 dark:text-neutral-300">
+                    <span className="text-green-600 dark:text-green-400">✓</span>
+                    {getText(f.es, f.en)}
+                  </li>
+                ))}
+              </ul>
+
+              {error && (
+                <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>
               )}
-            </p>
+
+              <button
+                onClick={handleUpgrade}
+                disabled={loading}
+                className="mt-5 w-full rounded-full bg-[#C8102E] py-3 text-sm font-medium text-white transition hover:bg-[#A00D26] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loading
+                  ? getText('Redirigiendo a Stripe...', 'Redirecting to Stripe...')
+                  : getText('Actualizar a Emprendedor — $38/mes', 'Upgrade to Entrepreneur — $38/mo')}
+              </button>
+            </div>
           )}
         </div>
-
-        {/* Stripe Connect — recibir pagos de tus propios clientes */}
-        {plan === 'entrepreneur' && (
-          <div className="mt-6 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6">
-            <p className="text-xs uppercase tracking-wider text-gray-400 dark:text-neutral-500">
-              {getText('Recibir pagos', 'Accept payments')}
-            </p>
-            <p className="mt-1 text-sm text-gray-600 dark:text-neutral-300">
-              {getText(
-                'Conecta tu cuenta de Stripe para cobrar a tus clientes con tarjeta, Apple Pay y Google Pay — el dinero va directo a tu cuenta.',
-                'Connect your Stripe account to charge your customers with card, Apple Pay, and Google Pay — the money goes straight to your account.',
-              )}
-            </p>
-
-            {connectStatus?.chargesEnabled ? (
-              <p className="mt-4 flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400">
-                <span>✓</span>
-                {getText('Cuenta conectada — ya puedes recibir pagos.', 'Account connected — you can accept payments.')}
-              </p>
-            ) : (
-              <>
-                {!connectStatus?.connected && !connectStatus?.country && (
-                  <div className="mt-4">
-                    <label className="text-xs font-medium text-gray-500 dark:text-neutral-400">
-                      {getText(
-                        'País de tu negocio (no se puede cambiar después)',
-                        "Your business's country (can't be changed later)",
-                      )}
-                    </label>
-                    <select
-                      value={countryChoice}
-                      onChange={(e) => setCountryChoice(e.target.value)}
-                      className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm"
-                    >
-                      <option value="US">{getText('Estados Unidos', 'United States')}</option>
-                      <option value="DO">{getText('República Dominicana', 'Dominican Republic')}</option>
-                      <option value="PR">{getText('Puerto Rico', 'Puerto Rico')}</option>
-                      <option value="MX">México</option>
-                      <option value="ES">España</option>
-                      <option value="CA">Canadá / Canada</option>
-                    </select>
-                  </div>
-                )}
-                {connectError && (
-                  <p className="mt-4 text-sm text-red-600 dark:text-red-400">{connectError}</p>
-                )}
-                <button
-                  onClick={handleConnectPayments}
-                  disabled={connectLoading}
-                  className="mt-4 w-full rounded-full border border-gray-300 dark:border-neutral-700 py-3 text-sm font-medium text-gray-900 dark:text-white transition hover:border-[#C8102E] hover:text-[#C8102E] disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {connectLoading
-                    ? getText('Redirigiendo a Stripe...', 'Redirecting to Stripe...')
-                    : connectStatus?.connected
-                    ? getText('Terminar configuración en Stripe', 'Finish setup on Stripe')
-                    : getText('Conectar cuenta para recibir pagos', 'Connect account to accept payments')}
-                </button>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Feature comparison */}
-        {plan === 'free' && (
-          <div className="mt-6 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6">
-            <p className="text-sm font-semibold">{getText('Qué desbloqueas con Emprendedor', 'What Entrepreneur unlocks')}</p>
-            <ul className="mt-3 space-y-2">
-              {FEATURES.filter((f) => f.entrepreneur).map((f) => (
-                <li key={f.es} className="flex items-center gap-2 text-sm text-gray-600 dark:text-neutral-300">
-                  <span className="text-green-600 dark:text-green-400">✓</span>
-                  {getText(f.es, f.en)}
-                </li>
-              ))}
-            </ul>
-
-            {error && (
-              <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>
-            )}
-
-            <button
-              onClick={handleUpgrade}
-              disabled={loading}
-              className="mt-5 w-full rounded-full bg-[#C8102E] py-3 text-sm font-medium text-white transition hover:bg-[#A00D26] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {loading
-                ? getText('Redirigiendo a Stripe...', 'Redirecting to Stripe...')
-                : getText('Actualizar a Emprendedor — $38/mes', 'Upgrade to Entrepreneur — $38/mo')}
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

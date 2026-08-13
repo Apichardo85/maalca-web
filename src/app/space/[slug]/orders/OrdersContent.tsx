@@ -73,14 +73,14 @@ export function OrdersContent({ slug, plan, initialOrders }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
-      <div className="px-6 py-12 max-w-3xl">
+      <div className="px-6 py-12">
         <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
           {getText('Tu espacio', 'Your space')}
         </p>
         <h1 className="mt-1 text-2xl font-bold">{getText('Pedidos', 'Orders')}</h1>
 
         {plan === 'free' && (
-          <p className="mt-3 text-sm text-gray-500 dark:text-neutral-400">
+          <p className="mt-3 max-w-3xl text-sm text-gray-500 dark:text-neutral-400">
             {getText(
               'Los pedidos online con cobro por tarjeta son parte del plan Emprendedor. Con el plan gratis, tus clientes siguen pidiendo por WhatsApp.',
               'Online orders with card payment are part of the Entrepreneur plan. On the free plan, customers still order via WhatsApp.',
@@ -89,13 +89,13 @@ export function OrdersContent({ slug, plan, initialOrders }: Props) {
         )}
 
         {orders.length === 0 ? (
-          <div className="mt-8 rounded-2xl border border-dashed border-gray-300 dark:border-neutral-700 p-10 text-center">
+          <div className="mt-8 max-w-3xl rounded-2xl border border-dashed border-gray-300 dark:border-neutral-700 p-10 text-center">
             <p className="text-sm text-gray-500 dark:text-neutral-400">
               {getText('Todavía no hay pedidos.', 'No orders yet.')}
             </p>
           </div>
         ) : (
-          <div className="mt-6 space-y-3">
+          <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
             {orders.map((order) => (
               <div
                 key={order.id}
