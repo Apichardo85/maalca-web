@@ -72,13 +72,23 @@ export function SettingsContent({ slug, plan, trialDaysRemaining }: Props) {
     setConnectError(null);
     try {
       // Primera vez conectando y todavía sin país guardado: lo fijamos antes de crear la
-      // cuenta en Stripe, porque después no se puede cambiar.
+      // cuenta en Stripe, porque después no se puede cambiar. Si este PATCH falla, no seguimos
+      // al onboarding-link — el backend ahora rechaza crear la cuenta sin país (ya no adivina
+      // "US"), así que seguir de largo solo produciría un segundo error menos claro.
       if (!connectStatus?.connected && !connectStatus?.country) {
-        await fetch(`/api/space/${slug}/settings`, {
+        const countryRes = await fetch(`/api/space/${slug}/settings`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ country: countryChoice }),
         });
+        if (!countryRes.ok) {
+          throw new Error(
+            getText(
+              'No pudimos guardar el país del negocio. Intenta de nuevo.',
+              "We couldn't save the business country. Please try again.",
+            ),
+          );
+        }
       }
       const origin = window.location.origin;
       const res = await fetch(`/api/space/${slug}/connect/onboarding-link`, {
