@@ -21,7 +21,7 @@ export interface OrderRow {
   tax: number;
   total: number;
   currency: string;
-  status: 'Pending' | 'Paid' | 'Fulfilled' | 'Canceled';
+  status: 'Pending' | 'Paid' | 'Preparing' | 'Fulfilled' | 'Canceled';
   createdAt: string;
 }
 
@@ -34,6 +34,7 @@ interface Props {
 const STATUS_STYLES: Record<string, string> = {
   Pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
   Paid: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  Preparing: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
   Fulfilled: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
   Canceled: 'bg-gray-100 text-gray-500 dark:bg-neutral-800 dark:text-neutral-400',
 };
@@ -41,6 +42,7 @@ const STATUS_STYLES: Record<string, string> = {
 const STATUS_LABELS: Record<string, { es: string; en: string }> = {
   Pending: { es: 'Pendiente', en: 'Pending' },
   Paid: { es: 'Pagado', en: 'Paid' },
+  Preparing: { es: 'En preparación', en: 'Preparing' },
   Fulfilled: { es: 'Entregado', en: 'Fulfilled' },
   Canceled: { es: 'Cancelado', en: 'Canceled' },
 };
@@ -131,6 +133,15 @@ export function OrdersContent({ slug, plan, initialOrders }: Props) {
                   <span className="text-sm font-bold">{fmt(order.total, order.currency)}</span>
 
                   {order.status === 'Paid' && (
+                    <button
+                      onClick={() => updateStatus(order.id, 'Preparing')}
+                      disabled={updatingId === order.id}
+                      className="rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-1.5 text-xs font-medium hover:border-[#C8102E] hover:text-[#C8102E] disabled:opacity-50"
+                    >
+                      {getText('Marcar en preparación', 'Mark preparing')}
+                    </button>
+                  )}
+                  {order.status === 'Preparing' && (
                     <button
                       onClick={() => updateStatus(order.id, 'Fulfilled')}
                       disabled={updatingId === order.id}
