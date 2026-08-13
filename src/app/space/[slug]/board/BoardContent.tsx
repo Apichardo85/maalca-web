@@ -669,7 +669,7 @@ export function BoardContent({
                     <option value="Cover">{getText('Llenar (recorta)', 'Fill (crops)')}</option>
                   </select>
                 </label>
-                <div className="flex shrink-0 gap-2">
+                <div className="flex shrink-0 gap-2 self-end">
                   <button
                     onClick={() => toggleActive(ad)}
                     disabled={busyId === ad.id}
