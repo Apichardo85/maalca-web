@@ -49,6 +49,10 @@ export function SpaceSidebar({
     { label: getText('Pantalla', 'Screen'),                   icon: '📺', href: `/space/${slug}/board` },
     { label: getText('Módulos', 'Modules'),                   icon: '🧩', href: `/space/${slug}/modules` },
     { label: getText('Estadísticas', 'Stats'),                icon: '📊', href: `/space/${slug}/stats` },
+    // Equipo solo lo ve el Owner — Manager/Staff no tienen a quién invitar/gestionar.
+    ...(userRole === 'Owner'
+      ? [{ label: getText('Equipo', 'Team'), icon: '👥', href: `/space/${slug}/team` }]
+      : []),
     { label: getText('Facturación', 'Billing'),               icon: '💳', href: `/space/${slug}/settings` },
   ];
 
