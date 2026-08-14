@@ -15,7 +15,7 @@ export interface ValidationRules {
   };
 }
 
-export const useFormValidation = <T extends Record<string, unknown>>(
+export const useFormValidation = <T extends Record<string, string>>(
   initialData: T,
   validationRules: ValidationRules
 ) => {

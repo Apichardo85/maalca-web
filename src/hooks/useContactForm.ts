@@ -8,6 +8,7 @@ export interface ContactFormData {
   company: string;
   project: string;
   message: string;
+  [key: string]: string;
 }
 
 export interface ContactFormResult {

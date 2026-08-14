@@ -122,7 +122,6 @@ export default function ContactoPage() {
                   {/* Name */}
                   <FormField
                     label={t('contactPage.form.name')}
-                    name="name"
                     type="text"
                     required
                     placeholder={t('contactPage.form.namePlaceholder')}
@@ -133,7 +132,6 @@ export default function ContactoPage() {
                   {/* Email */}
                   <FormField
                     label={t('contactPage.form.email')}
-                    name="email"
                     type="email"
                     required
                     placeholder={t('contactPage.form.emailPlaceholder')}
@@ -144,7 +142,6 @@ export default function ContactoPage() {
                   {/* Company */}
                   <FormField
                     label={t('contactPage.form.company')}
-                    name="company"
                     type="text"
                     placeholder={t('contactPage.form.companyPlaceholder')}
                     autoComplete="organization"
@@ -154,7 +151,6 @@ export default function ContactoPage() {
                   {/* Project Type */}
                   <SelectField
                     label={t('contactPage.form.projectType')}
-                    name="project"
                     required
                     placeholder={t('contactPage.form.projectPlaceholder')}
                     options={projectOptions}
@@ -164,7 +160,6 @@ export default function ContactoPage() {
                   {/* Message */}
                   <TextAreaField
                     label={t('contactPage.form.message')}
-                    name="message"
                     required
                     rows={6}
                     maxLength={1000}
