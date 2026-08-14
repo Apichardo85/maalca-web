@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { OpsAssistant } from './OpsAssistant';
 
 export interface OpsOverview {
   totalAffiliates: number;
@@ -236,6 +237,8 @@ export function OpsContent({ overview, initialAffiliates }: Props) {
           Entrar como soporte da acceso completo (nivel Owner) al negocio por 2 horas y queda
           registrado en la auditoría interna.
         </p>
+
+        <OpsAssistant />
       </div>
     </div>
   );
