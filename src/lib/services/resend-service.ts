@@ -205,6 +205,80 @@ function buildNewSpaceNotificationEmail(
   `;
 }
 
+/**
+ * Aviso de invitación al equipo — disparado por POST /api/space/{slug}/team cuando el dueño
+ * invita a alguien (ver route.ts). No es crítico para el flujo (el invite-claim funciona
+ * igual sin esto, por email verificado en el próximo login) — es solo para que la persona
+ * se entere sin que el dueño tenga que avisarle a mano.
+ */
+export async function sendTeamInviteEmail(params: {
+  inviteeEmail: string;
+  businessName: string;
+  slug: string;
+  role: string;
+  inviterEmail: string | null;
+}): Promise<boolean> {
+  if (!resend) {
+    console.log('[Resend] Skipped team invite — RESEND_API_KEY not set');
+    return false;
+  }
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: params.inviteeEmail,
+      subject: `Te invitaron a ${params.businessName} en MaalCa`,
+      html: buildTeamInviteEmail(params),
+    });
+    return true;
+  } catch (err: unknown) {
+    console.error('[Resend] Team invite email failed:', err instanceof Error ? err.message : String(err));
+    return false;
+  }
+}
+
+const ROLE_LABELS_ES: Record<string, string> = { Owner: 'Dueño', Manager: 'Gerente', Staff: 'Empleado' };
+
+function buildTeamInviteEmail(params: {
+  businessName: string;
+  slug: string;
+  role: string;
+  inviterEmail: string | null;
+}): string {
+  const brandColor = '#DC2626';
+  const roleLabel = ROLE_LABELS_ES[params.role] ?? params.role;
+  const signupUrl = `https://maalca.com/login`;
+  const inviterLine = params.inviterEmail
+    ? `<strong>${params.inviterEmail}</strong> te invitó`
+    : 'Te invitaron';
+
+  return `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 32px 24px; background: #fafafa;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <h1 style="color: ${brandColor}; font-size: 24px; margin: 0;">MaalCa</h1>
+      </div>
+      <div style="background: white; border-radius: 12px; padding: 32px; border: 1px solid #e5e5e5;">
+        <h2 style="color: #1a1a1a; font-size: 20px; margin-top: 0;">Te invitaron a ${params.businessName} 🤝</h2>
+        <p style="color: #525252; line-height: 1.6; font-size: 15px;">
+          ${inviterLine} a ayudar a administrar <strong>${params.businessName}</strong> en MaalCa, con acceso de <strong>${roleLabel}</strong>.
+        </p>
+        <div style="margin: 24px 0;">
+          <a href="${signupUrl}" style="display: inline-block; background: ${brandColor}; color: white; padding: 12px 24px; border-radius: 99px; text-decoration: none; font-weight: 600; font-size: 14px;">
+            Iniciar sesión →
+          </a>
+        </div>
+        <p style="color: #525252; line-height: 1.6; font-size: 14px;">
+          Entra con este mismo correo (creando una cuenta si aún no tienes una) y verás el negocio automáticamente.
+        </p>
+        <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;" />
+        <p style="color: #a3a3a3; font-size: 12px; margin: 0;">
+          Recibes este correo porque alguien te invitó a un negocio en <a href="https://maalca.com" style="color: ${brandColor};">maalca.com</a>.
+        </p>
+      </div>
+    </div>
+  `;
+}
+
 export interface OrderEmailItem {
   name: string;
   price: number;

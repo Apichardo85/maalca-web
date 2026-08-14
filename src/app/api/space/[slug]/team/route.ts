@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getMaalcaApiToken, resolveAffiliateIdBySlug } from '@/lib/api-auth';
+import { getMaalcaApiToken, getCurrentSpaceUser, resolveAffiliateIdBySlug } from '@/lib/api-auth';
+import { sendTeamInviteEmail } from '@/lib/services/resend-service';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -31,8 +32,9 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
-  const token = await getMaalcaApiToken();
-  if (!token) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  const currentUser = await getCurrentSpaceUser();
+  if (!currentUser) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  const { token } = currentUser;
 
   const { slug } = await params;
   const affiliate = await resolveAffiliateIdBySlug(slug, token);
@@ -51,5 +53,18 @@ export async function POST(
   });
 
   const data = await apiRes.json().catch(() => null);
+
+  // El invite en sí ya se guardó en el backend — el correo es un aviso best-effort, nunca
+  // debe hacer fallar la respuesta al dueño si Resend no está configurado o falla.
+  if (apiRes.ok && data?.email) {
+    sendTeamInviteEmail({
+      inviteeEmail: data.email,
+      businessName: affiliate.name,
+      slug,
+      role: data.role ?? body.role,
+      inviterEmail: currentUser.email,
+    }).catch(() => {});
+  }
+
   return NextResponse.json(data ?? {}, { status: apiRes.status });
 }

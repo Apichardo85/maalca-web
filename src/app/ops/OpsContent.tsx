@@ -20,6 +20,7 @@ export interface OpsAffiliate {
   plan: string;
   planStatus: string;
   published: boolean;
+  isActive: boolean;
   createdAt: string;
   ordersLast30Days: number;
   stripeConnectChargesEnabled: boolean;
@@ -42,10 +43,31 @@ function Kpi({ label, value }: { label: string; value: string }) {
 
 export function OpsContent({ overview, initialAffiliates }: Props) {
   const router = useRouter();
-  const [affiliates] = useState(initialAffiliates);
+  const [affiliates, setAffiliates] = useState(initialAffiliates);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [onlyAlerts, setOnlyAlerts] = useState(false);
+
+  async function setStatus(a: OpsAffiliate, patch: { published?: boolean; active?: boolean }) {
+    setBusyId(a.id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/ops/affiliates/${a.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(data?.error?.message ?? 'No se pudo actualizar el negocio.');
+      }
+      setAffiliates((prev) => prev.map((x) => (x.id === a.id ? data : x)));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Algo salió mal.');
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   async function impersonate(a: OpsAffiliate) {
     setBusyId(a.id);
@@ -168,14 +190,34 @@ export function OpsContent({ overview, initialAffiliates }: Props) {
                   <td className="px-4 py-3 text-xs text-gray-400 dark:text-neutral-500">
                     {new Date(a.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => impersonate(a)}
-                      disabled={busyId === a.id}
-                      className="rounded-full bg-[#C8102E] px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
-                    >
-                      {busyId === a.id ? 'Entrando…' : 'Entrar como soporte'}
-                    </button>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap justify-end gap-1.5">
+                      <button
+                        onClick={() => setStatus(a, { published: !a.published })}
+                        disabled={busyId === a.id}
+                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-2.5 py-1 text-xs font-medium text-gray-600 dark:text-neutral-300 hover:border-gray-400 disabled:opacity-50"
+                      >
+                        {a.published ? 'Despublicar' : 'Publicar'}
+                      </button>
+                      <button
+                        onClick={() => setStatus(a, { active: !a.isActive })}
+                        disabled={busyId === a.id}
+                        className={`rounded-full border px-2.5 py-1 text-xs font-medium disabled:opacity-50 ${
+                          a.isActive
+                            ? 'border-gray-300 dark:border-neutral-700 text-gray-600 dark:text-neutral-300 hover:border-red-400 hover:text-red-500'
+                            : 'border-yellow-400 text-yellow-600 dark:text-yellow-400'
+                        }`}
+                      >
+                        {a.isActive ? 'Pausar' : 'Reactivar'}
+                      </button>
+                      <button
+                        onClick={() => impersonate(a)}
+                        disabled={busyId === a.id}
+                        className="rounded-full bg-[#C8102E] px-3 py-1 text-xs font-medium text-white disabled:opacity-50"
+                      >
+                        {busyId === a.id ? '…' : 'Soporte'}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
