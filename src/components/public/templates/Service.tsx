@@ -15,6 +15,7 @@ import type { FaqEntry, ProcessStep, PublicTemplateProps } from '@/lib/templates
 import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
 import { trackCanalClick } from '@/lib/public-events';
 import { PublicFooter } from '@/components/public/PublicFooter';
+import { PublicBookingSection } from '@/components/public/booking/PublicBookingSection';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 
@@ -367,6 +368,8 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
           <FaqSection faq={business.faq} displayClassName={fraunces.className} getText={getText} />
         </main>
       </div>
+
+      <PublicBookingSection slug={business.slug} language={language} accent={business.primary_color} />
 
       <PublicFooter business={business} capabilities={capabilities} language={language} />
     </div>

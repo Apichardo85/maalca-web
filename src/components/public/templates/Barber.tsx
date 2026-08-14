@@ -16,6 +16,7 @@ import { AboutSection } from '@/components/public/AboutSection';
 import { ClampedDescription } from '@/components/public/ClampedDescription';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
+import { PublicBookingSection } from '@/components/public/booking/PublicBookingSection';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 
@@ -349,6 +350,9 @@ export function BarberTemplate({
 
       {/* ── FAQ ── */}
       <FaqSection faq={business.faq} getText={getText} />
+
+      {/* ── RESERVA (Agenda pública) ── */}
+      <PublicBookingSection slug={business.slug} language={language} accent={business.primary_color} />
 
       {/* ── CONTACTO ── */}
       <ContactSection business={business} language={language} />

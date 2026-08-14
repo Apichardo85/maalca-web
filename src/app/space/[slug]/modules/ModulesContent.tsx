@@ -2,12 +2,15 @@
 
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 
-const ACTIVE_MODULES = [
-  { icon: '📦', es: 'Catálogo', en: 'Catalog', descEs: 'Tus items y precios, siempre al día.', descEn: 'Your items and prices, always up to date.' },
-  { icon: '🌐', es: 'Página', en: 'Page', descEs: 'Tu página pública en maalca.com.', descEn: 'Your public page on maalca.com.' },
-  { icon: '📊', es: 'Métricas', en: 'Metrics', descEs: 'Visitas y actividad de tu página.', descEn: 'Visits and activity on your page.' },
-  { icon: '🧑‍🤝‍🧑', es: 'Personal', en: 'Personal', descEs: 'Tu equipo de trabajo — meseros, barberos, etc.', descEn: 'Your operating staff — waiters, barbers, etc.' },
-  { icon: '📅', es: 'Agenda', en: 'Agenda', descEs: 'Citas agendadas manualmente, asignadas a tu personal.', descEn: 'Manually booked appointments, assigned to your staff.' },
+// token = coincide 1:1 con ModuleCatalog.Whitelist en el backend (Maalca.Application.Common).
+// Si el backend algún día agrega un toggle real por afiliado, esta lista ya queda lista para
+// reflejarlo — el filtro abajo usa activeTokens, no un array estático.
+const ALL_MODULES = [
+  { token: 'catalog',      icon: '📦', es: 'Catálogo', en: 'Catalog', descEs: 'Tus items y precios, siempre al día.', descEn: 'Your items and prices, always up to date.' },
+  { token: 'page',         icon: '🌐', es: 'Página', en: 'Page', descEs: 'Tu página pública en maalca.com.', descEn: 'Your public page on maalca.com.' },
+  { token: 'metrics',      icon: '📊', es: 'Métricas', en: 'Metrics', descEs: 'Visitas y actividad de tu página.', descEn: 'Visits and activity on your page.' },
+  { token: 'staff',        icon: '🧑‍🤝‍🧑', es: 'Personal', en: 'Personal', descEs: 'Tu equipo de trabajo — meseros, barberos, etc.', descEn: 'Your operating staff — waiters, barbers, etc.' },
+  { token: 'appointments', icon: '📅', es: 'Agenda', en: 'Agenda', descEs: 'Citas agendadas manualmente, asignadas a tu personal.', descEn: 'Manually booked appointments, assigned to your staff.' },
 ];
 
 const UPCOMING_MODULES = [
@@ -16,9 +19,17 @@ const UPCOMING_MODULES = [
   { icon: '🤝', es: 'CRM', en: 'CRM' },
 ];
 
-export function ModulesContent() {
+interface Props {
+  /** Tokens reales de Affiliate.ModulosActivos (ya filtrados por whitelist en el backend). */
+  activeTokens: string[];
+}
+
+export function ModulesContent({ activeTokens }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
+
+  const activeSet = new Set(activeTokens.map((t) => t.toLowerCase()));
+  const ACTIVE_MODULES = ALL_MODULES.filter((mod) => activeSet.has(mod.token));
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
