@@ -76,6 +76,7 @@ export function SpaceMobileNav({
       ? [{ label: getText('Cocina', 'Kitchen'), icon: '🍳', href: `/space/${slug}/kitchen` }]
       : []),
     { label: getText('Pantalla', 'Screen'), icon: '📺', href: `/space/${slug}/board` },
+    { label: getText('Personal', 'Personal'), icon: '🧑‍🤝‍🧑', href: `/space/${slug}/personal` },
     { label: getText('Módulos', 'Modules'), icon: '🧩', href: `/space/${slug}/modules` },
     { label: getText('Estadísticas', 'Stats'), icon: '📊', href: `/space/${slug}/stats` },
     // Equipo solo lo ve el Owner — mismo criterio que SpaceSidebar.tsx.

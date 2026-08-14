@@ -47,6 +47,9 @@ export function SpaceSidebar({
       ? [{ label: getText('Cocina', 'Kitchen'), icon: '🍳', href: `/space/${slug}/kitchen` }]
       : []),
     { label: getText('Pantalla', 'Screen'),                   icon: '📺', href: `/space/${slug}/board` },
+    // Personal (meseros, barberos...) — distinto de Equipo (quién entra al dashboard). Lo ve
+    // cualquier rol, aunque solo Owner/Manager pueden editar (ver gating en la propia página).
+    { label: getText('Personal', 'Personal'),                 icon: '🧑‍🤝‍🧑', href: `/space/${slug}/personal` },
     { label: getText('Módulos', 'Modules'),                   icon: '🧩', href: `/space/${slug}/modules` },
     { label: getText('Estadísticas', 'Stats'),                icon: '📊', href: `/space/${slug}/stats` },
     // Equipo solo lo ve el Owner — Manager/Staff no tienen a quién invitar/gestionar.
