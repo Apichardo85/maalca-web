@@ -31,6 +31,7 @@ export default async function SettingsPage({
     <SettingsContent
       slug={slug}
       plan={business.plan}
+      planStatus={business.planStatus ?? 'Active'}
       trialDaysRemaining={business.trialDaysRemaining ?? null}
     />
   );

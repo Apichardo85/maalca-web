@@ -7,6 +7,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 interface Props {
   slug: string;
   plan: 'free' | 'entrepreneur';
+  planStatus: string;
   trialDaysRemaining: number | null;
 }
 
@@ -19,17 +20,49 @@ const FEATURES: { es: string; en: string; free: boolean; entrepreneur: boolean }
   { es: 'Código QR + contacto directo', en: 'QR code + direct contact', free: true, entrepreneur: true },
 ];
 
-export function SettingsContent({ slug, plan, trialDaysRemaining }: Props) {
+export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const router = useRouter();
   const searchParams = useSearchParams();
   const upgraded = searchParams.get('upgraded') === 'true';
   const canceled = searchParams.get('canceled') === 'true';
+  const isPastDue = planStatus === 'PastDue';
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const pollCount = useRef(0);
+
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [portalError, setPortalError] = useState<string | null>(null);
+
+  async function handleManageBilling() {
+    setPortalLoading(true);
+    setPortalError(null);
+    try {
+      const origin = window.location.origin;
+      const res = await fetch(`/api/space/${slug}/billing/portal-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ returnUrl: `${origin}/space/${slug}/settings` }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.url) {
+        const detail = data?.error?.message as string | undefined;
+        throw new Error(
+          detail ??
+            getText(
+              'No pudimos abrir el portal de facturación. Intenta de nuevo.',
+              "We couldn't open the billing portal. Please try again.",
+            ),
+        );
+      }
+      window.location.href = data.url;
+    } catch (e) {
+      setPortalError(e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.'));
+      setPortalLoading(false);
+    }
+  }
 
   // Stripe Connect — cuenta donde el afiliado recibe el dinero de SUS clientes.
   // Distinta de la suscripción de arriba. Solo aplica a plan Emprendedor.
@@ -189,6 +222,27 @@ export function SettingsContent({ slug, plan, trialDaysRemaining }: Props) {
           </div>
         )}
 
+        {isPastDue && (
+          <div className="mt-6 max-w-3xl rounded-lg border border-yellow-300 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20 px-4 py-3">
+            <p className="text-sm font-medium text-yellow-800 dark:text-yellow-400">
+              {getText(
+                '⚠️ Tu último pago falló. Actualiza tu método de pago para no perder el plan Emprendedor.',
+                '⚠️ Your last payment failed. Update your payment method to avoid losing your Emprendedor plan.',
+              )}
+            </p>
+            <button
+              onClick={handleManageBilling}
+              disabled={portalLoading}
+              className="mt-2 rounded-full bg-yellow-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-yellow-700 disabled:opacity-50"
+            >
+              {portalLoading
+                ? getText('Redirigiendo...', 'Redirecting...')
+                : getText('Actualizar método de pago', 'Update payment method')}
+            </button>
+            {portalError && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{portalError}</p>}
+          </div>
+        )}
+
         {canceled && (
           <div className="mt-6 max-w-3xl rounded-lg border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-3">
             <p className="text-sm text-gray-600 dark:text-neutral-400">
@@ -230,12 +284,23 @@ export function SettingsContent({ slug, plan, trialDaysRemaining }: Props) {
             )}
 
             {plan === 'entrepreneur' && (
-              <p className="mt-3 text-sm text-gray-500 dark:text-neutral-400">
-                {getText(
-                  '¿Necesitas cambiar o cancelar tu suscripción? Escríbenos a hello@maalca.com.',
-                  'Need to change or cancel your subscription? Email us at hello@maalca.com.',
+              <>
+                <button
+                  onClick={handleManageBilling}
+                  disabled={portalLoading}
+                  className="mt-4 w-full rounded-full border border-gray-300 dark:border-neutral-700 py-2.5 text-sm font-medium text-gray-700 dark:text-neutral-300 hover:border-gray-400 disabled:opacity-50"
+                >
+                  {portalLoading
+                    ? getText('Redirigiendo a Stripe...', 'Redirecting to Stripe...')
+                    : getText('Administrar suscripción y facturas', 'Manage subscription & invoices')}
+                </button>
+                {!isPastDue && portalError && (
+                  <p className="mt-2 text-xs text-red-600 dark:text-red-400">{portalError}</p>
                 )}
-              </p>
+                <p className="mt-2 text-xs text-gray-400 dark:text-neutral-500">
+                  {getText('¿Dudas? Escríbenos a hello@maalca.com.', 'Questions? Email us at hello@maalca.com.')}
+                </p>
+              </>
             )}
           </div>
 
