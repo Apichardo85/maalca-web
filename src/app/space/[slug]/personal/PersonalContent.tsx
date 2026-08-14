@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { getRoleSuggestions } from '@/lib/personal-roles';
 
@@ -14,12 +14,22 @@ export interface PersonalMember {
   isActive: boolean;
 }
 
+interface Collaborator {
+  id: string;
+  email: string;
+  role: string;
+  pending: boolean;
+  teamMemberId?: string | null;
+}
+
 interface Props {
   slug: string;
   businessType: string;
   canManage: boolean;
   initialPersonal: PersonalMember[];
 }
+
+const DASHBOARD_ROLES = ['Manager', 'Staff'];
 
 export function PersonalContent({ slug, businessType, canManage, initialPersonal }: Props) {
   const { language } = useSimpleLanguage();
@@ -33,6 +43,29 @@ export function PersonalContent({ slug, businessType, canManage, initialPersonal
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Vínculo Personal ↔ Equipo — solo el Owner puede ver/otorgar acceso al dashboard, así que
+  // esto falla en silencio (403) para Manager/Staff y simplemente no se muestra la opción.
+  const [linkedIds, setLinkedIds] = useState<Set<string>>(new Set());
+  const [inviteOpenFor, setInviteOpenFor] = useState<string | null>(null);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState('Staff');
+  const [inviting, setInviting] = useState(false);
+
+  useEffect(() => {
+    if (!canManage) return;
+    let cancelled = false;
+    fetch(`/api/space/${slug}/team`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: Collaborator[]) => {
+        if (cancelled || !Array.isArray(data)) return;
+        setLinkedIds(new Set(data.filter((c) => c.teamMemberId).map((c) => c.teamMemberId as string)));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, canManage]);
 
   async function addMember() {
     if (!name.trim() || !role.trim()) return;
@@ -93,6 +126,36 @@ export function PersonalContent({ slug, businessType, canManage, initialPersonal
     }
   }
 
+  function openInvite(member: PersonalMember) {
+    setInviteOpenFor(member.id);
+    setInviteEmail(member.email ?? '');
+    setInviteRole('Staff');
+    setError(null);
+  }
+
+  async function sendInvite(member: PersonalMember) {
+    if (!inviteEmail.trim()) return;
+    setInviting(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/space/${slug}/team`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: inviteEmail.trim(), role: inviteRole, teamMemberId: member.id }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(data?.error?.message ?? getText('No pudimos enviar la invitación.', "We couldn't send the invite."));
+      }
+      setLinkedIds((prev) => new Set(prev).add(member.id));
+      setInviteOpenFor(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.'));
+    } finally {
+      setInviting(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
       <div className="px-6 py-12">
@@ -102,8 +165,8 @@ export function PersonalContent({ slug, businessType, canManage, initialPersonal
         <h1 className="mt-1 text-2xl font-bold">{getText('Personal', 'Personal')}</h1>
         <p className="mt-2 max-w-lg text-sm text-gray-500 dark:text-neutral-400">
           {getText(
-            'El personal que trabaja en tu negocio — no necesitan cuenta ni acceso al dashboard. Marca quién está disponible para que aparezca en tu página al reservar.',
-            "The people who work at your business — they don't need an account or dashboard access. Mark who's available so they show up on your page when booking.",
+            'El personal que trabaja en tu negocio. No necesitan cuenta para aparecer aquí ni para que se les asignen citas — pero si alguno también va a usar el dashboard (ver pedidos, gestionar su agenda), puedes darle acceso desde aquí mismo.',
+            "The people who work at your business. They don't need an account to show up here or get assigned appointments — but if one of them will also use the dashboard (view orders, manage their schedule), you can grant access right here.",
           )}
         </p>
 
@@ -163,46 +226,100 @@ export function PersonalContent({ slug, businessType, canManage, initialPersonal
         )}
 
         <div className="mt-6 max-w-2xl space-y-2">
-          {personal.map((member) => (
-            <div
-              key={member.id}
-              className="flex items-center justify-between gap-3 rounded-xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4"
-            >
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium">{member.name}</p>
-                <p className="text-xs text-gray-400 dark:text-neutral-500">{member.role}</p>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <span
-                  className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                    member.isActive
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                      : 'bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-neutral-400'
-                  }`}
-                >
-                  {member.isActive ? getText('Disponible', 'Available') : getText('No disponible', 'Unavailable')}
-                </span>
-                {canManage && (
-                  <>
-                    <button
-                      onClick={() => toggleAvailable(member)}
-                      disabled={busyId === member.id}
-                      className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-gray-400 disabled:opacity-50"
+          {personal.map((member) => {
+            const hasAccess = linkedIds.has(member.id);
+            return (
+              <div
+                key={member.id}
+                className="rounded-xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{member.name}</p>
+                    <p className="text-xs text-gray-400 dark:text-neutral-500">{member.role}</p>
+                  </div>
+                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                    <span
+                      className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                        member.isActive
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                          : 'bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-neutral-400'
+                      }`}
                     >
-                      {member.isActive ? getText('Marcar no disponible', 'Mark unavailable') : getText('Marcar disponible', 'Mark available')}
+                      {member.isActive ? getText('Disponible', 'Available') : getText('No disponible', 'Unavailable')}
+                    </span>
+                    {hasAccess && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:text-blue-400">
+                        🔑 {getText('Con acceso al dashboard', 'Has dashboard access')}
+                      </span>
+                    )}
+                    {canManage && (
+                      <>
+                        {!hasAccess && (
+                          <button
+                            onClick={() => openInvite(member)}
+                            className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-blue-400 hover:text-blue-600 disabled:opacity-50"
+                          >
+                            {getText('Dar acceso al dashboard', 'Grant dashboard access')}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => toggleAvailable(member)}
+                          disabled={busyId === member.id}
+                          className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-gray-400 disabled:opacity-50"
+                        >
+                          {member.isActive ? getText('Marcar no disponible', 'Mark unavailable') : getText('Marcar disponible', 'Mark available')}
+                        </button>
+                        <button
+                          onClick={() => remove(member.id)}
+                          disabled={busyId === member.id}
+                          className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-red-400 hover:text-red-500 disabled:opacity-50"
+                        >
+                          {getText('Quitar', 'Remove')}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {inviteOpenFor === member.id && (
+                  <div className="mt-3 flex flex-col gap-2 rounded-lg bg-gray-50 dark:bg-neutral-800/60 p-3 sm:flex-row">
+                    <input
+                      type="email"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      placeholder={getText('Correo', 'Email')}
+                      className="flex-1 rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm"
+                    />
+                    <select
+                      value={inviteRole}
+                      onChange={(e) => setInviteRole(e.target.value)}
+                      className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm"
+                    >
+                      {DASHBOARD_ROLES.map((r) => (
+                        <option key={r} value={r}>
+                          {r === 'Manager' ? getText('Manager', 'Manager') : getText('Staff', 'Staff')}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => sendInvite(member)}
+                      disabled={inviting || !inviteEmail.trim()}
+                      className="rounded-full bg-blue-600 px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                    >
+                      {inviting ? getText('Enviando…', 'Sending…') : getText('Enviar invitación', 'Send invite')}
                     </button>
                     <button
-                      onClick={() => remove(member.id)}
-                      disabled={busyId === member.id}
-                      className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-red-400 hover:text-red-500 disabled:opacity-50"
+                      onClick={() => setInviteOpenFor(null)}
+                      className="rounded-full px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-700"
                     >
-                      {getText('Quitar', 'Remove')}
+                      {getText('Cancelar', 'Cancel')}
                     </button>
-                  </>
+                  </div>
                 )}
               </div>
-            </div>
-          ))}
+            );
+          })}
           {personal.length === 0 && (
             <p className="text-sm text-gray-400 dark:text-neutral-500">
               {getText('Todavía no has agregado a nadie.', "You haven't added anyone yet.")}
