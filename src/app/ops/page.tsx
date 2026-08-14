@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getMaalcaApiToken } from '@/lib/api-auth';
-import { OpsContent, type OpsOverview, type OpsAffiliate } from './OpsContent';
+import { OpsContent, type OpsOverview, type OpsAffiliate, type OpsTeamMember } from './OpsContent';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -14,18 +14,27 @@ export default async function OpsPage() {
     headers: { Authorization: `Bearer ${token}` },
     cache: 'no-store',
   });
-  const status = statusRes.ok ? await statusRes.json() : { isPlatformAdmin: false };
+  const status = statusRes.ok ? await statusRes.json() : { isPlatformAdmin: false, role: null };
 
   // No es "not found" — para todos los demás usuarios /ops simplemente no existe.
   if (!status.isPlatformAdmin) redirect('/');
 
-  const [overviewRes, affiliatesRes] = await Promise.all([
+  const [overviewRes, affiliatesRes, teamRes] = await Promise.all([
     fetch(`${API}/api/ops/overview`, { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' }),
     fetch(`${API}/api/ops/affiliates`, { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' }),
+    fetch(`${API}/api/ops/team`, { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' }),
   ]);
 
   const overview: OpsOverview | null = overviewRes.ok ? await overviewRes.json() : null;
   const affiliates: OpsAffiliate[] = affiliatesRes.ok ? await affiliatesRes.json() : [];
+  const team: OpsTeamMember[] = teamRes.ok ? await teamRes.json() : [];
 
-  return <OpsContent overview={overview} initialAffiliates={affiliates} />;
+  return (
+    <OpsContent
+      overview={overview}
+      initialAffiliates={affiliates}
+      initialTeam={team}
+      role={status.role ?? null}
+    />
+  );
 }
