@@ -7,10 +7,10 @@ const ACTIVE_MODULES = [
   { icon: '🌐', es: 'Página', en: 'Page', descEs: 'Tu página pública en maalca.com.', descEn: 'Your public page on maalca.com.' },
   { icon: '📊', es: 'Métricas', en: 'Metrics', descEs: 'Visitas y actividad de tu página.', descEn: 'Visits and activity on your page.' },
   { icon: '🧑‍🤝‍🧑', es: 'Personal', en: 'Personal', descEs: 'Tu equipo de trabajo — meseros, barberos, etc.', descEn: 'Your operating staff — waiters, barbers, etc.' },
+  { icon: '📅', es: 'Agenda', en: 'Agenda', descEs: 'Citas agendadas manualmente, asignadas a tu personal.', descEn: 'Manually booked appointments, assigned to your staff.' },
 ];
 
 const UPCOMING_MODULES = [
-  { icon: '📅', es: 'Citas', en: 'Appointments' },
   { icon: '🧾', es: 'Facturación', en: 'Billing' },
   { icon: '🎟️', es: 'Cupones', en: 'Coupons' },
   { icon: '🤝', es: 'CRM', en: 'CRM' },
