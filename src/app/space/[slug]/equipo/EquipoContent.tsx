@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { getRoleSuggestions } from '@/lib/personal-roles';
+import { useToast } from '@/hooks/useToast';
+import { Toast } from '@/components/ui/Toast';
 
 export interface PersonalMember {
   id: string;
@@ -44,6 +46,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const suggestions = getRoleSuggestions(businessType, language);
+  const toast = useToast();
 
   // Owner y Manager administran Personal (agregar/quitar/disponibilidad y otorgar acceso).
   // Solo Owner administra cuentas de dashboard sueltas y cambia/quita accesos ya otorgados —
@@ -59,6 +62,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
 
   // Agregar persona (Personal)
   const [name, setName] = useState('');
+  const [newEmail, setNewEmail] = useState('');
   const [newRole, setNewRole] = useState(suggestions[0] ?? '');
   const [customRole, setCustomRole] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -88,14 +92,26 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
       const res = await fetch(`/api/space/${slug}/personal`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), role: newRole.trim(), department: 'General', isActive: true }),
+        body: JSON.stringify({
+          name: name.trim(),
+          email: newEmail.trim() || null,
+          role: newRole.trim(),
+          department: 'General',
+          isActive: true,
+        }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.error?.message ?? getText('No pudimos agregar a esa persona.', "We couldn't add that person."));
       setPersonal((prev) => [...prev, data]);
+      toast.success(getText(`${data.name} se agregó a Equipo.`, `${data.name} was added to Team.`));
       setName('');
+      setNewEmail('');
+      setCustomRole(false);
+      setNewRole(suggestions[0] ?? '');
     } catch (e) {
-      setError(e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.'));
+      const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -120,7 +136,14 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
     }
   }
 
-  async function removePersonal(memberId: string) {
+  async function removePersonal(memberId: string, memberName: string) {
+    const confirmed = window.confirm(
+      getText(
+        `¿Quitar a ${memberName} de Equipo? Ya no podrá recibir citas asignadas.`,
+        `Remove ${memberName} from Team? They won't be able to get assigned appointments anymore.`,
+      ),
+    );
+    if (!confirmed) return;
     setBusyId(memberId);
     setError(null);
     try {
@@ -130,8 +153,11 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
         throw new Error(data?.error?.message ?? getText('No se pudo quitar.', "Couldn't remove."));
       }
       setPersonal((prev) => prev.filter((m) => m.id !== memberId));
+      toast.success(getText(`${memberName} se quitó de Equipo.`, `${memberName} was removed from Team.`));
     } catch (e) {
-      setError(e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.'));
+      const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setBusyId(null);
     }
@@ -158,8 +184,13 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
       if (!res.ok) throw new Error(data?.error?.message ?? getText('No pudimos enviar la invitación.', "We couldn't send the invite."));
       setCollaborators((prev) => [...prev, data]);
       setInviteOpenFor(null);
+      toast.success(
+        getText(`Invitación enviada a ${inviteEmail.trim()}.`, `Invite sent to ${inviteEmail.trim()}.`),
+      );
     } catch (e) {
-      setError(e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.'));
+      const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setInviting(false);
     }
@@ -177,14 +208,21 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.error?.message ?? getText('No pudimos cambiar el rol.', "We couldn't change the role."));
       setCollaborators((prev) => prev.map((c) => (c.id === mapId ? { ...c, role: data.role } : c)));
+      toast.success(getText('Rol actualizado.', 'Role updated.'));
     } catch (e) {
-      setError(e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.'));
+      const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setBusyId(null);
     }
   }
 
-  async function removeAccess(mapId: string) {
+  async function removeAccess(mapId: string, label: string) {
+    const confirmed = window.confirm(
+      getText(`¿Quitar el acceso al dashboard de ${label}?`, `Remove ${label}'s dashboard access?`),
+    );
+    if (!confirmed) return;
     setBusyId(mapId);
     setError(null);
     try {
@@ -194,8 +232,11 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
         throw new Error(data?.error?.message ?? getText('No pudimos quitar el acceso.', "We couldn't remove access."));
       }
       setCollaborators((prev) => prev.filter((c) => c.id !== mapId));
+      toast.success(getText('Acceso quitado.', 'Access removed.'));
     } catch (e) {
-      setError(e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.'));
+      const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setBusyId(null);
     }
@@ -216,8 +257,13 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
       setCollaborators((prev) => [...prev, data]);
       setStandaloneEmail('');
       setStandaloneOpen(false);
+      toast.success(
+        getText(`Invitación enviada a ${standaloneEmail.trim()}.`, `Invite sent to ${standaloneEmail.trim()}.`),
+      );
     } catch (e) {
-      setError(e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.'));
+      const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setStandaloneSaving(false);
     }
@@ -255,20 +301,42 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
         {canManagePersonal && (
           <div className="mt-6 max-w-2xl rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
             <h2 className="text-sm font-semibold">{getText('Agregar persona', 'Add person')}</h2>
-            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={getText('Nombre', 'Name')}
                 className="flex-1 rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
               />
+              <input
+                type="email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+                placeholder={getText('Correo (opcional)', 'Email (optional)')}
+                className="flex-1 rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+              />
               {customRole ? (
-                <input
-                  value={newRole}
-                  onChange={(e) => setNewRole(e.target.value)}
-                  placeholder={getText('Rol', 'Role')}
-                  className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
-                />
+                <div className="flex items-center gap-1">
+                  <input
+                    autoFocus
+                    value={newRole}
+                    onChange={(e) => setNewRole(e.target.value)}
+                    placeholder={getText('Rol', 'Role')}
+                    className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomRole(false);
+                      setNewRole(suggestions[0] ?? '');
+                    }}
+                    aria-label={getText('Volver a la lista de roles', 'Back to role list')}
+                    title={getText('Volver a la lista de roles', 'Back to role list')}
+                    className="rounded-full p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-neutral-800"
+                  >
+                    ✕
+                  </button>
+                </div>
               ) : (
                 <select
                   value={newRole}
@@ -298,6 +366,12 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                 {saving ? getText('Agregando…', 'Adding…') : getText('Agregar', 'Add')}
               </button>
             </div>
+            <p className="mt-2 text-xs text-gray-400 dark:text-neutral-500">
+              {getText(
+                'El correo es opcional — solo lo necesitás si más adelante le vas a dar acceso al dashboard.',
+                "Email is optional — you'll only need it if you grant this person dashboard access later.",
+              )}
+            </p>
           </div>
         )}
 
@@ -342,7 +416,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                         )}
                         {link && canManageAccess && (
                           <button
-                            onClick={() => removeAccess(link.id)}
+                            onClick={() => removeAccess(link.id, member.name)}
                             disabled={busyId === link.id}
                             className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-red-400 hover:text-red-500 disabled:opacity-50"
                           >
@@ -357,7 +431,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                           {member.isActive ? getText('Marcar no disponible', 'Mark unavailable') : getText('Marcar disponible', 'Mark available')}
                         </button>
                         <button
-                          onClick={() => removePersonal(member.id)}
+                          onClick={() => removePersonal(member.id, member.name)}
                           disabled={busyId === member.id}
                           className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-red-400 hover:text-red-500 disabled:opacity-50"
                         >
@@ -458,7 +532,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                     )}
                     {canManageAccess && (
                       <button
-                        onClick={() => removeAccess(c.id)}
+                        onClick={() => removeAccess(c.id, c.email)}
                         disabled={busyId === c.id}
                         className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-red-400 hover:text-red-500 disabled:opacity-50"
                       >
@@ -524,6 +598,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
           </div>
         )}
       </div>
+      <Toast toasts={toast.toasts} onRemove={toast.remove} />
     </div>
   );
 }
