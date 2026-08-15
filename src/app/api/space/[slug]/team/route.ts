@@ -54,16 +54,22 @@ export async function POST(
 
   const data = await apiRes.json().catch(() => null);
 
-  // El invite en sí ya se guardó en el backend — el correo es un aviso best-effort, nunca
-  // debe hacer fallar la respuesta al dueño si Resend no está configurado o falla.
+  // El invite en sí ya se guardó en el backend — el correo es un aviso best-effort (nunca
+  // hace fallar la respuesta al dueño: sendTeamInviteEmail atrapa sus propios errores y
+  // devuelve false). Antes esto se disparaba sin await ("fire and forget"), pero en un
+  // entorno serverless (Vercel) la función puede congelarse/matarse apenas se arma la
+  // respuesta — el fetch a la API de Resend se cortaba a medias y nunca llegaba a
+  // aparecer ni siquiera como intento fallido en el dashboard de Resend. Por eso el dueño
+  // veía "invitación enviada" pero cero rastro del lado de Resend. Con await, la función
+  // espera a que el intento de envío termine antes de responder.
   if (apiRes.ok && data?.email) {
-    sendTeamInviteEmail({
+    await sendTeamInviteEmail({
       inviteeEmail: data.email,
       businessName: affiliate.name,
       slug,
       role: data.role ?? body.role,
       inviterEmail: currentUser.email,
-    }).catch(() => {});
+    });
   }
 
   return NextResponse.json(data ?? {}, { status: apiRes.status });
