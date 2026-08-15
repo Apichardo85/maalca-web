@@ -14,6 +14,7 @@ export interface PersonalMember {
   role: string;
   department: string;
   isActive: boolean;
+  photoUrl?: string | null;
 }
 
 export interface Collaborator {
@@ -59,6 +60,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
   const [collaborators, setCollaborators] = useState(initialCollaborators);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [uploadingPhotoId, setUploadingPhotoId] = useState<string | null>(null);
 
   // Agregar persona (Personal)
   const [name, setName] = useState('');
@@ -133,6 +135,45 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
       setError(e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.'));
     } finally {
       setBusyId(null);
+    }
+  }
+
+  // Sube la foto a Supabase Storage (mismo endpoint que catálogo — genérico por itemId) y
+  // guarda la URL en el registro de Personal. Solo esta foto (elegida a propósito por el
+  // dueño) sale en canales públicos como la sección de reserva — sin foto, esos canales caen
+  // a un avatar con iniciales.
+  async function uploadPhoto(member: PersonalMember, file: File) {
+    if (file.size > 2 * 1024 * 1024) {
+      const msg = getText('La foto no puede superar 2MB.', 'Photo cannot exceed 2MB.');
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
+    setUploadingPhotoId(member.id);
+    setError(null);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('itemId', `staff-${member.id}`);
+      const uploadRes = await fetch(`/api/space/${slug}/catalog/upload-image`, { method: 'POST', body: fd });
+      const uploadData = await uploadRes.json().catch(() => null);
+      if (!uploadRes.ok) throw new Error(uploadData?.error ?? getText('No pudimos subir la foto.', "We couldn't upload the photo."));
+
+      const res = await fetch(`/api/space/${slug}/personal/${member.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...member, photoUrl: uploadData.url }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error?.message ?? getText('No pudimos guardar la foto.', "We couldn't save the photo."));
+      setPersonal((prev) => prev.map((m) => (m.id === member.id ? data : m)));
+      toast.success(getText('Foto actualizada.', 'Photo updated.'));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setUploadingPhotoId(null);
     }
   }
 
@@ -383,12 +424,53 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                 key={member.id}
                 className="rounded-xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4"
               >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{member.name}</p>
-                    <p className="text-xs text-gray-400 dark:text-neutral-500">{member.role}</p>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex min-w-0 items-center gap-3">
+                    {canManagePersonal ? (
+                      <label className="group relative shrink-0 cursor-pointer">
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          className="hidden"
+                          disabled={uploadingPhotoId === member.id}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            e.target.value = '';
+                            if (file) uploadPhoto(member, file);
+                          }}
+                        />
+                        {member.photoUrl ? (
+                          <img
+                            src={member.photoUrl}
+                            alt={member.name}
+                            className="h-10 w-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-800 text-sm font-semibold text-gray-500 dark:text-neutral-400">
+                            {member.name.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 text-[10px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
+                          {uploadingPhotoId === member.id ? '…' : getText('Cambiar', 'Change')}
+                        </span>
+                      </label>
+                    ) : member.photoUrl ? (
+                      <img
+                        src={member.photoUrl}
+                        alt={member.name}
+                        className="h-10 w-10 shrink-0 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-800 text-sm font-semibold text-gray-500 dark:text-neutral-400">
+                        {member.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{member.name}</p>
+                      <p className="text-xs text-gray-400 dark:text-neutral-500">{member.role}</p>
+                    </div>
                   </div>
-                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                  <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end">
                     <span
                       className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${
                         member.isActive
@@ -503,7 +585,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
               {standaloneCollaborators.map((c) => (
                 <div
                   key={c.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4"
+                  className="flex flex-col gap-3 rounded-xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{c.email}</p>
@@ -513,7 +595,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                       </span>
                     )}
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
                     {canManageAccess ? (
                       <select
                         value={c.role}

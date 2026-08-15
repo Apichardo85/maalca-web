@@ -8,6 +8,7 @@ interface PublicTeamMember {
   id: string;
   name: string;
   role: string;
+  photoUrl?: string | null;
 }
 
 interface PublicService {
@@ -197,12 +198,21 @@ export function PublicBookingSection({ slug, language, accent }: Props) {
               onClick={() => openBooking(member)}
               className="group flex flex-col items-center gap-3 rounded-2xl border border-gray-200 bg-white p-5 text-center shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
             >
-              <div
-                className="flex h-16 w-16 items-center justify-center rounded-full text-xl font-black text-white shadow-inner"
-                style={{ background: `linear-gradient(135deg, ${color}, ${colorDark})` }}
-              >
-                {initials(member.name)}
-              </div>
+              {member.photoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={member.photoUrl}
+                  alt={member.name}
+                  className="h-16 w-16 rounded-full object-cover shadow-inner"
+                />
+              ) : (
+                <div
+                  className="flex h-16 w-16 items-center justify-center rounded-full text-xl font-black text-white shadow-inner"
+                  style={{ background: `linear-gradient(135deg, ${color}, ${colorDark})` }}
+                >
+                  {initials(member.name)}
+                </div>
+              )}
               <div>
                 <p className="text-sm font-bold text-gray-900">{member.name}</p>
                 <p className="text-xs text-gray-500">{member.role}</p>

@@ -104,12 +104,12 @@ export function OrdersContent({ slug, plan, initialOrders }: Props) {
                 className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold">
                       {order.customerName || getText('Cliente sin nombre', 'Unnamed customer')}
                     </p>
                     {order.customerPhone && (
-                      <p className="text-xs text-gray-500 dark:text-neutral-400">{order.customerPhone}</p>
+                      <p className="truncate text-xs text-gray-500 dark:text-neutral-400">{order.customerPhone}</p>
                     )}
                     <p className="mt-1 text-xs text-gray-400 dark:text-neutral-500">
                       {new Date(order.createdAt).toLocaleString(language === 'es' ? 'es-DO' : 'en-US')}
@@ -129,7 +129,7 @@ export function OrdersContent({ slug, plan, initialOrders }: Props) {
                   ))}
                 </ul>
 
-                <div className="mt-3 flex items-center justify-between border-t border-gray-100 dark:border-neutral-800 pt-3">
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 dark:border-neutral-800 pt-3">
                   <span className="text-sm font-bold">{fmt(order.total, order.currency)}</span>
 
                   {order.status === 'Paid' && (

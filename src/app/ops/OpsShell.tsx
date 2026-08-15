@@ -41,7 +41,7 @@ export function OpsShell({ role, children }: { role: OpsRole; children: React.Re
     <OpsRoleProvider role={role}>
       <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
         <div className="mx-auto max-w-6xl px-6 py-10">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
                 MaalCa · Plataforma {role && `· ${role}`}
@@ -50,14 +50,14 @@ export function OpsShell({ role, children }: { role: OpsRole; children: React.Re
             </div>
             <button
               onClick={endSupportMode}
-              className="rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-2 text-xs font-medium text-gray-500 hover:border-red-400 hover:text-red-500"
+              className="self-start rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-2 text-xs font-medium text-gray-500 hover:border-red-400 hover:text-red-500 sm:self-auto"
               title="Termina cualquier sesión de soporte activa en otro negocio"
             >
               Salir de modo soporte
             </button>
           </div>
 
-          <nav className="mt-6 flex gap-1 border-b border-gray-200 dark:border-neutral-800 pb-3">
+          <nav className="mt-6 flex gap-1 overflow-x-auto border-b border-gray-200 dark:border-neutral-800 pb-3">
             {NAV.map((n) => (
               <NavLink key={n.href} href={n.href} label={n.label} />
             ))}
