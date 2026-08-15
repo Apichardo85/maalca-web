@@ -407,6 +407,57 @@ function buildOrderStatusEmail(params: {
   `;
 }
 
+/**
+ * Confirmación simple de cita — disparada por POST /api/space/{slug}/agenda cuando el
+ * cliente tiene email guardado. A propósito NO usa el template ilustrado de bienvenida/pedido
+ * (el dueño pidió algo liviano, sin diseño pesado) — es solo texto con los datos clave.
+ */
+export async function sendAppointmentConfirmationEmail(params: {
+  customerEmail: string;
+  customerName: string | null;
+  businessName: string;
+  serviceName: string;
+  date: string; // yyyy-MM-dd
+  time: string; // HH:mm
+  staffName?: string | null;
+}): Promise<boolean> {
+  if (!resend) {
+    console.log('[Resend] Skipped appointment confirmation — RESEND_API_KEY not set');
+    return false;
+  }
+
+  const greeting = params.customerName ? `Hola, ${params.customerName}` : 'Hola';
+  const dateFmt = new Date(`${params.date}T00:00:00`).toLocaleDateString('es-DO', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+  const staffLine = params.staffName ? `<br/>Con: ${params.staffName}` : '';
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: params.customerEmail,
+      subject: `Cita confirmada — ${params.businessName}`,
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
+          <p style="font-size: 15px; line-height: 1.6;">${greeting},</p>
+          <p style="font-size: 15px; line-height: 1.6;">Tu cita en <strong>${params.businessName}</strong> quedó confirmada:</p>
+          <p style="font-size: 15px; line-height: 1.6; background: #fafafa; border-radius: 8px; padding: 12px 16px;">
+            <strong>${params.serviceName}</strong><br/>
+            ${dateFmt} · ${params.time}${staffLine}
+          </p>
+          <p style="font-size: 13px; color: #737373;">Si necesitas cambiarla o cancelarla, contacta directamente al negocio.</p>
+        </div>
+      `,
+    });
+    return true;
+  } catch (err: unknown) {
+    console.error('[Resend] Appointment confirmation failed:', err instanceof Error ? err.message : String(err));
+    return false;
+  }
+}
+
 function sourceGreeting(source: string): { title: string; body: string } {
   switch (source) {
     case 'ciriwhispers':

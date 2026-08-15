@@ -11,7 +11,7 @@ export interface Appointment {
   time: string;
   status: string;
   notes?: string | null;
-  customer?: { id: string; name: string } | null;
+  customer?: { id: string; name: string; phone?: string | null } | null;
   service?: { id: string; name: string; durationMinutes: number } | null;
   assignedTo?: { id: string; name: string } | null;
 }
@@ -105,6 +105,7 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
   const [appointments, setAppointments] = useState(initialAppointments);
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
   const [serviceId, setServiceId] = useState(services[0]?.id ?? '');
   const [assignedToId, setAssignedToId] = useState('');
   const [date, setDate] = useState('');
@@ -137,7 +138,11 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
       const customerRes = await fetch(`/api/space/${slug}/customers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: customerName.trim(), phone: customerPhone.trim() || null }),
+        body: JSON.stringify({
+          name: customerName.trim(),
+          phone: customerPhone.trim() || null,
+          email: customerEmail.trim() || null,
+        }),
       });
       const customer = await customerRes.json().catch(() => null);
       if (!customerRes.ok) {
@@ -154,6 +159,10 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
           date,
           time,
           status: 'Scheduled',
+          // Solo para el correo de confirmación (best-effort) — no son campos del backend.
+          customerEmail: customerEmail.trim() || null,
+          serviceName: services.find((s) => s.id === serviceId)?.name ?? null,
+          staffName: personal.find((p) => p.id === assignedToId)?.name ?? null,
         }),
       });
       const appt = await apptRes.json().catch(() => null);
@@ -164,6 +173,7 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
       toast.success(getText('Cita creada.', 'Appointment created.'));
       setCustomerName('');
       setCustomerPhone('');
+      setCustomerEmail('');
       setDate('');
       setTime('');
     } catch (e) {
@@ -265,6 +275,13 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
                   onChange={(e) => setCustomerPhone(e.target.value)}
                   placeholder={getText('Teléfono (opcional)', 'Phone (optional)')}
                   className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+                />
+                <input
+                  value={customerEmail}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
+                  type="email"
+                  placeholder={getText('Email (opcional, para confirmación)', 'Email (optional, for confirmation)')}
+                  className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm sm:col-span-2"
                 />
                 <select
                   value={serviceId}
@@ -397,6 +414,15 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
+                {a.customer?.phone && (
+                  <a
+                    href={`tel:${a.customer.phone}`}
+                    className="flex items-center gap-1 rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-neutral-300 hover:border-[#C8102E] hover:text-[#C8102E]"
+                    title={getText('Llamar al cliente', 'Call customer')}
+                  >
+                    📞 {a.customer.phone}
+                  </a>
+                )}
                 {canManage ? (
                   <select
                     value={a.status}
