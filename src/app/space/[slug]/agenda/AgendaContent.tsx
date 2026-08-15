@@ -223,7 +223,7 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
-      <div className="px-6 py-12">
+      <div className="mx-auto max-w-6xl px-6 py-12">
         <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
           {getText('Tu espacio', 'Your space')}
         </p>
@@ -236,21 +236,22 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
         </p>
 
         {error && (
-          <p className="mt-3 max-w-2xl rounded-lg bg-red-50 dark:bg-red-900/20 px-3 py-2 text-sm text-red-600 dark:text-red-400">
+          <p className="mt-3 rounded-lg bg-red-50 dark:bg-red-900/20 px-3 py-2 text-sm text-red-600 dark:text-red-400">
             {error}
           </p>
         )}
 
         {services.length === 0 ? (
-          <p className="mt-6 max-w-2xl text-sm text-gray-400 dark:text-neutral-500">
+          <p className="mt-6 text-sm text-gray-400 dark:text-neutral-500">
             {getText(
               'Todavía no tienes servicios en tu catálogo — agrega uno primero para poder agendar citas.',
               "You don't have any services in your catalog yet — add one first to book appointments.",
             )}
           </p>
         ) : (
-          canManage && (
-            <div className="mt-6 max-w-2xl rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
+          <div className="mt-6 lg:grid lg:grid-cols-[380px_1fr] lg:items-start lg:gap-6">
+          {canManage && (
+            <div className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
               <h2 className="text-sm font-semibold">{getText('Nueva cita', 'New appointment')}</h2>
               <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <input
@@ -373,10 +374,9 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
                     : getText('Agendar', 'Book')}
               </button>
             </div>
-          )
-        )}
+          )}
 
-        <div className="mt-6 max-w-3xl space-y-2">
+          <div className="mt-6 space-y-2 lg:mt-0">
           {appointments.map((a) => (
             <div
               key={a.id}
@@ -428,7 +428,9 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
               {getText('No hay citas agendadas todavía.', 'No appointments booked yet.')}
             </p>
           )}
+          </div>
         </div>
+        )}
       </div>
       <Toast toasts={toast.toasts} onRemove={toast.remove} />
     </div>

@@ -345,7 +345,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
-      <div className="px-6 py-12">
+      <div className="mx-auto max-w-6xl px-6 py-12">
         <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
           {getText('Tu espacio', 'Your space')}
         </p>
@@ -372,8 +372,9 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
           </p>
         )}
 
+        <div className="mt-6 lg:grid lg:grid-cols-[380px_1fr] lg:items-start lg:gap-6">
         {canManagePersonal && (
-          <div className="mt-6 max-w-2xl rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
+          <div className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
             <h2 className="text-sm font-semibold">{getText('Agregar persona', 'Add person')}</h2>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
               <label className="group relative mx-auto shrink-0 cursor-pointer sm:mx-0">
@@ -472,7 +473,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
           </div>
         )}
 
-        <div className="mt-6 max-w-2xl space-y-2">
+        <div className="mt-6 space-y-2 lg:mt-0">
           {personal.map((member) => {
             const link = linkedByTeamMemberId.get(member.id);
             return (
@@ -624,9 +625,10 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
             </p>
           )}
         </div>
+        </div>
 
         {(standaloneCollaborators.length > 0 || canManageAccess) && (
-          <div className="mt-10 max-w-2xl">
+          <div className="mt-10 max-w-4xl">
             <h2 className="text-sm font-semibold text-gray-500 dark:text-neutral-400">
               {getText('Cuentas del dashboard sin vincular a Personal', 'Dashboard accounts not linked to Personal')}
             </h2>

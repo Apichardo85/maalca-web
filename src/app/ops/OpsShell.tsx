@@ -40,7 +40,7 @@ export function OpsShell({ role, children }: { role: OpsRole; children: React.Re
   return (
     <OpsRoleProvider role={role}>
       <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
-        <div className="mx-auto max-w-6xl px-6 py-10">
+        <div className="mx-auto max-w-7xl px-6 py-10">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">

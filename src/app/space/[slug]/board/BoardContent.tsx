@@ -294,7 +294,7 @@ export function BoardContent({
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
-      <div className="px-6 py-12 max-w-5xl">
+      <div className="mx-auto max-w-6xl px-6 py-12">
         <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
           {getText('Tu espacio', 'Your space')}
         </p>
@@ -318,8 +318,10 @@ export function BoardContent({
           </p>
         )}
 
-        {/* Frecuencia de rotación */}
-        <div className="mt-6 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
+        {/* Frecuencia de rotación + idioma/tema/efecto — lado a lado en desktop (ambas son
+            tarjetas cortas; apiladas dejaban un hueco enorme a la derecha en laptop). */}
+        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-start">
+        <div className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
           <h2 className="text-sm font-semibold">{getText('Frecuencia de comerciales', 'Ad frequency')}</h2>
           <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
             {getText(
@@ -346,8 +348,7 @@ export function BoardContent({
           </div>
         </div>
 
-        {/* Idioma, tema y efecto del board */}
-        <div className="mt-4 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
+        <div className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
           <h2 className="text-sm font-semibold">{getText('Idioma, tema y efecto de la pantalla', 'Screen language, theme and effect')}</h2>
           <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
             {getText(
@@ -355,7 +356,7 @@ export function BoardContent({
               "Since nobody interacts with the TV, this is set here — it doesn't change with this panel's language.",
             )}
           </p>
-          <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div className="mt-3 grid grid-cols-3 gap-3">
             <label className="flex flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
               {getText('Idioma', 'Language')}
               <select
@@ -407,6 +408,7 @@ export function BoardContent({
               </select>
             </label>
           </div>
+        </div>
         </div>
 
         {/* Pantallas adicionales — Fase 9 Etapa B */}

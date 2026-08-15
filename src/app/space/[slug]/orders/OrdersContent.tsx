@@ -75,7 +75,7 @@ export function OrdersContent({ slug, plan, initialOrders }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
-      <div className="px-6 py-12">
+      <div className="mx-auto max-w-7xl px-6 py-12">
         <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
           {getText('Tu espacio', 'Your space')}
         </p>
@@ -97,7 +97,7 @@ export function OrdersContent({ slug, plan, initialOrders }: Props) {
             </p>
           </div>
         ) : (
-          <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             {orders.map((order) => (
               <div
                 key={order.id}
