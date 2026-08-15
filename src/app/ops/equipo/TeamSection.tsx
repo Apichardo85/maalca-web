@@ -108,7 +108,53 @@ export function TeamSection({ initialTeam }: { initialTeam: OpsTeamMember[] }) {
         </div>
       )}
 
-      <div className="mt-3 overflow-x-auto rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+      {/* Mobile — tarjetas apiladas en vez de tabla comprimida. */}
+      <div className="mt-3 space-y-2 sm:hidden">
+        {team.map((m) => (
+          <div
+            key={m.id}
+            className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-3"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <p className="min-w-0 truncate text-sm font-medium">{m.email}</p>
+              {canManage && (
+                <button
+                  onClick={() => remove(m.id)}
+                  disabled={busy}
+                  className="shrink-0 text-xs font-medium text-gray-400 hover:text-red-500 disabled:opacity-50"
+                >
+                  Quitar
+                </button>
+              )}
+            </div>
+            <div className="mt-2 flex items-center justify-between gap-2">
+              {canManage ? (
+                <select
+                  value={m.role}
+                  onChange={(e) => changeRole(m.id, e.target.value as 'Owner' | 'Support')}
+                  disabled={busy}
+                  className="rounded-md border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1 text-xs"
+                >
+                  <option value="Support">Support</option>
+                  <option value="Owner">Owner</option>
+                </select>
+              ) : (
+                <span className="text-xs">{m.role}</span>
+              )}
+              <span className="text-xs text-gray-400 dark:text-neutral-500">
+                {m.pending ? 'Invitación pendiente' : 'Activo'}
+              </span>
+            </div>
+          </div>
+        ))}
+        {team.length === 0 && (
+          <p className="rounded-xl border border-dashed border-gray-200 dark:border-neutral-800 px-4 py-6 text-center text-xs text-gray-400 dark:text-neutral-500">
+            Sin miembros.
+          </p>
+        )}
+      </div>
+
+      <div className="mt-3 hidden overflow-x-auto rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 sm:block">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-200 dark:border-neutral-800 text-left text-xs uppercase tracking-wide text-gray-400 dark:text-neutral-500">

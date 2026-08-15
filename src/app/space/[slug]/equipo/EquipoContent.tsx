@@ -68,6 +68,8 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
   const [newRole, setNewRole] = useState(suggestions[0] ?? '');
   const [customRole, setCustomRole] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [newPhotoUrl, setNewPhotoUrl] = useState<string | null>(null);
+  const [newPhotoUploading, setNewPhotoUploading] = useState(false);
 
   // Dar acceso a un miembro de Personal existente
   const [inviteOpenFor, setInviteOpenFor] = useState<string | null>(null);
@@ -86,6 +88,35 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
   );
   const standaloneCollaborators = collaborators.filter((c) => !c.teamMemberId);
 
+  // Sube la foto ANTES de que la persona exista (mismo endpoint genérico de catálogo, con un
+  // itemId temporal) — así el dueño puede elegirla desde el mismo formulario de "Agregar
+  // persona" en vez de tener que crearla primero y volver a buscarla en la lista.
+  async function uploadNewPhoto(file: File) {
+    if (file.size > 2 * 1024 * 1024) {
+      const msg = getText('La foto no puede superar 2MB.', 'Photo cannot exceed 2MB.');
+      setError(msg);
+      toast.error(msg);
+      return;
+    }
+    setNewPhotoUploading(true);
+    setError(null);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('itemId', `staff-new-${Date.now()}`);
+      const res = await fetch(`/api/space/${slug}/catalog/upload-image`, { method: 'POST', body: fd });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error ?? getText('No pudimos subir la foto.', "We couldn't upload the photo."));
+      setNewPhotoUrl(data.url);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setNewPhotoUploading(false);
+    }
+  }
+
   async function addMember() {
     if (!name.trim() || !newRole.trim()) return;
     setSaving(true);
@@ -100,6 +131,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
           role: newRole.trim(),
           department: 'General',
           isActive: true,
+          photoUrl: newPhotoUrl,
         }),
       });
       const data = await res.json().catch(() => null);
@@ -110,6 +142,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
       setNewEmail('');
       setCustomRole(false);
       setNewRole(suggestions[0] ?? '');
+      setNewPhotoUrl(null);
     } catch (e) {
       const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
       setError(msg);
@@ -342,7 +375,30 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
         {canManagePersonal && (
           <div className="mt-6 max-w-2xl rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
             <h2 className="text-sm font-semibold">{getText('Agregar persona', 'Add person')}</h2>
-            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+              <label className="group relative mx-auto shrink-0 cursor-pointer sm:mx-0">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  disabled={newPhotoUploading}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = '';
+                    if (file) uploadNewPhoto(file);
+                  }}
+                />
+                {newPhotoUrl ? (
+                  <img src={newPhotoUrl} alt="" className="h-12 w-12 rounded-full object-cover" />
+                ) : (
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-dashed border-gray-300 dark:border-neutral-700 text-lg text-gray-300 dark:text-neutral-600">
+                    📷
+                  </div>
+                )}
+                <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 text-[9px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
+                  {newPhotoUploading ? '…' : getText('Foto', 'Photo')}
+                </span>
+              </label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}

@@ -29,12 +29,21 @@ export interface PersonalOption {
   isActive: boolean;
 }
 
+interface HorarioDay {
+  dia: string;
+  abre: string;
+  cierra: string;
+  cerrado: boolean;
+}
+
 interface Props {
   slug: string;
   canManage: boolean;
   initialAppointments: Appointment[];
   services: ServiceOption[];
   personal: PersonalOption[];
+  /** Horario configurado en Identidad — sin esto, cae a 9am–6pm todos los días. */
+  horario?: HorarioDay[] | null;
 }
 
 const STATUS_OPTIONS = ['Scheduled', 'Confirmed', 'InProgress', 'Completed', 'Cancelled', 'NoShow'];
@@ -48,7 +57,47 @@ const STATUS_LABELS: Record<string, { es: string; en: string }> = {
   NoShow: { es: 'No se presentó', en: 'No-show' },
 };
 
-export function AgendaContent({ slug, canManage, initialAppointments, services, personal }: Props) {
+const STATUS_STYLES: Record<string, string> = {
+  Scheduled: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  Confirmed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  InProgress: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  Completed: 'bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-neutral-300',
+  Cancelled: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+  NoShow: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+};
+
+// getDay() indexa 0=domingo..6=sábado; Horario.dia usa claves en minúscula en inglés.
+const WEEKDAY_KEYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+const DEFAULT_HOURS = { abre: '09:00', cierra: '18:00' };
+
+/** Slots de 30 en 30 min entre abre y cierra, excluyendo los ya pasados si es hoy. */
+function generateTimeSlots(abre: string, cierra: string, isToday: boolean): string[] {
+  const [openH, openM] = abre.split(':').map(Number);
+  const [closeH, closeM] = cierra.split(':').map(Number);
+  if ([openH, openM, closeH, closeM].some((n) => Number.isNaN(n))) return [];
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const slots: string[] = [];
+  for (let mins = openH * 60 + openM; mins < closeH * 60 + closeM; mins += 30) {
+    if (isToday && mins <= nowMinutes + 15) continue;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+  }
+  return slots;
+}
+
+function nextDays(count: number): { dateStr: string; date: Date }[] {
+  const out: { dateStr: string; date: Date }[] = [];
+  for (let i = 0; i < count; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    out.push({ dateStr: d.toISOString().slice(0, 10), date: d });
+  }
+  return out;
+}
+
+export function AgendaContent({ slug, canManage, initialAppointments, services, personal, horario }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -63,6 +112,22 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  function hoursFor(dateObj: Date): { abre: string; cierra: string; cerrado: boolean } {
+    const key = WEEKDAY_KEYS[dateObj.getDay()];
+    const entry = horario?.find((h) => h.dia === key);
+    if (!entry) return { ...DEFAULT_HOURS, cerrado: false };
+    return entry;
+  }
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const dayOptions = nextDays(14);
+  const selectedDateObj = date ? new Date(`${date}T00:00:00`) : null;
+  const selectedDayHours = selectedDateObj ? hoursFor(selectedDateObj) : null;
+  const timeSlots =
+    selectedDateObj && selectedDayHours && !selectedDayHours.cerrado
+      ? generateTimeSlots(selectedDayHours.abre, selectedDayHours.cierra, date === todayStr)
+      : [];
 
   async function createAppointment() {
     if (!customerName.trim() || !serviceId || !date || !time) return;
@@ -185,7 +250,7 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
           </p>
         ) : (
           canManage && (
-            <div className="mt-6 max-w-2xl rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
+            <div className="mt-6 max-w-2xl rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
               <h2 className="text-sm font-semibold">{getText('Nueva cita', 'New appointment')}</h2>
               <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <input
@@ -223,25 +288,89 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
                     </option>
                   ))}
                 </select>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
-                />
-                <input
-                  type="time"
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
-                />
               </div>
+
+              <div className="mt-3">
+                <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-neutral-400">
+                  {getText('Día', 'Day')}
+                </label>
+                <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+                  {dayOptions.map(({ dateStr, date: d }) => {
+                    const active = date === dateStr;
+                    const closed = hoursFor(d).cerrado;
+                    return (
+                      <button
+                        key={dateStr}
+                        type="button"
+                        onClick={() => {
+                          setDate(dateStr);
+                          setTime('');
+                        }}
+                        className={`flex shrink-0 flex-col items-center rounded-xl border px-3 py-2 text-xs font-semibold transition-colors ${
+                          active
+                            ? 'border-[#C8102E] bg-[#C8102E] text-white'
+                            : closed
+                              ? 'border-gray-200 text-gray-300 dark:border-neutral-800 dark:text-neutral-600'
+                              : 'border-gray-300 text-gray-700 dark:border-neutral-700 dark:text-neutral-300'
+                        }`}
+                      >
+                        <span className="uppercase tracking-wide">
+                          {d.toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { weekday: 'short' })}
+                        </span>
+                        <span className="mt-0.5 text-sm">{d.getDate()}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {date && (
+                <div className="mt-3">
+                  <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-neutral-400">
+                    {getText('Hora', 'Time')}
+                  </label>
+                  {selectedDayHours?.cerrado ? (
+                    <p className="rounded-xl bg-gray-50 dark:bg-neutral-800/60 px-3 py-2.5 text-sm text-gray-500 dark:text-neutral-400">
+                      {getText('Cerrado ese día — elige otra fecha.', "Closed that day — pick another date.")}
+                    </p>
+                  ) : timeSlots.length === 0 ? (
+                    <p className="rounded-xl bg-gray-50 dark:bg-neutral-800/60 px-3 py-2.5 text-sm text-gray-500 dark:text-neutral-400">
+                      {getText('No quedan horarios disponibles ese día.', 'No time slots left that day.')}
+                    </p>
+                  ) : (
+                    <div className="grid max-h-40 grid-cols-4 gap-1.5 overflow-y-auto sm:grid-cols-6">
+                      {timeSlots.map((slot) => {
+                        const active = time === slot;
+                        return (
+                          <button
+                            key={slot}
+                            type="button"
+                            onClick={() => setTime(slot)}
+                            className={`rounded-lg border px-2 py-1.5 text-xs font-semibold transition-colors ${
+                              active
+                                ? 'border-[#C8102E] bg-[#C8102E] text-white'
+                                : 'border-gray-300 text-gray-700 dark:border-neutral-700 dark:text-neutral-300'
+                            }`}
+                          >
+                            {slot}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <button
                 onClick={createAppointment}
                 disabled={saving || !customerName.trim() || !serviceId || !date || !time}
-                className="mt-3 rounded-full bg-[#C8102E] px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
+                className="mt-4 rounded-full bg-[#C8102E] px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
               >
-                {saving ? getText('Agendando…', 'Booking…') : getText('Agendar', 'Book')}
+                {saving
+                  ? getText('Agendando…', 'Booking…')
+                  : !date || !time
+                    ? getText('Elige día y hora', 'Pick a day and time')
+                    : getText('Agendar', 'Book')}
               </button>
             </div>
           )
@@ -251,18 +380,23 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
           {appointments.map((a) => (
             <div
               key={a.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4"
+              className="flex flex-col gap-3 rounded-xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="min-w-0">
-                <p className="text-sm font-medium">
-                  {a.customer?.name ?? getText('Cliente', 'Customer')} · {a.service?.name ?? '—'}
-                </p>
-                <p className="text-xs text-gray-400 dark:text-neutral-500">
-                  {new Date(a.date).toLocaleDateString()} · {a.time}
+                <div className="flex items-center gap-2">
+                  <p className="truncate text-sm font-medium">
+                    {a.customer?.name ?? getText('Cliente', 'Customer')} · {a.service?.name ?? '—'}
+                  </p>
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLES[a.status] ?? 'bg-gray-100 text-gray-500 dark:bg-neutral-800 dark:text-neutral-400'}`}>
+                    {STATUS_LABELS[a.status]?.[language] ?? a.status}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs text-gray-400 dark:text-neutral-500">
+                  {new Date(a.date).toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short' })} · {a.time}
                   {a.assignedTo && ` · ${a.assignedTo.name}`}
                 </p>
               </div>
-              <div className="flex shrink-0 items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
                 {canManage ? (
                   <select
                     value={a.status}
@@ -276,9 +410,7 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
                       </option>
                     ))}
                   </select>
-                ) : (
-                  <span className="text-xs text-gray-500 dark:text-neutral-400">{STATUS_LABELS[a.status]?.[language] ?? a.status}</span>
-                )}
+                ) : null}
                 {canManage && (
                   <button
                     onClick={() => remove(a.id)}

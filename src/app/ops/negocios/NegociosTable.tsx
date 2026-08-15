@@ -6,6 +6,86 @@ import { useRouter } from 'next/navigation';
 import { useOpsCanManage } from '../OpsRoleContext';
 import type { OpsAffiliate } from '../types';
 
+function PlanBadge({ plan }: { plan: string }) {
+  return (
+    <span
+      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+        plan === 'Entrepreneur'
+          ? 'bg-[#C8102E]/10 text-[#C8102E]'
+          : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400'
+      }`}
+    >
+      {plan}
+    </span>
+  );
+}
+
+function AlertBadges({ alerts }: { alerts: string[] }) {
+  if (alerts.length === 0) return <span className="text-xs text-gray-300 dark:text-neutral-600">—</span>;
+  return (
+    <div className="flex flex-wrap gap-1">
+      {alerts.map((alert) => (
+        <span
+          key={alert}
+          className="inline-block rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 text-[11px] font-medium text-yellow-700 dark:text-yellow-400"
+        >
+          {alert}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+interface RowProps {
+  a: OpsAffiliate;
+  canManage: boolean;
+  busyId: string | null;
+  setStatus: (a: OpsAffiliate, patch: { published?: boolean; active?: boolean }) => void;
+  impersonate: (a: OpsAffiliate) => void;
+}
+
+function AffiliateActions({ a, canManage, busyId, setStatus, impersonate }: RowProps) {
+  return (
+    <>
+      <Link
+        href={`/ops/negocios/${a.id}`}
+        className="rounded-full border border-gray-300 dark:border-neutral-700 px-2.5 py-1 text-xs font-medium text-gray-600 dark:text-neutral-300 hover:border-gray-400"
+      >
+        Detalle
+      </Link>
+      {canManage && (
+        <>
+          <button
+            onClick={() => setStatus(a, { published: !a.published })}
+            disabled={busyId === a.id}
+            className="rounded-full border border-gray-300 dark:border-neutral-700 px-2.5 py-1 text-xs font-medium text-gray-600 dark:text-neutral-300 hover:border-gray-400 disabled:opacity-50"
+          >
+            {a.published ? 'Despublicar' : 'Publicar'}
+          </button>
+          <button
+            onClick={() => setStatus(a, { active: !a.isActive })}
+            disabled={busyId === a.id}
+            className={`rounded-full border px-2.5 py-1 text-xs font-medium disabled:opacity-50 ${
+              a.isActive
+                ? 'border-gray-300 dark:border-neutral-700 text-gray-600 dark:text-neutral-300 hover:border-red-400 hover:text-red-500'
+                : 'border-yellow-400 text-yellow-600 dark:text-yellow-400'
+            }`}
+          >
+            {a.isActive ? 'Pausar' : 'Reactivar'}
+          </button>
+        </>
+      )}
+      <button
+        onClick={() => impersonate(a)}
+        disabled={busyId === a.id}
+        className="rounded-full bg-[#C8102E] px-3 py-1 text-xs font-medium text-white disabled:opacity-50"
+      >
+        {busyId === a.id ? '…' : 'Soporte'}
+      </button>
+    </>
+  );
+}
+
 export function NegociosTable({ initialAffiliates }: { initialAffiliates: OpsAffiliate[] }) {
   const router = useRouter();
   const canManage = useOpsCanManage();
@@ -65,7 +145,49 @@ export function NegociosTable({ initialAffiliates }: { initialAffiliates: OpsAff
         </p>
       )}
 
-      <div className="mt-3 overflow-x-auto rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+      {/* Mobile — la tabla no cabe naturalmente en una pantalla angosta (columnas se
+          comprimen/cortan), así que abajo de sm se muestra como tarjetas apiladas. */}
+      <div className="mt-3 space-y-2 sm:hidden">
+        {visible.map((a) => (
+          <div
+            key={a.id}
+            className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <Link href={`/ops/negocios/${a.id}`} className="font-medium hover:underline">
+                  {a.name}
+                </Link>
+                <p className="text-xs text-gray-400 dark:text-neutral-500">/{a.slug} · {a.businessType}</p>
+              </div>
+              <PlanBadge plan={a.plan} />
+            </div>
+
+            <div className="mt-3 flex items-center justify-between text-xs">
+              <span className="text-gray-400 dark:text-neutral-500">Pedidos 30d</span>
+              <span className="tabular-nums font-medium">{a.ordersLast30Days}</span>
+            </div>
+
+            {a.alerts.length > 0 && (
+              <div className="mt-2">
+                <AlertBadges alerts={a.alerts} />
+              </div>
+            )}
+
+            <div className="mt-3 flex flex-wrap gap-1.5 border-t border-gray-100 dark:border-neutral-800 pt-3">
+              <AffiliateActions a={a} canManage={canManage} busyId={busyId} setStatus={setStatus} impersonate={impersonate} />
+            </div>
+          </div>
+        ))}
+        {visible.length === 0 && (
+          <p className="rounded-xl border border-dashed border-gray-200 dark:border-neutral-800 px-4 py-8 text-center text-sm text-gray-400 dark:text-neutral-500">
+            Nada que mostrar.
+          </p>
+        )}
+      </div>
+
+      {/* Desktop / tablet — tabla con scroll horizontal como red de seguridad. */}
+      <div className="mt-3 hidden overflow-x-auto rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 sm:block">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-200 dark:border-neutral-800 text-left text-xs uppercase tracking-wide text-gray-400 dark:text-neutral-500">
@@ -86,70 +208,15 @@ export function NegociosTable({ initialAffiliates }: { initialAffiliates: OpsAff
                   <p className="text-xs text-gray-400 dark:text-neutral-500">/{a.slug} · {a.businessType}</p>
                 </td>
                 <td className="px-4 py-3">
-                  <span
-                    className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                      a.plan === 'Entrepreneur'
-                        ? 'bg-[#C8102E]/10 text-[#C8102E]'
-                        : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400'
-                    }`}
-                  >
-                    {a.plan}
-                  </span>
+                  <PlanBadge plan={a.plan} />
                 </td>
                 <td className="px-4 py-3 tabular-nums">{a.ordersLast30Days}</td>
                 <td className="px-4 py-3">
-                  {a.alerts.length === 0 ? (
-                    <span className="text-xs text-gray-300 dark:text-neutral-600">—</span>
-                  ) : (
-                    <div className="flex flex-wrap gap-1">
-                      {a.alerts.map((alert) => (
-                        <span
-                          key={alert}
-                          className="inline-block rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 text-[11px] font-medium text-yellow-700 dark:text-yellow-400"
-                        >
-                          {alert}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  <AlertBadges alerts={a.alerts} />
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap justify-end gap-1.5">
-                    <Link
-                      href={`/ops/negocios/${a.id}`}
-                      className="rounded-full border border-gray-300 dark:border-neutral-700 px-2.5 py-1 text-xs font-medium text-gray-600 dark:text-neutral-300 hover:border-gray-400"
-                    >
-                      Detalle
-                    </Link>
-                    {canManage && (
-                      <>
-                        <button
-                          onClick={() => setStatus(a, { published: !a.published })}
-                          disabled={busyId === a.id}
-                          className="rounded-full border border-gray-300 dark:border-neutral-700 px-2.5 py-1 text-xs font-medium text-gray-600 dark:text-neutral-300 hover:border-gray-400 disabled:opacity-50"
-                        >
-                          {a.published ? 'Despublicar' : 'Publicar'}
-                        </button>
-                        <button
-                          onClick={() => setStatus(a, { active: !a.isActive })}
-                          disabled={busyId === a.id}
-                          className={`rounded-full border px-2.5 py-1 text-xs font-medium disabled:opacity-50 ${
-                            a.isActive
-                              ? 'border-gray-300 dark:border-neutral-700 text-gray-600 dark:text-neutral-300 hover:border-red-400 hover:text-red-500'
-                              : 'border-yellow-400 text-yellow-600 dark:text-yellow-400'
-                          }`}
-                        >
-                          {a.isActive ? 'Pausar' : 'Reactivar'}
-                        </button>
-                      </>
-                    )}
-                    <button
-                      onClick={() => impersonate(a)}
-                      disabled={busyId === a.id}
-                      className="rounded-full bg-[#C8102E] px-3 py-1 text-xs font-medium text-white disabled:opacity-50"
-                    >
-                      {busyId === a.id ? '…' : 'Soporte'}
-                    </button>
+                    <AffiliateActions a={a} canManage={canManage} busyId={busyId} setStatus={setStatus} impersonate={impersonate} />
                   </div>
                 </td>
               </tr>
