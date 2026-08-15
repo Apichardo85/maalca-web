@@ -20,6 +20,7 @@ export interface OpsAffiliate {
   ordersLast30Days: number;
   stripeConnectChargesEnabled: boolean;
   alerts: string[];
+  logoUrl?: string | null;
 }
 
 export interface OpsTeamMember {

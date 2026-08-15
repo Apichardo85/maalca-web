@@ -20,6 +20,36 @@ function PlanBadge({ plan }: { plan: string }) {
   );
 }
 
+function BusinessAvatar({ a, size = 40 }: { a: OpsAffiliate; size?: number }) {
+  const initials = a.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join('');
+  if (a.logoUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={a.logoUrl}
+        alt={a.name}
+        width={size}
+        height={size}
+        className="shrink-0 rounded-lg object-cover border border-gray-200 dark:border-neutral-800"
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+  return (
+    <div
+      className="shrink-0 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-neutral-800 text-xs font-semibold text-gray-500 dark:text-neutral-400"
+      style={{ width: size, height: size }}
+    >
+      {initials || '?'}
+    </div>
+  );
+}
+
 function AlertBadges({ alerts }: { alerts: string[] }) {
   if (alerts.length === 0) return <span className="text-xs text-gray-300 dark:text-neutral-600">—</span>;
   return (
@@ -154,11 +184,14 @@ export function NegociosTable({ initialAffiliates }: { initialAffiliates: OpsAff
             className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4"
           >
             <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <Link href={`/ops/negocios/${a.id}`} className="font-medium hover:underline">
-                  {a.name}
-                </Link>
-                <p className="text-xs text-gray-400 dark:text-neutral-500">/{a.slug} · {a.businessType}</p>
+              <div className="flex min-w-0 items-center gap-3">
+                <BusinessAvatar a={a} />
+                <div className="min-w-0">
+                  <Link href={`/ops/negocios/${a.id}`} className="font-medium hover:underline">
+                    {a.name}
+                  </Link>
+                  <p className="text-xs text-gray-400 dark:text-neutral-500">/{a.slug} · {a.businessType}</p>
+                </div>
               </div>
               <PlanBadge plan={a.plan} />
             </div>
@@ -202,10 +235,15 @@ export function NegociosTable({ initialAffiliates }: { initialAffiliates: OpsAff
             {visible.map((a) => (
               <tr key={a.id} className="border-b border-gray-100 dark:border-neutral-800/60 last:border-0">
                 <td className="px-4 py-3">
-                  <Link href={`/ops/negocios/${a.id}`} className="font-medium hover:underline">
-                    {a.name}
-                  </Link>
-                  <p className="text-xs text-gray-400 dark:text-neutral-500">/{a.slug} · {a.businessType}</p>
+                  <div className="flex items-center gap-3">
+                    <BusinessAvatar a={a} size={32} />
+                    <div className="min-w-0">
+                      <Link href={`/ops/negocios/${a.id}`} className="font-medium hover:underline">
+                        {a.name}
+                      </Link>
+                      <p className="text-xs text-gray-400 dark:text-neutral-500">/{a.slug} · {a.businessType}</p>
+                    </div>
+                  </div>
                 </td>
                 <td className="px-4 py-3">
                   <PlanBadge plan={a.plan} />
