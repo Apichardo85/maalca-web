@@ -10,6 +10,8 @@ import { MealPeriodEditor } from '@/app/dashboard/[affiliateId]/menu/components/
 import { WeekDayEditor } from '@/app/dashboard/[affiliateId]/menu/components/WeekDayEditor';
 import type { MealPeriod, WeekDay } from '@/lib/types';
 import { parseApiError } from '@/lib/api-errors';
+import { useToast } from '@/hooks/useToast';
+import { Toast } from '@/components/ui/Toast';
 
 interface Item {
   id: string;
@@ -64,6 +66,7 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
   const backHref = from === 'catalog' ? `/space/${slug}/catalog` : `/space/${slug}`;
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
   const [planLimitReached, setPlanLimitReached] = useState(false);
   const [trialExpired, setTrialExpired] = useState(false);
   // Legacy items may only have imageUrl (no gallery yet) — seed the gallery from it so
@@ -121,6 +124,7 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
         body: JSON.stringify(body),
       });
       if (res.ok) {
+        toast.success('Cambios guardados.');
         router.push(`/space/${slug}/catalog`);
       } else {
         const data = await res.json().catch(() => ({}));
@@ -128,14 +132,24 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
         setPlanLimitReached(parsed.isPlanLimit);
         setTrialExpired(parsed.isTrialExpired);
         setError(parsed.message);
+        toast.error(parsed.message);
       }
     });
   };
 
   const deleteItem = () => {
+    const confirmed = window.confirm(`¿Eliminar "${item.name}"? Esta acción no se puede deshacer.`);
+    if (!confirmed) return;
     startTransition(async () => {
       const res = await fetch(`/api/space/${slug}/catalog/${item.id}`, { method: 'DELETE' });
-      if (res.ok) router.push(`/space/${slug}`);
+      if (res.ok) {
+        router.push(`/space/${slug}/catalog`);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        const parsed = parseApiError(data, 'No pudimos eliminar el item.');
+        setError(parsed.message);
+        toast.error(parsed.message);
+      }
     });
   };
 
@@ -334,6 +348,7 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
           Eliminar item
         </button>
       </div>
+      <Toast toasts={toast.toasts} onRemove={toast.remove} />
     </main>
   );
 }

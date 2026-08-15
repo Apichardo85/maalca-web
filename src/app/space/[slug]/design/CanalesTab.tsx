@@ -5,6 +5,8 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { sanitizeContactValue } from '@/lib/public-contact';
 import { parseApiError } from '@/lib/api-errors';
 import { TrialExpiredNotice } from '@/components/space/TrialExpiredNotice';
+import { useToast } from '@/hooks/useToast';
+import { Toast } from '@/components/ui/Toast';
 import type { CanalDto } from './types';
 
 /** Same marks as PublicFooter/Restaurant/Service's own icon sets (this codebase
@@ -136,6 +138,7 @@ interface Props {
 export function CanalesTab({ slug, canales, onChange }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
+  const toast = useToast();
 
   const [newTipo, setNewTipo] = useState<typeof TIPOS[number]['value'] | null>(null);
   const [newValue, setNewValue] = useState('');
@@ -193,14 +196,18 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
           setTrialExpired(true);
         } else {
           setError(parsed.message);
+          toast.error(parsed.message);
         }
         return;
       }
       onChange([...canales, data]);
+      toast.success(getText('Canal agregado.', 'Channel added.'));
       setNewValue('');
       setNewTipo(null);
     } catch {
-      setError(getText('Algo salió mal.', 'Something went wrong.'));
+      const msg = getText('Algo salió mal.', 'Something went wrong.');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setAdding(false);
     }
@@ -232,13 +239,17 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
           setTrialExpired(true);
         } else {
           setError(parsed.message);
+          toast.error(parsed.message);
         }
         return;
       }
       onChange(canales.map((c) => (c.id === canal.id ? data : c)));
+      toast.success(getText('Canal actualizado.', 'Channel updated.'));
       setEditingId(null);
     } catch {
-      setError(getText('Algo salió mal.', 'Something went wrong.'));
+      const msg = getText('Algo salió mal.', 'Something went wrong.');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setBusyId(null);
     }
@@ -253,7 +264,11 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
         body: JSON.stringify({ activo: !canal.activo }),
       });
       const data = await res.json().catch(() => null);
-      if (res.ok) onChange(canales.map((c) => (c.id === canal.id ? data : c)));
+      if (res.ok) {
+        onChange(canales.map((c) => (c.id === canal.id ? data : c)));
+      } else {
+        toast.error(getText('No se pudo actualizar.', "Couldn't update."));
+      }
     } finally {
       setBusyId(null);
     }
@@ -265,6 +280,9 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
       const res = await fetch(`/api/space/${slug}/canales/${canal.id}`, { method: 'DELETE' });
       if (res.ok || res.status === 204) {
         onChange(canales.filter((c) => c.id !== canal.id));
+        toast.success(getText('Canal eliminado.', 'Channel deleted.'));
+      } else {
+        toast.error(getText('No pudimos eliminar el canal.', "We couldn't delete the channel."));
       }
     } finally {
       setBusyId(null);
@@ -501,6 +519,7 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
       >
         {getText('Ver cambios en la vista previa', 'View changes in preview')}
       </button>
+      <Toast toasts={toast.toasts} onRemove={toast.remove} />
     </div>
   );
 }

@@ -2,6 +2,8 @@
 
 import { useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { useToast } from '@/hooks/useToast';
+import { Toast } from '@/components/ui/Toast';
 
 export interface ScreenAdRow {
   id: string;
@@ -61,6 +63,7 @@ export function BoardContent({
 }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
+  const toast = useToast();
 
   const [ads, setAds] = useState(initialAds);
   const [adFrequency, setAdFrequency] = useState(initialAdFrequency ?? 0);
@@ -149,11 +152,20 @@ export function BoardContent({
     updateScreen(screen, { categoryFilter: next.length === 0 ? null : next.join(',') });
   }
 
-  async function deleteScreen(screenId: string) {
+  async function deleteScreen(screenId: string, screenName: string) {
+    const confirmed = window.confirm(
+      getText(`¿Eliminar la pantalla "${screenName}"? El link dejará de funcionar.`, `Delete the "${screenName}" screen? Its link will stop working.`),
+    );
+    if (!confirmed) return;
     setScreenBusyId(screenId);
     try {
       const res = await fetch(`/api/space/${slug}/screens/${screenId}`, { method: 'DELETE' });
-      if (res.ok) setScreens((prev) => prev.filter((s) => s.id !== screenId));
+      if (res.ok) {
+        setScreens((prev) => prev.filter((s) => s.id !== screenId));
+        toast.success(getText('Pantalla eliminada.', 'Screen deleted.'));
+      } else {
+        toast.error(getText('No pudimos eliminar la pantalla.', "We couldn't delete the screen."));
+      }
     } finally {
       setScreenBusyId(null);
     }
@@ -215,10 +227,17 @@ export function BoardContent({
   }
 
   async function deleteAd(adId: string) {
+    const confirmed = window.confirm(getText('¿Eliminar este comercial?', 'Delete this ad?'));
+    if (!confirmed) return;
     setBusyId(adId);
     try {
       const res = await fetch(`/api/space/${slug}/screen-ads/${adId}`, { method: 'DELETE' });
-      if (res.ok) setAds((prev) => prev.filter((a) => a.id !== adId));
+      if (res.ok) {
+        setAds((prev) => prev.filter((a) => a.id !== adId));
+        toast.success(getText('Comercial eliminado.', 'Ad deleted.'));
+      } else {
+        toast.error(getText('No pudimos eliminar el comercial.', "We couldn't delete the ad."));
+      }
     } finally {
       setBusyId(null);
     }
@@ -457,7 +476,7 @@ export function BoardContent({
                         {editingScreenId === screen.id ? getText('Cerrar', 'Close') : getText('Editar', 'Edit')}
                       </button>
                       <button
-                        onClick={() => deleteScreen(screen.id)}
+                        onClick={() => deleteScreen(screen.id, screen.name)}
                         disabled={screenBusyId === screen.id}
                         className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-red-400 hover:text-red-500 disabled:opacity-50"
                       >
@@ -690,6 +709,7 @@ export function BoardContent({
           </div>
         )}
       </div>
+      <Toast toasts={toast.toasts} onRemove={toast.remove} />
     </div>
   );
 }

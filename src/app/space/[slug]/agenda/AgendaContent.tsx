@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { useToast } from '@/hooks/useToast';
+import { Toast } from '@/components/ui/Toast';
 
 export interface Appointment {
   id: string;
@@ -49,6 +51,7 @@ const STATUS_LABELS: Record<string, { es: string; en: string }> = {
 export function AgendaContent({ slug, canManage, initialAppointments, services, personal }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
+  const toast = useToast();
 
   const [appointments, setAppointments] = useState(initialAppointments);
   const [customerName, setCustomerName] = useState('');
@@ -93,12 +96,15 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
         throw new Error(appt?.error?.message ?? getText('No pudimos crear la cita.', "We couldn't create the appointment."));
       }
       setAppointments((prev) => [...prev, appt].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)));
+      toast.success(getText('Cita creada.', 'Appointment created.'));
       setCustomerName('');
       setCustomerPhone('');
       setDate('');
       setTime('');
     } catch (e) {
-      setError(e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.'));
+      const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -116,14 +122,21 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.error?.message ?? getText('No se pudo actualizar.', "Couldn't update."));
       setAppointments((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)));
+      toast.success(getText('Estado actualizado.', 'Status updated.'));
     } catch (e) {
-      setError(e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.'));
+      const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setBusyId(null);
     }
   }
 
   async function remove(id: string) {
+    const confirmed = window.confirm(
+      getText('¿Cancelar y quitar esta cita? Esta acción no se puede deshacer.', "Cancel and remove this appointment? This can't be undone."),
+    );
+    if (!confirmed) return;
     setBusyId(id);
     setError(null);
     try {
@@ -133,8 +146,11 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
         throw new Error(data?.error?.message ?? getText('No se pudo cancelar.', "Couldn't cancel."));
       }
       setAppointments((prev) => prev.filter((a) => a.id !== id));
+      toast.success(getText('Cita cancelada.', 'Appointment cancelled.'));
     } catch (e) {
-      setError(e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.'));
+      const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
+      setError(msg);
+      toast.error(msg);
     } finally {
       setBusyId(null);
     }
@@ -282,6 +298,7 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
           )}
         </div>
       </div>
+      <Toast toasts={toast.toasts} onRemove={toast.remove} />
     </div>
   );
 }
