@@ -9,6 +9,7 @@ interface Props {
   plan: 'free' | 'entrepreneur';
   planStatus: string;
   trialDaysRemaining: number | null;
+  currency: 'USD' | 'DOP';
 }
 
 const FEATURES: { es: string; en: string; free: boolean; entrepreneur: boolean }[] = [
@@ -20,7 +21,7 @@ const FEATURES: { es: string; en: string; free: boolean; entrepreneur: boolean }
   { es: 'Código QR + contacto directo', en: 'QR code + direct contact', free: true, entrepreneur: true },
 ];
 
-export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining }: Props) {
+export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, currency: initialCurrency }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const router = useRouter();
@@ -199,6 +200,34 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining }: 
 
   const trialExpired = plan === 'free' && trialDaysRemaining !== null && trialDaysRemaining <= 0;
 
+  // Moneda en la que el negocio muestra sus precios — no depende de plan ni de Stripe Connect
+  // (ese es Country, que es para dónde llega el dinero). Cualquier dueño la puede cambiar.
+  const [currency, setCurrency] = useState<'USD' | 'DOP'>(initialCurrency);
+  const [currencySaving, setCurrencySaving] = useState(false);
+  const [currencyError, setCurrencyError] = useState<string | null>(null);
+
+  async function handleCurrencyChange(next: 'USD' | 'DOP') {
+    const prev = currency;
+    setCurrency(next);
+    setCurrencySaving(true);
+    setCurrencyError(null);
+    try {
+      const res = await fetch(`/api/space/${slug}/settings`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currency: next }),
+      });
+      if (!res.ok) throw new Error();
+    } catch {
+      setCurrency(prev);
+      setCurrencyError(
+        getText('No pudimos guardar la moneda. Intenta de nuevo.', "We couldn't save the currency. Please try again."),
+      );
+    } finally {
+      setCurrencySaving(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
       <div className="px-6 py-12">
@@ -302,6 +331,29 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining }: 
                 </p>
               </>
             )}
+          </div>
+
+          {/* Moneda — visible en todos los planes, independiente de Stripe Connect */}
+          <div className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6">
+            <p className="text-xs uppercase tracking-wider text-gray-400 dark:text-neutral-500">
+              {getText('Moneda', 'Currency')}
+            </p>
+            <p className="mt-1 text-sm text-gray-600 dark:text-neutral-300">
+              {getText(
+                'En qué moneda le mostrás los precios a tus clientes — catálogo, página pública y canales.',
+                'What currency your prices are shown in to customers — catalog, public page, and channels.',
+              )}
+            </p>
+            <select
+              value={currency}
+              disabled={currencySaving}
+              onChange={(e) => handleCurrencyChange(e.target.value as 'USD' | 'DOP')}
+              className="mt-4 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm disabled:opacity-50"
+            >
+              <option value="USD">{getText('Dólares (USD)', 'US Dollars (USD)')}</option>
+              <option value="DOP">{getText('Pesos dominicanos (DOP)', 'Dominican Pesos (DOP)')}</option>
+            </select>
+            {currencyError && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{currencyError}</p>}
           </div>
 
           {/* Stripe Connect — recibir pagos de tus propios clientes */}

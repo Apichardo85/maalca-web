@@ -17,6 +17,7 @@ import { trackCanalClick } from '@/lib/public-events';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { PublicBookingSection } from '@/components/public/booking/PublicBookingSection';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { formatPrice } from '@/lib/currency';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 
 // Scoped to this template only — Fraunces gives the pull-quote/headers real
@@ -320,7 +321,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
                         <span className="text-[15px] font-medium">{item.name}</span>
                         <span className="h-px flex-1 border-b border-dotted" style={{ borderColor: '#c9c5ba' }} />
                         {item.price != null && (
-                          <span className={`${plexMono.className} text-sm`}>${item.price.toFixed(2)}</span>
+                          <span className={`${plexMono.className} text-sm`}>{formatPrice(item.price, business.currency)}</span>
                         )}
                         <ChevronIcon open={isOpen} />
                       </button>

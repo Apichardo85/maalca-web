@@ -28,6 +28,7 @@ import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { PublicBookingSection } from '@/components/public/booking/PublicBookingSection';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { formatPrice } from '@/lib/currency';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 import { MEAL_PERIOD_LABELS, MEAL_PERIOD_ORDER } from '@/lib/menu-availability';
 import { matchesCatalogQuery } from '@/lib/catalog-search';
@@ -126,12 +127,6 @@ function resolveNowInTimezone(
     return null;
   }
 }
-
-const priceFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  maximumFractionDigits: 2,
-});
 
 export function RestaurantTemplate({
   business,
@@ -448,7 +443,7 @@ export function RestaurantTemplate({
                     </p>
                     {item.price != null && (
                       <p style={{ margin: '4px 0 0', fontSize: '13px', fontWeight: 700, color: CAFE }}>
-                        {priceFormatter.format(item.price)}
+                        {formatPrice(item.price, business.currency)}
                       </p>
                     )}
                   </div>
@@ -686,6 +681,7 @@ export function RestaurantTemplate({
                           image: item.imageUrl ?? item.image_url ?? undefined,
                         })}
                         onRemove={() => removeFromCart(item.id)}
+                        currency={business.currency}
                       />
                     );
                   })}
@@ -713,6 +709,7 @@ export function RestaurantTemplate({
                     image: item.imageUrl ?? item.image_url ?? undefined,
                   })}
                   onRemove={() => removeFromCart(item.id)}
+                  currency={business.currency}
                 />
               );
             })}
@@ -849,6 +846,7 @@ function MenuCard({
   cartQty,
   onAdd,
   onRemove,
+  currency,
 }: {
   item: PublicTemplateProps['items'][number];
   language: 'es' | 'en';
@@ -856,6 +854,7 @@ function MenuCard({
   cartQty: number;
   onAdd: () => void;
   onRemove: () => void;
+  currency?: 'USD' | 'DOP';
 }) {
   const imageUrl = item.imageUrl ?? item.image_url;
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
@@ -1005,7 +1004,7 @@ function MenuCard({
         >
           {item.price != null ? (
             <p style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: CAFE }}>
-              {priceFormatter.format(item.price)}
+              {formatPrice(item.price, currency)}
             </p>
           ) : (
             <span />

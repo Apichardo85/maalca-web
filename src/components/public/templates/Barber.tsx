@@ -18,6 +18,7 @@ import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { PublicBookingSection } from '@/components/public/booking/PublicBookingSection';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { formatPrice } from '@/lib/currency';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 
 // Scoped to this template only — condensed uppercase display for headers,
@@ -31,12 +32,6 @@ const TINTA = '#151312';
 const ESCARCHA = '#EFF1F4';
 const ACERO = '#5B5B5B';
 const ACERO_LIGHT = '#E4E6EA';
-
-const priceFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  maximumFractionDigits: 2,
-});
 
 function formatDuration(mins: number): string {
   if (mins < 60) return `${mins} min`;
@@ -334,7 +329,7 @@ export function BarberTemplate({
               {categoryName && <SectLabel label={categoryName} />}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {groupItems.map((item) => (
-                  <ServiceCard key={item.id} item={item} waRaw={waRaw} businessName={business.name} accent={accent} displayClassName={oswald.className} language={language} />
+                  <ServiceCard key={item.id} item={item} waRaw={waRaw} businessName={business.name} accent={accent} displayClassName={oswald.className} language={language} currency={business.currency} />
                 ))}
               </div>
             </div>
@@ -392,6 +387,7 @@ function ServiceCard({
   accent,
   displayClassName,
   language,
+  currency,
 }: {
   item: PublicTemplateProps['items'][number];
   waRaw: string | null;
@@ -399,6 +395,7 @@ function ServiceCard({
   accent: string;
   displayClassName: string;
   language: 'es' | 'en';
+  currency?: 'USD' | 'DOP';
 }) {
   const imageUrl = item.imageUrl ?? item.image_url;
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
@@ -494,7 +491,7 @@ function ServiceCard({
         >
           {item.price != null ? (
             <p className={displayClassName} style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: accent }}>
-              {priceFormatter.format(item.price)}
+              {formatPrice(item.price, currency)}
             </p>
           ) : (
             <span />

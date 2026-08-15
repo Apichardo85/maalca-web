@@ -57,6 +57,9 @@ export interface PublicTemplateProps {
     /** IANA timezone (e.g. "America/New_York"). Null if not configured yet. */
     timezone?: string | null;
     horario?: HorarioDay[] | null;
+    /** "USD" | "DOP" — cómo el negocio muestra sus precios. Default "USD" para negocios que
+     *  todavía no la configuraron en Settings (ver SettingsContent.tsx). */
+    currency?: 'USD' | 'DOP';
   };
   items: Array<{
     id: string;

@@ -21,6 +21,7 @@ import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
+import { formatPrice } from '@/lib/currency';
 
 // Scoped to this template only — a slab serif reads as "catalog/hardware
 // store signage", distinct from Service's editorial Fraunces and Barber's
@@ -39,12 +40,6 @@ const SWATCHES = [
   { name: 'Salvia', hex: '#7A8B6F' },
   { name: 'Azul Óxido', hex: '#46647A' },
 ];
-
-const priceFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  maximumFractionDigits: 2,
-});
 
 export function RetailTemplate({
   business,
@@ -281,6 +276,7 @@ export function RetailTemplate({
                 getText={getText}
                 addToCart={addToCart}
                 removeFromCart={removeFromCart}
+                currency={business.currency}
               />
             ))}
           </div>
@@ -334,6 +330,7 @@ function ProductCard({
   getText,
   addToCart,
   removeFromCart,
+  currency,
 }: {
   item: PublicTemplateProps['items'][number];
   chipColor: string;
@@ -343,6 +340,7 @@ function ProductCard({
   getText: (es: string, en: string) => string;
   addToCart: (item: { id: string; name: string; price: number; image?: string }) => void;
   removeFromCart: (itemId: string) => void;
+  currency?: 'USD' | 'DOP';
 }) {
   const imageUrl = item.imageUrl ?? item.image_url;
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
@@ -395,7 +393,7 @@ function ProductCard({
         )}
         {item.price != null && (
           <p style={{ margin: '6px 0 0', fontSize: '14px', fontWeight: 700, color: INK }}>
-            {priceFormatter.format(item.price)}
+            {formatPrice(item.price, currency)}
           </p>
         )}
 

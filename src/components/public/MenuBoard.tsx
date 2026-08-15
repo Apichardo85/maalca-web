@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
+import { formatPrice as formatCurrencyPrice } from '@/lib/currency';
 
 type BoardItem = PublicTemplateProps['items'][number];
 type BoardCategory = PublicTemplateProps['categories'][number];
@@ -24,6 +25,7 @@ interface Props {
     name: string;
     logoUrl: string | null;
     primaryColor: string;
+    currency?: 'USD' | 'DOP';
   };
   initialItems: BoardItem[];
   initialCategories: BoardCategory[];
@@ -136,9 +138,9 @@ function interleaveAds(menuSlides: Slide[], ads: ScreenAd[], frequency: number |
   return result;
 }
 
-function formatPrice(price: number | null | undefined) {
+function formatPrice(price: number | null | undefined, currency?: 'USD' | 'DOP') {
   if (price == null) return '';
-  return `$${price.toFixed(2)}`;
+  return formatCurrencyPrice(price, currency);
 }
 
 /** Estilo inicial (oculto) y final (visible) por efecto — solo animamos la ENTRADA de cada
@@ -347,7 +349,7 @@ export function MenuBoard({
                 <div className="flex items-center justify-between gap-3 px-5 py-4">
                   <span className="text-2xl font-bold leading-tight">{item.name}</span>
                   <span className="text-2xl font-extrabold whitespace-nowrap" style={{ color: business.primaryColor }}>
-                    {formatPrice(item.price)}
+                    {formatPrice(item.price, business.currency)}
                   </span>
                 </div>
               </div>

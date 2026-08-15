@@ -33,6 +33,7 @@ export default async function SettingsPage({
       plan={business.plan}
       planStatus={business.planStatus ?? 'Active'}
       trialDaysRemaining={business.trialDaysRemaining ?? null}
+      currency={business.currency ?? 'USD'}
     />
   );
 }
