@@ -310,24 +310,29 @@ export function PublicBookingSection({ slug, language, accent, horario }: Props)
       )}
 
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={closeModal}
             aria-hidden="true"
           />
-          <div className="relative z-10 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
+          {/* Mobile: bottom sheet a pantalla completa (rounded solo arriba, sin margen lateral).
+              Desktop (sm+): modal centrado clásico, como antes. */}
+          <div className="relative z-10 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:max-h-[90vh] sm:max-w-md sm:rounded-3xl">
+            {/* handle visual de bottom-sheet — solo mobile */}
+            <div className="mx-auto mt-2 h-1.5 w-10 shrink-0 rounded-full bg-gray-300 sm:hidden" />
+
             <button
               type="button"
               onClick={closeModal}
-              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200"
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200"
               aria-label={getText('Cerrar', 'Close')}
             >
               ✕
             </button>
 
             {status === 'success' ? (
-              <div className="py-6 text-center">
+              <div className="flex-1 overflow-y-auto p-5 py-8 text-center sm:p-6">
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-2xl">
                   ✓
                 </div>
@@ -348,163 +353,177 @@ export function PublicBookingSection({ slug, language, accent, horario }: Props)
                 </button>
               </div>
             ) : (
-              <>
-                <div className="mb-5 flex items-center gap-3 pr-8">
-                  <div
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-black text-white"
-                    style={{ background: `linear-gradient(135deg, ${color}, ${colorDark})` }}
-                  >
-                    {selectedMember ? initials(selectedMember.name) : '🕐'}
+              <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+                <div className="flex-1 overflow-y-auto p-5 pt-4 sm:p-6">
+                  <div className="mb-5 flex items-center gap-3 pr-8">
+                    {selectedMember?.photoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={selectedMember.photoUrl}
+                        alt={selectedMember.name}
+                        className="h-11 w-11 shrink-0 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-black text-white"
+                        style={{ background: `linear-gradient(135deg, ${color}, ${colorDark})` }}
+                      >
+                        {selectedMember ? initials(selectedMember.name) : '🕐'}
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-base font-black text-gray-900">
+                        {selectedMember ? selectedMember.name : getText('Cualquiera disponible', 'Anyone available')}
+                      </p>
+                      {selectedMember && <p className="text-xs text-gray-500">{selectedMember.role}</p>}
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-base font-black text-gray-900">
-                      {selectedMember ? selectedMember.name : getText('Cualquiera disponible', 'Anyone available')}
-                    </p>
-                    {selectedMember && <p className="text-xs text-gray-500">{selectedMember.role}</p>}
+
+                  <div className="grid gap-3.5">
+                    <div>
+                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                        {getText('Servicio', 'Service')}
+                      </label>
+                      <select
+                        required
+                        value={serviceId}
+                        onChange={(e) => setServiceId(e.target.value)}
+                        className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
+                      >
+                        {services.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.name} — {s.durationMinutes}min
+                          </option>
+                        ))}
+                      </select>
+                      {selectedService?.price ? (
+                        <p className="mt-1 text-xs text-gray-400">
+                          {getText('Precio estimado', 'Estimated price')}: ${selectedService.price.toFixed(2)}
+                        </p>
+                      ) : null}
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                        {getText('Día', 'Day')}
+                      </label>
+                      <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+                        {dayOptions.map(({ dateStr, date: d }) => {
+                          const active = date === dateStr;
+                          const closed = hoursFor(d).cerrado;
+                          return (
+                            <button
+                              key={dateStr}
+                              type="button"
+                              onClick={() => {
+                                setDate(dateStr);
+                                setTime('');
+                              }}
+                              className="flex min-h-[52px] shrink-0 flex-col items-center justify-center rounded-xl border px-3.5 py-2 text-xs font-semibold transition-colors"
+                              style={
+                                active
+                                  ? { backgroundColor: color, borderColor: color, color: '#fff' }
+                                  : { borderColor: '#e5e7eb', color: closed ? '#c1c5cc' : '#374151' }
+                              }
+                            >
+                              <span className="uppercase tracking-wide">
+                                {d.toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { weekday: 'short' })}
+                              </span>
+                              <span className="mt-0.5 text-sm">{d.getDate()}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {date && (
+                      <div>
+                        <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                          {getText('Hora', 'Time')}
+                        </label>
+                        {selectedDayHours?.cerrado ? (
+                          <p className="rounded-xl bg-gray-50 px-3 py-2.5 text-sm text-gray-500">
+                            {getText('Cerrado ese día — elige otra fecha.', "Closed that day — pick another date.")}
+                          </p>
+                        ) : timeSlots.length === 0 ? (
+                          <p className="rounded-xl bg-gray-50 px-3 py-2.5 text-sm text-gray-500">
+                            {getText('No quedan horarios disponibles ese día.', 'No time slots left that day.')}
+                          </p>
+                        ) : (
+                          <div className="grid max-h-44 grid-cols-3 gap-1.5 overflow-y-auto pr-0.5 sm:grid-cols-4">
+                            {timeSlots.map((slot) => {
+                              const active = time === slot;
+                              return (
+                                <button
+                                  key={slot}
+                                  type="button"
+                                  onClick={() => setTime(slot)}
+                                  className="min-h-[40px] rounded-lg border px-2 py-1.5 text-xs font-semibold transition-colors"
+                                  style={
+                                    active
+                                      ? { backgroundColor: color, borderColor: color, color: '#fff' }
+                                      : { borderColor: '#e5e7eb', color: '#374151' }
+                                  }
+                                >
+                                  {slot}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                        {getText('Tu nombre', 'Your name')}
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                        {getText('Teléfono', 'Phone')}
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
+                      />
+                    </div>
+
+                    <details className="text-sm text-gray-500">
+                      <summary className="cursor-pointer select-none py-1 font-medium">
+                        {getText('Agregar una nota (opcional)', 'Add a note (optional)')}
+                      </summary>
+                      <textarea
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        rows={2}
+                        className="mt-2 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:border-gray-500 focus:outline-none"
+                      />
+                    </details>
                   </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="grid gap-3.5">
-                  <div>
-                    <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
-                      {getText('Servicio', 'Service')}
-                    </label>
-                    <select
-                      required
-                      value={serviceId}
-                      onChange={(e) => setServiceId(e.target.value)}
-                      className="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:border-gray-500 focus:outline-none"
-                    >
-                      {services.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name} — {s.durationMinutes}min
-                        </option>
-                      ))}
-                    </select>
-                    {selectedService?.price ? (
-                      <p className="mt-1 text-xs text-gray-400">
-                        {getText('Precio estimado', 'Estimated price')}: ${selectedService.price.toFixed(2)}
-                      </p>
-                    ) : null}
-                  </div>
-
-                  <div>
-                    <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
-                      {getText('Día', 'Day')}
-                    </label>
-                    <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
-                      {dayOptions.map(({ dateStr, date: d }) => {
-                        const active = date === dateStr;
-                        const closed = hoursFor(d).cerrado;
-                        return (
-                          <button
-                            key={dateStr}
-                            type="button"
-                            onClick={() => {
-                              setDate(dateStr);
-                              setTime('');
-                            }}
-                            className="flex shrink-0 flex-col items-center rounded-xl border px-3 py-2 text-xs font-semibold transition-colors"
-                            style={
-                              active
-                                ? { backgroundColor: color, borderColor: color, color: '#fff' }
-                                : { borderColor: '#e5e7eb', color: closed ? '#c1c5cc' : '#374151' }
-                            }
-                          >
-                            <span className="uppercase tracking-wide">
-                              {d.toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { weekday: 'short' })}
-                            </span>
-                            <span className="mt-0.5 text-sm">{d.getDate()}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {date && (
-                    <div>
-                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
-                        {getText('Hora', 'Time')}
-                      </label>
-                      {selectedDayHours?.cerrado ? (
-                        <p className="rounded-xl bg-gray-50 px-3 py-2.5 text-sm text-gray-500">
-                          {getText('Cerrado ese día — elige otra fecha.', "Closed that day — pick another date.")}
-                        </p>
-                      ) : timeSlots.length === 0 ? (
-                        <p className="rounded-xl bg-gray-50 px-3 py-2.5 text-sm text-gray-500">
-                          {getText('No quedan horarios disponibles ese día.', 'No time slots left that day.')}
-                        </p>
-                      ) : (
-                        <div className="grid max-h-40 grid-cols-3 gap-1.5 overflow-y-auto sm:grid-cols-4">
-                          {timeSlots.map((slot) => {
-                            const active = time === slot;
-                            return (
-                              <button
-                                key={slot}
-                                type="button"
-                                onClick={() => setTime(slot)}
-                                className="rounded-lg border px-2 py-1.5 text-xs font-semibold transition-colors"
-                                style={
-                                  active
-                                    ? { backgroundColor: color, borderColor: color, color: '#fff' }
-                                    : { borderColor: '#e5e7eb', color: '#374151' }
-                                }
-                              >
-                                {slot}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <div>
-                    <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
-                      {getText('Tu nombre', 'Your name')}
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={customerName}
-                      onChange={(e) => setCustomerName(e.target.value)}
-                      className="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:border-gray-500 focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
-                      {getText('Teléfono', 'Phone')}
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      value={customerPhone}
-                      onChange={(e) => setCustomerPhone(e.target.value)}
-                      className="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:border-gray-500 focus:outline-none"
-                    />
-                  </div>
-
-                  <details className="text-sm text-gray-500">
-                    <summary className="cursor-pointer select-none font-medium">
-                      {getText('Agregar una nota (opcional)', 'Add a note (optional)')}
-                    </summary>
-                    <textarea
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      rows={2}
-                      className="mt-2 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:border-gray-500 focus:outline-none"
-                    />
-                  </details>
-
+                {/* Footer sticky — el submit siempre queda a la vista sin tener que
+                    scrollear el formulario entero en pantallas chicas. */}
+                <div className="shrink-0 border-t border-gray-100 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-5">
                   {errorMsg && (
-                    <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{errorMsg}</p>
+                    <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{errorMsg}</p>
                   )}
-
                   <button
                     type="submit"
                     disabled={status === 'submitting' || !date || !time}
-                    className="mt-1 rounded-xl px-6 py-3 text-sm font-bold text-white shadow-md transition-transform hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100"
+                    className="w-full rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-md transition-transform hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100"
                     style={{ background: `linear-gradient(135deg, ${color}, ${colorDark})` }}
                   >
                     {status === 'submitting'
@@ -513,8 +532,8 @@ export function PublicBookingSection({ slug, language, accent, horario }: Props)
                         ? getText('Elige día y hora', 'Pick a day and time')
                         : getText('Confirmar reserva', 'Confirm booking')}
                   </button>
-                </form>
-              </>
+                </div>
+              </form>
             )}
           </div>
         </div>
