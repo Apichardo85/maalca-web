@@ -56,7 +56,7 @@ export function RichTextEditor({ value, onChange, onBlur, placeholder, maxLength
   useEffect(() => {
     if (!editor) return;
     const current = editor.isEmpty ? '' : editor.getHTML();
-    if (value !== current) editor.commands.setContent(value || '', { emitUpdate: false });
+    if (value !== current) editor.commands.setContent(value || '', false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, editor]);
 
