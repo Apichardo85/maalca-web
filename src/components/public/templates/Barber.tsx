@@ -7,7 +7,7 @@
 // with a single bold accent rule ("the blade") as the recurring graphic
 // motif and a perforated "ticket stub" service card as the signature
 // element — distinct from Service's mono rate-card index.
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Oswald } from 'next/font/google';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
@@ -16,7 +16,7 @@ import { AboutSection } from '@/components/public/AboutSection';
 import { ClampedDescription } from '@/components/public/ClampedDescription';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
-import { PublicBookingSection } from '@/components/public/booking/PublicBookingSection';
+import { PublicBookingSection, type PublicBookingSectionHandle } from '@/components/public/booking/PublicBookingSection';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { formatPrice } from '@/lib/currency';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
@@ -64,6 +64,8 @@ export function BarberTemplate({
       : Array.from(new Set(items.map((i) => i.category).filter((c): c is string => !!c)));
 
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
+  const bookingRef = useRef<PublicBookingSectionHandle>(null);
+  const handleReserve = (serviceId: string) => bookingRef.current?.openWithService(serviceId);
 
   function itemsFor(tab: string): typeof items {
     if (tab === ALL_TAB) return items;
@@ -329,7 +331,7 @@ export function BarberTemplate({
               {categoryName && <SectLabel label={categoryName} />}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {groupItems.map((item) => (
-                  <ServiceCard key={item.id} item={item} waRaw={waRaw} businessName={business.name} accent={accent} displayClassName={oswald.className} language={language} currency={business.currency} />
+                  <ServiceCard key={item.id} item={item} onReserve={handleReserve} accent={accent} displayClassName={oswald.className} language={language} currency={business.currency} getText={getText} />
                 ))}
               </div>
             </div>
@@ -337,7 +339,7 @@ export function BarberTemplate({
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {visibleItems.map((item) => (
-              <ServiceCard key={item.id} item={item} waRaw={waRaw} businessName={business.name} accent={accent} displayClassName={oswald.className} language={language} />
+              <ServiceCard key={item.id} item={item} onReserve={handleReserve} accent={accent} displayClassName={oswald.className} language={language} currency={business.currency} getText={getText} />
             ))}
           </div>
         )}
@@ -347,7 +349,7 @@ export function BarberTemplate({
       <FaqSection faq={business.faq} getText={getText} />
 
       {/* ── RESERVA (Agenda pública) ── */}
-      <PublicBookingSection slug={business.slug} language={language} accent={business.primary_color} horario={business.horario} />
+      <PublicBookingSection ref={bookingRef} slug={business.slug} language={language} accent={business.primary_color} horario={business.horario} />
 
       {/* ── CONTACTO ── */}
       <ContactSection business={business} language={language} />
@@ -382,28 +384,23 @@ function SectLabel({ label }: { label: string }) {
 
 function ServiceCard({
   item,
-  waRaw,
-  businessName,
+  onReserve,
   accent,
   displayClassName,
   language,
   currency,
+  getText,
 }: {
   item: PublicTemplateProps['items'][number];
-  waRaw: string | null;
-  businessName: string;
+  onReserve: (serviceId: string) => void;
   accent: string;
   displayClassName: string;
   language: 'es' | 'en';
   currency?: 'USD' | 'DOP';
+  getText: (es: string, en: string) => string;
 }) {
   const imageUrl = item.imageUrl ?? item.image_url;
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
-  const waLink = waRaw
-    ? `https://wa.me/${waRaw}?text=${encodeURIComponent(
-        `Hola ${businessName}, quiero reservar: ${item.name}`,
-      )}`
-    : null;
 
   return (
     <div
@@ -497,27 +494,26 @@ function ServiceCard({
             <span />
           )}
 
-          {waLink && (
-            <a
-              href={waLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`WhatsApp — ${item.name}`}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '28px',
-                height: '28px',
-                borderRadius: '6px',
-                backgroundColor: accent,
-                flexShrink: 0,
-                textDecoration: 'none',
-              }}
-            >
-              <WhatsAppIcon className="w-[14px] h-[14px] text-white" />
-            </a>
-          )}
+          <button
+            type="button"
+            onClick={() => onReserve(item.id)}
+            aria-label={`${getText('Reservar', 'Book')} — ${item.name}`}
+            title={getText('Reservar', 'Book')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '28px',
+              height: '28px',
+              borderRadius: '6px',
+              backgroundColor: accent,
+              flexShrink: 0,
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <CalendarIcon className="w-[14px] h-[14px] text-white" />
+          </button>
         </div>
       </div>
     </div>
@@ -634,6 +630,25 @@ function ClockIcon({ className }: { className?: string }) {
     >
       <circle cx="12" cy="12" r="10" />
       <polyline points="12 6 12 12 16 14" />
+    </svg>
+  );
+}
+
+function CalendarIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
     </svg>
   );
 }

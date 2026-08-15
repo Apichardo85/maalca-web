@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -33,6 +33,13 @@ interface Props {
   accent?: string | null;
   /** Horario configurado en Identidad — sin esto, cae a 9am–6pm todos los días. */
   horario?: HorarioDay[] | null;
+}
+
+/** Handle imperativo — permite que un "Reservar" en la tarjeta de un servicio, más
+ *  arriba en la página, abra este modal con ese servicio pre-seleccionado en vez de
+ *  duplicar el flujo de reserva por WhatsApp. */
+export interface PublicBookingSectionHandle {
+  openWithService: (serviceId: string) => void;
 }
 
 // getDay() indexa 0=domingo..6=sábado; Horario.dia usa claves en minúscula en inglés.
@@ -98,7 +105,10 @@ function initials(name: string): string {
  * vez de un formulario plano suelto. Se auto-oculta si el negocio no tiene servicios
  * configurados en Agenda todavía.
  */
-export function PublicBookingSection({ slug, language, accent, horario }: Props) {
+export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props>(function PublicBookingSection(
+  { slug, language, accent, horario },
+  ref,
+) {
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const color = accent || '#C8102E';
   const colorDark = darken(color, 30);
@@ -158,6 +168,16 @@ export function PublicBookingSection({ slug, language, accent, horario }: Props)
     setErrorMsg(null);
     setModalOpen(true);
   }
+
+  useImperativeHandle(ref, () => ({
+    openWithService(id: string) {
+      setServiceId(id);
+      setSelectedMember(null);
+      setStatus('ready');
+      setErrorMsg(null);
+      setModalOpen(true);
+    },
+  }));
 
   function closeModal() {
     setModalOpen(false);
@@ -540,4 +560,4 @@ export function PublicBookingSection({ slug, language, accent, horario }: Props)
       )}
     </section>
   );
-}
+});
