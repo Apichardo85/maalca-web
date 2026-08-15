@@ -506,3 +506,14 @@ html.light-theme .from-gray-500 {
   border-radius: 2px;
 }
 .animate-count-up    { animation: countUp 0.4s ease-out forwards; }
+
+/* RichTextEditor (src/components/ui/RichTextEditor.tsx) — placeholder del editor Tiptap.
+   La extensión Placeholder solo agrega data-placeholder + la clase is-editor-empty; el
+   texto visible depende de este ::before, que Tailwind no genera automáticamente. */
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: #9ca3af;
+}

@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { BUSINESS_TYPE_LABELS, BUSINESS_TYPE_ICONS, type BusinessType } from '@/lib/templates/registry';
+import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import type { ProfileFormState, CanalDto } from './types';
 
 const PALETTE = [
@@ -237,8 +238,34 @@ export function ConfigTab({ slug, form, businessType, onChange, onCommit, onComm
 
       {/* On-demand fields */}
       {textField('name', getText('Nombre del negocio', 'Business name'), { maxLength: 80 })}
-      {textField('description', getText('Descripción', 'Description'), { textarea: true, maxLength: 500, placeholder: getText('Cuéntale a tus clientes de qué se trata tu negocio', 'Tell customers what your business is about') })}
-      {textField('descriptionEn', getText('Descripción (EN)', 'Description (EN)'), { textarea: true, maxLength: 500, placeholder: getText('Opcional — se muestra a visitantes con inglés seleccionado', 'Optional — shown to visitors with English selected') })}
+
+      <div>
+        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-neutral-300">
+          {getText('Descripción', 'Description')}
+        </label>
+        <RichTextEditor
+          value={(form.description as string) ?? ''}
+          onChange={(html) => onChange('description', html)}
+          onBlur={() => onCommit('description')}
+          placeholder={getText('Cuéntale a tus clientes de qué se trata tu negocio', 'Tell customers what your business is about')}
+          maxLength={500}
+          getText={getText}
+        />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-neutral-300">
+          {getText('Descripción (EN)', 'Description (EN)')}
+        </label>
+        <RichTextEditor
+          value={(form.descriptionEn as string) ?? ''}
+          onChange={(html) => onChange('descriptionEn', html)}
+          onBlur={() => onCommit('descriptionEn')}
+          placeholder={getText('Opcional — se muestra a visitantes con inglés seleccionado', 'Optional — shown to visitors with English selected')}
+          maxLength={500}
+          getText={getText}
+        />
+      </div>
       {/* WhatsApp is edited exclusively in the Canales tab now — kept in ProfileFormState/save payload as the legacy fallback field for public rendering. */}
       {textField('contactEmail', getText('Email de contacto', 'Contact email'), {
         type: 'email',

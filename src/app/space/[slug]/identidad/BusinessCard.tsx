@@ -6,6 +6,7 @@ import { resolveContactItems, resolveSocialLinks, type ResolvedSocialLink } from
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { SOCIAL_ICON_BY_TIPO } from '@/components/public/SocialIcons';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
+import { stripRichTextToPlain } from '@/lib/sanitize-html';
 
 interface Props {
   business: PublicTemplateProps['business'];
@@ -34,7 +35,11 @@ export function BusinessCard({ business, qrDataUrl }: Props) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
 
-  const description = language === 'en' ? business.descriptionEn ?? business.description : business.description;
+  // Tarjeta de presentación es texto plano (imagen descargable) — el RichTextEditor de
+  // Diseño guarda HTML, así que hay que despojarlo acá igual que en el vCard/meta tags.
+  const description = stripRichTextToPlain(
+    language === 'en' ? business.descriptionEn ?? business.description : business.description,
+  );
   const contacts = resolveContactItems(business, language);
   const social = resolveSocialLinks(business);
   const primaryColor = business.primary_color || '#C8102E';

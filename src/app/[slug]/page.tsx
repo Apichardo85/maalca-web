@@ -6,6 +6,7 @@ import { TEMPLATES, type BusinessType, type PublicTemplateProps, type Plan } fro
 import { ApiError } from '@/lib/api-client';
 import type { PublicCanal } from '@/lib/public-contact';
 import { PageViewTracker } from '@/components/public/PageViewTracker';
+import { stripRichTextToPlain } from '@/lib/sanitize-html';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -48,7 +49,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const data = await getCatalog(slug);
   if (!data) return { title: 'MaalCa' };
 
-  const description = data.affiliate.description ?? `Visita ${data.affiliate.name} en MaalCa`;
+  const description = data.affiliate.description
+    ? stripRichTextToPlain(data.affiliate.description)
+    : `Visita ${data.affiliate.name} en MaalCa`;
   const ogImage = data.affiliate.logoUrl || '/logo-icon.svg';
 
   return {

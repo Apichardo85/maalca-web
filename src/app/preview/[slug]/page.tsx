@@ -10,6 +10,7 @@ import type { Metadata } from 'next';
 import { TEMPLATES, type BusinessType, type PublicTemplateProps, type Plan } from '@/lib/templates/registry';
 import { ApiError } from '@/lib/api-client';
 import type { PublicCanal } from '@/lib/public-contact';
+import { stripRichTextToPlain } from '@/lib/sanitize-html';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -39,7 +40,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return { title: 'MaalCa preview', robots: { index: false, follow: false } };
   }
 
-  const description = data.affiliate.description ?? `Visita ${data.affiliate.name} en MaalCa`;
+  const description = data.affiliate.description
+    ? stripRichTextToPlain(data.affiliate.description)
+    : `Visita ${data.affiliate.name} en MaalCa`;
   const ogImage = data.affiliate.logoUrl || '/logo-icon.svg';
 
   return {

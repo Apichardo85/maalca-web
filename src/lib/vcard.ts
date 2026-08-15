@@ -4,6 +4,7 @@
  */
 
 import type { AffiliateConfig } from "@/config/affiliates-config";
+import { stripRichTextToPlain } from "@/lib/sanitize-html";
 
 /** Escapa valores para vCard 3.0 (comas, puntos y coma, newlines). */
 function escapeVCardValue(value: string): string {
@@ -46,7 +47,7 @@ export function buildVCard(config: AffiliateConfig): string {
   socialUrls.forEach((u) => lines.push(`URL:${escapeVCardValue(u)}`));
 
   if (branding.description) {
-    lines.push(`NOTE:${escapeVCardValue(branding.description)}`);
+    lines.push(`NOTE:${escapeVCardValue(stripRichTextToPlain(branding.description))}`);
   }
 
   lines.push("END:VCARD");
