@@ -317,7 +317,14 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining }: 
                 )}
               </p>
 
-              {connectStatus?.chargesEnabled ? (
+              {connectStatus === null ? (
+                // Antes de que resuelva el fetch a /connect/status, connectStatus?.connected y
+                // connectStatus?.country son ambos undefined → !undefined = true, así que sin
+                // este guard el selector de país se renderizaba de una y luego desaparecía en
+                // cuanto llegaba el estado real (si ya había país/cuenta guardados) — un
+                // parpadeo confuso ("se esconde justo cuando entras"). Un skeleton evita el flash.
+                <div className="mt-4 h-16 animate-pulse rounded-lg bg-gray-100 dark:bg-neutral-800" />
+              ) : connectStatus.chargesEnabled ? (
                 <p className="mt-4 flex items-center gap-2 text-sm font-medium text-green-600 dark:text-green-400">
                   <span>✓</span>
                   {getText('Cuenta conectada — ya puedes recibir pagos.', 'Account connected — you can accept payments.')}

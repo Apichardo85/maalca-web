@@ -676,7 +676,11 @@ export function BoardContent({
                     {ad.active ? getText('Activo', 'Active') : getText('Inactivo', 'Inactive')}
                   </span>
                 </div>
-                <label className="flex shrink-0 flex-col gap-1 text-[11px] font-medium text-gray-500 dark:text-neutral-400">
+                {/* Antes esto era flex-col (label arriba, select abajo) mientras el resto de la
+                    fila era items-center de una línea — la fila quedaba dispareja. Un solo
+                    renglón acá + quitar el self-end de los botones abajo alinea todo a la
+                    misma línea media. */}
+                <label className="flex shrink-0 items-center gap-2 text-[11px] font-medium text-gray-500 dark:text-neutral-400">
                   {getText('Ajuste', 'Fit')}
                   <select
                     value={ad.fit}
@@ -688,7 +692,7 @@ export function BoardContent({
                     <option value="Cover">{getText('Llenar (recorta)', 'Fill (crops)')}</option>
                   </select>
                 </label>
-                <div className="flex shrink-0 gap-2 self-end">
+                <div className="flex shrink-0 gap-2">
                   <button
                     onClick={() => toggleActive(ad)}
                     disabled={busyId === ad.id}

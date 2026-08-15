@@ -115,7 +115,10 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
         body.popular = popular;
       }
       if (isBarberOrService) {
-        body.durationMinutes = durationMinutes ? Number(durationMinutes) : null;
+        // 0 = sentinel de "vaciar" para el backend (ver CatalogCrudService.PatchServiceAsync) —
+        // un int? null aquí sería indistinguible de "el campo no vino en el request" y el
+        // backend lo ignoraría, dejando el valor anterior sin cambios.
+        body.durationMinutes = durationMinutes ? Number(durationMinutes) : 0;
       }
 
       const res = await fetch(`/api/space/${slug}/catalog/${item.id}`, {
@@ -253,9 +256,12 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
                 onChange={(e) => setDurationMinutes(e.target.value)}
                 min="1"
                 step="5"
-                placeholder="30"
+                placeholder="Ej. 30"
                 className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-neutral-500 focus:border-neutral-400 dark:focus:border-neutral-500 focus:outline-none"
               />
+              <p className="mt-1 text-xs text-neutral-400">
+                Déjalo vacío y guarda para quitar la duración de la página pública y los canales.
+              </p>
             </div>
           )}
 
