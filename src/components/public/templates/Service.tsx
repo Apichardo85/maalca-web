@@ -370,7 +370,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
         </main>
       </div>
 
-      <PublicBookingSection slug={business.slug} language={language} accent={business.primary_color} />
+      <PublicBookingSection slug={business.slug} language={language} accent={business.primary_color} horario={business.horario} />
 
       <PublicFooter business={business} capabilities={capabilities} language={language} />
     </div>

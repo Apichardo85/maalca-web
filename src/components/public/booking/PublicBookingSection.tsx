@@ -19,11 +19,53 @@ interface PublicService {
   durationMinutes: number;
 }
 
+interface HorarioDay {
+  dia: string;
+  abre: string;
+  cierra: string;
+  cerrado: boolean;
+}
+
 interface Props {
   slug: string;
   language: 'es' | 'en';
   /** Hex de acento (business.primary_color) — cae a un rojo neutro si no viene. */
   accent?: string | null;
+  /** Horario configurado en Identidad — sin esto, cae a 9am–6pm todos los días. */
+  horario?: HorarioDay[] | null;
+}
+
+// getDay() indexa 0=domingo..6=sábado; Horario.dia usa claves en minúscula en inglés.
+const WEEKDAY_KEYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
+const DEFAULT_HOURS = { abre: '09:00', cierra: '18:00' };
+
+/** Slots de 30 en 30 min entre abre y cierra, excluyendo los ya pasados si es hoy. */
+function generateTimeSlots(abre: string, cierra: string, isToday: boolean): string[] {
+  const [openH, openM] = abre.split(':').map(Number);
+  const [closeH, closeM] = cierra.split(':').map(Number);
+  if ([openH, openM, closeH, closeM].some((n) => Number.isNaN(n))) return [];
+
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const slots: string[] = [];
+  for (let mins = openH * 60 + openM; mins < closeH * 60 + closeM; mins += 30) {
+    if (isToday && mins <= nowMinutes + 15) continue; // margen de 15min para reservas de último minuto
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+  }
+  return slots;
+}
+
+function nextDays(count: number): { dateStr: string; date: Date }[] {
+  const out: { dateStr: string; date: Date }[] = [];
+  for (let i = 0; i < count; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    out.push({ dateStr: d.toISOString().slice(0, 10), date: d });
+  }
+  return out;
 }
 
 type Status = 'idle' | 'loading' | 'ready' | 'submitting' | 'success' | 'error';
@@ -56,7 +98,7 @@ function initials(name: string): string {
  * vez de un formulario plano suelto. Se auto-oculta si el negocio no tiene servicios
  * configurados en Agenda todavía.
  */
-export function PublicBookingSection({ slug, language, accent }: Props) {
+export function PublicBookingSection({ slug, language, accent, horario }: Props) {
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const color = accent || '#C8102E';
   const colorDark = darken(color, 30);
@@ -171,6 +213,21 @@ export function PublicBookingSection({ slug, language, accent }: Props) {
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const selectedService = services.find((s) => s.id === serviceId);
+
+  function hoursFor(dateObj: Date): { abre: string; cierra: string; cerrado: boolean } {
+    const key = WEEKDAY_KEYS[dateObj.getDay()];
+    const entry = horario?.find((h) => h.dia === key);
+    if (!entry) return { ...DEFAULT_HOURS, cerrado: false };
+    return entry;
+  }
+
+  const dayOptions = nextDays(14);
+  const selectedDateObj = date ? new Date(`${date}T00:00:00`) : null;
+  const selectedDayHours = selectedDateObj ? hoursFor(selectedDateObj) : null;
+  const timeSlots =
+    selectedDateObj && selectedDayHours && !selectedDayHours.cerrado
+      ? generateTimeSlots(selectedDayHours.abre, selectedDayHours.cierra, date === todayStr)
+      : [];
 
   return (
     <section className="mx-auto max-w-public-content" style={{ padding: '56px 24px' }} id="reservar">
@@ -331,33 +388,76 @@ export function PublicBookingSection({ slug, language, accent }: Props) {
                     ) : null}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
-                        {getText('Fecha', 'Date')}
-                      </label>
-                      <input
-                        type="date"
-                        required
-                        min={todayStr}
-                        value={date}
-                        onChange={(e) => setDate(e.target.value)}
-                        className="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:border-gray-500 focus:outline-none"
-                      />
+                  <div>
+                    <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                      {getText('Día', 'Day')}
+                    </label>
+                    <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+                      {dayOptions.map(({ dateStr, date: d }) => {
+                        const active = date === dateStr;
+                        const closed = hoursFor(d).cerrado;
+                        return (
+                          <button
+                            key={dateStr}
+                            type="button"
+                            onClick={() => {
+                              setDate(dateStr);
+                              setTime('');
+                            }}
+                            className="flex shrink-0 flex-col items-center rounded-xl border px-3 py-2 text-xs font-semibold transition-colors"
+                            style={
+                              active
+                                ? { backgroundColor: color, borderColor: color, color: '#fff' }
+                                : { borderColor: '#e5e7eb', color: closed ? '#c1c5cc' : '#374151' }
+                            }
+                          >
+                            <span className="uppercase tracking-wide">
+                              {d.toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { weekday: 'short' })}
+                            </span>
+                            <span className="mt-0.5 text-sm">{d.getDate()}</span>
+                          </button>
+                        );
+                      })}
                     </div>
+                  </div>
+
+                  {date && (
                     <div>
                       <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
                         {getText('Hora', 'Time')}
                       </label>
-                      <input
-                        type="time"
-                        required
-                        value={time}
-                        onChange={(e) => setTime(e.target.value)}
-                        className="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:border-gray-500 focus:outline-none"
-                      />
+                      {selectedDayHours?.cerrado ? (
+                        <p className="rounded-xl bg-gray-50 px-3 py-2.5 text-sm text-gray-500">
+                          {getText('Cerrado ese día — elige otra fecha.', "Closed that day — pick another date.")}
+                        </p>
+                      ) : timeSlots.length === 0 ? (
+                        <p className="rounded-xl bg-gray-50 px-3 py-2.5 text-sm text-gray-500">
+                          {getText('No quedan horarios disponibles ese día.', 'No time slots left that day.')}
+                        </p>
+                      ) : (
+                        <div className="grid max-h-40 grid-cols-3 gap-1.5 overflow-y-auto sm:grid-cols-4">
+                          {timeSlots.map((slot) => {
+                            const active = time === slot;
+                            return (
+                              <button
+                                key={slot}
+                                type="button"
+                                onClick={() => setTime(slot)}
+                                className="rounded-lg border px-2 py-1.5 text-xs font-semibold transition-colors"
+                                style={
+                                  active
+                                    ? { backgroundColor: color, borderColor: color, color: '#fff' }
+                                    : { borderColor: '#e5e7eb', color: '#374151' }
+                                }
+                              >
+                                {slot}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  )}
 
                   <div>
                     <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
@@ -403,13 +503,15 @@ export function PublicBookingSection({ slug, language, accent }: Props) {
 
                   <button
                     type="submit"
-                    disabled={status === 'submitting'}
+                    disabled={status === 'submitting' || !date || !time}
                     className="mt-1 rounded-xl px-6 py-3 text-sm font-bold text-white shadow-md transition-transform hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100"
                     style={{ background: `linear-gradient(135deg, ${color}, ${colorDark})` }}
                   >
                     {status === 'submitting'
                       ? getText('Enviando...', 'Sending...')
-                      : getText('Confirmar reserva', 'Confirm booking')}
+                      : !date || !time
+                        ? getText('Elige día y hora', 'Pick a day and time')
+                        : getText('Confirmar reserva', 'Confirm booking')}
                   </button>
                 </form>
               </>

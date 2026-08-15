@@ -347,7 +347,7 @@ export function BarberTemplate({
       <FaqSection faq={business.faq} getText={getText} />
 
       {/* ── RESERVA (Agenda pública) ── */}
-      <PublicBookingSection slug={business.slug} language={language} accent={business.primary_color} />
+      <PublicBookingSection slug={business.slug} language={language} accent={business.primary_color} horario={business.horario} />
 
       {/* ── CONTACTO ── */}
       <ContactSection business={business} language={language} />

@@ -36,12 +36,6 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: [], // framer-motion removed from most pages
   },
-  // isomorphic-dompurify usa jsdom en el servidor, que trae dependencias (@exodus/bytes vía
-  // html-encoding-sniffer) que rompen al bundlear con webpack en el build 'standalone' —
-  // "require() of ES Module ... not supported". Server External Packages hace que Next las
-  // cargue con require() nativo de Node en vez de intentar bundlearlas. Rompió /[slug] en
-  // producción (500 en /pegote-barber y otros) el 2026-08-15 — no quitar esta línea.
-  serverExternalPackages: ['isomorphic-dompurify', 'jsdom'],
   // Enable bundle analysis in production
   webpack: (config, { isServer }) => {
     if (!isServer) {
