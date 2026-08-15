@@ -47,19 +47,16 @@ export function SpaceSidebar({
       ? [{ label: getText('Cocina', 'Kitchen'), icon: '🍳', href: `/space/${slug}/kitchen` }]
       : []),
     { label: getText('Pantalla', 'Screen'),                   icon: '📺', href: `/space/${slug}/board` },
-    // Personal (meseros, barberos...) — distinto de Equipo (quién entra al dashboard). Lo ve
-    // cualquier rol, aunque solo Owner/Manager pueden editar (ver gating en la propia página).
-    { label: getText('Personal', 'Personal'),                 icon: '🧑‍🤝‍🧑', href: `/space/${slug}/personal` },
+    // Equipo (Personal + Equipo unificados): staff que atiende clientes y/o tiene acceso al
+    // dashboard, todo en una sola pantalla. Lo ve cualquier rol, aunque solo Owner/Manager
+    // pueden editar y solo Owner administra accesos de dashboard (ver gating en la página).
+    { label: getText('Equipo', 'Team'),                       icon: '👥', href: `/space/${slug}/equipo` },
     // Agenda no aplica a Retail/Creator/Publisher — esos negocios no reservan citas.
     ...(!['retail', 'creator', 'publisher'].includes(businessType)
       ? [{ label: getText('Agenda', 'Agenda'), icon: '🗓️', href: `/space/${slug}/agenda` }]
       : []),
     { label: getText('Módulos', 'Modules'),                   icon: '🧩', href: `/space/${slug}/modules` },
     { label: getText('Estadísticas', 'Stats'),                icon: '📊', href: `/space/${slug}/stats` },
-    // Equipo solo lo ve el Owner — Manager/Staff no tienen a quién invitar/gestionar.
-    ...(userRole === 'Owner'
-      ? [{ label: getText('Equipo', 'Team'), icon: '👥', href: `/space/${slug}/team` }]
-      : []),
     { label: getText('Facturación', 'Billing'),               icon: '💳', href: `/space/${slug}/settings` },
   ];
 

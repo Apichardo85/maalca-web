@@ -76,16 +76,13 @@ export function SpaceMobileNav({
       ? [{ label: getText('Cocina', 'Kitchen'), icon: '🍳', href: `/space/${slug}/kitchen` }]
       : []),
     { label: getText('Pantalla', 'Screen'), icon: '📺', href: `/space/${slug}/board` },
-    { label: getText('Personal', 'Personal'), icon: '🧑‍🤝‍🧑', href: `/space/${slug}/personal` },
+    // Equipo (Personal + Equipo unificados) — mismo criterio que SpaceSidebar.tsx.
+    { label: getText('Equipo', 'Team'), icon: '👥', href: `/space/${slug}/equipo` },
     ...(!['retail', 'creator', 'publisher'].includes(businessType)
       ? [{ label: getText('Agenda', 'Agenda'), icon: '🗓️', href: `/space/${slug}/agenda` }]
       : []),
     { label: getText('Módulos', 'Modules'), icon: '🧩', href: `/space/${slug}/modules` },
     { label: getText('Estadísticas', 'Stats'), icon: '📊', href: `/space/${slug}/stats` },
-    // Equipo solo lo ve el Owner — mismo criterio que SpaceSidebar.tsx.
-    ...(userRole === 'Owner'
-      ? [{ label: getText('Equipo', 'Team'), icon: '👥', href: `/space/${slug}/team` }]
-      : []),
     { label: getText('Facturación', 'Billing'), icon: '💳', href: `/space/${slug}/settings` },
   ];
 
