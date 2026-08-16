@@ -50,6 +50,7 @@ export default async function PosPage({
   return (
     <PosContent
       slug={slug}
+      affiliateId={space.business.id}
       currency={currency}
       items={sellable}
     />

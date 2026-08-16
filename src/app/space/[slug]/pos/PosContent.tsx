@@ -1,8 +1,9 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
+import { useOrdersRealtime } from '@/hooks/useOrdersRealtime';
 import { Toast } from '@/components/ui/Toast';
 
 export interface PosItem {
@@ -25,19 +26,28 @@ interface CartLine {
 
 interface Props {
   slug: string;
+  affiliateId: string;
   currency: 'USD' | 'DOP';
   items: PosItem[];
 }
 
+// "Tarjeta" ya no es solo una etiqueta — genera un cobro real de Stripe (Checkout Session
+// contra la cuenta Connect del negocio) que el cliente paga con su propio teléfono via QR/link.
+// Efectivo/Otro se quedan igual que antes: el cobro ya pasó por fuera, esto solo lo registra.
 const PAYMENT_METHODS: { value: string; es: string; en: string; icon: string }[] = [
   { value: 'Cash', es: 'Efectivo', en: 'Cash', icon: '💵' },
-  { value: 'Card', es: 'Tarjeta', en: 'Card', icon: '💳' },
+  { value: 'Card', es: 'Tarjeta (QR)', en: 'Card (QR)', icon: '💳' },
   { value: 'Other', es: 'Otro', en: 'Other', icon: '🧾' },
 ];
 
 const ALL_TAB = '__all__';
 
-export function PosContent({ slug, currency, items }: Props) {
+interface CheckoutModalState {
+  orderId: string;
+  url: string;
+}
+
+export function PosContent({ slug, affiliateId, currency, items }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -48,6 +58,28 @@ export function PosContent({ slug, currency, items }: Props) {
   const [charging, setCharging] = useState(false);
   // Solo informativo para el personal (nombre/foto/descripción) — no agrega al carrito.
   const [infoItem, setInfoItem] = useState<PosItem | null>(null);
+  // Cobro real con Stripe (QR) — mientras esto no sea null, el pedido está Pending esperando
+  // que el cliente pague desde su teléfono. Se cierra solo cuando llega el evento de SignalR.
+  const [checkoutModal, setCheckoutModal] = useState<CheckoutModalState | null>(null);
+
+  // OrdersHub — mismo canal que usa Kitchen Display. Cuando el pedido Pending de este QR pasa
+  // a Paid (confirmado por el webhook de Stripe Connect, no por esta pestaña), cerramos el
+  // modal y limpiamos el carrito automáticamente — el mostrador no tiene que estar pendiente
+  // de refrescar nada.
+  const handleOrderUpdated = useCallback((raw: unknown) => {
+    const order = raw as { id?: string; status?: string } | null;
+    if (!order?.id) return;
+    setCheckoutModal((prev) => {
+      if (!prev || prev.orderId !== order.id) return prev;
+      if (order.status !== 'Paid') return prev;
+      toast.success(getText('Pago recibido.', 'Payment received.'));
+      setCart([]);
+      setPaymentMethod(null);
+      return null;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useOrdersRealtime(affiliateId, handleOrderUpdated);
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -84,6 +116,8 @@ export function PosContent({ slug, currency, items }: Props) {
 
   async function chargeSale() {
     if (cart.length === 0 || !paymentMethod) return;
+    if (paymentMethod === 'Card') return chargeWithStripe();
+
     setCharging(true);
     try {
       const res = await fetch(`/api/space/${slug}/pos`, {
@@ -107,6 +141,45 @@ export function PosContent({ slug, currency, items }: Props) {
       toast.success(getText('Venta registrada.', 'Sale registered.'));
       setCart([]);
       setPaymentMethod(null);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
+      toast.error(msg);
+    } finally {
+      setCharging(false);
+    }
+  }
+
+  // "Tarjeta (QR)" — crea el pedido Pending + una Checkout Session real de Stripe (misma cuenta
+  // Connect del storefront público) y muestra el QR. El carrito NO se limpia acá: solo se
+  // limpia cuando llega la confirmación real por SignalR (handleOrderUpdated), para que el
+  // mostrador no pierda la cuenta si el cliente todavía no ha pagado.
+  async function chargeWithStripe() {
+    setCharging(true);
+    try {
+      const origin = window.location.origin;
+      const res = await fetch(`/api/space/${slug}/pos/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: cart.map((l) => ({ itemId: l.itemId, name: l.name, price: l.price, qty: l.qty })),
+          subtotal: total,
+          tax: 0,
+          total,
+          customerName: null,
+          notes: null,
+          currency,
+          successUrl: `${origin}/pay/success`,
+          cancelUrl: `${origin}/pay/cancel`,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(
+          data?.error?.message ??
+            getText('No pudimos generar el cobro con Stripe.', "We couldn't start the Stripe charge."),
+        );
+      }
+      setCheckoutModal({ orderId: data.orderId, url: data.checkoutUrl });
     } catch (e) {
       const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
       toast.error(msg);
@@ -326,6 +399,48 @@ export function PosContent({ slug, currency, items }: Props) {
                 {getText('Cerrar', 'Close')}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Cobro con Stripe (QR) — el cliente paga desde su propio teléfono. Se cierra solo
+          cuando handleOrderUpdated recibe la confirmación real por SignalR; "Cancelar" solo
+          cierra el modal en esta pantalla, no cancela el pedido Pending en Stripe (el cliente
+          igual podría completar el pago si ya tiene el link abierto). */}
+      {checkoutModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-xs rounded-2xl bg-white dark:bg-neutral-900 p-6 text-center shadow-xl">
+            <h3 className="text-base font-bold">{getText('Escanea para pagar', 'Scan to pay')}</h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-neutral-400">
+              {getText('El cliente paga desde su teléfono.', 'The customer pays from their phone.')}
+            </p>
+            <div className="mx-auto mt-4 flex h-56 w-56 items-center justify-center overflow-hidden rounded-xl border border-gray-200 dark:border-neutral-800">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(checkoutModal.url)}`}
+                alt={getText('Código QR de pago', 'Payment QR code')}
+                className="h-full w-full"
+              />
+            </div>
+            <p className="mt-4 text-2xl font-bold text-[#C8102E]">{fmt(total)}</p>
+            <a
+              href={checkoutModal.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 block text-xs font-medium text-gray-500 underline dark:text-neutral-400"
+            >
+              {getText('O comparte este link', 'Or share this link')}
+            </a>
+            <div className="mt-4 flex items-center justify-center gap-2 text-xs font-medium text-gray-400 dark:text-neutral-500">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-[#C8102E]" />
+              {getText('Esperando el pago…', 'Waiting for payment…')}
+            </div>
+            <button
+              type="button"
+              onClick={() => setCheckoutModal(null)}
+              className="mt-4 w-full rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-2 text-sm font-medium"
+            >
+              {getText('Cerrar', 'Close')}
+            </button>
           </div>
         </div>
       )}
