@@ -11,6 +11,7 @@ export interface PosItem {
   price: number;
   category?: string | null;
   imageUrl?: string | null;
+  description?: string | null;
   status?: string | null;
   isDemo?: boolean;
 }
@@ -45,6 +46,8 @@ export function PosContent({ slug, currency, items }: Props) {
   const [category, setCategory] = useState(ALL_TAB);
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
   const [charging, setCharging] = useState(false);
+  // Solo informativo para el personal (nombre/foto/descripción) — no agrega al carrito.
+  const [infoItem, setInfoItem] = useState<PosItem | null>(null);
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -166,23 +169,54 @@ export function PosContent({ slug, currency, items }: Props) {
 
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
               {visibleItems.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => addToCart(item)}
-                  className="flex min-h-[96px] flex-col items-start justify-between rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 text-left shadow-sm transition-transform active:scale-95 hover:border-[#C8102E]"
-                >
-                  <span className="text-sm font-semibold leading-snug">{item.name}</span>
-                  <span className="mt-2 text-base font-bold text-[#C8102E]">{fmt(item.price)}</span>
-                </button>
+                <div key={item.id} className="group relative">
+                  <button
+                    type="button"
+                    onClick={() => addToCart(item)}
+                    className="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-left shadow-sm transition-transform active:scale-95 hover:border-[#C8102E]"
+                  >
+                    {item.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.imageUrl} alt={item.name} className="h-24 w-full object-cover" />
+                    ) : (
+                      <div className="flex h-24 w-full items-center justify-center bg-gray-100 dark:bg-neutral-800 text-2xl">
+                        🍽️
+                      </div>
+                    )}
+                    <div className="flex min-h-[72px] flex-col items-start justify-between p-3">
+                      <span className="text-sm font-semibold leading-snug">{item.name}</span>
+                      <span className="mt-2 text-base font-bold text-[#C8102E]">{fmt(item.price)}</span>
+                    </div>
+                  </button>
+                  {item.description && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setInfoItem(item);
+                      }}
+                      aria-label={getText('Ver detalles', 'View details')}
+                      title={getText('Ver detalles', 'View details')}
+                      className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-xs font-bold text-white backdrop-blur-sm hover:bg-black/70"
+                    >
+                      i
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
           </>
         )}
       </div>
 
-      {/* Carrito + cobro — fijo abajo en mobile, panel lateral en desktop */}
-      <div className="flex w-full flex-col border-t border-gray-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 lg:w-96 lg:border-l lg:border-t-0">
+      {/* Carrito + cobro — apilado abajo en mobile; en desktop, panel lateral PEGADO al
+          viewport (lg:sticky + lg:h-screen + lg:self-start). Sin self-start, el flex row
+          por defecto estira este panel a la altura del contenido MÁS ALTO de la fila (el grid
+          de productos, que puede ser más alto que la pantalla si hay muchos items) — eso
+          empujaba el botón de cobrar muy por debajo del fold, obligando a bajar toda la
+          página para pagar. Con self-start + h-screen, el panel se queda del alto exacto del
+          viewport pase lo que pase con el grid, y el botón de cobrar siempre queda a la vista. */}
+      <div className="flex w-full flex-col border-t border-gray-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 lg:sticky lg:top-0 lg:h-screen lg:w-96 lg:self-start lg:border-l lg:border-t-0">
         <div className="flex-1 overflow-y-auto p-4">
           <h2 className="text-sm font-semibold">{getText('Cuenta actual', 'Current order')}</h2>
           {cart.length === 0 ? (
@@ -257,6 +291,44 @@ export function PosContent({ slug, currency, items }: Props) {
           </button>
         </div>
       </div>
+      {/* Detalles de un item — solo informativo (nombre/foto/descripción/precio), para que el
+          personal pueda contestarle al cliente sin salir del POS. No agrega al carrito. */}
+      {infoItem && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setInfoItem(null)}
+        >
+          <div
+            className="w-full max-w-sm overflow-hidden rounded-2xl bg-white dark:bg-neutral-900 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {infoItem.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={infoItem.imageUrl} alt={infoItem.name} className="h-40 w-full object-cover" />
+            ) : (
+              <div className="flex h-40 w-full items-center justify-center bg-gray-100 dark:bg-neutral-800 text-4xl">
+                🍽️
+              </div>
+            )}
+            <div className="p-4">
+              <div className="flex items-start justify-between gap-3">
+                <h3 className="text-base font-bold">{infoItem.name}</h3>
+                <span className="shrink-0 text-base font-bold text-[#C8102E]">{fmt(infoItem.price)}</span>
+              </div>
+              {infoItem.description && (
+                <p className="mt-2 text-sm text-gray-600 dark:text-neutral-300">{infoItem.description}</p>
+              )}
+              <button
+                type="button"
+                onClick={() => setInfoItem(null)}
+                className="mt-4 w-full rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-2 text-sm font-medium"
+              >
+                {getText('Cerrar', 'Close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <Toast toasts={toast.toasts} onRemove={toast.remove} />
     </div>
   );
