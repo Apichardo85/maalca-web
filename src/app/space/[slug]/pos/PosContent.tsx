@@ -114,8 +114,12 @@ export function PosContent({ slug, currency, items }: Props) {
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white lg:flex-row">
-      {/* Grid de productos — táctil, botones grandes */}
-      <div className="flex-1 px-4 py-6 lg:px-6">
+      {/* Grid de productos — táctil, botones grandes.
+          min-w-0 es necesario: sin esto, un hijo flex-1 no se encoge por debajo de su ancho
+          natural de contenido y el layout entero se corre a la derecha con scroll horizontal
+          en laptops (el sidebar fijo de 240px reduce el ancho real disponible, pero los
+          breakpoints de Tailwind (lg:) miden el viewport completo, no el espacio restante). */}
+      <div className="min-w-0 flex-1 px-4 py-6 lg:px-6">
         <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
           {getText('Tu espacio', 'Your space')}
         </p>
