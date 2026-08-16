@@ -40,7 +40,7 @@ export interface MenuItemFlags {
 /**
  * Periodo semántico del día en que un item del menu está disponible.
  * - `all_day`: siempre disponible (ej. bebidas, postres).
- * - El resto: depende de `AffiliateConfig.mealPeriodHours`.
+ * - El resto: depende de `AffiliateMealPeriodHours` (ver `@/lib/menu-availability`).
  *
  * Si un item no tiene `periods` o incluye `all_day`, se considera siempre disponible.
  */

@@ -224,7 +224,7 @@ export default function Header({
                 {mobileSession ? (
                   <div className="flex items-center justify-between">
                     <Link
-                      href="/dashboard"
+                      href="/me"
                       className="text-sm text-text-secondary hover:text-text-primary py-2 transition-colors"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >

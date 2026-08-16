@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
-import { ImageCropper } from '@/app/dashboard/[affiliateId]/menu/components/ImageCropper';
+import { ImageCropper } from '@/components/space/catalog/ImageCropper';
 import { parseApiError } from '@/lib/api-errors';
 
 interface Props {

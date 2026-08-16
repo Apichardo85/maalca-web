@@ -6,8 +6,8 @@ import Link from 'next/link';
 import { PlanLimitNotice } from '@/components/space/PlanLimitNotice';
 import { TrialExpiredNotice } from '@/components/space/TrialExpiredNotice';
 import { ImageGalleryEditor } from '@/components/space/catalog/ImageGalleryEditor';
-import { MealPeriodEditor } from '@/app/dashboard/[affiliateId]/menu/components/MealPeriodEditor';
-import { WeekDayEditor } from '@/app/dashboard/[affiliateId]/menu/components/WeekDayEditor';
+import { MealPeriodEditor } from '@/components/space/catalog/MealPeriodEditor';
+import { WeekDayEditor } from '@/components/space/catalog/WeekDayEditor';
 import type { MealPeriod, WeekDay } from '@/lib/types';
 import { parseApiError } from '@/lib/api-errors';
 

@@ -9,7 +9,20 @@
  */
 
 import type { MealPeriod, MenuCatalogItem, WeekDay } from "@/lib/types";
-import type { AffiliateMealPeriodHours, MealPeriodHours } from "@/config/affiliates-config";
+
+/** Rango horario "HH:mm" 24h. `end < start` significa que cruza medianoche. */
+export interface MealPeriodHours {
+  start: string;
+  end: string;
+}
+
+/**
+ * Horarios por periodo del día del afiliado (solo aplica a businessType === 'restaurant').
+ * `all_day` se infiere cuando un item no tiene periodo o lo tiene marcado explícitamente.
+ */
+export type AffiliateMealPeriodHours = Partial<
+  Record<Exclude<MealPeriod, "all_day">, MealPeriodHours>
+>;
 
 // ─── Labels ──────────────────────────────────────────────────────────────────
 

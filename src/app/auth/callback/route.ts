@@ -1,23 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
-
-const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
-
-// Known staff emails → affiliate mapping (hardcoded affiliates)
-const KNOWN_AFFILIATES: Record<string, { affiliate_id: string; role: string }> = {
-  "alejandropichardo85@gmail.com":    { affiliate_id: "maalca",                role: "admin"  },
-  "littledominicanarestaurant@gmail.com": { affiliate_id: "the-little-dominican", role: "owner" },
-};
-
-// Affiliate GUID mapping (backward compat with menu editor cookie)
-const AFFILIATE_GUIDS: Record<string, string> = {
-  "maalca":                "a1000000-0000-0000-0000-000000000006",
-  "the-little-dominican":  "a1000000-0000-0000-0000-000000000003",
-  "pegote-barbershop":     "a1000000-0000-0000-0000-000000000001",
-  "britocolor":            "a1000000-0000-0000-0000-000000000002",
-  "masa-tina":             "a1000000-0000-0000-0000-000000000005",
-  "dr-pichardo":           "a1000000-0000-0000-0000-000000000004",
-};
+import { resolveUserDestination } from "@/lib/resolve-user-destination";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -35,86 +18,30 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login?error=auth_failed`);
   }
 
-  const email   = data.user.email ?? "";
-  const mapping = KNOWN_AFFILIATES[email];
+  const email = data.user.email ?? "";
 
-  // Upsert profile
+  // Upsert profile (self-service signup bookkeeping — no longer carries any
+  // hardcoded affiliate/role, esos vivían solo en el sistema legacy /dashboard).
   await supabase.from("profiles").upsert(
-    {
-      id:           data.user.id,
-      email,
-      affiliate_id: mapping?.affiliate_id ?? null,
-      role:         mapping?.role ?? "owner",
-      plan:         "free",
-    },
+    { id: data.user.id, email, plan: "free" },
     { onConflict: "id" },
   );
 
-  // ── Routing logic ────────────────────────────────────────────────────────
-  //
-  //  1. Known affiliate email (admin/staff)  →  /dashboard/[affiliate_id]
-  //  2. Self-service user with ?redirect param  →  honor it (e.g. /onboarding)
-  //  3. Self-service user with existing space  →  /space/[slug]
-  //  4. Brand-new self-service user  →  /onboarding
-
-  let redirectPath: string;
-
-  // El admin de plataforma (alejandropichardo85@gmail.com) está mapeado al afiliado legacy
-  // "maalca" por compat con el sistema hardcoded de /dashboard/[slug] (dashboard con datos
-  // mock, de antes de que existiera /ops). Ya está sembrado como PlatformAdmin real
-  // (ver Program.cs) — su login debe ir al panel de operaciones real, no al mock.
-  const isPlatformAdmin = mapping?.affiliate_id === 'maalca';
-
-  if (isPlatformAdmin) {
-    redirectPath = '/ops';
-  } else if (mapping?.affiliate_id) {
-    // 1. Hardcoded staff affiliate (negocio real en /dashboard/[slug], ej. TLD, Dr. Pichardo) —
-    // siempre va a su dashboard legacy — no tocar, todavía dependen de esa ruta.
-    redirectPath = `/dashboard/${mapping.affiliate_id}`;
-  } else {
-    // Check for an explicit redirect param (e.g. from /login?redirect=/onboarding)
-    const redirectParam = searchParams.get("redirect") ?? searchParams.get("next");
-    const safeRedirect = redirectParam && redirectParam.startsWith("/") ? redirectParam : null;
-
-    if (safeRedirect) {
-      // 2. Honor the explicit redirect
-      redirectPath = safeRedirect;
-    } else {
-      // 3 & 4. Check maalca-api for an existing space
-      const accessToken = data.session?.access_token;
-      redirectPath = "/onboarding";
-
-      if (accessToken) {
-        try {
-          const res = await fetch(`${API}/api/me/affiliates`, {
-            headers: { Authorization: `Bearer ${accessToken}` },
-            cache: "no-store",
-          });
-
-          if (res.ok) {
-            const affiliates: Array<{ id: string; slug: string }> =
-              await res.json().catch(() => []);
-            if (affiliates.length > 0) {
-              redirectPath = `/space/${affiliates[0].slug}`;
-            }
-          }
-        } catch {
-          // maalca-api unreachable — send to onboarding
-        }
-      }
-    }
+  // ── Routing ──────────────────────────────────────────────────────────────
+  //  1. Platform admin  →  /ops (siempre, sin excepción — ver tarea #142)
+  //  2. ?redirect / ?next explícito  →  se respeta (ej. /onboarding)
+  //  3. Usuario con negocio real (maalca-api)  →  /space/[slug]
+  //  4. Usuario nuevo  →  /onboarding
+  const PLATFORM_ADMIN_EMAILS = ["alejandropichardo85@gmail.com"];
+  if (PLATFORM_ADMIN_EMAILS.includes(email)) {
+    return NextResponse.redirect(`${origin}/ops`);
   }
 
-  const response = NextResponse.redirect(`${origin}${redirectPath}`);
+  const redirectParam = searchParams.get("redirect") ?? searchParams.get("next");
+  const safeRedirect = redirectParam && redirectParam.startsWith("/") ? redirectParam : null;
 
-  // Set backward-compat cookies for hardcoded affiliates
-  if (mapping?.affiliate_id) {
-    const guid = AFFILIATE_GUIDS[mapping.affiliate_id];
-    if (guid) {
-      response.cookies.set("affiliate_guid", guid, { path: "/", maxAge: 86400, sameSite: "lax" });
-    }
-    response.cookies.set("user_role", mapping.role, { path: "/", maxAge: 86400, sameSite: "lax" });
-  }
+  const redirectPath = safeRedirect
+    ?? await resolveUserDestination(email, data.session?.access_token);
 
-  return response;
+  return NextResponse.redirect(`${origin}${redirectPath}`);
 }

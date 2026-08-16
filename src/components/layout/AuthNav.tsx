@@ -47,7 +47,7 @@ export function AuthNav({ size = "sm", className, onNavigate }: AuthNavProps) {
   if (session) {
     return (
       <div className="flex items-center gap-2">
-        <Link href="/dashboard" onClick={onNavigate}>
+        <Link href="/me" onClick={onNavigate}>
           <Button variant="outline" size={size} className={className}>
             {session.user.email?.split("@")[0]}
           </Button>

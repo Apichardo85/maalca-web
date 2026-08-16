@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/dashboard/', '/login'],
+        disallow: ['/api/', '/space/', '/ops/', '/login', '/me'],
       },
     ],
     sitemap: 'https://maalca.com/sitemap.xml',
