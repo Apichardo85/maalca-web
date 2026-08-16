@@ -12,7 +12,7 @@ const ALL_MODULES = [
   { token: 'page',         icon: '🌐', es: 'Página',        en: 'Page',          descEs: 'Tu página pública en maalca.com.', descEn: 'Your public page on maalca.com.' },
   { token: 'orders',       icon: '🧾', es: 'Pedidos',       en: 'Orders',        descEs: 'Pedidos online con cobro real por Stripe.', descEn: 'Online orders with real Stripe checkout.' },
   { token: 'kitchen',      icon: '🍳', es: 'Cocina',        en: 'Kitchen',       descEs: 'Kanban en tiempo real para preparar pedidos.', descEn: 'Real-time kanban to prepare orders.', businessTypes: ['restaurant'] },
-  { token: 'pos',          icon: '🧮', es: 'Punto de venta', en: 'Point of sale', descEs: 'Cobra en el local — efectivo, tarjeta o QR.', descEn: 'Charge in-store — cash, card, or QR.', businessTypes: ['restaurant'] },
+  { token: 'pos',          icon: '🧮', es: 'Punto de venta', en: 'Point of sale', descEs: 'Cobra en el local — efectivo, tarjeta o QR.', descEn: 'Charge in-store — cash, card, or QR.', businessTypes: ['restaurant', 'retail'] },
   { token: 'board',        icon: '📺', es: 'Pantalla',      en: 'Screen',        descEs: 'Menú o catálogo en una pantalla física, con comerciales.', descEn: 'Menu or catalog on a physical screen, with ads.' },
   { token: 'queue',        icon: '🪑', es: 'Fila de espera', en: 'Waiting queue', descEs: 'Walk-ins que esperan turno sin cita previa.', descEn: 'Walk-ins waiting their turn without an appointment.', businessTypes: ['barber'] },
   { token: 'invoices',     icon: '🧾', es: 'Facturas',      en: 'Invoices',      descEs: 'Factura a tus clientes por el trabajo realizado.', descEn: 'Invoice your customers for completed work.', businessTypes: ['service', 'professional'] },

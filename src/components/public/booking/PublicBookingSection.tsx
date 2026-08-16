@@ -352,7 +352,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
             </button>
 
             {status === 'success' ? (
-              <div className="flex-1 overflow-y-auto p-5 py-8 text-center sm:p-6">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden p-5 py-8 text-center sm:p-6">
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-2xl">
                   ✓
                 </div>
@@ -374,7 +374,11 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-                <div className="flex-1 overflow-y-auto p-5 pt-4 sm:p-6">
+                {/* overflow-x-hidden explícito — sin esto, overflow-y-auto promueve overflow-x a
+                    "auto" por spec de CSS y cualquier pixel de más adentro mete un scroll
+                    horizontal fantasma que corta inputs y botón por la derecha. Mismo fix que
+                    TableReservationSection.tsx — reportado en producción 2026-08-16. */}
+                <div className="flex-1 overflow-y-auto overflow-x-hidden p-5 pt-4 sm:p-6">
                   <div className="mb-5 flex items-center gap-3 pr-8">
                     {selectedMember?.photoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -470,7 +474,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                             {getText('No quedan horarios disponibles ese día.', 'No time slots left that day.')}
                           </p>
                         ) : (
-                          <div className="grid max-h-44 grid-cols-3 gap-1.5 overflow-y-auto pr-0.5 sm:grid-cols-4">
+                          <div className="grid max-h-44 grid-cols-3 gap-1.5 overflow-y-auto overflow-x-hidden pr-0.5 sm:grid-cols-4">
                             {timeSlots.map((slot) => {
                               const active = time === slot;
                               return (

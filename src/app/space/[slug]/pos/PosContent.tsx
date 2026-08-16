@@ -220,7 +220,19 @@ export function PosContent({ slug, affiliateId, currency, items, businessType }:
         <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
           {getText('Tu espacio', 'Your space')}
         </p>
-        <h1 className="mt-1 text-2xl font-bold">{getText('Punto de venta', 'Point of sale')}</h1>
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+          <h1 className="text-2xl font-bold">{getText('Punto de venta', 'Point of sale')}</h1>
+          {/* Kiosko de autopedidos — existe desde hace rato (/{slug}/kiosk) pero no tenía ningún
+              link visible en el dashboard, nadie lo podía encontrar sin la URL exacta. */}
+          <a
+            href={`/${slug}/kiosk`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-full border border-gray-300 px-3.5 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+          >
+            🖥️ {getText('Abrir kiosko de autopedidos', 'Open self-order kiosk')}
+          </a>
+        </div>
 
         {items.length === 0 ? (
           <p className="mt-6 text-sm text-gray-400 dark:text-neutral-500">

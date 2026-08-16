@@ -201,7 +201,7 @@ export function TableReservationSection({ slug, language, accent, horario }: Pro
             </button>
 
             {status === 'success' ? (
-              <div className="flex-1 overflow-y-auto p-5 py-8 text-center sm:p-6">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden p-5 py-8 text-center sm:p-6">
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-2xl">
                   ✓
                 </div>
@@ -223,7 +223,11 @@ export function TableReservationSection({ slug, language, accent, horario }: Pro
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-                <div className="flex-1 overflow-y-auto p-5 pt-8 sm:p-6">
+                {/* overflow-x-hidden explícito — sin esto, el spec de CSS promueve overflow-x a
+                    "auto" en cuanto overflow-y es "auto", y cualquier pixel de más adentro (el
+                    grid de horas, el padding) mete un scroll horizontal fantasma que corta los
+                    inputs y el botón por la derecha. Reportado en producción 2026-08-16. */}
+                <div className="flex-1 overflow-y-auto overflow-x-hidden p-5 pt-8 sm:p-6">
                   <div className="grid gap-3.5">
                     <div>
                       <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
@@ -295,7 +299,7 @@ export function TableReservationSection({ slug, language, accent, horario }: Pro
                             {getText('No quedan horarios disponibles ese día.', 'No time slots left that day.')}
                           </p>
                         ) : (
-                          <div className="grid max-h-44 grid-cols-3 gap-1.5 overflow-y-auto pr-0.5 sm:grid-cols-4">
+                          <div className="grid max-h-44 grid-cols-3 gap-1.5 overflow-y-auto overflow-x-hidden pr-0.5 sm:grid-cols-4">
                             {timeSlots.map((slot) => {
                               const active = time === slot;
                               return (
