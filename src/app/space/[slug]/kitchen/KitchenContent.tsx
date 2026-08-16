@@ -129,6 +129,9 @@ export function KitchenContent({ slug, plan, affiliateId, initialOrders }: Props
                       {order.items.map((item) => (
                         <li key={item.itemId} className="text-sm text-gray-700 dark:text-neutral-300">
                           <span className="font-semibold">{item.qty}x</span> {item.name}
+                          {item.notes && (
+                            <div className="pl-4 text-xs italic text-amber-600 dark:text-amber-400">↳ {item.notes}</div>
+                          )}
                         </li>
                       ))}
                     </ul>

@@ -78,9 +78,17 @@ export function SpaceMobileNav({
     ...(businessType === 'restaurant'
       ? [{ label: getText('Cocina', 'Kitchen'), icon: '🍳', href: `/space/${slug}/kitchen`, token: 'kitchen' }]
       : []),
-    // POS (Etapa D, fase 1) — mismo criterio que Cocina, ver SpaceSidebar.tsx.
-    ...(businessType === 'restaurant'
+    // POS — restaurante y retail, ver mismo criterio en SpaceSidebar.tsx.
+    ...(['restaurant', 'retail'].includes(businessType)
       ? [{ label: getText('Punto de venta', 'Point of sale'), icon: '🧮', href: `/space/${slug}/pos`, token: 'pos' }]
+      : []),
+    // Fila de espera — solo Barbería, ver mismo criterio en SpaceSidebar.tsx.
+    ...(businessType === 'barber'
+      ? [{ label: getText('Fila de espera', 'Waiting queue'), icon: '🪑', href: `/space/${slug}/queue`, token: 'queue' }]
+      : []),
+    // Facturas — Servicios/Profesionales, ver mismo criterio en SpaceSidebar.tsx.
+    ...(['service', 'professional'].includes(businessType)
+      ? [{ label: getText('Facturas', 'Invoices'), icon: '🧾', href: `/space/${slug}/invoices`, token: 'invoices' }]
       : []),
     { label: getText('Pantalla', 'Screen'), icon: '📺', href: `/space/${slug}/board`, token: 'board' },
     // Equipo (Personal + Equipo unificados) — mismo criterio que SpaceSidebar.tsx.

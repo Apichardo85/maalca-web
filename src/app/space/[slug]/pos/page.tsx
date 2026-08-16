@@ -53,6 +53,7 @@ export default async function PosPage({
       affiliateId={space.business.id}
       currency={currency}
       items={sellable}
+      businessType={space.business.businessType.toLowerCase()}
     />
   );
 }

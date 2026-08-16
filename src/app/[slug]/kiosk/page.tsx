@@ -59,9 +59,11 @@ export default async function KioskPage({ params }: PageProps) {
   const data = await getCatalog(slug);
   if (!data) notFound();
 
-  // Fase 1 del kiosko — mismo alcance que el POS: solo restaurantes por ahora, mismo criterio
-  // que Kitchen Display y POS ya usan para gatear sus rutas.
-  if (data.affiliate.businessType.toLowerCase() !== 'restaurant') notFound();
+  // Mismo alcance que el POS: restaurantes y retail — ambos venden items con precio fijo que
+  // un cliente puede autoseleccionar sin necesitar personal (a diferencia de Servicios/Barbería,
+  // que requieren agendar con un profesional específico).
+  const businessType = data.affiliate.businessType.toLowerCase();
+  if (!['restaurant', 'retail'].includes(businessType)) notFound();
 
   const items: KioskItem[] = data.items
     .filter((i) => i.status !== 'Inactive' && !i.is_demo && (i.price ?? 0) > 0)
@@ -84,6 +86,7 @@ export default async function KioskPage({ params }: PageProps) {
       currency={currency}
       items={items}
       onlinePayments={data.capabilities?.onlinePayments ?? false}
+      businessType={businessType}
     />
   );
 }

@@ -14,18 +14,21 @@ function buildWhatsAppUrl(
   cart: CartEntry[],
   subtotal: number,
   tax: number,
+  tip: number,
   total: number,
   phone: string,
   businessName: string,
   taxRate: number,
 ): string {
-  const lines = cart.map(
-    e => `• ${e.qty}x ${e.item.name} — $${(e.item.price * e.qty).toFixed(2)}`,
-  )
+  const lines = cart.map(e => {
+    const base = `• ${e.qty}x ${e.item.name} — $${(e.item.price * e.qty).toFixed(2)}`
+    return e.notes?.trim() ? `${base}\n   (${e.notes.trim()})` : base
+  })
   const taxLabel =
     taxRate > 0
       ? `Tax (${(taxRate * 100).toFixed(3).replace(/\.?0+$/, '')}%): $${tax.toFixed(2)}`
       : null
+  const tipLabel = tip > 0 ? `Propina: $${tip.toFixed(2)}` : null
   const msg = [
     `🍽 *Orden — ${businessName}*`,
     '',
@@ -33,6 +36,7 @@ function buildWhatsAppUrl(
     '',
     `Subtotal: $${subtotal.toFixed(2)}`,
     taxLabel,
+    tipLabel,
     `*Total: $${total.toFixed(2)}*`,
     '',
     'Nombre: ',
@@ -59,7 +63,13 @@ interface CartDrawerProps {
   /** capabilities.onlinePayments del plan — gatea el botón de pago con tarjeta, no garantiza
    *  que el afiliado ya conectó Stripe (eso lo confirma el backend al crear el pedido). */
   onlinePayments?: boolean
+  /** Edita las notas de personalización de una línea — solo se usa si restaurantMode. */
+  updateNotes?: (itemId: string, notes: string) => void
+  /** Restaurante: habilita notas de personalización por línea + selector de propina. */
+  restaurantMode?: boolean
 }
+
+const TIP_PRESETS = [0.1, 0.15, 0.2] as const
 
 export function CartDrawer({
   isOpen,
@@ -75,18 +85,30 @@ export function CartDrawer({
   currency = 'USD',
   slug,
   onlinePayments = false,
+  updateNotes,
+  restaurantMode = false,
 }: CartDrawerProps) {
   const fmt = useMemo(
     () => new Intl.NumberFormat('en-US', { style: 'currency', currency }),
     [currency],
   )
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'unavailable'>('idle')
+  // null = sin propina, number = porcentaje del preset elegido (ej. 0.15), 'custom' = usa customTip.
+  const [tipMode, setTipMode] = useState<number | 'custom' | null>(null)
+  const [customTip, setCustomTip] = useState('')
 
   if (!isOpen) return null
 
   const tax = cartTotal * taxRate
-  const total = cartTotal + tax
-  const waUrl = buildWhatsAppUrl(cart, cartTotal, tax, total, whatsappNumber, businessName, taxRate)
+  const tip = !restaurantMode
+    ? 0
+    : tipMode === 'custom'
+      ? Math.max(0, Number(customTip) || 0)
+      : tipMode
+        ? cartTotal * tipMode
+        : 0
+  const total = cartTotal + tax + tip
+  const waUrl = buildWhatsAppUrl(cart, cartTotal, tax, tip, total, whatsappNumber, businessName, taxRate)
 
   async function handleCardCheckout() {
     if (!slug) return
@@ -97,9 +119,16 @@ export function CartDrawer({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: cart.map(e => ({ itemId: e.item.id, name: e.item.name, price: e.item.price, qty: e.qty })),
+          items: cart.map(e => ({
+            itemId: e.item.id,
+            name: e.item.name,
+            price: e.item.price,
+            qty: e.qty,
+            notes: e.notes?.trim() || undefined,
+          })),
           subtotal: cartTotal,
           tax,
+          tip,
           total,
           currency,
           successUrl: `${origin}${window.location.pathname}?paid=true`,
@@ -199,11 +228,15 @@ export function CartDrawer({
             <div
               key={entry.item.id}
               style={{
+                padding: '12px 0',
+                borderBottom: '1px solid #f0ede8',
+              }}
+            >
+            <div
+              style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
-                padding: '12px 0',
-                borderBottom: '1px solid #f0ede8',
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -294,6 +327,25 @@ export function CartDrawer({
                 </button>
               </div>
             </div>
+            {restaurantMode && updateNotes && (
+              <input
+                value={entry.notes ?? ''}
+                onChange={e => updateNotes(entry.item.id, e.target.value)}
+                placeholder="Personalizar (ej. sin cebolla)…"
+                style={{
+                  marginTop: '8px',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  padding: '8px 10px',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e3de',
+                  fontSize: '12px',
+                  color: '#1a1a1a',
+                  backgroundColor: '#ffffff',
+                }}
+              />
+            )}
+            </div>
           ))}
         </div>
 
@@ -305,6 +357,69 @@ export function CartDrawer({
             backgroundColor: '#f8f6f1',
           }}
         >
+          {restaurantMode && (
+            <div style={{ marginBottom: '14px' }}>
+              <p style={{ margin: '0 0 6px', fontSize: '12px', fontWeight: 600, color: '#888' }}>
+                Propina
+              </p>
+              <div style={{ display: 'flex', gap: '6px' }}>
+                {TIP_PRESETS.map(pct => (
+                  <button
+                    key={pct}
+                    onClick={() => setTipMode(tipMode === pct ? null : pct)}
+                    style={{
+                      flex: 1,
+                      padding: '8px 0',
+                      borderRadius: '9999px',
+                      border: tipMode === pct ? 'none' : '1px solid #e5e3de',
+                      backgroundColor: tipMode === pct ? '#1a1a1a' : '#ffffff',
+                      color: tipMode === pct ? '#ffffff' : '#1a1a1a',
+                      fontWeight: 600,
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {Math.round(pct * 100)}%
+                  </button>
+                ))}
+                <button
+                  onClick={() => setTipMode(tipMode === 'custom' ? null : 'custom')}
+                  style={{
+                    flex: 1,
+                    padding: '8px 0',
+                    borderRadius: '9999px',
+                    border: tipMode === 'custom' ? 'none' : '1px solid #e5e3de',
+                    backgroundColor: tipMode === 'custom' ? '#1a1a1a' : '#ffffff',
+                    color: tipMode === 'custom' ? '#ffffff' : '#1a1a1a',
+                    fontWeight: 600,
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Otro
+                </button>
+              </div>
+              {tipMode === 'custom' && (
+                <input
+                  type="number"
+                  min={0}
+                  step="0.5"
+                  value={customTip}
+                  onChange={e => setCustomTip(e.target.value)}
+                  placeholder="Monto de propina"
+                  style={{
+                    marginTop: '8px',
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    padding: '8px 10px',
+                    borderRadius: '8px',
+                    border: '1px solid #e5e3de',
+                    fontSize: '13px',
+                  }}
+                />
+              )}
+            </div>
+          )}
           <div
             style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}
           >
@@ -318,6 +433,12 @@ export function CartDrawer({
                   Tax ({(taxRate * 100).toFixed(3).replace(/\.?0+$/, '')}%)
                 </span>
                 <span style={{ color: '#aaa' }}>{fmt.format(tax)}</span>
+              </div>
+            )}
+            {tip > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                <span style={{ color: '#aaa' }}>Propina</span>
+                <span style={{ color: '#aaa' }}>{fmt.format(tip)}</span>
               </div>
             )}
             <div

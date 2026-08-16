@@ -8,6 +8,7 @@ interface OrderItem {
   name: string;
   price: number;
   qty: number;
+  notes?: string;
 }
 
 export interface OrderRow {
@@ -19,6 +20,7 @@ export interface OrderRow {
   items: OrderItem[];
   subtotal: number;
   tax: number;
+  tip?: number;
   total: number;
   currency: string;
   status: 'Pending' | 'Paid' | 'Preparing' | 'Fulfilled' | 'Canceled';
@@ -122,15 +124,27 @@ export function OrdersContent({ slug, plan, initialOrders }: Props) {
 
                 <ul className="mt-3 space-y-1">
                   {order.items.map((item) => (
-                    <li key={item.itemId} className="flex justify-between text-sm text-gray-600 dark:text-neutral-300">
-                      <span>{item.qty}x {item.name}</span>
-                      <span>{fmt(item.price * item.qty, order.currency)}</span>
+                    <li key={item.itemId} className="text-sm text-gray-600 dark:text-neutral-300">
+                      <div className="flex justify-between">
+                        <span>{item.qty}x {item.name}</span>
+                        <span>{fmt(item.price * item.qty, order.currency)}</span>
+                      </div>
+                      {item.notes && (
+                        <div className="text-xs italic text-amber-600 dark:text-amber-400">↳ {item.notes}</div>
+                      )}
                     </li>
                   ))}
                 </ul>
 
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 dark:border-neutral-800 pt-3">
-                  <span className="text-sm font-bold">{fmt(order.total, order.currency)}</span>
+                  <span className="text-sm font-bold">
+                    {fmt(order.total, order.currency)}
+                    {!!order.tip && (
+                      <span className="ml-1.5 font-normal text-emerald-600 dark:text-emerald-400">
+                        ({getText('propina', 'tip')} {fmt(order.tip, order.currency)})
+                      </span>
+                    )}
+                  </span>
 
                   {order.status === 'Paid' && (
                     <button

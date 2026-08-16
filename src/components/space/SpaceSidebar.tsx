@@ -80,11 +80,20 @@ export function SpaceSidebar({
     ...(businessType === 'restaurant'
       ? [{ label: getText('Cocina', 'Kitchen'), icon: '🍳', href: `/space/${slug}/kitchen`, token: 'kitchen' }]
       : []),
-    // POS (Etapa D, fase 1) — arranca solo con restaurante (mismo criterio que Cocina, con la
-    // que se conecta: una venta del POS aparece en el Kitchen Display igual que un pedido
-    // online). Otros BusinessType se suman después si hace falta.
-    ...(businessType === 'restaurant'
+    // POS — restaurante y retail cobran en el local con items de precio fijo. Servicios/Barbería
+    // cobran al final de una cita (no aplica un mostrador de venta libre) y se suman después si
+    // hace falta.
+    ...(['restaurant', 'retail'].includes(businessType)
       ? [{ label: getText('Punto de venta', 'Point of sale'), icon: '🧮', href: `/space/${slug}/pos`, token: 'pos' }]
+      : []),
+    // Fila de espera — solo Barbería (walk-ins que esperan turno sin cita previa).
+    ...(businessType === 'barber'
+      ? [{ label: getText('Fila de espera', 'Waiting queue'), icon: '🪑', href: `/space/${slug}/queue`, token: 'queue' }]
+      : []),
+    // Facturas por trabajo realizado — Servicios/Profesionales (Dr. Pichardo y similares). No
+    // confundir con "Facturación" (token 'billing') más abajo, que es el plan/pago con MaalCa.
+    ...(['service', 'professional'].includes(businessType)
+      ? [{ label: getText('Facturas', 'Invoices'), icon: '🧾', href: `/space/${slug}/invoices`, token: 'invoices' }]
       : []),
     { label: getText('Pantalla', 'Screen'),                   icon: '📺', href: `/space/${slug}/board`, token: 'board' },
     // Equipo (Personal + Equipo unificados): staff que atiende clientes y/o tiene acceso al

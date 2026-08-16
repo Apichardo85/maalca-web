@@ -11,6 +11,8 @@ export interface CartItem {
 export interface CartEntry {
   item: CartItem
   qty: number
+  /** Personalización de esta línea (ej. "sin cebolla, extra queso") — Restaurante. */
+  notes?: string
 }
 
 export interface UseCartReturn {
@@ -18,6 +20,8 @@ export interface UseCartReturn {
   addToCart: (item: CartItem) => void
   removeFromCart: (itemId: string) => void
   clearCart: () => void
+  /** Edita las notas de una línea ya en el carrito — no crea una línea nueva ni cambia qty. */
+  updateNotes: (itemId: string, notes: string) => void
   cartTotal: number
   cartCount: number
 }
@@ -46,8 +50,12 @@ export function useCart(): UseCartReturn {
 
   const clearCart = useCallback(() => setCart([]), [])
 
+  const updateNotes = useCallback((itemId: string, notes: string) => {
+    setCart(prev => prev.map(e => (e.item.id === itemId ? { ...e, notes } : e)))
+  }, [])
+
   const cartTotal = cart.reduce((sum, e) => sum + e.item.price * e.qty, 0)
   const cartCount = cart.reduce((sum, e) => sum + e.qty, 0)
 
-  return { cart, addToCart, removeFromCart, clearCart, cartTotal, cartCount }
+  return { cart, addToCart, removeFromCart, clearCart, updateNotes, cartTotal, cartCount }
 }

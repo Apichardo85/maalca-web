@@ -29,6 +29,7 @@ interface Props {
   affiliateId: string;
   currency: 'USD' | 'DOP';
   items: PosItem[];
+  businessType: string;
 }
 
 // "Tarjeta" ya no es solo una etiqueta — genera un cobro real de Stripe (Checkout Session
@@ -47,15 +48,20 @@ interface CheckoutModalState {
   url: string;
 }
 
-export function PosContent({ slug, affiliateId, currency, items }: Props) {
+export function PosContent({ slug, affiliateId, currency, items, businessType }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
+  const itemFallbackIcon = businessType === 'retail' ? '🛍️' : '🍽️';
 
   const [cart, setCart] = useState<CartLine[]>([]);
   const [category, setCategory] = useState(ALL_TAB);
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
   const [charging, setCharging] = useState(false);
+  // Propina — solo Restaurante (ver businessType prop). null = sin propina, number = % del
+  // preset elegido, 'custom' = usa customTip.
+  const [tipMode, setTipMode] = useState<number | 'custom' | null>(null);
+  const [customTip, setCustomTip] = useState('');
   // Solo informativo para el personal (nombre/foto/descripción) — no agrega al carrito.
   const [infoItem, setInfoItem] = useState<PosItem | null>(null);
   // Cobro real con Stripe (QR) — mientras esto no sea null, el pedido está Pending esperando
@@ -75,6 +81,8 @@ export function PosContent({ slug, affiliateId, currency, items }: Props) {
       toast.success(getText('Pago recibido.', 'Payment received.'));
       setCart([]);
       setPaymentMethod(null);
+      setTipMode(null);
+      setCustomTip('');
       return null;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -112,7 +120,16 @@ export function PosContent({ slug, affiliateId, currency, items }: Props) {
     );
   }
 
-  const total = cart.reduce((sum, l) => sum + l.price * l.qty, 0);
+  const subtotal = cart.reduce((sum, l) => sum + l.price * l.qty, 0);
+  const isRestaurant = businessType === 'restaurant';
+  const tip = !isRestaurant
+    ? 0
+    : tipMode === 'custom'
+      ? Math.max(0, Number(customTip) || 0)
+      : tipMode
+        ? subtotal * tipMode
+        : 0;
+  const total = subtotal + tip;
 
   async function chargeSale() {
     if (cart.length === 0 || !paymentMethod) return;
@@ -125,8 +142,9 @@ export function PosContent({ slug, affiliateId, currency, items }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: cart.map((l) => ({ itemId: l.itemId, name: l.name, price: l.price, qty: l.qty })),
-          subtotal: total,
+          subtotal,
           tax: 0,
+          tip,
           total,
           customerName: null,
           notes: null,
@@ -141,6 +159,8 @@ export function PosContent({ slug, affiliateId, currency, items }: Props) {
       toast.success(getText('Venta registrada.', 'Sale registered.'));
       setCart([]);
       setPaymentMethod(null);
+      setTipMode(null);
+      setCustomTip('');
     } catch (e) {
       const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
       toast.error(msg);
@@ -162,8 +182,9 @@ export function PosContent({ slug, affiliateId, currency, items }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: cart.map((l) => ({ itemId: l.itemId, name: l.name, price: l.price, qty: l.qty })),
-          subtotal: total,
+          subtotal,
           tax: 0,
+          tip,
           total,
           customerName: null,
           notes: null,
@@ -253,7 +274,7 @@ export function PosContent({ slug, affiliateId, currency, items }: Props) {
                       <img src={item.imageUrl} alt={item.name} className="h-24 w-full object-cover" />
                     ) : (
                       <div className="flex h-24 w-full items-center justify-center bg-gray-100 dark:bg-neutral-800 text-2xl">
-                        🍽️
+                        {itemFallbackIcon}
                       </div>
                     )}
                     <div className="flex min-h-[72px] flex-col items-start justify-between p-3">
@@ -328,6 +349,52 @@ export function PosContent({ slug, affiliateId, currency, items }: Props) {
         </div>
 
         <div className="shrink-0 border-t border-gray-200 dark:border-neutral-800 p-4">
+          {isRestaurant && (
+            <div className="mb-3">
+              <p className="text-xs font-semibold text-gray-500 dark:text-neutral-400">
+                {getText('Propina', 'Tip')}
+              </p>
+              <div className="mt-1.5 flex gap-1.5">
+                {[0.1, 0.15, 0.2].map((pct) => (
+                  <button
+                    key={pct}
+                    type="button"
+                    onClick={() => setTipMode((prev) => (prev === pct ? null : pct))}
+                    className={`flex-1 rounded-full border px-2 py-1.5 text-xs font-semibold ${
+                      tipMode === pct
+                        ? 'border-[#C8102E] bg-[#C8102E] text-white'
+                        : 'border-gray-300 text-gray-600 dark:border-neutral-700 dark:text-neutral-300'
+                    }`}
+                  >
+                    {Math.round(pct * 100)}%
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setTipMode((prev) => (prev === 'custom' ? null : 'custom'))}
+                  className={`flex-1 rounded-full border px-2 py-1.5 text-xs font-semibold ${
+                    tipMode === 'custom'
+                      ? 'border-[#C8102E] bg-[#C8102E] text-white'
+                      : 'border-gray-300 text-gray-600 dark:border-neutral-700 dark:text-neutral-300'
+                  }`}
+                >
+                  {getText('Otro', 'Other')}
+                </button>
+              </div>
+              {tipMode === 'custom' && (
+                <input
+                  type="number"
+                  min={0}
+                  step="0.5"
+                  value={customTip}
+                  onChange={(e) => setCustomTip(e.target.value)}
+                  placeholder={getText('Monto de propina', 'Tip amount')}
+                  className="mt-1.5 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-1.5 text-xs"
+                />
+              )}
+            </div>
+          )}
+
           <div className="flex items-center justify-between text-lg font-bold">
             <span>{getText('Total', 'Total')}</span>
             <span>{fmt(total)}</span>
@@ -380,7 +447,7 @@ export function PosContent({ slug, affiliateId, currency, items }: Props) {
               <img src={infoItem.imageUrl} alt={infoItem.name} className="h-40 w-full object-cover" />
             ) : (
               <div className="flex h-40 w-full items-center justify-center bg-gray-100 dark:bg-neutral-800 text-4xl">
-                🍽️
+                {itemFallbackIcon}
               </div>
             )}
             <div className="p-4">

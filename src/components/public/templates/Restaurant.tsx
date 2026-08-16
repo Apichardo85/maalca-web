@@ -144,7 +144,7 @@ export function RestaurantTemplate({
   // specific canal row instead of excluding it from the byCanal breakdown (Program.cs:854).
   const whatsappEntry = resolveContactItems(business).find((c) => c.tipo === 'WhatsApp');
 
-  const { cart, addToCart, removeFromCart, cartTotal, cartCount } = useCart();
+  const { cart, addToCart, removeFromCart, cartTotal, cartCount, updateNotes } = useCart();
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const periodLabel = (p: MealPeriod) => (language === 'en' ? MEAL_PERIOD_LABELS_EN[p] : MEAL_PERIOD_LABELS[p]);
@@ -741,6 +741,8 @@ export function RestaurantTemplate({
         taxRate={0}
         slug={business.slug}
         onlinePayments={capabilities.onlinePayments}
+        updateNotes={updateNotes}
+        restaurantMode
       />
     </div>
   );

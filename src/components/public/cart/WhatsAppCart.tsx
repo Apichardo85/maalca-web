@@ -18,6 +18,10 @@ export interface WhatsAppCartProps {
   currency?: string
   slug?: string
   onlinePayments?: boolean
+  /** Edita las notas de personalización de una línea — solo se usa si restaurantMode. */
+  updateNotes?: (itemId: string, notes: string) => void
+  /** Restaurante: habilita notas de personalización por línea + selector de propina. */
+  restaurantMode?: boolean
 }
 
 export function WhatsAppCart({
@@ -32,6 +36,8 @@ export function WhatsAppCart({
   currency = 'USD',
   slug,
   onlinePayments = false,
+  updateNotes,
+  restaurantMode = false,
 }: WhatsAppCartProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [toast, setToast] = useState({ message: '', visible: false })
@@ -81,6 +87,8 @@ export function WhatsAppCart({
         businessName={businessName}
         slug={slug}
         onlinePayments={onlinePayments}
+        updateNotes={updateNotes}
+        restaurantMode={restaurantMode}
       />
     </>
   )

@@ -28,6 +28,7 @@ interface Props {
   currency: 'USD' | 'DOP';
   items: KioskItem[];
   onlinePayments: boolean;
+  businessType: string;
 }
 
 const ALL_TAB = '__all__';
@@ -36,13 +37,16 @@ const ALL_TAB = '__all__';
 // que parece colgado.
 const THANKS_RESET_MS = 8000;
 
-export function KioskContent({ slug, businessName, logoUrl, currency, items, onlinePayments }: Props) {
+export function KioskContent({ slug, businessName, logoUrl, currency, items, onlinePayments, businessType }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const itemFallbackIcon = businessType === 'retail' ? '🛍️' : '🍽️';
 
   const [cart, setCart] = useState<CartLine[]>([]);
   const [category, setCategory] = useState(ALL_TAB);
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'unavailable'>('idle');
+  const [tipMode, setTipMode] = useState<number | 'custom' | null>(null);
+  const [customTip, setCustomTip] = useState('');
   // La navegación a Stripe y de vuelta es un full page load — cualquier estado de React
   // (incluido el carrito) se pierde. El resultado del pago se lee del query param que Stripe
   // agrega al volver (successUrl/cancelUrl), no de estado en memoria.
@@ -83,7 +87,16 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
     );
   }
 
-  const total = cart.reduce((sum, l) => sum + l.price * l.qty, 0);
+  const subtotal = cart.reduce((sum, l) => sum + l.price * l.qty, 0);
+  const isRestaurant = businessType === 'restaurant';
+  const tip = !isRestaurant
+    ? 0
+    : tipMode === 'custom'
+      ? Math.max(0, Number(customTip) || 0)
+      : tipMode
+        ? subtotal * tipMode
+        : 0;
+  const total = subtotal + tip;
 
   async function handleCheckout() {
     if (cart.length === 0) return;
@@ -95,8 +108,9 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items: cart.map((l) => ({ itemId: l.itemId, name: l.name, price: l.price, qty: l.qty })),
-          subtotal: total,
+          subtotal,
           tax: 0,
+          tip,
           total,
           currency,
           successUrl: `${origin}/${slug}/kiosk?paid=true`,
@@ -154,7 +168,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
 
         {items.length === 0 ? (
           <p className="mt-6 text-sm text-gray-400 dark:text-neutral-500">
-            El menú no está disponible en este momento.
+            El catálogo no está disponible en este momento.
           </p>
         ) : (
           <>
@@ -201,7 +215,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                     <img src={item.imageUrl} alt={item.name} className="h-28 w-full object-cover" />
                   ) : (
                     <div className="flex h-28 w-full items-center justify-center bg-gray-100 dark:bg-neutral-800 text-3xl">
-                      🍽️
+                      {itemFallbackIcon}
                     </div>
                   )}
                   <div className="flex min-h-[80px] flex-col items-start justify-between p-3">
@@ -259,6 +273,50 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
         </div>
 
         <div className="shrink-0 border-t border-gray-200 dark:border-neutral-800 p-4">
+          {isRestaurant && cart.length > 0 && (
+            <div className="mb-3">
+              <p className="text-xs font-semibold text-gray-500 dark:text-neutral-400">Propina</p>
+              <div className="mt-1.5 flex gap-1.5">
+                {[0.1, 0.15, 0.2].map((pct) => (
+                  <button
+                    key={pct}
+                    type="button"
+                    onClick={() => setTipMode((prev) => (prev === pct ? null : pct))}
+                    className={`flex-1 rounded-full border px-2 py-2 text-xs font-semibold ${
+                      tipMode === pct
+                        ? 'border-[#C8102E] bg-[#C8102E] text-white'
+                        : 'border-gray-300 text-gray-600 dark:border-neutral-700 dark:text-neutral-300'
+                    }`}
+                  >
+                    {Math.round(pct * 100)}%
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setTipMode((prev) => (prev === 'custom' ? null : 'custom'))}
+                  className={`flex-1 rounded-full border px-2 py-2 text-xs font-semibold ${
+                    tipMode === 'custom'
+                      ? 'border-[#C8102E] bg-[#C8102E] text-white'
+                      : 'border-gray-300 text-gray-600 dark:border-neutral-700 dark:text-neutral-300'
+                  }`}
+                >
+                  Otro
+                </button>
+              </div>
+              {tipMode === 'custom' && (
+                <input
+                  type="number"
+                  min={0}
+                  step="0.5"
+                  value={customTip}
+                  onChange={(e) => setCustomTip(e.target.value)}
+                  placeholder="Monto de propina"
+                  className="mt-1.5 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-2 text-xs"
+                />
+              )}
+            </div>
+          )}
+
           <div className="flex items-center justify-between text-lg font-bold">
             <span>Total</span>
             <span>{fmt.format(total)}</span>
