@@ -1,8 +1,5 @@
 import type { ComponentType } from 'react';
-import { RestaurantTemplate } from '@/components/public/templates/Restaurant';
-import { BarberTemplate } from '@/components/public/templates/Barber';
-import { ServiceTemplate } from '@/components/public/templates/Service';
-import { RetailTemplate } from '@/components/public/templates/Retail';
+import dynamic from 'next/dynamic';
 import type { Plan } from '@/lib/plan-limits';
 export type { Plan } from '@/lib/plan-limits';
 import type { PlanCapabilities } from '@/lib/capabilities';
@@ -89,11 +86,18 @@ export interface PublicTemplateProps {
   capabilities: PlanCapabilities;
 }
 
+// Imports perezosos: antes esto importaba los 4 templates completos (Restaurant/Barber/
+// Service/Retail) de forma estática arriba, así que CUALQUIER archivo que importara este
+// registry.ts (aunque solo fuera por un tipo o por BUSINESS_TYPE_LABELS — layout.tsx,
+// SpaceSidebar, IdentidadContent, etc.) arrastraba los 4 árboles de componentes completos a
+// su bundle. Con next/dynamic, cada template se separa en su propio chunk que solo se carga
+// cuando TEMPLATES[tipo] realmente se renderiza (solo pasa en 3 lugares: la página pública,
+// /preview/[slug] y el PreviewFrame del editor de Diseño).
 export const TEMPLATES: Record<BusinessType, ComponentType<PublicTemplateProps>> = {
-  restaurant: RestaurantTemplate,
-  barber: BarberTemplate,
-  service: ServiceTemplate,
-  retail: RetailTemplate,
+  restaurant: dynamic(() => import('@/components/public/templates/Restaurant').then((m) => m.RestaurantTemplate)),
+  barber: dynamic(() => import('@/components/public/templates/Barber').then((m) => m.BarberTemplate)),
+  service: dynamic(() => import('@/components/public/templates/Service').then((m) => m.ServiceTemplate)),
+  retail: dynamic(() => import('@/components/public/templates/Retail').then((m) => m.RetailTemplate)),
 };
 
 export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
