@@ -75,6 +75,10 @@ export function SpaceMobileNav({
     ...(businessType === 'restaurant'
       ? [{ label: getText('Cocina', 'Kitchen'), icon: '🍳', href: `/space/${slug}/kitchen` }]
       : []),
+    // POS (Etapa D, fase 1) — mismo criterio que Cocina, ver SpaceSidebar.tsx.
+    ...(businessType === 'restaurant'
+      ? [{ label: getText('Punto de venta', 'Point of sale'), icon: '🧮', href: `/space/${slug}/pos` }]
+      : []),
     { label: getText('Pantalla', 'Screen'), icon: '📺', href: `/space/${slug}/board` },
     // Equipo (Personal + Equipo unificados) — mismo criterio que SpaceSidebar.tsx.
     { label: getText('Equipo', 'Team'), icon: '👥', href: `/space/${slug}/equipo` },

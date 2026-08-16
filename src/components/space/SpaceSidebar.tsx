@@ -46,6 +46,12 @@ export function SpaceSidebar({
     ...(businessType === 'restaurant'
       ? [{ label: getText('Cocina', 'Kitchen'), icon: '🍳', href: `/space/${slug}/kitchen` }]
       : []),
+    // POS (Etapa D, fase 1) — arranca solo con restaurante (mismo criterio que Cocina, con la
+    // que se conecta: una venta del POS aparece en el Kitchen Display igual que un pedido
+    // online). Otros BusinessType se suman después si hace falta.
+    ...(businessType === 'restaurant'
+      ? [{ label: getText('Punto de venta', 'Point of sale'), icon: '🧮', href: `/space/${slug}/pos` }]
+      : []),
     { label: getText('Pantalla', 'Screen'),                   icon: '📺', href: `/space/${slug}/board` },
     // Equipo (Personal + Equipo unificados): staff que atiende clientes y/o tiene acceso al
     // dashboard, todo en una sola pantalla. Lo ve cualquier rol, aunque solo Owner/Manager
