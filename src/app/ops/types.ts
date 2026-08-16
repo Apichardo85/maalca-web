@@ -21,6 +21,8 @@ export interface OpsAffiliate {
   stripeConnectChargesEnabled: boolean;
   alerts: string[];
   logoUrl?: string | null;
+  /** Módulos efectivamente activos (ModuleCatalog.FilterActive) — control desde /ops. */
+  modulosActivos?: string[];
 }
 
 export interface OpsTeamMember {

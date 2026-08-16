@@ -30,6 +30,8 @@ interface Props {
   userRole?: string | null;
   businesses: Business[];
   canCreateMore: boolean;
+  /** Ver mismo comentario en SpaceSidebar.tsx — control de módulos por afiliado desde /ops. */
+  activeModules?: string[];
 }
 
 /**
@@ -53,6 +55,7 @@ export function SpaceMobileNav({
   userRole = null,
   businesses,
   canCreateMore,
+  activeModules,
 }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
@@ -65,30 +68,34 @@ export function SpaceMobileNav({
 
   const catalogLabel = CATALOG_NAV_LABELS[businessType][language];
 
-  const navItems = [
+  const allNavItems: { label: string; icon: string; href: string; token?: string }[] = [
     { label: getText('Dashboard', 'Dashboard'), icon: '🏠', href: `/space/${slug}` },
     { label: getText('Diseñar mi Espacio', 'Design my Space'), icon: '🎨', href: `/space/${slug}/design` },
     { label: getText('Identidad', 'Identity'), icon: '🪪', href: `/space/${slug}/identidad` },
-    { label: catalogLabel, icon: '📦', href: `/space/${slug}/catalog` },
-    { label: getText('Pedidos', 'Orders'), icon: '🧾', href: `/space/${slug}/orders` },
+    { label: catalogLabel, icon: '📦', href: `/space/${slug}/catalog`, token: 'catalog' },
+    { label: getText('Pedidos', 'Orders'), icon: '🧾', href: `/space/${slug}/orders`, token: 'orders' },
     // Cocina solo aplica a negocios de comida — ver el mismo comentario en SpaceSidebar.tsx.
     ...(businessType === 'restaurant'
-      ? [{ label: getText('Cocina', 'Kitchen'), icon: '🍳', href: `/space/${slug}/kitchen` }]
+      ? [{ label: getText('Cocina', 'Kitchen'), icon: '🍳', href: `/space/${slug}/kitchen`, token: 'kitchen' }]
       : []),
     // POS (Etapa D, fase 1) — mismo criterio que Cocina, ver SpaceSidebar.tsx.
     ...(businessType === 'restaurant'
-      ? [{ label: getText('Punto de venta', 'Point of sale'), icon: '🧮', href: `/space/${slug}/pos` }]
+      ? [{ label: getText('Punto de venta', 'Point of sale'), icon: '🧮', href: `/space/${slug}/pos`, token: 'pos' }]
       : []),
-    { label: getText('Pantalla', 'Screen'), icon: '📺', href: `/space/${slug}/board` },
+    { label: getText('Pantalla', 'Screen'), icon: '📺', href: `/space/${slug}/board`, token: 'board' },
     // Equipo (Personal + Equipo unificados) — mismo criterio que SpaceSidebar.tsx.
-    { label: getText('Equipo', 'Team'), icon: '👥', href: `/space/${slug}/equipo` },
+    { label: getText('Equipo', 'Team'), icon: '👥', href: `/space/${slug}/equipo`, token: 'staff' },
     ...(!['retail', 'creator', 'publisher'].includes(businessType)
-      ? [{ label: getText('Agenda', 'Agenda'), icon: '🗓️', href: `/space/${slug}/agenda` }]
+      ? [{ label: getText('Agenda', 'Agenda'), icon: '🗓️', href: `/space/${slug}/agenda`, token: 'appointments' }]
       : []),
     { label: getText('Módulos', 'Modules'), icon: '🧩', href: `/space/${slug}/modules` },
-    { label: getText('Estadísticas', 'Stats'), icon: '📊', href: `/space/${slug}/stats` },
-    { label: getText('Facturación', 'Billing'), icon: '💳', href: `/space/${slug}/settings` },
+    { label: getText('Estadísticas', 'Stats'), icon: '📊', href: `/space/${slug}/stats`, token: 'metrics' },
+    { label: getText('Facturación', 'Billing'), icon: '💳', href: `/space/${slug}/settings`, token: 'billing' },
   ];
+
+  const navItems = activeModules
+    ? allNavItems.filter((item) => !item.token || activeModules.includes(item.token))
+    : allNavItems;
 
   const isActive = (href: string) =>
     href === `/space/${slug}` ? pathname === href : !!pathname?.startsWith(href);

@@ -6,6 +6,21 @@ import { useRouter } from 'next/navigation';
 import { useOpsCanManage } from '../../OpsRoleContext';
 import type { OpsAffiliate, OpsNote } from '../../types';
 
+// token = ModuleCatalog.Whitelist en el backend. Dashboard/Diseñar/Identidad/Módulos no están
+// acá a propósito — siempre están visibles en el sidebar del afiliado, no son apagables.
+const MODULE_TOKENS: { token: string; label: string; icon: string }[] = [
+  { token: 'catalog', label: 'Catálogo', icon: '📦' },
+  { token: 'page', label: 'Página', icon: '🌐' },
+  { token: 'orders', label: 'Pedidos', icon: '🧾' },
+  { token: 'kitchen', label: 'Cocina', icon: '🍳' },
+  { token: 'pos', label: 'Punto de venta', icon: '🧮' },
+  { token: 'board', label: 'Pantalla', icon: '📺' },
+  { token: 'staff', label: 'Equipo', icon: '👥' },
+  { token: 'appointments', label: 'Agenda', icon: '🗓️' },
+  { token: 'metrics', label: 'Estadísticas', icon: '📊' },
+  { token: 'billing', label: 'Facturación', icon: '💳' },
+];
+
 export function NegocioDetail({
   initialAffiliate,
   initialNotes,
@@ -21,6 +36,42 @@ export function NegocioDetail({
   const [error, setError] = useState<string | null>(null);
   const [noteText, setNoteText] = useState('');
   const [savingNote, setSavingNote] = useState(false);
+  const [selectedModules, setSelectedModules] = useState<Set<string>>(
+    new Set(initialAffiliate.modulosActivos ?? []),
+  );
+  const [savingModules, setSavingModules] = useState(false);
+  const [modulesDirty, setModulesDirty] = useState(false);
+
+  function toggleModule(token: string) {
+    setSelectedModules((prev) => {
+      const next = new Set(prev);
+      if (next.has(token)) next.delete(token);
+      else next.add(token);
+      return next;
+    });
+    setModulesDirty(true);
+  }
+
+  async function saveModules() {
+    setSavingModules(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/ops/affiliates/${a.id}/modules`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ modules: Array.from(selectedModules) }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error?.message ?? 'No se pudieron guardar los módulos.');
+      setA(data);
+      setSelectedModules(new Set(data.modulosActivos ?? []));
+      setModulesDirty(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Algo salió mal.');
+    } finally {
+      setSavingModules(false);
+    }
+  }
 
   async function setStatus(patch: { published?: boolean; active?: boolean }) {
     setBusy(true);
@@ -155,6 +206,47 @@ export function NegocioDetail({
           ))}
         </div>
       )}
+
+      <div className="mt-8">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-neutral-300">Módulos</h3>
+          {canManage && modulesDirty && (
+            <button
+              onClick={saveModules}
+              disabled={savingModules}
+              className="rounded-full bg-[#C8102E] px-3.5 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+            >
+              {savingModules ? 'Guardando…' : 'Guardar cambios'}
+            </button>
+          )}
+        </div>
+        <p className="mt-1 text-xs text-gray-400 dark:text-neutral-500">
+          Lo que este negocio ve en su sidebar — puedes prender o apagar cualquiera, por encima
+          de lo que su plan normalmente incluiría.
+        </p>
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+          {MODULE_TOKENS.map((mod) => {
+            const active = selectedModules.has(mod.token);
+            return (
+              <button
+                key={mod.token}
+                type="button"
+                disabled={!canManage}
+                onClick={() => toggleModule(mod.token)}
+                className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                  active
+                    ? 'border-[#C8102E] bg-[#C8102E]/10 text-[#C8102E]'
+                    : 'border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-500 dark:text-neutral-400'
+                }`}
+              >
+                <span className="text-base">{mod.icon}</span>
+                <span className="flex-1">{mod.label}</span>
+                <span className={`h-2 w-2 shrink-0 rounded-full ${active ? 'bg-[#C8102E]' : 'bg-gray-300 dark:bg-neutral-700'}`} />
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       <div className="mt-8">
         <h3 className="text-sm font-semibold text-gray-700 dark:text-neutral-300">Notas CRM</h3>
