@@ -20,7 +20,7 @@ function PlanBadge({ plan }: { plan: string }) {
   );
 }
 
-function BusinessAvatar({ a, size = 40 }: { a: OpsAffiliate; size?: number }) {
+export function BusinessAvatar({ a, size = 40 }: { a: OpsAffiliate; size?: number }) {
   const initials = a.name
     .split(/\s+/)
     .filter(Boolean)

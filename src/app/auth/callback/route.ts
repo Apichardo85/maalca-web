@@ -59,8 +59,17 @@ export async function GET(request: NextRequest) {
 
   let redirectPath: string;
 
-  if (mapping?.affiliate_id) {
-    // 1. Hardcoded staff affiliate — always go to their dashboard
+  // El admin de plataforma (alejandropichardo85@gmail.com) está mapeado al afiliado legacy
+  // "maalca" por compat con el sistema hardcoded de /dashboard/[slug] (dashboard con datos
+  // mock, de antes de que existiera /ops). Ya está sembrado como PlatformAdmin real
+  // (ver Program.cs) — su login debe ir al panel de operaciones real, no al mock.
+  const isPlatformAdmin = mapping?.affiliate_id === 'maalca';
+
+  if (isPlatformAdmin) {
+    redirectPath = '/ops';
+  } else if (mapping?.affiliate_id) {
+    // 1. Hardcoded staff affiliate (negocio real en /dashboard/[slug], ej. TLD, Dr. Pichardo) —
+    // siempre va a su dashboard legacy — no tocar, todavía dependen de esa ruta.
     redirectPath = `/dashboard/${mapping.affiliate_id}`;
   } else {
     // Check for an explicit redirect param (e.g. from /login?redirect=/onboarding)

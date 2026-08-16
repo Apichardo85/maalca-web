@@ -43,10 +43,14 @@ export default async function PosPage({
   // Solo items activos y con precio > 0 tienen sentido para cobrar en el mostrador.
   const sellable = items.filter((i) => i.status !== 'Inactive' && !i.isDemo);
 
+  // `??` no basta — la API puede mandar "" (string vacío), no solo null/undefined, y eso
+  // rompe Intl.NumberFormat con "Invalid currency code" (causó un 500 en TLD).
+  const currency = space.business.currency === 'DOP' ? 'DOP' : 'USD';
+
   return (
     <PosContent
       slug={slug}
-      currency={space.business.currency ?? 'USD'}
+      currency={currency}
       items={sellable}
     />
   );

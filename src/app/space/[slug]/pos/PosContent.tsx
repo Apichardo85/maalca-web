@@ -54,7 +54,10 @@ export function PosContent({ slug, currency, items }: Props) {
 
   const visibleItems = category === ALL_TAB ? items : items.filter((i) => i.category === category);
 
-  const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(n);
+  // Defensa extra por si currency llega vacío/inválido desde algún otro caller — Intl.NumberFormat
+  // revienta con "Invalid currency code" en vez de degradar con gracia.
+  const safeCurrency = currency === 'DOP' ? 'DOP' : 'USD';
+  const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: safeCurrency }).format(n);
 
   function addToCart(item: PosItem) {
     setCart((prev) => {
