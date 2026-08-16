@@ -100,8 +100,14 @@ export function SpaceSidebar({
     // dashboard, todo en una sola pantalla. Lo ve cualquier rol, aunque solo Owner/Manager
     // pueden editar y solo Owner administra accesos de dashboard (ver gating en la página).
     { label: getText('Equipo', 'Team'),                       icon: '👥', href: `/space/${slug}/equipo`, token: 'staff' },
-    // Agenda no aplica a Retail/Creator/Publisher — esos negocios no reservan citas.
-    ...(!['retail', 'creator', 'publisher'].includes(businessType)
+    // Restaurante usa Reservas (mesas), no Agenda — son objetos distintos a propósito, ver
+    // docs/audits/business-type-flows-audit.md y TableReservation.cs.
+    ...(businessType === 'restaurant'
+      ? [{ label: getText('Reservas', 'Reservations'), icon: '🍽️', href: `/space/${slug}/reservations`, token: 'reservations' }]
+      : []),
+    // Agenda no aplica a Retail/Creator/Publisher/Restaurant — Restaurant tiene su propio flujo
+    // de Reservas justo arriba; los demás no reservan citas en absoluto.
+    ...(!['retail', 'creator', 'publisher', 'restaurant'].includes(businessType)
       ? [{ label: getText('Agenda', 'Agenda'), icon: '🗓️', href: `/space/${slug}/agenda`, token: 'appointments' }]
       : []),
     { label: getText('Módulos', 'Modules'),                   icon: '🧩', href: `/space/${slug}/modules` },

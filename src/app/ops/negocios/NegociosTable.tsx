@@ -57,7 +57,14 @@ function AlertBadges({ alerts }: { alerts: string[] }) {
       {alerts.map((alert) => (
         <span
           key={alert}
-          className="inline-block rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 text-[11px] font-medium text-yellow-700 dark:text-yellow-400"
+          // Notas/solicitudes del propio afiliado (prefijo 📝) son comunicación directa, no un
+          // problema detectado por el sistema — se destacan en azul en vez del amarillo genérico
+          // para que no se pierdan entre "Sin publicar", "Pago atrasado", etc.
+          className={
+            alert.startsWith('📝')
+              ? 'inline-block rounded-full bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:text-blue-400'
+              : 'inline-block rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 text-[11px] font-medium text-yellow-700 dark:text-yellow-400'
+          }
         >
           {alert}
         </span>

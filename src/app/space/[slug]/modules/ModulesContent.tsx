@@ -16,8 +16,9 @@ const ALL_MODULES = [
   { token: 'board',        icon: '📺', es: 'Pantalla',      en: 'Screen',        descEs: 'Menú o catálogo en una pantalla física, con comerciales.', descEn: 'Menu or catalog on a physical screen, with ads.' },
   { token: 'queue',        icon: '🪑', es: 'Fila de espera', en: 'Waiting queue', descEs: 'Walk-ins que esperan turno sin cita previa.', descEn: 'Walk-ins waiting their turn without an appointment.', businessTypes: ['barber'] },
   { token: 'invoices',     icon: '🧾', es: 'Facturas',      en: 'Invoices',      descEs: 'Factura a tus clientes por el trabajo realizado.', descEn: 'Invoice your customers for completed work.', businessTypes: ['service', 'professional'] },
+  { token: 'reservations', icon: '🍽️', es: 'Reservas',      en: 'Reservations',  descEs: 'Reserva de mesa — cuántas personas y a qué hora.', descEn: 'Table reservations — party size and time.', businessTypes: ['restaurant'] },
   { token: 'staff',        icon: '👥', es: 'Equipo',        en: 'Team',          descEs: 'Tu equipo de trabajo — meseros, barberos, etc.', descEn: 'Your operating staff — waiters, barbers, etc.' },
-  { token: 'appointments', icon: '📅', es: 'Agenda',        en: 'Agenda',        descEs: 'Citas agendadas, asignadas a tu personal.', descEn: 'Booked appointments, assigned to your staff.', excludeBusinessTypes: ['retail', 'creator', 'publisher'] },
+  { token: 'appointments', icon: '📅', es: 'Agenda',        en: 'Agenda',        descEs: 'Citas agendadas, asignadas a tu personal.', descEn: 'Booked appointments, assigned to your staff.', excludeBusinessTypes: ['retail', 'creator', 'publisher', 'restaurant'] },
   { token: 'metrics',      icon: '📊', es: 'Estadísticas',  en: 'Stats',         descEs: 'Visitas y actividad de tu página.', descEn: 'Visits and activity on your page.' },
   { token: 'billing',      icon: '💳', es: 'Facturación',   en: 'Billing',       descEs: 'Tu plan y método de pago con MaalCa.', descEn: 'Your plan and payment method with MaalCa.' },
 ] as const;

@@ -93,7 +93,10 @@ export function SpaceMobileNav({
     { label: getText('Pantalla', 'Screen'), icon: '📺', href: `/space/${slug}/board`, token: 'board' },
     // Equipo (Personal + Equipo unificados) — mismo criterio que SpaceSidebar.tsx.
     { label: getText('Equipo', 'Team'), icon: '👥', href: `/space/${slug}/equipo`, token: 'staff' },
-    ...(!['retail', 'creator', 'publisher'].includes(businessType)
+    ...(businessType === 'restaurant'
+      ? [{ label: getText('Reservas', 'Reservations'), icon: '🍽️', href: `/space/${slug}/reservations`, token: 'reservations' }]
+      : []),
+    ...(!['retail', 'creator', 'publisher', 'restaurant'].includes(businessType)
       ? [{ label: getText('Agenda', 'Agenda'), icon: '🗓️', href: `/space/${slug}/agenda`, token: 'appointments' }]
       : []),
     { label: getText('Módulos', 'Modules'), icon: '🧩', href: `/space/${slug}/modules` },

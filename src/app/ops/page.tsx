@@ -27,7 +27,13 @@ export default async function OpsResumenPage() {
 
   const overview: OpsOverview | null = overviewRes.ok ? await overviewRes.json() : null;
   const affiliates: OpsAffiliate[] = affiliatesRes.ok ? await affiliatesRes.json() : [];
-  const topAlerts = affiliates.filter((a) => a.alerts.length > 0).slice(0, 5);
+  // Notas nuevas del afiliado (📝) van primero — es comunicación directa esperando respuesta, no
+  // un problema detectado por el sistema, y no debería poder quedar fuera del top 5 por simple
+  // orden de creación del negocio.
+  const topAlerts = affiliates
+    .filter((a) => a.alerts.length > 0)
+    .sort((a, b) => Number(b.alerts.some((x) => x.startsWith('📝'))) - Number(a.alerts.some((x) => x.startsWith('📝'))))
+    .slice(0, 5);
 
   return (
     <div>
@@ -76,7 +82,13 @@ export default async function OpsResumenPage() {
                 {a.alerts.map((alert) => (
                   <span
                     key={alert}
-                    className="inline-block rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 text-[11px] font-medium text-yellow-700 dark:text-yellow-400"
+                    // Mismo criterio que NegociosTable.AlertBadges — notas del afiliado (📝) en
+                    // azul, alertas detectadas por el sistema en amarillo.
+                    className={
+                      alert.startsWith('📝')
+                        ? 'inline-block rounded-full bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:text-blue-400'
+                        : 'inline-block rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 text-[11px] font-medium text-yellow-700 dark:text-yellow-400'
+                    }
                   >
                     {alert}
                   </span>
