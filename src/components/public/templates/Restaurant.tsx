@@ -17,7 +17,7 @@
 // business without that data configured never sees a confusing empty view.
 import { useState } from 'react';
 import { Fraunces, Inter } from 'next/font/google';
-import type { PublicTemplateProps } from '@/lib/templates/registry';
+import type { ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
 import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
 import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
@@ -456,6 +456,9 @@ export function RestaurantTemplate({
 
       <AboutSection description={business.description} descriptionEn={business.descriptionEn} maxWidthClassName="max-w-public-content" language={language} />
 
+      {/* ── PASOS ── */}
+      <ProcessSection steps={business.processSteps} visible={business.sectionVisibility?.processSteps !== false} accent={accent} getText={getText} />
+
       {/* ── SEARCH — independent of category tabs so it's still there for a
           business with no categories set up yet ── */}
       {items.length > 0 && (
@@ -750,6 +753,66 @@ export function RestaurantTemplate({
 }
 
 // ── SUB-COMPONENTS ──────────────────────────────────────────────────────────
+
+function ProcessSection({
+  steps,
+  visible,
+  accent,
+  getText,
+}: {
+  steps?: ProcessStep[] | null;
+  visible: boolean;
+  accent: string;
+  getText: (es: string, en: string) => string;
+}) {
+  if (!visible || !steps || steps.length === 0) return null;
+
+  return (
+    <section className="mx-auto max-w-public-content" style={{ padding: '24px 24px 0' }}>
+      <h2 className={fraunces.className} style={{ margin: '0 0 16px', fontSize: '20px', fontWeight: 600, fontStyle: 'italic', color: TERRACOTA }}>
+        {getText('Cómo trabajamos', 'How we work')}
+      </h2>
+      <ol className="grid gap-4 sm:grid-cols-3">
+        {steps.map((step, i) => (
+          <li
+            key={`${i}-${step.title}`}
+            style={{
+              backgroundColor: '#ffffff',
+              border: '0.5px solid #ece2d3',
+              borderRadius: '14px',
+              padding: '16px',
+            }}
+          >
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '28px',
+                height: '28px',
+                borderRadius: '9999px',
+                backgroundColor: accent,
+                color: '#ffffff',
+                fontSize: '13px',
+                fontWeight: 700,
+              }}
+            >
+              {i + 1}
+            </span>
+            <p className={fraunces.className} style={{ margin: '10px 0 0', fontSize: '15px', fontWeight: 600, fontStyle: 'italic', color: CAFE }}>
+              {step.title}
+            </p>
+            {step.description && (
+              <p style={{ margin: '6px 0 0', fontSize: '12px', lineHeight: 1.5, color: MUTED }}>
+                {step.description}
+              </p>
+            )}
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
 
 function SectLabel({ label }: { label: string }) {
   return (

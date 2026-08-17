@@ -10,7 +10,7 @@
 // index and Barber's ticket-stub cards.
 import { useState } from 'react';
 import { Roboto_Slab } from 'next/font/google';
-import type { PublicTemplateProps } from '@/lib/templates/registry';
+import type { ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
 import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
 import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
@@ -211,6 +211,9 @@ export function RetailTemplate({
 
       <AboutSection description={business.description} descriptionEn={business.descriptionEn} maxWidthClassName="max-w-public-content" language={language} />
 
+      {/* ── PASOS ── */}
+      <ProcessSection steps={business.processSteps} visible={business.sectionVisibility?.processSteps !== false} accent={accent} getText={getText} />
+
       {/* ── CATEGORY TABS — rendered as paint chips, cycling the swatch palette ── */}
       {categoryNames.length > 0 && (
         <div className="mx-auto max-w-public-content" style={{ padding: '20px 24px 0' }}>
@@ -309,6 +312,66 @@ export function RetailTemplate({
 }
 
 // ── SUB-COMPONENTS ──────────────────────────────────────────────────────────
+
+function ProcessSection({
+  steps,
+  visible,
+  accent,
+  getText,
+}: {
+  steps?: ProcessStep[] | null;
+  visible: boolean;
+  accent: string;
+  getText: (es: string, en: string) => string;
+}) {
+  if (!visible || !steps || steps.length === 0) return null;
+
+  return (
+    <div className="mx-auto max-w-public-content" style={{ padding: '20px 24px 0' }}>
+      <h2 className={robotoSlab.className} style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 700, color: INK }}>
+        {getText('Cómo trabajamos', 'How we work')}
+      </h2>
+      <div className="grid gap-3 sm:grid-cols-3">
+        {steps.map((step, i) => (
+          <div
+            key={`${i}-${step.title}`}
+            style={{
+              backgroundColor: '#ffffff',
+              border: '1px solid #d9d4c8',
+              borderRadius: '10px',
+              padding: '14px',
+            }}
+          >
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '26px',
+                height: '26px',
+                borderRadius: '2px',
+                backgroundColor: SWATCHES[i % SWATCHES.length].hex,
+                color: '#ffffff',
+                fontSize: '12px',
+                fontWeight: 700,
+              }}
+            >
+              {i + 1}
+            </span>
+            <p className={robotoSlab.className} style={{ margin: '10px 0 0', fontSize: '13px', fontWeight: 700, color: INK }}>
+              {step.title}
+            </p>
+            {step.description && (
+              <p style={{ margin: '6px 0 0', fontSize: '12px', lineHeight: 1.5, color: MUTED }}>
+                {step.description}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 // Same outline used for the "no image" state in the dashboard's catalog
 // ItemRow (CatalogView.tsx) — reused here instead of the 🖌️ emoji placeholder.
