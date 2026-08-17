@@ -62,6 +62,14 @@ export function PosContent({ slug, affiliateId, currency, items, businessType }:
   // preset elegido, 'custom' = usa customTip.
   const [tipMode, setTipMode] = useState<number | 'custom' | null>(null);
   const [customTip, setCustomTip] = useState('');
+  // Split de cuenta — solo Restaurante. Es una CALCULADORA, no un sistema de cobros parciales:
+  // el pedido sigue siendo UNO solo (un solo descuento de stock, un solo ticket en Cocina) sin
+  // importar el método de pago elegido — dividir en N cobros reales de Stripe o N registros de
+  // efectivo duplicaría el descuento de inventario y generaría N tickets fantasma en el Kitchen
+  // Display para la misma mesa. En vez de eso, el mesero ve cuánto le toca a cada persona y
+  // cobra el total como siempre (efectivo mixto, una sola tarjeta, etc.) — la división queda
+  // anotada en Notes para referencia.
+  const [splitCount, setSplitCount] = useState<number | null>(null);
   // Solo informativo para el personal (nombre/foto/descripción) — no agrega al carrito.
   const [infoItem, setInfoItem] = useState<PosItem | null>(null);
   // Cobro real con Stripe (QR) — mientras esto no sea null, el pedido está Pending esperando
@@ -83,6 +91,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType }:
       setPaymentMethod(null);
       setTipMode(null);
       setCustomTip('');
+      setSplitCount(null);
       return null;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -130,6 +139,14 @@ export function PosContent({ slug, affiliateId, currency, items, businessType }:
         ? subtotal * tipMode
         : 0;
   const total = subtotal + tip;
+  const perPersonTotal = splitCount && splitCount > 1 ? total / splitCount : null;
+  const splitNote =
+    splitCount && splitCount > 1
+      ? getText(
+          `Cuenta dividida entre ${splitCount} personas (${fmt(total / splitCount)} c/u).`,
+          `Bill split ${splitCount} ways (${fmt(total / splitCount)} each).`,
+        )
+      : null;
 
   async function chargeSale() {
     if (cart.length === 0 || !paymentMethod) return;
@@ -147,7 +164,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType }:
           tip,
           total,
           customerName: null,
-          notes: null,
+          notes: splitNote,
           currency,
           paymentMethod,
         }),
@@ -161,6 +178,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType }:
       setPaymentMethod(null);
       setTipMode(null);
       setCustomTip('');
+      setSplitCount(null);
     } catch (e) {
       const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
       toast.error(msg);
@@ -187,7 +205,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType }:
           tip,
           total,
           customerName: null,
-          notes: null,
+          notes: splitNote,
           currency,
           successUrl: `${origin}/pay/success`,
           cancelUrl: `${origin}/pay/cancel`,
@@ -403,6 +421,67 @@ export function PosContent({ slug, affiliateId, currency, items, businessType }:
                   placeholder={getText('Monto de propina', 'Tip amount')}
                   className="mt-1.5 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-1.5 text-xs"
                 />
+              )}
+            </div>
+          )}
+
+          {isRestaurant && cart.length > 0 && (
+            <div className="mb-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-gray-500 dark:text-neutral-400">
+                  {getText('Dividir cuenta', 'Split bill')}
+                </p>
+                {splitCount && (
+                  <button
+                    type="button"
+                    onClick={() => setSplitCount(null)}
+                    className="text-xs font-medium text-gray-400 underline hover:text-gray-600 dark:text-neutral-500"
+                  >
+                    {getText('Quitar', 'Remove')}
+                  </button>
+                )}
+              </div>
+              {!splitCount ? (
+                <button
+                  type="button"
+                  onClick={() => setSplitCount(2)}
+                  className="mt-1.5 w-full rounded-lg border border-dashed border-gray-300 px-2 py-2 text-xs font-semibold text-gray-500 hover:border-gray-400 dark:border-neutral-700 dark:text-neutral-400"
+                >
+                  {getText('+ Dividir entre varias personas', '+ Split between people')}
+                </button>
+              ) : (
+                <div className="mt-1.5 flex items-center justify-between gap-2 rounded-lg border border-gray-200 px-3 py-2 dark:border-neutral-700">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSplitCount((n) => Math.max(2, (n ?? 2) - 1))}
+                      className="flex h-7 w-7 items-center justify-center rounded-full border border-gray-300 text-sm font-bold hover:border-[#C8102E] hover:text-[#C8102E] dark:border-neutral-700"
+                    >
+                      −
+                    </button>
+                    <span className="w-16 text-center text-xs font-semibold">
+                      {splitCount} {getText('personas', 'people')}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setSplitCount((n) => Math.min(12, (n ?? 2) + 1))}
+                      className="flex h-7 w-7 items-center justify-center rounded-full border border-gray-300 text-sm font-bold hover:border-[#C8102E] hover:text-[#C8102E] dark:border-neutral-700"
+                    >
+                      +
+                    </button>
+                  </div>
+                  {perPersonTotal && (
+                    <span className="text-sm font-bold text-[#C8102E]">{fmt(perPersonTotal)} {getText('c/u', 'ea')}</span>
+                  )}
+                </div>
+              )}
+              {splitCount && (
+                <p className="mt-1 text-[11px] text-gray-400 dark:text-neutral-500">
+                  {getText(
+                    'Solo referencia para el mesero — el cobro sigue siendo uno solo.',
+                    "For the waiter's reference only — the charge is still a single one.",
+                  )}
+                </p>
               )}
             </div>
           )}

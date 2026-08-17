@@ -1,9 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
+
+export interface TimeBlock {
+  id: string;
+  staffId?: string | null;
+  date: string;
+  startTime: string;
+  endTime: string;
+  reason?: string | null;
+}
 
 export interface Appointment {
   id: string;
@@ -114,6 +125,96 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Task #189 (reusado acá) — horas ya ocupadas para la fecha elegida, por staffId. El dashboard
+  // usaba el mismo endpoint público que ya filtra citas Y bloqueos manuales (task #192), así el
+  // mostrador no agenda por error encima de un almuerzo/ausencia que el negocio marcó.
+  const [busyByStaff, setBusyByStaff] = useState<Record<string, string[]>>({});
+
+  // Task #192 — bloqueos manuales de horario.
+  const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>([]);
+  const [blockDate, setBlockDate] = useState('');
+  const [blockStart, setBlockStart] = useState('');
+  const [blockEnd, setBlockEnd] = useState('');
+  const [blockStaffId, setBlockStaffId] = useState('');
+  const [blockReason, setBlockReason] = useState('');
+  const [savingBlock, setSavingBlock] = useState(false);
+
+  useEffect(() => {
+    if (!canManage) return;
+    fetch(`/api/space/${slug}/time-blocks`, { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setTimeBlocks(Array.isArray(data) ? data : []))
+      .catch(() => setTimeBlocks([]));
+  }, [slug, canManage]);
+
+  useEffect(() => {
+    if (!date) {
+      setBusyByStaff({});
+      return;
+    }
+    let cancelled = false;
+    fetch(`${API_BASE}/api/public/affiliates/${slug}/busy-times?date=${date}`, { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled) setBusyByStaff(data?.busyByStaff ?? {});
+      })
+      .catch(() => {
+        if (!cancelled) setBusyByStaff({});
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, date]);
+
+  async function createTimeBlock() {
+    if (!blockDate || !blockStart || !blockEnd) return;
+    setSavingBlock(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/space/${slug}/time-blocks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: blockDate,
+          startTime: blockStart,
+          endTime: blockEnd,
+          staffId: blockStaffId || null,
+          reason: blockReason.trim() || null,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error?.message ?? getText('No pudimos crear el bloqueo.', "We couldn't create the block."));
+      setTimeBlocks((prev) => [...prev, data].sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime)));
+      toast.success(getText('Horario bloqueado.', 'Time blocked.'));
+      setBlockDate('');
+      setBlockStart('');
+      setBlockEnd('');
+      setBlockStaffId('');
+      setBlockReason('');
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setSavingBlock(false);
+    }
+  }
+
+  async function removeTimeBlock(id: string) {
+    setBusyId(id);
+    try {
+      const res = await fetch(`/api/space/${slug}/time-blocks/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(getText('No se pudo quitar el bloqueo.', "Couldn't remove the block."));
+      setTimeBlocks((prev) => prev.filter((b) => b.id !== id));
+      toast.success(getText('Bloqueo eliminado.', 'Block removed.'));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
+      toast.error(msg);
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   function hoursFor(dateObj: Date): { abre: string; cierra: string; cerrado: boolean } {
     const key = WEEKDAY_KEYS[dateObj.getDay()];
     const entry = horario?.find((h) => h.dia === key);
@@ -125,10 +226,16 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
   const dayOptions = nextDays(14);
   const selectedDateObj = date ? new Date(`${date}T00:00:00`) : null;
   const selectedDayHours = selectedDateObj ? hoursFor(selectedDateObj) : null;
-  const timeSlots =
+  const rawTimeSlots =
     selectedDateObj && selectedDayHours && !selectedDayHours.cerrado
       ? generateTimeSlots(selectedDayHours.abre, selectedDayHours.cierra, date === todayStr)
       : [];
+  // Con un profesional elegido, oculta sus horas ocupadas (citas + bloqueos). Sin profesional
+  // ("Sin asignar"), no hay nadie contra quién chequear — se muestran todas las horas del
+  // negocio, igual que antes de task #192.
+  const timeSlots = assignedToId
+    ? rawTimeSlots.filter((slot) => !(busyByStaff[assignedToId] ?? []).includes(slot))
+    : rawTimeSlots;
 
   async function createAppointment() {
     if (!customerName.trim() || !serviceId || !date || !time) return;
@@ -456,6 +563,94 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
           )}
           </div>
         </div>
+        )}
+
+        {/* Task #192 — bloqueo manual de horario (almuerzo, ausencias, cierre temprano). Se
+            excluye tanto de la reserva pública como del selector de horas de "Nueva cita" acá
+            arriba, vía el mismo endpoint /busy-times que ya filtraba citas ya agendadas. */}
+        {canManage && (
+          <div className="mt-8 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
+            <h2 className="text-sm font-semibold">{getText('Bloqueo de horario', 'Time blocking')}</h2>
+            <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
+              {getText(
+                'Marca horas no disponibles (almuerzo, ausencias) — no aparecerán como opción ni en tu Agenda ni en la reserva pública.',
+                "Mark hours as unavailable (lunch, time off) — they won't show up as an option here or in public booking.",
+              )}
+            </p>
+
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
+              <input
+                type="date"
+                value={blockDate}
+                onChange={(e) => setBlockDate(e.target.value)}
+                className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-2 text-xs sm:col-span-1"
+              />
+              <input
+                type="time"
+                value={blockStart}
+                onChange={(e) => setBlockStart(e.target.value)}
+                className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-2 text-xs"
+              />
+              <input
+                type="time"
+                value={blockEnd}
+                onChange={(e) => setBlockEnd(e.target.value)}
+                className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-2 text-xs"
+              />
+              <select
+                value={blockStaffId}
+                onChange={(e) => setBlockStaffId(e.target.value)}
+                className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-2 text-xs"
+              >
+                <option value="">{getText('Todo el personal', 'Everyone')}</option>
+                {personal.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+              <input
+                value={blockReason}
+                onChange={(e) => setBlockReason(e.target.value)}
+                placeholder={getText('Motivo (opcional)', 'Reason (optional)')}
+                className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-2 text-xs"
+              />
+            </div>
+            <button
+              onClick={createTimeBlock}
+              disabled={savingBlock || !blockDate || !blockStart || !blockEnd}
+              className="mt-3 rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-2 text-xs font-semibold hover:border-[#C8102E] hover:text-[#C8102E] disabled:opacity-50"
+            >
+              {savingBlock ? getText('Guardando…', 'Saving…') : getText('+ Bloquear horario', '+ Block time')}
+            </button>
+
+            {timeBlocks.length > 0 && (
+              <div className="mt-4 space-y-1.5">
+                {timeBlocks.map((b) => (
+                  <div
+                    key={b.id}
+                    className="flex items-center justify-between gap-2 rounded-lg border border-gray-200/70 dark:border-neutral-800 px-3 py-2 text-xs"
+                  >
+                    <span className="min-w-0 truncate">
+                      {new Date(b.date).toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { day: 'numeric', month: 'short' })}
+                      {' · '}
+                      {b.startTime}–{b.endTime}
+                      {' · '}
+                      {b.staffId ? personal.find((p) => p.id === b.staffId)?.name ?? getText('Personal', 'Staff') : getText('Todo el personal', 'Everyone')}
+                      {b.reason ? ` · ${b.reason}` : ''}
+                    </span>
+                    <button
+                      onClick={() => removeTimeBlock(b.id)}
+                      disabled={busyId === b.id}
+                      className="shrink-0 text-gray-400 hover:text-red-500 disabled:opacity-50"
+                    >
+                      {getText('Quitar', 'Remove')}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
       <Toast toasts={toast.toasts} onRemove={toast.remove} />

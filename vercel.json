@@ -30,5 +30,11 @@
       "destination": "/",
       "permanent": true
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/appointment-reminders",
+      "schedule": "0 13 * * *"
+    }
   ]
 }

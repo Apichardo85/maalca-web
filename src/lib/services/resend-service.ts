@@ -458,6 +458,55 @@ export async function sendAppointmentConfirmationEmail(params: {
   }
 }
 
+/** Task #193 — recordatorio automático, enviado por el cron /api/cron/appointment-reminders
+ *  unas horas antes de la cita. Mismo diseño de correo que sendAppointmentConfirmationEmail
+ *  a propósito, para que el cliente reconozca el formato. */
+export async function sendAppointmentReminderEmail(params: {
+  customerEmail: string;
+  customerName: string | null;
+  businessName: string;
+  serviceName: string;
+  date: string; // yyyy-MM-dd
+  time: string; // HH:mm
+  staffName?: string | null;
+}): Promise<boolean> {
+  if (!resend) {
+    console.log('[Resend] Skipped appointment reminder — RESEND_API_KEY not set');
+    return false;
+  }
+
+  const greeting = params.customerName ? `Hola, ${params.customerName}` : 'Hola';
+  const dateFmt = new Date(`${params.date}T00:00:00`).toLocaleDateString('es-DO', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+  const staffLine = params.staffName ? `<br/>Con: ${params.staffName}` : '';
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: params.customerEmail,
+      subject: `Recordatorio: tu cita hoy en ${params.businessName}`,
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
+          <p style="font-size: 15px; line-height: 1.6;">${greeting},</p>
+          <p style="font-size: 15px; line-height: 1.6;">Recordatorio de tu cita en <strong>${params.businessName}</strong>:</p>
+          <p style="font-size: 15px; line-height: 1.6; background: #fafafa; border-radius: 8px; padding: 12px 16px;">
+            <strong>${params.serviceName}</strong><br/>
+            ${dateFmt} · ${params.time}${staffLine}
+          </p>
+          <p style="font-size: 13px; color: #737373;">Si necesitas cambiarla o cancelarla, contacta directamente al negocio.</p>
+        </div>
+      `,
+    });
+    return true;
+  } catch (err: unknown) {
+    console.error('[Resend] Appointment reminder failed:', err instanceof Error ? err.message : String(err));
+    return false;
+  }
+}
+
 function sourceGreeting(source: string): { title: string; body: string } {
   switch (source) {
     case 'ciriwhispers':
