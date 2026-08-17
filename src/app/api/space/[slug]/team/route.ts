@@ -62,8 +62,9 @@ export async function POST(
   // aparecer ni siquiera como intento fallido en el dashboard de Resend. Por eso el dueño
   // veía "invitación enviada" pero cero rastro del lado de Resend. Con await, la función
   // espera a que el intento de envío termine antes de responder.
+  let emailSent = false;
   if (apiRes.ok && data?.email) {
-    await sendTeamInviteEmail({
+    emailSent = await sendTeamInviteEmail({
       inviteeEmail: data.email,
       businessName: affiliate.name,
       slug,
@@ -72,5 +73,9 @@ export async function POST(
     });
   }
 
-  return NextResponse.json(data ?? {}, { status: apiRes.status });
+  // El invite en el backend ya quedó guardado aunque el correo falle (RESEND_API_KEY faltante,
+  // dominio no verificado, etc.) — antes esto quedaba invisible: el dueño veía "invitación
+  // enviada" sin importar si Resend realmente la mandó. Ahora se expone `emailSent` para que el
+  // frontend pueda avisar y el dueño comparta el link a mano si hace falta.
+  return NextResponse.json(apiRes.ok && data ? { ...data, emailSent } : (data ?? {}), { status: apiRes.status });
 }

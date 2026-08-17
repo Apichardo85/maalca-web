@@ -258,9 +258,18 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
       if (!res.ok) throw new Error(data?.error?.message ?? getText('No pudimos enviar la invitación.', "We couldn't send the invite."));
       setCollaborators((prev) => [...prev, data]);
       setInviteOpenFor(null);
-      toast.success(
-        getText(`Invitación enviada a ${inviteEmail.trim()}.`, `Invite sent to ${inviteEmail.trim()}.`),
-      );
+      if (data?.emailSent === false) {
+        toast.error(
+          getText(
+            `Invitación creada, pero no pudimos enviar el correo a ${inviteEmail.trim()} — compártele el link de acceso directamente.`,
+            `Invite created, but we couldn't email ${inviteEmail.trim()} — share the access link with them directly.`,
+          ),
+        );
+      } else {
+        toast.success(
+          getText(`Invitación enviada a ${inviteEmail.trim()}.`, `Invite sent to ${inviteEmail.trim()}.`),
+        );
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
       setError(msg);
@@ -331,9 +340,18 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
       setCollaborators((prev) => [...prev, data]);
       setStandaloneEmail('');
       setStandaloneOpen(false);
-      toast.success(
-        getText(`Invitación enviada a ${standaloneEmail.trim()}.`, `Invite sent to ${standaloneEmail.trim()}.`),
-      );
+      if (data?.emailSent === false) {
+        toast.error(
+          getText(
+            `Invitación creada, pero no pudimos enviar el correo a ${standaloneEmail.trim()} — compártele el link de acceso directamente.`,
+            `Invite created, but we couldn't email ${standaloneEmail.trim()} — share the access link with them directly.`,
+          ),
+        );
+      } else {
+        toast.success(
+          getText(`Invitación enviada a ${standaloneEmail.trim()}.`, `Invite sent to ${standaloneEmail.trim()}.`),
+        );
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
       setError(msg);
