@@ -130,6 +130,12 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
   const [customerPhone, setCustomerPhone] = useState('');
   const [notes, setNotes] = useState('');
 
+  // Task #189 — horarios ya tomados para la fecha elegida, por staffId (string, viene así del
+  // backend). Antes el cliente solo se enteraba de un choque al confirmar (409); ahora se
+  // ocultan del grid de horas apenas se elige la fecha, igual que ya se ocultan los que caen
+  // fuera del horario del negocio.
+  const [busyByStaff, setBusyByStaff] = useState<Record<string, string[]>>({});
+
   useEffect(() => {
     let cancelled = false;
     async function load() {
@@ -161,6 +167,25 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
       document.body.style.overflow = '';
     };
   }, [modalOpen]);
+
+  useEffect(() => {
+    if (!date) {
+      setBusyByStaff({});
+      return;
+    }
+    let cancelled = false;
+    fetch(`${API_BASE}/api/public/affiliates/${slug}/busy-times?date=${date}`, { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!cancelled) setBusyByStaff(data?.busyByStaff ?? {});
+      })
+      .catch(() => {
+        if (!cancelled) setBusyByStaff({});
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [slug, date]);
 
   function openBooking(member: PublicTeamMember | null) {
     setSelectedMember(member);
@@ -244,10 +269,20 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
   const dayOptions = nextDays(14);
   const selectedDateObj = date ? new Date(`${date}T00:00:00`) : null;
   const selectedDayHours = selectedDateObj ? hoursFor(selectedDateObj) : null;
-  const timeSlots =
+  const rawTimeSlots =
     selectedDateObj && selectedDayHours && !selectedDayHours.cerrado
       ? generateTimeSlots(selectedDayHours.abre, selectedDayHours.cierra, date === todayStr)
       : [];
+
+  // Task #189 — con un profesional elegido, se oculta cualquier hora ya tomada por él/ella. Con
+  // "Cualquiera disponible" (selectedMember === null), una hora solo se oculta si TODO el
+  // personal está ocupado a esa hora — si al menos uno está libre, el negocio puede asignarlo.
+  const isSlotTaken = (slot: string): boolean => {
+    if (selectedMember) return (busyByStaff[selectedMember.id] ?? []).includes(slot);
+    if (team.length === 0) return false;
+    return team.every((m) => (busyByStaff[m.id] ?? []).includes(slot));
+  };
+  const timeSlots = rawTimeSlots.filter((slot) => !isSlotTaken(slot));
 
   return (
     <section className="mx-auto max-w-public-content" style={{ padding: '56px 24px' }} id="reservar">

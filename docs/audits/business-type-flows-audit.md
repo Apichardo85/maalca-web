@@ -1,6 +1,6 @@
 # Auditoría: flujos por tipo de negocio — ¿Frankenstein o producto coherente?
 
-Fecha original: 2026-08-16. Actualizado: 2026-08-16 (mismo día, tras cerrar los 4 puntos priorizados y desplegar a producción).
+Fecha original: 2026-08-16. Actualizado: 2026-08-16 (tras cerrar los 4 puntos priorizados) y 2026-08-17 (tras QA en vivo del usuario — ver sección final).
 Basado en lectura directa del código (entidades, endpoints, templates públicos, gating por BusinessType), no en suposiciones.
 
 MaalCa tiene 4 tipos de negocio (restaurant, barber, service, retail). Cada uno tiene su propio template público (con tipografía, layout y metáfora visual distintas — esto ya es una señal buena: no es un genérico con logo cambiado). Lo que audito acá es si el flujo funcional detrás de cada uno resuelve el problema real de ese negocio, o si es un módulo genérico forzado.
@@ -90,7 +90,7 @@ MaalCa tiene 4 tipos de negocio (restaurant, barber, service, retail). Cada uno 
 
 ## Señales de "Frankenstein" transversales (no específicas de un tipo)
 
-1. **Dos dashboards paralelos siguen vivos.** `/dashboard/[affiliateId]` (legacy, datos mock, predata al sistema real) y `/space/[slug]` (real, conectado a la base de datos) coexisten. Ya se corrigió que el admin de plataforma no caiga ahí por accidente, pero varios afiliados hardcodeados (`the-little-dominican`, `dr-pichardo`, etc.) todavía se loguean directo al dashboard legacy — nadie ha confirmado si eso es intencional o deuda pendiente de migrar. **Sin cambios en esta ronda — sigue abierto.**
+1. ~~Dos dashboards paralelos siguen vivos.~~ ✅ **Cerrado — verificado 2026-08-17.** Al revisar el código real (no solo el historial de tareas) se confirmó que `/dashboard/[affiliateId]` ya no existe: se eliminó por completo en el commit `b1932dd` ("eliminar dashboard legacy: /dashboard, /tarjeta, auth mock paralelo"), junto con `/tarjeta` y el auth mock paralelo. `auth/callback/route.ts` y `resolve-user-destination.ts` solo conocen tres destinos hoy: `/ops` (platform admin), `/space/{slug}` (negocio real) y `/onboarding` (usuario nuevo). No queda ningún afiliado hardcodeado a una ruta legacy — este punto se había quedado desactualizado en la ronda anterior, no era deuda real, solo texto viejo.
 
 2. ~~Cuatro entidades con schema completo y cero cableado real: Invoice/InvoiceItem, GiftCard, Campaign, QueueEntry.~~ ✅ **Cerrado (2026-08-16).** Se tomó la decisión explícita que esta auditoría pedía: `Invoice` se completó (Servicios) y `QueueEntry` se completó (Barbería), ambos con endpoints reales, gating de autorización por afiliado y UI en `/space`. `GiftCard` y `Campaign` se eliminaron del schema (entidades, DbSet, migraciones, seed data) en vez de quedar cosidas sin nervios conectados. Ya no hay entidades "fantasma" en la base de datos.
 
@@ -111,15 +111,37 @@ La lista que esta auditoría proponía priorizar ya está completa, commiteada y
 
 Verificación: `dotnet build` y `npm run build` limpios (confirmados por el usuario), `tsc --noEmit` sin regresiones nuevas contra la línea base preexistente. Desplegado a `main` en ambos repos — Railway (`maalca-api`, commit `aa7352d`) y Vercel (`maalca-web`, commit `7ac0ef8`, alias `maalca.com`), ambos en estado `SUCCESS`/`READY`.
 
-## Si tuviera que priorizar lo que queda (no es una decisión tomada, es mi lectura)
-
-1. **Dos dashboards paralelos** — ahora es la deuda estructural más grande que sigue en pie. Vale la pena confirmar de una vez si los afiliados hardcodeados en el legacy son intencionales o deuda, antes de que se sumen más.
-2. **Split de cuenta en Restaurante POS** — con `TableReservation` ya resuelto, esto es lo siguiente más natural del lado de mesas (aunque `TableReservation` no modela mesas individuales todavía, solo la reserva — asignar mesa física es un paso futuro si hace falta).
-3. **Recordatorios automáticos y bloqueo de horario en Barbería** — mejoras de calidad de vida, no bugs ni carencias estructurales.
-4. **Firma/aceptación de propuesta en Servicios** — complementa la facturación ya resuelta.
+> ⚠️ **Corrección post-mortem (2026-08-17):** "desplegado" no significaba "aplicado". Ver sección final — la migración de stock/Order.Tip/GiftCard-Campaign viajó en el mismo lote que `TableReservation`, y por el mismo bug (migraciones sin `.Designer.cs`) es posible que parte de este trabajo tampoco haya estado realmente activo en la base de datos de producción hasta el fix del 2026-08-17. El código y el build siempre estuvieron correctos — lo que falló fue que Postgres nunca llegó a tener las columnas/tablas nuevas.
 
 ## Actualización — "Agenda" sobrecargada (2026-08-16, segunda ronda)
 
-Resuelto: ver punto #4 de "Señales de Frankenstein transversales" arriba. Nueva entidad `TableReservation` + pantalla `/space/{slug}/reservations` + widget público `TableReservationSection`, separados de `Appointment`. Verificado con `tsc --noEmit` sin regresiones contra la línea base preexistente; revisión manual completa del backend (no hay `dotnet` en este entorno). Pendiente: correr `dotnet build`/`npm run build` localmente antes de pasar a producción, igual que la ronda anterior.
+Resuelto: ver punto #4 de "Señales de Frankenstein transversales" arriba. Nueva entidad `TableReservation` + pantalla `/space/{slug}/reservations` + widget público `TableReservationSection`, separados de `Appointment`. Verificado con `tsc --noEmit` sin regresiones contra la línea base preexistente; revisión manual completa del backend (no hay `dotnet` en este entorno).
+
+---
+
+## Tercera ronda — QA en vivo del usuario (2026-08-17): bugs de producción reales
+
+El usuario probó todo lo anterior en `maalca.com` y reportó que "nada de lo nuevo guarda, todo explota". No era percepción — eran dos bugs reales de producción, ninguno visible en build/lint porque ambos son de runtime:
+
+**🔴 Crítico — 3 migraciones nunca se aplicaron en producción.** Al escribir migraciones de EF Core a mano (sin `dotnet ef` disponible en el entorno de trabajo), se armaron los archivos `{timestamp}_Nombre.cs` con el `Up()`/`Down()`, pero se omitió el archivo hermano `{timestamp}_Nombre.Designer.cs` — el que lleva los atributos `[DbContext(typeof(AppDbContext))]` y `[Migration("id")]` que EF Core necesita para *descubrir* la migración dentro del ensamblado. Sin esos atributos, `Database.Migrate()` en el arranque simplemente no la ve — no falla, no loguea error, la ignora en silencio. Afectó a `RemoveGiftCardAndCampaign`, `AddOrderTip` y `AddTableReservations`: la tabla `TableReservations` nunca existió en Postgres (confirmado en logs de Railway: `42P01: relation "TableReservations" does not exist`), y es probable que la columna `Orders.Tip` tampoco. Fix: se agregaron los 3 `.Designer.cs` faltantes (versión mínima — solo los atributos, sin el `BuildTargetModel` completo, que únicamente hace falta para scaffolding de diseño, no para aplicar en runtime). Desplegado y confirmado sin errores en el log de arranque.
+
+**🔴 Crítico — doble-booking check rompía TODA reserva pública de cita.** Bug preexistente (no introducido en esta ronda): `PublicBookingService.CreatePublicAppointmentAsync` comparaba `a.Date.Date == request.Date.Date` sin forzar `Kind=Utc` en `request.Date` — Npgsql 8+ rechaza ese `DateTime` con `Kind=Unspecified` contra una columna `timestamptz`. El `Create` en sí ya tenía el fix (aplicado hace varias rondas), pero el chequeo de conflicto que corre *antes* del `Create` no. Resultado: cualquier persona que intentara reservar una cita pública con un barbero/profesional específico recibía 400 sin explicación real. Fix: una línea, mismo patrón `DateTime.SpecifyKind(...)` ya usado en el resto del código.
+
+**Bugs menores encontrados en la misma ronda de QA:**
+- `/ops` → toggle de módulos por afiliado nunca se actualizó con `invoices`/`queue`/`reservations` — un afiliado con lista explícita de módulos guardada no tenía forma de activarlos.
+- Vitrina de módulos (`/space/{slug}/modules`) seguía diciendo que POS es solo para `restaurant`, desincronizada del sidebar (que ya lo abre a `retail`).
+- Kiosko de autopedidos sin ningún link visible en el dashboard — existía la ruta pública pero nadie podía encontrarla sin el URL exacto de memoria.
+- Scroll horizontal fantasma cortando por la derecha los modales de reserva (`TableReservationSection` y `PublicBookingSection`) — causa: `overflow-y-auto` sin `overflow-x-hidden` explícito; por spec de CSS, el eje "visible" se promueve a "auto" en cuanto el otro eje no lo es, y medio pixel de contenido de más adentro alcanzaba para meter scroll horizontal.
+- Correo de invitación a Equipo podía fallar en silencio (Resend) sin que el dueño se enterara — ahora se expone `emailSent` en la respuesta y el frontend avisa si falló, en vez de asumir éxito. La lógica de "reclamo" de invitaciones pendientes (`ClaimPendingInvitesAsync`) se revisó y es correcta en el código actual — si el correo sigue sin llegar, es config de Resend (API key / dominio verificado) en Vercel, no lógica.
+
+Todo lo anterior: commiteado y desplegado (`maalca-api` commit `ca18cfd`, `maalca-web` commits `46bd59e` y `0f7815e`), confirmado `SUCCESS`/`READY` en Railway y Vercel.
+
+## Si tuviera que priorizar lo que queda (no es una decisión tomada, es mi lectura)
+
+1. ~~Dos dashboards paralelos~~ ✅ ya resuelto (ver arriba, verificado 2026-08-17 — texto desactualizado, no deuda real).
+2. **Agenda pública debe ocultar horarios ya ocupados, no fallar al confirmar** — el ítem #1 real que queda abierto. Reportado en la ronda de QA de hoy. Hoy el widget de reserva deja elegir cualquier horario y solo al confirmar dice "ese horario ya no está disponible". Necesita filtrar los slots ocupados del barbero/profesional elegido antes de mostrarlos, igual que ya filtra por horario del negocio.
+3. **Split de cuenta en Restaurante POS** — con `TableReservation` ya resuelto, esto es lo siguiente más natural del lado de mesas (aunque `TableReservation` no modela mesas individuales todavía, solo la reserva — asignar mesa física es un paso futuro si hace falta).
+4. **Recordatorios automáticos y bloqueo de horario en Barbería** — mejoras de calidad de vida, no bugs ni carencias estructurales.
+5. **Firma/aceptación de propuesta en Servicios** — complementa la facturación ya resuelta.
 
 Dime con cuál seguimos, o si quieres que investigue algo de esto con más profundidad antes de tocar código.
