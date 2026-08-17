@@ -337,19 +337,23 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
               </span>
             </button>
           ))}
-          <button
-            type="button"
-            onClick={() => openBooking(null)}
-            className="group flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-gray-300 bg-white/50 p-5 text-center transition-all hover:-translate-y-1 hover:border-gray-400 hover:shadow-lg"
-          >
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-2xl text-gray-400">
-              🕐
-            </div>
-            <div>
-              <p className="text-sm font-bold text-gray-700">{getText('Cualquiera', 'Anyone')}</p>
-              <p className="text-xs text-gray-500">{getText('Sin preferencia', 'No preference')}</p>
-            </div>
-          </button>
+          {/* Con un solo miembro en el equipo, "cualquiera" y esa persona son la misma opción —
+              mostrar ambas es redundante y confunde. Con 2+ sí tiene sentido ofrecerla. */}
+          {team.length > 1 && (
+            <button
+              type="button"
+              onClick={() => openBooking(null)}
+              className="group flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-gray-300 bg-white/50 p-5 text-center transition-all hover:-translate-y-1 hover:border-gray-400 hover:shadow-lg"
+            >
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-2xl text-gray-400">
+                🕐
+              </div>
+              <div>
+                <p className="text-sm font-bold text-gray-700">{getText('Cualquiera', 'Anyone')}</p>
+                <p className="text-xs text-gray-500">{getText('Sin preferencia', 'No preference')}</p>
+              </div>
+            </button>
+          )}
         </div>
       ) : (
         <div className="mx-auto max-w-sm text-center">

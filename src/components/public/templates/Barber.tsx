@@ -9,7 +9,7 @@
 // element — distinct from Service's mono rate-card index.
 import { useRef, useState } from 'react';
 import { Oswald } from 'next/font/google';
-import type { PublicTemplateProps } from '@/lib/templates/registry';
+import type { ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
 import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
 import { trackCanalClick } from '@/lib/public-events';
 import { AboutSection } from '@/components/public/AboutSection';
@@ -259,6 +259,9 @@ export function BarberTemplate({
 
       <AboutSection description={business.description} descriptionEn={business.descriptionEn} maxWidthClassName="max-w-public-content" language={language} />
 
+      {/* ── PASOS ── */}
+      <ProcessSection steps={business.processSteps} accent={accent} getText={getText} />
+
       {/* ── NAV TABS — bold, condensed, underlined ── */}
       {categoryNames.length > 0 && (
         <div
@@ -361,6 +364,65 @@ export function BarberTemplate({
 }
 
 // ── SUB-COMPONENTS ──────────────────────────────────────────────────────────
+
+function ProcessSection({
+  steps,
+  accent,
+  getText,
+}: {
+  steps?: ProcessStep[] | null;
+  accent: string;
+  getText: (es: string, en: string) => string;
+}) {
+  if (!steps || steps.length === 0) return null;
+
+  return (
+    <section className="mx-auto max-w-public-content" style={{ padding: '32px 24px 0' }}>
+      <h2 className={oswald.className} style={{ margin: '0 0 16px', fontSize: '18px', fontWeight: 700, textTransform: 'uppercase', color: TINTA }}>
+        {getText('Cómo trabajamos', 'How we work')}
+      </h2>
+      <ol className="grid gap-4 sm:grid-cols-3">
+        {steps.map((step, i) => (
+          <li
+            key={`${i}-${step.title}`}
+            style={{
+              backgroundColor: '#ffffff',
+              border: '1px solid #dcdfe3',
+              borderRadius: '10px',
+              padding: '16px',
+            }}
+          >
+            <span
+              className={oswald.className}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '28px',
+                height: '28px',
+                borderRadius: '6px',
+                backgroundColor: accent,
+                color: '#ffffff',
+                fontSize: '13px',
+                fontWeight: 700,
+              }}
+            >
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <p className={oswald.className} style={{ margin: '10px 0 0', fontSize: '14px', fontWeight: 600, textTransform: 'uppercase', color: TINTA }}>
+              {step.title}
+            </p>
+            {step.description && (
+              <p style={{ margin: '6px 0 0', fontSize: '12px', lineHeight: 1.5, color: ACERO }}>
+                {step.description}
+              </p>
+            )}
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
 
 function SectLabel({ label }: { label: string }) {
   return (
