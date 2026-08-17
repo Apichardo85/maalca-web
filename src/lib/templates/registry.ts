@@ -57,6 +57,9 @@ export interface PublicTemplateProps {
     /** "USD" | "DOP" — cómo el negocio muestra sus precios. Default "USD" para negocios que
      *  todavía no la configuraron en Settings (ver SettingsContent.tsx). */
     currency?: 'USD' | 'DOP';
+    /** Apagador explícito por sección opcional (Pasos, Galería futura) — clave ausente =
+     *  visible. Independiente de si la sección tiene contenido. */
+    sectionVisibility?: Record<string, boolean> | null;
   };
   items: Array<{
     id: string;

@@ -19,6 +19,7 @@ import {
   type ProcessStepDto,
   type FaqEntryDto,
   type HorarioDayDto,
+  type SectionVisibilityDto,
 } from './types';
 
 interface Props {
@@ -42,6 +43,7 @@ interface Props {
   processSteps: ProcessStepDto[];
   faq: FaqEntryDto[];
   horario: HorarioDayDto[];
+  sectionVisibility: SectionVisibilityDto;
   publicUrl: string;
 }
 
@@ -68,6 +70,7 @@ export function DesignEditor({
   processSteps: initialProcessSteps,
   faq: initialFaq,
   horario: initialHorario,
+  sectionVisibility: initialSectionVisibility,
   publicUrl,
 }: Props) {
   const router = useRouter();
@@ -99,6 +102,7 @@ export function DesignEditor({
   const [processSteps, setProcessSteps] = useState<ProcessStepDto[]>(initialProcessSteps);
   const [faq, setFaq] = useState<FaqEntryDto[]>(initialFaq);
   const [horario, setHorario] = useState<HorarioDayDto[]>(withAllDays(initialHorario));
+  const [sectionVisibility, setSectionVisibility] = useState<SectionVisibilityDto>(initialSectionVisibility);
 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -225,6 +229,7 @@ export function DesignEditor({
     faq: faq.length > 0 ? faq : null,
     timezone,
     horario: horario.length > 0 ? horario : null,
+    sectionVisibility,
   };
 
   return (
@@ -321,6 +326,8 @@ export function DesignEditor({
               onFaqChange={setFaq}
               horario={horario}
               onHorarioChange={setHorario}
+              sectionVisibility={sectionVisibility}
+              onSectionVisibilityChange={setSectionVisibility}
             />
           )}
         </div>

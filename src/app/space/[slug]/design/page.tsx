@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getMaalcaApiToken } from '@/lib/api-auth';
 import { DesignEditor } from './DesignEditor';
-import type { ProcessStepDto, FaqEntryDto, HorarioDayDto } from './types';
+import type { ProcessStepDto, FaqEntryDto, HorarioDayDto, SectionVisibilityDto } from './types';
 import type { BusinessType, Plan } from '@/lib/templates/registry';
 
 // The public template's default timezone fallback when a business hasn't configured one yet —
@@ -60,6 +60,7 @@ export default async function DesignPage({
   let processSteps: ProcessStepDto[] = [];
   let faq: FaqEntryDto[] = [];
   let horario: HorarioDayDto[] = [];
+  let sectionVisibility: SectionVisibilityDto = {};
 
   try {
     const publicRes = await fetch(`${API}/api/public/affiliates/${slug}`, { cache: 'no-store' });
@@ -77,6 +78,7 @@ export default async function DesignPage({
       processSteps = p.processSteps ?? [];
       faq = p.faq ?? [];
       horario = p.horario ?? [];
+      sectionVisibility = p.sectionVisibility ?? {};
     }
   } catch {
     // publicProfile stays null — DesignEditor omits these fields from any PATCH
@@ -109,6 +111,7 @@ export default async function DesignPage({
       processSteps={processSteps}
       faq={faq}
       horario={horario}
+      sectionVisibility={sectionVisibility}
       publicUrl={publicUrl}
     />
   );

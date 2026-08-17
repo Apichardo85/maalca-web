@@ -260,7 +260,7 @@ export function BarberTemplate({
       <AboutSection description={business.description} descriptionEn={business.descriptionEn} maxWidthClassName="max-w-public-content" language={language} />
 
       {/* ── PASOS ── */}
-      <ProcessSection steps={business.processSteps} accent={accent} getText={getText} />
+      <ProcessSection steps={business.processSteps} visible={business.sectionVisibility?.processSteps !== false} accent={accent} getText={getText} />
 
       {/* ── NAV TABS — bold, condensed, underlined ── */}
       {categoryNames.length > 0 && (
@@ -352,7 +352,7 @@ export function BarberTemplate({
       <FaqSection faq={business.faq} getText={getText} />
 
       {/* ── RESERVA (Agenda pública) ── */}
-      <PublicBookingSection ref={bookingRef} slug={business.slug} language={language} accent={business.primary_color} horario={business.horario} />
+      <PublicBookingSection ref={bookingRef} slug={business.slug} language={language} accent={business.primary_color} horario={business.horario} enableWalkIn />
 
       {/* ── CONTACTO ── */}
       <ContactSection business={business} language={language} />
@@ -367,14 +367,16 @@ export function BarberTemplate({
 
 function ProcessSection({
   steps,
+  visible,
   accent,
   getText,
 }: {
   steps?: ProcessStep[] | null;
+  visible: boolean;
   accent: string;
   getText: (es: string, en: string) => string;
 }) {
-  if (!steps || steps.length === 0) return null;
+  if (!visible || !steps || steps.length === 0) return null;
 
   return (
     <section className="mx-auto max-w-public-content" style={{ padding: '32px 24px 0' }}>

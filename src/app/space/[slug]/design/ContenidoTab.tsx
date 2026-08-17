@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { parseApiError } from '@/lib/api-errors';
 import { TrialExpiredNotice } from '@/components/space/TrialExpiredNotice';
-import type { ProcessStepDto, FaqEntryDto, HorarioDayDto } from './types';
+import type { ProcessStepDto, FaqEntryDto, HorarioDayDto, SectionVisibilityDto } from './types';
 
 // `key` is what gets sent as HorarioDayDto.dia — must match the backend's
 // DiaSemanaTokens.Whitelist exactly (lunes/martes/miercoles/jueves/viernes/
@@ -34,6 +34,8 @@ interface Props {
   onFaqChange: (faq: FaqEntryDto[]) => void;
   horario: HorarioDayDto[];
   onHorarioChange: (horario: HorarioDayDto[]) => void;
+  sectionVisibility: SectionVisibilityDto;
+  onSectionVisibilityChange: (v: SectionVisibilityDto) => void;
 }
 
 // processSteps/faq/horario are now owned by DesignEditor (lifted so the real-template
@@ -46,6 +48,8 @@ export function ContenidoTab({
   onFaqChange: setFaq,
   horario,
   onHorarioChange: setHorario,
+  sectionVisibility,
+  onSectionVisibilityChange: setSectionVisibility,
 }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -68,6 +72,7 @@ export function ContenidoTab({
           processSteps: processSteps.length > 0 ? processSteps : null,
           faq: faq.length > 0 ? faq : null,
           horario,
+          sectionVisibility,
         }),
       });
       if (res.ok) {
@@ -105,6 +110,8 @@ export function ContenidoTab({
         addLabel={getText('+ Agregar paso', '+ Add step')}
         emptyLabel={getText('Aún no agregas pasos.', "You haven't added any steps yet.")}
         getText={getText}
+        visible={sectionVisibility.processSteps !== false}
+        onVisibleChange={(v) => setSectionVisibility({ ...sectionVisibility, processSteps: v })}
       />
 
       <ListSection<FaqEntryDto>
@@ -225,6 +232,8 @@ function ListSection<T extends object>({
   addLabel,
   emptyLabel,
   getText,
+  visible,
+  onVisibleChange,
 }: {
   title: string;
   description: string;
@@ -237,6 +246,10 @@ function ListSection<T extends object>({
   addLabel: string;
   emptyLabel: string;
   getText: (es: string, en: string) => string;
+  /** Apagador explícito, independiente del contenido — omitir estas props deja la sección
+   *  sin toggle (comportamiento anterior: solo se oculta si está vacía). */
+  visible?: boolean;
+  onVisibleChange?: (v: boolean) => void;
 }) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editA, setEditA] = useState('');
@@ -281,7 +294,29 @@ function ListSection<T extends object>({
 
   return (
     <div>
-      <h2 className="text-sm font-semibold text-gray-900 dark:text-white">{title}</h2>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-white">{title}</h2>
+        {onVisibleChange && (
+          <label className="flex flex-shrink-0 items-center gap-2 text-xs text-gray-500 dark:text-neutral-400">
+            {visible ? getText('Visible', 'Visible') : getText('Oculta', 'Hidden')}
+            <button
+              type="button"
+              role="switch"
+              aria-checked={visible}
+              onClick={() => onVisibleChange(!visible)}
+              className={`relative h-5 w-9 flex-shrink-0 rounded-full transition-colors ${
+                visible ? 'bg-[#C8102E]' : 'bg-gray-300 dark:bg-neutral-600'
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${
+                  visible ? 'translate-x-4' : 'translate-x-0.5'
+                }`}
+              />
+            </button>
+          </label>
+        )}
+      </div>
       <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">{description}</p>
 
       {items.length === 0 && (

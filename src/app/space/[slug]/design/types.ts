@@ -47,3 +47,7 @@ export interface HorarioDayDto {
   cierra: string;
   cerrado: boolean;
 }
+
+/** Clave ausente = visible (default true) — apagador explícito por sección, independiente
+ *  de si tiene contenido. Hoy solo "processSteps"; "gallery" se suma cuando exista esa sección. */
+export type SectionVisibilityDto = Record<string, boolean>;

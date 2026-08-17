@@ -33,6 +33,9 @@ interface Props {
   accent?: string | null;
   /** Horario configurado en Identidad — sin esto, cae a 9am–6pm todos los días. */
   horario?: HorarioDay[] | null;
+  /** Muestra el CTA "Ahora mismo" (walk-in → Fila, no Agenda) — solo Barbería tiene módulo
+   *  "queue" hoy. Ver POST /api/public/affiliates/{slug}/queue. */
+  enableWalkIn?: boolean;
 }
 
 /** Handle imperativo — permite que un "Reservar" en la tarjeta de un servicio, más
@@ -106,7 +109,7 @@ function initials(name: string): string {
  * configurados en Agenda todavía.
  */
 export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props>(function PublicBookingSection(
-  { slug, language, accent, horario },
+  { slug, language, accent, horario, enableWalkIn },
   ref,
 ) {
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -135,6 +138,16 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
   // ocultan del grid de horas apenas se elige la fecha, igual que ya se ocultan los que caen
   // fuera del horario del negocio.
   const [busyByStaff, setBusyByStaff] = useState<Record<string, string[]>>({});
+
+  // "Ahora mismo" — walk-in a la Fila (QueueEntry), flujo separado del modal de Agenda de
+  // arriba: sin día/hora, solo nombre + teléfono + servicio opcional.
+  const [walkInOpen, setWalkInOpen] = useState(false);
+  const [walkInStatus, setWalkInStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [walkInError, setWalkInError] = useState<string | null>(null);
+  const [walkInPosition, setWalkInPosition] = useState<number | null>(null);
+  const [walkInName, setWalkInName] = useState('');
+  const [walkInPhone, setWalkInPhone] = useState('');
+  const [walkInServiceId, setWalkInServiceId] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -253,6 +266,53 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
     }
   }
 
+  function openWalkIn() {
+    setWalkInStatus('idle');
+    setWalkInError(null);
+    setWalkInOpen(true);
+  }
+
+  function closeWalkIn() {
+    setWalkInOpen(false);
+    if (walkInStatus === 'success') {
+      setWalkInName('');
+      setWalkInPhone('');
+      setWalkInServiceId('');
+      setWalkInPosition(null);
+      setWalkInStatus('idle');
+    }
+  }
+
+  async function submitWalkIn(e: React.FormEvent) {
+    e.preventDefault();
+    setWalkInError(null);
+    setWalkInStatus('submitting');
+    try {
+      const res = await fetch(`${API_BASE}/api/public/affiliates/${slug}/queue`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName: walkInName,
+          customerPhone: walkInPhone || null,
+          serviceId: walkInServiceId || null,
+          notes: null,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        setWalkInError(body?.error?.message ?? getText('No pudimos agregarte a la fila.', "We couldn't add you to the queue."));
+        setWalkInStatus('idle');
+        return;
+      }
+      const data = await res.json();
+      setWalkInPosition(data.position ?? null);
+      setWalkInStatus('success');
+    } catch {
+      setWalkInError(getText('No pudimos agregarte a la fila.', "We couldn't add you to the queue."));
+      setWalkInStatus('idle');
+    }
+  }
+
   if (loadStatus === 'loading') return null;
   if (services.length === 0) return null;
 
@@ -299,6 +359,18 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
         <p className="mt-2 text-gray-500">
           {getText('Elige con quién quieres tu cita y a qué hora.', 'Pick who you want your appointment with and when.')}
         </p>
+        {enableWalkIn && (
+          <button
+            type="button"
+            onClick={openWalkIn}
+            className="mt-4 inline-flex items-center gap-2 rounded-full border-2 px-5 py-2.5 text-sm font-bold transition-colors hover:text-white"
+            style={{ borderColor: color, color }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = color)}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          >
+            🕐 {getText('Ahora mismo (sin cita)', 'Right now (walk-in)')}
+          </button>
+        )}
       </div>
 
       {team.length > 0 ? (
@@ -594,6 +666,118 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                       : !date || !time
                         ? getText('Elige día y hora', 'Pick a day and time')
                         : getText('Confirmar reserva', 'Confirm booking')}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
+      {walkInOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={closeWalkIn}
+            aria-hidden="true"
+          />
+          <div className="relative z-10 flex w-full flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:max-w-sm sm:rounded-3xl">
+            <div className="mx-auto mt-2 h-1.5 w-10 shrink-0 rounded-full bg-gray-300 sm:hidden" />
+            <button
+              type="button"
+              onClick={closeWalkIn}
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200"
+              aria-label={getText('Cerrar', 'Close')}
+            >
+              ✕
+            </button>
+
+            {walkInStatus === 'success' ? (
+              <div className="p-5 py-8 text-center sm:p-6">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-2xl">
+                  ✓
+                </div>
+                <p className="text-lg font-bold text-gray-900">{getText('¡Listo!', "You're in!")}</p>
+                <p className="mt-2 text-sm text-gray-500">
+                  {walkInPosition
+                    ? getText(
+                        `Estás en la fila — posición #${walkInPosition}. Te atenderán en el orden de llegada.`,
+                        `You're in line — position #${walkInPosition}. You'll be seen in order of arrival.`,
+                      )
+                    : getText('Te agregamos a la fila del negocio.', "We've added you to the business's queue.")}
+                </p>
+                <button
+                  type="button"
+                  onClick={closeWalkIn}
+                  className="mt-5 rounded-full px-6 py-2.5 text-sm font-bold text-white"
+                  style={{ backgroundColor: color }}
+                >
+                  {getText('Listo', 'Done')}
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={submitWalkIn} className="flex flex-col">
+                <div className="p-5 pt-4 sm:p-6">
+                  <p className="mb-4 pr-8 text-base font-black text-gray-900">
+                    {getText('Únete a la fila', 'Join the queue')}
+                  </p>
+                  <div className="grid gap-3.5">
+                    <div>
+                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                        {getText('Servicio (opcional)', 'Service (optional)')}
+                      </label>
+                      <select
+                        value={walkInServiceId}
+                        onChange={(e) => setWalkInServiceId(e.target.value)}
+                        className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
+                      >
+                        <option value="">{getText('Aún no sé', "I'm not sure yet")}</option>
+                        {services.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                        {getText('Tu nombre', 'Your name')}
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={walkInName}
+                        onChange={(e) => setWalkInName(e.target.value)}
+                        className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                        {getText('Teléfono (opcional)', 'Phone (optional)')}
+                      </label>
+                      <input
+                        type="tel"
+                        value={walkInPhone}
+                        onChange={(e) => setWalkInPhone(e.target.value)}
+                        className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="shrink-0 border-t border-gray-100 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-5">
+                  {walkInError && (
+                    <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{walkInError}</p>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={walkInStatus === 'submitting' || !walkInName.trim()}
+                    className="w-full rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-md transition-transform hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100"
+                    style={{ background: `linear-gradient(135deg, ${color}, ${colorDark})` }}
+                  >
+                    {walkInStatus === 'submitting'
+                      ? getText('Uniéndote...', 'Joining...')
+                      : getText('Unirme a la fila', 'Join the queue')}
                   </button>
                 </div>
               </form>

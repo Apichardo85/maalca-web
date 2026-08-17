@@ -284,7 +284,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
             </p>
           )}
 
-          <ProcessSection steps={business.processSteps} accent={accent} displayClassName={fraunces.className} getText={getText} />
+          <ProcessSection steps={business.processSteps} visible={business.sectionVisibility?.processSteps !== false} accent={accent} displayClassName={fraunces.className} getText={getText} />
 
           <section className="mt-12">
             <h2 className={`${fraunces.className} text-lg font-semibold`}>{getText('Servicios', 'Services')}</h2>
@@ -381,16 +381,18 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
 
 function ProcessSection({
   steps,
+  visible,
   accent,
   displayClassName,
   getText,
 }: {
   steps?: ProcessStep[] | null;
+  visible: boolean;
   accent: string;
   displayClassName: string;
   getText: (es: string, en: string) => string;
 }) {
-  if (!steps || steps.length === 0) return null;
+  if (!visible || !steps || steps.length === 0) return null;
 
   return (
     <section className="mt-12">
