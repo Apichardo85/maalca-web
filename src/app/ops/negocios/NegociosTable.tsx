@@ -5,6 +5,113 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useOpsCanManage } from '../OpsRoleContext';
 import type { OpsAffiliate } from '../types';
+import { Modal } from '@/components/ui/Modal';
+
+// Mismos values/labels que src/app/onboarding/OnboardingForm.tsx — mantenerlos en sync si
+// se agregan tipos de negocio nuevos ahí.
+const TRIAL_BUSINESS_TYPES = [
+  { value: 'restaurant', label: 'Restaurante' },
+  { value: 'barber', label: 'Barbería' },
+  { value: 'service', label: 'Servicios' },
+  { value: 'retail', label: 'Tienda' },
+] as const;
+
+function CreateTrialModal({
+  isOpen,
+  onClose,
+  onCreated,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onCreated: (result: { affiliateId: string; slug: string }) => void;
+}) {
+  const [name, setName] = useState('');
+  const [businessType, setBusinessType] = useState<string>('restaurant');
+  const [whatsapp, setWhatsapp] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function create() {
+    if (!name.trim()) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/ops/affiliates/trial', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, businessType, whatsApp: whatsapp.trim() || null }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error?.message ?? 'No se pudo crear el espacio de prueba.');
+      onCreated({ affiliateId: data.affiliateId, slug: data.slug });
+      setName('');
+      setWhatsapp('');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Algo salió mal.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Nuevo espacio de prueba" size="sm">
+      <p className="mb-3 text-xs text-gray-400 dark:text-neutral-500">
+        Se crea sin dueño. Configúralo entrando como soporte y, si el cliente lo quiere, invítalo
+        como Owner desde Equipo dentro del negocio.
+      </p>
+
+      {error && (
+        <p className="mb-3 rounded-lg bg-red-50 dark:bg-red-900/20 px-3 py-2 text-xs text-red-600 dark:text-red-400">
+          {error}
+        </p>
+      )}
+
+      <div className="space-y-3">
+        <div>
+          <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-neutral-400">Nombre</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Ej. Barbería El Corte"
+            className="w-full rounded-md border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1.5 text-sm"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-neutral-400">Tipo de negocio</label>
+          <select
+            value={businessType}
+            onChange={(e) => setBusinessType(e.target.value)}
+            className="w-full rounded-md border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1.5 text-sm"
+          >
+            {TRIAL_BUSINESS_TYPES.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-neutral-400">
+            WhatsApp (opcional)
+          </label>
+          <input
+            value={whatsapp}
+            onChange={(e) => setWhatsapp(e.target.value)}
+            placeholder="18095551234"
+            className="w-full rounded-md border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1.5 text-sm"
+          />
+        </div>
+        <button
+          onClick={create}
+          disabled={busy || !name.trim()}
+          className="w-full rounded-md bg-[#C8102E] px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+        >
+          {busy ? 'Creando…' : 'Crear espacio de prueba'}
+        </button>
+      </div>
+    </Modal>
+  );
+}
 
 function PlanBadge({ plan }: { plan: string }) {
   return (
@@ -130,6 +237,7 @@ export function NegociosTable({ initialAffiliates }: { initialAffiliates: OpsAff
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [onlyAlerts, setOnlyAlerts] = useState(false);
+  const [showTrialModal, setShowTrialModal] = useState(false);
 
   async function setStatus(a: OpsAffiliate, patch: { published?: boolean; active?: boolean }) {
     setBusyId(a.id);
@@ -164,17 +272,51 @@ export function NegociosTable({ initialAffiliates }: { initialAffiliates: OpsAff
     }
   }
 
+  async function goToNewTrial({ affiliateId, slug }: { affiliateId: string; slug: string }) {
+    // Entra directo como soporte en el espacio recién creado — mismo endpoint que "Soporte"
+    // en la tabla, solo que aquí ya tenemos el affiliateId/slug de la respuesta de creación.
+    setShowTrialModal(false);
+    setBusyId(affiliateId);
+    try {
+      const res = await fetch(`/api/ops/impersonate/${affiliateId}`, { method: 'POST' });
+      if (res.ok) {
+        router.push(`/space/${slug}`);
+        return;
+      }
+    } catch {
+      // si falla, igual refrescamos para que el nuevo espacio aparezca en la tabla
+    }
+    setBusyId(null);
+    router.refresh();
+  }
+
   const visible = onlyAlerts ? affiliates.filter((a) => a.alerts.length > 0) : affiliates;
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <h2 className="text-sm font-semibold text-gray-700 dark:text-neutral-300">Negocios</h2>
-        <label className="flex items-center gap-2 text-xs text-gray-500 dark:text-neutral-400">
-          <input type="checkbox" checked={onlyAlerts} onChange={(e) => setOnlyAlerts(e.target.checked)} />
-          Solo con alertas
-        </label>
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2 text-xs text-gray-500 dark:text-neutral-400">
+            <input type="checkbox" checked={onlyAlerts} onChange={(e) => setOnlyAlerts(e.target.checked)} />
+            Solo con alertas
+          </label>
+          {canManage && (
+            <button
+              onClick={() => setShowTrialModal(true)}
+              className="rounded-full bg-[#C8102E] px-3 py-1.5 text-xs font-medium text-white"
+            >
+              + Espacio de prueba
+            </button>
+          )}
+        </div>
       </div>
+
+      <CreateTrialModal
+        isOpen={showTrialModal}
+        onClose={() => setShowTrialModal(false)}
+        onCreated={goToNewTrial}
+      />
 
       {error && (
         <p className="mt-3 rounded-lg bg-red-50 dark:bg-red-900/20 px-3 py-2 text-sm text-red-600 dark:text-red-400">
