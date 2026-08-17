@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -102,6 +102,91 @@ function initials(name: string): string {
     .join('');
 }
 
+/** Deja solo lo que un teléfono real puede tener — sin esto el input type="tel" es puramente
+ *  cosmético (solo cambia el teclado en mobile) y aceptaba letras sin problema. */
+function sanitizePhone(value: string): string {
+  return value.replace(/[^\d\s()+-]/g, '').slice(0, 20);
+}
+
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
+/** Reemplaza el <select> nativo para Servicio — el nativo se veía feo y, con nombres de
+ *  servicio largos, el popup del sistema operativo se abría más ancho que el modal y se
+ *  salía de sus bordes (no hay forma de controlar el ancho/estilo de esa capa nativa desde
+ *  CSS). Este dropdown vive en el DOM normal, respeta el ancho del modal y usa los mismos
+ *  colores/bordes que el resto del form. */
+function CustomSelect({
+  value,
+  onChange,
+  options,
+  placeholder,
+  color,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: SelectOption[];
+  placeholder: string;
+  color: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onDocClick(e: MouseEvent) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [open]);
+
+  const selected = options.find((o) => o.value === value);
+
+  return (
+    <div ref={wrapRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between gap-2 rounded-xl border border-gray-300 px-3 py-3 text-left text-sm focus:border-gray-500 focus:outline-none"
+      >
+        <span className={`truncate ${selected ? 'text-gray-900' : 'text-gray-400'}`}>
+          {selected ? selected.label : placeholder}
+        </span>
+        <span
+          className="shrink-0 text-gray-400 transition-transform"
+          style={{ transform: open ? 'rotate(180deg)' : undefined }}
+        >
+          ▾
+        </span>
+      </button>
+      {open && (
+        <div className="absolute left-0 right-0 z-20 mt-1.5 max-h-56 overflow-y-auto overflow-x-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg">
+          {options.map((o) => {
+            const active = o.value === value;
+            return (
+              <button
+                key={o.value || '__empty__'}
+                type="button"
+                onClick={() => {
+                  onChange(o.value);
+                  setOpen(false);
+                }}
+                className="block w-full truncate rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors hover:bg-gray-50"
+                style={active ? { backgroundColor: `${color}1a`, color } : { color: '#374151' }}
+              >
+                {o.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /**
  * Widget de reserva público (sin login) — usado por las plantillas Restaurant/Barber/Service.
  * v2: cards de personal (estilo Squire/Calendly) que abren un modal de reserva pre-llenado, en
@@ -142,6 +227,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
   // "Ahora mismo" — walk-in a la Fila (QueueEntry), flujo separado del modal de Agenda de
   // arriba: sin día/hora, solo nombre + teléfono + servicio opcional.
   const [walkInOpen, setWalkInOpen] = useState(false);
+  const [walkInHover, setWalkInHover] = useState(false);
   const [walkInStatus, setWalkInStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [walkInError, setWalkInError] = useState<string | null>(null);
   const [walkInPosition, setWalkInPosition] = useState<number | null>(null);
@@ -363,10 +449,18 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
           <button
             type="button"
             onClick={openWalkIn}
-            className="mt-4 inline-flex items-center gap-2 rounded-full border-2 px-5 py-2.5 text-sm font-bold transition-colors hover:text-white"
-            style={{ borderColor: color, color }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = color)}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            onMouseEnter={() => setWalkInHover(true)}
+            onMouseLeave={() => setWalkInHover(false)}
+            className="mt-4 inline-flex items-center gap-2 rounded-full border-2 px-5 py-2.5 text-sm font-bold transition-colors"
+            style={{
+              borderColor: color,
+              // Antes: color de texto fijo por inline style + clase Tailwind hover:text-white —
+              // el inline siempre gana sobre la clase, así que en hover el fondo pasaba a `color`
+              // pero el texto se quedaba en `color` también → texto invisible sobre su propio
+              // fondo. Ahora todo el swap vive en un solo lugar (este objeto), sin mezclar fuentes.
+              color: walkInHover ? '#fff' : color,
+              backgroundColor: walkInHover ? color : 'transparent',
+            }}
           >
             🕐 {getText('Ahora mismo (sin cita)', 'Right now (walk-in)')}
           </button>
@@ -519,18 +613,13 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                       <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
                         {getText('Servicio', 'Service')}
                       </label>
-                      <select
-                        required
+                      <CustomSelect
                         value={serviceId}
-                        onChange={(e) => setServiceId(e.target.value)}
-                        className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
-                      >
-                        {services.map((s) => (
-                          <option key={s.id} value={s.id}>
-                            {s.name} — {s.durationMinutes}min
-                          </option>
-                        ))}
-                      </select>
+                        onChange={setServiceId}
+                        color={color}
+                        placeholder={getText('Elige un servicio', 'Pick a service')}
+                        options={services.map((s) => ({ value: s.id, label: `${s.name} — ${s.durationMinutes}min` }))}
+                      />
                       {selectedService?.price ? (
                         <p className="mt-1 text-xs text-gray-400">
                           {getText('Precio estimado', 'Estimated price')}: ${selectedService.price.toFixed(2)}
@@ -616,6 +705,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                       <input
                         type="text"
                         required
+                        maxLength={80}
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
                         className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
@@ -628,9 +718,11 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                       </label>
                       <input
                         type="tel"
+                        inputMode="tel"
                         required
+                        maxLength={20}
                         value={customerPhone}
-                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        onChange={(e) => setCustomerPhone(sanitizePhone(e.target.value))}
                         className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
                       />
                     </div>
@@ -643,6 +735,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         rows={2}
+                        maxLength={300}
                         className="mt-2 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:border-gray-500 focus:outline-none"
                       />
                     </details>
@@ -726,18 +819,13 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                       <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
                         {getText('Servicio (opcional)', 'Service (optional)')}
                       </label>
-                      <select
+                      <CustomSelect
                         value={walkInServiceId}
-                        onChange={(e) => setWalkInServiceId(e.target.value)}
-                        className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
-                      >
-                        <option value="">{getText('Aún no sé', "I'm not sure yet")}</option>
-                        {services.map((s) => (
-                          <option key={s.id} value={s.id}>
-                            {s.name}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={setWalkInServiceId}
+                        color={color}
+                        placeholder={getText('Aún no sé', "I'm not sure yet")}
+                        options={services.map((s) => ({ value: s.id, label: s.name }))}
+                      />
                     </div>
                     <div>
                       <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
@@ -746,6 +834,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                       <input
                         type="text"
                         required
+                        maxLength={80}
                         value={walkInName}
                         onChange={(e) => setWalkInName(e.target.value)}
                         className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
@@ -757,8 +846,10 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                       </label>
                       <input
                         type="tel"
+                        inputMode="tel"
+                        maxLength={20}
                         value={walkInPhone}
-                        onChange={(e) => setWalkInPhone(e.target.value)}
+                        onChange={(e) => setWalkInPhone(sanitizePhone(e.target.value))}
                         className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
                       />
                     </div>
