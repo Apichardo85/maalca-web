@@ -178,10 +178,13 @@ export default function HomeClient({ featuredAffiliates }: Props) {
       price: `$${PRICE_PROFESSIONAL}`,
       period: language === 'en' ? '/mo' : '/mes',
       tag: null as { es: string; en: string } | null,
+      // Sincronizado con las features reales del plan Profesional en /servicios/page.tsx —
+      // este array vive por separado (vista previa de precios de la home) y quedó
+      // desactualizado con features que nunca existieron (CRM completo, Agente IA).
       bullets: [
-        { es: 'CRM completo con historial de clientes', en: 'Full CRM with customer history' },
-        { es: 'Agente IA entrenado en tu negocio', en: 'AI agent trained on your business' },
-        { es: 'Automatizaciones avanzadas + reportes BI', en: 'Advanced automations + BI reports' },
+        { es: 'Facturas y propuestas con firma digital', en: 'Invoices and proposals with e-signature' },
+        { es: 'Recordatorios y bloqueo de horario automáticos', en: 'Automatic reminders and schedule blocking' },
+        { es: 'Reportes y analíticas ampliadas', en: 'Extended reports and analytics' },
       ],
     },
   ];

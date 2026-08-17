@@ -477,7 +477,6 @@ export default function ServiciosPage() {
                   {[
                     { es: "SLA garantizado y soporte on-site", en: "Guaranteed SLA and on-site support" },
                     { es: "Integraciones a medida con tu infraestructura", en: "Custom integrations with your infrastructure" },
-                    { es: "Agentes de IA entrenados en tu data", en: "AI agents trained on your data" },
                     { es: "Infraestructura dedicada y SSO / compliance", en: "Dedicated infrastructure and SSO / compliance" },
                     { es: "Account manager y roadmap compartido", en: "Account manager and shared roadmap" },
                   ].map((feature, idx) => (
