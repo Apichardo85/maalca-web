@@ -26,12 +26,7 @@ export const useContactForm = (project: string = 'global') => {
     setStatus('loading');
 
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // In demo mode, we'll simulate success
-      // In production, this would be replaced with actual API call
-      const result = await simulateFormSubmission(formData, t);
+      const result = await submitToApi(formData, project, t);
 
       if (result.success) {
         setStatus('success');
@@ -108,63 +103,44 @@ export const useContactForm = (project: string = 'global') => {
   };
 };
 
-// Demo mode form submission simulator
-async function simulateFormSubmission(
+// Envío real — pega a /api/contact, que manda el email por Resend (ver resend-service.ts::
+// sendContactFormEmail). Antes de esto, este archivo solo simulaba éxito con localStorage y
+// el mensaje nunca llegaba a nadie.
+async function submitToApi(
   formData: ContactFormData,
+  project: string,
   t: (key: string) => string
 ): Promise<ContactFormResult> {
-  // Store in localStorage for demo purposes
-  const timestamp = new Date().toISOString();
-  const submissionData = {
-    ...formData,
-    timestamp,
-    id: Math.random().toString(36).substr(2, 9)
-  };
-
-  // Store in localStorage (simulate database)
-  const existingSubmissions = JSON.parse(localStorage.getItem('contact_form_submissions') || '[]');
-  existingSubmissions.push(submissionData);
-  localStorage.setItem('contact_form_submissions', JSON.stringify(existingSubmissions));
-
-  console.log('📧 Formulario de contacto recibido (DEMO MODE):', submissionData);
-
-  // Simulate different response scenarios based on email
-  if (formData.email.includes('error')) {
-    return {
-      success: false,
-      message: t('form.error.submission')
-    };
-  }
-
-  if (formData.email.includes('spam')) {
-    return {
-      success: false,
-      message: t('form.error.spam')
-    };
-  }
-
-  // Default success response
-  const responses = [
-    t('form.success.message1'),
-    t('form.success.message2'),
-    t('form.success.message3'),
-  ];
-
-  const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-
-  return {
-    success: true,
-    message: randomResponse
-  };
-}
-
-// Utility function to get stored submissions (for demo purposes)
-export const getStoredSubmissions = (): ContactFormData[] => {
-  if (typeof window === 'undefined') return [];
-  
   try {
-    return JSON.parse(localStorage.getItem('contact_form_submissions') || '[]');
+    const res = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: formData.name,
+        email: formData.email,
+        company: formData.company || null,
+        project: formData.project || project,
+        message: formData.message,
+      }),
+    });
+
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      return {
+        success: false,
+        message: data?.error || t('form.error.submission'),
+      };
+    }
+
+    return {
+      success: true,
+      message: data?.message || t('form.success.message1'),
+    };
   } catch {
-    return [];
+    return {
+      success: false,
+      message: t('form.error.unexpected'),
+    };
   }
-};
+}

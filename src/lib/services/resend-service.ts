@@ -507,6 +507,73 @@ export async function sendAppointmentReminderEmail(params: {
   }
 }
 
+/**
+ * Formulario de contacto general (home + /contacto) — hasta ahora `useContactForm.ts` solo
+ * simulaba el envío con localStorage, no llegaba a ningún lado. Esto es lo que realmente
+ * manda el mensaje: notifica a hello@maalca.com y confirma por correo a quien escribió.
+ */
+export async function sendContactFormEmail(params: {
+  name: string;
+  email: string;
+  company?: string | null;
+  project?: string | null;
+  message: string;
+}): Promise<{ notified: boolean; confirmed: boolean }> {
+  const NOTIFY_EMAIL = process.env.CONTACT_NOTIFY_EMAIL || 'hello@maalca.com';
+
+  if (!resend) {
+    console.log('[Resend] Skipped contact form — RESEND_API_KEY not set');
+    return { notified: false, confirmed: false };
+  }
+
+  let notified = false;
+  let confirmed = false;
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: NOTIFY_EMAIL,
+      replyTo: params.email,
+      subject: `Nuevo mensaje de contacto — ${params.name}`,
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
+          <h2 style="font-size: 18px;">Nuevo mensaje desde maalca.com</h2>
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <tr><td style="padding: 6px 8px; font-weight: bold; width: 120px;">Nombre:</td><td style="padding: 6px 8px;">${params.name}</td></tr>
+            <tr><td style="padding: 6px 8px; font-weight: bold;">Correo:</td><td style="padding: 6px 8px;">${params.email}</td></tr>
+            ${params.company ? `<tr><td style="padding: 6px 8px; font-weight: bold;">Negocio:</td><td style="padding: 6px 8px;">${params.company}</td></tr>` : ''}
+            ${params.project ? `<tr><td style="padding: 6px 8px; font-weight: bold;">Tipo:</td><td style="padding: 6px 8px;">${params.project}</td></tr>` : ''}
+          </table>
+          <p style="font-size: 14px; line-height: 1.6; background: #fafafa; border-radius: 8px; padding: 12px 16px; margin-top: 16px; white-space: pre-line;">${params.message}</p>
+        </div>
+      `,
+    });
+    notified = true;
+  } catch (err: unknown) {
+    console.error('[Resend] Contact notify email failed:', err instanceof Error ? err.message : String(err));
+  }
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: params.email,
+      subject: 'Recibimos tu mensaje — MaalCa',
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
+          <p style="font-size: 15px; line-height: 1.6;">Hola ${params.name},</p>
+          <p style="font-size: 15px; line-height: 1.6;">Recibimos tu mensaje y te respondemos pronto, normalmente en menos de 24 horas.</p>
+          <p style="font-size: 13px; color: #737373;">Si necesitas algo urgente, responde directamente a este correo.</p>
+        </div>
+      `,
+    });
+    confirmed = true;
+  } catch (err: unknown) {
+    console.error('[Resend] Contact confirmation email failed:', err instanceof Error ? err.message : String(err));
+  }
+
+  return { notified, confirmed };
+}
+
 function sourceGreeting(source: string): { title: string; body: string } {
   switch (source) {
     case 'ciriwhispers':

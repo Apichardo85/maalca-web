@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/buttons";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
+import { useContactForm } from "@/hooks/useContactForm";
 import { PRICE_FREE, PRICE_ENTREPRENEUR, PRICE_PROFESSIONAL } from "@/config/pricing";
 
 export interface FeaturedAffiliate {
@@ -43,6 +44,24 @@ export default function HomeClient({ featuredAffiliates }: Props) {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Formulario de contacto de la home — antes no tenía ni onSubmit ni estado, el botón
+  // "Enviar mensaje" no hacía nada. Reusa el mismo /api/contact que /contacto/page.tsx.
+  const { submitForm, isLoading: contactLoading, isSuccess: contactSuccess, isError: contactError, message: contactMessage } = useContactForm('home');
+  const [contactName, setContactName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactMsg, setContactMsg] = useState('');
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!contactName.trim() || !contactEmail.trim() || !contactMsg.trim() || contactLoading) return;
+    const result = await submitForm({ name: contactName, email: contactEmail, company: '', project: 'home', message: contactMsg });
+    if (result.success) {
+      setContactName('');
+      setContactEmail('');
+      setContactMsg('');
+    }
+  };
+
   // Same shape the section already rendered when it read from the mock — mapped here so the
   // JSX below (id/website/logo/name/description) didn't need to change field names throughout.
   const activeAffiliates = featuredAffiliates.map((a) => ({
@@ -78,6 +97,38 @@ export default function HomeClient({ featuredAffiliates }: Props) {
       icon: (
         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3.75H4.5a.75.75 0 00-.75.75v2.25m14.25-3H19.5a.75.75 0 01.75.75v2.25m-18 10.5v2.25c0 .414.336.75.75.75h2.25m11.25 0h2.25a.75.75 0 00.75-.75v-2.25M6.75 6.75h.75v.75h-.75v-.75zm0 9.75h.75v.75h-.75v-.75zm9.75-9.75h.75v.75h-.75v-.75z" />
+        </svg>
+      ),
+    },
+    // Estas tres estaban traducidas (es+en) en useSimpleLanguage.tsx desde hace tiempo pero
+    // nunca se agregaron acá — la home solo mostraba 4 de 9 módulos reales que ya existen
+    // (Agenda, Reservas, POS, Cocina, Kiosko caen bajo "bookings"; Stripe Connect bajo
+    // "payments"; recordatorios + bloqueo de horario bajo "automations").
+    {
+      titleKey: 'platform.mod.bookings',
+      descKey: 'platform.mod.bookings.desc',
+      icon: (
+        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008z" />
+        </svg>
+      ),
+    },
+    {
+      titleKey: 'platform.mod.payments',
+      descKey: 'platform.mod.payments.desc',
+      icon: (
+        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+        </svg>
+      ),
+    },
+    {
+      titleKey: 'platform.mod.automations',
+      descKey: 'platform.mod.automations.desc',
+      icon: (
+        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       ),
     },
@@ -498,12 +549,14 @@ export default function HomeClient({ featuredAffiliates }: Props) {
               <h2 className="font-display text-4xl lg:text-5xl font-bold text-text-primary mb-8">
                 {t('contact.title')}
               </h2>
-              <form className="space-y-6">
+              <form className="space-y-6" onSubmit={handleContactSubmit}>
                 <div>
                   <label htmlFor="contact-name" className="sr-only">{t('contact.name')}</label>
                   <input
                     id="contact-name"
                     type="text"
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
                     placeholder={t('contact.name')}
                     className="w-full bg-surface-elevated border border-border rounded-lg px-6 py-4 text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary transition-colors"
                   />
@@ -513,6 +566,8 @@ export default function HomeClient({ featuredAffiliates }: Props) {
                   <input
                     id="contact-email"
                     type="email"
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
                     placeholder={t('contact.email')}
                     className="w-full bg-surface-elevated border border-border rounded-lg px-6 py-4 text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary transition-colors"
                   />
@@ -522,17 +577,27 @@ export default function HomeClient({ featuredAffiliates }: Props) {
                   <textarea
                     id="contact-message"
                     rows={6}
+                    value={contactMsg}
+                    onChange={(e) => setContactMsg(e.target.value)}
                     placeholder={t('contact.message')}
                     className="w-full bg-surface-elevated border border-border rounded-lg px-6 py-4 text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary transition-colors resize-none"
                   />
                 </div>
                 <Button
+                  type="submit"
                   variant="primary"
                   size="lg"
-                  className="w-full bg-brand-primary hover:bg-brand-primary-hover text-white text-lg py-4"
+                  disabled={contactLoading}
+                  className="w-full bg-brand-primary hover:bg-brand-primary-hover text-white text-lg py-4 disabled:opacity-50"
                 >
-                  {t('contact.send')}
+                  {contactLoading ? '...' : t('contact.send')}
                 </Button>
+                {contactSuccess && (
+                  <p className="text-sm text-green-600 dark:text-green-400 text-center">{contactMessage}</p>
+                )}
+                {contactError && (
+                  <p className="text-sm text-red-600 dark:text-red-400 text-center">{contactMessage}</p>
+                )}
               </form>
             </div>
             <div className="animate-fade-in-right" style={{ animationDelay: '0.2s' }}>
@@ -553,6 +618,9 @@ export default function HomeClient({ featuredAffiliates }: Props) {
                 <div>
                   <h3 className="text-xl font-bold text-text-primary mb-6">{t('contact.followUs')}</h3>
                   <div className="flex gap-3">
+                    {/* Solo Instagram es una cuenta real hoy — YouTube/Spotify/LinkedIn
+                        apuntaban a href="#" (no llevaban a ningún lado). Los quitamos hasta
+                        que existan esas cuentas; agregarlos de vuelta es trivial cuando pase. */}
                     {[
                       {
                         name: 'Instagram',
@@ -560,33 +628,6 @@ export default function HomeClient({ featuredAffiliates }: Props) {
                         svg: (
                           <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
                             <path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.22.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.05.41 2.22.06 1.26.07 1.64.07 4.85s0 3.6-.07 4.85c-.05 1.17-.25 1.8-.41 2.22-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.05.36-2.22.41-1.26.06-1.64.07-4.85.07s-3.6 0-4.85-.07c-1.17-.05-1.8-.25-2.22-.41a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.16-.42-.36-1.05-.41-2.22C2.21 15.6 2.2 15.22 2.2 12s0-3.6.07-4.85c.05-1.17.25-1.8.41-2.22.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.05-.36 2.22-.41C8.4 2.21 8.78 2.2 12 2.2Zm0 1.8c-3.17 0-3.54 0-4.78.07-1.07.05-1.65.23-2.04.38-.51.2-.88.44-1.26.82-.38.38-.62.75-.82 1.26-.15.39-.33.97-.38 2.04C2.46 8.84 2.45 9.21 2.45 12s0 3.16.07 4.4c.05 1.07.23 1.65.38 2.04.2.51.44.88.82 1.26.38.38.75.62 1.26.82.39.15.97.33 2.04.38 1.24.06 1.61.07 4.78.07s3.54 0 4.78-.07c1.07-.05 1.65-.23 2.04-.38.51-.2.88-.44 1.26-.82.38-.38.62-.75.82-1.26.15-.39.33-.97.38-2.04.06-1.24.07-1.61.07-4.4s0-3.16-.07-4.4c-.05-1.07-.23-1.65-.38-2.04a3.4 3.4 0 0 0-.82-1.26 3.4 3.4 0 0 0-1.26-.82c-.39-.15-.97-.33-2.04-.38C15.54 4 15.17 4 12 4Zm0 3.1a4.9 4.9 0 1 1 0 9.8 4.9 4.9 0 0 1 0-9.8Zm0 1.8a3.1 3.1 0 1 0 0 6.2 3.1 3.1 0 0 0 0-6.2Zm5.1-2.1a1.15 1.15 0 1 1 0 2.3 1.15 1.15 0 0 1 0-2.3Z"/>
-                          </svg>
-                        ),
-                      },
-                      {
-                        name: 'YouTube',
-                        href: '#',
-                        svg: (
-                          <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                            <path d="M23.5 6.5a3 3 0 0 0-2.1-2.1C19.6 4 12 4 12 4s-7.6 0-9.4.4A3 3 0 0 0 .5 6.5C.1 8.3.1 12 .1 12s0 3.7.4 5.5a3 3 0 0 0 2.1 2.1C4.4 20 12 20 12 20s7.6 0 9.4-.4a3 3 0 0 0 2.1-2.1c.4-1.8.4-5.5.4-5.5s0-3.7-.4-5.5ZM9.75 15.5v-7l6.5 3.5-6.5 3.5Z"/>
-                          </svg>
-                        ),
-                      },
-                      {
-                        name: 'Spotify',
-                        href: '#',
-                        svg: (
-                          <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                            <path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24Zm5.5 17.3a.75.75 0 0 1-1 .25c-2.8-1.7-6.3-2.1-10.5-1.1a.75.75 0 0 1-.35-1.45c4.6-1.1 8.5-.65 11.6 1.25a.75.75 0 0 1 .25 1.05Zm1.5-3.4a.94.94 0 0 1-1.3.3c-3.2-2-8.1-2.55-11.9-1.4a.94.94 0 1 1-.55-1.8c4.35-1.3 9.75-.7 13.4 1.55.45.25.6.85.35 1.35Zm.15-3.5C15.3 8 8.7 7.75 5.05 8.9a1.13 1.13 0 1 1-.65-2.15c4.2-1.3 11.5-1 15.8 1.55a1.13 1.13 0 1 1-1.15 1.95Z"/>
-                          </svg>
-                        ),
-                      },
-                      {
-                        name: 'LinkedIn',
-                        href: '#',
-                        svg: (
-                          <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-                            <path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9h4v12H3V9Zm6 0h3.8v1.7h.06c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.77 2.65 4.77 6.1V21h-4v-5.3c0-1.27-.03-2.9-1.77-2.9-1.77 0-2.04 1.37-2.04 2.8V21H9V9Z"/>
                           </svg>
                         ),
                       },

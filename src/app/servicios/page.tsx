@@ -79,6 +79,30 @@ const plans: Plan[] = [
     ],
     cta: { es: "Comienza tu prueba gratis", en: "Start your free trial" },
   },
+  // La home (HomeClient.tsx) siempre mostró un plan "Profesional" $95/mes con CRM/Agente IA/BI
+  // que nunca existió acá — quien hacía clic en "Ver plan completo" no lo encontraba. Este
+  // plan usa solo funciones reales ya construidas (Facturas, Propuestas con firma, task #194;
+  // recordatorios + bloqueo de horario, tasks #192/193) — no promete un "Agente IA" para
+  // clientes porque ese producto todavía no existe (solo hay un asistente interno en /ops).
+  {
+    id: "profesional",
+    name: { es: "Profesional", en: "Professional" },
+    tagline: {
+      es: "Para negocios de servicios que cotizan, facturan y agendan: todo el ciclo del cliente en un solo lugar.",
+      en: "For service businesses that quote, invoice and book: the full client cycle in one place.",
+    },
+    price: PRICE_PROFESSIONAL,
+    setup: { es: "Setup único $150", en: "One-time setup $150" },
+    highlight: false,
+    features: [
+      { es: "Todo lo del plan Emprendedor", en: "Everything in Growth" },
+      { es: "Facturas y propuestas con firma digital del cliente", en: "Invoices and proposals with client e-signature" },
+      { es: "Automatizaciones avanzadas: recordatorios y bloqueo de horario", en: "Advanced automations: reminders and schedule blocking" },
+      { es: "Reportes y analíticas ampliadas", en: "Extended reports and analytics" },
+      { es: "Soporte dedicado (24h)", en: "Dedicated support (24h)" },
+    ],
+    cta: { es: "Comienza tu prueba gratis", en: "Start your free trial" },
+  },
 ];
 
 const addOns: AddOn[] = [
@@ -155,40 +179,46 @@ const faqItems = [
 const comparisonRows: { label: { es: string; en: string }; values: ComparisonValue[] }[] = [
   {
     label: { es: "Usuarios", en: "Users" },
-    values: ["1", { es: "Ilimitados", en: "Unlimited" }],
+    values: ["1", { es: "Ilimitados", en: "Unlimited" }, { es: "Ilimitados", en: "Unlimited" }],
   },
   {
     label: { es: "Catálogo de productos / servicios", en: "Product / service catalog" },
     values: [
       { es: "Hasta 10 ítems", en: "Up to 10 items" },
       { es: "Sin límite", en: "No limit" },
+      { es: "Sin límite", en: "No limit" },
     ],
   },
   {
     label: { es: "Sitio web y código QR", en: "Website and QR code" },
-    values: [true, true],
+    values: [true, true, true],
   },
   {
     label: { es: "Reservas / pedidos online", en: "Online bookings / orders" },
-    values: [false, true],
+    values: [false, true, true],
   },
   {
     label: { es: "Pagos integrados", en: "Integrated payments" },
-    values: [false, true],
+    values: [false, true, true],
   },
   {
     label: { es: "Automatizaciones básicas", en: "Basic automations" },
-    values: [false, true],
+    values: [false, true, true],
   },
   {
     label: { es: "Analíticas avanzadas", en: "Advanced analytics" },
-    values: [false, true],
+    values: [false, true, true],
+  },
+  {
+    label: { es: "Facturas y propuestas con firma", en: "Invoices and proposals with e-signature" },
+    values: [false, false, true],
   },
   {
     label: { es: "Soporte", en: "Support" },
     values: [
       { es: "Email (72h)", en: "Email (72h)" },
       { es: "Prioritario (24h)", en: "Priority (24h)" },
+      { es: "Dedicado (24h)", en: "Dedicated (24h)" },
     ],
   },
 ];
@@ -516,7 +546,13 @@ export default function ServiciosPage() {
                     <span className="text-xs font-bold text-text-primary block">
                       {language === "en" ? "Growth" : "Emprendedor"}
                     </span>
-                    <span className="text-xs text-text-muted">$38</span>
+                    <span className="text-xs text-text-muted">${PRICE_ENTREPRENEUR}</span>
+                  </th>
+                  <th className="text-center py-4 px-3">
+                    <span className="text-xs font-bold text-brand-primary block">
+                      {language === "en" ? "Professional" : "Profesional"}
+                    </span>
+                    <span className="text-xs text-text-muted">${PRICE_PROFESSIONAL}</span>
                   </th>
                 </tr>
               </thead>
