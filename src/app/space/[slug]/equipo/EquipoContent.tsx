@@ -35,7 +35,13 @@ interface Props {
   initialCollaborators: Collaborator[];
 }
 
-const DASHBOARD_ROLES = ['Manager', 'Staff'] as const;
+// "Owner" incluido a propósito — antes solo se podía dar Manager/Staff desde acá, así que no
+// había forma real de agregar un co-dueño (socio) al negocio: la única invitación con label
+// "Dueño" vivía en /ops/equipo, que es el equipo INTERNO de la plataforma (PlatformAdmin, acceso
+// a /ops) y no tiene nada que ver con ser dueño de ESTE negocio (UserAffiliateMap) — confusión
+// real reportada en producción (2026-08-17). Gateado igual que el resto de esta sección:
+// canManageAccess ya exige role === 'Owner' para siquiera ver el formulario de invitar.
+const DASHBOARD_ROLES = ['Owner', 'Manager', 'Staff'] as const;
 
 const ROLE_LABELS: Record<string, { es: string; en: string }> = {
   Owner: { es: 'Dueño', en: 'Owner' },
@@ -74,13 +80,13 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
   // Dar acceso a un miembro de Personal existente
   const [inviteOpenFor, setInviteOpenFor] = useState<string | null>(null);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<'Manager' | 'Staff'>('Staff');
+  const [inviteRole, setInviteRole] = useState<'Owner' | 'Manager' | 'Staff'>('Staff');
   const [inviting, setInviting] = useState(false);
 
   // Agregar cuenta de dashboard suelta (sin vínculo a Personal) — solo Owner
   const [standaloneOpen, setStandaloneOpen] = useState(false);
   const [standaloneEmail, setStandaloneEmail] = useState('');
-  const [standaloneRole, setStandaloneRole] = useState<'Manager' | 'Staff'>('Staff');
+  const [standaloneRole, setStandaloneRole] = useState<'Owner' | 'Manager' | 'Staff'>('Staff');
   const [standaloneSaving, setStandaloneSaving] = useState(false);
 
   const linkedByTeamMemberId = new Map(
@@ -610,7 +616,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                     />
                     <select
                       value={inviteRole}
-                      onChange={(e) => setInviteRole(e.target.value as 'Manager' | 'Staff')}
+                      onChange={(e) => setInviteRole(e.target.value as 'Owner' | 'Manager' | 'Staff')}
                       className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm"
                     >
                       {DASHBOARD_ROLES.map((r) => (
@@ -720,7 +726,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                     />
                     <select
                       value={standaloneRole}
-                      onChange={(e) => setStandaloneRole(e.target.value as 'Manager' | 'Staff')}
+                      onChange={(e) => setStandaloneRole(e.target.value as 'Owner' | 'Manager' | 'Staff')}
                       className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
                     >
                       {DASHBOARD_ROLES.map((r) => (
