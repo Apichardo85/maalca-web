@@ -95,6 +95,10 @@ export function SpaceSidebar({
     ...(['service', 'professional'].includes(businessType)
       ? [{ label: getText('Facturas', 'Invoices'), icon: '🧾', href: `/space/${slug}/invoices`, token: 'invoices' }]
       : []),
+    // Propuestas con firma/aceptación pública — Servicios/Profesionales (task #194).
+    ...(['service', 'professional'].includes(businessType)
+      ? [{ label: getText('Propuestas', 'Proposals'), icon: '✍️', href: `/space/${slug}/proposals`, token: 'proposals' }]
+      : []),
     { label: getText('Pantalla', 'Screen'),                   icon: '📺', href: `/space/${slug}/board`, token: 'board' },
     // Equipo (Personal + Equipo unificados): staff que atiende clientes y/o tiene acceso al
     // dashboard, todo en una sola pantalla. Lo ve cualquier rol, aunque solo Owner/Manager

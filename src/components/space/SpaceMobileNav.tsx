@@ -90,6 +90,10 @@ export function SpaceMobileNav({
     ...(['service', 'professional'].includes(businessType)
       ? [{ label: getText('Facturas', 'Invoices'), icon: '🧾', href: `/space/${slug}/invoices`, token: 'invoices' }]
       : []),
+    // Propuestas — Servicios/Profesionales, ver mismo criterio en SpaceSidebar.tsx.
+    ...(['service', 'professional'].includes(businessType)
+      ? [{ label: getText('Propuestas', 'Proposals'), icon: '✍️', href: `/space/${slug}/proposals`, token: 'proposals' }]
+      : []),
     { label: getText('Pantalla', 'Screen'), icon: '📺', href: `/space/${slug}/board`, token: 'board' },
     // Equipo (Personal + Equipo unificados) — mismo criterio que SpaceSidebar.tsx.
     { label: getText('Equipo', 'Team'), icon: '👥', href: `/space/${slug}/equipo`, token: 'staff' },

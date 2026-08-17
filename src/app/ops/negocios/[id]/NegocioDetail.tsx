@@ -18,6 +18,7 @@ const MODULE_TOKENS: { token: string; label: string; icon: string }[] = [
   { token: 'queue', label: 'Fila de espera', icon: '🪑' },
   { token: 'invoices', label: 'Facturas', icon: '🧾' },
   { token: 'reservations', label: 'Reservas', icon: '🍽️' },
+  { token: 'proposals', label: 'Propuestas', icon: '✍️' },
   { token: 'staff', label: 'Equipo', icon: '👥' },
   { token: 'appointments', label: 'Agenda', icon: '🗓️' },
   { token: 'metrics', label: 'Estadísticas', icon: '📊' },
