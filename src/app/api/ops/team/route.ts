@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getMaalcaApiToken } from '@/lib/api-auth';
+import { getMaalcaApiToken, getCurrentSpaceUser } from '@/lib/api-auth';
+import { sendPlatformTeamInviteEmail } from '@/lib/services/resend-service';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -30,5 +31,21 @@ export async function POST(req: NextRequest) {
   });
 
   const data = await apiRes.json().catch(() => null);
-  return NextResponse.json(data ?? {}, { status: apiRes.status });
+
+  // Antes esto nunca mandaba correo — a diferencia de /api/space/[slug]/team (equipo por
+  // afiliado), que sí llama a Resend desde hace tiempo. El invite en el backend ya queda
+  // guardado aunque el correo falle; con await (no fire-and-forget) para que no se corte a
+  // medias en el entorno serverless de Vercel — mismo motivo documentado en
+  // /api/space/[slug]/team/route.ts.
+  let emailSent = false;
+  if (apiRes.ok && data?.email) {
+    const currentUser = await getCurrentSpaceUser();
+    emailSent = await sendPlatformTeamInviteEmail({
+      inviteeEmail: data.email,
+      role: data.role ?? body.role,
+      inviterEmail: currentUser?.email ?? null,
+    });
+  }
+
+  return NextResponse.json(apiRes.ok && data ? { ...data, emailSent } : (data ?? {}), { status: apiRes.status });
 }

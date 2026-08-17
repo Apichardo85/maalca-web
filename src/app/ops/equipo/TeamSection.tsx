@@ -11,11 +11,13 @@ export function TeamSection({ initialTeam }: { initialTeam: OpsTeamMember[] }) {
   const [role, setRole] = useState<'Owner' | 'Support'>('Support');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   async function invite() {
     if (!email.trim()) return;
     setBusy(true);
     setError(null);
+    setNotice(null);
     try {
       const res = await fetch('/api/ops/team', {
         method: 'POST',
@@ -26,6 +28,11 @@ export function TeamSection({ initialTeam }: { initialTeam: OpsTeamMember[] }) {
       if (!res.ok) throw new Error(data?.error?.message ?? 'No se pudo invitar.');
       setTeam((prev) => [...prev, data]);
       setEmail('');
+      // El invite queda guardado igual aunque el correo falle (RESEND_API_KEY faltante,
+      // dominio no verificado, etc.) — avisamos para que se comparta el link a mano.
+      if (data?.emailSent === false) {
+        setNotice('Invitación guardada, pero no se pudo enviar el correo. Comparte maalca.com/login directamente.');
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Algo salió mal.');
     } finally {
@@ -79,6 +86,12 @@ export function TeamSection({ initialTeam }: { initialTeam: OpsTeamMember[] }) {
       {error && (
         <p className="mt-2 rounded-lg bg-red-50 dark:bg-red-900/20 px-3 py-2 text-xs text-red-600 dark:text-red-400">
           {error}
+        </p>
+      )}
+
+      {notice && (
+        <p className="mt-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
+          {notice}
         </p>
       )}
 

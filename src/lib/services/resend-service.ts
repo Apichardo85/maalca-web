@@ -279,6 +279,70 @@ function buildTeamInviteEmail(params: {
   `;
 }
 
+const PLATFORM_ROLE_LABELS_ES: Record<string, string> = { Owner: 'Dueño', Support: 'Soporte' };
+
+/**
+ * Aviso de invitación al equipo INTERNO de plataforma (/ops/equipo) — distinto de
+ * sendTeamInviteEmail, que es para el equipo por-afiliado (/space/{slug}/equipo). Este nunca
+ * se había disparado: POST /api/ops/team solo guardaba el registro en el backend y no
+ * mandaba ningún correo — por eso las invitaciones desde /ops/equipo no llegaban aunque las
+ * de /space/{slug}/equipo sí (esas sí llaman a sendTeamInviteEmail desde hace tiempo).
+ */
+export async function sendPlatformTeamInviteEmail(params: {
+  inviteeEmail: string;
+  role: string;
+  inviterEmail: string | null;
+}): Promise<boolean> {
+  if (!resend) {
+    console.log('[Resend] Skipped platform team invite — RESEND_API_KEY not set');
+    return false;
+  }
+
+  const brandColor = '#DC2626';
+  const roleLabel = PLATFORM_ROLE_LABELS_ES[params.role] ?? params.role;
+  const loginUrl = 'https://maalca.com/login';
+  const inviterLine = params.inviterEmail
+    ? `<strong>${params.inviterEmail}</strong> te invitó`
+    : 'Te invitaron';
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: params.inviteeEmail,
+      subject: 'Te invitaron al equipo interno de MaalCa',
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 32px 24px; background: #fafafa;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <h1 style="color: ${brandColor}; font-size: 24px; margin: 0;">MaalCa</h1>
+          </div>
+          <div style="background: white; border-radius: 12px; padding: 32px; border: 1px solid #e5e5e5;">
+            <h2 style="color: #1a1a1a; font-size: 20px; margin-top: 0;">Te invitaron al equipo de MaalCa 🤝</h2>
+            <p style="color: #525252; line-height: 1.6; font-size: 15px;">
+              ${inviterLine} a formar parte del equipo interno de MaalCa, con acceso de <strong>${roleLabel}</strong> al panel de operaciones.
+            </p>
+            <div style="margin: 24px 0;">
+              <a href="${loginUrl}" style="display: inline-block; background: ${brandColor}; color: white; padding: 12px 24px; border-radius: 99px; text-decoration: none; font-weight: 600; font-size: 14px;">
+                Iniciar sesión →
+              </a>
+            </div>
+            <p style="color: #525252; line-height: 1.6; font-size: 14px;">
+              Entra con este mismo correo (creando una cuenta si aún no tienes una) y tendrás acceso automáticamente a /ops.
+            </p>
+            <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;" />
+            <p style="color: #a3a3a3; font-size: 12px; margin: 0;">
+              Recibes este correo porque alguien te invitó al equipo interno en <a href="https://maalca.com" style="color: ${brandColor};">maalca.com</a>.
+            </p>
+          </div>
+        </div>
+      `,
+    });
+    return true;
+  } catch (err: unknown) {
+    console.error('[Resend] Platform team invite email failed:', err instanceof Error ? err.message : String(err));
+    return false;
+  }
+}
+
 export interface OrderEmailItem {
   name: string;
   price: number;
