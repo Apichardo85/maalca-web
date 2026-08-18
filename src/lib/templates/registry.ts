@@ -57,9 +57,11 @@ export interface PublicTemplateProps {
     /** "USD" | "DOP" — cómo el negocio muestra sus precios. Default "USD" para negocios que
      *  todavía no la configuraron en Settings (ver SettingsContent.tsx). */
     currency?: 'USD' | 'DOP';
-    /** Apagador explícito por sección opcional (Pasos, Galería futura) — clave ausente =
+    /** Apagador explícito por sección opcional (Pasos, Galería) — clave ausente =
      *  visible. Independiente de si la sección tiene contenido. */
     sectionVisibility?: Record<string, boolean> | null;
+    /** Solo fotos, sin caption — máximo 12. */
+    galleryImages?: string[] | null;
   };
   items: Array<{
     id: string;

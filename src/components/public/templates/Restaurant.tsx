@@ -459,6 +459,9 @@ export function RestaurantTemplate({
       {/* ── PASOS ── */}
       <ProcessSection steps={business.processSteps} visible={business.sectionVisibility?.processSteps !== false} accent={accent} getText={getText} />
 
+      {/* ── GALERÍA ── */}
+      <GallerySection images={business.galleryImages} visible={business.sectionVisibility?.gallery !== false} getText={getText} />
+
       {/* ── SEARCH — independent of category tabs so it's still there for a
           business with no categories set up yet ── */}
       {items.length > 0 && (
@@ -810,6 +813,39 @@ function ProcessSection({
           </li>
         ))}
       </ol>
+    </section>
+  );
+}
+
+function GallerySection({
+  images,
+  visible,
+  getText,
+}: {
+  images?: string[] | null;
+  visible: boolean;
+  getText: (es: string, en: string) => string;
+}) {
+  if (!visible || !images || images.length === 0) return null;
+
+  return (
+    <section className="mx-auto max-w-public-content" style={{ padding: '24px 24px 0' }}>
+      <h2 className={fraunces.className} style={{ margin: '0 0 16px', fontSize: '20px', fontWeight: 600, fontStyle: 'italic', color: TERRACOTA }}>
+        {getText('Galería', 'Gallery')}
+      </h2>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {images.map((url, i) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={url + i}
+            src={url}
+            alt=""
+            loading="lazy"
+            className="aspect-square w-full object-cover"
+            style={{ borderRadius: '14px', border: '0.5px solid #ece2d3' }}
+          />
+        ))}
+      </div>
     </section>
   );
 }

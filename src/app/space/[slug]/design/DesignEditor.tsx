@@ -44,6 +44,7 @@ interface Props {
   faq: FaqEntryDto[];
   horario: HorarioDayDto[];
   sectionVisibility: SectionVisibilityDto;
+  galleryImages: string[];
   publicUrl: string;
 }
 
@@ -71,6 +72,7 @@ export function DesignEditor({
   faq: initialFaq,
   horario: initialHorario,
   sectionVisibility: initialSectionVisibility,
+  galleryImages: initialGalleryImages,
   publicUrl,
 }: Props) {
   const router = useRouter();
@@ -103,6 +105,7 @@ export function DesignEditor({
   const [faq, setFaq] = useState<FaqEntryDto[]>(initialFaq);
   const [horario, setHorario] = useState<HorarioDayDto[]>(withAllDays(initialHorario));
   const [sectionVisibility, setSectionVisibility] = useState<SectionVisibilityDto>(initialSectionVisibility);
+  const [galleryImages, setGalleryImages] = useState<string[]>(initialGalleryImages);
 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -230,6 +233,7 @@ export function DesignEditor({
     timezone,
     horario: horario.length > 0 ? horario : null,
     sectionVisibility,
+    galleryImages,
   };
 
   return (
@@ -328,6 +332,8 @@ export function DesignEditor({
               onHorarioChange={setHorario}
               sectionVisibility={sectionVisibility}
               onSectionVisibilityChange={setSectionVisibility}
+              galleryImages={galleryImages}
+              onGalleryImagesChange={setGalleryImages}
             />
           )}
         </div>

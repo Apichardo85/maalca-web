@@ -49,5 +49,5 @@ export interface HorarioDayDto {
 }
 
 /** Clave ausente = visible (default true) — apagador explícito por sección, independiente
- *  de si tiene contenido. Hoy solo "processSteps"; "gallery" se suma cuando exista esa sección. */
+ *  de si tiene contenido. Hoy: "processSteps", "gallery". */
 export type SectionVisibilityDto = Record<string, boolean>;

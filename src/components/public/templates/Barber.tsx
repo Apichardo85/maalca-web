@@ -262,6 +262,9 @@ export function BarberTemplate({
       {/* ── PASOS ── */}
       <ProcessSection steps={business.processSteps} visible={business.sectionVisibility?.processSteps !== false} accent={accent} getText={getText} />
 
+      {/* ── GALERÍA ── */}
+      <GallerySection images={business.galleryImages} visible={business.sectionVisibility?.gallery !== false} getText={getText} />
+
       {/* ── NAV TABS — bold, condensed, underlined ── */}
       {categoryNames.length > 0 && (
         <div
@@ -422,6 +425,39 @@ function ProcessSection({
           </li>
         ))}
       </ol>
+    </section>
+  );
+}
+
+function GallerySection({
+  images,
+  visible,
+  getText,
+}: {
+  images?: string[] | null;
+  visible: boolean;
+  getText: (es: string, en: string) => string;
+}) {
+  if (!visible || !images || images.length === 0) return null;
+
+  return (
+    <section className="mx-auto max-w-public-content" style={{ padding: '32px 24px 0' }}>
+      <h2 className={oswald.className} style={{ margin: '0 0 16px', fontSize: '18px', fontWeight: 700, textTransform: 'uppercase', color: TINTA }}>
+        {getText('Galería', 'Gallery')}
+      </h2>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {images.map((url, i) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={url + i}
+            src={url}
+            alt=""
+            loading="lazy"
+            className="aspect-square w-full object-cover"
+            style={{ borderRadius: '10px', border: `1px solid ${ACERO_LIGHT}` }}
+          />
+        ))}
+      </div>
     </section>
   );
 }

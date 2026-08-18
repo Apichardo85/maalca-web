@@ -1,10 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { parseApiError } from '@/lib/api-errors';
 import { TrialExpiredNotice } from '@/components/space/TrialExpiredNotice';
 import type { ProcessStepDto, FaqEntryDto, HorarioDayDto, SectionVisibilityDto } from './types';
+
+const MAX_GALLERY_IMAGES = 12;
+
+async function uploadGalleryImage(slug: string, file: File): Promise<string> {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('itemId', 'gallery');
+  const res = await fetch(`/api/space/${slug}/catalog/upload-image`, { method: 'POST', body: fd });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error ?? 'Upload failed');
+  return data.url as string;
+}
 
 // `key` is what gets sent as HorarioDayDto.dia — must match the backend's
 // DiaSemanaTokens.Whitelist exactly (lunes/martes/miercoles/jueves/viernes/
@@ -36,6 +48,8 @@ interface Props {
   onHorarioChange: (horario: HorarioDayDto[]) => void;
   sectionVisibility: SectionVisibilityDto;
   onSectionVisibilityChange: (v: SectionVisibilityDto) => void;
+  galleryImages: string[];
+  onGalleryImagesChange: (images: string[]) => void;
 }
 
 // processSteps/faq/horario are now owned by DesignEditor (lifted so the real-template
@@ -50,6 +64,8 @@ export function ContenidoTab({
   onHorarioChange: setHorario,
   sectionVisibility,
   onSectionVisibilityChange: setSectionVisibility,
+  galleryImages,
+  onGalleryImagesChange: setGalleryImages,
 }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -73,6 +89,7 @@ export function ContenidoTab({
           faq: faq.length > 0 ? faq : null,
           horario,
           sectionVisibility,
+          galleryImages,
         }),
       });
       if (res.ok) {
@@ -112,6 +129,15 @@ export function ContenidoTab({
         getText={getText}
         visible={sectionVisibility.processSteps !== false}
         onVisibleChange={(v) => setSectionVisibility({ ...sectionVisibility, processSteps: v })}
+      />
+
+      <GallerySection
+        slug={slug}
+        images={galleryImages}
+        onChange={setGalleryImages}
+        getText={getText}
+        visible={sectionVisibility.gallery !== false}
+        onVisibleChange={(v) => setSectionVisibility({ ...sectionVisibility, gallery: v })}
       />
 
       <ListSection<FaqEntryDto>
@@ -216,6 +242,161 @@ function HorarioSection({
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function GallerySection({
+  slug,
+  images,
+  onChange,
+  getText,
+  visible,
+  onVisibleChange,
+}: {
+  slug: string;
+  images: string[];
+  onChange: (images: string[]) => void;
+  getText: (es: string, en: string) => string;
+  visible: boolean;
+  onVisibleChange: (v: boolean) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const room = MAX_GALLERY_IMAGES - images.length;
+    if (room <= 0) {
+      setError(getText(`Máximo ${MAX_GALLERY_IMAGES} fotos.`, `Maximum ${MAX_GALLERY_IMAGES} photos.`));
+      return;
+    }
+    const toUpload = Array.from(files).slice(0, room);
+    setError(null);
+    setUploading(true);
+    try {
+      const urls: string[] = [];
+      for (const file of toUpload) {
+        if (file.size > 5 * 1024 * 1024) {
+          setError(getText('Cada imagen no puede superar 5MB.', 'Each image cannot exceed 5MB.'));
+          continue;
+        }
+        urls.push(await uploadGalleryImage(slug, file));
+      }
+      if (urls.length > 0) onChange([...images, ...urls]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : getText('Error al subir imagen', 'Upload error'));
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = '';
+    }
+  };
+
+  const remove = (i: number) => {
+    onChange(images.filter((_, idx) => idx !== i));
+  };
+
+  const move = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= images.length) return;
+    const next = [...images];
+    [next[i], next[j]] = [next[j], next[i]];
+    onChange(next);
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
+          {getText('Galería de fotos', 'Photo gallery')}
+        </h2>
+        <label className="flex flex-shrink-0 items-center gap-2 text-xs text-gray-500 dark:text-neutral-400">
+          {visible ? getText('Visible', 'Visible') : getText('Oculta', 'Hidden')}
+          <button
+            type="button"
+            role="switch"
+            aria-checked={visible}
+            onClick={() => onVisibleChange(!visible)}
+            className={`relative h-5 w-9 flex-shrink-0 rounded-full transition-colors ${
+              visible ? 'bg-[#C8102E]' : 'bg-gray-300 dark:bg-neutral-600'
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${
+                visible ? 'translate-x-4' : 'translate-x-0.5'
+              }`}
+            />
+          </button>
+        </label>
+      </div>
+      <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
+        {getText(
+          `Solo fotos, sin texto. Hasta ${MAX_GALLERY_IMAGES} imágenes.`,
+          `Photos only, no captions. Up to ${MAX_GALLERY_IMAGES} images.`,
+        )}
+      </p>
+
+      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+
+      {images.length > 0 && (
+        <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
+          {images.map((url, i) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <div key={url + i} className="group relative aspect-square overflow-hidden rounded-lg border border-gray-200 dark:border-neutral-700">
+              <img src={url} alt="" className="h-full w-full object-cover" />
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => move(i, -1)}
+                    disabled={i === 0}
+                    className="rounded bg-white/90 px-1.5 py-0.5 text-xs text-gray-700 disabled:opacity-30"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => move(i, 1)}
+                    disabled={i === images.length - 1}
+                    className="rounded bg-white/90 px-1.5 py-0.5 text-xs text-gray-700 disabled:opacity-30"
+                  >
+                    ↓
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => remove(i)}
+                  className="rounded bg-white/90 px-2 py-0.5 text-xs font-medium text-red-600"
+                >
+                  {getText('Quitar', 'Remove')}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        multiple
+        className="hidden"
+        onChange={(e) => handleFiles(e.target.files)}
+      />
+      {images.length < MAX_GALLERY_IMAGES && (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className="mt-3 w-full rounded-lg border-2 border-dashed border-gray-300 dark:border-neutral-700 py-3 text-sm font-medium text-gray-500 dark:text-neutral-400 transition hover:border-gray-400 disabled:opacity-60"
+        >
+          {uploading
+            ? getText('Subiendo...', 'Uploading...')
+            : getText('+ Agregar fotos', '+ Add photos')}
+        </button>
+      )}
     </div>
   );
 }

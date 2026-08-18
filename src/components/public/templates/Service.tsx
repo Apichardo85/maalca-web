@@ -286,6 +286,8 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
 
           <ProcessSection steps={business.processSteps} visible={business.sectionVisibility?.processSteps !== false} accent={accent} displayClassName={fraunces.className} getText={getText} />
 
+          <GallerySection images={business.galleryImages} visible={business.sectionVisibility?.gallery !== false} displayClassName={fraunces.className} getText={getText} />
+
           <section className="mt-12">
             <h2 className={`${fraunces.className} text-lg font-semibold`}>{getText('Servicios', 'Services')}</h2>
 
@@ -411,6 +413,39 @@ function ProcessSection({
           </li>
         ))}
       </ol>
+    </section>
+  );
+}
+
+function GallerySection({
+  images,
+  visible,
+  displayClassName,
+  getText,
+}: {
+  images?: string[] | null;
+  visible: boolean;
+  displayClassName: string;
+  getText: (es: string, en: string) => string;
+}) {
+  if (!visible || !images || images.length === 0) return null;
+
+  return (
+    <section className="mt-12">
+      <h2 className={`${displayClassName} text-lg font-semibold`}>{getText('Galería', 'Gallery')}</h2>
+      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {images.map((url, i) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={url + i}
+            src={url}
+            alt=""
+            loading="lazy"
+            className="aspect-square w-full rounded-lg object-cover"
+            style={{ border: `1px solid ${MIST}` }}
+          />
+        ))}
+      </div>
     </section>
   );
 }

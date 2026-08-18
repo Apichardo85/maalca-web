@@ -214,6 +214,9 @@ export function RetailTemplate({
       {/* ── PASOS ── */}
       <ProcessSection steps={business.processSteps} visible={business.sectionVisibility?.processSteps !== false} accent={accent} getText={getText} />
 
+      {/* ── GALERÍA ── */}
+      <GallerySection images={business.galleryImages} visible={business.sectionVisibility?.gallery !== false} getText={getText} />
+
       {/* ── CATEGORY TABS — rendered as paint chips, cycling the swatch palette ── */}
       {categoryNames.length > 0 && (
         <div className="mx-auto max-w-public-content" style={{ padding: '20px 24px 0' }}>
@@ -367,6 +370,39 @@ function ProcessSection({
               </p>
             )}
           </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function GallerySection({
+  images,
+  visible,
+  getText,
+}: {
+  images?: string[] | null;
+  visible: boolean;
+  getText: (es: string, en: string) => string;
+}) {
+  if (!visible || !images || images.length === 0) return null;
+
+  return (
+    <div className="mx-auto max-w-public-content" style={{ padding: '20px 24px 0' }}>
+      <h2 className={robotoSlab.className} style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 700, color: INK }}>
+        {getText('Galería', 'Gallery')}
+      </h2>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {images.map((url, i) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={url + i}
+            src={url}
+            alt=""
+            loading="lazy"
+            className="aspect-square w-full object-cover"
+            style={{ borderRadius: '10px', border: '1px solid #d9d4c8' }}
+          />
         ))}
       </div>
     </div>

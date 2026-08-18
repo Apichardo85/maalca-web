@@ -61,6 +61,7 @@ export default async function DesignPage({
   let faq: FaqEntryDto[] = [];
   let horario: HorarioDayDto[] = [];
   let sectionVisibility: SectionVisibilityDto = {};
+  let galleryImages: string[] = [];
 
   try {
     const publicRes = await fetch(`${API}/api/public/affiliates/${slug}`, { cache: 'no-store' });
@@ -79,6 +80,7 @@ export default async function DesignPage({
       faq = p.faq ?? [];
       horario = p.horario ?? [];
       sectionVisibility = p.sectionVisibility ?? {};
+      galleryImages = p.galleryImages ?? [];
     }
   } catch {
     // publicProfile stays null — DesignEditor omits these fields from any PATCH
@@ -112,6 +114,7 @@ export default async function DesignPage({
       faq={faq}
       horario={horario}
       sectionVisibility={sectionVisibility}
+      galleryImages={galleryImages}
       publicUrl={publicUrl}
     />
   );
