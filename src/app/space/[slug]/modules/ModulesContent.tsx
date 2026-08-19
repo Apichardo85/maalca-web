@@ -4,42 +4,7 @@ import { useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
-
-// token = coincide 1:1 con ModuleCatalog.Whitelist en el backend (Maalca.Application.Common)
-// y con los tokens usados en SpaceSidebar.tsx — mismos íconos/labels que la nav real.
-const ALL_MODULES = [
-  { token: 'catalog',      icon: '📦', es: 'Catálogo',      en: 'Catalog',       descEs: 'Tus items y precios, siempre al día.', descEn: 'Your items and prices, always up to date.' },
-  { token: 'page',         icon: '🌐', es: 'Página',        en: 'Page',          descEs: 'Tu página pública en maalca.com.', descEn: 'Your public page on maalca.com.' },
-  { token: 'orders',       icon: '🧾', es: 'Pedidos',       en: 'Orders',        descEs: 'Pedidos online con cobro real por Stripe.', descEn: 'Online orders with real Stripe checkout.' },
-  { token: 'kitchen',      icon: '🍳', es: 'Cocina',        en: 'Kitchen',       descEs: 'Kanban en tiempo real para preparar pedidos.', descEn: 'Real-time kanban to prepare orders.', businessTypes: ['restaurant'] },
-  { token: 'pos',          icon: '🧮', es: 'Punto de venta', en: 'Point of sale', descEs: 'Cobra en el local — efectivo, tarjeta o QR.', descEn: 'Charge in-store — cash, card, or QR.', businessTypes: ['restaurant', 'retail'] },
-  { token: 'board',        icon: '📺', es: 'Pantalla',      en: 'Screen',        descEs: 'Menú o catálogo en una pantalla física, con comerciales.', descEn: 'Menu or catalog on a physical screen, with ads.' },
-  { token: 'queue',        icon: '🪑', es: 'Fila de espera', en: 'Waiting queue', descEs: 'Walk-ins que esperan turno sin cita previa.', descEn: 'Walk-ins waiting their turn without an appointment.', businessTypes: ['barber'] },
-  { token: 'invoices',     icon: '🧾', es: 'Facturas',      en: 'Invoices',      descEs: 'Factura a tus clientes por el trabajo realizado.', descEn: 'Invoice your customers for completed work.', businessTypes: ['service', 'professional'] },
-  { token: 'reservations', icon: '🍽️', es: 'Reservas',      en: 'Reservations',  descEs: 'Reserva de mesa — cuántas personas y a qué hora.', descEn: 'Table reservations — party size and time.', businessTypes: ['restaurant'] },
-  { token: 'proposals',    icon: '✍️', es: 'Propuestas',    en: 'Proposals',     descEs: 'Envía propuestas y deja que el cliente firme y acepte en línea.', descEn: 'Send proposals and let clients sign and accept online.', businessTypes: ['service', 'professional'] },
-  { token: 'staff',        icon: '👥', es: 'Equipo',        en: 'Team',          descEs: 'Tu equipo de trabajo — meseros, barberos, etc.', descEn: 'Your operating staff — waiters, barbers, etc.' },
-  { token: 'appointments', icon: '📅', es: 'Agenda',        en: 'Agenda',        descEs: 'Citas agendadas, asignadas a tu personal.', descEn: 'Booked appointments, assigned to your staff.', excludeBusinessTypes: ['retail', 'creator', 'publisher', 'restaurant'] },
-  { token: 'metrics',      icon: '📊', es: 'Estadísticas',  en: 'Stats',         descEs: 'Visitas y actividad de tu página.', descEn: 'Visits and activity on your page.' },
-  { token: 'billing',      icon: '💳', es: 'Facturación',   en: 'Billing',       descEs: 'Tu plan y método de pago con MaalCa.', descEn: 'Your plan and payment method with MaalCa.' },
-] as const;
-
-interface ModuleDef {
-  token: string;
-  icon: string;
-  es: string;
-  en: string;
-  descEs: string;
-  descEn: string;
-  businessTypes?: readonly string[];
-  excludeBusinessTypes?: readonly string[];
-}
-
-function isRelevant(mod: ModuleDef, businessType: string): boolean {
-  if (mod.businessTypes && !mod.businessTypes.includes(businessType)) return false;
-  if (mod.excludeBusinessTypes && mod.excludeBusinessTypes.includes(businessType)) return false;
-  return true;
-}
+import { MODULE_CATALOG as ALL_MODULES, isModuleRelevant as isRelevant, type ModuleDef } from '@/lib/module-catalog';
 
 interface Props {
   slug: string;

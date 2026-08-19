@@ -5,25 +5,16 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useOpsCanManage } from '../../OpsRoleContext';
 import type { OpsAffiliate, OpsNote } from '../../types';
+import { MODULE_CATALOG } from '@/lib/module-catalog';
 
-// token = ModuleCatalog.Whitelist en el backend. Dashboard/Diseñar/Identidad/Módulos no están
-// acá a propósito — siempre están visibles en el sidebar del afiliado, no son apagables.
-const MODULE_TOKENS: { token: string; label: string; icon: string }[] = [
-  { token: 'catalog', label: 'Catálogo', icon: '📦' },
-  { token: 'page', label: 'Página', icon: '🌐' },
-  { token: 'orders', label: 'Pedidos', icon: '🧾' },
-  { token: 'kitchen', label: 'Cocina', icon: '🍳' },
-  { token: 'pos', label: 'Punto de venta', icon: '🧮' },
-  { token: 'board', label: 'Pantalla', icon: '📺' },
-  { token: 'queue', label: 'Fila de espera', icon: '🪑' },
-  { token: 'invoices', label: 'Facturas', icon: '🧾' },
-  { token: 'reservations', label: 'Reservas', icon: '🍽️' },
-  { token: 'proposals', label: 'Propuestas', icon: '✍️' },
-  { token: 'staff', label: 'Equipo', icon: '👥' },
-  { token: 'appointments', label: 'Agenda', icon: '🗓️' },
-  { token: 'metrics', label: 'Estadísticas', icon: '📊' },
-  { token: 'billing', label: 'Facturación', icon: '💳' },
-];
+// Mismo catálogo que ModulesContent.tsx (la vitrina del dueño en /space) — un módulo nuevo se
+// define una sola vez en src/lib/module-catalog.ts y aparece acá automáticamente, con
+// descripción incluida. /ops es admin-only y siempre en español, por eso usa mod.es/descEs
+// directo en vez de getText. A propósito NO se filtra por tipo de negocio como en la vitrina:
+// el admin puede prender cualquier token por encima de lo que el plan/tipo normalmente daría.
+// Dashboard/Diseñar/Identidad/Módulos no están acá — siempre visibles en el sidebar, no son
+// apagables.
+const MODULE_TOKENS = MODULE_CATALOG;
 
 export function NegocioDetail({
   initialAffiliate,
@@ -228,7 +219,7 @@ export function NegocioDetail({
           Lo que este negocio ve en su sidebar — puedes prender o apagar cualquiera, por encima
           de lo que su plan normalmente incluiría.
         </p>
-        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {MODULE_TOKENS.map((mod) => {
             const active = selectedModules.has(mod.token);
             return (
@@ -237,15 +228,19 @@ export function NegocioDetail({
                 type="button"
                 disabled={!canManage}
                 onClick={() => toggleModule(mod.token)}
-                className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                title={mod.descEs}
+                className={`flex items-start gap-2 rounded-xl border px-3 py-2.5 text-left text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
                   active
                     ? 'border-[#C8102E] bg-[#C8102E]/10 text-[#C8102E]'
                     : 'border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-500 dark:text-neutral-400'
                 }`}
               >
                 <span className="text-base">{mod.icon}</span>
-                <span className="flex-1">{mod.label}</span>
-                <span className={`h-2 w-2 shrink-0 rounded-full ${active ? 'bg-[#C8102E]' : 'bg-gray-300 dark:bg-neutral-700'}`} />
+                <span className="min-w-0 flex-1">
+                  <span className="block">{mod.es}</span>
+                  <span className="mt-0.5 block truncate text-[10px] font-normal opacity-70">{mod.descEs}</span>
+                </span>
+                <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${active ? 'bg-[#C8102E]' : 'bg-gray-300 dark:bg-neutral-700'}`} />
               </button>
             );
           })}
