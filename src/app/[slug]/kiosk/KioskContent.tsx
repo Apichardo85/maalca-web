@@ -19,6 +19,10 @@ interface CartLine {
   name: string;
   price: number;
   qty: number;
+  /** Personalización de esta línea (ej. "sin cebolla, extra queso") — Restaurante.
+   *  Mismo campo que CartDrawer.tsx (tarea #178), portado acá porque el kiosko tiene su
+   *  propio carrito local en vez de useCart — se le había quedado afuera cuando salió #178. */
+  notes?: string;
 }
 
 interface Props {
@@ -87,6 +91,10 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
     );
   }
 
+  function updateNotes(itemId: string, notes: string) {
+    setCart((prev) => prev.map((l) => (l.itemId === itemId ? { ...l, notes } : l)));
+  }
+
   const subtotal = cart.reduce((sum, l) => sum + l.price * l.qty, 0);
   const isRestaurant = businessType === 'restaurant';
   const tip = !isRestaurant
@@ -107,7 +115,13 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: cart.map((l) => ({ itemId: l.itemId, name: l.name, price: l.price, qty: l.qty })),
+          items: cart.map((l) => ({
+            itemId: l.itemId,
+            name: l.name,
+            price: l.price,
+            qty: l.qty,
+            notes: l.notes?.trim() || undefined,
+          })),
           subtotal,
           tax: 0,
           tip,
@@ -243,29 +257,39 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
               {cart.map((line) => (
                 <div
                   key={line.itemId}
-                  className="flex items-center justify-between gap-2 rounded-xl border border-gray-200/70 dark:border-neutral-800 p-3"
+                  className="rounded-xl border border-gray-200/70 dark:border-neutral-800 p-3"
                 >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{line.name}</p>
-                    <p className="text-xs text-gray-400 dark:text-neutral-500">{fmt.format(line.price)} c/u</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{line.name}</p>
+                      <p className="text-xs text-gray-400 dark:text-neutral-500">{fmt.format(line.price)} c/u</p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => changeQty(line.itemId, -1)}
+                        className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
+                      >
+                        −
+                      </button>
+                      <span className="w-5 text-center text-sm font-semibold">{line.qty}</span>
+                      <button
+                        type="button"
+                        onClick={() => changeQty(line.itemId, 1)}
+                        className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => changeQty(line.itemId, -1)}
-                      className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
-                    >
-                      −
-                    </button>
-                    <span className="w-5 text-center text-sm font-semibold">{line.qty}</span>
-                    <button
-                      type="button"
-                      onClick={() => changeQty(line.itemId, 1)}
-                      className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
-                    >
-                      +
-                    </button>
-                  </div>
+                  {isRestaurant && (
+                    <input
+                      value={line.notes ?? ''}
+                      onChange={(e) => updateNotes(line.itemId, e.target.value)}
+                      placeholder="Personalizar (ej. sin cebolla)…"
+                      className="mt-2 w-full rounded-lg border border-gray-200 dark:border-neutral-700 bg-transparent px-2.5 py-1.5 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 focus:border-gray-400 dark:focus:border-neutral-500 focus:outline-none"
+                    />
+                  )}
                 </div>
               ))}
             </div>
