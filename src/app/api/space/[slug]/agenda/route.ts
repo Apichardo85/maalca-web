@@ -59,6 +59,10 @@ export async function POST(
   // envío falla (sendAppointmentConfirmationEmail atrapa sus propios errores). Con await por la
   // misma razón que el fix de invite email: en serverless, fire-and-forget se corta a medias.
   if (apiRes.ok && customerEmail) {
+    // Tarea #247 — mismo link de autogestión que ya recibe quien reserva por el widget público.
+    const origin = process.env.NEXT_PUBLIC_SITE_URL || 'https://maalca.com';
+    const manageUrl = data?.token ? `${origin.replace(/\/$/, '')}/cita/${data.token}` : null;
+
     await sendAppointmentConfirmationEmail({
       customerEmail,
       customerName: data?.customer?.name ?? null,
@@ -67,6 +71,7 @@ export async function POST(
       date: appointmentBody.date,
       time: appointmentBody.time,
       staffName: staffName ?? null,
+      manageUrl,
     });
   }
 

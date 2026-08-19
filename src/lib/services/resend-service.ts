@@ -484,6 +484,9 @@ export async function sendAppointmentConfirmationEmail(params: {
   date: string; // yyyy-MM-dd
   time: string; // HH:mm
   staffName?: string | null;
+  // Tarea #247 — link a /cita/{token} (self-service, sin login). Opcional para no romper al
+  // llamador existente (POST /api/space/{slug}/agenda) hasta que también lo pase.
+  manageUrl?: string | null;
 }): Promise<boolean> {
   if (!resend) {
     console.log('[Resend] Skipped appointment confirmation — RESEND_API_KEY not set');
@@ -497,6 +500,14 @@ export async function sendAppointmentConfirmationEmail(params: {
     month: 'long',
   });
   const staffLine = params.staffName ? `<br/>Con: ${params.staffName}` : '';
+  const footer = params.manageUrl
+    ? `
+        <div style="text-align: center; margin: 20px 0;">
+          <a href="${params.manageUrl}" style="display: inline-block; background: #C8102E; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Gestiona tu cita</a>
+        </div>
+        <p style="font-size: 13px; color: #737373;">Desde ese link puedes confirmar, reagendar o cancelar sin llamar al negocio.</p>
+      `
+    : `<p style="font-size: 13px; color: #737373;">Si necesitas cambiarla o cancelarla, contacta directamente al negocio.</p>`;
 
   try {
     await resend.emails.send({
@@ -511,7 +522,7 @@ export async function sendAppointmentConfirmationEmail(params: {
             <strong>${params.serviceName}</strong><br/>
             ${dateFmt} · ${params.time}${staffLine}
           </p>
-          <p style="font-size: 13px; color: #737373;">Si necesitas cambiarla o cancelarla, contacta directamente al negocio.</p>
+          ${footer}
         </div>
       `,
     });
@@ -533,6 +544,9 @@ export async function sendAppointmentReminderEmail(params: {
   date: string; // yyyy-MM-dd
   time: string; // HH:mm
   staffName?: string | null;
+  // Tarea #247 — mismo link que la confirmación, para que el recordatorio también deje
+  // reagendar/cancelar sin tener que llamar al negocio.
+  manageUrl?: string | null;
 }): Promise<boolean> {
   if (!resend) {
     console.log('[Resend] Skipped appointment reminder — RESEND_API_KEY not set');
@@ -546,6 +560,14 @@ export async function sendAppointmentReminderEmail(params: {
     month: 'long',
   });
   const staffLine = params.staffName ? `<br/>Con: ${params.staffName}` : '';
+  const footer = params.manageUrl
+    ? `
+        <div style="text-align: center; margin: 20px 0;">
+          <a href="${params.manageUrl}" style="display: inline-block; background: #C8102E; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Gestiona tu cita</a>
+        </div>
+        <p style="font-size: 13px; color: #737373;">¿No puedes venir? Reagenda o cancela desde ese link.</p>
+      `
+    : `<p style="font-size: 13px; color: #737373;">Si necesitas cambiarla o cancelarla, contacta directamente al negocio.</p>`;
 
   try {
     await resend.emails.send({
@@ -560,7 +582,7 @@ export async function sendAppointmentReminderEmail(params: {
             <strong>${params.serviceName}</strong><br/>
             ${dateFmt} · ${params.time}${staffLine}
           </p>
-          <p style="font-size: 13px; color: #737373;">Si necesitas cambiarla o cancelarla, contacta directamente al negocio.</p>
+          ${footer}
         </div>
       `,
     });

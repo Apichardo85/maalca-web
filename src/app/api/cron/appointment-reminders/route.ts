@@ -13,6 +13,7 @@ interface DueReminder {
   date: string;
   time: string;
   staffName?: string | null;
+  token: string;
 }
 
 /**
@@ -54,6 +55,8 @@ export async function GET(request: NextRequest) {
   let sent = 0;
   let failed = 0;
 
+  const origin = (process.env.NEXT_PUBLIC_SITE_URL || 'https://maalca.com').replace(/\/$/, '');
+
   for (const appt of due) {
     try {
       const ok = await sendAppointmentReminderEmail({
@@ -64,6 +67,7 @@ export async function GET(request: NextRequest) {
         date: appt.date.slice(0, 10),
         time: appt.time,
         staffName: appt.staffName ?? null,
+        manageUrl: appt.token ? `${origin}/cita/${appt.token}` : null,
       });
       if (ok) {
         sent += 1;

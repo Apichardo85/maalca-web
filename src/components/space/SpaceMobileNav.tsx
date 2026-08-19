@@ -103,6 +103,8 @@ export function SpaceMobileNav({
     ...(!['retail', 'creator', 'publisher', 'restaurant'].includes(businessType)
       ? [{ label: getText('Agenda', 'Agenda'), icon: '🗓️', href: `/space/${slug}/agenda`, token: 'appointments' }]
       : []),
+    // Clientes (tarea #249) — sin token, mismo criterio que en SpaceSidebar.tsx.
+    { label: getText('Clientes', 'Customers'), icon: '🗂️', href: `/space/${slug}/clientes` },
     { label: getText('Módulos', 'Modules'), icon: '🧩', href: `/space/${slug}/modules` },
     { label: getText('Estadísticas', 'Stats'), icon: '📊', href: `/space/${slug}/stats`, token: 'metrics' },
     { label: getText('Facturación', 'Billing'), icon: '💳', href: `/space/${slug}/settings`, token: 'billing' },

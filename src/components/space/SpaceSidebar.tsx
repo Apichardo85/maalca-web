@@ -114,6 +114,10 @@ export function SpaceSidebar({
     ...(!['retail', 'creator', 'publisher', 'restaurant'].includes(businessType)
       ? [{ label: getText('Agenda', 'Agenda'), icon: '🗓️', href: `/space/${slug}/agenda`, token: 'appointments' }]
       : []),
+    // Clientes (tarea #249) — sin token: es transversal a todo tipo de negocio (a diferencia de
+    // Agenda/Reservas/Fila, que son por tipo), y el backend ya no tenía ningún gating de plan
+    // para /customers, así que no tenía sentido inventarle uno acá.
+    { label: getText('Clientes', 'Customers'),                icon: '🗂️', href: `/space/${slug}/clientes` },
     { label: getText('Módulos', 'Modules'),                   icon: '🧩', href: `/space/${slug}/modules` },
     { label: getText('Estadísticas', 'Stats'),                icon: '📊', href: `/space/${slug}/stats`, token: 'metrics' },
     { label: getText('Facturación', 'Billing'),               icon: '💳', href: `/space/${slug}/settings`, token: 'billing' },

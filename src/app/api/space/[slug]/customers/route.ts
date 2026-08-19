@@ -3,6 +3,7 @@ import { getMaalcaApiToken, resolveAffiliateIdBySlug } from '@/lib/api-auth';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
+// Clientes (tarea #249) — proxya a /api/affiliates/{id}/customers. Ver Customer.cs en maalca-api.
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },

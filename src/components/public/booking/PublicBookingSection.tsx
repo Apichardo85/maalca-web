@@ -216,6 +216,9 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
   const [time, setTime] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  // Tarea #251 — opcional a propósito, igual que en el dashboard (task #136): sin email no hay
+  // a quién mandarle el link de "gestiona tu cita", pero la reserva funciona igual sin él.
+  const [customerEmail, setCustomerEmail] = useState('');
   const [notes, setNotes] = useState('');
 
   // Task #189 — horarios ya tomados para la fecha elegida, por staffId (string, viene así del
@@ -308,6 +311,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
     if (status === 'success') {
       setCustomerName('');
       setCustomerPhone('');
+      setCustomerEmail('');
       setNotes('');
       setDate('');
       setTime('');
@@ -330,6 +334,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
           time,
           customerName,
           customerPhone,
+          customerEmail: customerEmail.trim() || null,
           notes: notes || null,
         }),
       });
@@ -723,6 +728,20 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                         maxLength={20}
                         value={customerPhone}
                         onChange={(e) => setCustomerPhone(sanitizePhone(e.target.value))}
+                        className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                        {getText('Email (opcional)', 'Email (optional)')}
+                      </label>
+                      <input
+                        type="email"
+                        maxLength={200}
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        placeholder={getText('Para recibir tu confirmación', 'To receive your confirmation')}
                         className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
                       />
                     </div>
