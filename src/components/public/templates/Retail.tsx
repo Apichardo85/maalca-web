@@ -19,6 +19,7 @@ import { AboutSection } from '@/components/public/AboutSection';
 import { ClampedDescription } from '@/components/public/ClampedDescription';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
+import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 import { formatPrice } from '@/lib/currency';
@@ -215,7 +216,7 @@ export function RetailTemplate({
       <ProcessSection steps={business.processSteps} visible={business.sectionVisibility?.processSteps !== false} accent={accent} getText={getText} />
 
       {/* ── GALERÍA ── */}
-      <GallerySection images={business.galleryImages} visible={business.sectionVisibility?.gallery !== false} getText={getText} />
+      <GallerySection images={business.galleryImages} visible={business.sectionVisibility?.gallery !== false} accent={accent} getText={getText} />
 
       {/* ── CATEGORY TABS — rendered as paint chips, cycling the swatch palette ── */}
       {categoryNames.length > 0 && (
@@ -379,10 +380,12 @@ function ProcessSection({
 function GallerySection({
   images,
   visible,
+  accent,
   getText,
 }: {
   images?: string[] | null;
   visible: boolean;
+  accent: string;
   getText: (es: string, en: string) => string;
 }) {
   if (!visible || !images || images.length === 0) return null;
@@ -392,19 +395,7 @@ function GallerySection({
       <h2 className={robotoSlab.className} style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 700, color: INK }}>
         {getText('Galería', 'Gallery')}
       </h2>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {images.map((url, i) => (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            key={url + i}
-            src={url}
-            alt=""
-            loading="lazy"
-            className="aspect-square w-full object-cover"
-            style={{ borderRadius: '10px', border: '1px solid #d9d4c8' }}
-          />
-        ))}
-      </div>
+      <PublicGalleryLightbox images={images} accent={accent} getText={getText} />
     </div>
   );
 }

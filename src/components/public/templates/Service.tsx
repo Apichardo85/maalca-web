@@ -16,6 +16,7 @@ import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact
 import { trackCanalClick } from '@/lib/public-events';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { PublicBookingSection } from '@/components/public/booking/PublicBookingSection';
+import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { formatPrice } from '@/lib/currency';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
@@ -286,7 +287,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
 
           <ProcessSection steps={business.processSteps} visible={business.sectionVisibility?.processSteps !== false} accent={accent} displayClassName={fraunces.className} getText={getText} />
 
-          <GallerySection images={business.galleryImages} visible={business.sectionVisibility?.gallery !== false} displayClassName={fraunces.className} getText={getText} />
+          <GallerySection images={business.galleryImages} visible={business.sectionVisibility?.gallery !== false} accent={accent} displayClassName={fraunces.className} getText={getText} />
 
           <section className="mt-12">
             <h2 className={`${fraunces.className} text-lg font-semibold`}>{getText('Servicios', 'Services')}</h2>
@@ -420,11 +421,13 @@ function ProcessSection({
 function GallerySection({
   images,
   visible,
+  accent,
   displayClassName,
   getText,
 }: {
   images?: string[] | null;
   visible: boolean;
+  accent: string;
   displayClassName: string;
   getText: (es: string, en: string) => string;
 }) {
@@ -433,18 +436,8 @@ function GallerySection({
   return (
     <section className="mt-12">
       <h2 className={`${displayClassName} text-lg font-semibold`}>{getText('Galería', 'Gallery')}</h2>
-      <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {images.map((url, i) => (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            key={url + i}
-            src={url}
-            alt=""
-            loading="lazy"
-            className="aspect-square w-full rounded-lg object-cover"
-            style={{ border: `1px solid ${MIST}` }}
-          />
-        ))}
+      <div className="mt-5">
+        <PublicGalleryLightbox images={images} accent={accent} getText={getText} />
       </div>
     </section>
   );
