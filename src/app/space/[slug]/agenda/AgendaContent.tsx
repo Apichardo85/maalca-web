@@ -201,6 +201,10 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
   }
 
   async function removeTimeBlock(id: string) {
+    const confirmed = window.confirm(
+      getText('¿Quitar este bloqueo de horario?', 'Remove this time block?'),
+    );
+    if (!confirmed) return;
     setBusyId(id);
     try {
       const res = await fetch(`/api/space/${slug}/time-blocks/${id}`, { method: 'DELETE' });

@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { useToast } from '@/hooks/useToast';
+import { Toast } from '@/components/ui/Toast';
 
 interface Props {
   slug: string;
@@ -24,6 +26,7 @@ const FEATURES: { es: string; en: string; free: boolean; entrepreneur: boolean }
 export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, currency: initialCurrency }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
+  const toast = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const upgraded = searchParams.get('upgraded') === 'true';
@@ -218,11 +221,13 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
         body: JSON.stringify({ currency: next }),
       });
       if (!res.ok) throw new Error();
+      toast.success(getText('Moneda actualizada.', 'Currency updated.'));
     } catch {
       setCurrency(prev);
       setCurrencyError(
         getText('No pudimos guardar la moneda. Intenta de nuevo.', "We couldn't save the currency. Please try again."),
       );
+      toast.error(getText('No pudimos guardar la moneda.', "Couldn't save the currency."));
     } finally {
       setCurrencySaving(false);
     }
@@ -230,6 +235,7 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
+      <Toast toasts={toast.toasts} onRemove={toast.remove} />
       <div className="px-6 py-12">
         <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
           {getText('Tu espacio', 'Your space')}
