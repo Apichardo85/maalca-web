@@ -309,6 +309,7 @@ export function RetailTemplate({
           businessName={business.name}
           slug={business.slug}
           onlinePayments={capabilities.onlinePayments}
+          getText={getText}
         />
       )}
     </div>

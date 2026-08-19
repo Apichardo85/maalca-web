@@ -16,6 +16,7 @@
 import { useCallback, useState } from "react";
 import Cropper, { Area } from "react-easy-crop";
 import { Button } from "@/components/ui/buttons";
+import { useSimpleLanguage } from "@/hooks/useSimpleLanguage";
 
 interface Props {
   src: string;
@@ -26,12 +27,16 @@ interface Props {
 }
 
 // Produce a cropped JPEG blob using an offscreen canvas
-async function getCroppedBlob(src: string, area: Area): Promise<Blob> {
+async function getCroppedBlob(
+  src: string,
+  area: Area,
+  getText: (es: string, en: string) => string,
+): Promise<Blob> {
   const img = await new Promise<HTMLImageElement>((resolve, reject) => {
     const i = new Image();
     i.crossOrigin = "anonymous";
     i.onload = () => resolve(i);
-    i.onerror = () => reject(new Error("No se pudo leer la imagen"));
+    i.onerror = () => reject(new Error(getText("No se pudo leer la imagen", "Couldn't read the image")));
     i.src = src;
   });
 
@@ -39,7 +44,7 @@ async function getCroppedBlob(src: string, area: Area): Promise<Blob> {
   canvas.width = Math.round(area.width);
   canvas.height = Math.round(area.height);
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas no disponible");
+  if (!ctx) throw new Error(getText("Canvas no disponible", "Canvas not available"));
   ctx.drawImage(
     img,
     area.x,
@@ -53,7 +58,7 @@ async function getCroppedBlob(src: string, area: Area): Promise<Blob> {
   );
   return await new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
-      (b) => (b ? resolve(b) : reject(new Error("toBlob falló"))),
+      (b) => (b ? resolve(b) : reject(new Error(getText("toBlob falló", "toBlob failed")))),
       "image/jpeg",
       0.9,
     );
@@ -67,6 +72,8 @@ export function ImageCropper({
   onCropped,
   busy,
 }: Props) {
+  const { language } = useSimpleLanguage();
+  const getText = (es: string, en: string) => (language === "es" ? es : en);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [area, setArea] = useState<Area | null>(null);
@@ -80,10 +87,10 @@ export function ImageCropper({
     if (!area) return;
     setWorking(true);
     try {
-      const blob = await getCroppedBlob(src, area);
+      const blob = await getCroppedBlob(src, area, getText);
       onCropped(blob);
     } catch (err) {
-      alert(`Error al recortar: ${err instanceof Error ? err.message : String(err)}`);
+      alert(`${getText('Error al recortar', 'Crop error')}: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setWorking(false);
     }
@@ -121,15 +128,17 @@ export function ImageCropper({
         />
       </div>
       <p className="text-[11px] text-gray-400 leading-relaxed">
-        Arrastra la imagen para moverla, usa el zoom o pellizca en el móvil. El área
-        visible es la que se guardará.
+        {getText(
+          'Arrastra la imagen para moverla, usa el zoom o pellizca en el móvil. El área visible es la que se guardará.',
+          'Drag the image to move it, use zoom or pinch on mobile. The visible area is what gets saved.',
+        )}
       </p>
       <div className="flex justify-end gap-2">
         <Button variant="ghost" size="sm" onClick={onCancel} disabled={disabled}>
-          Cancelar
+          {getText('Cancelar', 'Cancel')}
         </Button>
         <Button variant="primary" size="sm" onClick={handleConfirm} disabled={disabled || !area}>
-          {working ? "Procesando..." : "Usar esta foto"}
+          {working ? getText('Procesando...', 'Processing...') : getText('Usar esta foto', 'Use this photo')}
         </Button>
       </div>
     </div>

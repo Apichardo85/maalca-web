@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { ImageCropper } from '@/components/space/catalog/ImageCropper';
 import { parseApiError } from '@/lib/api-errors';
+import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 
 interface Props {
   slug: string;
@@ -26,6 +27,8 @@ function CameraIcon() {
 }
 
 export function ImageGalleryEditor({ slug, itemId, images, onChange, onError, maxImages = 8 }: Props) {
+  const { language } = useSimpleLanguage();
+  const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -35,7 +38,7 @@ export function ImageGalleryEditor({ slug, itemId, images, onChange, onError, ma
     new Promise((resolve, reject) => {
       const r = new FileReader();
       r.onload = () => resolve(r.result as string);
-      r.onerror = () => reject(r.error ?? new Error('No se pudo leer el archivo'));
+      r.onerror = () => reject(r.error ?? new Error(getText('No se pudo leer el archivo', "Couldn't read the file")));
       r.readAsDataURL(file);
     });
 
@@ -60,13 +63,13 @@ export function ImageGalleryEditor({ slug, itemId, images, onChange, onError, ma
       const res = await fetch(`/api/space/${slug}/catalog/upload-image`, { method: 'POST', body: fd });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(parseApiError(data, 'Error al subir la imagen').message);
+        throw new Error(parseApiError(data, getText('Error al subir la imagen', 'Error uploading the image')).message);
       }
       const { url } = await res.json();
       onChange([...images, url as string]);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al subir la imagen');
+      setError(err instanceof Error ? err.message : getText('Error al subir la imagen', 'Error uploading the image'));
     } finally {
       setUploading(false);
       setCropSrc(null);
@@ -95,7 +98,7 @@ export function ImageGalleryEditor({ slug, itemId, images, onChange, onError, ma
     <div>
       <div className="flex items-center justify-between mb-2">
         <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-          Fotos del item
+          {getText('Fotos del item', 'Item photos')}
         </label>
         <span className="text-xs text-neutral-400 dark:text-neutral-600">{images.length}/{maxImages}</span>
       </div>
@@ -107,11 +110,11 @@ export function ImageGalleryEditor({ slug, itemId, images, onChange, onError, ma
             className="relative aspect-square overflow-hidden rounded-lg bg-neutral-100 dark:bg-neutral-800 group"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={url} alt={`Foto ${idx + 1}`} className="w-full h-full object-cover" />
+            <img src={url} alt={getText(`Foto ${idx + 1}`, `Photo ${idx + 1}`)} className="w-full h-full object-cover" />
 
             {idx === 0 && (
               <span className="absolute top-1 left-1 rounded-full bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-white">
-                Portada
+                {getText('Portada', 'Cover')}
               </span>
             )}
 
@@ -121,7 +124,7 @@ export function ImageGalleryEditor({ slug, itemId, images, onChange, onError, ma
                   type="button"
                   onClick={() => move(idx, -1)}
                   disabled={idx === 0}
-                  title="Mover a la izquierda"
+                  title={getText('Mover a la izquierda', 'Move left')}
                   className="rounded bg-black/60 px-1.5 py-0.5 text-[11px] text-white disabled:opacity-30"
                 >
                   ←
@@ -130,7 +133,7 @@ export function ImageGalleryEditor({ slug, itemId, images, onChange, onError, ma
                   type="button"
                   onClick={() => move(idx, 1)}
                   disabled={idx === images.length - 1}
-                  title="Mover a la derecha"
+                  title={getText('Mover a la derecha', 'Move right')}
                   className="rounded bg-black/60 px-1.5 py-0.5 text-[11px] text-white disabled:opacity-30"
                 >
                   →
@@ -141,7 +144,7 @@ export function ImageGalleryEditor({ slug, itemId, images, onChange, onError, ma
                   <button
                     type="button"
                     onClick={() => makeCover(idx)}
-                    title="Hacer portada"
+                    title={getText('Hacer portada', 'Set as cover')}
                     className="rounded bg-black/60 px-1.5 py-0.5 text-[11px] text-white"
                   >
                     ⭐
@@ -150,7 +153,7 @@ export function ImageGalleryEditor({ slug, itemId, images, onChange, onError, ma
                 <button
                   type="button"
                   onClick={() => removeAt(idx)}
-                  title="Eliminar"
+                  title={getText('Eliminar', 'Remove')}
                   className="rounded bg-black/60 px-1.5 py-0.5 text-[11px] text-white"
                 >
                   ✕
@@ -164,7 +167,7 @@ export function ImageGalleryEditor({ slug, itemId, images, onChange, onError, ma
           <label className="flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-neutral-200 dark:border-neutral-700 cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-500 transition-colors bg-neutral-50 dark:bg-neutral-800/50">
             <span className="text-neutral-400 dark:text-neutral-500"><CameraIcon /></span>
             <span className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400 text-center px-1">
-              {uploading ? 'Subiendo...' : 'Agregar'}
+              {uploading ? getText('Subiendo...', 'Uploading...') : getText('Agregar', 'Add')}
             </span>
             <input
               type="file"
@@ -178,11 +181,14 @@ export function ImageGalleryEditor({ slug, itemId, images, onChange, onError, ma
       </div>
 
       <p className="mt-2 text-xs text-neutral-400 dark:text-neutral-600">
-        La primera foto (Portada) es la que se usa en el catálogo y el Menu Board. JPEG, PNG, WebP · máx. 5 MB c/u.
+        {getText(
+          'La primera foto (Portada) es la que se usa en el catálogo y el Menu Board. JPEG, PNG, WebP · máx. 5 MB c/u.',
+          'The first photo (Cover) is the one used in the catalog and the Menu Board. JPEG, PNG, WebP · max. 5 MB each.',
+        )}
       </p>
 
       {cropSrc && (
-        <Modal isOpen onClose={() => setCropSrc(null)} title="Ajustar foto">
+        <Modal isOpen onClose={() => setCropSrc(null)} title={getText('Ajustar foto', 'Adjust photo')}>
           <ImageCropper
             src={cropSrc}
             aspect={16 / 9}

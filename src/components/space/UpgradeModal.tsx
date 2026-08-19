@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { track } from '@/lib/analytics';
 import { ENTREPRENEUR_PRICE_USD } from '@/lib/plan-limits';
+import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 
 interface Props {
   businessId: string;
@@ -10,15 +11,17 @@ interface Props {
   onClose: () => void;
 }
 
-const FEATURES = [
-  'Productos ilimitados',
-  'Pedidos en línea',
-  'Pagos integrados',
-  'Analytics avanzado',
-  'Soporte prioritario',
+const FEATURES: { es: string; en: string }[] = [
+  { es: 'Productos ilimitados', en: 'Unlimited products' },
+  { es: 'Pedidos en línea', en: 'Online orders' },
+  { es: 'Pagos integrados', en: 'Integrated payments' },
+  { es: 'Analytics avanzado', en: 'Advanced analytics' },
+  { es: 'Soporte prioritario', en: 'Priority support' },
 ];
 
 export function UpgradeModal({ businessId, businessSlug, onClose }: Props) {
+  const { language } = useSimpleLanguage();
+  const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,14 +44,14 @@ export function UpgradeModal({ businessId, businessSlug, onClose }: Props) {
       const json = await res.json();
 
       if (!res.ok || !json.url) {
-        setError(json.error || 'No se pudo iniciar el checkout.');
+        setError(json.error || getText('No se pudo iniciar el checkout.', "Couldn't start checkout."));
         setLoading(false);
         return;
       }
 
       window.location.href = json.url;
     } catch {
-      setError('Error de red. Intenta de nuevo.');
+      setError(getText('Error de red. Intenta de nuevo.', 'Network error. Please try again.'));
       setLoading(false);
     }
   };
@@ -64,28 +67,28 @@ export function UpgradeModal({ businessId, businessSlug, onClose }: Props) {
       >
         <div className="text-center">
           <p className="text-3xl">🔥</p>
-          <h2 className="mt-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Estás creciendo</h2>
+          <h2 className="mt-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{getText('Estás creciendo', "You're growing")}</h2>
           <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-            Desbloquea el plan Emprendedor
+            {getText('Desbloquea el plan Emprendedor', 'Unlock the Entrepreneur plan')}
           </p>
         </div>
 
         <ul className="mt-6 space-y-3">
           {FEATURES.map((f) => (
-            <li key={f} className="flex items-start gap-2 text-sm">
+            <li key={f.es} className="flex items-start gap-2 text-sm">
               <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#C8102E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
               </svg>
-              <span className="text-neutral-700 dark:text-neutral-300">{f}</span>
+              <span className="text-neutral-700 dark:text-neutral-300">{getText(f.es, f.en)}</span>
             </li>
           ))}
         </ul>
 
         <div className="mt-6 rounded-xl bg-neutral-50 dark:bg-neutral-800 p-4 text-center">
-          <p className="text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400">Emprendedor</p>
+          <p className="text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{getText('Emprendedor', 'Entrepreneur')}</p>
           <p className="mt-1">
             <span className="text-3xl font-bold text-gray-900 dark:text-white">${ENTREPRENEUR_PRICE_USD}</span>
-            <span className="text-neutral-500 dark:text-neutral-400">/mes</span>
+            <span className="text-neutral-500 dark:text-neutral-400">{getText('/mes', '/mo')}</span>
           </p>
         </div>
 
@@ -98,14 +101,16 @@ export function UpgradeModal({ businessId, businessSlug, onClose }: Props) {
           disabled={loading}
           className="mt-6 w-full rounded-full bg-[#C8102E] py-3 text-sm font-medium text-white transition hover:bg-[#A00D26] disabled:opacity-50"
         >
-          {loading ? 'Redirigiendo...' : `Activar Emprendedor — $${ENTREPRENEUR_PRICE_USD}/mes`}
+          {loading
+            ? getText('Redirigiendo...', 'Redirecting...')
+            : getText(`Activar Emprendedor — $${ENTREPRENEUR_PRICE_USD}/mes`, `Activate Entrepreneur — $${ENTREPRENEUR_PRICE_USD}/mo`)}
         </button>
 
         <button
           onClick={onClose}
           className="mt-3 w-full text-center text-xs text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
         >
-          Más tarde
+          {getText('Más tarde', 'Later')}
         </button>
       </div>
     </div>

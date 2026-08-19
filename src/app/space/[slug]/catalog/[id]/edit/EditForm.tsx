@@ -12,6 +12,7 @@ import type { MealPeriod, WeekDay } from '@/lib/types';
 import { parseApiError } from '@/lib/api-errors';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
+import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 
 interface Item {
   id: string;
@@ -42,27 +43,30 @@ interface Props {
 }
 
 const FLAG_OPTIONS = [
-  ['vegetarian', '🌿 Vegetariano'],
-  ['spicy', '🌶 Picante'],
-  ['glutenFree', '🌾 Sin gluten'],
+  ['vegetarian', { es: '🌿 Vegetariano', en: '🌿 Vegetarian' }],
+  ['spicy', { es: '🌶 Picante', en: '🌶 Spicy' }],
+  ['glutenFree', { es: '🌾 Sin gluten', en: '🌾 Gluten-free' }],
 ] as const;
 
 /** businessType comes straight from the backend's PascalCase enum (e.g. "Restaurant") —
  *  matches the isRestaurant check below. Falls back to a neutral placeholder for
  *  business types without a specific example yet (Creator/Publisher/Professional). */
-const NAME_PLACEHOLDERS: Record<string, string> = {
-  Restaurant: 'Ej. Mofongo con camarones',
-  Barber: 'Ej. Corte de cabello',
-  Service: 'Ej. Consulta inicial',
-  Retail: 'Ej. Aretes de plata 925',
+const NAME_PLACEHOLDERS: Record<string, { es: string; en: string }> = {
+  Restaurant: { es: 'Ej. Mofongo con camarones', en: 'E.g. Shrimp mofongo' },
+  Barber: { es: 'Ej. Corte de cabello', en: 'E.g. Haircut' },
+  Service: { es: 'Ej. Consulta inicial', en: 'E.g. Initial consultation' },
+  Retail: { es: 'Ej. Aretes de plata 925', en: 'E.g. 925 silver earrings' },
 };
-const DEFAULT_NAME_PLACEHOLDER = 'Ej. Nombre del item';
+const DEFAULT_NAME_PLACEHOLDER = { es: 'Ej. Nombre del item', en: 'E.g. Item name' };
 
 export default function EditForm({ slug, item, businessType, from }: Props) {
+  const { language } = useSimpleLanguage();
+  const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const router = useRouter();
   const isRestaurant = businessType === 'Restaurant';
   const isBarberOrService = businessType === 'Barber' || businessType === 'Service';
-  const namePlaceholder = (businessType && NAME_PLACEHOLDERS[businessType]) || DEFAULT_NAME_PLACEHOLDER;
+  const namePlaceholderPair = (businessType && NAME_PLACEHOLDERS[businessType]) || DEFAULT_NAME_PLACEHOLDER;
+  const namePlaceholder = getText(namePlaceholderPair.es, namePlaceholderPair.en);
   const backHref = from === 'catalog' ? `/space/${slug}/catalog` : `/space/${slug}`;
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -127,11 +131,11 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
         body: JSON.stringify(body),
       });
       if (res.ok) {
-        toast.success('Cambios guardados.');
+        toast.success(getText('Cambios guardados.', 'Changes saved.'));
         router.push(`/space/${slug}/catalog`);
       } else {
         const data = await res.json().catch(() => ({}));
-        const parsed = parseApiError(data, 'Algo salió mal');
+        const parsed = parseApiError(data, getText('Algo salió mal', 'Something went wrong'));
         setPlanLimitReached(parsed.isPlanLimit);
         setTrialExpired(parsed.isTrialExpired);
         setError(parsed.message);
@@ -141,7 +145,9 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
   };
 
   const deleteItem = () => {
-    const confirmed = window.confirm(`¿Eliminar "${item.name}"? Esta acción no se puede deshacer.`);
+    const confirmed = window.confirm(
+      getText(`¿Eliminar "${item.name}"? Esta acción no se puede deshacer.`, `Delete "${item.name}"? This can't be undone.`),
+    );
     if (!confirmed) return;
     startTransition(async () => {
       const res = await fetch(`/api/space/${slug}/catalog/${item.id}`, { method: 'DELETE' });
@@ -149,7 +155,7 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
         router.push(`/space/${slug}/catalog`);
       } else {
         const data = await res.json().catch(() => ({}));
-        const parsed = parseApiError(data, 'No pudimos eliminar el item.');
+        const parsed = parseApiError(data, getText('No pudimos eliminar el item.', "We couldn't delete the item."));
         setError(parsed.message);
         toast.error(parsed.message);
       }
@@ -163,10 +169,10 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
       <div className="mx-auto max-w-md">
         <div className="mb-6 flex items-center gap-3">
           <Link href={backHref} className="text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-white">
-            ← Volver
+            ← {getText('Volver', 'Back')}
           </Link>
           <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Editar item
+            {getText('Editar item', 'Edit item')}
             {item.is_demo && (
               <span className="ml-2 rounded-full bg-amber-100 dark:bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
                 Demo
@@ -177,7 +183,10 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
 
         {item.is_demo && (
           <div className="mb-4 rounded-xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-900/20 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
-            Este es un item de ejemplo. Al guardarlo se marcará como tuyo y saldrá del banner de demos.
+            {getText(
+              'Este es un item de ejemplo. Al guardarlo se marcará como tuyo y saldrá del banner de demos.',
+              'This is a sample item. Saving it will mark it as yours and remove it from the demo banner.',
+            )}
           </div>
         )}
 
@@ -186,7 +195,7 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
           <ImageGalleryEditor slug={slug} itemId={item.id} images={images} onChange={setImages} onError={setError} />
 
           <div>
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Nombre *</label>
+            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">{getText('Nombre *', 'Name *')}</label>
             <input
               type="text"
               value={form.name}
@@ -199,7 +208,7 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Descripción</label>
+            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">{getText('Descripción', 'Description')}</label>
             <textarea
               value={form.description}
               onChange={set('description')}
@@ -225,7 +234,7 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Categoría</label>
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">{getText('Categoría', 'Category')}</label>
               <input
                 type="text"
                 value={form.category}
@@ -235,7 +244,7 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Precio ($)</label>
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">{getText('Precio ($)', 'Price ($)')}</label>
               <input
                 type="number"
                 value={form.price}
@@ -249,18 +258,21 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
 
           {isBarberOrService && (
             <div>
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Duración (minutos)</label>
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">{getText('Duración (minutos)', 'Duration (minutes)')}</label>
               <input
                 type="number"
                 value={durationMinutes}
                 onChange={(e) => setDurationMinutes(e.target.value)}
                 min="1"
                 step="5"
-                placeholder="Ej. 30"
+                placeholder={getText('Ej. 30', 'E.g. 30')}
                 className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-neutral-500 focus:border-neutral-400 dark:focus:border-neutral-500 focus:outline-none"
               />
               <p className="mt-1 text-xs text-neutral-400">
-                Déjalo vacío y guarda para quitar la duración de la página pública y los canales.
+                {getText(
+                  'Déjalo vacío y guarda para quitar la duración de la página pública y los canales.',
+                  'Leave it empty and save to remove the duration from the public page and channels.',
+                )}
               </p>
             </div>
           )}
@@ -269,27 +281,27 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
             <div className="space-y-5 border-t border-neutral-100 dark:border-neutral-800 pt-5">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Se sirve en
+                  {getText('Se sirve en', 'Served during')}
                 </label>
                 <MealPeriodEditor value={periods} onChange={setPeriods} />
                 <p className="mt-2 text-xs text-neutral-400">
-                  Deja vacío para que esté disponible todo el día.
+                  {getText('Deja vacío para que esté disponible todo el día.', 'Leave empty to make it available all day.')}
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Días disponibles
+                  {getText('Días disponibles', 'Available days')}
                 </label>
                 <WeekDayEditor value={weekDays} onChange={setWeekDays} compact />
                 <p className="mt-2 text-xs text-neutral-400">
-                  Deja vacío para disponibilidad toda la semana.
+                  {getText('Deja vacío para disponibilidad toda la semana.', 'Leave empty for availability all week.')}
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Etiquetas
+                  {getText('Etiquetas', 'Tags')}
                 </label>
                 <div className="flex flex-wrap gap-4">
                   {FLAG_OPTIONS.map(([key, label]) => (
@@ -300,7 +312,7 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
                         onChange={(e) => setFlags((f) => ({ ...f, [key]: e.target.checked }))}
                         className="h-4 w-4 rounded border-neutral-300 dark:border-neutral-600"
                       />
-                      <span className="text-sm text-neutral-700 dark:text-neutral-300">{label}</span>
+                      <span className="text-sm text-neutral-700 dark:text-neutral-300">{getText(label.es, label.en)}</span>
                     </label>
                   ))}
                 </div>
@@ -314,7 +326,7 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
                     onChange={(e) => setFeatured(e.target.checked)}
                     className="h-4 w-4 rounded border-neutral-300 dark:border-neutral-600"
                   />
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">Destacado ⭐</span>
+                  <span className="text-sm text-neutral-700 dark:text-neutral-300">{getText('Destacado ⭐', 'Featured ⭐')}</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -323,7 +335,7 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
                     onChange={(e) => setPopular(e.target.checked)}
                     className="h-4 w-4 rounded border-neutral-300 dark:border-neutral-600"
                   />
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">Popular 🔥</span>
+                  <span className="text-sm text-neutral-700 dark:text-neutral-300">{getText('Popular 🔥', 'Popular 🔥')}</span>
                 </label>
               </div>
             </div>
@@ -342,7 +354,7 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
             disabled={!form.name.trim() || busy}
             className="w-full rounded-full bg-[#C8102E] py-3 text-sm font-medium text-white transition hover:bg-[#A00D26] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {pending ? 'Guardando...' : 'Guardar cambios'}
+            {pending ? getText('Guardando...', 'Saving...') : getText('Guardar cambios', 'Save changes')}
           </button>
         </form>
 
@@ -351,7 +363,7 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
           disabled={busy}
           className="mt-3 w-full rounded-full border border-neutral-200 dark:border-neutral-700 py-2.5 text-sm font-medium text-neutral-500 dark:text-neutral-400 transition hover:border-red-200 dark:hover:border-red-500/50 hover:text-red-600 dark:hover:text-red-400 disabled:opacity-50"
         >
-          Eliminar item
+          {getText('Eliminar item', 'Delete item')}
         </button>
       </div>
       <Toast toasts={toast.toasts} onRemove={toast.remove} />

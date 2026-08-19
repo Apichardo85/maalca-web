@@ -4,10 +4,15 @@ import type { CartEntry, CartItem } from './useCart'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080'
 
-const FALLBACK_IMG =
+const FALLBACK_IMG_ES =
   'data:image/svg+xml;base64,' +
   btoa(
     `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="#ece9e2"><rect width="80" height="80"/><text x="40" y="46" text-anchor="middle" fill="#aaa" font-family="sans-serif" font-size="11">sin foto</text></svg>`,
+  )
+const FALLBACK_IMG_EN =
+  'data:image/svg+xml;base64,' +
+  btoa(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="#ece9e2"><rect width="80" height="80"/><text x="40" y="46" text-anchor="middle" fill="#aaa" font-family="sans-serif" font-size="11">no photo</text></svg>`,
   )
 
 function buildWhatsAppUrl(
@@ -19,6 +24,7 @@ function buildWhatsAppUrl(
   phone: string,
   businessName: string,
   taxRate: number,
+  getText: (es: string, en: string) => string,
 ): string {
   const lines = cart.map(e => {
     const base = `• ${e.qty}x ${e.item.name} — $${(e.item.price * e.qty).toFixed(2)}`
@@ -28,9 +34,9 @@ function buildWhatsAppUrl(
     taxRate > 0
       ? `Tax (${(taxRate * 100).toFixed(3).replace(/\.?0+$/, '')}%): $${tax.toFixed(2)}`
       : null
-  const tipLabel = tip > 0 ? `Propina: $${tip.toFixed(2)}` : null
+  const tipLabel = tip > 0 ? `${getText('Propina', 'Tip')}: $${tip.toFixed(2)}` : null
   const msg = [
-    `🍽 *Orden — ${businessName}*`,
+    `🍽 *${getText('Orden', 'Order')} — ${businessName}*`,
     '',
     ...lines,
     '',
@@ -39,7 +45,7 @@ function buildWhatsAppUrl(
     tipLabel,
     `*Total: $${total.toFixed(2)}*`,
     '',
-    'Nombre: ',
+    `${getText('Nombre', 'Name')}: `,
   ]
     .filter((l): l is string => l !== null)
     .join('\n')
@@ -67,6 +73,8 @@ interface CartDrawerProps {
   updateNotes?: (itemId: string, notes: string) => void
   /** Restaurante: habilita notas de personalización por línea + selector de propina. */
   restaurantMode?: boolean
+  /** Idioma seleccionado por el visitante — con fallback a español si el template no lo pasa aún. */
+  getText?: (es: string, en: string) => string
 }
 
 const TIP_PRESETS = [0.1, 0.15, 0.2] as const
@@ -87,7 +95,9 @@ export function CartDrawer({
   onlinePayments = false,
   updateNotes,
   restaurantMode = false,
+  getText = (es) => es,
 }: CartDrawerProps) {
+  const FALLBACK_IMG = getText(FALLBACK_IMG_ES, FALLBACK_IMG_EN)
   const fmt = useMemo(
     () => new Intl.NumberFormat('en-US', { style: 'currency', currency }),
     [currency],
@@ -108,7 +118,7 @@ export function CartDrawer({
         ? cartTotal * tipMode
         : 0
   const total = cartTotal + tax + tip
-  const waUrl = buildWhatsAppUrl(cart, cartTotal, tax, tip, total, whatsappNumber, businessName, taxRate)
+  const waUrl = buildWhatsAppUrl(cart, cartTotal, tax, tip, total, whatsappNumber, businessName, taxRate, getText)
 
   async function handleCardCheckout() {
     if (!slug) return
@@ -195,15 +205,15 @@ export function CartDrawer({
                 fontWeight: 600,
               }}
             >
-              Tu orden
+              {getText('Tu orden', 'Your order')}
             </p>
             <p style={{ margin: '2px 0 0', fontSize: '18px', fontWeight: 700, color: '#1a1a1a' }}>
-              {cartCount} {cartCount === 1 ? 'plato' : 'platos'}
+              {cartCount} {getText(cartCount === 1 ? 'plato' : 'platos', cartCount === 1 ? 'item' : 'items')}
             </p>
           </div>
           <button
             onClick={onClose}
-            aria-label="Cerrar carrito"
+            aria-label={getText('Cerrar carrito', 'Close cart')}
             style={{
               width: '40px',
               height: '40px',
@@ -277,7 +287,7 @@ export function CartDrawer({
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                 <button
                   onClick={() => removeFromCart(entry.item.id)}
-                  aria-label={`Quitar ${entry.item.name}`}
+                  aria-label={`${getText('Quitar', 'Remove')} ${entry.item.name}`}
                   style={{
                     width: '32px',
                     height: '32px',
@@ -307,7 +317,7 @@ export function CartDrawer({
                 </span>
                 <button
                   onClick={() => addToCart(entry.item)}
-                  aria-label={`Agregar ${entry.item.name}`}
+                  aria-label={`${getText('Agregar', 'Add')} ${entry.item.name}`}
                   style={{
                     width: '32px',
                     height: '32px',
@@ -331,7 +341,7 @@ export function CartDrawer({
               <input
                 value={entry.notes ?? ''}
                 onChange={e => updateNotes(entry.item.id, e.target.value)}
-                placeholder="Personalizar (ej. sin cebolla)…"
+                placeholder={getText('Personalizar (ej. sin cebolla)…', 'Customize (e.g. no onion)…')}
                 style={{
                   marginTop: '8px',
                   width: '100%',
@@ -360,7 +370,7 @@ export function CartDrawer({
           {restaurantMode && (
             <div style={{ marginBottom: '14px' }}>
               <p style={{ margin: '0 0 6px', fontSize: '12px', fontWeight: 600, color: '#888' }}>
-                Propina
+                {getText('Propina', 'Tip')}
               </p>
               <div style={{ display: 'flex', gap: '6px' }}>
                 {TIP_PRESETS.map(pct => (
@@ -396,7 +406,7 @@ export function CartDrawer({
                     cursor: 'pointer',
                   }}
                 >
-                  Otro
+                  {getText('Otro', 'Other')}
                 </button>
               </div>
               {tipMode === 'custom' && (
@@ -406,7 +416,7 @@ export function CartDrawer({
                   step="0.5"
                   value={customTip}
                   onChange={e => setCustomTip(e.target.value)}
-                  placeholder="Monto de propina"
+                  placeholder={getText('Monto de propina', 'Tip amount')}
                   style={{
                     marginTop: '8px',
                     width: '100%',
@@ -437,7 +447,7 @@ export function CartDrawer({
             )}
             {tip > 0 && (
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                <span style={{ color: '#aaa' }}>Propina</span>
+                <span style={{ color: '#aaa' }}>{getText('Propina', 'Tip')}</span>
                 <span style={{ color: '#aaa' }}>{fmt.format(tip)}</span>
               </div>
             )}
@@ -450,7 +460,7 @@ export function CartDrawer({
                 borderTop: '1px solid #e5e3de',
               }}
             >
-              <span style={{ fontWeight: 700, color: '#1a1a1a' }}>Total</span>
+              <span style={{ fontWeight: 700, color: '#1a1a1a' }}>{getText('Total', 'Total')}</span>
               <span style={{ fontWeight: 700, color: '#1a1a1a' }}>{fmt.format(total)}</span>
             </div>
           </div>
@@ -480,11 +490,16 @@ export function CartDrawer({
                   marginBottom: '10px',
                 }}
               >
-                {checkoutState === 'loading' ? 'Redirigiendo...' : `Pagar ${fmt.format(total)} con tarjeta`}
+                {checkoutState === 'loading'
+                  ? getText('Redirigiendo...', 'Redirecting...')
+                  : getText(`Pagar ${fmt.format(total)} con tarjeta`, `Pay ${fmt.format(total)} with card`)}
               </button>
               {checkoutState === 'unavailable' && (
                 <p style={{ margin: '0 0 10px', fontSize: '12px', color: '#b91c1c', textAlign: 'center' }}>
-                  Los pagos en línea no están disponibles ahora mismo — confirma por WhatsApp.
+                  {getText(
+                    'Los pagos en línea no están disponibles ahora mismo — confirma por WhatsApp.',
+                    'Online payments are not available right now — confirm via WhatsApp.',
+                  )}
                 </p>
               )}
             </>
@@ -513,7 +528,7 @@ export function CartDrawer({
             }}
           >
             <WhatsAppIcon />
-            Confirmar por WhatsApp
+            {getText('Confirmar por WhatsApp', 'Confirm via WhatsApp')}
           </a>
         </div>
       </div>

@@ -22,6 +22,8 @@ export interface WhatsAppCartProps {
   updateNotes?: (itemId: string, notes: string) => void
   /** Restaurante: habilita notas de personalización por línea + selector de propina. */
   restaurantMode?: boolean
+  /** Idioma seleccionado por el visitante — con fallback a español si el template no lo pasa aún. */
+  getText?: (es: string, en: string) => string
 }
 
 export function WhatsAppCart({
@@ -38,6 +40,7 @@ export function WhatsAppCart({
   onlinePayments = false,
   updateNotes,
   restaurantMode = false,
+  getText = (es) => es,
 }: WhatsAppCartProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [toast, setToast] = useState({ message: '', visible: false })
@@ -51,9 +54,10 @@ export function WhatsAppCart({
   // Toast fires whenever an item is added (count increases)
   useEffect(() => {
     if (cartCount > prevCountRef.current) {
-      showToast('✓ Agregado al carrito')
+      showToast(getText('✓ Agregado al carrito', '✓ Added to cart'))
     }
     prevCountRef.current = cartCount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cartCount, showToast])
 
   // Close drawer on Escape
@@ -89,6 +93,7 @@ export function WhatsAppCart({
         onlinePayments={onlinePayments}
         updateNotes={updateNotes}
         restaurantMode={restaurantMode}
+        getText={getText}
       />
     </>
   )

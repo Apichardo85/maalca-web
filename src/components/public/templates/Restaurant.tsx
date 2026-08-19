@@ -751,6 +751,7 @@ export function RestaurantTemplate({
         onlinePayments={capabilities.onlinePayments}
         updateNotes={updateNotes}
         restaurantMode
+        getText={getText}
       />
     </div>
   );

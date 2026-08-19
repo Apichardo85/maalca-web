@@ -405,9 +405,9 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
                         <option value="US">{getText('Estados Unidos', 'United States')}</option>
                         <option value="DO">{getText('República Dominicana', 'Dominican Republic')}</option>
                         <option value="PR">{getText('Puerto Rico', 'Puerto Rico')}</option>
-                        <option value="MX">México</option>
-                        <option value="ES">España</option>
-                        <option value="CA">Canadá / Canada</option>
+                        <option value="MX">{getText('México', 'Mexico')}</option>
+                        <option value="ES">{getText('España', 'Spain')}</option>
+                        <option value="CA">{getText('Canadá', 'Canada')}</option>
                       </select>
                     </div>
                   )}

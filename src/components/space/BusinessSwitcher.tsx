@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Plan } from '@/lib/plan-limits';
+import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 
 interface Business {
   id: string;
@@ -19,6 +20,8 @@ interface Props {
 }
 
 export function BusinessSwitcher({ current, others, canCreateMore }: Props) {
+  const { language } = useSimpleLanguage();
+  const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -62,7 +65,7 @@ export function BusinessSwitcher({ current, others, canCreateMore }: Props) {
         >
           {/* Current business */}
           <div className="border-b border-neutral-100 px-3 py-2">
-            <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">Activo</p>
+            <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider">{getText('Activo', 'Active')}</p>
             <p className="mt-0.5 truncate text-sm font-semibold text-neutral-900">{current.name}</p>
           </div>
 
@@ -98,7 +101,7 @@ export function BusinessSwitcher({ current, others, canCreateMore }: Props) {
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                Crear otro negocio
+                {getText('Crear otro negocio', 'Create another business')}
               </Link>
             </div>
           )}

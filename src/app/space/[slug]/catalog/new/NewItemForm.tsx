@@ -10,6 +10,7 @@ import { MealPeriodEditor } from '@/components/space/catalog/MealPeriodEditor';
 import { WeekDayEditor } from '@/components/space/catalog/WeekDayEditor';
 import type { MealPeriod, WeekDay } from '@/lib/types';
 import { parseApiError } from '@/lib/api-errors';
+import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 
 interface Props {
   slug: string;
@@ -20,26 +21,29 @@ interface Props {
 }
 
 const FLAG_OPTIONS = [
-  ['vegetarian', '🌿 Vegetariano'],
-  ['spicy', '🌶 Picante'],
-  ['glutenFree', '🌾 Sin gluten'],
+  ['vegetarian', { es: '🌿 Vegetariano', en: '🌿 Vegetarian' }],
+  ['spicy', { es: '🌶 Picante', en: '🌶 Spicy' }],
+  ['glutenFree', { es: '🌾 Sin gluten', en: '🌾 Gluten-free' }],
 ] as const;
 
 /** businessType comes straight from the backend's PascalCase enum (e.g. "Restaurant") —
  *  matches the isRestaurant check below. Falls back to a neutral placeholder for
  *  business types without a specific example yet (Creator/Publisher/Professional). */
-const NAME_PLACEHOLDERS: Record<string, string> = {
-  Restaurant: 'Ej. Mofongo con camarones',
-  Barber: 'Ej. Corte de cabello',
-  Service: 'Ej. Consulta inicial',
-  Retail: 'Ej. Aretes de plata 925',
+const NAME_PLACEHOLDERS: Record<string, { es: string; en: string }> = {
+  Restaurant: { es: 'Ej. Mofongo con camarones', en: 'E.g. Shrimp mofongo' },
+  Barber: { es: 'Ej. Corte de cabello', en: 'E.g. Haircut' },
+  Service: { es: 'Ej. Consulta inicial', en: 'E.g. Initial consultation' },
+  Retail: { es: 'Ej. Aretes de plata 925', en: 'E.g. 925 silver earrings' },
 };
-const DEFAULT_NAME_PLACEHOLDER = 'Ej. Nombre del item';
+const DEFAULT_NAME_PLACEHOLDER = { es: 'Ej. Nombre del item', en: 'E.g. Item name' };
 
 export default function NewItemForm({ slug, businessType, from }: Props) {
+  const { language } = useSimpleLanguage();
+  const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const isRestaurant = businessType === 'Restaurant';
   const isBarberOrService = businessType === 'Barber' || businessType === 'Service';
-  const namePlaceholder = (businessType && NAME_PLACEHOLDERS[businessType]) || DEFAULT_NAME_PLACEHOLDER;
+  const namePlaceholderPair = (businessType && NAME_PLACEHOLDERS[businessType]) || DEFAULT_NAME_PLACEHOLDER;
+  const namePlaceholder = getText(namePlaceholderPair.es, namePlaceholderPair.en);
   const backHref = from === 'catalog' ? `/space/${slug}/catalog` : `/space/${slug}`;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -87,7 +91,7 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
         router.push(`/space/${slug}/catalog`);
       } else {
         const data = await res.json().catch(() => ({}));
-        const parsed = parseApiError(data, 'Algo salió mal');
+        const parsed = parseApiError(data, getText('Algo salió mal', 'Something went wrong'));
         setPlanLimitReached(parsed.isPlanLimit);
         setTrialExpired(parsed.isTrialExpired);
         setError(parsed.message);
@@ -102,9 +106,9 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
       <div className="mx-auto max-w-md">
         <div className="mb-6 flex items-center gap-3">
           <Link href={backHref} className="text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-white">
-            ← Volver
+            ← {getText('Volver', 'Back')}
           </Link>
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Agregar item</h1>
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{getText('Agregar item', 'Add item')}</h1>
         </div>
 
         <form onSubmit={submit} className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-8 shadow-sm space-y-5">
@@ -112,7 +116,7 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
           <ImageGalleryEditor slug={slug} itemId="new" images={images} onChange={setImages} onError={setError} />
 
           <div>
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Nombre *</label>
+            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">{getText('Nombre *', 'Name *')}</label>
             <input
               type="text"
               value={form.name}
@@ -125,13 +129,13 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Descripción</label>
+            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">{getText('Descripción', 'Description')}</label>
             <textarea
               value={form.description}
               onChange={set('description')}
               rows={3}
               maxLength={200}
-              placeholder="Breve descripción del item"
+              placeholder={getText('Breve descripción del item', 'Brief item description')}
               className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-neutral-500 focus:border-neutral-400 dark:focus:border-neutral-500 focus:outline-none resize-none"
             />
           </div>
@@ -152,18 +156,18 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Categoría</label>
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">{getText('Categoría', 'Category')}</label>
               <input
                 type="text"
                 value={form.category}
                 onChange={set('category')}
                 maxLength={40}
-                placeholder="Ej. Cortes"
+                placeholder={getText('Ej. Cortes', 'E.g. Haircuts')}
                 className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-neutral-500 focus:border-neutral-400 dark:focus:border-neutral-500 focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Precio ($)</label>
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">{getText('Precio ($)', 'Price ($)')}</label>
               <input
                 type="number"
                 value={form.price}
@@ -178,7 +182,7 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
 
           {isBarberOrService && (
             <div>
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Duración (minutos)</label>
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">{getText('Duración (minutos)', 'Duration (minutes)')}</label>
               <input
                 type="number"
                 value={durationMinutes}
@@ -195,27 +199,27 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
             <div className="space-y-5 border-t border-neutral-100 dark:border-neutral-800 pt-5">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Se sirve en
+                  {getText('Se sirve en', 'Served during')}
                 </label>
                 <MealPeriodEditor value={periods} onChange={setPeriods} />
                 <p className="mt-2 text-xs text-neutral-400">
-                  Deja vacío para que esté disponible todo el día.
+                  {getText('Deja vacío para que esté disponible todo el día.', 'Leave empty to make it available all day.')}
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Días disponibles
+                  {getText('Días disponibles', 'Available days')}
                 </label>
                 <WeekDayEditor value={weekDays} onChange={setWeekDays} compact />
                 <p className="mt-2 text-xs text-neutral-400">
-                  Deja vacío para disponibilidad toda la semana.
+                  {getText('Deja vacío para disponibilidad toda la semana.', 'Leave empty for availability all week.')}
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Etiquetas
+                  {getText('Etiquetas', 'Tags')}
                 </label>
                 <div className="flex flex-wrap gap-4">
                   {FLAG_OPTIONS.map(([key, label]) => (
@@ -226,7 +230,7 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
                         onChange={(e) => setFlags((f) => ({ ...f, [key]: e.target.checked }))}
                         className="h-4 w-4 rounded border-neutral-300 dark:border-neutral-600"
                       />
-                      <span className="text-sm text-neutral-700 dark:text-neutral-300">{label}</span>
+                      <span className="text-sm text-neutral-700 dark:text-neutral-300">{getText(label.es, label.en)}</span>
                     </label>
                   ))}
                 </div>
@@ -240,7 +244,7 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
                     onChange={(e) => setFeatured(e.target.checked)}
                     className="h-4 w-4 rounded border-neutral-300 dark:border-neutral-600"
                   />
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">Destacado ⭐</span>
+                  <span className="text-sm text-neutral-700 dark:text-neutral-300">{getText('Destacado ⭐', 'Featured ⭐')}</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -249,7 +253,7 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
                     onChange={(e) => setPopular(e.target.checked)}
                     className="h-4 w-4 rounded border-neutral-300 dark:border-neutral-600"
                   />
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">Popular 🔥</span>
+                  <span className="text-sm text-neutral-700 dark:text-neutral-300">{getText('Popular 🔥', 'Popular 🔥')}</span>
                 </label>
               </div>
             </div>
@@ -268,7 +272,7 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
             disabled={!form.name.trim() || busy}
             className="w-full rounded-full bg-[#C8102E] py-3 text-sm font-medium text-white transition hover:bg-[#A00D26] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {pending ? 'Guardando...' : 'Agregar item'}
+            {pending ? getText('Guardando...', 'Saving...') : getText('Agregar item', 'Add item')}
           </button>
         </form>
       </div>
