@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
+import { buildInvoiceLink } from '@/lib/invoice-link';
 
 export interface ReservationRow {
   id: string;
@@ -15,6 +17,8 @@ export interface ReservationRow {
   partySize: number;
   status: 'Requested' | 'Confirmed' | 'Seated' | 'Completed' | 'Cancelled' | 'NoShow';
   notes: string | null;
+  /** CRM (tarea #244) — sin esto no se puede generar factura (Invoice.CustomerId requerido). */
+  customerId: string | null;
 }
 
 interface Props {
@@ -312,9 +316,22 @@ export function ReservationsContent({ slug, initialReservations }: Props) {
                       {fmtDate(r.date)} · {r.time} · {getText(`${r.partySize} personas`, `party of ${r.partySize}`)}
                     </p>
                   </div>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLES[r.status]}`}>
-                    {STATUS_LABELS[r.status][language]}
-                  </span>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {r.status === 'Completed' && r.customerId && (
+                      <Link
+                        href={buildInvoiceLink(slug, {
+                          customerId: r.customerId,
+                          desc: getText(`Mesa · ${r.partySize} personas · ${fmtDate(r.date)}`, `Table · party of ${r.partySize} · ${fmtDate(r.date)}`),
+                        })}
+                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-2 py-0.5 text-[11px] font-medium text-gray-600 dark:text-neutral-300 hover:border-[#C8102E] hover:text-[#C8102E]"
+                      >
+                        {getText('Generar factura', 'Generate invoice')}
+                      </Link>
+                    )}
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLES[r.status]}`}>
+                      {STATUS_LABELS[r.status][language]}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>

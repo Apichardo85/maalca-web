@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
+import { buildInvoiceLink } from '@/lib/invoice-link';
 
 export interface ProposalRow {
   id: string;
@@ -20,6 +22,8 @@ export interface ProposalRow {
   acceptedAt: string | null;
   acceptedByName: string | null;
   expiresAt: string | null;
+  /** CRM (tarea #244) — sin esto no se puede generar factura (Invoice.CustomerId requerido). */
+  customerId: string | null;
 }
 
 interface Props {
@@ -320,9 +324,19 @@ export function ProposalsContent({ slug, currency, initialProposals }: Props) {
                       {p.status === 'Accepted' && p.acceptedByName ? ` · ${getText('firmado por', 'signed by')} ${p.acceptedByName}` : ''}
                     </p>
                   </div>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLES[p.status]}`}>
-                    {STATUS_LABELS[p.status][language]}
-                  </span>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {p.status === 'Accepted' && p.customerId && (
+                      <Link
+                        href={buildInvoiceLink(slug, { customerId: p.customerId, desc: p.title, amount: p.amount })}
+                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-2 py-0.5 text-[11px] font-medium text-gray-600 dark:text-neutral-300 hover:border-[#C8102E] hover:text-[#C8102E]"
+                      >
+                        {getText('Generar factura', 'Generate invoice')}
+                      </Link>
+                    )}
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLES[p.status]}`}>
+                      {STATUS_LABELS[p.status][language]}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>

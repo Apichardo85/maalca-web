@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
+import { buildInvoiceLink } from '@/lib/invoice-link';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -23,7 +25,7 @@ export interface Appointment {
   status: string;
   notes?: string | null;
   customer?: { id: string; name: string; phone?: string | null } | null;
-  service?: { id: string; name: string; durationMinutes: number } | null;
+  service?: { id: string; name: string; durationMinutes: number; price?: number } | null;
   assignedTo?: { id: string; name: string } | null;
 }
 
@@ -548,6 +550,14 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
                     ))}
                   </select>
                 ) : null}
+                {canManage && a.status === 'Completed' && a.customer && a.service && (
+                  <Link
+                    href={buildInvoiceLink(slug, { customerId: a.customer.id, desc: a.service.name, amount: a.service.price })}
+                    className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-neutral-300 hover:border-[#C8102E] hover:text-[#C8102E]"
+                  >
+                    {getText('Generar factura', 'Generate invoice')}
+                  </Link>
+                )}
                 {canManage && (
                   <button
                     onClick={() => remove(a.id)}

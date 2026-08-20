@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
@@ -72,6 +73,20 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
   const [lines, setLines] = useState<LineDraft[]>([emptyLine()]);
   const [saving, setSaving] = useState(false);
   const [markingPaid, setMarkingPaid] = useState<string | null>(null);
+
+  // Prefill desde "Generar factura" en Agenda/Fila/Reservas/Propuestas (src/lib/invoice-link.ts).
+  // Solo al montar — si el dueño cambia customerId/líneas a mano después, no lo pisamos otra vez.
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const prefillCustomerId = searchParams.get('customerId');
+    if (!prefillCustomerId) return;
+    setCustomerId(prefillCustomerId);
+    const desc = searchParams.get('desc');
+    const amount = searchParams.get('amount');
+    if (desc) setLines([{ description: desc, quantity: 1, unitPrice: amount ? Number(amount) || 0 : 0 }]);
+    setShowForm(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency });
   const dateFmt = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString() : '—');

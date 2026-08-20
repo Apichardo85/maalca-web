@@ -5,7 +5,7 @@ import { InvoicesContent, type InvoiceRow } from './InvoicesContent';
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 interface SpaceResponse {
-  business: { id: string; businessType: string; currency?: 'USD' | 'DOP' };
+  business: { id: string; businessType: string; currency?: 'USD' | 'DOP'; modulosActivos: string[] };
 }
 
 interface CustomerRow {
@@ -15,9 +15,9 @@ interface CustomerRow {
   phone: string | null;
 }
 
-// Facturación — Servicios/Profesionales, negocios que cobran por trabajo realizado en vez de
-// por item de catálogo. Mismo criterio de gating que Cocina/POS/Fila: repetido acá para que la
-// URL no sea alcanzable a mano si el negocio no es de este tipo.
+// Facturación — factura manual (o generada desde Agenda/Fila/Reservas/Propuestas) por trabajo
+// realizado. Gate por módulo activo, repetido acá (además del nav) para que la URL no sea
+// alcanzable a mano si 'invoices' no está prendido para este negocio.
 export default async function InvoicesPage({
   params,
 }: {
@@ -36,7 +36,11 @@ export default async function InvoicesPage({
   if (!spaceRes.ok) throw new Error(`Failed to load space: ${spaceRes.status}`);
 
   const space: SpaceResponse = await spaceRes.json();
-  if (!['service', 'professional'].includes(space.business.businessType.toLowerCase())) {
+  // Antes: solo service/professional podían entrar (businessType hardcoded), lo que dejaba a
+  // Fila (barber) y Reservas (restaurant) sin forma de facturar lo que ya completaron, aunque
+  // el botón "Generar factura" (Agenda/Fila/Reservas/Propuestas) mande acá. El gate real ahora
+  // es el módulo activo — igual que Cocina/POS/Fila se activan vía /ops sin importar el tipo.
+  if (!space.business.modulosActivos.includes('invoices')) {
     redirect(`/space/${slug}`);
   }
 

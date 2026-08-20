@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { useQueueRealtime } from '@/hooks/useQueueRealtime';
+import { buildInvoiceLink } from '@/lib/invoice-link';
 
 export interface QueueEntryRow {
   id: string;
@@ -18,7 +20,10 @@ export interface QueueEntryRow {
   status: 'waiting' | 'in_service' | 'completed' | 'no_show';
   assignedToId: string | null;
   calledAt: string | null;
-  service?: { id: string; name: string } | null;
+  /** CRM (tarea #244) — solo presente si se resolvió/creó un Customer por teléfono. Sin esto no
+   *  se puede generar factura (Invoice.CustomerId es obligatorio). */
+  customerId: string | null;
+  service?: { id: string; name: string; price?: number } | null;
   assignedTo?: { id: string; name: string } | null;
 }
 
@@ -44,6 +49,7 @@ export function QueueContent({ slug, affiliateId, initialEntries, services, barb
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
+  const router = useRouter();
 
   const [entries, setEntries] = useState<QueueEntryRow[]>(initialEntries);
   const [showForm, setShowForm] = useState(false);
@@ -103,6 +109,22 @@ export function QueueContent({ slug, affiliateId, initialEntries, services, barb
     } catch {
       toast.error(getText('No se pudo actualizar. Intenta de nuevo.', "Couldn't update. Try again."));
     } finally {
+      setActingOn(null);
+    }
+  }
+
+  // Completar + ir directo a Facturación con el cliente/servicio ya prefilled — evita que el
+  // dueño tenga que volver a buscar al cliente en el dropdown de Facturación. Solo disponible si
+  // la entrada tiene CustomerId (requiere teléfono, ver comentario en QueueEntryRow).
+  async function completeAndInvoice(entry: QueueEntryRow) {
+    if (actingOn || !entry.customerId) return;
+    setActingOn(entry.id);
+    try {
+      const res = await fetch(`/api/space/${slug}/queue/${entry.id}?${new URLSearchParams({ status: 'completed' }).toString()}`, { method: 'PATCH' });
+      if (!res.ok) throw new Error('update failed');
+      router.push(buildInvoiceLink(slug, { customerId: entry.customerId, desc: entry.service?.name, amount: entry.service?.price }));
+    } catch {
+      toast.error(getText('No se pudo completar. Intenta de nuevo.', "Couldn't complete. Try again."));
       setActingOn(null);
     }
   }
@@ -249,14 +271,27 @@ export function QueueContent({ slug, affiliateId, initialEntries, services, barb
                         {entry.assignedTo?.name ?? getText('Sin asignar', 'Unassigned')}
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => updateStatus(entry.id, 'completed')}
-                      disabled={actingOn === entry.id}
-                      className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-2 text-xs font-semibold disabled:opacity-40"
-                    >
-                      {getText('Completar', 'Complete')}
-                    </button>
+                    <div className="flex shrink-0 items-center gap-2">
+                      {entry.customerId && (
+                        <button
+                          type="button"
+                          onClick={() => completeAndInvoice(entry)}
+                          disabled={actingOn === entry.id}
+                          className="rounded-full px-3 py-2 text-xs font-semibold text-white disabled:opacity-40"
+                          style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+                        >
+                          {getText('Completar y facturar', 'Complete & invoice')}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => updateStatus(entry.id, 'completed')}
+                        disabled={actingOn === entry.id}
+                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-2 text-xs font-semibold disabled:opacity-40"
+                      >
+                        {getText('Completar', 'Complete')}
+                      </button>
+                    </div>
                   </div>
                 ))}
             </div>
