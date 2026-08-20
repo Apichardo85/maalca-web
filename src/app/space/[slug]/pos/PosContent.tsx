@@ -359,7 +359,8 @@ export function PosContent({ slug, affiliateId, currency, items, businessType }:
                     <button
                       type="button"
                       onClick={() => changeQty(line.itemId, -1)}
-                      className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-sm font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
+                      aria-label={getText('Quitar uno', 'Remove one')}
+                      className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
                     >
                       −
                     </button>
@@ -367,7 +368,8 @@ export function PosContent({ slug, affiliateId, currency, items, businessType }:
                     <button
                       type="button"
                       onClick={() => changeQty(line.itemId, 1)}
-                      className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-sm font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
+                      aria-label={getText('Agregar uno', 'Add one')}
+                      className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
                     >
                       +
                     </button>

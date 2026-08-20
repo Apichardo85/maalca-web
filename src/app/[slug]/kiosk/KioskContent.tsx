@@ -268,7 +268,8 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                       <button
                         type="button"
                         onClick={() => changeQty(line.itemId, -1)}
-                        className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
+                        aria-label="Quitar uno"
+                        className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
                       >
                         −
                       </button>
@@ -276,7 +277,8 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                       <button
                         type="button"
                         onClick={() => changeQty(line.itemId, 1)}
-                        className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
+                        aria-label="Agregar uno"
+                        className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
                       >
                         +
                       </button>
