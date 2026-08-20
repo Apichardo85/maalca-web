@@ -5,7 +5,7 @@ import { PosContent, type PosItem } from './PosContent';
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 interface SpaceResponse {
-  business: { id: string; businessType: string; plan: 'free' | 'entrepreneur'; currency?: 'USD' | 'DOP' };
+  business: { id: string; businessType: string; plan: 'free' | 'entrepreneur'; currency?: 'USD' | 'DOP'; modulosActivos: string[] };
 }
 
 export default async function PosPage({
@@ -26,6 +26,9 @@ export default async function PosPage({
   if (!spaceRes.ok) throw new Error(`Failed to load space: ${spaceRes.status}`);
 
   const space: SpaceResponse = await spaceRes.json();
+  // Antes no había gate acá -- el nav lo escondía por businessType, pero la URL era alcanzable
+  // igual con el módulo apagado. Mismo criterio que Facturación/Cocina/Fila/Propuestas.
+  if (!space.business.modulosActivos.includes('pos')) redirect(`/space/${slug}`);
 
   // Mismo endpoint unificado que usa el editor de catálogo (Producto/Servicio/InventoryItem
   // según BusinessType, todos mapeados a la misma forma) — el POS no necesita distinguirlos.

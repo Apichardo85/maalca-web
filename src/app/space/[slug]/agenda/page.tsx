@@ -10,6 +10,7 @@ interface SpaceResponse {
     businessType: string;
     plan: 'free' | 'entrepreneur';
     horario?: { dia: string; abre: string; cierra: string; cerrado: boolean }[] | null;
+    modulosActivos: string[];
   };
   role: string;
 }
@@ -32,6 +33,9 @@ export default async function AgendaPage({
   if (!spaceRes.ok) throw new Error(`Failed to load space: ${spaceRes.status}`);
 
   const space: SpaceResponse = await spaceRes.json();
+  // Antes no había gate acá -- el nav lo escondía por businessType, pero la URL era alcanzable
+  // igual con el módulo apagado. Mismo criterio que Facturación/Cocina/Fila/Propuestas.
+  if (!space.business.modulosActivos.includes('appointments')) redirect(`/space/${slug}`);
   const canManage = space.role !== 'Staff';
   const headers = { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': space.business.id };
 
