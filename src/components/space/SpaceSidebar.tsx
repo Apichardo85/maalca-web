@@ -75,30 +75,23 @@ export function SpaceSidebar({
     { label: getText('Identidad', 'Identity'),                icon: '🪪', href: `/space/${slug}/identidad` },
     { label: catalogLabel,                                    icon: '📦', href: `/space/${slug}/catalog`, token: 'catalog' },
     { label: getText('Pedidos', 'Orders'),                    icon: '🧾', href: `/space/${slug}/orders`, token: 'orders' },
-    // Cocina solo tiene sentido para negocios de comida — una barbería o retail no preparan
-    // platos, mostrárselo ahí es ruido (y confunde, como reportó Pegote Barbershop).
-    ...(businessType === 'restaurant'
-      ? [{ label: getText('Cocina', 'Kitchen'), icon: '🍳', href: `/space/${slug}/kitchen`, token: 'kitchen' }]
-      : []),
+    // Cocina/Fila/Facturas/Propuestas: antes filtrados acá por businessType, duplicando (y
+    // desincronizados con) el gate real de la página, que ya es por módulo activo (ver
+    // kitchen|queue|invoices|proposals/page.tsx). Con el hardcode acá, activar el módulo desde
+    // /ops para un tipo de negocio atípico dejaba la página alcanzable pero sin link en el nav.
+    // El filtro de abajo (activeModules.includes(token)) ya hace el trabajo real.
+    { label: getText('Cocina', 'Kitchen'), icon: '🍳', href: `/space/${slug}/kitchen`, token: 'kitchen' },
     // POS — restaurante y retail cobran en el local con items de precio fijo. Servicios/Barbería
     // cobran al final de una cita (no aplica un mostrador de venta libre) y se suman después si
     // hace falta.
     ...(['restaurant', 'retail'].includes(businessType)
       ? [{ label: getText('Punto de venta', 'Point of sale'), icon: '🧮', href: `/space/${slug}/pos`, token: 'pos' }]
       : []),
-    // Fila de espera — solo Barbería (walk-ins que esperan turno sin cita previa).
-    ...(businessType === 'barber'
-      ? [{ label: getText('Fila de espera', 'Waiting queue'), icon: '🪑', href: `/space/${slug}/queue`, token: 'queue' }]
-      : []),
-    // Facturas por trabajo realizado — Servicios/Profesionales (Dr. Pichardo y similares). No
-    // confundir con "Facturación" (token 'billing') más abajo, que es el plan/pago con MaalCa.
-    ...(['service', 'professional'].includes(businessType)
-      ? [{ label: getText('Facturas', 'Invoices'), icon: '🧾', href: `/space/${slug}/invoices`, token: 'invoices' }]
-      : []),
-    // Propuestas con firma/aceptación pública — Servicios/Profesionales (task #194).
-    ...(['service', 'professional'].includes(businessType)
-      ? [{ label: getText('Propuestas', 'Proposals'), icon: '✍️', href: `/space/${slug}/proposals`, token: 'proposals' }]
-      : []),
+    { label: getText('Fila de espera', 'Waiting queue'), icon: '🪑', href: `/space/${slug}/queue`, token: 'queue' },
+    // Facturas por trabajo realizado. No confundir con "Facturación" (token 'billing') más
+    // abajo, que es el plan/pago con MaalCa.
+    { label: getText('Facturas', 'Invoices'), icon: '🧾', href: `/space/${slug}/invoices`, token: 'invoices' },
+    { label: getText('Propuestas', 'Proposals'), icon: '✍️', href: `/space/${slug}/proposals`, token: 'proposals' },
     { label: getText('Pantalla', 'Screen'),                   icon: '📺', href: `/space/${slug}/board`, token: 'board' },
     // Equipo (Personal + Equipo unificados): staff que atiende clientes y/o tiene acceso al
     // dashboard, todo en una sola pantalla. Lo ve cualquier rol, aunque solo Owner/Manager

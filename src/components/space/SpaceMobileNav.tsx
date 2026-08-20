@@ -74,26 +74,16 @@ export function SpaceMobileNav({
     { label: getText('Identidad', 'Identity'), icon: '🪪', href: `/space/${slug}/identidad` },
     { label: catalogLabel, icon: '📦', href: `/space/${slug}/catalog`, token: 'catalog' },
     { label: getText('Pedidos', 'Orders'), icon: '🧾', href: `/space/${slug}/orders`, token: 'orders' },
-    // Cocina solo aplica a negocios de comida — ver el mismo comentario en SpaceSidebar.tsx.
-    ...(businessType === 'restaurant'
-      ? [{ label: getText('Cocina', 'Kitchen'), icon: '🍳', href: `/space/${slug}/kitchen`, token: 'kitchen' }]
-      : []),
+    // Cocina/Fila/Facturas/Propuestas: ya no se filtran por businessType acá — ver el comentario
+    // completo en SpaceSidebar.tsx. El gate real es activeModules.includes(token) más abajo.
+    { label: getText('Cocina', 'Kitchen'), icon: '🍳', href: `/space/${slug}/kitchen`, token: 'kitchen' },
     // POS — restaurante y retail, ver mismo criterio en SpaceSidebar.tsx.
     ...(['restaurant', 'retail'].includes(businessType)
       ? [{ label: getText('Punto de venta', 'Point of sale'), icon: '🧮', href: `/space/${slug}/pos`, token: 'pos' }]
       : []),
-    // Fila de espera — solo Barbería, ver mismo criterio en SpaceSidebar.tsx.
-    ...(businessType === 'barber'
-      ? [{ label: getText('Fila de espera', 'Waiting queue'), icon: '🪑', href: `/space/${slug}/queue`, token: 'queue' }]
-      : []),
-    // Facturas — Servicios/Profesionales, ver mismo criterio en SpaceSidebar.tsx.
-    ...(['service', 'professional'].includes(businessType)
-      ? [{ label: getText('Facturas', 'Invoices'), icon: '🧾', href: `/space/${slug}/invoices`, token: 'invoices' }]
-      : []),
-    // Propuestas — Servicios/Profesionales, ver mismo criterio en SpaceSidebar.tsx.
-    ...(['service', 'professional'].includes(businessType)
-      ? [{ label: getText('Propuestas', 'Proposals'), icon: '✍️', href: `/space/${slug}/proposals`, token: 'proposals' }]
-      : []),
+    { label: getText('Fila de espera', 'Waiting queue'), icon: '🪑', href: `/space/${slug}/queue`, token: 'queue' },
+    { label: getText('Facturas', 'Invoices'), icon: '🧾', href: `/space/${slug}/invoices`, token: 'invoices' },
+    { label: getText('Propuestas', 'Proposals'), icon: '✍️', href: `/space/${slug}/proposals`, token: 'proposals' },
     { label: getText('Pantalla', 'Screen'), icon: '📺', href: `/space/${slug}/board`, token: 'board' },
     // Equipo (Personal + Equipo unificados) — mismo criterio que SpaceSidebar.tsx.
     { label: getText('Equipo', 'Team'), icon: '👥', href: `/space/${slug}/equipo`, token: 'staff' },
