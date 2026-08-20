@@ -73,6 +73,9 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
   const [lines, setLines] = useState<LineDraft[]>([emptyLine()]);
   const [saving, setSaving] = useState(false);
   const [markingPaid, setMarkingPaid] = useState<string | null>(null);
+  const [generatingLink, setGeneratingLink] = useState<string | null>(null);
+  const [paymentLinks, setPaymentLinks] = useState<Record<string, string>>({});
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Prefill desde "Generar factura" en Agenda/Fila/Reservas/Propuestas (src/lib/invoice-link.ts).
   // Solo al montar — si el dueño cambia customerId/líneas a mano después, no lo pisamos otra vez.
@@ -158,6 +161,39 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
       toast.error(getText('No se pudo actualizar. Intenta de nuevo.', "Couldn't update. Try again."));
     } finally {
       setMarkingPaid(null);
+    }
+  }
+
+  // Cobro real por Stripe Connect (checkout hospedado) — el link se muestra acá para
+  // copiar/mandar por WhatsApp; el backend además dispara el email automático al cliente si
+  // tiene correo guardado (ver InvoiceNotificationService). "Marcar pagada" arriba sigue
+  // existiendo aparte para cash/transferencia/Zelle.
+  async function generatePaymentLink(invoice: InvoiceRow) {
+    if (generatingLink) return;
+    setGeneratingLink(invoice.id);
+    try {
+      const res = await fetch(`/api/space/${slug}/invoices/${invoice.id}/checkout`, { method: 'POST' });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.checkoutUrl) {
+        throw new Error(data?.error?.message || 'checkout failed');
+      }
+      setPaymentLinks((prev) => ({ ...prev, [invoice.id]: data.checkoutUrl }));
+      toast.success(getText('Link de cobro generado.', 'Payment link generated.'));
+    } catch (err) {
+      const message = err instanceof Error && err.message !== 'checkout failed' ? err.message : undefined;
+      toast.error(message || getText('No se pudo generar el link. Verifica que Stripe esté conectado.', "Couldn't generate the link. Check that Stripe is connected."));
+    } finally {
+      setGeneratingLink(null);
+    }
+  }
+
+  async function copyLink(invoiceId: string, url: string) {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedId(invoiceId);
+      setTimeout(() => setCopiedId((prev) => (prev === invoiceId ? null : prev)), 2000);
+    } catch {
+      toast.error(getText('No se pudo copiar el link.', "Couldn't copy the link."));
     }
   }
 
@@ -285,38 +321,90 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
               {getText('Todavía no tienes facturas.', "You don't have any invoices yet.")}
             </p>
           )}
-          {invoices.map((invoice) => (
-            <div
-              key={invoice.id}
-              className="flex items-center justify-between gap-3 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4"
-            >
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold">{invoice.invoiceNumber}</p>
-                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${STATUS_STYLES[invoice.status]}`}>
-                    {invoice.status}
-                  </span>
+          {invoices.map((invoice) => {
+            const isCollectable = invoice.status === 'Pending' || invoice.status === 'Overdue';
+            const paymentLink = paymentLinks[invoice.id];
+            const customerPhone = customers.find((c) => c.id === invoice.customerId)?.phone;
+            const whatsappHref = customerPhone && paymentLink
+              ? `https://wa.me/${customerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+                  getText(
+                    `Hola! Aquí tienes el link para pagar tu factura ${invoice.invoiceNumber} (${fmt.format(invoice.total)}): ${paymentLink}`,
+                    `Hi! Here's the link to pay your invoice ${invoice.invoiceNumber} (${fmt.format(invoice.total)}): ${paymentLink}`,
+                  ),
+                )}`
+              : null;
+
+            return (
+              <div
+                key={invoice.id}
+                className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold">{invoice.invoiceNumber}</p>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${STATUS_STYLES[invoice.status]}`}>
+                        {invoice.status}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-xs text-gray-500 dark:text-neutral-400">
+                      {invoice.customer?.name ?? '—'} · {dateFmt(invoice.issueDate)}
+                      {invoice.dueDate && ` · ${getText('vence', 'due')} ${dateFmt(invoice.dueDate)}`}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                    <span className="text-sm font-bold">{fmt.format(invoice.total)}</span>
+                    {isCollectable && (
+                      <button
+                        type="button"
+                        onClick={() => generatePaymentLink(invoice)}
+                        disabled={generatingLink === invoice.id}
+                        className="rounded-full px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40"
+                        style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+                      >
+                        {generatingLink === invoice.id
+                          ? getText('Generando…', 'Generating…')
+                          : getText('Cobrar con Stripe', 'Charge with Stripe')}
+                      </button>
+                    )}
+                    {isCollectable && (
+                      <button
+                        type="button"
+                        onClick={() => markPaid(invoice)}
+                        disabled={markingPaid === invoice.id}
+                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-semibold disabled:opacity-40"
+                      >
+                        {getText('Marcar pagada', 'Mark paid')}
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <p className="mt-0.5 text-xs text-gray-500 dark:text-neutral-400">
-                  {invoice.customer?.name ?? '—'} · {dateFmt(invoice.issueDate)}
-                  {invoice.dueDate && ` · ${getText('vence', 'due')} ${dateFmt(invoice.dueDate)}`}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-3">
-                <span className="text-sm font-bold">{fmt.format(invoice.total)}</span>
-                {(invoice.status === 'Pending' || invoice.status === 'Overdue') && (
-                  <button
-                    type="button"
-                    onClick={() => markPaid(invoice)}
-                    disabled={markingPaid === invoice.id}
-                    className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-semibold disabled:opacity-40"
-                  >
-                    {getText('Marcar pagada', 'Mark paid')}
-                  </button>
+
+                {paymentLink && (
+                  <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl bg-gray-50 dark:bg-neutral-800/60 px-3 py-2">
+                    <span className="min-w-0 flex-1 truncate text-xs text-gray-500 dark:text-neutral-400">{paymentLink}</span>
+                    <button
+                      type="button"
+                      onClick={() => copyLink(invoice.id, paymentLink)}
+                      className="shrink-0 rounded-full border border-gray-300 dark:border-neutral-700 px-2.5 py-1 text-[11px] font-semibold"
+                    >
+                      {copiedId === invoice.id ? getText('¡Copiado!', 'Copied!') : getText('Copiar link', 'Copy link')}
+                    </button>
+                    {whatsappHref && (
+                      <a
+                        href={whatsappHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="shrink-0 rounded-full bg-green-600 px-2.5 py-1 text-[11px] font-semibold text-white"
+                      >
+                        WhatsApp
+                      </a>
+                    )}
+                  </div>
                 )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

@@ -689,3 +689,53 @@ function sourceGreeting(source: string): { title: string; body: string } {
       }
   }
 }
+
+/**
+ * Link de cobro real (Stripe Checkout) para una factura — disparado por maalca-api cuando el
+ * negocio genera el link desde el dashboard (ver InvoiceService.CreateInvoiceCheckoutAsync).
+ * "Marcar pagada" manual (cash/transferencia/Zelle) no pasa por acá, sigue siendo un flujo
+ * aparte sin email automático.
+ */
+export async function sendInvoicePaymentLinkEmail(params: {
+  customerEmail: string;
+  customerName: string | null;
+  businessName: string;
+  invoiceNumber: string;
+  total: number;
+  currency: string;
+  paymentLink: string;
+}): Promise<boolean> {
+  if (!resend) {
+    console.log('[Resend] Skipped invoice payment link — RESEND_API_KEY not set');
+    return false;
+  }
+
+  const greeting = params.customerName ? `Hola, ${params.customerName}` : 'Hola';
+  const brandColor = '#C8102E';
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: params.customerEmail,
+      subject: `Factura ${params.invoiceNumber} — ${params.businessName}`,
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
+          <p style="font-size: 15px; line-height: 1.6;">${greeting},</p>
+          <p style="font-size: 15px; line-height: 1.6;"><strong>${params.businessName}</strong> te envió una factura por cobrar:</p>
+          <p style="font-size: 15px; line-height: 1.6; background: #fafafa; border-radius: 8px; padding: 12px 16px;">
+            <strong>Factura ${params.invoiceNumber}</strong><br/>
+            Total: ${params.currency} ${params.total.toFixed(2)}
+          </p>
+          <div style="text-align: center; margin: 20px 0;">
+            <a href="${params.paymentLink}" style="display: inline-block; background: ${brandColor}; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Pagar ahora</a>
+          </div>
+          <p style="font-size: 13px; color: #737373;">Pago seguro procesado por Stripe.</p>
+        </div>
+      `,
+    });
+    return true;
+  } catch (err: unknown) {
+    console.error('[Resend] Invoice payment link failed:', err instanceof Error ? err.message : String(err));
+    return false;
+  }
+}
