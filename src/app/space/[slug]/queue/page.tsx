@@ -5,7 +5,7 @@ import { QueueContent, type QueueEntryRow } from './QueueContent';
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 interface SpaceResponse {
-  business: { id: string; businessType: string };
+  business: { id: string; businessType: string; modulosActivos: string[] };
 }
 
 interface ServiceRow {
@@ -19,10 +19,10 @@ interface TeamMemberRow {
   isActive: boolean;
 }
 
-// Fila de espera para walk-ins — solo Barbería por ahora (el único tipo de negocio con clientes
-// que llegan sin cita y esperan turno). Mismo criterio de gating que Cocina/POS en
-// SpaceSidebar/SpaceMobileNav, repetido acá para que la URL no sea alcanzable a mano si el
-// negocio no es Barber.
+// Fila de espera para walk-ins. QueueEntry es genérico (serviceId + staff asignado) -- no hay
+// nada específico de barbería en el dato, solo en el copy ("Barbero preferido"). Antes: solo
+// Barber (businessType hardcoded), dejaba el módulo inalcanzable aunque /ops lo activara para
+// otro tipo de negocio walk-in. Gate real ahora es el módulo activo, igual que Facturación.
 export default async function QueuePage({
   params,
 }: {
@@ -41,7 +41,7 @@ export default async function QueuePage({
   if (!spaceRes.ok) throw new Error(`Failed to load space: ${spaceRes.status}`);
 
   const space: SpaceResponse = await spaceRes.json();
-  if (space.business.businessType.toLowerCase() !== 'barber') redirect(`/space/${slug}`);
+  if (!space.business.modulosActivos.includes('queue')) redirect(`/space/${slug}`);
 
   let entries: QueueEntryRow[] = [];
   let services: ServiceRow[] = [];

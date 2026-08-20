@@ -5,7 +5,7 @@ import { ProposalsContent, type ProposalRow } from './ProposalsContent';
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 interface SpaceResponse {
-  business: { id: string; businessType: string; currency?: 'USD' | 'DOP' };
+  business: { id: string; businessType: string; currency?: 'USD' | 'DOP'; modulosActivos: string[] };
 }
 
 // Propuestas con firma/aceptación pública — Servicios/Profesionales (task #194). El cliente
@@ -29,7 +29,10 @@ export default async function ProposalsPage({
   if (!spaceRes.ok) throw new Error(`Failed to load space: ${spaceRes.status}`);
 
   const space: SpaceResponse = await spaceRes.json();
-  if (!['service', 'professional'].includes(space.business.businessType.toLowerCase())) {
+  // Proposal es genérico (título + monto + firma), sin nada atado a service/professional. Antes:
+  // businessType hardcoded dejaba el módulo inalcanzable aunque /ops lo activara para otro tipo
+  // de negocio. Gate real ahora es el módulo activo, igual que Facturación.
+  if (!space.business.modulosActivos.includes('proposals')) {
     redirect(`/space/${slug}`);
   }
 

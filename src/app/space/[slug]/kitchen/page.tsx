@@ -6,7 +6,7 @@ import type { OrderRow } from '../orders/OrdersContent';
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 interface SpaceResponse {
-  business: { id: string; plan: 'free' | 'entrepreneur'; businessType: string };
+  business: { id: string; plan: 'free' | 'entrepreneur'; businessType: string; modulosActivos: string[] };
 }
 
 // Misma carga que orders/page.tsx (mismo endpoint, mismo shape de OrderRow) — el Kitchen
@@ -31,10 +31,11 @@ export default async function KitchenPage({
 
   const space: SpaceResponse = await spaceRes.json();
 
-  // Cocina solo aplica a negocios de comida — mismo filtro que en SpaceSidebar/SpaceMobileNav,
-  // repetido acá para que la ruta no sea alcanzable escribiendo la URL a mano si el negocio no
-  // es Restaurant (ej. una barbería o retail no tienen nada que "preparar" en cocina).
-  if (space.business.businessType.toLowerCase() !== 'restaurant') redirect(`/space/${slug}/orders`);
+  // Cocina corre sobre el mismo Order/OrderStatus que Pedidos -- no hay nada específico de
+  // restaurante en el dato, es un panel de picking/preparación genérico. Antes: solo restaurant
+  // (businessType hardcoded), lo que dejaba el módulo inalcanzable aunque /ops lo activara para
+  // otro tipo de negocio. Gate real ahora es el módulo activo, igual que Facturación.
+  if (!space.business.modulosActivos.includes('kitchen')) redirect(`/space/${slug}/orders`);
 
   let orders: OrderRow[] = [];
   try {
