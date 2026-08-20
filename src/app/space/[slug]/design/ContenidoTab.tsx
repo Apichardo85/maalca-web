@@ -4,6 +4,8 @@ import { useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { parseApiError } from '@/lib/api-errors';
 import { TrialExpiredNotice } from '@/components/space/TrialExpiredNotice';
+import { RichTextEditor } from '@/components/ui/RichTextEditor';
+import { stripRichTextToPlain } from '@/lib/sanitize-html';
 import type { ProcessStepDto, FaqEntryDto, HorarioDayDto, SectionVisibilityDto } from './types';
 
 const MAX_GALLERY_IMAGES = 12;
@@ -521,13 +523,12 @@ function ListSection<T extends object>({
                     maxLength={150}
                     className="w-full rounded-md border border-gray-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 px-2 py-1.5 text-sm text-gray-900 dark:text-white"
                   />
-                  <textarea
+                  <RichTextEditor
                     value={editB}
-                    onChange={(e) => setEditB(e.target.value)}
+                    onChange={setEditB}
                     placeholder={fieldBLabel}
                     maxLength={500}
-                    rows={2}
-                    className="w-full rounded-md border border-gray-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 px-2 py-1.5 text-sm text-gray-900 dark:text-white"
+                    getText={getText}
                   />
                   <div className="flex gap-1.5">
                     <button
@@ -548,7 +549,7 @@ function ListSection<T extends object>({
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-gray-900 dark:text-white">{item[fieldAKey] as string}</p>
-                    <p className="mt-0.5 text-xs text-gray-500 dark:text-neutral-400">{item[fieldBKey] as string}</p>
+                    <p className="mt-0.5 text-xs text-gray-500 dark:text-neutral-400">{stripRichTextToPlain(item[fieldBKey] as string)}</p>
                   </div>
                   <div className="flex flex-shrink-0 items-center gap-1">
                     <button
@@ -612,13 +613,12 @@ function ListSection<T extends object>({
           maxLength={150}
           className="w-full rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500"
         />
-        <textarea
+        <RichTextEditor
           value={newB}
-          onChange={(e) => setNewB(e.target.value)}
+          onChange={setNewB}
           placeholder={fieldBLabel}
           maxLength={500}
-          rows={2}
-          className="w-full rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500"
+          getText={getText}
         />
         <button
           onClick={addItem}

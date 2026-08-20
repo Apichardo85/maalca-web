@@ -16,6 +16,7 @@ import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
 import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
 import { trackCanalClick } from '@/lib/public-events';
 import { AboutSection } from '@/components/public/AboutSection';
+import { sanitizeRichText } from '@/lib/sanitize-html';
 import { ClampedDescription } from '@/components/public/ClampedDescription';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
@@ -367,9 +368,11 @@ function ProcessSection({
               {step.title}
             </p>
             {step.description && (
-              <p style={{ margin: '6px 0 0', fontSize: '12px', lineHeight: 1.5, color: MUTED }}>
-                {step.description}
-              </p>
+              <div
+                className="prose-sm whitespace-pre-line [&_h2]:text-[13px] [&_h2]:font-semibold [&_h3]:text-[12px] [&_h3]:font-semibold [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_a]:underline"
+                style={{ margin: '6px 0 0', fontSize: '12px', lineHeight: 1.5, color: MUTED }}
+                dangerouslySetInnerHTML={{ __html: sanitizeRichText(step.description) }}
+              />
             )}
           </div>
         ))}
@@ -600,9 +603,11 @@ function FaqSection({
             <summary style={{ cursor: 'pointer', listStyle: 'none', fontWeight: 600, color: INK, fontSize: '14px' }}>
               {entry.question}
             </summary>
-            <p style={{ margin: '8px 0 0', fontSize: '13px', lineHeight: 1.6, color: MUTED }}>
-              {entry.answer}
-            </p>
+            <div
+              className="prose-sm whitespace-pre-line [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:text-[13px] [&_h3]:font-semibold [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_a]:underline"
+              style={{ margin: '8px 0 0', fontSize: '13px', lineHeight: 1.6, color: MUTED }}
+              dangerouslySetInnerHTML={{ __html: sanitizeRichText(entry.answer) }}
+            />
           </details>
         ))}
       </div>

@@ -15,6 +15,7 @@ import type { FaqEntry, ProcessStep, PublicTemplateProps } from '@/lib/templates
 import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
 import { trackCanalClick } from '@/lib/public-events';
 import { PublicFooter } from '@/components/public/PublicFooter';
+import { sanitizeRichText } from '@/lib/sanitize-html';
 import { PublicBookingSection } from '@/components/public/booking/PublicBookingSection';
 import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
@@ -410,7 +411,13 @@ function ProcessSection({
               {i + 1}
             </span>
             <p className="mt-3 font-semibold">{step.title}</p>
-            <p className="mt-1 text-sm" style={{ color: STONE }}>{step.description}</p>
+            {step.description && (
+              <div
+                className="prose-sm mt-1 whitespace-pre-line text-sm [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:text-xs [&_h3]:font-semibold [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_a]:underline"
+                style={{ color: STONE }}
+                dangerouslySetInnerHTML={{ __html: sanitizeRichText(step.description) }}
+              />
+            )}
           </li>
         ))}
       </ol>
@@ -463,7 +470,11 @@ function FaqSection({
             <summary className="cursor-pointer list-none font-medium marker:content-none">
               {entry.question}
             </summary>
-            <p className="mt-2 text-sm leading-relaxed" style={{ color: STONE }}>{entry.answer}</p>
+            <div
+              className="prose-sm mt-2 whitespace-pre-line text-sm leading-relaxed [&_h2]:text-sm [&_h2]:font-semibold [&_h3]:text-xs [&_h3]:font-semibold [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_a]:underline"
+              style={{ color: STONE }}
+              dangerouslySetInnerHTML={{ __html: sanitizeRichText(entry.answer) }}
+            />
           </details>
         ))}
       </div>
