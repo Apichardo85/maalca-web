@@ -306,9 +306,10 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
                 {items.map((item, i) => {
                   const imageUrl = item.imageUrl ?? item.image_url;
                   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
+                  const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
                   const isOpen = openItems.has(item.id);
                   const itemWaLink = waRaw
-                    ? `https://wa.me/${waRaw}?text=${encodeURIComponent(`Hola ${business.name}, me interesa: ${item.name}`)}`
+                    ? `https://wa.me/${waRaw}?text=${encodeURIComponent(`Hola ${business.name}, me interesa: ${displayName}`)}`
                     : null;
 
                   return (
@@ -322,7 +323,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
                         <span className={`${plexMono.className} text-sm`} style={{ color: STONE }}>
                           {String(i + 1).padStart(2, '0')}
                         </span>
-                        <span className="text-[15px] font-medium">{item.name}</span>
+                        <span className="text-[15px] font-medium">{displayName}</span>
                         <span className="h-px flex-1 border-b border-dotted" style={{ borderColor: '#c9c5ba' }} />
                         {item.price != null && (
                           <span className={`${plexMono.className} text-sm`}>{formatPrice(item.price, business.currency)}</span>
@@ -336,7 +337,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={imageUrl}
-                              alt={item.name}
+                              alt={displayName}
                               className="h-32 w-full shrink-0 rounded-xl object-cover sm:w-44"
                             />
                           )}

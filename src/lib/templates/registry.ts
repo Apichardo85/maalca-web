@@ -66,6 +66,8 @@ export interface PublicTemplateProps {
   items: Array<{
     id: string;
     name: string;
+    /** English translation of `name`, shown to visitors with English selected. */
+    nameEn?: string | null;
     description?: string | null;
     price?: number | null;
     category?: string | null;

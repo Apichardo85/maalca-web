@@ -438,6 +438,7 @@ function ProductCard({
 }) {
   const imageUrl = item.imageUrl ?? item.image_url;
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
+  const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
 
   return (
     <div
@@ -459,7 +460,7 @@ function ProductCard({
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={imageUrl}
-            alt={item.name}
+            alt={displayName}
             className="h-full w-full object-cover"
           />
         ) : (
@@ -474,7 +475,7 @@ function ProductCard({
           className={robotoSlab.className}
           style={{ margin: 0, fontWeight: 700, fontSize: '13px', color: INK, lineHeight: 1.3 }}
         >
-          {item.name}
+          {displayName}
         </p>
         {description && (
           <ClampedDescription
@@ -495,11 +496,11 @@ function ProductCard({
           <button
             onClick={() => addToCart({
               id: item.id,
-              name: item.name,
+              name: displayName,
               price: item.price ?? 0,
               image: imageUrl ?? undefined,
             })}
-            aria-label={`${getText('Agregar', 'Add')} ${item.name}`}
+            aria-label={`${getText('Agregar', 'Add')} ${displayName}`}
             className="block w-full rounded-full py-1.5 text-center text-xs font-semibold text-white transition hover:opacity-90"
             style={{ backgroundColor: accent, marginTop: 'auto' }}
           >
@@ -509,7 +510,7 @@ function ProductCard({
           <div className="flex items-center justify-between gap-1" style={{ marginTop: 'auto' }}>
             <button
               onClick={() => removeFromCart(item.id)}
-              aria-label={`${getText('Quitar', 'Remove')} ${item.name}`}
+              aria-label={`${getText('Quitar', 'Remove')} ${displayName}`}
               className="flex h-7 w-7 items-center justify-center rounded-md text-sm font-bold"
               style={{ backgroundColor: '#f0ede4', color: INK }}
             >
@@ -521,11 +522,11 @@ function ProductCard({
             <button
               onClick={() => addToCart({
                 id: item.id,
-                name: item.name,
+                name: displayName,
                 price: item.price ?? 0,
                 image: imageUrl ?? undefined,
               })}
-              aria-label={`${getText('Agregar', 'Add')} ${item.name}`}
+              aria-label={`${getText('Agregar', 'Add')} ${displayName}`}
               className="flex h-7 w-7 items-center justify-center rounded-md text-sm font-bold text-white"
               style={{ backgroundColor: accent }}
             >

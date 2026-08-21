@@ -207,7 +207,7 @@ export function RestaurantTemplate({
   }
 
   function matchesQuery(item: (typeof items)[number]): boolean {
-    return matchesCatalogQuery(query, [item.name, item.category]);
+    return matchesCatalogQuery(query, [item.name, item.nameEn, item.category]);
   }
 
   function itemsFor(tab: string): typeof items {
@@ -406,6 +406,7 @@ export function RestaurantTemplate({
             {destacados.map((item) => {
               const imageUrl = item.imageUrl ?? item.image_url;
               const isPopular = item.popular;
+              const destacadoName = language === 'en' && item.nameEn ? item.nameEn : item.name;
               return (
                 <div
                   key={item.id}
@@ -419,7 +420,7 @@ export function RestaurantTemplate({
                   <div style={{ position: 'relative', height: '110px', backgroundColor: '#f2e9db' }}>
                     {imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={imageUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={imageUrl} alt={destacadoName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
                       <div className="flex h-full items-center justify-center text-2xl">🍽️</div>
                     )}
@@ -441,7 +442,7 @@ export function RestaurantTemplate({
                   </div>
                   <div style={{ padding: '8px 10px' }}>
                     <p className={fraunces.className} style={{ margin: 0, fontSize: '13px', fontWeight: 600, fontStyle: 'italic', color: CAFE, lineHeight: 1.3 }}>
-                      {item.name}
+                      {destacadoName}
                     </p>
                     {item.price != null && (
                       <p style={{ margin: '4px 0 0', fontSize: '13px', fontWeight: 700, color: CAFE }}>
@@ -684,7 +685,7 @@ export function RestaurantTemplate({
                         cartQty={cartQty}
                         onAdd={() => addToCart({
                           id: item.id,
-                          name: item.name,
+                          name: language === 'en' && item.nameEn ? item.nameEn : item.name,
                           price: item.price ?? 0,
                           image: item.imageUrl ?? item.image_url ?? undefined,
                         })}
@@ -712,7 +713,7 @@ export function RestaurantTemplate({
                   cartQty={cartQty}
                   onAdd={() => addToCart({
                     id: item.id,
-                    name: item.name,
+                    name: language === 'en' && item.nameEn ? item.nameEn : item.name,
                     price: item.price ?? 0,
                     image: item.imageUrl ?? item.image_url ?? undefined,
                   })}
@@ -955,6 +956,7 @@ function MenuCard({
 }) {
   const imageUrl = item.imageUrl ?? item.image_url;
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
+  const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
 
   return (
@@ -974,7 +976,7 @@ function MenuCard({
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={imageUrl}
-            alt={item.name}
+            alt={displayName}
             style={{
               display: 'block',
               width: '120px',
@@ -1057,7 +1059,7 @@ function MenuCard({
                 lineHeight: 1.3,
               }}
             >
-              {item.name}
+              {displayName}
             </p>
             {item.flags && item.flags.length > 0 && (
               <div style={{ display: 'flex', gap: '3px' }} title={item.flags.join(', ')}>
@@ -1110,7 +1112,7 @@ function MenuCard({
           {cartQty === 0 ? (
             <button
               onClick={onAdd}
-              aria-label={`${getText('Agregar', 'Add')} ${item.name}`}
+              aria-label={`${getText('Agregar', 'Add')} ${displayName}`}
               style={{
                 backgroundColor: accent,
                 color: '#ffffff',
@@ -1137,7 +1139,7 @@ function MenuCard({
             >
               <button
                 onClick={onRemove}
-                aria-label={`${getText('Quitar', 'Remove')} ${item.name}`}
+                aria-label={`${getText('Quitar', 'Remove')} ${displayName}`}
                 style={{
                   width: '28px',
                   height: '28px',
@@ -1168,7 +1170,7 @@ function MenuCard({
               </span>
               <button
                 onClick={onAdd}
-                aria-label={`${getText('Agregar', 'Add')} ${item.name}`}
+                aria-label={`${getText('Agregar', 'Add')} ${displayName}`}
                 style={{
                   width: '28px',
                   height: '28px',

@@ -320,7 +320,9 @@ export function MenuBoard({
           </div>
         ) : (
           <div className="grid h-full w-full grid-cols-3 grid-rows-2 gap-6">
-            {slide.items.map((item) => (
+            {slide.items.map((item) => {
+              const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
+              return (
               <div
                 key={item.id}
                 className={`flex flex-col overflow-hidden rounded-2xl ${c.card}`}
@@ -339,7 +341,7 @@ export function MenuBoard({
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={item.image_url}
-                      alt={item.name}
+                      alt={displayName}
                       className="absolute inset-0 h-full w-full object-cover"
                     />
                   ) : (
@@ -347,13 +349,14 @@ export function MenuBoard({
                   )}
                 </div>
                 <div className="flex items-center justify-between gap-3 px-5 py-4">
-                  <span className="text-2xl font-bold leading-tight">{item.name}</span>
+                  <span className="text-2xl font-bold leading-tight">{displayName}</span>
                   <span className="text-2xl font-extrabold whitespace-nowrap" style={{ color: business.primaryColor }}>
                     {formatPrice(item.price, business.currency)}
                   </span>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
         </TransitionSlide>

@@ -5,13 +5,15 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useOpsCanManage } from '../../OpsRoleContext';
 import type { OpsAffiliate, OpsNote } from '../../types';
-import { MODULE_CATALOG } from '@/lib/module-catalog';
+import { MODULE_CATALOG, isModuleRelevant } from '@/lib/module-catalog';
 
 // Mismo catálogo que ModulesContent.tsx (la vitrina del dueño en /space) — un módulo nuevo se
 // define una sola vez en src/lib/module-catalog.ts y aparece acá automáticamente, con
 // descripción incluida. /ops es admin-only y siempre en español, por eso usa mod.es/descEs
-// directo en vez de getText. A propósito NO se filtra por tipo de negocio como en la vitrina:
-// el admin puede prender cualquier token por encima de lo que el plan/tipo normalmente daría.
+// directo en vez de getText. Por defecto SÍ se filtra por tipo de negocio (igual que la
+// vitrina) para no mostrar ruido tipo "Cocina" en un afiliado de Servicios — pero el admin
+// puede tocar "Mostrar todos" para ver y prender cualquier token por encima de lo que el
+// plan/tipo normalmente daría (override deliberado, no un bug).
 // Dashboard/Diseñar/Identidad/Módulos no están acá — siempre visibles en el sidebar, no son
 // apagables.
 const MODULE_TOKENS = MODULE_CATALOG;
@@ -36,6 +38,13 @@ export function NegocioDetail({
   );
   const [savingModules, setSavingModules] = useState(false);
   const [modulesDirty, setModulesDirty] = useState(false);
+  const [showAllModules, setShowAllModules] = useState(false);
+
+  const businessTypeKey = (a.businessType ?? '').toLowerCase();
+  const visibleModules = showAllModules
+    ? MODULE_TOKENS
+    : MODULE_TOKENS.filter((mod) => isModuleRelevant(mod, businessTypeKey));
+  const hiddenCount = MODULE_TOKENS.length - visibleModules.length;
 
   function toggleModule(token: string) {
     setSelectedModules((prev) => {
@@ -215,12 +224,23 @@ export function NegocioDetail({
             </button>
           )}
         </div>
-        <p className="mt-1 text-xs text-gray-400 dark:text-neutral-500">
-          Lo que este negocio ve en su sidebar — puedes prender o apagar cualquiera, por encima
-          de lo que su plan normalmente incluiría.
-        </p>
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs text-gray-400 dark:text-neutral-500">
+            Lo que este negocio ve en su sidebar — puedes prender o apagar cualquiera, por encima
+            de lo que su plan normalmente incluiría.
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowAllModules((v) => !v)}
+            className="shrink-0 text-xs font-medium text-gray-500 dark:text-neutral-400 underline decoration-dotted underline-offset-2 hover:text-[#C8102E]"
+          >
+            {showAllModules
+              ? 'Mostrar solo relevantes'
+              : `Mostrar todos los módulos${hiddenCount > 0 ? ` (+${hiddenCount})` : ''}`}
+          </button>
+        </div>
         <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {MODULE_TOKENS.map((mod) => {
+          {visibleModules.map((mod) => {
             const active = selectedModules.has(mod.token);
             return (
               <button

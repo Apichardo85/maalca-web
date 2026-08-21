@@ -18,6 +18,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 interface Item {
   id: string;
   name: string;
+  nameEn: string | null;
   description: string | null;
   descriptionEn: string | null;
   category: string | null;
@@ -86,6 +87,7 @@ export default function EditForm({ slug, item, businessType, from, inventoryItem
 
   const [form, setForm] = useState({
     name:          item.name,
+    nameEn:        item.nameEn ?? '',
     description:   item.description ?? '',
     descriptionEn: item.descriptionEn ?? '',
     category:      item.category ?? '',
@@ -224,6 +226,20 @@ export default function EditForm({ slug, item, businessType, from, inventoryItem
               required
               maxLength={80}
               placeholder={namePlaceholder}
+              className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-neutral-500 focus:border-neutral-400 dark:focus:border-neutral-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              Name <span className="text-neutral-400">(EN)</span>
+            </label>
+            <input
+              type="text"
+              value={form.nameEn}
+              onChange={set('nameEn')}
+              maxLength={80}
+              placeholder="Optional — shown to visitors with English selected"
               className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-neutral-500 focus:border-neutral-400 dark:focus:border-neutral-500 focus:outline-none"
             />
           </div>

@@ -42,6 +42,7 @@ export default async function EditCatalogItemPage({ params, searchParams }: Page
   const item = {
     id:          String(raw.id),
     name:        String(raw.name),
+    nameEn:      raw.nameEn ?? null,
     description: raw.description ?? null,
     descriptionEn: raw.descriptionEn ?? null,
     category:    raw.category ?? null,

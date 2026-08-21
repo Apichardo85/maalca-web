@@ -495,6 +495,7 @@ function ServiceCard({
 }) {
   const imageUrl = item.imageUrl ?? item.image_url;
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
+  const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
 
   return (
     <div
@@ -509,7 +510,7 @@ function ServiceCard({
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={imageUrl}
-          alt={item.name}
+          alt={displayName}
           style={{ display: 'block', width: '100%', height: '110px', objectFit: 'cover' }}
         />
       ) : (
@@ -543,7 +544,7 @@ function ServiceCard({
             textTransform: 'uppercase',
           }}
         >
-          {item.name}
+          {displayName}
         </p>
 
         {description && (
@@ -591,7 +592,7 @@ function ServiceCard({
           <button
             type="button"
             onClick={() => onReserve(item.id)}
-            aria-label={`${getText('Reservar', 'Book')} — ${item.name}`}
+            aria-label={`${getText('Reservar', 'Book')} — ${displayName}`}
             title={getText('Reservar', 'Book')}
             style={{
               display: 'flex',
