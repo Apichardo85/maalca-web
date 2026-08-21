@@ -353,8 +353,8 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
         <h1 className="mt-1 text-2xl font-bold">{getText('Agenda', 'Agenda')}</h1>
         <p className="mt-2 max-w-lg text-sm text-gray-500 dark:text-neutral-400">
           {getText(
-            'Citas agendadas manualmente (por teléfono, walk-in, etc.). La reserva pública desde tu página todavía no está conectada aquí.',
-            "Appointments booked manually (phone, walk-in, etc.). Public booking from your page isn't wired here yet.",
+            'Todas tus citas — agendadas manualmente (teléfono, walk-in) o reservadas por el cliente desde tu página pública.',
+            'All your appointments — booked manually (phone, walk-in) or reserved by the customer from your public page.',
           )}
         </p>
 
