@@ -4,6 +4,7 @@ import { canAddBusiness, type Plan } from '@/lib/plan-limits';
 import type { BusinessType } from '@/lib/templates/registry';
 import { SpaceSidebar } from '@/components/space/SpaceSidebar';
 import { SpaceMobileNav } from '@/components/space/SpaceMobileNav';
+import { SupportModeBanner } from '@/components/space/SupportModeBanner';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -35,7 +36,7 @@ export default async function SpaceSlugLayout({
   if (res.status === 403) redirect('/');
   if (!res.ok) throw new Error(`Failed to load space: ${res.status}`);
 
-  const { business, role } = await res.json();
+  const { business, role, isImpersonation, impersonationExpiresAt } = await res.json();
   const businessType = (business.businessType as string).toLowerCase() as BusinessType;
 
   // Needed so SpaceMobileNav's drawer can show the real business switcher on
@@ -68,6 +69,9 @@ export default async function SpaceSlugLayout({
           localStorage), y este wrapper (server component, no puede leer ese estado directo) solo
           la sigue. El fallback 15rem es para el primer paint antes de que el useEffect corra. */}
       <div className="flex-1 min-w-0 transition-[padding] duration-200 md:pl-[var(--space-sidebar-w,15rem)]">
+        {isImpersonation && (
+          <SupportModeBanner businessName={business.name} expiresAt={impersonationExpiresAt} />
+        )}
         <SpaceMobileNav
           slug={slug}
           businessName={business.name}
