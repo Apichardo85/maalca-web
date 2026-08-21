@@ -58,5 +58,48 @@ export default async function EditCatalogItemPage({ params, searchParams }: Page
     durationMinutes: raw.durationMinutes ?? null,
   };
 
-  return <EditForm slug={slug} item={item} businessType={businessType} from={from} />;
+  // Receta (Restaurante) — solo carga si aplica, para no pagar el round-trip en los demás tipos
+  // de negocio. Si el módulo de inventario aún no está activo o falla, la receta simplemente
+  // queda vacía (RecipeEditor lo maneja como "sin ingredientes disponibles").
+  let inventoryItems: { id: string; name: string; unitPrice?: number }[] = [];
+  let recipe: { inventoryItemId: string; inventoryItemName: string; quantity: number }[] = [];
+  if (businessType === 'Restaurant') {
+    const [invRes, recipeRes] = await Promise.all([
+      fetch(`${API}/api/affiliates/${affiliate.id}/inventory?page=1`, {
+        headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': affiliate.id },
+        cache: 'no-store',
+      }),
+      fetch(`${API}/api/affiliates/${affiliate.id}/products/${id}/ingredients`, {
+        headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': affiliate.id },
+        cache: 'no-store',
+      }),
+    ]);
+    if (invRes.ok) {
+      const page = await invRes.json().catch(() => null);
+      inventoryItems = Array.isArray(page?.data)
+        ? page.data.map((i: { id: string; name: string; unitPrice?: number }) => ({ id: i.id, name: i.name, unitPrice: i.unitPrice }))
+        : [];
+    }
+    if (recipeRes.ok) {
+      const rows = await recipeRes.json().catch(() => []);
+      recipe = Array.isArray(rows)
+        ? rows.map((r: { inventoryItemId: string; inventoryItemName: string; quantity: number }) => ({
+            inventoryItemId: r.inventoryItemId,
+            inventoryItemName: r.inventoryItemName,
+            quantity: r.quantity,
+          }))
+        : [];
+    }
+  }
+
+  return (
+    <EditForm
+      slug={slug}
+      item={item}
+      businessType={businessType}
+      from={from}
+      inventoryItems={inventoryItems}
+      initialRecipe={recipe}
+    />
+  );
 }

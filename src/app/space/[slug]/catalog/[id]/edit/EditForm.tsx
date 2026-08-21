@@ -8,6 +8,7 @@ import { TrialExpiredNotice } from '@/components/space/TrialExpiredNotice';
 import { ImageGalleryEditor } from '@/components/space/catalog/ImageGalleryEditor';
 import { MealPeriodEditor } from '@/components/space/catalog/MealPeriodEditor';
 import { WeekDayEditor } from '@/components/space/catalog/WeekDayEditor';
+import { RecipeEditor, type RecipeLine, type RecipeInventoryOption } from '@/components/space/catalog/RecipeEditor';
 import type { MealPeriod, WeekDay } from '@/lib/types';
 import { parseApiError } from '@/lib/api-errors';
 import { useToast } from '@/hooks/useToast';
@@ -40,6 +41,10 @@ interface Props {
   businessType: string | null;
   /** Where "Volver" should go back to — set via ?from= by the link that got us here. */
   from?: string;
+  /** Inventory items available to link as ingredients — only populated for Restaurant. */
+  inventoryItems?: RecipeInventoryOption[];
+  /** Receta ya guardada para este plato — solo Restaurante. */
+  initialRecipe?: RecipeLine[];
 }
 
 const FLAG_OPTIONS = [
@@ -59,7 +64,7 @@ const NAME_PLACEHOLDERS: Record<string, { es: string; en: string }> = {
 };
 const DEFAULT_NAME_PLACEHOLDER = { es: 'Ej. Nombre del item', en: 'E.g. Item name' };
 
-export default function EditForm({ slug, item, businessType, from }: Props) {
+export default function EditForm({ slug, item, businessType, from, inventoryItems = [], initialRecipe = [] }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const router = useRouter();
@@ -99,6 +104,8 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
   const [durationMinutes, setDurationMinutes] = useState(
     item.durationMinutes != null ? String(item.durationMinutes) : '',
   );
+  const [recipe, setRecipe] = useState<RecipeLine[]>(initialRecipe);
+  const [recipeError, setRecipeError] = useState<string | null>(null);
 
   const set = (k: keyof typeof form) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -131,6 +138,20 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
         body: JSON.stringify(body),
       });
       if (res.ok) {
+        if (isRestaurant) {
+          const recipeRes = await fetch(`/api/space/${slug}/catalog/${item.id}/ingredients`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: recipe.map((l) => ({ inventoryItemId: l.inventoryItemId, quantity: l.quantity })) }),
+          });
+          if (!recipeRes.ok) {
+            const data = await recipeRes.json().catch(() => ({}));
+            const parsed = parseApiError(data, getText('No pudimos guardar la receta.', "We couldn't save the recipe."));
+            setRecipeError(parsed.message);
+            toast.error(parsed.message);
+            return;
+          }
+        }
         toast.success(getText('Cambios guardados.', 'Changes saved.'));
         router.push(`/space/${slug}/catalog`);
       } else {
@@ -337,6 +358,22 @@ export default function EditForm({ slug, item, businessType, from }: Props) {
                   />
                   <span className="text-sm text-neutral-700 dark:text-neutral-300">{getText('Popular 🔥', 'Popular 🔥')}</span>
                 </label>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  {getText('Receta (Inventario)', 'Recipe (Inventory)')}
+                </label>
+                <RecipeEditor inventoryOptions={inventoryItems} value={recipe} onChange={setRecipe} />
+                <p className="mt-2 text-xs text-neutral-400">
+                  {getText(
+                    'Ligar ingredientes aquí hace que vender este plato descuente el stock real de Inventario.',
+                    'Linking ingredients here makes selling this dish decrement real Inventory stock.',
+                  )}
+                </p>
+                {recipeError && (
+                  <p className="mt-2 rounded-lg bg-red-50 dark:bg-red-900/20 px-3 py-2 text-sm text-red-700 dark:text-red-400">{recipeError}</p>
+                )}
               </div>
             </div>
           )}
