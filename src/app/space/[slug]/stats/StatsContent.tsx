@@ -1,11 +1,75 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  Legend,
+} from 'recharts';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { KpiTile, type SpaceKpis } from '@/components/space/KpiTile';
 import type { Plan } from '@/lib/plan-limits';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { SOCIAL_ICON_BY_TIPO } from '@/components/public/SocialIcons';
+
+// Same shape as maalca-api's BusinessReportsResponse (ReportsDtos.cs) — reportes ampliados
+// (ventas por día/canal/método de pago, top productos, clientes, facturas, equipo) que
+// complementan a DetailedMetrics de arriba (visitas/QR/canales/conversión).
+export interface RevenueDay {
+  date: string;
+  revenue: number;
+  ordersCount: number;
+}
+export interface TopItem {
+  name: string;
+  qty: number;
+  revenue: number;
+}
+export interface ChannelBreakdown {
+  channel: string;
+  revenue: number;
+  count: number;
+}
+export interface PaymentMethodBreakdown {
+  method: string;
+  count: number;
+  revenue: number;
+}
+export interface CustomerSegment {
+  newCustomers: number;
+  returningCustomers: number;
+}
+export interface InvoiceStatusBreakdown {
+  status: string;
+  count: number;
+  amount: number;
+}
+export interface StaffActivity {
+  name: string;
+  count: number;
+}
+export interface BusinessReports {
+  revenueByDay: RevenueDay[];
+  topItems: TopItem[];
+  byChannel: ChannelBreakdown[];
+  byPaymentMethod: PaymentMethodBreakdown[];
+  customers: CustomerSegment;
+  invoiceStatus: InvoiceStatusBreakdown[];
+  staffActivity: StaffActivity[];
+  currency: string;
+}
+
+const PIE_COLORS = ['#C8102E', '#0EA5E9', '#16A34A', '#9333EA', '#F59E0B', '#EC4899', '#14B8A6', '#6366F1'];
 
 // Same shape as maalca-api's DetailedMetricsResponse/DailyCountDto/CanalBreakdownDto
 // (MetricsDtos.cs), serialized camelCase by the default System.Text.Json policy.
@@ -39,10 +103,14 @@ export interface DetailedMetrics {
 }
 
 interface Props {
+  slug: string;
   kpis: SpaceKpis;
   plan: Plan;
   detailed: DetailedMetrics | null;
+  reports: BusinessReports | null;
 }
+
+const RANGE_OPTIONS = [7, 30, 90] as const;
 
 type MetricKey = 'pageViews' | 'qrScans' | 'canalClicks' | 'paidOrders';
 
@@ -61,9 +129,43 @@ function formatShortDate(date: string, language: 'es' | 'en'): string {
   return new Intl.DateTimeFormat(language === 'es' ? 'es-DO' : 'en-US', { day: 'numeric', month: 'short' }).format(d);
 }
 
-export function StatsContent({ kpis, plan, detailed }: Props) {
+export function StatsContent({ slug, kpis, plan, detailed: initialDetailed, reports: initialReports }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
+
+  // Rango de días — 7/30/90. El server ya trae 30 días de una vez (sin round-trip extra al
+  // cargar la página); cambiar de rango refresca ambos endpoints desde el cliente vía los
+  // proxies /api/space/{slug}/metrics y /reports, mismo patrón de fetch que el resto de /space.
+  const [days, setDays] = useState<(typeof RANGE_OPTIONS)[number]>(30);
+  const [detailed, setDetailed] = useState(initialDetailed);
+  const [reports, setReports] = useState(initialReports);
+  const [loadingRange, setLoadingRange] = useState(false);
+
+  useEffect(() => {
+    if (days === 30) {
+      setDetailed(initialDetailed);
+      setReports(initialReports);
+      return;
+    }
+    let cancelled = false;
+    setLoadingRange(true);
+    Promise.all([
+      fetch(`/api/space/${slug}/metrics?days=${days}`).then((r) => (r.ok ? r.json() : null)),
+      fetch(`/api/space/${slug}/reports?days=${days}`).then((r) => (r.ok ? r.json() : null)),
+    ])
+      .then(([m, r]) => {
+        if (cancelled) return;
+        if (m) setDetailed(m);
+        if (r) setReports(r);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingRange(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [days, slug]);
 
   const hasEvents = !!detailed && (
     detailed.byCanal.length > 0 ||
@@ -191,12 +293,31 @@ export function StatsContent({ kpis, plan, detailed }: Props) {
           </p>
         )}
 
-        {/* Detailed section — 30-day trend + per-canal breakdown, from
+        {/* Detailed section — trend + per-canal breakdown, from
             GET /api/affiliates/{id}/metrics/detailed */}
         <section className="mt-10">
-          <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">
-            {getText('Últimos 30 días', 'Last 30 days')}
-          </h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">
+              {getText(`Últimos ${days} días`, `Last ${days} days`)}
+            </h2>
+            <div className="flex items-center gap-1.5 rounded-full border border-gray-200 dark:border-neutral-800 p-1">
+              {RANGE_OPTIONS.map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setDays(r)}
+                  disabled={loadingRange}
+                  className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors disabled:opacity-50 ${
+                    days === r
+                      ? 'bg-[#C8102E] text-white'
+                      : 'text-gray-500 hover:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-800'
+                  }`}
+                >
+                  {r}d
+                </button>
+              ))}
+            </div>
+          </div>
 
           {!hasEvents ? (
             <div className="mt-4 flex flex-col items-center justify-center gap-2 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 py-14 text-center">
@@ -300,6 +421,184 @@ export function StatsContent({ kpis, plan, detailed }: Props) {
             </>
           )}
         </section>
+
+        {/* Reportes ampliados — ventas por día/canal/método de pago, top productos, clientes,
+            facturas, equipo. GET /api/affiliates/{id}/metrics/reports. Cada bloque se oculta solo
+            si viene vacío (ej. un negocio de Servicios no tiene topItems porque no vende
+            productos con carrito, pero sí tiene facturas y actividad de equipo). */}
+        {reports && (
+          <section className="mt-10">
+            <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">
+              {getText('Reportes', 'Reports')}
+            </h2>
+
+            {reports.revenueByDay.some((d) => d.revenue > 0) && (
+              <div className="mt-4 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">
+                  {getText('Ingresos por día', 'Revenue by day')}
+                </h3>
+                <div className="mt-4 h-56 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={reports.revenueByDay}>
+                      <defs>
+                        <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#C8102E" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#C8102E" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-gray-100 dark:text-neutral-800" />
+                      <XAxis
+                        dataKey="date"
+                        tickFormatter={(d: string) => formatShortDate(d, language)}
+                        tick={{ fontSize: 10, fill: '#9ca3af' }}
+                        minTickGap={24}
+                      />
+                      <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} width={40} />
+                      <Tooltip
+                        labelFormatter={(d: string) => formatShortDate(d, language)}
+                        formatter={(v: number) => [`${reports.currency} ${v.toFixed(2)}`, getText('Ingresos', 'Revenue')]}
+                      />
+                      <Area type="monotone" dataKey="revenue" stroke="#C8102E" fill="url(#revenueFill)" strokeWidth={2} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              {reports.topItems.length > 0 && (
+                <ReportPieCard
+                  title={getText('Más vendidos', 'Top sellers')}
+                  data={reports.topItems.map((t) => ({ name: t.name, value: t.revenue }))}
+                  valueLabel={(v) => `${reports.currency} ${v.toFixed(2)}`}
+                />
+              )}
+
+              {reports.byChannel.length > 1 && (
+                <ReportPieCard
+                  title={getText('Ventas por canal', 'Sales by channel')}
+                  data={reports.byChannel.map((c) => ({
+                    name: c.channel === 'POS' ? getText('Mostrador (POS)', 'Counter (POS)') : getText('En línea', 'Online'),
+                    value: c.revenue,
+                  }))}
+                  valueLabel={(v) => `${reports.currency} ${v.toFixed(2)}`}
+                />
+              )}
+
+              {reports.byPaymentMethod.length > 0 && (
+                <ReportPieCard
+                  title={getText('Método de pago (mostrador)', 'Payment method (counter)')}
+                  data={reports.byPaymentMethod.map((p) => ({
+                    name: p.method === 'Cash' ? getText('Efectivo', 'Cash') : p.method === 'Card' ? getText('Tarjeta', 'Card') : getText('Otro', 'Other'),
+                    value: p.revenue,
+                  }))}
+                  valueLabel={(v) => `${reports.currency} ${v.toFixed(2)}`}
+                />
+              )}
+
+              {(reports.customers.newCustomers > 0 || reports.customers.returningCustomers > 0) && (
+                <ReportPieCard
+                  title={getText('Clientes nuevos vs. recurrentes', 'New vs. returning customers')}
+                  data={[
+                    { name: getText('Nuevos', 'New'), value: reports.customers.newCustomers },
+                    { name: getText('Recurrentes', 'Returning'), value: reports.customers.returningCustomers },
+                  ]}
+                  valueLabel={(v) => String(v)}
+                />
+              )}
+
+              {reports.invoiceStatus.length > 0 && (
+                <ReportPieCard
+                  title={getText('Estado de facturas', 'Invoice status')}
+                  data={reports.invoiceStatus.map((s) => ({
+                    name: getText(
+                      s.status === 'Paid' ? 'Pagadas' : s.status === 'Overdue' ? 'Vencidas' : s.status === 'Cancelled' ? 'Canceladas' : 'Pendientes',
+                      s.status === 'Paid' ? 'Paid' : s.status === 'Overdue' ? 'Overdue' : s.status === 'Cancelled' ? 'Cancelled' : 'Pending',
+                    ),
+                    value: s.amount,
+                  }))}
+                  valueLabel={(v) => `${reports.currency} ${v.toFixed(2)}`}
+                />
+              )}
+            </div>
+
+            {reports.staffActivity.length > 0 && (
+              <div className="mt-4 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">
+                  {getText('Actividad por miembro del equipo', 'Activity by team member')}
+                </h3>
+                <div className="mt-4 h-56 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={reports.staffActivity} layout="vertical" margin={{ left: 8 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-gray-100 dark:text-neutral-800" horizontal={false} />
+                      <XAxis type="number" tick={{ fontSize: 10, fill: '#9ca3af' }} allowDecimals={false} />
+                      <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#9ca3af' }} width={90} />
+                      <Tooltip formatter={(v: number) => [v, getText('Atendidos', 'Handled')]} />
+                      <Bar dataKey="count" fill="#C8102E" radius={[0, 6, 6, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
+
+            {reports.topItems.length === 0 &&
+              reports.byChannel.length <= 1 &&
+              reports.byPaymentMethod.length === 0 &&
+              reports.customers.newCustomers === 0 &&
+              reports.customers.returningCustomers === 0 &&
+              reports.invoiceStatus.length === 0 &&
+              reports.staffActivity.length === 0 &&
+              !reports.revenueByDay.some((d) => d.revenue > 0) && (
+                <div className="mt-4 flex flex-col items-center justify-center gap-2 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 py-14 text-center">
+                  <span className="text-3xl">📈</span>
+                  <p className="text-sm font-medium text-gray-500 dark:text-neutral-400">
+                    {getText('Todavía no hay ventas ni actividad para reportar.', 'No sales or activity to report yet.')}
+                  </p>
+                </div>
+              )}
+          </section>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Tarjeta de gráfico de pastel reutilizable — título + Pie + leyenda con montos, usada por
+ *  todas las secciones de "reportes" (top productos, canal, método de pago, clientes, facturas).
+ *  Filtra entradas en cero para no ensuciar el pastel con slices invisibles. */
+function ReportPieCard({
+  title,
+  data,
+  valueLabel,
+}: {
+  title: string;
+  data: { name: string; value: number }[];
+  valueLabel: (v: number) => string;
+}) {
+  const filtered = data.filter((d) => d.value > 0);
+  if (filtered.length === 0) return null;
+
+  return (
+    <div className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
+      <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">{title}</h3>
+      <div className="mt-4 h-56 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie data={filtered} dataKey="value" nameKey="name" innerRadius={45} outerRadius={75} paddingAngle={2}>
+              {filtered.map((_, i) => (
+                <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip formatter={(v: number) => valueLabel(v)} />
+            <Legend
+              layout="vertical"
+              verticalAlign="middle"
+              align="right"
+              iconSize={8}
+              wrapperStyle={{ fontSize: 11 }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

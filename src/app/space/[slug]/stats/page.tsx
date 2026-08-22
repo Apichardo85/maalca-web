@@ -1,13 +1,13 @@
 import { redirect } from 'next/navigation';
 import { getMaalcaApiToken } from '@/lib/api-auth';
-import { StatsContent, type DetailedMetrics } from './StatsContent';
+import { StatsContent, type DetailedMetrics, type BusinessReports } from './StatsContent';
 import type { SpaceKpis } from '@/components/space/KpiTile';
 import type { Plan } from '@/lib/plan-limits';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 interface SpaceResponse {
-  business: { id: string; plan: Plan };
+  business: { id: string; plan: Plan; businessType?: string };
   productCount: number;
   /** Guarded with a fallback below in case a given deploy predates this field. */
   kpis?: SpaceKpis;
@@ -45,15 +45,31 @@ export default async function StatsPage({
   // back to the user's oldest affiliate otherwise), not from the token alone — a user managing
   // more than one business would silently get the wrong one's data without it.
   let detailed: DetailedMetrics | null = null;
+  let reports: BusinessReports | null = null;
   try {
-    const metricsRes = await fetch(`${API}/api/affiliates/${data.business.id}/metrics/detailed?days=30`, {
-      headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': data.business.id },
-      cache: 'no-store',
-    });
+    const [metricsRes, reportsRes] = await Promise.all([
+      fetch(`${API}/api/affiliates/${data.business.id}/metrics/detailed?days=30`, {
+        headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': data.business.id },
+        cache: 'no-store',
+      }),
+      fetch(`${API}/api/affiliates/${data.business.id}/metrics/reports?days=30`, {
+        headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': data.business.id },
+        cache: 'no-store',
+      }),
+    ]);
     if (metricsRes.ok) detailed = await metricsRes.json();
+    if (reportsRes.ok) reports = await reportsRes.json();
   } catch {
-    // detailed stays null — StatsContent renders the empty state rather than crashing the page.
+    // detailed/reports stay null — StatsContent renders the empty state rather than crashing.
   }
 
-  return <StatsContent kpis={kpis} plan={data.business.plan} detailed={detailed} />;
+  return (
+    <StatsContent
+      slug={slug}
+      kpis={kpis}
+      plan={data.business.plan}
+      detailed={detailed}
+      reports={reports}
+    />
+  );
 }
