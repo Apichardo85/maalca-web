@@ -67,7 +67,12 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
   const [invoices, setInvoices] = useState<InvoiceRow[]>(initialInvoices);
   const [showForm, setShowForm] = useState(false);
   const [customerId, setCustomerId] = useState('');
-  const [tax, setTax] = useState(0);
+  // number | '' a propósito: si fuera solo `number` inicializado en 0, un <input type="number">
+  // controlado nunca deja "vaciar" el campo — al borrar el único dígito, el valor vuelve a 0 y
+  // React lo vuelve a pintar como "0" en el mismo tick, así que el usuario nunca puede escribir
+  // encima sin que parezca que el campo "no lo deja borrar". Con '' como estado intermedio, el
+  // campo sí puede quedar vacío mientras se edita, y solo se normaliza a 0 al perder el foco.
+  const [tax, setTax] = useState<number | ''>(0);
   const [dueDate, setDueDate] = useState('');
   const [notes, setNotes] = useState('');
   const [lines, setLines] = useState<LineDraft[]>([emptyLine()]);
@@ -95,7 +100,7 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
   const dateFmt = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString() : '—');
 
   const linesTotal = lines.reduce((sum, l) => sum + l.quantity * l.unitPrice, 0);
-  const grandTotal = linesTotal + tax;
+  const grandTotal = linesTotal + (Number(tax) || 0);
 
   function updateLine(i: number, patch: Partial<LineDraft>) {
     setLines((prev) => prev.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
@@ -117,7 +122,7 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           customerId,
-          tax,
+          tax: Number(tax) || 0,
           dueDate: dueDate || null,
           notes: notes.trim() || null,
           items: validLines.map((l) => ({ description: l.description.trim(), quantity: l.quantity, unitPrice: l.unitPrice })),
@@ -274,6 +279,7 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
                         min={1}
                         value={line.quantity}
                         onChange={(e) => updateLine(i, { quantity: Number(e.target.value) || 1 })}
+                        onFocus={(e) => e.target.select()}
                         className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
                       />
                     </div>
@@ -287,6 +293,7 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
                         step="0.01"
                         value={line.unitPrice}
                         onChange={(e) => updateLine(i, { unitPrice: Number(e.target.value) || 0 })}
+                        onFocus={(e) => e.target.select()}
                         className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
                       />
                     </div>
@@ -310,7 +317,9 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
                   min={0}
                   step="0.01"
                   value={tax}
-                  onChange={(e) => setTax(Number(e.target.value) || 0)}
+                  onChange={(e) => setTax(e.target.value === '' ? '' : Number(e.target.value))}
+                  onBlur={() => setTax((v) => (v === '' ? 0 : v))}
+                  onFocus={(e) => e.target.select()}
                   className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
                 />
               </div>
@@ -374,9 +383,9 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
                 key={invoice.id}
                 className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4"
               >
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-semibold">{invoice.invoiceNumber}</p>
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${STATUS_STYLES[invoice.status]}`}>
                         {invoice.status}
@@ -387,7 +396,7 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
                       {invoice.dueDate && ` · ${getText('vence', 'due')} ${dateFmt(invoice.dueDate)}`}
                     </p>
                   </div>
-                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+                  <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end">
                     <span className="text-sm font-bold">{fmt.format(invoice.total)}</span>
                     {isCollectable && (
                       <button
