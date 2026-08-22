@@ -101,6 +101,12 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
     setLines((prev) => prev.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
   }
 
+  // Si es la única línea, la reseteamos en vez de dejar el formulario sin ninguna — siempre debe
+  // quedar al menos una fila para poder seguir escribiendo.
+  function removeLine(i: number) {
+    setLines((prev) => (prev.length === 1 ? [emptyLine()] : prev.filter((_, idx) => idx !== i)));
+  }
+
   async function handleCreate() {
     const validLines = lines.filter((l) => l.description.trim() && l.unitPrice > 0);
     if (!customerId || validLines.length === 0 || saving) return;
@@ -233,29 +239,58 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
 
             <div className="space-y-2">
               {lines.map((line, i) => (
-                <div key={i} className="flex flex-wrap gap-2">
-                  <input
-                    value={line.description}
-                    onChange={(e) => updateLine(i, { description: e.target.value })}
-                    placeholder={getText('Descripción del trabajo', 'Work description')}
-                    className="min-w-0 basis-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm sm:basis-0 sm:flex-1"
-                  />
-                  <input
-                    type="number"
-                    min={1}
-                    value={line.quantity}
-                    onChange={(e) => updateLine(i, { quantity: Number(e.target.value) || 1 })}
-                    className="w-20 rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-2 text-sm sm:w-16"
-                  />
-                  <input
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    value={line.unitPrice}
-                    onChange={(e) => updateLine(i, { unitPrice: Number(e.target.value) || 0 })}
-                    placeholder={getText('Precio', 'Price')}
-                    className="w-24 rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-2 text-sm"
-                  />
+                <div key={i} className="space-y-2 rounded-xl border border-gray-200 dark:border-neutral-800 p-3">
+                  <div className="flex items-start gap-2">
+                    <div className="min-w-0 flex-1">
+                      <label className="text-xs text-gray-500 dark:text-neutral-400">
+                        {getText('Descripción', 'Description')}
+                      </label>
+                      <input
+                        value={line.description}
+                        onChange={(e) => updateLine(i, { description: e.target.value })}
+                        placeholder={getText(
+                          'Ej. Cena para 2, corte de cabello, camisa talla M…',
+                          'E.g. Dinner for 2, haircut, t-shirt size M…',
+                        )}
+                        className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeLine(i)}
+                      aria-label={getText('Quitar línea', 'Remove line')}
+                      className="mt-5 flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg border border-gray-300 dark:border-neutral-700 text-gray-400 hover:border-red-300 hover:text-red-600 dark:hover:border-red-900/50 dark:hover:text-red-400"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs text-gray-500 dark:text-neutral-400">
+                        {getText('Cantidad', 'Quantity')}
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={line.quantity}
+                        onChange={(e) => updateLine(i, { quantity: Number(e.target.value) || 1 })}
+                        className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 dark:text-neutral-400">
+                        {getText('Precio unitario', 'Unit price')}
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={line.unitPrice}
+                        onChange={(e) => updateLine(i, { unitPrice: Number(e.target.value) || 0 })}
+                        className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+                      />
+                    </div>
+                  </div>
                 </div>
               ))}
               <button

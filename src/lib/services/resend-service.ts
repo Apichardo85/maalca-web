@@ -739,3 +739,111 @@ export async function sendInvoicePaymentLinkEmail(params: {
     return false;
   }
 }
+
+/**
+ * Propuesta de servicio enviada al cliente (task #194 + fix posterior) — antes "Enviar" solo
+ * marcaba el estado y el dueño tenía que copiar/mandar el link a mano; ahora, si el cliente
+ * dejó su correo, le llega este email directo con el link de aceptación.
+ */
+export async function sendProposalEmail(params: {
+  customerEmail: string;
+  customerName: string | null;
+  businessName: string;
+  title: string;
+  description: string | null;
+  amount: number;
+  currency: string;
+  expiresAt: string | null;
+  proposalLink: string;
+}): Promise<boolean> {
+  if (!resend) {
+    console.log('[Resend] Skipped proposal email — RESEND_API_KEY not set');
+    return false;
+  }
+
+  const greeting = params.customerName ? `Hola, ${params.customerName}` : 'Hola';
+  const brandColor = '#C8102E';
+  const expiresLine = params.expiresAt
+    ? `<p style="font-size: 13px; color: #737373;">Válida hasta el ${new Date(params.expiresAt).toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric' })}.</p>`
+    : '';
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: params.customerEmail,
+      subject: `Propuesta: ${params.title} — ${params.businessName}`,
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
+          <p style="font-size: 15px; line-height: 1.6;">${greeting},</p>
+          <p style="font-size: 15px; line-height: 1.6;"><strong>${params.businessName}</strong> te envió una propuesta:</p>
+          <p style="font-size: 15px; line-height: 1.6; background: #fafafa; border-radius: 8px; padding: 12px 16px;">
+            <strong>${params.title}</strong><br/>
+            ${params.description ? `${params.description}<br/>` : ''}
+            Monto: ${params.currency} ${params.amount.toFixed(2)}
+          </p>
+          <div style="text-align: center; margin: 20px 0;">
+            <a href="${params.proposalLink}" style="display: inline-block; background: ${brandColor}; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Ver y aceptar propuesta</a>
+          </div>
+          ${expiresLine}
+        </div>
+      `,
+    });
+    return true;
+  } catch (err: unknown) {
+    console.error('[Resend] Proposal email failed:', err instanceof Error ? err.message : String(err));
+    return false;
+  }
+}
+
+/**
+ * Aviso al NEGOCIO (no al cliente) de que su propuesta fue aceptada/firmada (tarea #338) —
+ * disparado desde ProposalService.AcceptPublicProposalAsync, solo si el afiliado tiene
+ * ContactEmail configurado. Antes de esto el dueño solo se enteraba entrando al dashboard.
+ */
+export async function sendProposalAcceptedEmail(params: {
+  businessEmail: string;
+  businessName: string;
+  title: string;
+  amount: number;
+  currency: string;
+  acceptedByName: string | null;
+  acceptedAt: string | null;
+  customerEmail: string | null;
+  customerPhone: string | null;
+}): Promise<boolean> {
+  if (!resend) {
+    console.log('[Resend] Skipped proposal-accepted email — RESEND_API_KEY not set');
+    return false;
+  }
+
+  const brandColor = '#C8102E';
+  const acceptedDate = params.acceptedAt
+    ? new Date(params.acceptedAt).toLocaleString('es-DO', { dateStyle: 'long', timeStyle: 'short' })
+    : '';
+  const contactLine = [
+    params.customerEmail ? `Correo: ${params.customerEmail}` : null,
+    params.customerPhone ? `Teléfono: ${params.customerPhone}` : null,
+  ].filter(Boolean).join(' · ');
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: params.businessEmail,
+      subject: `✅ Propuesta aceptada: ${params.title}`,
+      html: `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
+          <p style="font-size: 15px; line-height: 1.6;">Hola,</p>
+          <p style="font-size: 15px; line-height: 1.6;">Tu cliente aceptó la propuesta <strong>${params.title}</strong> por <strong>${params.currency} ${params.amount.toFixed(2)}</strong>.</p>
+          <p style="font-size: 15px; line-height: 1.6; background: #fafafa; border-radius: 8px; padding: 12px 16px;">
+            Firmado por: <strong>${params.acceptedByName ?? 'N/A'}</strong>${acceptedDate ? `<br/>Fecha: ${acceptedDate}` : ''}${contactLine ? `<br/>${contactLine}` : ''}
+          </p>
+          <p style="font-size: 13px; color: #737373;">Entra a tu panel de Propuestas en MaalCa para ver el detalle y dar seguimiento.</p>
+        </div>
+      `,
+    });
+    return true;
+  } catch (err: unknown) {
+    console.error('[Resend] Proposal-accepted email failed:', err instanceof Error ? err.message : String(err));
+    return false;
+  }
+}

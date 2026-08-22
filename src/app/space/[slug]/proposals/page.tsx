@@ -8,6 +8,13 @@ interface SpaceResponse {
   business: { id: string; businessType: string; currency?: 'USD' | 'DOP'; modulosActivos: string[] };
 }
 
+interface CustomerRow {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+}
+
 // Propuestas con firma/aceptación pública — Servicios/Profesionales (task #194). El cliente
 // recibe un link con token, escribe su nombre y acepta — no es una firma dibujada/certificada,
 // coincide con la simplicidad ya establecida en booking/reservas/checkout público.
@@ -37,17 +44,28 @@ export default async function ProposalsPage({
   }
 
   let proposals: ProposalRow[] = [];
+  let customers: CustomerRow[] = [];
   try {
-    const res = await fetch(`${API}/api/affiliates/${space.business.id}/proposals`, {
-      headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': space.business.id },
-      cache: 'no-store',
-    });
-    if (res.ok) proposals = await res.json();
+    const [proposalsRes, customersRes] = await Promise.all([
+      fetch(`${API}/api/affiliates/${space.business.id}/proposals`, {
+        headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': space.business.id },
+        cache: 'no-store',
+      }),
+      fetch(`${API}/api/affiliates/${space.business.id}/customers?limit=100`, {
+        headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': space.business.id },
+        cache: 'no-store',
+      }),
+    ]);
+    if (proposalsRes.ok) proposals = await proposalsRes.json();
+    if (customersRes.ok) {
+      const page = await customersRes.json();
+      customers = page?.data ?? [];
+    }
   } catch {
     // Queda vacío — ProposalsContent renderiza el estado vacío en vez de tronar.
   }
 
   const currency = space.business.currency === 'DOP' ? 'DOP' : 'USD';
 
-  return <ProposalsContent slug={slug} currency={currency} initialProposals={proposals} />;
+  return <ProposalsContent slug={slug} currency={currency} initialProposals={proposals} customers={customers} />;
 }

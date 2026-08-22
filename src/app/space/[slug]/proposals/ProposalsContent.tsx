@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ChangeEvent } from 'react';
 import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
@@ -22,14 +22,26 @@ export interface ProposalRow {
   acceptedAt: string | null;
   acceptedByName: string | null;
   expiresAt: string | null;
+  createdAt: string;
   /** CRM (tarea #244) — sin esto no se puede generar factura (Invoice.CustomerId requerido). */
   customerId: string | null;
+  /** Documento adjunto (tarea #336) — contrato/cotización/referencia subido al crear. */
+  attachmentUrl: string | null;
+  attachmentName: string | null;
+}
+
+interface CustomerOption {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
 }
 
 interface Props {
   slug: string;
   currency: 'USD' | 'DOP';
   initialProposals: ProposalRow[];
+  customers: CustomerOption[];
 }
 
 const STATUS_STYLES: Record<ProposalRow['status'], string> = {
@@ -49,7 +61,9 @@ const STATUS_LABELS: Record<ProposalRow['status'], { es: string; en: string }> =
 // Propuestas de servicio — el cliente abre un link público, escribe su nombre y acepta. No es
 // una firma dibujada/certificada a propósito: coincide con la simplicidad ya usada en
 // booking/reservas/checkout público de este proyecto. Ver Proposal.cs en maalca-api.
-export function ProposalsContent({ slug, currency, initialProposals }: Props) {
+const NEW_CUSTOMER = '__new__';
+
+export function ProposalsContent({ slug, currency, initialProposals, customers }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -57,6 +71,7 @@ export function ProposalsContent({ slug, currency, initialProposals }: Props) {
 
   const [proposals, setProposals] = useState<ProposalRow[]>(initialProposals);
   const [showForm, setShowForm] = useState(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState(NEW_CUSTOMER);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -66,6 +81,9 @@ export function ProposalsContent({ slug, currency, initialProposals }: Props) {
   const [expiresAt, setExpiresAt] = useState('');
   const [saving, setSaving] = useState(false);
   const [actingOn, setActingOn] = useState<string | null>(null);
+  const [attachmentUrl, setAttachmentUrl] = useState<string | null>(null);
+  const [attachmentName, setAttachmentName] = useState<string | null>(null);
+  const [uploadingAttachment, setUploadingAttachment] = useState(false);
 
   async function refetch() {
     try {
@@ -93,9 +111,12 @@ export function ProposalsContent({ slug, currency, initialProposals }: Props) {
           amount: Number(amount),
           currency,
           expiresAt: expiresAt || null,
+          attachmentUrl,
+          attachmentName,
         }),
       });
       if (!res.ok) throw new Error('add failed');
+      setSelectedCustomerId(NEW_CUSTOMER);
       setName('');
       setEmail('');
       setPhone('');
@@ -103,6 +124,8 @@ export function ProposalsContent({ slug, currency, initialProposals }: Props) {
       setDescription('');
       setAmount('');
       setExpiresAt('');
+      setAttachmentUrl(null);
+      setAttachmentName(null);
       setShowForm(false);
       toast.success(getText('Propuesta creada.', 'Proposal created.'));
       await refetch();
@@ -110,6 +133,30 @@ export function ProposalsContent({ slug, currency, initialProposals }: Props) {
       toast.error(getText('No se pudo crear. Intenta de nuevo.', "Couldn't create it. Try again."));
     } finally {
       setSaving(false);
+    }
+  }
+
+  // Adjuntar documento (tarea #336) — sube de inmediato al elegir el archivo (Supabase Storage
+  // vía la ruta interna), y guarda solo la URL pública para mandarla junto con el resto del
+  // formulario al crear la propuesta.
+  async function handleAttachmentChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setUploadingAttachment(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`/api/space/${slug}/proposals/upload-attachment`, { method: 'POST', body: formData });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error ?? 'upload failed');
+      setAttachmentUrl(data.url);
+      setAttachmentName(data.name ?? file.name);
+      toast.success(getText('Documento adjuntado.', 'Document attached.'));
+    } catch {
+      toast.error(getText('No se pudo subir el documento (máx. 10MB, PDF o imagen).', "Couldn't upload the document (max 10MB, PDF or image)."));
+    } finally {
+      setUploadingAttachment(false);
     }
   }
 
@@ -142,6 +189,83 @@ export function ProposalsContent({ slug, currency, initialProposals }: Props) {
     } finally {
       setActingOn(null);
     }
+  }
+
+  // Elegir un cliente existente autocompleta nombre/correo/teléfono (siguen editables) — antes
+  // solo se podía escribir a mano, incluso si el cliente ya existía en Clientes.
+  function selectCustomer(id: string) {
+    setSelectedCustomerId(id);
+    if (id === NEW_CUSTOMER) return;
+    const c = customers.find((cust) => cust.id === id);
+    if (!c) return;
+    setName(c.name);
+    setEmail(c.email ?? '');
+    setPhone(c.phone ?? '');
+  }
+
+  // PDF descargable (tarea #337) — mismo generador en el navegador que la página pública, para
+  // que el dueño también pueda bajar un resumen sin tener que abrir el link público.
+  async function handleDownloadPdf(p: ProposalRow) {
+    const { jsPDF } = await import('jspdf');
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const marginX = 56;
+    let y = 72;
+    const pFmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: p.currency });
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.setTextColor(20, 20, 20);
+    doc.text(p.title, marginX, y);
+    y += 22;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(90, 90, 90);
+    doc.text(`Cliente: ${p.customerName}`, marginX, y);
+    y += 20;
+
+    if (p.description) {
+      const lines = doc.splitTextToSize(p.description, 480);
+      doc.text(lines, marginX, y);
+      y += lines.length * 15 + 12;
+    }
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(140, 140, 140);
+    doc.text(`Emitida el ${fmtDate(p.createdAt)}`, marginX, y);
+    y += 24;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(24);
+    doc.setTextColor(20, 20, 20);
+    doc.text(pFmt.format(p.amount), marginX, y);
+    y += 24;
+
+    if (p.status === 'Accepted' && p.acceptedByName) {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(13);
+      doc.setTextColor(22, 130, 70);
+      doc.text('Propuesta aceptada ✓', marginX, y);
+      y += 18;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(90, 90, 90);
+      doc.text(`Firmado por ${p.acceptedByName}${p.acceptedAt ? ` · ${fmtDate(p.acceptedAt)}` : ''}`, marginX, y);
+      y += 18;
+    }
+
+    if (p.attachmentUrl) {
+      y += 12;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(140, 140, 140);
+      doc.text('Documento adjunto:', marginX, y);
+      y += 13;
+      doc.textWithLink(p.attachmentUrl, marginX, y, { url: p.attachmentUrl });
+    }
+
+    doc.save(`propuesta-${p.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.pdf`);
   }
 
   function copyLink(token: string) {
@@ -184,12 +308,34 @@ export function ProposalsContent({ slug, currency, initialProposals }: Props) {
 
         {showForm && (
           <div className="mt-4 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 space-y-3">
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={getText('Nombre del cliente', "Customer's name")}
-              className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
-            />
+            {customers.length > 0 && (
+              <div>
+                <label className="text-xs text-gray-500 dark:text-neutral-400">
+                  {getText('Cliente', 'Customer')}
+                </label>
+                <select
+                  value={selectedCustomerId}
+                  onChange={(e) => selectCustomer(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+                >
+                  <option value={NEW_CUSTOMER}>{getText('— Cliente nuevo —', '— New customer —')}</option>
+                  {customers.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div>
+              <label className="text-xs text-gray-500 dark:text-neutral-400">
+                {getText('Nombre del cliente', "Customer's name")}
+              </label>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={getText('Nombre completo', 'Full name')}
+                className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+              />
+            </div>
             <div className="flex gap-3">
               <input
                 value={email}
@@ -207,7 +353,7 @@ export function ProposalsContent({ slug, currency, initialProposals }: Props) {
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder={getText('Título del trabajo', 'Job title')}
+              placeholder={getText('Título de la propuesta (ej. Renovación de cocina, Menú de boda)', 'Proposal title (e.g. Kitchen remodel, Wedding menu)')}
               className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
             />
             <textarea
@@ -218,22 +364,59 @@ export function ProposalsContent({ slug, currency, initialProposals }: Props) {
               className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
             />
             <div className="flex gap-3">
-              <input
-                type="number"
-                min={0}
-                step="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder={getText(`Monto (${currency})`, `Amount (${currency})`)}
-                className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
-              />
-              <input
-                type="date"
-                value={expiresAt}
-                onChange={(e) => setExpiresAt(e.target.value)}
-                title={getText('Expira (opcional)', 'Expires (optional)')}
-                className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
-              />
+              <div className="flex-1">
+                <label className="text-xs text-gray-500 dark:text-neutral-400">
+                  {getText(`Monto (${currency})`, `Amount (${currency})`)}
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="text-xs text-gray-500 dark:text-neutral-400">
+                  {getText('Expira (opcional)', 'Expires (optional)')}
+                </label>
+                <input
+                  type="date"
+                  value={expiresAt}
+                  onChange={(e) => setExpiresAt(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 dark:text-neutral-400">
+                {getText('Documento adjunto (opcional)', 'Attached document (optional)')}
+              </label>
+              {attachmentUrl ? (
+                <div className="mt-1 flex items-center justify-between gap-2 rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 text-sm">
+                  <span className="truncate">📎 {attachmentName}</span>
+                  <button
+                    type="button"
+                    onClick={() => { setAttachmentUrl(null); setAttachmentName(null); }}
+                    className="shrink-0 min-h-8 min-w-8 rounded-full text-gray-400 hover:text-red-600"
+                    aria-label={getText('Quitar adjunto', 'Remove attachment')}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <input
+                  type="file"
+                  accept="application/pdf,image/jpeg,image/png,image/webp"
+                  onChange={handleAttachmentChange}
+                  disabled={uploadingAttachment}
+                  className="mt-1 w-full text-sm text-gray-500 dark:text-neutral-400 file:mr-3 file:rounded-full file:border-0 file:bg-[#C8102E] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white disabled:opacity-40"
+                />
+              )}
+              {uploadingAttachment && (
+                <p className="mt-1 text-xs text-gray-400 dark:text-neutral-500">{getText('Subiendo…', 'Uploading…')}</p>
+              )}
             </div>
             <button
               type="button"
@@ -270,6 +453,16 @@ export function ProposalsContent({ slug, currency, initialProposals }: Props) {
                     {p.customerName} · {fmt.format(p.amount)}
                     {p.expiresAt ? ` · ${getText('expira', 'expires')} ${fmtDate(p.expiresAt)}` : ''}
                   </p>
+                  {p.attachmentUrl && (
+                    <a
+                      href={p.attachmentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 inline-block text-xs font-medium text-[#C8102E] hover:underline"
+                    >
+                      📎 {getText('Ver documento adjunto', 'View attached document')}
+                    </a>
+                  )}
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   {p.status === 'Draft' && (
@@ -292,6 +485,13 @@ export function ProposalsContent({ slug, currency, initialProposals }: Props) {
                       {getText('Copiar link', 'Copy link')}
                     </button>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadPdf(p)}
+                    className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-2 text-xs font-semibold text-gray-500 dark:text-neutral-400"
+                  >
+                    PDF
+                  </button>
                   <button
                     type="button"
                     onClick={() => handleDelete(p.id)}
@@ -323,6 +523,16 @@ export function ProposalsContent({ slug, currency, initialProposals }: Props) {
                       {p.customerName} · {fmt.format(p.amount)}
                       {p.status === 'Accepted' && p.acceptedByName ? ` · ${getText('firmado por', 'signed by')} ${p.acceptedByName}` : ''}
                     </p>
+                    {p.attachmentUrl && (
+                      <a
+                        href={p.attachmentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-medium text-[#C8102E] hover:underline"
+                      >
+                        📎 {getText('Ver adjunto', 'View attachment')}
+                      </a>
+                    )}
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     {p.status === 'Accepted' && p.customerId && (
@@ -333,6 +543,13 @@ export function ProposalsContent({ slug, currency, initialProposals }: Props) {
                         {getText('Generar factura', 'Generate invoice')}
                       </Link>
                     )}
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadPdf(p)}
+                      className="rounded-full border border-gray-300 dark:border-neutral-700 px-2 py-0.5 text-[11px] font-medium text-gray-500 dark:text-neutral-400"
+                    >
+                      PDF
+                    </button>
                     <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLES[p.status]}`}>
                       {STATUS_LABELS[p.status][language]}
                     </span>
