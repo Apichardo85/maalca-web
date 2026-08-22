@@ -21,11 +21,23 @@ export interface ReservationRow {
   customerId: string | null;
 }
 
+interface CustomerOption {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+}
+
 interface Props {
   slug: string;
   affiliateId: string;
   initialReservations: ReservationRow[];
+  customers: CustomerOption[];
 }
+
+// Mismo criterio que Propuestas (tarea #330): un sentinel para "cliente nuevo" en vez de un
+// customerId real, así el <select> puede convivir con los inputs editables de siempre.
+const NEW_CUSTOMER = '__new__';
 
 const STATUS_STYLES: Record<ReservationRow['status'], string> = {
   Requested: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
@@ -48,13 +60,14 @@ const STATUS_LABELS: Record<ReservationRow['status'], { es: string; en: string }
 // Reservas de mesa — deliberadamente separado de Agenda (Appointment). Aquí no hay "servicio" ni
 // "quién atiende": lo que importa es cuántas personas, a qué hora, y a qué mesa sentarlas. Ver
 // docs/audits/business-type-flows-audit.md.
-export function ReservationsContent({ slug, initialReservations }: Props) {
+export function ReservationsContent({ slug, initialReservations, customers }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
 
   const [reservations, setReservations] = useState<ReservationRow[]>(initialReservations);
   const [showForm, setShowForm] = useState(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState(NEW_CUSTOMER);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -64,6 +77,16 @@ export function ReservationsContent({ slug, initialReservations }: Props) {
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [actingOn, setActingOn] = useState<string | null>(null);
+
+  function selectCustomer(id: string) {
+    setSelectedCustomerId(id);
+    if (id === NEW_CUSTOMER) return;
+    const c = customers.find((cust) => cust.id === id);
+    if (!c) return;
+    setName(c.name);
+    setEmail(c.email ?? '');
+    setPhone(c.phone ?? '');
+  }
 
   async function refetch() {
     try {
@@ -95,6 +118,7 @@ export function ReservationsContent({ slug, initialReservations }: Props) {
         }),
       });
       if (!res.ok) throw new Error('add failed');
+      setSelectedCustomerId(NEW_CUSTOMER);
       setName('');
       setPhone('');
       setEmail('');
@@ -163,6 +187,23 @@ export function ReservationsContent({ slug, initialReservations }: Props) {
 
         {showForm && (
           <div className="mt-4 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 space-y-3">
+            {customers.length > 0 && (
+              <div>
+                <label className="text-xs text-gray-500 dark:text-neutral-400">
+                  {getText('Cliente', 'Customer')}
+                </label>
+                <select
+                  value={selectedCustomerId}
+                  onChange={(e) => selectCustomer(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+                >
+                  <option value={NEW_CUSTOMER}>{getText('— Cliente nuevo —', '— New customer —')}</option>
+                  {customers.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}

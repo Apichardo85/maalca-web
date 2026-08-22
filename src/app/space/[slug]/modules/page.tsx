@@ -22,13 +22,17 @@ export default async function ModulesPage({
   if (res.status === 403) redirect('/');
   if (!res.ok) throw new Error(`Failed to load space: ${res.status}`);
 
-  const data: { business: { modulosActivos?: string[]; businessType?: string } } = await res.json();
+  const data: {
+    business: { id?: string; modulosActivos?: string[]; businessType?: string; plan?: 'free' | 'entrepreneur' };
+  } = await res.json();
 
   return (
     <ModulesContent
       slug={slug}
+      businessId={data.business.id ?? ''}
       activeTokens={data.business.modulosActivos ?? []}
       businessType={(data.business.businessType ?? '').toLowerCase()}
+      plan={data.business.plan === 'entrepreneur' ? 'entrepreneur' : 'free'}
     />
   );
 }

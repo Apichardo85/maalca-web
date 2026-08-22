@@ -8,6 +8,13 @@ interface SpaceResponse {
   business: { id: string; businessType: string };
 }
 
+interface CustomerRow {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+}
+
 // Reservas de mesa — solo Restaurante. Deliberadamente separado de /agenda (Appointment): ver
 // docs/audits/business-type-flows-audit.md y TableReservation.cs en maalca-api para el porqué.
 // Mismo criterio de gating que Cocina/POS/Fila, repetido acá para que la URL no sea alcanzable a
@@ -33,14 +40,25 @@ export default async function ReservationsPage({
   if (space.business.businessType.toLowerCase() !== 'restaurant') redirect(`/space/${slug}`);
 
   let reservations: ReservationRow[] = [];
+  let customers: CustomerRow[] = [];
   try {
-    const res = await fetch(`${API}/api/affiliates/${space.business.id}/reservations`, {
-      headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': space.business.id },
-      cache: 'no-store',
-    });
-    if (res.ok) {
-      const paginated = await res.json();
+    const [reservationsRes, customersRes] = await Promise.all([
+      fetch(`${API}/api/affiliates/${space.business.id}/reservations`, {
+        headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': space.business.id },
+        cache: 'no-store',
+      }),
+      fetch(`${API}/api/affiliates/${space.business.id}/customers?limit=100`, {
+        headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': space.business.id },
+        cache: 'no-store',
+      }),
+    ]);
+    if (reservationsRes.ok) {
+      const paginated = await reservationsRes.json();
       reservations = paginated.data ?? [];
+    }
+    if (customersRes.ok) {
+      const page = await customersRes.json();
+      customers = page?.data ?? [];
     }
   } catch {
     // Queda vacío — ReservationsContent renderiza el estado vacío en vez de tronar.
@@ -51,6 +69,7 @@ export default async function ReservationsPage({
       slug={slug}
       affiliateId={space.business.id}
       initialReservations={reservations}
+      customers={customers}
     />
   );
 }
