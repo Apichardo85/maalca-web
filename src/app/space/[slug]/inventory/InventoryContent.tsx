@@ -253,9 +253,9 @@ export function InventoryContent({ slug, initialItems }: Props) {
                 key={item.id}
                 className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4"
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <p className="truncate text-sm font-semibold">{item.name}</p>
                       {lowStock && (
                         <span className="shrink-0 rounded-full bg-amber-100 dark:bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400">
@@ -269,7 +269,7 @@ export function InventoryContent({ slug, initialItems }: Props) {
                         .join(' · ')}
                     </p>
                   </div>
-                  <div className="flex shrink-0 items-center gap-1.5">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:shrink-0">
                     <button
                       type="button"
                       onClick={() => openMovement(item, 'in')}
