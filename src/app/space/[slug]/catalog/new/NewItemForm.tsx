@@ -8,8 +8,11 @@ import { TrialExpiredNotice } from '@/components/space/TrialExpiredNotice';
 import { ImageGalleryEditor } from '@/components/space/catalog/ImageGalleryEditor';
 import { MealPeriodEditor } from '@/components/space/catalog/MealPeriodEditor';
 import { WeekDayEditor } from '@/components/space/catalog/WeekDayEditor';
+import { RecipeEditor, type RecipeLine, type RecipeInventoryOption } from '@/components/space/catalog/RecipeEditor';
 import type { MealPeriod, WeekDay } from '@/lib/types';
 import { parseApiError } from '@/lib/api-errors';
+import { useToast } from '@/hooks/useToast';
+import { Toast } from '@/components/ui/Toast';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 
 interface Props {
@@ -18,6 +21,8 @@ interface Props {
   businessType: string | null;
   /** Where "Volver" should go back to — set via ?from= by the link that got us here. */
   from?: string;
+  /** Inventory items available to link as ingredients — only populated for Restaurant. */
+  inventoryItems?: RecipeInventoryOption[];
 }
 
 const FLAG_OPTIONS = [
@@ -37,7 +42,7 @@ const NAME_PLACEHOLDERS: Record<string, { es: string; en: string }> = {
 };
 const DEFAULT_NAME_PLACEHOLDER = { es: 'Ej. Nombre del item', en: 'E.g. Item name' };
 
-export default function NewItemForm({ slug, businessType, from }: Props) {
+export default function NewItemForm({ slug, businessType, from, inventoryItems = [] }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const isRestaurant = businessType === 'Restaurant';
@@ -46,6 +51,7 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
   const namePlaceholder = getText(namePlaceholderPair.es, namePlaceholderPair.en);
   const backHref = from === 'catalog' ? `/space/${slug}/catalog` : `/space/${slug}`;
   const router = useRouter();
+  const toast = useToast();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [planLimitReached, setPlanLimitReached] = useState(false);
@@ -60,6 +66,8 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
   const [featured, setFeatured] = useState(false);
   const [popular, setPopular] = useState(false);
   const [durationMinutes, setDurationMinutes] = useState('');
+  const [recipe, setRecipe] = useState<RecipeLine[]>([]);
+  const [recipeError, setRecipeError] = useState<string | null>(null);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -88,6 +96,21 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
         body: JSON.stringify(body),
       });
       if (res.ok) {
+        const created = await res.json().catch(() => null);
+        if (isRestaurant && recipe.length > 0 && created?.id) {
+          const recipeRes = await fetch(`/api/space/${slug}/catalog/${created.id}/ingredients`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: recipe.map((l) => ({ inventoryItemId: l.inventoryItemId, quantity: l.quantity })) }),
+          });
+          if (!recipeRes.ok) {
+            const data = await recipeRes.json().catch(() => ({}));
+            const parsed = parseApiError(data, getText('El item se creó, pero no pudimos guardar la receta.', "The item was created, but we couldn't save the recipe."));
+            setRecipeError(parsed.message);
+            toast.error(parsed.message);
+            return;
+          }
+        }
         router.push(`/space/${slug}/catalog`);
       } else {
         const data = await res.json().catch(() => ({}));
@@ -270,6 +293,22 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
                   <span className="text-sm text-neutral-700 dark:text-neutral-300">{getText('Popular 🔥', 'Popular 🔥')}</span>
                 </label>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  {getText('Receta (Inventario)', 'Recipe (Inventory)')}
+                </label>
+                <RecipeEditor inventoryOptions={inventoryItems} value={recipe} onChange={setRecipe} />
+                <p className="mt-2 text-xs text-neutral-400">
+                  {getText(
+                    'Ligar ingredientes aquí hace que vender este plato descuente el stock real de Inventario.',
+                    'Linking ingredients here makes selling this dish decrement real Inventory stock.',
+                  )}
+                </p>
+                {recipeError && (
+                  <p className="mt-2 rounded-lg bg-red-50 dark:bg-red-900/20 px-3 py-2 text-sm text-red-700 dark:text-red-400">{recipeError}</p>
+                )}
+              </div>
             </div>
           )}
 
@@ -290,6 +329,7 @@ export default function NewItemForm({ slug, businessType, from }: Props) {
           </button>
         </form>
       </div>
+      <Toast toasts={toast.toasts} onRemove={toast.remove} />
     </main>
   );
 }
