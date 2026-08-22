@@ -71,6 +71,7 @@ export function SpaceDashboard({
   const [showAnimation, setShowAnimation] = useState(isNew);
   const [copied, setCopied] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  const [lowStock, setLowStock] = useState<{ count: number; items: { id: string; name: string }[] } | null>(null);
 
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => language === 'es' ? es : en;
@@ -115,6 +116,19 @@ export function SpaceDashboard({
       return () => clearTimeout(t);
     }
   }, [showAnimation]);
+
+  // Alerta de stock bajo — antes solo se veía entrando a Inventario, ahora se asoma en el Home.
+  useEffect(() => {
+    if (!business.modulos_activos.includes('inventory')) return;
+    fetch(`/api/space/${business.slug}/inventory/summary`, { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.lowStockCount > 0) {
+          setLowStock({ count: data.lowStockCount, items: data.lowStockItems ?? [] });
+        }
+      })
+      .catch(() => {});
+  }, [business.slug, business.modulos_activos]);
 
   const copyLink = async () => {
     await navigator.clipboard.writeText(publicUrl);
@@ -350,6 +364,31 @@ export function SpaceDashboard({
             >
               {getText(`Mejorar — $${PRICE_ENTREPRENEUR}/mes`, `Upgrade — $${PRICE_ENTREPRENEUR}/mo`)}
             </button>
+          </div>
+        )}
+
+        {/* Alerta de stock bajo (Inventario) */}
+        {lowStock && (
+          <div className="mt-6 flex items-start gap-3 rounded-2xl border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 p-4">
+            <span className="text-xl">📦</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
+                {getText(
+                  `${lowStock.count} item(s) de inventario con stock bajo`,
+                  `${lowStock.count} inventory item(s) low on stock`,
+                )}
+              </p>
+              <p className="mt-0.5 truncate text-xs text-amber-700 dark:text-amber-300">
+                {lowStock.items.slice(0, 3).map((i) => i.name).join(', ')}
+                {lowStock.items.length > 3 ? '…' : ''}
+              </p>
+              <Link
+                href={`/space/${business.slug}/inventory`}
+                className="mt-1 inline-block text-sm font-medium text-[#C8102E] hover:underline"
+              >
+                {getText('Ver inventario →', 'View inventory →')}
+              </Link>
+            </div>
           </div>
         )}
 

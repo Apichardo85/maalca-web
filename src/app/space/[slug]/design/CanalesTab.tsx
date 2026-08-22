@@ -67,10 +67,39 @@ const TIPOS = [
   { value: 'WhatsApp', Icon: WhatsAppIcon, labelEs: 'WhatsApp', labelEn: 'WhatsApp', placeholder: '18095551234' },
   { value: 'Email', Icon: MailIcon, labelEs: 'Email', labelEn: 'Email', placeholder: 'contacto@negocio.com' },
   { value: 'Telefono', Icon: PhoneIcon, labelEs: 'Teléfono', labelEn: 'Phone', placeholder: '809-555-1234' },
-  { value: 'Facebook', Icon: FacebookIcon, labelEs: 'Facebook', labelEn: 'Facebook', placeholder: 'facebook.com/tunegocio' },
-  { value: 'Instagram', Icon: InstagramIcon, labelEs: 'Instagram', labelEn: 'Instagram', placeholder: 'instagram.com/tu_usuario' },
-  { value: 'TikTok', Icon: TikTokIcon, labelEs: 'TikTok', labelEn: 'TikTok', placeholder: 'tiktok.com/@tu_usuario' },
+  { value: 'Facebook', Icon: FacebookIcon, labelEs: 'Facebook', labelEn: 'Facebook', placeholder: 'tunegocio' },
+  { value: 'Instagram', Icon: InstagramIcon, labelEs: 'Instagram', labelEn: 'Instagram', placeholder: 'tu_usuario' },
+  { value: 'TikTok', Icon: TikTokIcon, labelEs: 'TikTok', labelEn: 'TikTok', placeholder: 'tu_usuario' },
 ] as const;
+
+/** Solo estos 3 tienen un dominio fijo — se muestra como prefijo no editable junto al
+ *  input para que el usuario solo escriba su usuario, en vez de pegar la URL completa.
+ *  El backend (CanalService.GenerarEnlace) igual exige el formato completo, así que este
+ *  prefijo se vuelve a anteponer antes de enviar (ver buildSocialValue). */
+const SOCIAL_PREFIX: Partial<Record<typeof TIPOS[number]['value'], string>> = {
+  Facebook: 'facebook.com/',
+  Instagram: 'instagram.com/',
+  TikTok: 'tiktok.com/@',
+};
+
+/** Extrae solo el usuario de un valor guardado o pegado, sea que venga como
+ *  "juanperez", "instagram.com/juanperez", "https://www.instagram.com/juanperez/" o
+ *  con el "@" que TikTok usa — para poblar el input de solo-usuario en edición/pegado. */
+function extractSocialHandle(tipo: string, raw: string): string {
+  if (!(tipo in SOCIAL_PREFIX)) return raw;
+  let v = raw.trim().replace(/^https?:\/\//i, '').replace(/^www\./i, '');
+  v = v.replace(/^(facebook\.com|instagram\.com|tiktok\.com)\/@?/i, '');
+  v = v.replace(/^@/, '').replace(/\/+$/, '').replace(/\?.*$/, '');
+  return v;
+}
+
+/** Reconstruye el valor completo que el backend espera a partir del usuario que
+ *  escribió la persona en el input de solo-usuario. */
+function buildSocialValue(tipo: string, handle: string): string {
+  const prefix = SOCIAL_PREFIX[tipo as keyof typeof SOCIAL_PREFIX];
+  if (!prefix) return handle;
+  return prefix + extractSocialHandle(tipo, handle);
+}
 
 /** Telefono is the one type a business can plausibly need more than once
  *  (office + cell, main line + branch) — every other type maps 1:1 to a
@@ -185,7 +214,7 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
         body: JSON.stringify({
           tipo: newTipo,
           metodo: (SOCIAL_TIPOS as readonly string[]).includes(newTipo) ? 'Enlace' : 'Manual',
-          valorCrudo: sanitizeContactValue(newValue),
+          valorCrudo: sanitizeContactValue(buildSocialValue(newTipo, newValue)),
           orden: canales.length,
         }),
       });
@@ -215,7 +244,7 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
 
   const startEdit = (canal: CanalDto) => {
     setEditingId(canal.id);
-    setEditValue(canal.valorCrudo);
+    setEditValue(extractSocialHandle(canal.tipo, canal.valorCrudo));
     setError(null);
     setTrialExpired(false);
   };
@@ -230,7 +259,7 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
       const res = await fetch(`/api/space/${slug}/canales/${canal.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ valorCrudo: sanitizeContactValue(editValue) }),
+        body: JSON.stringify({ valorCrudo: sanitizeContactValue(buildSocialValue(canal.tipo, editValue)) }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
@@ -336,12 +365,26 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
                   </p>
                   {isEditing ? (
                     <>
-                      <input
-                        {...inputAttrsForTipo(canal.tipo)}
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        className="mt-0.5 w-full rounded-md border border-gray-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 px-2 py-1 text-sm text-gray-900 dark:text-white"
-                      />
+                      {SOCIAL_PREFIX[canal.tipo as keyof typeof SOCIAL_PREFIX] ? (
+                        <div className="mt-0.5 flex items-stretch overflow-hidden rounded-md border border-gray-200 dark:border-neutral-600">
+                          <span className="flex items-center whitespace-nowrap bg-gray-50 dark:bg-neutral-800 px-2 text-xs text-gray-400 dark:text-neutral-500">
+                            {SOCIAL_PREFIX[canal.tipo as keyof typeof SOCIAL_PREFIX]}
+                          </span>
+                          <input
+                            {...inputAttrsForTipo(canal.tipo)}
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            className="min-w-0 flex-1 border-0 bg-white dark:bg-neutral-700 px-2 py-1 text-sm text-gray-900 dark:text-white focus:outline-none"
+                          />
+                        </div>
+                      ) : (
+                        <input
+                          {...inputAttrsForTipo(canal.tipo)}
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          className="mt-0.5 w-full rounded-md border border-gray-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 px-2 py-1 text-sm text-gray-900 dark:text-white"
+                        />
+                      )}
                       {canal.tipo === 'WhatsApp' && (
                         <p className="mt-1 text-[11px] text-gray-400 dark:text-neutral-500">
                           {getText(
@@ -478,14 +521,29 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
                   </div>
                 )}
               </div>
-              <input
-                {...inputAttrsForTipo(newTipo ?? '')}
-                value={newValue}
-                onChange={(e) => setNewValue(e.target.value)}
-                disabled={!newTipo}
-                placeholder={newTipo ? tipoMeta(newTipo).placeholder : getText('Elige un tipo primero', 'Pick a type first')}
-                className="min-w-0 flex-1 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 disabled:opacity-60"
-              />
+              {newTipo && SOCIAL_PREFIX[newTipo as keyof typeof SOCIAL_PREFIX] ? (
+                <div className="flex min-w-0 flex-1 items-stretch overflow-hidden rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800">
+                  <span className="flex items-center whitespace-nowrap bg-gray-50 dark:bg-neutral-900/50 pl-3 pr-1 text-sm text-gray-400 dark:text-neutral-500">
+                    {SOCIAL_PREFIX[newTipo as keyof typeof SOCIAL_PREFIX]}
+                  </span>
+                  <input
+                    {...inputAttrsForTipo(newTipo)}
+                    value={newValue}
+                    onChange={(e) => setNewValue(e.target.value)}
+                    placeholder={tipoMeta(newTipo).placeholder}
+                    className="min-w-0 flex-1 border-0 bg-transparent py-2 pr-3 pl-0 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 focus:outline-none"
+                  />
+                </div>
+              ) : (
+                <input
+                  {...inputAttrsForTipo(newTipo ?? '')}
+                  value={newValue}
+                  onChange={(e) => setNewValue(e.target.value)}
+                  disabled={!newTipo}
+                  placeholder={newTipo ? tipoMeta(newTipo).placeholder : getText('Elige un tipo primero', 'Pick a type first')}
+                  className="min-w-0 flex-1 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 disabled:opacity-60"
+                />
+              )}
               <button
                 onClick={addCanal}
                 disabled={adding || !newTipo}

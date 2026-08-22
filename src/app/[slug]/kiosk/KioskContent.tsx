@@ -12,6 +12,10 @@ export interface KioskItem {
   price: number;
   category?: string | null;
   imageUrl?: string | null;
+  /** Receta (Restaurante) — solo presente si el plato tiene ingredientes ligados en
+   *  Inventario. Cuando existe, el cliente puede destildar los que no quiera en su pedido
+   *  (ver toggleIngredient) en vez de escribirlo a mano en notas. */
+  ingredients?: { id: string; name: string }[];
 }
 
 interface CartLine {
@@ -23,6 +27,10 @@ interface CartLine {
    *  Mismo campo que CartDrawer.tsx (tarea #178), portado acá porque el kiosko tiene su
    *  propio carrito local en vez de useCart — se le había quedado afuera cuando salió #178. */
   notes?: string;
+  /** IDs de KioskItem.ingredients que el cliente quitó de esta línea. Solo tiene sentido
+   *  cuando el item tiene receta — para items sin receta, `notes` sigue siendo el único
+   *  campo de personalización, como antes. */
+  excludedIngredientIds?: string[];
 }
 
 interface Props {
@@ -51,6 +59,9 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'unavailable'>('idle');
   const [tipMode, setTipMode] = useState<number | 'custom' | null>(null);
   const [customTip, setCustomTip] = useState('');
+  // Detalles de un item (nombre/foto/descripción/precio/ingredientes) — solo informativo,
+  // no agrega al carrito. Mismo patrón que PosContent.tsx del dashboard.
+  const [infoItem, setInfoItem] = useState<KioskItem | null>(null);
   // La navegación a Stripe y de vuelta es un full page load — cualquier estado de React
   // (incluido el carrito) se pierde. El resultado del pago se lee del query param que Stripe
   // agrega al volver (successUrl/cancelUrl), no de estado en memoria.
@@ -95,6 +106,34 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
     setCart((prev) => prev.map((l) => (l.itemId === itemId ? { ...l, notes } : l)));
   }
 
+  function toggleIngredient(itemId: string, ingredientId: string) {
+    setCart((prev) =>
+      prev.map((l) => {
+        if (l.itemId !== itemId) return l;
+        const excluded = new Set(l.excludedIngredientIds ?? []);
+        if (excluded.has(ingredientId)) excluded.delete(ingredientId);
+        else excluded.add(ingredientId);
+        return { ...l, excludedIngredientIds: Array.from(excluded) };
+      }),
+    );
+  }
+
+  /** Arma el texto de notas que de verdad viaja en el pedido (mismo campo `notes` de
+   *  siempre) combinando los ingredientes que el cliente quitó con lo que haya escrito a
+   *  mano — así Cocina sigue viendo un solo texto plano, sin necesitar tocar el backend. */
+  function buildLineNotes(line: CartLine): string | undefined {
+    const item = items.find((i) => i.id === line.itemId);
+    const parts: string[] = [];
+    if (line.excludedIngredientIds?.length && item?.ingredients) {
+      const names = item.ingredients
+        .filter((ing) => line.excludedIngredientIds!.includes(ing.id))
+        .map((ing) => ing.name);
+      if (names.length > 0) parts.push(`Sin: ${names.join(', ')}`);
+    }
+    if (line.notes?.trim()) parts.push(line.notes.trim());
+    return parts.length > 0 ? parts.join(' — ') : undefined;
+  }
+
   const subtotal = cart.reduce((sum, l) => sum + l.price * l.qty, 0);
   const isRestaurant = businessType === 'restaurant';
   const tip = !isRestaurant
@@ -120,7 +159,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
             name: l.name,
             price: l.price,
             qty: l.qty,
-            notes: l.notes?.trim() || undefined,
+            notes: buildLineNotes(l),
           })),
           subtotal,
           tax: 0,
@@ -218,25 +257,40 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
 
             <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
               {visibleItems.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => addToCart(item)}
-                  className="flex flex-col overflow-hidden rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-left shadow-sm transition-transform active:scale-95 hover:border-[#C8102E]"
-                >
-                  {item.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={item.imageUrl} alt={item.name} className="h-28 w-full object-cover" />
-                  ) : (
-                    <div className="flex h-28 w-full items-center justify-center bg-gray-100 dark:bg-neutral-800 text-3xl">
-                      {itemFallbackIcon}
+                <div key={item.id} className="group relative">
+                  <button
+                    type="button"
+                    onClick={() => addToCart(item)}
+                    className="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-left shadow-sm transition-transform active:scale-95 hover:border-[#C8102E]"
+                  >
+                    {item.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={item.imageUrl} alt={item.name} className="h-28 w-full object-cover" />
+                    ) : (
+                      <div className="flex h-28 w-full items-center justify-center bg-gray-100 dark:bg-neutral-800 text-3xl">
+                        {itemFallbackIcon}
+                      </div>
+                    )}
+                    <div className="flex min-h-[80px] flex-col items-start justify-between p-3">
+                      <span className="text-sm font-semibold leading-snug">{item.name}</span>
+                      <span className="mt-2 text-base font-bold text-[#C8102E]">{fmt.format(item.price)}</span>
                     </div>
+                  </button>
+                  {(item.description || (item.ingredients && item.ingredients.length > 0)) && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setInfoItem(item);
+                      }}
+                      aria-label="Ver detalles"
+                      title="Ver detalles"
+                      className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-sm font-bold text-white backdrop-blur-sm hover:bg-black/70"
+                    >
+                      i
+                    </button>
                   )}
-                  <div className="flex min-h-[80px] flex-col items-start justify-between p-3">
-                    <span className="text-sm font-semibold leading-snug">{item.name}</span>
-                    <span className="mt-2 text-base font-bold text-[#C8102E]">{fmt.format(item.price)}</span>
-                  </div>
-                </button>
+                </div>
               ))}
             </div>
           </>
@@ -254,46 +308,82 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
             </p>
           ) : (
             <div className="mt-3 space-y-2">
-              {cart.map((line) => (
-                <div
-                  key={line.itemId}
-                  className="rounded-xl border border-gray-200/70 dark:border-neutral-800 p-3"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{line.name}</p>
-                      <p className="text-xs text-gray-400 dark:text-neutral-500">{fmt.format(line.price)} c/u</p>
+              {cart.map((line) => {
+                const lineItem = items.find((i) => i.id === line.itemId);
+                const hasRecipe = !!lineItem?.ingredients && lineItem.ingredients.length > 0;
+                return (
+                  <div
+                    key={line.itemId}
+                    className="rounded-xl border border-gray-200/70 dark:border-neutral-800 p-3"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{line.name}</p>
+                        <p className="text-xs text-gray-400 dark:text-neutral-500">{fmt.format(line.price)} c/u</p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => changeQty(line.itemId, -1)}
+                          aria-label="Quitar uno"
+                          className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
+                        >
+                          −
+                        </button>
+                        <span className="w-5 text-center text-sm font-semibold">{line.qty}</span>
+                        <button
+                          type="button"
+                          onClick={() => changeQty(line.itemId, 1)}
+                          aria-label="Agregar uno"
+                          className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
+                        >
+                          +
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => changeQty(line.itemId, -1)}
-                        aria-label="Quitar uno"
-                        className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
-                      >
-                        −
-                      </button>
-                      <span className="w-5 text-center text-sm font-semibold">{line.qty}</span>
-                      <button
-                        type="button"
-                        onClick={() => changeQty(line.itemId, 1)}
-                        aria-label="Agregar uno"
-                        className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
-                      >
-                        +
-                      </button>
-                    </div>
+
+                    {/* Receta real (Inventario) — solo cuando el plato la tiene definida.
+                        Destildar un ingrediente arma "Sin: X, Y" automáticamente en las notas
+                        del pedido, en vez de que el cliente tenga que escribirlo a mano. */}
+                    {hasRecipe && (
+                      <div className="mt-2">
+                        <p className="text-[11px] font-medium text-gray-500 dark:text-neutral-400">
+                          Ingredientes — destilda lo que no quieras
+                        </p>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          {lineItem!.ingredients!.map((ing) => {
+                            const excluded = line.excludedIngredientIds?.includes(ing.id) ?? false;
+                            return (
+                              <button
+                                key={ing.id}
+                                type="button"
+                                onClick={() => toggleIngredient(line.itemId, ing.id)}
+                                aria-pressed={!excluded}
+                                className={`rounded-full border px-2.5 py-1 text-xs font-medium ${
+                                  excluded
+                                    ? 'border-gray-200 bg-gray-100 text-gray-400 line-through dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-500'
+                                    : 'border-[#C8102E]/40 bg-[#C8102E]/10 text-[#C8102E]'
+                                }`}
+                              >
+                                {ing.name}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {isRestaurant && (
+                      <input
+                        value={line.notes ?? ''}
+                        onChange={(e) => updateNotes(line.itemId, e.target.value)}
+                        placeholder={hasRecipe ? '¿Algo más? (opcional)' : 'Personalizar (ej. sin cebolla)…'}
+                        className="mt-2 w-full rounded-lg border border-gray-200 dark:border-neutral-700 bg-transparent px-2.5 py-1.5 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 focus:border-gray-400 dark:focus:border-neutral-500 focus:outline-none"
+                      />
+                    )}
                   </div>
-                  {isRestaurant && (
-                    <input
-                      value={line.notes ?? ''}
-                      onChange={(e) => updateNotes(line.itemId, e.target.value)}
-                      placeholder="Personalizar (ej. sin cebolla)…"
-                      className="mt-2 w-full rounded-lg border border-gray-200 dark:border-neutral-700 bg-transparent px-2.5 py-1.5 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 focus:border-gray-400 dark:focus:border-neutral-500 focus:outline-none"
-                    />
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -374,6 +464,75 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
           )}
         </div>
       </div>
+
+      {/* Detalles de un item — foto/descripción/precio/ingredientes. Solo informativo, igual
+          que en el POS del dashboard; no agrega al carrito por sí solo. */}
+      {infoItem && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setInfoItem(null)}
+        >
+          <div
+            className="w-full max-w-sm overflow-hidden rounded-2xl bg-white dark:bg-neutral-900 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {infoItem.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={infoItem.imageUrl} alt={infoItem.name} className="h-40 w-full object-cover" />
+            ) : (
+              <div className="flex h-40 w-full items-center justify-center bg-gray-100 dark:bg-neutral-800 text-4xl">
+                {itemFallbackIcon}
+              </div>
+            )}
+            <div className="max-h-[60vh] overflow-y-auto p-4">
+              <div className="flex items-start justify-between gap-3">
+                <h3 className="text-base font-bold">{infoItem.name}</h3>
+                <span className="shrink-0 text-base font-bold text-[#C8102E]">{fmt.format(infoItem.price)}</span>
+              </div>
+              {infoItem.description && (
+                <p className="mt-2 text-sm text-gray-600 dark:text-neutral-300">{infoItem.description}</p>
+              )}
+              {infoItem.ingredients && infoItem.ingredients.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-neutral-500">
+                    Contiene
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
+                    {infoItem.ingredients.map((ing) => (
+                      <span
+                        key={ing.id}
+                        className="rounded-full bg-gray-100 dark:bg-neutral-800 px-2.5 py-1 text-xs font-medium text-gray-600 dark:text-neutral-300"
+                      >
+                        {ing.name}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="mt-1.5 text-[11px] text-gray-400 dark:text-neutral-500">
+                    Puedes quitar ingredientes al agregarlo a tu pedido.
+                  </p>
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  addToCart(infoItem);
+                  setInfoItem(null);
+                }}
+                className="mt-4 w-full rounded-full bg-[#C8102E] px-4 py-3 text-sm font-bold text-white"
+              >
+                Agregar {fmt.format(infoItem.price)}
+              </button>
+              <button
+                type="button"
+                onClick={() => setInfoItem(null)}
+                className="mt-2 w-full rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-2 text-sm font-medium"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

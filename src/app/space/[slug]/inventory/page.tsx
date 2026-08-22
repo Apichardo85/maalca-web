@@ -32,6 +32,8 @@ export default async function InventoryPage({
   if (!space.business.modulosActivos.includes('inventory')) redirect(`/space/${slug}`);
 
   let items: InventoryItemRow[] = [];
+  let totalPages = 1;
+  let total = 0;
   try {
     const res = await fetch(`${API}/api/affiliates/${space.business.id}/inventory?page=1`, {
       headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': space.business.id },
@@ -40,10 +42,32 @@ export default async function InventoryPage({
     if (res.ok) {
       const page = await res.json();
       items = page?.data ?? [];
+      totalPages = page?.totalPages ?? 1;
+      total = page?.total ?? items.length;
     }
   } catch {
     // Queda vacío — InventoryContent renderiza el estado vacío en vez de tronar.
   }
 
-  return <InventoryContent slug={slug} affiliateId={space.business.id} initialItems={items} />;
+  let summary = null;
+  try {
+    const res = await fetch(`${API}/api/affiliates/${space.business.id}/inventory/summary`, {
+      headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': space.business.id },
+      cache: 'no-store',
+    });
+    if (res.ok) summary = await res.json();
+  } catch {
+    // Sin resumen inicial — InventoryContent lo pide de nuevo en el cliente.
+  }
+
+  return (
+    <InventoryContent
+      slug={slug}
+      affiliateId={space.business.id}
+      initialItems={items}
+      initialTotal={total}
+      initialTotalPages={totalPages}
+      initialSummary={summary}
+    />
+  );
 }

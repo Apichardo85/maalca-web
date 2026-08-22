@@ -129,6 +129,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType }:
     );
   }
 
+  const cartCount = cart.reduce((sum, l) => sum + l.qty, 0);
   const subtotal = cart.reduce((sum, l) => sum + l.price * l.qty, 0);
   const isRestaurant = businessType === 'restaurant';
   const tip = !isRestaurant
@@ -252,6 +253,26 @@ export function PosContent({ slug, affiliateId, currency, items, businessType }:
           </a>
         </div>
 
+        {/* Mini-cuenta pegajosa — solo mobile. En una pantalla angosta el panel completo del
+            carrito queda abajo del todo del grid de productos, así que sin esto la persona
+            agrega items "a ciegas" y no sabe qué lleva hasta bajar toda la página. En desktop
+            no hace falta: el panel lateral ya está siempre visible (lg:sticky). */}
+        {cart.length > 0 && (
+          <button
+            type="button"
+            onClick={() => document.getElementById('pos-cart-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            className="sticky top-0 z-20 mt-3 flex w-full items-center justify-between gap-2 rounded-xl border border-[#C8102E]/30 bg-[#C8102E] px-4 py-3 text-white shadow-md lg:hidden"
+          >
+            <span className="flex items-center gap-2 text-sm font-semibold">
+              🛒 {cartCount} {getText(cartCount === 1 ? 'item' : 'items', cartCount === 1 ? 'item' : 'items')}
+            </span>
+            <span className="flex items-center gap-1 text-sm font-bold">
+              {fmt(total)}
+              <span aria-hidden="true">▾</span>
+            </span>
+          </button>
+        )}
+
         {items.length === 0 ? (
           <p className="mt-6 text-sm text-gray-400 dark:text-neutral-500">
             {getText(
@@ -340,7 +361,10 @@ export function PosContent({ slug, affiliateId, currency, items, businessType }:
           empujaba el botón de cobrar muy por debajo del fold, obligando a bajar toda la
           página para pagar. Con self-start + h-screen, el panel se queda del alto exacto del
           viewport pase lo que pase con el grid, y el botón de cobrar siempre queda a la vista. */}
-      <div className="flex w-full flex-col border-t border-gray-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 lg:sticky lg:top-0 lg:h-screen lg:w-96 lg:self-start lg:border-l lg:border-t-0">
+      <div
+        id="pos-cart-panel"
+        className="flex w-full scroll-mt-4 flex-col border-t border-gray-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 lg:sticky lg:top-0 lg:h-screen lg:w-96 lg:self-start lg:border-l lg:border-t-0"
+      >
         <div className="flex-1 overflow-y-auto p-4">
           <h2 className="text-sm font-semibold">{getText('Cuenta actual', 'Current order')}</h2>
           {cart.length === 0 ? (

@@ -34,6 +34,10 @@ interface PublicCatalogResponse {
     imageUrl?: string | null;
     status?: string | null;
     is_demo?: boolean;
+    // Receta (Restaurante) — solo presente cuando el plato tiene ingredientes ligados en
+    // Inventario (ver PublicCatalogService.GetCatalogAsync). Nombres solamente, sin
+    // cantidad/costo — eso es información interna del negocio, no del cliente.
+    ingredients?: Array<{ inventoryItemId: string; name: string }> | null;
   }>;
   capabilities: { onlinePayments?: boolean };
 }
@@ -74,6 +78,9 @@ export default async function KioskPage({ params }: PageProps) {
       price: i.price ?? 0,
       category: i.category ?? null,
       imageUrl: i.image_url ?? i.imageUrl ?? null,
+      ingredients: i.ingredients?.length
+        ? i.ingredients.map((ing) => ({ id: ing.inventoryItemId, name: ing.name }))
+        : undefined,
     }));
 
   const currency = data.affiliate.currency === 'DOP' ? 'DOP' : 'USD';
