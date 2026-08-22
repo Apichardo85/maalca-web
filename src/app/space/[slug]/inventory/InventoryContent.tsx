@@ -15,6 +15,8 @@ export interface InventoryItemRow {
   unitPrice: number;
   unit: string;
   status: string;
+  barcode?: string | null;
+  internalCode?: string | null;
 }
 
 interface InventoryMovementRow {
@@ -51,7 +53,7 @@ interface Props {
 
 const UNIT_OPTIONS = ['unidad', 'kg', 'lb', 'g', 'litro', 'ml', 'caja', 'paquete', 'docena'];
 
-const emptyForm = { name: '', category: '', quantity: '0', minStock: '0', unitPrice: '0', unit: 'unidad' };
+const emptyForm = { name: '', category: '', quantity: '0', minStock: '0', unitPrice: '0', unit: 'unidad', barcode: '' };
 
 export function InventoryContent({ slug, initialItems, initialTotal, initialTotalPages, initialSummary }: Props) {
   const { language } = useSimpleLanguage();
@@ -154,6 +156,7 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
       minStock: String(item.minStock),
       unitPrice: String(item.unitPrice),
       unit: item.unit || 'unidad',
+      barcode: item.barcode ?? '',
     });
     setShowForm(true);
   }
@@ -185,6 +188,7 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
       unitPrice: Number(form.unitPrice) || 0,
       unit: form.unit,
       status: 'Active',
+      barcode: form.barcode.trim() || null,
     };
     try {
       const res = await fetch(
@@ -503,6 +507,22 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
               placeholder={getText('Categoría (opcional)', 'Category (optional)')}
               className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
             />
+            <div>
+              <input
+                value={form.barcode}
+                onChange={(e) => setForm((f) => ({ ...f, barcode: e.target.value }))}
+                placeholder={getText('Código de barra (opcional, UPC/EAN)', 'Barcode (optional, UPC/EAN)')}
+                className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+              />
+              {/* Si el producto de fábrica no trae código propio, el backend siempre genera uno
+                  interno al guardar (InternalCode) — nunca queda sin identificador. */}
+              {editingId && (
+                <p className="mt-1 text-xs text-gray-400 dark:text-neutral-500">
+                  {getText('Código interno', 'Internal code')}:{' '}
+                  {items.find((i) => i.id === editingId)?.internalCode ?? '—'}
+                </p>
+              )}
+            </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div>
                 <label className="text-xs text-gray-500 dark:text-neutral-400">{getText('Cantidad', 'Quantity')}</label>
@@ -604,6 +624,13 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
                         .filter(Boolean)
                         .join(' · ')}
                     </p>
+                    {(item.barcode || item.internalCode) && (
+                      <p className="mt-0.5 truncate text-[11px] text-gray-400 dark:text-neutral-500">
+                        {item.barcode
+                          ? `${getText('Cód. barra', 'Barcode')}: ${item.barcode}`
+                          : `${getText('Cód. interno', 'Internal code')}: ${item.internalCode}`}
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5 sm:shrink-0">
                     <button
