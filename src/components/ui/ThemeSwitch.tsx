@@ -6,8 +6,9 @@ export function ThemeSwitch() {
   useEffect(() => {
     setMounted(true);
     const savedTheme = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+    // Igual que en ThemeToggle.tsx: ya no copia el modo oscuro del sistema en la primera
+    // visita. Solo entra en oscuro si la persona lo eligió antes (localStorage).
+    if (savedTheme === "dark") {
       setIsDark(true);
       document.documentElement.setAttribute("data-theme", "dark");
     }

@@ -7,8 +7,11 @@ export default function ThemeToggle() {
   useEffect(() => {
     setMounted(true);
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+    // Antes copiaba el modo oscuro del sistema operativo/navegador en la primera visita —
+    // un visitante con su Windows/Chrome en oscuro veía el sitio en oscuro sin haberlo
+    // elegido, y sin ninguna pista de que había un botón para cambiarlo. Ahora el default
+    // siempre es claro salvo que la persona lo haya activado ella misma (localStorage).
+    const initialTheme = savedTheme || 'light';
     setTheme(initialTheme);
     applyTheme(initialTheme);
   }, []);
