@@ -123,6 +123,20 @@ export function PoncheContent({ slug, businessName, logoUrl, initialTeam }: Prop
 
       {view === 'pin' && selected && (
         <div className="w-full max-w-xs text-center">
+          {selected.photoUrl ? (
+            <img
+              src={selected.photoUrl}
+              alt={selected.name}
+              className="mx-auto mb-3 h-16 w-16 rounded-full object-cover"
+            />
+          ) : (
+            <div
+              className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full text-xl font-bold"
+              style={{ backgroundColor: BRAND }}
+            >
+              {selected.name.charAt(0).toUpperCase()}
+            </div>
+          )}
           <p className="mb-4 text-sm text-neutral-400">Hola, {selected.name} — escribe tu PIN</p>
           <div className="mb-4 flex justify-center gap-3">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -186,7 +200,15 @@ export function PoncheContent({ slug, businessName, logoUrl, initialTeam }: Prop
       {view === 'result' && selected && result && (
         <div className="w-full max-w-xs text-center">
           <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6">
-            <p className="text-2xl mb-2">{result.action === 'ClockedIn' ? '👋' : '✅'}</p>
+            {selected.photoUrl ? (
+              <img
+                src={selected.photoUrl}
+                alt={selected.name}
+                className="mx-auto mb-2 h-14 w-14 rounded-full object-cover"
+              />
+            ) : (
+              <p className="text-2xl mb-2">{result.action === 'ClockedIn' ? '👋' : '✅'}</p>
+            )}
             <p className="text-base font-semibold">
               {result.action === 'ClockedIn' ? `¡Bienvenido, ${selected.name}!` : `¡Hasta luego, ${selected.name}!`}
             </p>
