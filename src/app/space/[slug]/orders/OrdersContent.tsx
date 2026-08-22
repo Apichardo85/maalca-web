@@ -150,7 +150,7 @@ export function OrdersContent({ slug, plan, initialOrders }: Props) {
                     <button
                       onClick={() => updateStatus(order.id, 'Preparing')}
                       disabled={updatingId === order.id}
-                      className="rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-1.5 text-xs font-medium hover:border-[#C8102E] hover:text-[#C8102E] disabled:opacity-50"
+                      className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-4 text-xs font-medium hover:border-[#C8102E] hover:text-[#C8102E] disabled:opacity-50"
                     >
                       {getText('Marcar en preparación', 'Mark preparing')}
                     </button>
@@ -159,7 +159,7 @@ export function OrdersContent({ slug, plan, initialOrders }: Props) {
                     <button
                       onClick={() => updateStatus(order.id, 'Fulfilled')}
                       disabled={updatingId === order.id}
-                      className="rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-1.5 text-xs font-medium hover:border-[#C8102E] hover:text-[#C8102E] disabled:opacity-50"
+                      className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-4 text-xs font-medium hover:border-[#C8102E] hover:text-[#C8102E] disabled:opacity-50"
                     >
                       {getText('Marcar entregado', 'Mark fulfilled')}
                     </button>
@@ -169,14 +169,14 @@ export function OrdersContent({ slug, plan, initialOrders }: Props) {
                       <button
                         onClick={() => updateStatus(order.id, 'Canceled')}
                         disabled={updatingId === order.id}
-                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-1.5 text-xs font-medium text-gray-500 hover:border-red-400 hover:text-red-500 disabled:opacity-50"
+                        className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-4 text-xs font-medium text-gray-500 hover:border-red-400 hover:text-red-500 disabled:opacity-50"
                       >
                         {getText('Cancelar', 'Cancel')}
                       </button>
                       <button
                         onClick={() => updateStatus(order.id, 'Paid')}
                         disabled={updatingId === order.id}
-                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-1.5 text-xs font-medium hover:border-[#C8102E] hover:text-[#C8102E] disabled:opacity-50"
+                        className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-4 text-xs font-medium hover:border-[#C8102E] hover:text-[#C8102E] disabled:opacity-50"
                       >
                         {getText('Marcar pagado', 'Mark paid')}
                       </button>

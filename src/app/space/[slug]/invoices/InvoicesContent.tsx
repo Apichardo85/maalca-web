@@ -233,19 +233,19 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
 
             <div className="space-y-2">
               {lines.map((line, i) => (
-                <div key={i} className="flex gap-2">
+                <div key={i} className="flex flex-wrap gap-2">
                   <input
                     value={line.description}
                     onChange={(e) => updateLine(i, { description: e.target.value })}
                     placeholder={getText('Descripción del trabajo', 'Work description')}
-                    className="min-w-0 flex-1 rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+                    className="min-w-0 basis-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm sm:basis-0 sm:flex-1"
                   />
                   <input
                     type="number"
                     min={1}
                     value={line.quantity}
                     onChange={(e) => updateLine(i, { quantity: Number(e.target.value) || 1 })}
-                    className="w-16 rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-2 text-sm"
+                    className="w-20 rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-2 text-sm sm:w-16"
                   />
                   <input
                     type="number"
@@ -359,7 +359,7 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
                         type="button"
                         onClick={() => generatePaymentLink(invoice)}
                         disabled={generatingLink === invoice.id}
-                        className="rounded-full px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-40"
+                        className="flex min-h-11 items-center justify-center rounded-full px-3 text-xs font-semibold text-white disabled:opacity-40"
                         style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
                       >
                         {generatingLink === invoice.id
@@ -372,7 +372,7 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
                         type="button"
                         onClick={() => markPaid(invoice)}
                         disabled={markingPaid === invoice.id}
-                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-semibold disabled:opacity-40"
+                        className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-3 text-xs font-semibold disabled:opacity-40"
                       >
                         {getText('Marcar pagada', 'Mark paid')}
                       </button>

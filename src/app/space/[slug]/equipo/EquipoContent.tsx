@@ -572,7 +572,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                         {!link && isEntrepreneur && (
                           <button
                             onClick={() => openInvite(member)}
-                            className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-blue-400 hover:text-blue-600 disabled:opacity-50"
+                            className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-3 text-xs font-medium text-gray-500 hover:border-blue-400 hover:text-blue-600 disabled:opacity-50"
                           >
                             {getText('Dar acceso al dashboard', 'Grant dashboard access')}
                           </button>
@@ -581,7 +581,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                           <button
                             onClick={() => removeAccess(link.id, member.name)}
                             disabled={busyId === link.id}
-                            className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-red-400 hover:text-red-500 disabled:opacity-50"
+                            className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-3 text-xs font-medium text-gray-500 hover:border-red-400 hover:text-red-500 disabled:opacity-50"
                           >
                             {getText('Quitar acceso', 'Remove access')}
                           </button>
@@ -589,14 +589,14 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                         <button
                           onClick={() => toggleAvailable(member)}
                           disabled={busyId === member.id}
-                          className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-gray-400 disabled:opacity-50"
+                          className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-3 text-xs font-medium text-gray-500 hover:border-gray-400 disabled:opacity-50"
                         >
                           {member.isActive ? getText('Marcar no disponible', 'Mark unavailable') : getText('Marcar disponible', 'Mark available')}
                         </button>
                         <button
                           onClick={() => removePersonal(member.id, member.name)}
                           disabled={busyId === member.id}
-                          className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-red-400 hover:text-red-500 disabled:opacity-50"
+                          className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-3 text-xs font-medium text-gray-500 hover:border-red-400 hover:text-red-500 disabled:opacity-50"
                         >
                           {getText('Quitar', 'Remove')}
                         </button>
@@ -683,7 +683,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                         value={c.role}
                         disabled={busyId === c.id}
                         onChange={(e) => updateAccessRole(c.id, e.target.value)}
-                        className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-1.5 text-xs"
+                        className="min-h-11 rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 text-xs"
                       >
                         <option value="Owner">{ROLE_LABELS.Owner[language]}</option>
                         <option value="Manager">{ROLE_LABELS.Manager[language]}</option>
@@ -698,7 +698,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                       <button
                         onClick={() => removeAccess(c.id, c.email)}
                         disabled={busyId === c.id}
-                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-red-400 hover:text-red-500 disabled:opacity-50"
+                        className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-3 text-xs font-medium text-gray-500 hover:border-red-400 hover:text-red-500 disabled:opacity-50"
                       >
                         {getText('Quitar', 'Remove')}
                       </button>

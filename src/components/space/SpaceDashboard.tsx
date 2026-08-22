@@ -383,7 +383,7 @@ export function SpaceDashboard({
             <div className="mt-3 space-y-1.5">
               <Link
                 href={`/space/${business.slug}/catalog/new`}
-                className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+                className="flex min-h-11 items-center gap-2 rounded-lg px-2.5 text-sm font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
               >
                 <span>➕</span> {getText('Agregar item', 'Add item')}
               </Link>
@@ -391,19 +391,19 @@ export function SpaceDashboard({
                 href={`/${business.slug}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+                className="flex min-h-11 items-center gap-2 rounded-lg px-2.5 text-sm font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
               >
                 <span>👁️</span> {getText('Ver mi página', 'View my page')}
               </a>
               <Link
                 href={`/space/${business.slug}/design?tab=canales`}
-                className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+                className="flex min-h-11 items-center gap-2 rounded-lg px-2.5 text-sm font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
               >
                 <span>💬</span> {getText('Configurar canales', 'Configure channels')}
               </Link>
               <button
                 onClick={copyLink}
-                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+                className="flex min-h-11 w-full items-center gap-2 rounded-lg px-2.5 text-left text-sm font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
               >
                 <span>🔗</span> {copied ? getText('✓ Link copiado', '✓ Link copied') : getText('Compartir link', 'Share link')}
               </button>
@@ -430,19 +430,19 @@ export function SpaceDashboard({
                 href={`/${business.slug}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-lg border border-gray-200 dark:border-neutral-700 px-2 py-1.5 text-center text-xs font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800"
+                className="flex min-h-11 items-center justify-center rounded-lg border border-gray-200 dark:border-neutral-700 px-2 text-center text-xs font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800"
               >
                 {getText('Ver', 'View')}
               </a>
               <Link
                 href={`/space/${business.slug}/design`}
-                className="rounded-lg border border-gray-200 dark:border-neutral-700 px-2 py-1.5 text-center text-xs font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800"
+                className="flex min-h-11 items-center justify-center rounded-lg border border-gray-200 dark:border-neutral-700 px-2 text-center text-xs font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800"
               >
                 {getText('Editar', 'Edit')}
               </Link>
               <button
                 onClick={copyLink}
-                className="rounded-lg border border-gray-200 dark:border-neutral-700 px-2 py-1.5 text-center text-xs font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800"
+                className="flex min-h-11 items-center justify-center rounded-lg border border-gray-200 dark:border-neutral-700 px-2 text-center text-xs font-medium text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800"
               >
                 {copied ? getText('✓', '✓') : getText('Compartir', 'Share')}
               </button>

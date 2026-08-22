@@ -234,7 +234,7 @@ export function QueueContent({ slug, affiliateId, initialEntries, services, barb
                   type="button"
                   onClick={() => updateStatus(entry.id, 'in_service', entry.preferredBarberId ?? undefined)}
                   disabled={actingOn === entry.id}
-                  className="rounded-full px-3 py-2 text-xs font-semibold text-white disabled:opacity-40"
+                  className="flex min-h-11 items-center justify-center rounded-full px-3 text-xs font-semibold text-white disabled:opacity-40"
                   style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
                 >
                   {getText('Llamar', 'Call')}
@@ -243,7 +243,7 @@ export function QueueContent({ slug, affiliateId, initialEntries, services, barb
                   type="button"
                   onClick={() => updateStatus(entry.id, 'no_show')}
                   disabled={actingOn === entry.id}
-                  className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-2 text-xs font-semibold text-gray-600 dark:text-neutral-300 disabled:opacity-40"
+                  className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-3 text-xs font-semibold text-gray-600 dark:text-neutral-300 disabled:opacity-40"
                 >
                   {getText('No llegó', 'No-show')}
                 </button>
@@ -277,7 +277,7 @@ export function QueueContent({ slug, affiliateId, initialEntries, services, barb
                           type="button"
                           onClick={() => completeAndInvoice(entry)}
                           disabled={actingOn === entry.id}
-                          className="rounded-full px-3 py-2 text-xs font-semibold text-white disabled:opacity-40"
+                          className="flex min-h-11 items-center justify-center rounded-full px-3 text-xs font-semibold text-white disabled:opacity-40"
                           style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
                         >
                           {getText('Completar y facturar', 'Complete & invoice')}
@@ -287,7 +287,7 @@ export function QueueContent({ slug, affiliateId, initialEntries, services, barb
                         type="button"
                         onClick={() => updateStatus(entry.id, 'completed')}
                         disabled={actingOn === entry.id}
-                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-2 text-xs font-semibold disabled:opacity-40"
+                        className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-3 text-xs font-semibold disabled:opacity-40"
                       >
                         {getText('Completar', 'Complete')}
                       </button>

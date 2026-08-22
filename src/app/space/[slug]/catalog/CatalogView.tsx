@@ -90,7 +90,7 @@ export function CatalogView({ slug, plan, items: initialItems, productCount }: P
           </div>
           <Link
             href={`/space/${slug}/catalog/new?from=catalog`}
-            className="flex-shrink-0 rounded-full bg-[#C8102E] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#A00D26]"
+            className="flex min-h-11 flex-shrink-0 items-center justify-center rounded-full bg-[#C8102E] px-4 text-sm font-medium text-white transition hover:bg-[#A00D26]"
           >
             {getText('+ Agregar item', '+ Add item')}
           </Link>
@@ -308,7 +308,7 @@ function ItemRow({
           type="button"
           onClick={() => onToggleActive(item)}
           disabled={toggling}
-          className={`rounded-full border px-3 py-1 text-xs font-medium transition disabled:opacity-50 ${
+          className={`flex min-h-11 items-center justify-center rounded-full border px-3 text-xs font-medium transition disabled:opacity-50 ${
             item.active
               ? 'border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 hover:border-red-400 hover:text-red-500'
               : 'border-green-300 dark:border-green-700 text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20'
@@ -322,7 +322,7 @@ function ItemRow({
         </button>
         <Link
           href={`/space/${slug}/catalog/${item.id}/edit?from=catalog`}
-          className="text-xs font-medium text-gray-400 dark:text-neutral-500 transition hover:text-gray-900 dark:hover:text-white"
+          className="flex min-h-11 items-center justify-center px-2 text-xs font-medium text-gray-400 dark:text-neutral-500 transition hover:text-gray-900 dark:hover:text-white"
         >
           {getText('Editar →', 'Edit →')}
         </Link>

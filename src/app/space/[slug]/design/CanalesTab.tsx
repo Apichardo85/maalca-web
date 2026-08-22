@@ -361,13 +361,13 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
                       <button
                         onClick={() => saveEdit(canal)}
                         disabled={isBusy}
-                        className="rounded-lg px-2 py-1 text-xs font-medium text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                        className="flex min-h-11 items-center justify-center rounded-lg px-2.5 text-xs font-medium text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
                       >
                         {getText('Guardar', 'Save')}
                       </button>
                       <button
                         onClick={() => setEditingId(null)}
-                        className="rounded-lg px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-700"
+                        className="flex min-h-11 items-center justify-center rounded-lg px-2.5 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-700"
                       >
                         {getText('Cancelar', 'Cancel')}
                       </button>
@@ -377,13 +377,13 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
                       <button
                         onClick={() => deleteCanal(canal)}
                         disabled={isBusy}
-                        className="rounded-lg px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        className="flex min-h-11 items-center justify-center rounded-lg px-2.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                       >
                         {getText('Confirmar', 'Confirm')}
                       </button>
                       <button
                         onClick={() => setConfirmDeleteId(null)}
-                        className="rounded-lg px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-700"
+                        className="flex min-h-11 items-center justify-center rounded-lg px-2.5 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-700"
                       >
                         {getText('Cancelar', 'Cancel')}
                       </button>
@@ -394,19 +394,19 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
                         onClick={() => toggleActivo(canal)}
                         disabled={isBusy}
                         title={canal.activo ? getText('Desactivar', 'Deactivate') : getText('Activar', 'Activate')}
-                        className="rounded-lg px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-700"
+                        className="flex min-h-11 items-center justify-center rounded-lg px-2.5 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-700"
                       >
                         {canal.activo ? getText('Activo', 'Active') : getText('Inactivo', 'Inactive')}
                       </button>
                       <button
                         onClick={() => startEdit(canal)}
-                        className="rounded-lg px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-700"
+                        className="flex min-h-11 items-center justify-center rounded-lg px-2.5 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-700"
                       >
                         {getText('Editar', 'Edit')}
                       </button>
                       <button
                         onClick={() => setConfirmDeleteId(canal.id)}
-                        className="rounded-lg px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        className="flex min-h-11 items-center justify-center rounded-lg px-2.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                       >
                         {getText('Eliminar', 'Delete')}
                       </button>

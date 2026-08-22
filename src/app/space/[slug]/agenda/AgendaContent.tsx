@@ -469,7 +469,7 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
                       {getText('No quedan horarios disponibles ese día.', 'No time slots left that day.')}
                     </p>
                   ) : (
-                    <div className="grid max-h-40 grid-cols-4 gap-1.5 overflow-y-auto sm:grid-cols-6">
+                    <div className="grid max-h-52 grid-cols-4 gap-1.5 overflow-y-auto sm:grid-cols-6">
                       {timeSlots.map((slot) => {
                         const active = time === slot;
                         return (
@@ -477,7 +477,7 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
                             key={slot}
                             type="button"
                             onClick={() => setTime(slot)}
-                            className={`rounded-lg border px-2 py-1.5 text-xs font-semibold transition-colors ${
+                            className={`flex min-h-11 items-center justify-center rounded-lg border px-2 text-xs font-semibold transition-colors ${
                               active
                                 ? 'border-[#C8102E] bg-[#C8102E] text-white'
                                 : 'border-gray-300 text-gray-700 dark:border-neutral-700 dark:text-neutral-300'

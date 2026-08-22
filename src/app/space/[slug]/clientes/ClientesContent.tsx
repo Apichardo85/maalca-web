@@ -176,7 +176,7 @@ export function ClientesContent({ slug, initialCustomers }: Props) {
         <button
           type="button"
           onClick={() => setShowForm(true)}
-          className="flex-shrink-0 rounded-full bg-[#C8102E] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#A00D26]"
+          className="flex min-h-11 flex-shrink-0 items-center justify-center rounded-full bg-[#C8102E] px-4 text-sm font-medium text-white transition hover:bg-[#A00D26]"
         >
           + {getText('Cliente', 'Customer')}
         </button>
@@ -202,41 +202,71 @@ export function ClientesContent({ slug, initialCustomers }: Props) {
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-neutral-800">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-neutral-900">
-              <tr className="text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-neutral-400">
-                <th className="px-4 py-3">{getText('Nombre', 'Name')}</th>
-                <th className="hidden px-4 py-3 sm:table-cell">{getText('Contacto', 'Contact')}</th>
-                <th className="px-4 py-3 text-right">{getText('Visitas', 'Visits')}</th>
-                <th className="hidden px-4 py-3 sm:table-cell">{getText('Última visita', 'Last visit')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
-              {filtered.map((c) => (
-                <tr
-                  key={c.id}
-                  onClick={() => openHistory(c)}
-                  className="cursor-pointer transition hover:bg-gray-50 dark:hover:bg-neutral-800/50"
-                >
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-gray-900 dark:text-white">{c.name}</p>
-                    {c.status === 'Inactive' && (
-                      <span className="text-xs text-gray-400 dark:text-neutral-500">{getText('Inactivo', 'Inactive')}</span>
-                    )}
-                  </td>
-                  <td className="hidden px-4 py-3 text-gray-500 dark:text-neutral-400 sm:table-cell">
-                    {c.phone || c.email || '—'}
-                  </td>
-                  <td className="px-4 py-3 text-right font-medium text-gray-900 dark:text-white">{c.totalVisits}</td>
-                  <td className="hidden px-4 py-3 text-gray-500 dark:text-neutral-400 sm:table-cell">
-                    {c.lastVisit ? dateFmt(c.lastVisit) : '—'}
-                  </td>
+        <>
+          {/* Mobile: tarjetas apiladas — la tabla de abajo se esconde por completo en vez de
+              recortar columnas, así el contacto y la última visita no desaparecen de la vista
+              principal (mismo criterio que la conversión tabla→tarjetas de /ops/negocios). */}
+          <div className="space-y-2 sm:hidden">
+            {filtered.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => openHistory(c)}
+                className="flex w-full min-h-11 flex-col gap-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-left transition hover:bg-gray-50 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:bg-neutral-800/50"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-medium text-gray-900 dark:text-white">{c.name}</p>
+                  <span className="shrink-0 text-sm font-medium text-gray-900 dark:text-white">
+                    {c.totalVisits} {getText('visitas', 'visits')}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-neutral-400">
+                  {[c.phone || c.email, c.lastVisit ? dateFmt(c.lastVisit) : null].filter(Boolean).join(' · ') || '—'}
+                </p>
+                {c.status === 'Inactive' && (
+                  <span className="text-xs text-gray-400 dark:text-neutral-500">{getText('Inactivo', 'Inactive')}</span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Desktop/tablet: tabla completa */}
+          <div className="hidden overflow-hidden rounded-xl border border-gray-200 dark:border-neutral-800 sm:block">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 dark:bg-neutral-900">
+                <tr className="text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-neutral-400">
+                  <th className="px-4 py-3">{getText('Nombre', 'Name')}</th>
+                  <th className="px-4 py-3">{getText('Contacto', 'Contact')}</th>
+                  <th className="px-4 py-3 text-right">{getText('Visitas', 'Visits')}</th>
+                  <th className="px-4 py-3">{getText('Última visita', 'Last visit')}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
+                {filtered.map((c) => (
+                  <tr
+                    key={c.id}
+                    onClick={() => openHistory(c)}
+                    className="cursor-pointer transition hover:bg-gray-50 dark:hover:bg-neutral-800/50"
+                  >
+                    <td className="px-4 py-3">
+                      <p className="font-medium text-gray-900 dark:text-white">{c.name}</p>
+                      {c.status === 'Inactive' && (
+                        <span className="text-xs text-gray-400 dark:text-neutral-500">{getText('Inactivo', 'Inactive')}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-gray-500 dark:text-neutral-400">
+                      {c.phone || c.email || '—'}
+                    </td>
+                    <td className="px-4 py-3 text-right font-medium text-gray-900 dark:text-white">{c.totalVisits}</td>
+                    <td className="px-4 py-3 text-gray-500 dark:text-neutral-400">
+                      {c.lastVisit ? dateFmt(c.lastVisit) : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       {/* Nuevo cliente */}

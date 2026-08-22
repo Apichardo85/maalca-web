@@ -149,8 +149,9 @@ export function ConfigTab({ slug, form, businessType, onChange, onCommit, onComm
         </p>
       </div>
 
-      {/* Logo + color — instant preview */}
-      <div className="flex items-start gap-6">
+      {/* Logo + color — instant preview. Apilado en mobile: lado a lado no cabía sin
+          achicar los swatches por debajo del mínimo táctil de 44px. */}
+      <div className="flex flex-col items-start gap-6 sm:flex-row">
         <div className="flex flex-col items-center gap-2">
           <input ref={logoInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleLogoChange} />
           <button
@@ -181,14 +182,14 @@ export function ConfigTab({ slug, form, businessType, onChange, onCommit, onComm
             </label>
             <span className="inline-block h-5 w-5 rounded-full border border-black/10" style={{ backgroundColor: form.primaryColor }} />
           </div>
-          <div className="grid grid-cols-6 gap-2">
+          <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
             {PALETTE.map(({ name: colorName, hex }) => (
               <button
                 key={hex}
                 type="button"
                 title={colorName}
                 onClick={() => onChange('primaryColor', hex)}
-                className="relative h-8 w-8 rounded-full border-2 transition focus:outline-none"
+                className="relative h-11 w-11 rounded-full border-2 transition focus:outline-none"
                 style={{
                   backgroundColor: hex,
                   borderColor: form.primaryColor === hex ? '#ffffff' : 'transparent',
@@ -196,7 +197,7 @@ export function ConfigTab({ slug, form, businessType, onChange, onCommit, onComm
                 }}
               >
                 {form.primaryColor === hex && (
-                  <svg className="absolute inset-0 m-auto h-4 w-4 text-white drop-shadow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                  <svg className="absolute inset-0 m-auto h-5 w-5 text-white drop-shadow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 )}

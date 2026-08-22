@@ -533,13 +533,13 @@ function ListSection<T extends object>({
                   <div className="flex gap-1.5">
                     <button
                       onClick={() => saveEdit(i)}
-                      className="rounded-lg px-2 py-1 text-xs font-medium text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                      className="flex min-h-11 items-center justify-center rounded-lg px-2.5 text-xs font-medium text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
                     >
                       {getText('Guardar', 'Save')}
                     </button>
                     <button
                       onClick={() => setEditingIndex(null)}
-                      className="rounded-lg px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-700"
+                      className="flex min-h-11 items-center justify-center rounded-lg px-2.5 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-700"
                     >
                       {getText('Cancelar', 'Cancel')}
                     </button>
@@ -555,14 +555,14 @@ function ListSection<T extends object>({
                     <button
                       onClick={() => move(i, -1)}
                       disabled={i === 0}
-                      className="rounded-lg px-1.5 py-1 text-xs text-gray-400 dark:text-neutral-500 hover:bg-gray-100 dark:hover:bg-neutral-700 disabled:opacity-30"
+                      className="flex min-h-11 min-w-11 items-center justify-center rounded-lg px-1.5 text-xs text-gray-400 dark:text-neutral-500 hover:bg-gray-100 dark:hover:bg-neutral-700 disabled:opacity-30"
                     >
                       ↑
                     </button>
                     <button
                       onClick={() => move(i, 1)}
                       disabled={i === items.length - 1}
-                      className="rounded-lg px-1.5 py-1 text-xs text-gray-400 dark:text-neutral-500 hover:bg-gray-100 dark:hover:bg-neutral-700 disabled:opacity-30"
+                      className="flex min-h-11 min-w-11 items-center justify-center rounded-lg px-1.5 text-xs text-gray-400 dark:text-neutral-500 hover:bg-gray-100 dark:hover:bg-neutral-700 disabled:opacity-30"
                     >
                       ↓
                     </button>
@@ -570,13 +570,13 @@ function ListSection<T extends object>({
                       <>
                         <button
                           onClick={() => deleteItem(i)}
-                          className="rounded-lg px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          className="flex min-h-11 items-center justify-center rounded-lg px-2.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                         >
                           {getText('Confirmar', 'Confirm')}
                         </button>
                         <button
                           onClick={() => setConfirmDeleteIndex(null)}
-                          className="rounded-lg px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-700"
+                          className="flex min-h-11 items-center justify-center rounded-lg px-2.5 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-700"
                         >
                           {getText('Cancelar', 'Cancel')}
                         </button>
@@ -585,13 +585,13 @@ function ListSection<T extends object>({
                       <>
                         <button
                           onClick={() => startEdit(i)}
-                          className="rounded-lg px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-700"
+                          className="flex min-h-11 items-center justify-center rounded-lg px-2.5 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-700"
                         >
                           {getText('Editar', 'Edit')}
                         </button>
                         <button
                           onClick={() => setConfirmDeleteIndex(i)}
-                          className="rounded-lg px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          className="flex min-h-11 items-center justify-center rounded-lg px-2.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                         >
                           {getText('Eliminar', 'Delete')}
                         </button>
