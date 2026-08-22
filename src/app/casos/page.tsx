@@ -10,6 +10,8 @@ const cases = [
     nameKey: "cases.pegote.title",
     locationKey: "cases.pegote.location",
     logo: "/images/affiliates/pegote-logo.png",
+    // Captura real de la sección de reserva pública de Pegote — no es un mockup.
+    screenshot: "/demos/agenda.webp",
     fallback: "PB",
     statusKey: "cases.pegote.status",
     statusColor: "text-green-600 bg-green-50 border-green-200",
@@ -23,6 +25,8 @@ const cases = [
     nameKey: "cases.tld.title",
     locationKey: "cases.tld.location",
     logo: "/images/affiliates/tld/Logo.png",
+    // Captura real del kiosko de autopedidos de The Little Dominican — no es un mockup.
+    screenshot: "/demos/kiosko.webp",
     fallback: "TLD",
     statusKey: "cases.tld.status",
     statusColor: "text-amber-600 bg-amber-50 border-amber-200",
@@ -81,11 +85,19 @@ export default function CasosPage() {
                 className="bg-surface-elevated rounded-2xl border border-border overflow-hidden animate-fade-in-up"
                 style={{ animationDelay: `${index * 0.15}s` }}
               >
-                {/* Logo area */}
-                <div className="h-32 bg-surface flex items-center justify-center px-8 border-b border-border">
-                  <div className="relative flex items-center justify-center">
+                {/* Captura real del sitio en vivo, con el logo como badge encima —
+                    antes esta área solo mostraba el logo suelto sobre fondo vacío. */}
+                <div className="relative h-48 border-b border-border overflow-hidden bg-surface">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={c.screenshot}
+                    alt={t(c.nameKey)}
+                    className="h-full w-full object-cover object-top"
+                    loading="lazy"
+                  />
+                  <div className="absolute left-4 top-4 flex h-12 w-12 items-center justify-center rounded-xl bg-white/95 p-1.5 shadow-md">
                     <CaseLogo logo={c.logo} fallback={c.fallback} />
-                    <span className="fallback-initials hidden font-bold text-2xl text-text-primary">
+                    <span className="fallback-initials hidden text-xs font-bold text-text-primary">
                       {c.fallback}
                     </span>
                   </div>
