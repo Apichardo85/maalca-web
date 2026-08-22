@@ -39,6 +39,8 @@ export function NegocioDetail({
   const [savingModules, setSavingModules] = useState(false);
   const [modulesDirty, setModulesDirty] = useState(false);
   const [showAllModules, setShowAllModules] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(initialAffiliate.plan);
+  const [savingPlan, setSavingPlan] = useState(false);
 
   const businessTypeKey = (a.businessType ?? '').toLowerCase();
   const visibleModules = showAllModules
@@ -93,6 +95,29 @@ export function NegocioDetail({
       setError(e instanceof Error ? e.message : 'Algo salió mal.');
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function savePlan(nextPlan: string) {
+    const prevPlan = selectedPlan;
+    setSelectedPlan(nextPlan);
+    setSavingPlan(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/ops/affiliates/${a.id}/plan`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: nextPlan }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error?.message ?? 'No se pudo cambiar el tier.');
+      setA(data);
+      setSelectedPlan(data.plan);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Algo salió mal.');
+      setSelectedPlan(prevPlan);
+    } finally {
+      setSavingPlan(false);
     }
   }
 
@@ -182,7 +207,20 @@ export function NegocioDetail({
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-3">
           <p className="text-xs text-gray-400 dark:text-neutral-500">Plan</p>
-          <p className="mt-1 text-sm font-semibold">{a.plan}</p>
+          {canManage ? (
+            <select
+              value={selectedPlan}
+              disabled={savingPlan}
+              onChange={(e) => savePlan(e.target.value)}
+              className="mt-1 w-full rounded-md border border-gray-200 dark:border-neutral-700 bg-transparent text-sm font-semibold disabled:opacity-50"
+            >
+              <option value="Free">Gratis</option>
+              <option value="Entrepreneur">Emprendedor</option>
+              <option value="Enterprise">Enterprise</option>
+            </select>
+          ) : (
+            <p className="mt-1 text-sm font-semibold">{a.plan}</p>
+          )}
         </div>
         <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-3">
           <p className="text-xs text-gray-400 dark:text-neutral-500">Estado de pago</p>
