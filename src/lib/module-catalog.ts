@@ -33,6 +33,7 @@ export const MODULE_CATALOG: readonly ModuleDef[] = [
   { token: 'inventory', icon: '📋', es: 'Inventario', en: 'Inventory', descEs: 'Stock de insumos con alerta de mínimo y registro de entradas/salidas.', descEn: 'Supply stock with low-stock alerts and in/out tracking.', businessTypes: ['restaurant', 'retail'] },
   { token: 'proposals', icon: '✍️', es: 'Propuestas', en: 'Proposals', descEs: 'Envía propuestas y deja que el cliente firme y acepte en línea.', descEn: 'Send proposals and let clients sign and accept online.', businessTypes: ['service', 'professional'] },
   { token: 'staff', icon: '👥', es: 'Equipo', en: 'Team', descEs: 'Tu equipo de trabajo — meseros, barberos, etc.', descEn: 'Your operating staff — waiters, barbers, etc.' },
+  { token: 'workforce', icon: '⏱️', es: 'Ponche y nómina', en: 'Time clock & payroll', descEs: 'Reloj de entrada/salida por PIN, reporte de nómina y tareas asignadas.', descEn: 'PIN clock-in/out, payroll report, and assigned tasks.' },
   { token: 'appointments', icon: '📅', es: 'Agenda', en: 'Agenda', descEs: 'Citas agendadas, asignadas a tu personal.', descEn: 'Booked appointments, assigned to your staff.', excludeBusinessTypes: ['retail', 'creator', 'publisher', 'restaurant'] },
   { token: 'metrics', icon: '📊', es: 'Estadísticas', en: 'Stats', descEs: 'Visitas y actividad de tu página.', descEn: 'Visits and activity on your page.' },
   { token: 'billing', icon: '💳', es: 'Facturación', en: 'Billing', descEs: 'Tu plan y método de pago con MaalCa.', descEn: 'Your plan and payment method with MaalCa.' },
