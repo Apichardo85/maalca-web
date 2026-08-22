@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { getRoleSuggestions } from '@/lib/personal-roles';
 import { useToast } from '@/hooks/useToast';
@@ -80,6 +80,14 @@ const TASK_STATUS_LABELS: Record<StaffTaskRow['status'], { es: string; en: strin
   Done: { es: 'Hecho', en: 'Done' },
 };
 
+// Mismo esquema de color que el kanban de Cocina (KitchenContent.tsx) — accent = borde izquierdo
+// de la columna/tarjeta, badge = pastilla de conteo en el encabezado.
+const TASK_STATUS_STYLES: Record<StaffTaskRow['status'], { accent: string; badge: string }> = {
+  Pending: { accent: 'border-l-red-500', badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+  InProgress: { accent: 'border-l-amber-500', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
+  Done: { accent: 'border-l-emerald-500', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
+};
+
 // "Owner" incluido a propósito — antes solo se podía dar Manager/Staff desde acá, así que no
 // había forma real de agregar un co-dueño (socio) al negocio: la única invitación con label
 // "Dueño" vivía en /ops/equipo, que es el equipo INTERNO de la plataforma (PlatformAdmin, acceso
@@ -132,9 +140,13 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
   const [rateDraft, setRateDraft] = useState<Record<string, string>>({});
   const [savingRateId, setSavingRateId] = useState<string | null>(null);
 
-  // PIN de ponche — se muestra una sola vez al generarlo/regenerarlo
+  // PIN de ponche — se muestra una sola vez al generarlo/regenerarlo. Antes solo aparecía un
+  // banner arriba de todo, así que en mobile (donde tocás el botón bien abajo en la tarjeta) el
+  // dueño no lo veía sin subir a mano — pasó en producción. Ahora además hay un toast y hacemos
+  // scroll automático al banner.
   const [generatingPinId, setGeneratingPinId] = useState<string | null>(null);
   const [revealedPin, setRevealedPin] = useState<{ memberId: string; pin: string } | null>(null);
+  const revealedPinRef = useRef<HTMLDivElement>(null);
 
   // Horas (TimeEntry)
   const [timeEntries, setTimeEntries] = useState<TimeEntryRow[]>([]);
@@ -496,6 +508,13 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
       if (!res.ok) throw new Error(data?.error?.message ?? getText('No se pudo generar el PIN.', "Couldn't generate the PIN."));
       setPersonal((prev) => prev.map((m) => (m.id === member.id ? { ...m, pinCode: data.pin } : m)));
       setRevealedPin({ memberId: member.id, pin: data.pin });
+      toast.success(
+        getText(`PIN generado para ${member.name}: ${data.pin}`, `PIN generated for ${member.name}: ${data.pin}`),
+      );
+      // El toast puede pasar desapercibido en mobile si la tarjeta está lejos del scroll actual
+      // (pasó en producción: el dueño no vio el PIN sin subir a mano) — llevamos la vista al
+      // banner que lo muestra fijo, además del toast.
+      requestAnimationFrame(() => revealedPinRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
     } catch (e) {
       const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
       setError(msg);
@@ -781,7 +800,10 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
         )}
 
         {revealedPin && (
-          <div className="mt-4 max-w-md rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-4">
+          <div
+            ref={revealedPinRef}
+            className="mt-4 max-w-md rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-4"
+          >
             <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
               {getText('PIN generado — anótalo, no se volverá a mostrar', 'PIN generated — write it down, it won\'t be shown again')}
             </p>
@@ -1018,39 +1040,55 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                 </div>
 
                 {workforceEnabled && canManagePersonal && (
-                  <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-gray-100 dark:border-neutral-800 pt-3">
-                    <span className="text-xs text-gray-400 dark:text-neutral-500">{getText('Tarifa/hora', 'Hourly rate')}</span>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={rateDraft[member.id] ?? (member.hourlyRate != null ? String(member.hourlyRate) : '')}
-                      onChange={(e) => setRateDraft((prev) => ({ ...prev, [member.id]: e.target.value }))}
-                      className="w-28 rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-1.5 text-xs"
-                    />
-                    <button
-                      onClick={() => saveHourlyRate(member)}
-                      disabled={savingRateId === member.id}
-                      className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-gray-400 disabled:opacity-50"
-                    >
-                      {savingRateId === member.id ? getText('Guardando…', 'Saving…') : getText('Guardar', 'Save')}
-                    </button>
-                    <span className="ml-2 text-xs text-gray-400 dark:text-neutral-500">
-                      {member.pinCode
-                        ? getText('PIN de ponche configurado', 'Clock-in PIN set')
-                        : getText('Sin PIN de ponche', 'No clock-in PIN')}
-                    </span>
-                    <button
-                      onClick={() => generatePin(member)}
-                      disabled={generatingPinId === member.id}
-                      className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-gray-400 disabled:opacity-50"
-                    >
-                      {generatingPinId === member.id
-                        ? getText('Generando…', 'Generating…')
-                        : member.pinCode
-                          ? getText('Regenerar PIN', 'Regenerate PIN')
-                          : getText('Generar PIN', 'Generate PIN')}
-                    </button>
+                  <div className="mt-3 space-y-2 border-t border-gray-100 dark:border-neutral-800 pt-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="w-full text-xs text-gray-400 dark:text-neutral-500 sm:w-auto">
+                        {getText('Tarifa/hora', 'Hourly rate')}
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={rateDraft[member.id] ?? (member.hourlyRate != null ? String(member.hourlyRate) : '')}
+                        onChange={(e) => setRateDraft((prev) => ({ ...prev, [member.id]: e.target.value }))}
+                        className="w-28 rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-1.5 text-xs"
+                      />
+                      <button
+                        onClick={() => saveHourlyRate(member)}
+                        disabled={savingRateId === member.id}
+                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-gray-400 disabled:opacity-50"
+                      >
+                        {savingRateId === member.id ? getText('Guardando…', 'Saving…') : getText('Guardar', 'Save')}
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs text-gray-400 dark:text-neutral-500">
+                        {member.pinCode
+                          ? getText('PIN de ponche configurado', 'Clock-in PIN set')
+                          : getText('Sin PIN de ponche', 'No clock-in PIN')}
+                      </span>
+                      <button
+                        onClick={() => generatePin(member)}
+                        disabled={generatingPinId === member.id}
+                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-gray-400 disabled:opacity-50"
+                      >
+                        {generatingPinId === member.id
+                          ? getText('Generando…', 'Generating…')
+                          : member.pinCode
+                            ? getText('Regenerar PIN', 'Regenerate PIN')
+                            : getText('Generar PIN', 'Generate PIN')}
+                      </button>
+                    </div>
+                    {revealedPin?.memberId === member.id && (
+                      <div className="rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-3 py-2">
+                        <p className="text-[11px] font-medium text-amber-800 dark:text-amber-300">
+                          {getText('PIN — anótalo, no se vuelve a mostrar', "PIN — write it down, won't show again")}
+                        </p>
+                        <p className="text-lg font-bold tracking-widest text-amber-900 dark:text-amber-200">
+                          {revealedPin.pin}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1232,22 +1270,35 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
             </div>
 
             <div className="mt-4 space-y-2">
-              {timeEntries.map((entry) => (
+              {timeEntries.map((entry) => {
+                // La foto ya vive en Personal (subida desde la pestaña Personal) — no hace falta
+                // pedirla de nuevo al backend, solo cruzarla acá por teamMemberId.
+                const memberPhoto = personal.find((m) => m.id === entry.teamMemberId)?.photoUrl;
+                return (
                 <div
                   key={entry.id}
                   className="flex flex-col gap-2 rounded-xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium">{entry.teamMember?.name ?? '—'}</p>
-                    <p className="text-xs text-gray-400 dark:text-neutral-500">
-                      {new Date(entry.clockIn).toLocaleString(language === 'es' ? 'es-DO' : 'en-US')}
-                      {' → '}
-                      {entry.clockOut
-                        ? new Date(entry.clockOut).toLocaleString(language === 'es' ? 'es-DO' : 'en-US')
-                        : getText('turno abierto', 'open shift')}
-                      {entry.source === 'Manual' && ` · ${getText('corregido', 'corrected')}`}
-                    </p>
-                    {entry.notes && <p className="mt-0.5 text-xs text-gray-400 dark:text-neutral-500">{entry.notes}</p>}
+                  <div className="flex min-w-0 items-center gap-3">
+                    {memberPhoto ? (
+                      <img src={memberPhoto} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
+                    ) : (
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-800 text-xs font-semibold text-gray-500 dark:text-neutral-400">
+                        {(entry.teamMember?.name ?? '—').charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium">{entry.teamMember?.name ?? '—'}</p>
+                      <p className="text-xs text-gray-400 dark:text-neutral-500">
+                        {new Date(entry.clockIn).toLocaleString(language === 'es' ? 'es-DO' : 'en-US')}
+                        {' → '}
+                        {entry.clockOut
+                          ? new Date(entry.clockOut).toLocaleString(language === 'es' ? 'es-DO' : 'en-US')
+                          : getText('turno abierto', 'open shift')}
+                        {entry.source === 'Manual' && ` · ${getText('corregido', 'corrected')}`}
+                      </p>
+                      {entry.notes && <p className="mt-0.5 text-xs text-gray-400 dark:text-neutral-500">{entry.notes}</p>}
+                    </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     <button
@@ -1265,7 +1316,8 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                     </button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
               {!teLoading && timeEntries.length === 0 && (
                 <p className="text-sm text-gray-400 dark:text-neutral-500">
                   {getText('Todavía no hay ponches registrados.', 'No clock entries yet.')}
@@ -1452,16 +1504,23 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
             )}
 
             <div className="mt-5 grid gap-4 sm:grid-cols-3">
-              {(['Pending', 'InProgress', 'Done'] as const).map((status) => (
-                <div key={status}>
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-neutral-500">
-                    {TASK_STATUS_LABELS[status][language]}
-                  </h3>
-                  <div className="mt-2 space-y-2">
-                    {tasks.filter((t) => t.status === status).map((t) => (
+              {(['Pending', 'InProgress', 'Done'] as const).map((status) => {
+                const columnTasks = tasks.filter((t) => t.status === status);
+                return (
+                <div key={status} className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-neutral-400">
+                      {TASK_STATUS_LABELS[status][language]}
+                    </h3>
+                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${TASK_STATUS_STYLES[status].badge}`}>
+                      {columnTasks.length}
+                    </span>
+                  </div>
+                  <div className="mt-3 space-y-2">
+                    {columnTasks.map((t) => (
                       <div
                         key={t.id}
-                        className="rounded-xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-3"
+                        className={`rounded-xl border border-l-4 border-gray-200/70 dark:border-neutral-800 bg-gray-50 dark:bg-neutral-800/60 p-3 ${TASK_STATUS_STYLES[status].accent}`}
                       >
                         <p className="text-sm font-medium">{t.title}</p>
                         <p className="mt-0.5 text-xs text-gray-400 dark:text-neutral-500">
@@ -1508,12 +1567,13 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                         </div>
                       </div>
                     ))}
-                    {tasks.filter((t) => t.status === status).length === 0 && (
+                    {columnTasks.length === 0 && (
                       <p className="text-xs text-gray-400 dark:text-neutral-500">{getText('Vacío.', 'Empty.')}</p>
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
