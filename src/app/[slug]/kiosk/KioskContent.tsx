@@ -59,6 +59,12 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'unavailable'>('idle');
   const [tipMode, setTipMode] = useState<number | 'custom' | null>(null);
   const [customTip, setCustomTip] = useState('');
+  // Nombre del cliente — opcional, mismo criterio que el resto de flujos públicos (nadie debería
+  // quedar bloqueado por no querer dar su nombre), pero antes ni siquiera existía el campo y el
+  // pedido llegaba sin nombre a Cocina/POS. Backend ya acepta CustomerName/Phone desde siempre
+  // (CreateOrderRequest) — esto solo estaba faltando en la UI.
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
   // Detalles de un item (nombre/foto/descripción/precio/ingredientes) — solo informativo,
   // no agrega al carrito. Mismo patrón que PosContent.tsx del dashboard.
   const [infoItem, setInfoItem] = useState<KioskItem | null>(null);
@@ -166,6 +172,8 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
           tip,
           total,
           currency,
+          customerName: customerName.trim() || null,
+          customerPhone: customerPhone.trim() || null,
           successUrl: `${origin}/${slug}/kiosk?paid=true`,
           cancelUrl: `${origin}/${slug}/kiosk?paid=false`,
         }),
@@ -217,6 +225,26 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
           <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
             El pago se canceló. Puedes armar tu pedido de nuevo cuando quieras.
           </div>
+        )}
+
+        {/* Mini-cuenta pegajosa — mismo patrón que PosContent.tsx (tarea #147): en mobile el
+            panel completo del carrito queda abajo del todo del grid de productos, así que sin
+            esto el cliente agrega productos "a ciegas" y no ve qué lleva hasta bajar toda la
+            pantalla. En desktop/tablet grande no hace falta: el panel lateral ya es visible. */}
+        {cart.length > 0 && (
+          <button
+            type="button"
+            onClick={() => document.getElementById('kiosk-cart-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            className="sticky top-0 z-20 mt-3 flex w-full items-center justify-between gap-2 rounded-xl border border-[#C8102E]/30 bg-[#C8102E] px-4 py-3 text-white shadow-md lg:hidden"
+          >
+            <span className="flex items-center gap-2 text-sm font-semibold">
+              🛒 {cart.reduce((sum, l) => sum + l.qty, 0)} {cart.reduce((sum, l) => sum + l.qty, 0) === 1 ? 'item' : 'items'}
+            </span>
+            <span className="flex items-center gap-1 text-sm font-bold">
+              {fmt.format(total)}
+              <span aria-hidden="true">▾</span>
+            </span>
+          </button>
         )}
 
         {items.length === 0 ? (
@@ -299,7 +327,10 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
 
       {/* Mismo fix de sticky/self-start/h-screen que el POS del dashboard — sin esto el panel
           se estira a la altura del grid de productos y el botón de pagar queda fuera de vista. */}
-      <div className="flex w-full flex-col border-t border-gray-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 lg:sticky lg:top-0 lg:h-screen lg:w-96 lg:self-start lg:border-l lg:border-t-0">
+      <div
+        id="kiosk-cart-panel"
+        className="flex w-full scroll-mt-4 flex-col border-t border-gray-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 lg:sticky lg:top-0 lg:h-screen lg:w-96 lg:self-start lg:border-l lg:border-t-0"
+      >
         <div className="flex-1 overflow-y-auto p-4">
           <h2 className="text-sm font-semibold">Tu pedido</h2>
           {cart.length === 0 ? (
@@ -389,6 +420,27 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
         </div>
 
         <div className="shrink-0 border-t border-gray-200 dark:border-neutral-800 p-4">
+          {cart.length > 0 && (
+            <div className="mb-3 space-y-1.5">
+              <p className="text-xs font-semibold text-gray-500 dark:text-neutral-400">
+                Tu nombre (opcional)
+              </p>
+              <input
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder="¿A nombre de quién?"
+                className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+              />
+              <input
+                type="tel"
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+                placeholder="Teléfono (opcional)"
+                className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+              />
+            </div>
+          )}
+
           {isRestaurant && cart.length > 0 && (
             <div className="mb-3">
               <p className="text-xs font-semibold text-gray-500 dark:text-neutral-400">Propina</p>

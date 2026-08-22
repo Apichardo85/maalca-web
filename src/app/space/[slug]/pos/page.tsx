@@ -8,6 +8,13 @@ interface SpaceResponse {
   business: { id: string; businessType: string; plan: 'free' | 'entrepreneur'; currency?: 'USD' | 'DOP'; modulosActivos: string[] };
 }
 
+interface CustomerRow {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+}
+
 export default async function PosPage({
   params,
 }: {
@@ -50,6 +57,22 @@ export default async function PosPage({
   // rompe Intl.NumberFormat con "Invalid currency code" (causó un 500 en TLD).
   const currency = space.business.currency === 'DOP' ? 'DOP' : 'USD';
 
+  // Mismo patrón que Reservas/Propuestas (tarea #330/#352): traer clientes existentes para
+  // autocompletar el mostrador en vez de escribir el nombre a mano cada vez.
+  let customers: CustomerRow[] = [];
+  try {
+    const customersRes = await fetch(`${API}/api/affiliates/${space.business.id}/customers?limit=100`, {
+      headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': space.business.id },
+      cache: 'no-store',
+    });
+    if (customersRes.ok) {
+      const page = await customersRes.json();
+      customers = page?.data ?? [];
+    }
+  } catch {
+    // Queda vacío — PosContent funciona igual sin selector de cliente.
+  }
+
   return (
     <PosContent
       slug={slug}
@@ -57,6 +80,7 @@ export default async function PosPage({
       currency={currency}
       items={sellable}
       businessType={space.business.businessType.toLowerCase()}
+      customers={customers}
     />
   );
 }

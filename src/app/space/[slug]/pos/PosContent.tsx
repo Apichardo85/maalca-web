@@ -24,13 +24,26 @@ interface CartLine {
   qty: number;
 }
 
+export interface CustomerOption {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+}
+
 interface Props {
   slug: string;
   affiliateId: string;
   currency: 'USD' | 'DOP';
   items: PosItem[];
   businessType: string;
+  customers: CustomerOption[];
 }
+
+// Mismo criterio que Propuestas/Reservas (tareas #330/#352): un sentinel para "cliente nuevo"
+// en vez de un string vacío, así el <select> puede distinguir "no elegí nada todavía" de
+// "elegí escribir uno nuevo a mano".
+const NEW_CUSTOMER = '__new__';
 
 // "Tarjeta" ya no es solo una etiqueta — genera un cobro real de Stripe (Checkout Session
 // contra la cuenta Connect del negocio) que el cliente paga con su propio teléfono via QR/link.
@@ -48,7 +61,7 @@ interface CheckoutModalState {
   url: string;
 }
 
-export function PosContent({ slug, affiliateId, currency, items, businessType }: Props) {
+export function PosContent({ slug, affiliateId, currency, items, businessType, customers }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -72,6 +85,21 @@ export function PosContent({ slug, affiliateId, currency, items, businessType }:
   const [splitCount, setSplitCount] = useState<number | null>(null);
   // Solo informativo para el personal (nombre/foto/descripción) — no agrega al carrito.
   const [infoItem, setInfoItem] = useState<PosItem | null>(null);
+  // Cliente del pedido — antes el POS ni pedía ni dejaba seleccionar nombre, y las órdenes
+  // llegaban sin identificar a Cocina/panel de Pedidos. Mismo patrón de selector-con-autofill
+  // que Reservas/Propuestas.
+  const [selectedCustomerId, setSelectedCustomerId] = useState(NEW_CUSTOMER);
+  const [customerName, setCustomerName] = useState('');
+
+  function selectCustomer(id: string) {
+    setSelectedCustomerId(id);
+    if (id === NEW_CUSTOMER) {
+      setCustomerName('');
+      return;
+    }
+    const found = customers.find((c) => c.id === id);
+    if (found) setCustomerName(found.name);
+  }
   // Cobro real con Stripe (QR) — mientras esto no sea null, el pedido está Pending esperando
   // que el cliente pague desde su teléfono. Se cierra solo cuando llega el evento de SignalR.
   const [checkoutModal, setCheckoutModal] = useState<CheckoutModalState | null>(null);
@@ -164,7 +192,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType }:
           tax: 0,
           tip,
           total,
-          customerName: null,
+          customerName: customerName.trim() || null,
           notes: splitNote,
           currency,
           paymentMethod,
@@ -180,6 +208,8 @@ export function PosContent({ slug, affiliateId, currency, items, businessType }:
       setTipMode(null);
       setCustomTip('');
       setSplitCount(null);
+      setSelectedCustomerId(NEW_CUSTOMER);
+      setCustomerName('');
     } catch (e) {
       const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
       toast.error(msg);
@@ -205,7 +235,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType }:
           tax: 0,
           tip,
           total,
-          customerName: null,
+          customerName: customerName.trim() || null,
           notes: splitNote,
           currency,
           successUrl: `${origin}/pay/success`,
@@ -405,6 +435,37 @@ export function PosContent({ slug, affiliateId, currency, items, businessType }:
         </div>
 
         <div className="shrink-0 border-t border-gray-200 dark:border-neutral-800 p-4">
+          {cart.length > 0 && (
+            <div className="mb-3 space-y-1.5">
+              <p className="text-xs font-semibold text-gray-500 dark:text-neutral-400">
+                {getText('Cliente (opcional)', 'Customer (optional)')}
+              </p>
+              {customers.length > 0 && (
+                <select
+                  value={selectedCustomerId}
+                  onChange={(e) => selectCustomer(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+                >
+                  <option value={NEW_CUSTOMER}>— {getText('Cliente nuevo', 'New customer')} —</option>
+                  {customers.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <input
+                value={customerName}
+                onChange={(e) => {
+                  setSelectedCustomerId(NEW_CUSTOMER);
+                  setCustomerName(e.target.value);
+                }}
+                placeholder={getText('Nombre del cliente', "Customer's name")}
+                className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+              />
+            </div>
+          )}
+
           {isRestaurant && (
             <div className="mb-3">
               <p className="text-xs font-semibold text-gray-500 dark:text-neutral-400">
