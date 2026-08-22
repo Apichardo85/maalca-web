@@ -15,6 +15,8 @@ export interface InventoryItemRow {
   unitPrice: number;
   unit: string;
   status: string;
+  barcode?: string | null;
+  internalCode?: string | null;
 }
 
 interface InventoryMovementRow {
@@ -51,7 +53,7 @@ interface Props {
 
 const UNIT_OPTIONS = ['unidad', 'kg', 'lb', 'g', 'litro', 'ml', 'caja', 'paquete', 'docena'];
 
-const emptyForm = { name: '', category: '', quantity: '0', minStock: '0', unitPrice: '0', unit: 'unidad' };
+const emptyForm = { name: '', category: '', quantity: '0', minStock: '0', unitPrice: '0', unit: 'unidad', barcode: '' };
 
 export function InventoryContent({ slug, initialItems, initialTotal, initialTotalPages, initialSummary }: Props) {
   const { language } = useSimpleLanguage();
@@ -79,6 +81,15 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
   const [historyLoading, setHistoryLoading] = useState(false);
   const [importing, setImporting] = useState(false);
 
+  // Filtros — antes no había forma de buscar un item específico sin ir pasando de página en
+  // página, ni de aislar solo lo que está en stock bajo. `search`/`onlyLowStock` viajan al
+  // backend (ver GetInventoryAsync); `category` se arma con las categorías ya vistas en pantalla
+  // porque no hay un endpoint de categorías distintas todavía.
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('');
+  const [onlyLowStock, setOnlyLowStock] = useState(false);
+  const knownCategories = Array.from(new Set(items.map((i) => i.category).filter((c): c is string => !!c))).sort();
+
   async function fetchSummary() {
     try {
       const res = await fetch(`/api/space/${slug}/inventory/summary`, { cache: 'no-store' });
@@ -88,10 +99,18 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
     }
   }
 
+  function buildQuery(targetPage: number) {
+    const qs = new URLSearchParams({ page: String(targetPage) });
+    if (search.trim()) qs.set('search', search.trim());
+    if (category) qs.set('category', category);
+    if (onlyLowStock) qs.set('lowStock', 'true');
+    return qs.toString();
+  }
+
   async function refetch(targetPage = page) {
     setLoadingPage(true);
     try {
-      const res = await fetch(`/api/space/${slug}/inventory?page=${targetPage}`, { cache: 'no-store' });
+      const res = await fetch(`/api/space/${slug}/inventory?${buildQuery(targetPage)}`, { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         setItems(data?.data ?? []);
@@ -105,6 +124,29 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
     fetchSummary();
   }
 
+  function applyFilters() {
+    refetch(1);
+  }
+
+  function clearFilters() {
+    setSearch('');
+    setCategory('');
+    setOnlyLowStock(false);
+    // Refetch directo sin filtros — no puede esperar a que los 3 setState de arriba se
+    // reflejen en el próximo render, buildQuery leería los valores viejos.
+    setLoadingPage(true);
+    fetch(`/api/space/${slug}/inventory?page=1`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!data) return;
+        setItems(data.data ?? []);
+        setTotal(data.total ?? 0);
+        setTotalPages(data.totalPages ?? 1);
+        setPage(1);
+      })
+      .finally(() => setLoadingPage(false));
+  }
+
   function startEdit(item: InventoryItemRow) {
     setEditingId(item.id);
     setForm({
@@ -114,6 +156,7 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
       minStock: String(item.minStock),
       unitPrice: String(item.unitPrice),
       unit: item.unit || 'unidad',
+      barcode: item.barcode ?? '',
     });
     setShowForm(true);
   }
@@ -122,6 +165,16 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
     setEditingId(null);
     setForm(emptyForm);
     setShowForm((v) => !v);
+  }
+
+  // Antes no había forma de arrepentirse de agregar/editar un item: el botón de arriba solo
+  // decía "Cancelar" cuando showForm && !editingId, así que en modo edición se quedaba diciendo
+  // "+ Agregar" (confuso) y la única salida real era guardar. Ahora el propio panel del
+  // formulario siempre trae su ✕ visible, sin depender del estado del botón de arriba.
+  function closeForm() {
+    setShowForm(false);
+    setEditingId(null);
+    setForm(emptyForm);
   }
 
   async function handleSave() {
@@ -135,6 +188,7 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
       unitPrice: Number(form.unitPrice) || 0,
       unit: form.unit,
       status: 'Active',
+      barcode: form.barcode.trim() || null,
     };
     try {
       const res = await fetch(
@@ -296,9 +350,7 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
             </p>
             <h1 className="mt-1 text-2xl font-bold">{getText('Inventario', 'Inventory')}</h1>
             <p className="mt-1 text-sm text-gray-500 dark:text-neutral-400">
-              {lowStockCount > 0
-                ? getText(`${lowStockCount} item(s) con stock bajo`, `${lowStockCount} item(s) low on stock`)
-                : getText(`${total} items`, `${total} items`)}
+              {getText(`${total} items`, `${total} items`)}
               {typeof totalValue === 'number' && (
                 <> · {getText('valor total', 'total value')}: ${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</>
               )}
@@ -306,15 +358,58 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
           </div>
           <button
             type="button"
-            onClick={startNew}
+            onClick={() => (showForm ? closeForm() : startNew())}
             className="shrink-0 rounded-full px-4 py-2.5 text-sm font-semibold text-white"
             style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
           >
-            {showForm && !editingId ? getText('Cancelar', 'Cancel') : getText('+ Agregar', '+ Add')}
+            {showForm ? getText('Cancelar', 'Cancel') : getText('+ Agregar', '+ Add')}
           </button>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-2">
+        {/* Alerta de stock bajo — antes solo era una línea de texto que además reemplazaba el
+            conteo total de items, así que nunca se veían los dos datos a la vez. Ahora es un
+            banner propio, nombra los items (como ya hace el mismo banner en el Dashboard) y
+            ofrece un atajo directo para filtrar solo esos. */}
+        {lowStockCount > 0 && (
+          <div className="mt-4 flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-700 dark:bg-amber-950">
+            <span className="text-lg">⚠️</span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                {getText(`${lowStockCount} item(s) con stock bajo`, `${lowStockCount} item(s) low on stock`)}
+              </p>
+              {summary?.lowStockItems && summary.lowStockItems.length > 0 && (
+                <p className="mt-0.5 truncate text-xs text-amber-700 dark:text-amber-300">
+                  {summary.lowStockItems.slice(0, 5).map((i) => i.name).join(', ')}
+                  {summary.lowStockItems.length > 5 && '…'}
+                </p>
+              )}
+            </div>
+            {!onlyLowStock && (
+              <button
+                type="button"
+                onClick={() => {
+                  setOnlyLowStock(true);
+                  setLoadingPage(true);
+                  fetch(`/api/space/${slug}/inventory?page=1&lowStock=true${search.trim() ? `&search=${encodeURIComponent(search.trim())}` : ''}${category ? `&category=${encodeURIComponent(category)}` : ''}`, { cache: 'no-store' })
+                    .then((r) => (r.ok ? r.json() : null))
+                    .then((data) => {
+                      if (!data) return;
+                      setItems(data.data ?? []);
+                      setTotal(data.total ?? 0);
+                      setTotalPages(data.totalPages ?? 1);
+                      setPage(1);
+                    })
+                    .finally(() => setLoadingPage(false));
+                }}
+                className="shrink-0 rounded-full border border-amber-400 px-3 py-1.5 text-xs font-semibold text-amber-800 dark:border-amber-600 dark:text-amber-200"
+              >
+                {getText('Ver solo estos', 'View only these')}
+              </button>
+            )}
+          </div>
+        )}
+
+        <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
             onClick={handleExport}
@@ -332,8 +427,74 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
           </button>
         </div>
 
+        {/* Filtros — antes no había ninguno: con más de 20 items (una página) no había forma de
+            encontrar uno específico sin pasar de página en página. */}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
+            placeholder={getText('Buscar por nombre…', 'Search by name…')}
+            className="min-h-11 flex-1 min-w-[160px] rounded-full border border-gray-300 dark:border-neutral-700 bg-transparent px-4 text-sm"
+          />
+          {knownCategories.length > 0 && (
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="min-h-11 rounded-full border border-gray-300 dark:border-neutral-700 bg-transparent px-3 text-sm"
+            >
+              <option value="">{getText('Toda categoría', 'All categories')}</option>
+              {knownCategories.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          )}
+          <button
+            type="button"
+            onClick={() => setOnlyLowStock((v) => !v)}
+            className={`flex min-h-11 items-center justify-center rounded-full border px-3 text-xs font-semibold ${
+              onlyLowStock
+                ? 'border-amber-400 bg-amber-100 text-amber-800 dark:border-amber-600 dark:bg-amber-900/40 dark:text-amber-200'
+                : 'border-gray-300 text-gray-600 dark:border-neutral-700 dark:text-neutral-300'
+            }`}
+          >
+            {getText('Solo stock bajo', 'Low stock only')}
+          </button>
+          <button
+            type="button"
+            onClick={applyFilters}
+            disabled={loadingPage}
+            className="min-h-11 rounded-full px-4 text-sm font-semibold text-white disabled:opacity-40"
+            style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+          >
+            {getText('Filtrar', 'Filter')}
+          </button>
+          {(search || category || onlyLowStock) && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="text-xs font-medium text-gray-400 underline hover:text-gray-600 dark:text-neutral-500"
+            >
+              {getText('Limpiar', 'Clear')}
+            </button>
+          )}
+        </div>
+
         {showForm && (
           <div className="mt-4 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold">
+                {editingId ? getText('Editar item', 'Edit item') : getText('Nuevo item', 'New item')}
+              </p>
+              <button
+                type="button"
+                onClick={closeForm}
+                aria-label={getText('Cerrar', 'Close')}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:text-neutral-500 dark:hover:bg-neutral-800 dark:hover:text-neutral-200"
+              >
+                ✕
+              </button>
+            </div>
             <input
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
@@ -346,6 +507,22 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
               placeholder={getText('Categoría (opcional)', 'Category (optional)')}
               className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
             />
+            <div>
+              <input
+                value={form.barcode}
+                onChange={(e) => setForm((f) => ({ ...f, barcode: e.target.value }))}
+                placeholder={getText('Código de barra (opcional, UPC/EAN)', 'Barcode (optional, UPC/EAN)')}
+                className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+              />
+              {/* Si el producto de fábrica no trae código propio, el backend siempre genera uno
+                  interno al guardar (InternalCode) — nunca queda sin identificador. */}
+              {editingId && (
+                <p className="mt-1 text-xs text-gray-400 dark:text-neutral-500">
+                  {getText('Código interno', 'Internal code')}:{' '}
+                  {items.find((i) => i.id === editingId)?.internalCode ?? '—'}
+                </p>
+              )}
+            </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div>
                 <label className="text-xs text-gray-500 dark:text-neutral-400">{getText('Cantidad', 'Quantity')}</label>
@@ -387,19 +564,29 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
                 />
               </div>
             </div>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={!form.name.trim() || saving}
-              className="w-full rounded-full px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
-              style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
-            >
-              {saving
-                ? getText('Guardando…', 'Saving…')
-                : editingId
-                  ? getText('Guardar cambios', 'Save changes')
-                  : getText('Agregar al inventario', 'Add to inventory')}
-            </button>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={!form.name.trim() || saving}
+                className="flex-1 rounded-full px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
+                style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+              >
+                {saving
+                  ? getText('Guardando…', 'Saving…')
+                  : editingId
+                    ? getText('Guardar cambios', 'Save changes')
+                    : getText('Agregar al inventario', 'Add to inventory')}
+              </button>
+              <button
+                type="button"
+                onClick={closeForm}
+                disabled={saving}
+                className="rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-2.5 text-sm font-semibold text-gray-600 dark:text-neutral-300 disabled:opacity-40"
+              >
+                {getText('Cancelar', 'Cancel')}
+              </button>
+            </div>
           </div>
         )}
 
@@ -437,6 +624,13 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
                         .filter(Boolean)
                         .join(' · ')}
                     </p>
+                    {(item.barcode || item.internalCode) && (
+                      <p className="mt-0.5 truncate text-[11px] text-gray-400 dark:text-neutral-500">
+                        {item.barcode
+                          ? `${getText('Cód. barra', 'Barcode')}: ${item.barcode}`
+                          : `${getText('Cód. interno', 'Internal code')}: ${item.internalCode}`}
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-wrap items-center gap-1.5 sm:shrink-0">
                     <button

@@ -208,6 +208,51 @@ export function SpaceDashboard({
           </div>
         </div>
 
+        {/* Enlaces públicos — Ponche, Kiosko y Pantalla son páginas públicas que el equipo o
+            los clientes abren directo por URL, pero antes no aparecían en ningún lado del
+            panel; había que conocer la ruta exacta de memoria. */}
+        {(business.modulos_activos.includes('workforce') ||
+          business.modulos_activos.includes('pos') ||
+          business.modulos_activos.includes('board')) && (
+          <div className="mt-6 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+              {getText('Enlaces públicos', 'Public links')}
+            </h3>
+            <p className="mt-0.5 text-xs text-gray-400 dark:text-neutral-500">
+              {getText(
+                'Pantallas que tu equipo o tus clientes abren directamente, sin pasar por este panel.',
+                'Screens your team or customers open directly, without going through this dashboard.',
+              )}
+            </p>
+            <div className="mt-3 space-y-2">
+              {business.modulos_activos.includes('workforce') && (
+                <PublicLinkRow
+                  icon="⏱️"
+                  label={getText('Ponche (entrada/salida)', 'Clock in/out')}
+                  path={`/${business.slug}/ponche`}
+                  getText={getText}
+                />
+              )}
+              {business.modulos_activos.includes('pos') && (
+                <PublicLinkRow
+                  icon="🧮"
+                  label={getText('Kiosko de autopedidos', 'Self-order kiosk')}
+                  path={`/${business.slug}/kiosk`}
+                  getText={getText}
+                />
+              )}
+              {business.modulos_activos.includes('board') && (
+                <PublicLinkRow
+                  icon="📺"
+                  label={getText('Pantalla (menú/catálogo)', 'Screen (menu/catalog)')}
+                  path={`/${business.slug}/board`}
+                  getText={getText}
+                />
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Demo items banner */}
         {isNew && hasDemoItems && (
           <div className="mt-6 rounded-2xl border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 p-6">
@@ -672,5 +717,45 @@ function ModuleCard({ icon, title, body, href, compact }: ModuleCardProps) {
         <p className="mt-0.5 truncate text-xs text-gray-500 dark:text-neutral-400">{body}</p>
       </div>
     </Link>
+  );
+}
+
+interface PublicLinkRowProps {
+  icon: string;
+  label: string;
+  /** Relative path, e.g. "/mi-negocio/ponche" — resolved against window.location.origin to copy. */
+  path: string;
+  getText: (es: string, en: string) => string;
+}
+
+function PublicLinkRow({ icon, label, path, getText }: PublicLinkRowProps) {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    const url = typeof window !== 'undefined' ? `${window.location.origin}${path}` : path;
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <div className="flex items-center gap-3 rounded-xl bg-gray-50 dark:bg-neutral-800/60 px-3 py-2.5">
+      <span className="text-lg">{icon}</span>
+      <span className="flex-1 truncate text-sm font-medium text-gray-800 dark:text-neutral-200">{label}</span>
+      <button
+        onClick={copy}
+        className="flex-shrink-0 rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1 text-xs font-medium text-gray-600 dark:text-neutral-300 hover:bg-white dark:hover:bg-neutral-700"
+      >
+        {copied ? getText('✓ Copiado', '✓ Copied') : getText('Copiar', 'Copy')}
+      </button>
+      <a
+        href={path}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex-shrink-0 rounded-full bg-neutral-900 dark:bg-white px-3 py-1 text-xs font-medium text-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-100"
+      >
+        {getText('Abrir ↗', 'Open ↗')}
+      </a>
+    </div>
   );
 }
