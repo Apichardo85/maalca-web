@@ -41,6 +41,8 @@ export function NegocioDetail({
   const [showAllModules, setShowAllModules] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(initialAffiliate.plan);
   const [savingPlan, setSavingPlan] = useState(false);
+  const [selectedBusinessType, setSelectedBusinessType] = useState(initialAffiliate.businessType);
+  const [savingBusinessType, setSavingBusinessType] = useState(false);
 
   const businessTypeKey = (a.businessType ?? '').toLowerCase();
   const visibleModules = showAllModules
@@ -121,6 +123,29 @@ export function NegocioDetail({
     }
   }
 
+  async function saveBusinessType(next: string) {
+    const prev = selectedBusinessType;
+    setSelectedBusinessType(next);
+    setSavingBusinessType(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/ops/affiliates/${a.id}/business-type`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ businessType: next }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error?.message ?? 'No se pudo cambiar el tipo de negocio.');
+      setA(data);
+      setSelectedBusinessType(data.businessType);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Algo salió mal.');
+      setSelectedBusinessType(prev);
+    } finally {
+      setSavingBusinessType(false);
+    }
+  }
+
   async function impersonate() {
     setBusy(true);
     setError(null);
@@ -163,7 +188,25 @@ export function NegocioDetail({
       <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold">{a.name}</h2>
-          <p className="text-sm text-gray-400 dark:text-neutral-500">/{a.slug} · {a.businessType}</p>
+          <div className="flex items-center gap-1.5 text-sm text-gray-400 dark:text-neutral-500">
+            <span>/{a.slug} ·</span>
+            {canManage ? (
+              <select
+                value={selectedBusinessType}
+                disabled={savingBusinessType}
+                onChange={(e) => saveBusinessType(e.target.value)}
+                title="Corrige el rubro si se eligió mal en el onboarding — solo afecta la plantilla pública."
+                className="rounded-md border border-gray-200 dark:border-neutral-700 bg-transparent px-1 py-0.5 text-sm text-gray-500 dark:text-neutral-400 disabled:opacity-50"
+              >
+                <option value="Restaurant">Restaurant</option>
+                <option value="Barber">Barber</option>
+                <option value="Service">Service</option>
+                <option value="Retail">Retail</option>
+              </select>
+            ) : (
+              <span>{a.businessType}</span>
+            )}
+          </div>
         </div>
         <div className="flex flex-wrap gap-1.5">
           {canManage && (
