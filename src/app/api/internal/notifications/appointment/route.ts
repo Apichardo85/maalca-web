@@ -17,6 +17,8 @@ interface AppointmentNotificationBody {
   date: string; // yyyy-MM-dd
   time: string; // HH:mm
   staffName?: string | null;
+  isVirtual?: boolean;
+  zoomLink?: string | null;
 }
 
 export async function POST(request: NextRequest) {
@@ -53,6 +55,7 @@ export async function POST(request: NextRequest) {
     time: body.time,
     staffName: body.staffName,
     manageUrl,
+    zoomLink: body.isVirtual ? body.zoomLink : null,
   });
 
   return NextResponse.json({ sent });

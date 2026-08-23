@@ -13,6 +13,8 @@ export interface PublicAppointment {
   date: string; // ISO
   time: string; // "HH:mm"
   status: 'Scheduled' | 'Confirmed' | 'Cancelled' | 'Completed' | string;
+  isVirtual?: boolean;
+  zoomLink?: string | null;
 }
 
 // Tarea #246 — mismo patrón que PublicProposalContent.tsx (task #194): llama directo al API
@@ -116,6 +118,24 @@ export function PublicAppointmentContent({
           <p>🕐 {appointment.time}</p>
           {appointment.staffName && <p>👤 {appointment.staffName}</p>}
         </div>
+
+        {appointment.isVirtual && (
+          <div className="mt-4 rounded-lg bg-gray-50 px-3 py-2.5 text-sm dark:bg-neutral-800">
+            <p className="font-semibold text-gray-700 dark:text-neutral-200">
+              💻 {getText('Cita virtual (Zoom)', 'Virtual appointment (Zoom)')}
+            </p>
+            {appointment.zoomLink && (appointment.status === 'Scheduled' || appointment.status === 'Confirmed') && (
+              <a
+                href={appointment.zoomLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 block break-all text-[#C8102E] underline"
+              >
+                {appointment.zoomLink}
+              </a>
+            )}
+          </div>
+        )}
 
         {error && (
           <div className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">

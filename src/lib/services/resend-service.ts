@@ -487,6 +487,9 @@ export async function sendAppointmentConfirmationEmail(params: {
   // Tarea #247 — link a /cita/{token} (self-service, sin login). Opcional para no romper al
   // llamador existente (POST /api/space/{slug}/agenda) hasta que también lo pase.
   manageUrl?: string | null;
+  // Tarea #405/#408 — solo viene cuando la cita quedó marcada IsVirtual=true (ver
+  // Service.Modality/Appointment.IsVirtual). El link fijo de Zoom del negocio.
+  zoomLink?: string | null;
 }): Promise<boolean> {
   if (!resend) {
     console.log('[Resend] Skipped appointment confirmation — RESEND_API_KEY not set');
@@ -522,6 +525,7 @@ export async function sendAppointmentConfirmationEmail(params: {
             <strong>${params.serviceName}</strong><br/>
             ${dateFmt} · ${params.time}${staffLine}
           </p>
+          ${params.zoomLink ? `<div style="text-align: center; margin: 16px 0;"><a href="${params.zoomLink}" style="display: inline-block; background: #1a1a1a; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">💻 Unirme a la reunión (Zoom)</a></div>` : ''}
           ${footer}
         </div>
       `,

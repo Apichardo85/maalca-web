@@ -57,6 +57,7 @@ export default async function EditCatalogItemPage({ params, searchParams }: Page
     featured:    raw.featured ?? false,
     popular:     raw.popular ?? false,
     durationMinutes: raw.durationMinutes ?? null,
+    modality:    raw.modality ?? 'InPerson',
   };
 
   // Receta (Restaurante) — solo carga si aplica, para no pagar el round-trip en los demás tipos
