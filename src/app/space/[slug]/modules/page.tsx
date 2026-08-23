@@ -32,7 +32,7 @@ export default async function ModulesPage({
       businessId={data.business.id ?? ''}
       activeTokens={data.business.modulosActivos ?? []}
       businessType={(data.business.businessType ?? '').toLowerCase()}
-      plan={data.business.plan === 'entrepreneur' ? 'entrepreneur' : 'free'}
+      plan={data.business.plan === 'entrepreneur' || (data.business.plan as string) === 'enterprise' ? 'entrepreneur' : 'free'}
     />
   );
 }

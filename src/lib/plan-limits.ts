@@ -1,5 +1,5 @@
 // src/lib/plan-limits.ts
-export type Plan = 'free' | 'entrepreneur';
+export type Plan = 'free' | 'entrepreneur' | 'enterprise';
 
 export interface PlanLimits {
   businesses: number;
@@ -38,6 +38,24 @@ const LIMITS: Record<Plan, PlanLimits> = {
     warningThresholdItems: 7,
   },
   entrepreneur: {
+    businesses: Infinity,
+    itemsPerBusiness: Infinity,
+    imagesPerItem: 5,
+    customCategories: true,
+    onlinePayments: true,
+    bookingCalendar: true,
+    realtimeStock: true,
+    menuModifiers: true,
+    brandingFull: true,
+    customDomain: true,
+    hidePoweredBy: true,
+    menuBoard: true,
+    warningThresholdItems: Infinity,
+  },
+  // Mismo techo que Emprendedor por ahora — Enterprise es hoy un tier de precio/relación
+  // (cortesía, negociación directa por volumen), no un set de capacidades distinto. Si en el
+  // futuro Enterprise agrega features propias (multi-sucursal, SLA, etc.), se diferencian acá.
+  enterprise: {
     businesses: Infinity,
     itemsPerBusiness: Infinity,
     imagesPerItem: 5,

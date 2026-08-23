@@ -278,12 +278,21 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
             {getText('Servicios profesionales', 'Professional services')}
           </p>
           {(language === 'en' && business.descriptionEn ? business.descriptionEn : business.description) && (
-            <p
-              className={`${fraunces.className} mt-3 max-w-[38rem] text-[26px] font-medium leading-[1.35] lg:text-[30px]`}
+            // El dueño escribe esto con el RichTextEditor (Diseño → Configuración) y llega como
+            // HTML — antes se imprimía como texto plano y las etiquetas <p>/<strong>/etc. se
+            // veían literales en la página. sanitizeRichText es obligatorio antes de
+            // dangerouslySetInnerHTML (ver comentario en src/lib/sanitize-html.ts). Se usa <div>
+            // en vez de <p> porque el HTML entrante ya trae sus propios <p>, y anidar <p> dentro
+            // de <p> es inválido.
+            <div
+              className={`${fraunces.className} prose-sm mt-3 max-w-[38rem] text-[26px] font-medium leading-[1.35] lg:text-[30px] [&_p]:m-0`}
               style={{ whiteSpace: 'pre-line' }}
-            >
-              {language === 'en' && business.descriptionEn ? business.descriptionEn : business.description}
-            </p>
+              dangerouslySetInnerHTML={{
+                __html: sanitizeRichText(
+                  (language === 'en' && business.descriptionEn ? business.descriptionEn : business.description) ?? '',
+                ),
+              }}
+            />
           )}
 
           <ProcessSection steps={business.processSteps} visible={business.sectionVisibility?.processSteps !== false} accent={accent} displayClassName={fraunces.className} getText={getText} />
