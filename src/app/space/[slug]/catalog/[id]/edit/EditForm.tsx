@@ -33,6 +33,7 @@ interface Item {
   featured: boolean;
   popular: boolean;
   durationMinutes: number | null;
+  modality?: 'InPerson' | 'Virtual' | 'Both';
 }
 
 interface Props {
@@ -71,6 +72,7 @@ export default function EditForm({ slug, item, businessType, from, inventoryItem
   const router = useRouter();
   const isRestaurant = businessType === 'Restaurant';
   const isBarberOrService = businessType === 'Barber' || businessType === 'Service';
+  const isService = businessType === 'Service';
   const namePlaceholderPair = (businessType && NAME_PLACEHOLDERS[businessType]) || DEFAULT_NAME_PLACEHOLDER;
   const namePlaceholder = getText(namePlaceholderPair.es, namePlaceholderPair.en);
   const backHref = from === 'catalog' ? `/space/${slug}/catalog` : `/space/${slug}`;
@@ -106,6 +108,7 @@ export default function EditForm({ slug, item, businessType, from, inventoryItem
   const [durationMinutes, setDurationMinutes] = useState(
     item.durationMinutes != null ? String(item.durationMinutes) : '',
   );
+  const [modality, setModality] = useState<'InPerson' | 'Virtual' | 'Both'>(item.modality ?? 'InPerson');
   const [recipe, setRecipe] = useState<RecipeLine[]>(initialRecipe);
   const [recipeError, setRecipeError] = useState<string | null>(null);
 
@@ -132,6 +135,9 @@ export default function EditForm({ slug, item, businessType, from, inventoryItem
         // un int? null aquí sería indistinguible de "el campo no vino en el request" y el
         // backend lo ignoraría, dejando el valor anterior sin cambios.
         body.durationMinutes = durationMinutes ? Number(durationMinutes) : 0;
+      }
+      if (isService) {
+        body.modality = modality;
       }
 
       const res = await fetch(`/api/space/${slug}/catalog/${item.id}`, {
@@ -311,6 +317,29 @@ export default function EditForm({ slug, item, businessType, from, inventoryItem
                   'Leave it empty and save to remove the duration from the public page and channels.',
                 )}
               </p>
+            </div>
+          )}
+
+          {isService && (
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">{getText('Modalidad', 'Modality')}</label>
+              <select
+                value={modality}
+                onChange={(e) => setModality(e.target.value as 'InPerson' | 'Virtual' | 'Both')}
+                className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-neutral-400 dark:focus:border-neutral-500 focus:outline-none"
+              >
+                <option value="InPerson">{getText('Presencial', 'In person')}</option>
+                <option value="Virtual">{getText('Virtual (Zoom)', 'Virtual (Zoom)')}</option>
+                <option value="Both">{getText('Ambas — el cliente elige', 'Both — client chooses')}</option>
+              </select>
+              {modality !== 'InPerson' && (
+                <p className="mt-2 text-xs text-neutral-400">
+                  {getText(
+                    'Configura tu link de Zoom en Configuración para que las citas virtuales lo incluyan.',
+                    'Set your Zoom link in Settings so virtual bookings include it.',
+                  )}
+                </p>
+              )}
             </div>
           )}
 

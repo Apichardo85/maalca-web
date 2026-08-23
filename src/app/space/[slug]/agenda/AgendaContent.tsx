@@ -27,6 +27,7 @@ export interface Appointment {
   customer?: { id: string; name: string; phone?: string | null } | null;
   service?: { id: string; name: string; durationMinutes: number; price?: number } | null;
   assignedTo?: { id: string; name: string } | null;
+  isVirtual?: boolean;
 }
 
 export interface ServiceOption {
@@ -520,6 +521,11 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
                   <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLES[a.status] ?? 'bg-gray-100 text-gray-500 dark:bg-neutral-800 dark:text-neutral-400'}`}>
                     {STATUS_LABELS[a.status]?.[language] ?? a.status}
                   </span>
+                  {a.isVirtual && (
+                    <span className="shrink-0 rounded-full bg-gray-100 dark:bg-neutral-800 px-2 py-0.5 text-[11px] font-medium text-gray-600 dark:text-neutral-300">
+                      💻 {getText('Virtual', 'Virtual')}
+                    </span>
+                  )}
                 </div>
                 <p className="mt-0.5 text-xs text-gray-400 dark:text-neutral-500">
                   {new Date(a.date).toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short' })} · {a.time}

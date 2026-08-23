@@ -12,6 +12,8 @@ interface Props {
   planStatus: string;
   trialDaysRemaining: number | null;
   currency: 'USD' | 'DOP';
+  businessType?: string | null;
+  zoomLink?: string | null;
 }
 
 const FEATURES: { es: string; en: string; free: boolean; entrepreneur: boolean }[] = [
@@ -23,7 +25,7 @@ const FEATURES: { es: string; en: string; free: boolean; entrepreneur: boolean }
   { es: 'Código QR + contacto directo', en: 'QR code + direct contact', free: true, entrepreneur: true },
 ];
 
-export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, currency: initialCurrency }: Props) {
+export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, currency: initialCurrency, businessType, zoomLink: initialZoomLink }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -203,6 +205,32 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
 
   const trialExpired = plan === 'free' && trialDaysRemaining !== null && trialDaysRemaining <= 0;
 
+  // Link fijo de Zoom (o Meet/similar) para reuniones virtuales — solo aplica a Servicios,
+  // que es el único businessType con Modality en sus items de catálogo (ver Service.Modality).
+  const isService = businessType === 'Service';
+  const [zoomLink, setZoomLink] = useState(initialZoomLink ?? '');
+  const [zoomSaving, setZoomSaving] = useState(false);
+  const [zoomError, setZoomError] = useState<string | null>(null);
+
+  async function handleSaveZoomLink() {
+    setZoomSaving(true);
+    setZoomError(null);
+    try {
+      const res = await fetch(`/api/space/${slug}/settings`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ zoomLink: zoomLink.trim() }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success(getText('Link de Zoom guardado.', 'Zoom link saved.'));
+    } catch {
+      setZoomError(getText('No pudimos guardar el link. Intenta de nuevo.', "We couldn't save the link. Please try again."));
+      toast.error(getText('No pudimos guardar el link.', "Couldn't save the link."));
+    } finally {
+      setZoomSaving(false);
+    }
+  }
+
   // Moneda en la que el negocio muestra sus precios — no depende de plan ni de Stripe Connect
   // (ese es Country, que es para dónde llega el dinero). Cualquier dueño la puede cambiar.
   const [currency, setCurrency] = useState<'USD' | 'DOP'>(initialCurrency);
@@ -361,6 +389,38 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
             </select>
             {currencyError && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{currencyError}</p>}
           </div>
+
+          {/* Link de reuniones virtuales — Servicios: la misma sala de Zoom para todas las
+              citas marcadas como virtuales, ver Service.Modality y Appointment.IsVirtual. */}
+          {isService && (
+            <div className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6">
+              <p className="text-xs uppercase tracking-wider text-gray-400 dark:text-neutral-500">
+                {getText('Reuniones virtuales', 'Virtual meetings')}
+              </p>
+              <p className="mt-1 text-sm text-gray-600 dark:text-neutral-300">
+                {getText(
+                  'Pega el link de tu sala de Zoom — se incluye automáticamente en las citas que el cliente reserve como virtuales.',
+                  "Paste your Zoom room link — it's automatically included in appointments the client books as virtual.",
+                )}
+              </p>
+              <input
+                type="url"
+                value={zoomLink}
+                onChange={(e) => setZoomLink(e.target.value)}
+                disabled={zoomSaving}
+                placeholder="https://zoom.us/j/..."
+                className="mt-4 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm disabled:opacity-50"
+              />
+              <button
+                onClick={handleSaveZoomLink}
+                disabled={zoomSaving}
+                className="mt-3 w-full rounded-full border border-gray-300 dark:border-neutral-700 py-2.5 text-sm font-medium text-gray-700 dark:text-neutral-300 hover:border-gray-400 disabled:opacity-50"
+              >
+                {zoomSaving ? getText('Guardando...', 'Saving...') : getText('Guardar link', 'Save link')}
+              </button>
+              {zoomError && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{zoomError}</p>}
+            </div>
+          )}
 
           {/* Stripe Connect — recibir pagos de tus propios clientes */}
           {plan === 'entrepreneur' && (

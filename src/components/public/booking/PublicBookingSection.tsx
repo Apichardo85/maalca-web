@@ -17,6 +17,7 @@ interface PublicService {
   description?: string | null;
   price: number;
   durationMinutes: number;
+  modality?: 'InPerson' | 'Virtual' | 'Both';
 }
 
 interface HorarioDay {
@@ -220,6 +221,13 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
   // a quién mandarle el link de "gestiona tu cita", pero la reserva funciona igual sin él.
   const [customerEmail, setCustomerEmail] = useState('');
   const [notes, setNotes] = useState('');
+  // Tarea #405/#407 — solo relevante cuando el servicio elegido admite ambas modalidades
+  // (Modality=Both); si es puramente Presencial o Virtual, el backend decide y este toggle
+  // ni se muestra. Se resetea a false cada vez que cambia el servicio para no arrastrar la
+  // elección de un servicio a otro.
+  const [wantsVirtual, setWantsVirtual] = useState(false);
+  const [confirmedVirtual, setConfirmedVirtual] = useState(false);
+  const [confirmedZoomLink, setConfirmedZoomLink] = useState<string | null>(null);
 
   // Task #189 — horarios ya tomados para la fecha elegida, por staffId (string, viene así del
   // backend). Antes el cliente solo se enteraba de un choque al confirmar (409); ahora se
@@ -262,6 +270,10 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
       cancelled = true;
     };
   }, [slug]);
+
+  useEffect(() => {
+    setWantsVirtual(false);
+  }, [serviceId]);
 
   useEffect(() => {
     document.body.style.overflow = modalOpen ? 'hidden' : '';
@@ -315,6 +327,9 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
       setNotes('');
       setDate('');
       setTime('');
+      setWantsVirtual(false);
+      setConfirmedVirtual(false);
+      setConfirmedZoomLink(null);
       setStatus('ready');
     }
   }
@@ -336,6 +351,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
           customerPhone,
           customerEmail: customerEmail.trim() || null,
           notes: notes || null,
+          wantsVirtual: selectedService?.modality === 'Both' ? wantsVirtual : undefined,
         }),
       });
       if (res.status === 409) {
@@ -350,6 +366,9 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
         setStatus('ready');
         return;
       }
+      const data = await res.json().catch(() => null);
+      setConfirmedVirtual(!!data?.isVirtual);
+      setConfirmedZoomLink(data?.zoomLink ?? null);
       setStatus('success');
     } catch {
       setErrorMsg(getText('No pudimos procesar tu reserva.', "We couldn't process your booking."));
@@ -573,6 +592,17 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                     "It's been scheduled for the business to review. They'll reach out at the number you left.",
                   )}
                 </p>
+                {confirmedVirtual && confirmedZoomLink && (
+                  <a
+                    href={confirmedZoomLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 block break-all rounded-xl bg-gray-50 px-4 py-3 text-sm font-semibold"
+                    style={{ color }}
+                  >
+                    💻 {getText('Link de la reunión', 'Meeting link')}: {confirmedZoomLink}
+                  </a>
+                )}
                 <button
                   type="button"
                   onClick={closeModal}
@@ -630,6 +660,39 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                           {getText('Precio estimado', 'Estimated price')}: ${selectedService.price.toFixed(2)}
                         </p>
                       ) : null}
+                      {selectedService?.modality === 'Virtual' && (
+                        <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-gray-500">
+                          💻 {getText('Esta cita será por Zoom.', "This appointment will be over Zoom.")}
+                        </p>
+                      )}
+                      {selectedService?.modality === 'Both' && (
+                        <div className="mt-2 flex gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setWantsVirtual(false)}
+                            className="flex-1 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors"
+                            style={
+                              !wantsVirtual
+                                ? { backgroundColor: color, borderColor: color, color: '#fff' }
+                                : { borderColor: '#e5e7eb', color: '#374151' }
+                            }
+                          >
+                            📍 {getText('Presencial', 'In person')}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setWantsVirtual(true)}
+                            className="flex-1 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors"
+                            style={
+                              wantsVirtual
+                                ? { backgroundColor: color, borderColor: color, color: '#fff' }
+                                : { borderColor: '#e5e7eb', color: '#374151' }
+                            }
+                          >
+                            💻 {getText('Por Zoom', 'By Zoom')}
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     <div>
