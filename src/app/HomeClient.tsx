@@ -22,7 +22,7 @@ function AffiliateLogo({ logo, fallback }: { logo?: string; fallback: string }) 
   const [failed, setFailed] = useState(!logo);
   if (failed || !logo) {
     return (
-      <span className="font-bold text-lg text-white/90 rounded-lg px-4 py-2 bg-gradient-to-br from-red-800 to-red-950">
+      <span className="font-bold text-lg text-white/90 rounded-lg px-4 py-2 bg-gradient-to-br from-blue-700 to-blue-950">
         {fallback}
       </span>
     );
@@ -195,7 +195,7 @@ export default function HomeClient({ featuredAffiliates }: Props) {
 
       {/* ─── 1. HERO ──────────────────────────────────────────────────────────── */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden grain">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-red-50 to-slate-50 dark:from-black dark:via-red-950/20 dark:to-black">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50 dark:from-black dark:via-blue-950/20 dark:to-black">
           <div className="absolute inset-0 animate-gradient-shift" />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

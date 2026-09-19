@@ -27,7 +27,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-MaalCa Web is a creative ecosystem website built with Next.js 15, TypeScript, and Tailwind CSS 4. The project showcases multiple business ventures (Editorial, CiriWhispers, MaalCa Properties, etc.) with a dark-themed design and red branding. Uses Framer Motion for animations and follows modern React patterns with the App Router structure and Turbopack for development and build optimization.
+MaalCa Web is a creative ecosystem website built with Next.js 15, TypeScript, and Tailwind CSS 4. The project showcases multiple business ventures (Editorial, CiriWhispers, MaalCa Properties, etc.) with a dark-themed design and blue branding (rebranded 2026-09-19, previously red). Uses Framer Motion for animations and follows modern React patterns with the App Router structure and Turbopack for development and build optimization.
 
 ## Development Commands
 
@@ -119,7 +119,7 @@ Use the `@/` alias for imports from the `src/` directory. Example: `import Compo
 - ❌ Refactor working code into components without approval
 - ❌ Create new folder structures (`components/sections/`, `data/affiliates.ts`) without asking
 - ❌ Change `[data-theme="dark"]` to `.dark` or reintroduce next-themes
-- ❌ Change the brand color value (`--brand-primary: #dc2626` is sacred)
+- ❌ Change the brand color value (`--brand-primary: #045AFE` is sacred — updated 2026-09-19, was #dc2626/red)
 - ❌ Assume "best practices" are wanted - always ask first
 
 ### DO

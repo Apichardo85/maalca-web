@@ -29,7 +29,7 @@ export default async function Image() {
             width: 140,
             height: 140,
             borderRadius: '50%',
-            background: 'radial-gradient(circle at 35% 35%, #dc2626, #991b1b)',
+            background: 'radial-gradient(circle at 35% 35%, #045AFE, #02318B)',
             border: '4px solid #ffffff',
             marginBottom: 32,
           }}

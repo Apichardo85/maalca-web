@@ -12,7 +12,7 @@
   --color-text-primary: #0f172a;
   --color-text-secondary: #475569;
   --color-text-tertiary: #64748b;
-  --color-text-accent: #dc2626;
+  --color-text-accent: #045AFE;
   --color-text-muted: #94a3b8;
   --color-text-inverse: #ffffff;
   --color-text-link: #2563eb;
@@ -22,7 +22,7 @@
   --color-bg-primary: #ffffff;
   --color-bg-secondary: #f8fafc;
   --color-bg-tertiary: #f1f5f9;
-  --color-bg-accent: #fef2f2;
+  --color-bg-accent: #F2F6FE;
   --color-bg-overlay: rgba(0, 0, 0, 0.50);
   --color-bg-glass: rgba(255, 255, 255, 0.95);
 
@@ -35,14 +35,14 @@
   /* Border Colors */
   --color-border-primary: #e2e8f0;
   --color-border-secondary: #cbd5e1;
-  --color-border-accent: #dc2626;
+  --color-border-accent: #045AFE;
   --color-border-focus: #2563eb;
 
   /* Brand Colors */
-  --color-brand-primary: #dc2626;
-  --color-brand-primary-hover: #ef4444;
-  --color-brand-secondary: #991b1b;
-  --color-brand-tertiary: #fef2f2;
+  --color-brand-primary: #045AFE;
+  --color-brand-primary-hover: #0348CB;
+  --color-brand-secondary: #02318B;
+  --color-brand-tertiary: #F2F6FE;
 
   /* Status Colors */
   --color-success: #10b981;
@@ -64,7 +64,7 @@
   --color-text-primary: #f8fafc;
   --color-text-secondary: #cbd5e1;
   --color-text-tertiary: #94a3b8;
-  --color-text-accent: #ef4444;
+  --color-text-accent: #1376FE;
   --color-text-muted: #64748b;
   --color-text-inverse: #0f172a;
   --color-text-link: #f8fafc; /* FIXED: Blue text now readable in dark mode */
@@ -74,7 +74,7 @@
   --color-bg-primary: #0f172a;
   --color-bg-secondary: #1e293b;
   --color-bg-tertiary: #334155;
-  --color-bg-accent: #7f1d1d;
+  --color-bg-accent: #01163F;
   --color-bg-overlay: rgba(0, 0, 0, 0.80);
   --color-bg-glass: rgba(15, 23, 42, 0.95);
 
@@ -87,14 +87,14 @@
   /* Border Colors */
   --color-border-primary: #475569;
   --color-border-secondary: #64748b;
-  --color-border-accent: #ef4444;
+  --color-border-accent: #1376FE;
   --color-border-focus: #f8fafc;
 
   /* Brand Colors */
-  --color-brand-primary: #ef4444;
-  --color-brand-primary-hover: #f87171;
-  --color-brand-secondary: #dc2626;
-  --color-brand-tertiary: #7f1d1d;
+  --color-brand-primary: #1376FE;
+  --color-brand-primary-hover: #599FFE;
+  --color-brand-secondary: #045AFE;
+  --color-brand-tertiary: #01163F;
 
   /* Status Colors */
   --color-success: #34d399;
