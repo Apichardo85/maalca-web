@@ -41,7 +41,13 @@ const SHOWCASE: ShowcaseBusiness[] = [
     name: "Pegote",
     description:
       "Template dinámico ya sirviendo en producción — reservas, catálogo de servicios y perfil del negocio, todo desde un mismo espacio.",
-    images: [{ src: "/images/landing/pegote-dashboard.png", alt: "Panel de Pegote Barbershop en MaalCa" }],
+    images: [
+      { src: "/images/landing/pegote/waiting-queue.png", alt: "Fila de espera en tiempo real de Pegote Barbershop en MaalCa" },
+      { src: "/images/landing/pegote/screen-board.png", alt: "Pantalla pública con la fila y el menú de servicios de Pegote Barbershop en MaalCa" },
+      { src: "/images/landing/pegote/agenda.png", alt: "Agenda de citas por barbero de Pegote Barbershop en MaalCa" },
+      { src: "/images/landing/pegote/booking.png", alt: "Página pública de reservas con el equipo de barberos de Pegote Barbershop en MaalCa" },
+      { src: "/images/landing/pegote/branding.png", alt: "Personalización de marca y espacio digital de Pegote Barbershop en MaalCa" },
+    ],
   },
   {
     id: "little-dominicana",
