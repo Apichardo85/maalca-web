@@ -94,7 +94,7 @@ export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: 
       {/* ============ HERO ============ */}
       <section className="w-full px-6 md:px-16 pt-20 pb-16 md:pt-24 md:pb-20 flex flex-col items-center text-center bg-gradient-to-b from-surface-elevated to-surface">
         <span className="inline-block px-4 py-1.5 rounded-full bg-brand-primary/10 text-brand-primary text-sm font-semibold mb-6">
-          Para negocios dominicanos y latinos
+          Para negocios independientes
         </span>
         <h1 className="text-4xl md:text-6xl font-bold leading-[1.15] max-w-3xl text-text-primary">
           No necesitas una página web.
