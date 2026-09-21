@@ -47,6 +47,11 @@ interface Props {
   inventoryItems?: RecipeInventoryOption[];
   /** Receta ya guardada para este plato — solo Restaurante. */
   initialRecipe?: RecipeLine[];
+  /** Grupos de modificadores del afiliado (ej. "Guarnición") disponibles para asignar a este
+   *  plato — creados desde /space/{slug}/modifiers. Solo Restaurante. */
+  availableModifierGroups?: { id: string; name: string }[];
+  /** IDs de los grupos ya asignados a este plato. */
+  initialModifierGroupIds?: string[];
 }
 
 const FLAG_OPTIONS = [
@@ -66,7 +71,16 @@ const NAME_PLACEHOLDERS: Record<string, { es: string; en: string }> = {
 };
 const DEFAULT_NAME_PLACEHOLDER = { es: 'Ej. Nombre del item', en: 'E.g. Item name' };
 
-export default function EditForm({ slug, item, businessType, from, inventoryItems = [], initialRecipe = [] }: Props) {
+export default function EditForm({
+  slug,
+  item,
+  businessType,
+  from,
+  inventoryItems = [],
+  initialRecipe = [],
+  availableModifierGroups = [],
+  initialModifierGroupIds = [],
+}: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const router = useRouter();
@@ -111,6 +125,12 @@ export default function EditForm({ slug, item, businessType, from, inventoryItem
   const [modality, setModality] = useState<'InPerson' | 'Virtual' | 'Both'>(item.modality ?? 'InPerson');
   const [recipe, setRecipe] = useState<RecipeLine[]>(initialRecipe);
   const [recipeError, setRecipeError] = useState<string | null>(null);
+  const [modifierGroupIds, setModifierGroupIds] = useState<string[]>(initialModifierGroupIds);
+  const [modifierGroupsError, setModifierGroupsError] = useState<string | null>(null);
+
+  function toggleModifierGroup(id: string) {
+    setModifierGroupIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
 
   const set = (k: keyof typeof form) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -156,6 +176,19 @@ export default function EditForm({ slug, item, businessType, from, inventoryItem
             const data = await recipeRes.json().catch(() => ({}));
             const parsed = parseApiError(data, getText('No pudimos guardar la receta.', "We couldn't save the recipe."));
             setRecipeError(parsed.message);
+            toast.error(parsed.message);
+            return;
+          }
+
+          const modifierGroupsRes = await fetch(`/api/space/${slug}/catalog/${item.id}/modifier-groups`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ modifierGroupIds }),
+          });
+          if (!modifierGroupsRes.ok) {
+            const data = await modifierGroupsRes.json().catch(() => ({}));
+            const parsed = parseApiError(data, getText('No pudimos guardar los modificadores.', "We couldn't save the modifiers."));
+            setModifierGroupsError(parsed.message);
             toast.error(parsed.message);
             return;
           }
@@ -418,6 +451,43 @@ export default function EditForm({ slug, item, businessType, from, inventoryItem
                 </p>
                 {recipeError && (
                   <p className="mt-2 rounded-lg bg-red-50 dark:bg-red-900/20 px-3 py-2 text-sm text-red-700 dark:text-red-400">{recipeError}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                  {getText('Guarniciones / modificadores', 'Sides / modifiers')}
+                </label>
+                {availableModifierGroups.length === 0 ? (
+                  <p className="text-xs text-neutral-400">
+                    {getText(
+                      'No tienes grupos todavía — créalos en Guarniciones para poder agregarlos aquí.',
+                      "You don't have any groups yet — create them in Modifiers to attach them here.",
+                    )}
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap gap-4">
+                    {availableModifierGroups.map((g) => (
+                      <label key={g.id} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={modifierGroupIds.includes(g.id)}
+                          onChange={() => toggleModifierGroup(g.id)}
+                          className="h-4 w-4 rounded border-neutral-300 dark:border-neutral-600"
+                        />
+                        <span className="text-sm text-neutral-700 dark:text-neutral-300">{g.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                <p className="mt-2 text-xs text-neutral-400">
+                  {getText(
+                    'El cliente elegirá entre estas opciones al pedir este plato, con su precio real.',
+                    "The customer will pick from these options when ordering this dish, at its real price.",
+                  )}
+                </p>
+                {modifierGroupsError && (
+                  <p className="mt-2 rounded-lg bg-red-50 dark:bg-red-900/20 px-3 py-2 text-sm text-red-700 dark:text-red-400">{modifierGroupsError}</p>
                 )}
               </div>
             </div>

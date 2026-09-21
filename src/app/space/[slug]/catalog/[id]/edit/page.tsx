@@ -65,13 +65,23 @@ export default async function EditCatalogItemPage({ params, searchParams }: Page
   // queda vacía (RecipeEditor lo maneja como "sin ingredientes disponibles").
   let inventoryItems: { id: string; name: string; unitPrice?: number }[] = [];
   let recipe: { inventoryItemId: string; inventoryItemName: string; quantity: number }[] = [];
+  let availableModifierGroups: { id: string; name: string }[] = [];
+  let modifierGroupIds: string[] = [];
   if (businessType === 'Restaurant') {
-    const [invRes, recipeRes] = await Promise.all([
+    const [invRes, recipeRes, allGroupsRes, productGroupsRes] = await Promise.all([
       fetch(`${API}/api/affiliates/${affiliate.id}/inventory?page=1`, {
         headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': affiliate.id },
         cache: 'no-store',
       }),
       fetch(`${API}/api/affiliates/${affiliate.id}/products/${id}/ingredients`, {
+        headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': affiliate.id },
+        cache: 'no-store',
+      }),
+      fetch(`${API}/api/affiliates/${affiliate.id}/modifier-groups`, {
+        headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': affiliate.id },
+        cache: 'no-store',
+      }),
+      fetch(`${API}/api/affiliates/${affiliate.id}/products/${id}/modifier-groups`, {
         headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': affiliate.id },
         cache: 'no-store',
       }),
@@ -92,6 +102,16 @@ export default async function EditCatalogItemPage({ params, searchParams }: Page
           }))
         : [];
     }
+    if (allGroupsRes.ok) {
+      const rows = await allGroupsRes.json().catch(() => []);
+      availableModifierGroups = Array.isArray(rows)
+        ? rows.map((g: { id: string; name: string }) => ({ id: g.id, name: g.name }))
+        : [];
+    }
+    if (productGroupsRes.ok) {
+      const rows = await productGroupsRes.json().catch(() => []);
+      modifierGroupIds = Array.isArray(rows) ? rows.map((g: { id: string }) => g.id) : [];
+    }
   }
 
   return (
@@ -102,6 +122,8 @@ export default async function EditCatalogItemPage({ params, searchParams }: Page
       from={from}
       inventoryItems={inventoryItems}
       initialRecipe={recipe}
+      availableModifierGroups={availableModifierGroups}
+      initialModifierGroupIds={modifierGroupIds}
     />
   );
 }

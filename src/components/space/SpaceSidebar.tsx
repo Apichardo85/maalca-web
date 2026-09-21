@@ -92,6 +92,11 @@ export function SpaceSidebar({
     ...(['restaurant', 'retail'].includes(businessType)
       ? [{ label: getText('Inventario', 'Inventory'), icon: '📋', href: `/space/${slug}/inventory`, token: 'inventory' }]
       : []),
+    // Guarniciones/modificadores reusables (ej. "Guarnición" con precios reales de
+    // Acompañantes) — solo Restaurante, ver ModifierGroup en el backend.
+    ...(businessType === 'restaurant'
+      ? [{ label: getText('Guarniciones', 'Modifiers'), icon: '🧂', href: `/space/${slug}/modifiers`, token: 'modifiers' }]
+      : []),
     { label: getText('Fila de espera', 'Waiting queue'), icon: '🪑', href: `/space/${slug}/queue`, token: 'queue' },
     // Facturas por trabajo realizado. No confundir con "Facturación" (token 'billing') más
     // abajo, que es el plan/pago con MaalCa.

@@ -6,7 +6,7 @@
 // cliente en vez de quedarse en la página del pedido.
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { KioskContent, type KioskItem } from './KioskContent';
+import { KioskContent, type KioskItem, type KioskModifierGroup } from './KioskContent';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -38,6 +38,17 @@ interface PublicCatalogResponse {
     // Inventario (ver PublicCatalogService.GetCatalogAsync). Nombres solamente, sin
     // cantidad/costo — eso es información interna del negocio, no del cliente.
     ingredients?: Array<{ inventoryItemId: string; name: string }> | null;
+    // Grupos de modificadores reusables (ej. "Guarnición") — cada opción trae su precio real
+    // del catálogo de Acompañantes (ModifierOption.PriceDelta), no un monto inventado. Ver
+    // PublicCatalogService.GetCatalogAsync / CatalogItemDto.ModifierGroups.
+    modifierGroups?: Array<{
+      id: string;
+      name: string;
+      minSelect: number;
+      maxSelect: number;
+      required: boolean;
+      options: Array<{ id: string; name: string; priceDelta: number; isDefault: boolean }>;
+    }> | null;
   }>;
   capabilities: { onlinePayments?: boolean };
 }
@@ -80,6 +91,9 @@ export default async function KioskPage({ params }: PageProps) {
       imageUrl: i.image_url ?? i.imageUrl ?? null,
       ingredients: i.ingredients?.length
         ? i.ingredients.map((ing) => ({ id: ing.inventoryItemId, name: ing.name }))
+        : undefined,
+      modifierGroups: i.modifierGroups?.length
+        ? (i.modifierGroups as KioskModifierGroup[])
         : undefined,
     }));
 
