@@ -126,11 +126,22 @@ export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: 
           ))}
         </div>
 
-        <div className="mt-8 w-full max-w-4xl bg-surface border border-black/5 rounded-3xl p-6 flex flex-col md:flex-row gap-7">
-          <div className="flex-[1.1] h-64 rounded-2xl overflow-hidden border border-black/5">
-            <img src={business.image} alt={business.alt} className="w-full h-full object-cover object-top" />
+        <div className="mt-8 w-full max-w-3xl bg-surface border border-black/5 rounded-3xl overflow-hidden">
+          {/* La captura se muestra completa (object-contain, sin recortar) dentro de un marco
+              tipo ventana — cuando haya varias fotos por módulo (fila/agenda/pantalla en
+              barbería, cocina/kiosko/menú en restaurante) esta caja se vuelve un carrusel que
+              rota entre ellas para el negocio seleccionado. */}
+          <div className="bg-surface-muted p-3 flex flex-col gap-3">
+            <div className="flex gap-1.5 px-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-black/15" />
+              <span className="w-2.5 h-2.5 rounded-full bg-black/15" />
+              <span className="w-2.5 h-2.5 rounded-full bg-black/15" />
+            </div>
+            <div className="w-full rounded-xl overflow-hidden border border-black/5 bg-white flex items-center justify-center">
+              <img src={business.image} alt={business.alt} className="w-full h-auto object-contain" />
+            </div>
           </div>
-          <div className="flex-1 flex flex-col justify-center">
+          <div className="p-6 md:p-7">
             <span className="text-xs font-bold tracking-wider text-brand-primary">{business.category}</span>
             <h3 className="mt-2 text-2xl font-bold text-text-primary">{business.name}</h3>
             <p className="mt-2.5 text-sm leading-relaxed text-text-secondary">{business.description}</p>
