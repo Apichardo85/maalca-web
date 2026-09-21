@@ -13,19 +13,26 @@ interface Props {
   featuredAffiliates: FeaturedAffiliate[];
 }
 
+interface ShowcaseImage {
+  src: string;
+  alt: string;
+}
+
 interface ShowcaseBusiness {
   id: string;
   pillLabel: string;
   category: string;
   name: string;
   description: string;
-  image: string;
-  alt: string;
+  images: ShowcaseImage[];
 }
 
 // Negocios reales operando hoy en producción — nada de mockups. Cuando haya más afiliados
 // destacados (ver featuredAffiliates, ya expuesto por page.tsx vía /api/public/affiliates/featured)
 // esta lista puede volverse dinámica; por ahora son los dos casos con captura real aprobados.
+// Cada negocio trae varias capturas — las que muestran los módulos que más le importan a ESE
+// tipo de negocio (barbería: fila, agenda, pantalla pública / restaurante: cocina, POS, menú,
+// pedidos) — en vez de una sola imagen genérica del dashboard.
 const SHOWCASE: ShowcaseBusiness[] = [
   {
     id: "pegote",
@@ -34,8 +41,7 @@ const SHOWCASE: ShowcaseBusiness[] = [
     name: "Pegote",
     description:
       "Template dinámico ya sirviendo en producción — reservas, catálogo de servicios y perfil del negocio, todo desde un mismo espacio.",
-    image: "/images/landing/pegote-dashboard.png",
-    alt: "Panel de Pegote Barbershop en MaalCa",
+    images: [{ src: "/images/landing/pegote-dashboard.png", alt: "Panel de Pegote Barbershop en MaalCa" }],
   },
   {
     id: "little-dominicana",
@@ -44,8 +50,15 @@ const SHOWCASE: ShowcaseBusiness[] = [
     name: "The Little Dominican",
     description:
       "Menú, modificadores y pedidos gestionados desde el mismo panel — sin plantillas genéricas para un restaurante real.",
-    image: "/images/landing/little-dominicana-dashboard.png",
-    alt: "Panel de The Little Dominican en MaalCa",
+    images: [
+      { src: "/images/landing/little-dominican/kitchen.png", alt: "Pantalla de cocina (KDS) de The Little Dominican en MaalCa" },
+      { src: "/images/landing/little-dominican/pos.png", alt: "Punto de venta de The Little Dominican en MaalCa" },
+      { src: "/images/landing/little-dominican/catalog.png", alt: "Catálogo / menú de The Little Dominican en MaalCa" },
+      { src: "/images/landing/little-dominican/orders.png", alt: "Pedidos de The Little Dominican en MaalCa" },
+      { src: "/images/landing/little-dominican/dashboard.png", alt: "Panel principal de The Little Dominican en MaalCa" },
+      { src: "/images/landing/little-dominican/stats.png", alt: "Estadísticas de The Little Dominican en MaalCa" },
+      { src: "/images/landing/little-dominican/qr-card.png", alt: "Código QR y tarjeta de negocio de The Little Dominican en MaalCa" },
+    ],
   },
 ];
 
@@ -59,7 +72,16 @@ const STEPS = ["Crea tu espacio", "Personaliza tu marca", "Publica en un clic", 
 // vive en page.tsx) para cuando esta sección se vuelva data-driven.
 export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: Props) {
   const [selectedId, setSelectedId] = useState(SHOWCASE[0].id);
+  const [imageIndex, setImageIndex] = useState(0);
   const business = SHOWCASE.find((b) => b.id === selectedId) ?? SHOWCASE[0];
+  const image = business.images[imageIndex] ?? business.images[0];
+
+  const selectBusiness = (id: string) => {
+    setSelectedId(id);
+    setImageIndex(0);
+  };
+  const prevImage = () => setImageIndex((i) => (i - 1 + business.images.length) % business.images.length);
+  const nextImage = () => setImageIndex((i) => (i + 1) % business.images.length);
 
   return (
     <main className="w-full bg-surface">
@@ -113,7 +135,7 @@ export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: 
             <button
               key={b.id}
               type="button"
-              onClick={() => setSelectedId(b.id)}
+              onClick={() => selectBusiness(b.id)}
               aria-pressed={selectedId === b.id}
               className={`px-5 py-2.5 rounded-full text-sm font-semibold border transition-colors ${
                 selectedId === b.id
@@ -127,19 +149,62 @@ export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: 
         </div>
 
         <div className="mt-8 w-full max-w-3xl bg-surface border border-black/5 rounded-3xl overflow-hidden">
-          {/* La captura se muestra completa (object-contain, sin recortar) dentro de un marco
-              tipo ventana — cuando haya varias fotos por módulo (fila/agenda/pantalla en
-              barbería, cocina/kiosko/menú en restaurante) esta caja se vuelve un carrusel que
-              rota entre ellas para el negocio seleccionado. */}
+          {/* Cada negocio trae varias capturas de los módulos que más usa — la caja rota entre
+              ellas (flechas + puntos) en vez de forzar una sola imagen genérica del dashboard.
+              La captura se muestra completa (object-contain, sin recortar) dentro de un marco
+              tipo ventana. */}
           <div className="bg-surface-muted p-3 flex flex-col gap-3">
-            <div className="flex gap-1.5 px-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-black/15" />
-              <span className="w-2.5 h-2.5 rounded-full bg-black/15" />
-              <span className="w-2.5 h-2.5 rounded-full bg-black/15" />
+            <div className="flex items-center justify-between px-1">
+              <div className="flex gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-black/15" />
+                <span className="w-2.5 h-2.5 rounded-full bg-black/15" />
+                <span className="w-2.5 h-2.5 rounded-full bg-black/15" />
+              </div>
+              {business.images.length > 1 && (
+                <span className="text-xs font-medium text-text-muted">
+                  {imageIndex + 1} / {business.images.length}
+                </span>
+              )}
             </div>
-            <div className="w-full rounded-xl overflow-hidden border border-black/5 bg-white flex items-center justify-center">
-              <img src={business.image} alt={business.alt} className="w-full h-auto object-contain" />
+            <div className="relative w-full rounded-xl overflow-hidden border border-black/5 bg-white flex items-center justify-center">
+              <img src={image.src} alt={image.alt} className="w-full h-auto object-contain" />
+              {business.images.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={prevImage}
+                    aria-label="Imagen anterior"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    type="button"
+                    onClick={nextImage}
+                    aria-label="Imagen siguiente"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+                  >
+                    ›
+                  </button>
+                </>
+              )}
             </div>
+            {business.images.length > 1 && (
+              <div className="flex gap-1.5 justify-center pt-1">
+                {business.images.map((img, i) => (
+                  <button
+                    key={img.src}
+                    type="button"
+                    onClick={() => setImageIndex(i)}
+                    aria-label={`Ver imagen ${i + 1}`}
+                    aria-current={i === imageIndex}
+                    className={`h-1.5 rounded-full transition-all ${
+                      i === imageIndex ? "w-5 bg-brand-primary" : "w-1.5 bg-black/15"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
           <div className="p-6 md:p-7">
             <span className="text-xs font-bold tracking-wider text-brand-primary">{business.category}</span>
