@@ -79,6 +79,7 @@ const STEPS = ["Crea tu espacio", "Personaliza tu marca", "Publica en un clic", 
 export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: Props) {
   const [selectedId, setSelectedId] = useState(SHOWCASE[0].id);
   const [imageIndex, setImageIndex] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const business = SHOWCASE.find((b) => b.id === selectedId) ?? SHOWCASE[0];
   const image = business.images[imageIndex] ?? business.images[0];
 
@@ -173,7 +174,14 @@ export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: 
               )}
             </div>
             <div className="relative w-full rounded-xl overflow-hidden border border-black/5 bg-white flex items-center justify-center">
-              <img src={image.src} alt={image.alt} className="w-full h-auto object-contain" />
+              <button
+                type="button"
+                onClick={() => setIsLightboxOpen(true)}
+                aria-label="Ampliar imagen"
+                className="w-full cursor-zoom-in"
+              >
+                <img src={image.src} alt={image.alt} className="w-full h-auto object-contain" />
+              </button>
               {business.images.length > 1 && (
                 <>
                   <button
@@ -223,6 +231,50 @@ export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: 
           Retail (BritoColor) se suma cuando el catálogo esté publicado — no mostramos mockups como si fueran reales.
         </p>
       </section>
+
+      {/* Lightbox: en móvil la captura se ve pequeña dentro de la tarjeta — al hacer clic se
+          amplía a pantalla completa, con las mismas flechas para seguir navegando ahí mismo. */}
+      {isLightboxOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setIsLightboxOpen(false)}
+        >
+          <button
+            type="button"
+            onClick={() => setIsLightboxOpen(false)}
+            aria-label="Cerrar"
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-colors text-xl"
+          >
+            ×
+          </button>
+          <div className="relative w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
+            <img src={image.src} alt={image.alt} className="w-full h-auto max-h-[85vh] object-contain rounded-lg" />
+            {business.images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={prevImage}
+                  aria-label="Imagen anterior"
+                  className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  onClick={nextImage}
+                  aria-label="Imagen siguiente"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
+                >
+                  ›
+                </button>
+                <p className="mt-3 text-center text-sm text-white/70">
+                  {imageIndex + 1} / {business.images.length}
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ============ ASÍ DE SIMPLE ============ */}
       <section className="w-full px-6 md:px-16 py-16 md:py-20 bg-surface flex flex-col items-center">
