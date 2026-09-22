@@ -5,33 +5,34 @@ import { useRouter } from 'next/navigation';
 import { track } from '@/lib/analytics';
 import { ApiError } from '@/lib/api-client';
 import { sanitizeContactValue } from '@/lib/public-contact';
+import { useTranslation } from '@/hooks/useSimpleLanguage';
 
 // Only these 4 have a real public template (src/components/public/templates/).
 // Creator/Publisher/Professional stay visible but disabled until Fase 5 confirms
 // the existing 4 work end-to-end and those templates get built.
 const BUSINESS_TYPES = [
-  { value: 'restaurant', label: 'Restaurante', emoji: '🍽️', examples: 'Comida, bebidas, delivery', comingSoon: false },
-  { value: 'barber', label: 'Barbería', emoji: '💈', examples: 'Cortes, salones de belleza, spa', comingSoon: false },
-  { value: 'service', label: 'Servicios', emoji: '🛠️', examples: 'Consultoría, talleres, profesionales', comingSoon: false },
-  { value: 'retail', label: 'Tienda', emoji: '🛍️', examples: 'Ropa, ferretería, regalos, artículos varios', comingSoon: false },
-  { value: 'creator', label: 'Creador', emoji: '🎨', examples: null, comingSoon: true },
-  { value: 'publisher', label: 'Editorial', emoji: '📚', examples: null, comingSoon: true },
-  { value: 'professional', label: 'Profesional', emoji: '💼', examples: null, comingSoon: true },
+  { value: 'restaurant', labelKey: 'onboarding.type.restaurant.label', emoji: '🍽️', examplesKey: 'onboarding.type.restaurant.examples', comingSoon: false },
+  { value: 'barber', labelKey: 'onboarding.type.barber.label', emoji: '💈', examplesKey: 'onboarding.type.barber.examples', comingSoon: false },
+  { value: 'service', labelKey: 'onboarding.type.service.label', emoji: '🛠️', examplesKey: 'onboarding.type.service.examples', comingSoon: false },
+  { value: 'retail', labelKey: 'onboarding.type.retail.label', emoji: '🛍️', examplesKey: 'onboarding.type.retail.examples', comingSoon: false },
+  { value: 'creator', labelKey: 'onboarding.type.creator.label', emoji: '🎨', examplesKey: null, comingSoon: true },
+  { value: 'publisher', labelKey: 'onboarding.type.publisher.label', emoji: '📚', examplesKey: null, comingSoon: true },
+  { value: 'professional', labelKey: 'onboarding.type.professional.label', emoji: '💼', examplesKey: null, comingSoon: true },
 ] as const;
 
 const PALETTE = [
-  { name: 'Rojo MaalCa', hex: '#C8102E' },
-  { name: 'Azul Océano', hex: '#0066CC' },
-  { name: 'Verde Esmeralda', hex: '#10B981' },
-  { name: 'Morado', hex: '#7C3AED' },
-  { name: 'Naranja', hex: '#F97316' },
-  { name: 'Rosa', hex: '#EC4899' },
-  { name: 'Amarillo', hex: '#F59E0B' },
-  { name: 'Turquesa', hex: '#06B6D4' },
-  { name: 'Negro', hex: '#171717' },
-  { name: 'Gris Pizarra', hex: '#475569' },
-  { name: 'Café', hex: '#92400E' },
-  { name: 'Índigo', hex: '#4338CA' },
+  { nameKey: 'onboarding.palette.redMaalca', hex: '#C8102E' },
+  { nameKey: 'onboarding.palette.oceanBlue', hex: '#0066CC' },
+  { nameKey: 'onboarding.palette.emeraldGreen', hex: '#10B981' },
+  { nameKey: 'onboarding.palette.purple', hex: '#7C3AED' },
+  { nameKey: 'onboarding.palette.orange', hex: '#F97316' },
+  { nameKey: 'onboarding.palette.pink', hex: '#EC4899' },
+  { nameKey: 'onboarding.palette.yellow', hex: '#F59E0B' },
+  { nameKey: 'onboarding.palette.turquoise', hex: '#06B6D4' },
+  { nameKey: 'onboarding.palette.black', hex: '#171717' },
+  { nameKey: 'onboarding.palette.slateGray', hex: '#475569' },
+  { nameKey: 'onboarding.palette.brown', hex: '#92400E' },
+  { nameKey: 'onboarding.palette.indigo', hex: '#4338CA' },
 ];
 
 const STEPS = ['name', 'type', 'color', 'logo', 'whatsapp'] as const;
@@ -43,6 +44,7 @@ const inputClass =
   'mt-2 w-full rounded-lg border border-neutral-200 px-3 py-2.5 text-sm text-neutral-900 focus:border-neutral-400 focus:outline-none';
 
 export function OnboardingForm() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
@@ -65,7 +67,7 @@ export function OnboardingForm() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      setError('La imagen no puede superar 2MB.');
+      setError(t('onboarding.error.logoTooLarge'));
       return;
     }
     setError(null);
@@ -144,9 +146,9 @@ export function OnboardingForm() {
         router.push(`/space/${data.slug}?new=1`);
       } catch (err) {
         if (err instanceof ApiError && err.status === 409) {
-          setError('Ya tienes un negocio. Upgrade a Entrepreneur para crear más de uno.');
+          setError(t('onboarding.error.duplicateBusiness'));
         } else {
-          setError('Algo salió mal. Intenta de nuevo.');
+          setError(t('onboarding.error.generic'));
         }
       }
     });
@@ -169,8 +171,8 @@ export function OnboardingForm() {
         <div className="mb-6 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo-icon.svg" alt="MaalCa" width={32} height={32} className="mx-auto mb-4" />
-          <h1 className="text-3xl font-bold tracking-tight text-neutral-900">Crea tu espacio</h1>
-          <p className="mt-2 text-sm text-neutral-500">Unos segundos y estás en línea.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-neutral-900">{t('onboarding.title')}</h1>
+          <p className="mt-2 text-sm text-neutral-500">{t('onboarding.subtitle')}</p>
         </div>
 
         {/* Progress */}
@@ -189,14 +191,14 @@ export function OnboardingForm() {
           {STEPS[step] === 'name' && (
             <div>
               <label className="block text-sm font-medium text-neutral-700">
-                Nombre del negocio
+                {t('onboarding.step.name.label')}
               </label>
               <input
                 type="text"
                 autoFocus
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Ej. La Casa del Mofongo"
+                placeholder={t('onboarding.step.name.placeholder')}
                 maxLength={50}
                 className={inputClass}
               />
@@ -206,36 +208,36 @@ export function OnboardingForm() {
           {STEPS[step] === 'type' && (
             <div>
               <label className="block text-sm font-medium text-neutral-700">
-                ¿Qué tipo de negocio?
+                {t('onboarding.step.type.label')}
               </label>
               <div className="mt-2 grid grid-cols-2 gap-2">
-                {BUSINESS_TYPES.map((t) => (
+                {BUSINESS_TYPES.map((bt) => (
                   <button
-                    key={t.value}
+                    key={bt.value}
                     type="button"
-                    disabled={t.comingSoon}
-                    onClick={() => setType(t.value)}
-                    title={t.comingSoon ? 'Próximamente' : undefined}
+                    disabled={bt.comingSoon}
+                    onClick={() => setType(bt.value)}
+                    title={bt.comingSoon ? t('onboarding.type.comingSoonTitle') : undefined}
                     className={`relative flex flex-col gap-0.5 rounded-lg border px-3 py-3 text-left text-sm transition ${
-                      t.comingSoon ? 'pr-11' : ''
+                      bt.comingSoon ? 'pr-11' : ''
                     } ${
-                      t.comingSoon
+                      bt.comingSoon
                         ? 'cursor-not-allowed border-neutral-100 bg-neutral-50 text-neutral-300'
-                        : type === t.value
+                        : type === bt.value
                           ? 'border-[#C8102E] bg-[#C8102E]/5 text-[#C8102E]'
                           : 'border-neutral-200 text-neutral-700 hover:border-neutral-300'
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="flex-shrink-0 text-lg">{t.emoji}</span>
-                      <span className="font-medium">{t.label}</span>
+                      <span className="flex-shrink-0 text-lg">{bt.emoji}</span>
+                      <span className="font-medium">{t(bt.labelKey)}</span>
                     </div>
-                    {t.examples && (
-                      <span className="text-xs text-neutral-400">{t.examples}</span>
+                    {bt.examplesKey && (
+                      <span className="text-xs text-neutral-400">{t(bt.examplesKey)}</span>
                     )}
-                    {t.comingSoon && (
+                    {bt.comingSoon && (
                       <span className="absolute right-1.5 top-1.5 rounded-full bg-neutral-100 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-neutral-400">
-                        Pronto
+                        {t('onboarding.type.comingSoonBadge')}
                       </span>
                     )}
                   </button>
@@ -248,7 +250,7 @@ export function OnboardingForm() {
             <div>
               <div className="flex items-center gap-2">
                 <label className="block text-sm font-medium text-neutral-700">
-                  Color principal
+                  {t('onboarding.step.color.label')}
                 </label>
                 <span
                   className="inline-block h-5 w-5 flex-shrink-0 rounded-full border border-black/10"
@@ -256,11 +258,11 @@ export function OnboardingForm() {
                 />
               </div>
               <div className="mt-3 grid grid-cols-6 gap-2">
-                {PALETTE.map(({ name: colorName, hex }) => (
+                {PALETTE.map(({ nameKey: colorNameKey, hex }) => (
                   <button
                     key={hex}
                     type="button"
-                    title={colorName}
+                    title={t(colorNameKey)}
                     onClick={() => setPrimaryColor(hex)}
                     className="relative h-8 w-8 rounded-full border-2 transition focus:outline-none"
                     style={{
@@ -283,7 +285,7 @@ export function OnboardingForm() {
           {STEPS[step] === 'logo' && (
             <div className="flex flex-col items-center gap-2">
               <label className="self-start text-sm font-medium text-neutral-700">
-                Logo (opcional)
+                {t('onboarding.step.logo.label')}
               </label>
               <input
                 ref={fileInputRef}
@@ -296,7 +298,7 @@ export function OnboardingForm() {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="relative mt-2 h-16 w-16 overflow-hidden rounded-full border-2 border-dashed border-neutral-300 bg-neutral-100 transition hover:border-neutral-400 focus:outline-none"
-                title="Subir logo"
+                title={t('onboarding.step.logo.title')}
               >
                 {logoPreviewUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -305,14 +307,14 @@ export function OnboardingForm() {
                   <span className="flex h-full w-full items-center justify-center text-xl">📷</span>
                 )}
               </button>
-              <p className="text-xs text-neutral-400">Puedes agregarlo después si prefieres.</p>
+              <p className="text-xs text-neutral-400">{t('onboarding.step.logo.hint')}</p>
             </div>
           )}
 
           {STEPS[step] === 'whatsapp' && (
             <div>
               <label className="block text-sm font-medium text-neutral-700">
-                WhatsApp (opcional)
+                {t('onboarding.step.whatsapp.label')}
               </label>
               <input
                 type="tel"
@@ -325,14 +327,14 @@ export function OnboardingForm() {
                 className={inputClass}
               />
               <p className="mt-1 text-xs text-neutral-400">
-                Tus clientes te escribirán directamente a este número.
+                {t('onboarding.step.whatsapp.hint1')}
               </p>
               <p className="mt-1 text-xs text-neutral-400">
-                Incluye el código de país (1 para República Dominicana/Estados Unidos).
+                {t('onboarding.step.whatsapp.hint2')}
               </p>
               {!whatsappValid && (
                 <p className="mt-1 text-xs text-red-600">
-                  El número de WhatsApp debe incluir el código de país (ej. 1 para RD/USA): 18095551234
+                  {t('onboarding.step.whatsapp.invalid')}
                 </p>
               )}
             </div>
@@ -350,7 +352,7 @@ export function OnboardingForm() {
                 disabled={pending}
                 className="rounded-full border border-neutral-200 px-5 py-3 text-sm font-medium text-neutral-600 transition hover:border-neutral-300 disabled:opacity-50"
               >
-                Atrás
+                {t('onboarding.button.back')}
               </button>
             )}
             <button
@@ -360,10 +362,10 @@ export function OnboardingForm() {
               className="flex-1 rounded-full bg-[#C8102E] py-3 text-sm font-medium text-white transition hover:bg-[#A00D26] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {pending
-                ? 'Creando...'
+                ? t('onboarding.button.creating')
                 : step === STEPS.length - 1
-                  ? 'Crear mi espacio'
-                  : 'Siguiente'}
+                  ? t('onboarding.button.create')
+                  : t('onboarding.button.next')}
             </button>
           </div>
         </div>
