@@ -146,7 +146,8 @@ export function BusinessCard({ business, qrDataUrl }: Props) {
       <button
         onClick={download}
         disabled={downloading}
-        className="mt-4 w-full max-w-xs rounded-full bg-[#C8102E] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#A00D26] disabled:cursor-not-allowed disabled:opacity-50"
+        style={{ backgroundColor: primaryColor }}
+        className="mt-4 w-full max-w-xs rounded-full px-5 py-2.5 text-sm font-medium text-white transition hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {downloading ? getText('Generando...', 'Generating...') : getText('Descargar tarjeta', 'Download card')}
       </button>
