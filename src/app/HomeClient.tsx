@@ -148,7 +148,7 @@ export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: 
           ))}
         </div>
 
-        <div className="mt-8 w-full max-w-3xl bg-surface border border-black/5 rounded-3xl overflow-hidden">
+        <div className="mt-8 w-full max-w-4xl bg-surface border border-black/5 rounded-3xl overflow-hidden">
           {/* Cada negocio trae varias capturas de los módulos que más usa — la caja rota entre
               ellas (flechas + puntos) en vez de forzar una sola imagen genérica del dashboard.
               La captura se muestra completa (object-contain, sin recortar) dentro de un marco
