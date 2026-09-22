@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslation } from '@/hooks/useSimpleLanguage';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -88,6 +89,7 @@ const THANKS_RESET_MS = 8000;
 export function KioskContent({ slug, businessName, logoUrl, currency, items, onlinePayments, businessType }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
   const itemFallbackIcon = businessType === 'retail' ? '🛍️' : '🍽️';
 
   const [cart, setCart] = useState<CartLine[]>([]);
@@ -316,9 +318,9 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-gray-50 px-6 text-center dark:bg-neutral-950">
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-4xl">✅</div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">¡Pedido recibido!</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('kiosk.orderReceived')}</h1>
         <p className="max-w-xs text-sm text-gray-500 dark:text-neutral-400">
-          Tu pago se completó — {businessName} ya está preparando tu orden.
+          {t('kiosk.paymentComplete').replace('{business}', businessName)}
         </p>
       </div>
     );
@@ -334,7 +336,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
           )}
           <div>
             <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
-              Autopedido
+              {t('kiosk.selfOrder')}
             </p>
             <h1 className="text-xl font-bold">{businessName}</h1>
           </div>
@@ -342,7 +344,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
 
         {paid === 'false' && (
           <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
-            El pago se canceló. Puedes armar tu pedido de nuevo cuando quieras.
+            {t('kiosk.paymentCancelled')}
           </div>
         )}
 
@@ -357,7 +359,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
             className="sticky top-0 z-20 mt-3 flex w-full items-center justify-between gap-2 rounded-xl border border-[#C8102E]/30 bg-[#C8102E] px-4 py-3 text-white shadow-md lg:hidden"
           >
             <span className="flex items-center gap-2 text-sm font-semibold">
-              🛒 {cart.reduce((sum, l) => sum + l.qty, 0)} {cart.reduce((sum, l) => sum + l.qty, 0) === 1 ? 'item' : 'items'}
+              🛒 {cart.reduce((sum, l) => sum + l.qty, 0)} {cart.reduce((sum, l) => sum + l.qty, 0) === 1 ? t('kiosk.item') : t('kiosk.items')}
             </span>
             <span className="flex items-center gap-1 text-sm font-bold">
               {fmt.format(total)}
@@ -368,7 +370,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
 
         {items.length === 0 ? (
           <p className="mt-6 text-sm text-gray-400 dark:text-neutral-500">
-            El catálogo no está disponible en este momento.
+            {t('kiosk.catalogUnavailable')}
           </p>
         ) : (
           <>
@@ -383,7 +385,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                       : 'border-gray-300 text-gray-700 dark:border-neutral-700 dark:text-neutral-300'
                   }`}
                 >
-                  Todo
+                  {t('kiosk.all')}
                 </button>
                 {categories.map((c) => (
                   <button
@@ -430,8 +432,8 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                         e.stopPropagation();
                         setInfoItem(item);
                       }}
-                      aria-label="Ver detalles"
-                      title="Ver detalles"
+                      aria-label={t('kiosk.viewDetails')}
+                      title={t('kiosk.viewDetails')}
                       className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-sm font-bold text-white backdrop-blur-sm hover:bg-black/70"
                     >
                       i
@@ -451,10 +453,10 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
         className="flex w-full scroll-mt-4 flex-col border-t border-gray-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 lg:sticky lg:top-0 lg:h-screen lg:w-96 lg:self-start lg:border-l lg:border-t-0"
       >
         <div className="flex-1 overflow-y-auto p-4">
-          <h2 className="text-sm font-semibold">Tu pedido</h2>
+          <h2 className="text-sm font-semibold">{t('kiosk.yourOrder')}</h2>
           {cart.length === 0 ? (
             <p className="mt-3 text-sm text-gray-400 dark:text-neutral-500">
-              Toca un producto para agregarlo.
+              {t('kiosk.tapToAdd')}
             </p>
           ) : (
             <div className="mt-3 space-y-2">
@@ -469,13 +471,13 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                     <div className="flex items-center justify-between gap-2">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">{line.name}</p>
-                        <p className="text-xs text-gray-400 dark:text-neutral-500">{fmt.format(line.price)} c/u</p>
+                        <p className="text-xs text-gray-400 dark:text-neutral-500">{fmt.format(line.price)} {t('kiosk.perUnit')}</p>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
                         <button
                           type="button"
                           onClick={() => changeQty(line.lineId, -1)}
-                          aria-label="Quitar uno"
+                          aria-label={t('kiosk.removeOne')}
                           className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
                         >
                           −
@@ -484,7 +486,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                         <button
                           type="button"
                           onClick={() => changeQty(line.lineId, 1)}
-                          aria-label="Agregar uno"
+                          aria-label={t('kiosk.addOne')}
                           className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
                         >
                           +
@@ -515,7 +517,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                     {hasRecipe && (
                       <div className="mt-2">
                         <p className="text-[11px] font-medium text-gray-500 dark:text-neutral-400">
-                          Ingredientes — destilda lo que no quieras
+                          {t('kiosk.ingredientsHint')}
                         </p>
                         <div className="mt-1 flex flex-wrap gap-1.5">
                           {lineItem!.ingredients!.map((ing) => {
@@ -544,7 +546,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                       <input
                         value={line.notes ?? ''}
                         onChange={(e) => updateNotes(line.lineId, e.target.value)}
-                        placeholder={hasRecipe ? '¿Algo más? (opcional)' : 'Personalizar (ej. sin cebolla)…'}
+                        placeholder={hasRecipe ? t('kiosk.anythingElse') : t('kiosk.customizePlaceholder')}
                         className="mt-2 w-full rounded-lg border border-gray-200 dark:border-neutral-700 bg-transparent px-2.5 py-1.5 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 focus:border-gray-400 dark:focus:border-neutral-500 focus:outline-none"
                       />
                     )}
@@ -559,19 +561,19 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
           {cart.length > 0 && (
             <div className="mb-3 space-y-1.5">
               <p className="text-xs font-semibold text-gray-500 dark:text-neutral-400">
-                Tu nombre (opcional)
+                {t('kiosk.yourName')}
               </p>
               <input
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
-                placeholder="¿A nombre de quién?"
+                placeholder={t('kiosk.nameForOrder')}
                 className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
               />
               <input
                 type="tel"
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
-                placeholder="Teléfono (opcional)"
+                placeholder={t('kiosk.phoneOptional')}
                 className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
               />
             </div>
@@ -579,7 +581,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
 
           {isRestaurant && cart.length > 0 && (
             <div className="mb-3">
-              <p className="text-xs font-semibold text-gray-500 dark:text-neutral-400">Propina</p>
+              <p className="text-xs font-semibold text-gray-500 dark:text-neutral-400">{t('kiosk.tip')}</p>
               <div className="mt-1.5 flex gap-1.5">
                 {[0.1, 0.15, 0.2].map((pct) => (
                   <button
@@ -604,7 +606,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                       : 'border-gray-300 text-gray-600 dark:border-neutral-700 dark:text-neutral-300'
                   }`}
                 >
-                  Otro
+                  {t('kiosk.other')}
                 </button>
               </div>
               {tipMode === 'custom' && (
@@ -614,7 +616,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                   step="0.5"
                   value={customTip}
                   onChange={(e) => setCustomTip(e.target.value)}
-                  placeholder="Monto de propina"
+                  placeholder={t('kiosk.tipAmount')}
                   className="mt-1.5 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-2 text-xs"
                 />
               )}
@@ -622,7 +624,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
           )}
 
           <div className="flex items-center justify-between text-lg font-bold">
-            <span>Total</span>
+            <span>{t('kiosk.total')}</span>
             <span>{fmt.format(total)}</span>
           </div>
 
@@ -634,20 +636,20 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                 className="mt-3 w-full rounded-full bg-[#C8102E] px-5 py-3.5 text-base font-bold text-white disabled:opacity-40"
               >
                 {checkoutState === 'loading'
-                  ? 'Redirigiendo…'
+                  ? t('kiosk.redirecting')
                   : cart.length === 0
-                    ? 'Agrega productos'
-                    : `Pagar ${fmt.format(total)} con tarjeta`}
+                    ? t('kiosk.addProducts')
+                    : t('kiosk.payWithCard').replace('{amount}', fmt.format(total))}
               </button>
               {checkoutState === 'unavailable' && (
                 <p className="mt-2 text-xs text-red-600 dark:text-red-400">
-                  No pudimos iniciar el pago — pídele ayuda al personal.
+                  {t('kiosk.checkoutUnavailable')}
                 </p>
               )}
             </>
           ) : (
             <p className="mt-3 text-xs text-gray-500 dark:text-neutral-400">
-              El pago con tarjeta no está disponible todavía — pídele ayuda al personal para completar tu pedido.
+              {t('kiosk.cardPaymentUnavailable')}
             </p>
           )}
         </div>
@@ -683,7 +685,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
               {infoItem.ingredients && infoItem.ingredients.length > 0 && (
                 <div className="mt-3">
                   <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-neutral-500">
-                    Contiene
+                    {t('kiosk.contains')}
                   </p>
                   <div className="mt-1.5 flex flex-wrap gap-1.5">
                     {infoItem.ingredients.map((ing) => (
@@ -696,7 +698,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                     ))}
                   </div>
                   <p className="mt-1.5 text-[11px] text-gray-400 dark:text-neutral-500">
-                    Puedes quitar ingredientes al agregarlo a tu pedido.
+                    {t('kiosk.canRemoveIngredients')}
                   </p>
                 </div>
               )}
@@ -713,14 +715,14 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                 }}
                 className="mt-4 w-full rounded-full bg-[#C8102E] px-4 py-3 text-sm font-bold text-white"
               >
-                {infoItem.modifierGroups?.length ? 'Elegir guarnición' : `Agregar ${fmt.format(infoItem.price)}`}
+                {infoItem.modifierGroups?.length ? t('kiosk.chooseSide') : t('kiosk.add').replace('{amount}', fmt.format(infoItem.price))}
               </button>
               <button
                 type="button"
                 onClick={() => setInfoItem(null)}
                 className="mt-2 w-full rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-2 text-sm font-medium"
               >
-                Cerrar
+                {t('kiosk.close')}
               </button>
             </div>
           </div>
@@ -788,7 +790,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                                 ? `+${fmt.format(opt.priceDelta)}`
                                 : opt.priceDelta < 0
                                   ? fmt.format(opt.priceDelta)
-                                  : 'Incluido'}
+                                  : t('kiosk.included')}
                             </span>
                           </button>
                         );
@@ -804,14 +806,14 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                 disabled={!customizeSelectionsValid}
                 className="mt-5 w-full rounded-full bg-[#C8102E] px-4 py-3 text-sm font-bold text-white disabled:opacity-40"
               >
-                Agregar {fmt.format(customizeTotal)}
+                {t('kiosk.add').replace('{amount}', fmt.format(customizeTotal))}
               </button>
               <button
                 type="button"
                 onClick={() => setCustomizeItem(null)}
                 className="mt-2 w-full rounded-full border border-gray-300 px-4 py-2 text-sm font-medium dark:border-neutral-700"
               >
-                Cancelar
+                {t('kiosk.cancel')}
               </button>
             </div>
           </div>

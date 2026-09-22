@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from '@/hooks/useSimpleLanguage';
 
 export interface PoncheMember {
   id: string;
@@ -21,6 +22,7 @@ const BRAND = '#C8102E';
 type View = 'picker' | 'pin' | 'result';
 
 export function PoncheContent({ slug, businessName, logoUrl, initialTeam }: Props) {
+  const { t } = useTranslation();
   const [team] = useState(initialTeam);
   const [view, setView] = useState<View>('picker');
   const [selected, setSelected] = useState<PoncheMember | null>(null);
@@ -64,7 +66,7 @@ export function PoncheContent({ slug, businessName, logoUrl, initialTeam }: Prop
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) {
-        throw new Error(data?.error?.message ?? 'No se pudo poncher.');
+        throw new Error(data?.error?.message ?? t('ponche.clockError'));
       }
       setResult({ action: data.action, hours: data.hoursThisShift ?? null });
       setView('result');
@@ -73,7 +75,7 @@ export function PoncheContent({ slug, businessName, logoUrl, initialTeam }: Prop
         backToPicker();
       }, 4000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo poncher.');
+      setError(err instanceof Error ? err.message : t('ponche.clockError'));
       setPin('');
     } finally {
       setSaving(false);
@@ -85,14 +87,14 @@ export function PoncheContent({ slug, businessName, logoUrl, initialTeam }: Prop
       <div className="w-full max-w-md text-center mb-8">
         {logoUrl && <img src={logoUrl} alt={businessName} className="mx-auto mb-3 h-14 w-14 rounded-full object-cover" />}
         <h1 className="text-lg font-bold">{businessName}</h1>
-        <p className="text-sm text-neutral-400">Reloj de entrada/salida</p>
+        <p className="text-sm text-neutral-400">{t('ponche.clockTitle')}</p>
       </div>
 
       {view === 'picker' && (
         <div className="w-full max-w-md">
           {team.length === 0 ? (
             <p className="text-center text-sm text-neutral-500">
-              Ningún empleado tiene PIN configurado todavía. Pídele al dueño que te asigne uno desde el panel de Equipo.
+              {t('ponche.noTeamPins')}
             </p>
           ) : (
             <div className="grid grid-cols-3 gap-4">
@@ -137,7 +139,7 @@ export function PoncheContent({ slug, businessName, logoUrl, initialTeam }: Prop
               {selected.name.charAt(0).toUpperCase()}
             </div>
           )}
-          <p className="mb-4 text-sm text-neutral-400">Hola, {selected.name} — escribe tu PIN</p>
+          <p className="mb-4 text-sm text-neutral-400">{t('ponche.enterPin').replace('{name}', selected.name)}</p>
           <div className="mb-4 flex justify-center gap-3">
             {Array.from({ length: 4 }).map((_, i) => (
               <div
@@ -166,7 +168,7 @@ export function PoncheContent({ slug, businessName, logoUrl, initialTeam }: Prop
               disabled={saving}
               className="rounded-xl bg-neutral-900 border border-neutral-800 py-4 text-xs font-semibold text-neutral-400 disabled:opacity-40"
             >
-              Cancelar
+              {t('ponche.cancel')}
             </button>
             <button
               type="button"
@@ -192,7 +194,7 @@ export function PoncheContent({ slug, businessName, logoUrl, initialTeam }: Prop
             className="mt-4 w-full rounded-full py-3 text-sm font-semibold text-white disabled:opacity-40"
             style={{ backgroundColor: BRAND }}
           >
-            {saving ? 'Ponchando…' : 'Poncher'}
+            {saving ? t('ponche.clockingIn') : t('ponche.clockButton')}
           </button>
         </div>
       )}
@@ -210,12 +212,14 @@ export function PoncheContent({ slug, businessName, logoUrl, initialTeam }: Prop
               <p className="text-2xl mb-2">{result.action === 'ClockedIn' ? '👋' : '✅'}</p>
             )}
             <p className="text-base font-semibold">
-              {result.action === 'ClockedIn' ? `¡Bienvenido, ${selected.name}!` : `¡Hasta luego, ${selected.name}!`}
+              {result.action === 'ClockedIn'
+                ? t('ponche.welcome').replace('{name}', selected.name)
+                : t('ponche.seeYouLater').replace('{name}', selected.name)}
             </p>
             <p className="mt-1 text-sm text-neutral-400">
               {result.action === 'ClockedIn'
-                ? 'Entrada registrada.'
-                : `Salida registrada${result.hours != null ? ` — ${result.hours}h trabajadas` : ''}.`}
+                ? t('ponche.clockInRegistered')
+                : `${t('ponche.clockOutRegistered')}${result.hours != null ? t('ponche.hoursWorked').replace('{hours}', String(result.hours)) : ''}.`}
             </p>
           </div>
         </div>
