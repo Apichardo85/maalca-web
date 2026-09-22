@@ -7,9 +7,8 @@ const translations = {
     // Navigation
     'nav.home': 'Inicio',
     'nav.ecosystem': 'Ecosistema',
-    'nav.editorial': 'Editorial',
     'nav.services': 'Servicios',
-    'nav.contact': 'Contacto',    'nav.platform': 'Plataforma',    'nav.cases': 'Casos',    'nav.pricing': 'Precios',    'nav.docs': 'Docs',    'nav.ciriwhispers': 'CiriWhispers',
+    'nav.contact': 'Contacto',    'nav.platform': 'Plataforma',    'nav.cases': 'Casos',    'nav.pricing': 'Precios',    'nav.docs': 'Docs',
     'nav.explore': 'Explorar',
     'nav.join': 'Únete al Ecosistema',
     // Footer
@@ -19,9 +18,6 @@ const translations = {
     'footer.product.pricing': 'Precios',
     'footer.product.docs': 'Docs',
     'footer.product.login': 'Iniciar sesión',
-    'footer.ecosystem': 'Ecosistema',
-    'footer.ecosystem.editorial': 'Editorial MaalCa',
-    'footer.ecosystem.ciriwhispers': 'CiriWhispers',
     'footer.company': 'Empresa',
     'footer.company.about': 'Sobre MaalCa',
     'footer.company.contact': 'Contacto',
@@ -1301,9 +1297,8 @@ const translations = {
     // Navigation
     'nav.home': 'Home',
     'nav.ecosystem': 'Ecosystem',
-    'nav.editorial': 'Editorial',
     'nav.services': 'Services',
-    'nav.contact': 'Contact',    'nav.platform': 'Platform',    'nav.cases': 'Cases',    'nav.pricing': 'Pricing',    'nav.docs': 'Docs',    'nav.ciriwhispers': 'CiriWhispers',
+    'nav.contact': 'Contact',    'nav.platform': 'Platform',    'nav.cases': 'Cases',    'nav.pricing': 'Pricing',    'nav.docs': 'Docs',
     'nav.explore': 'Explore',
     'nav.join': 'Join the Ecosystem',
     // Footer
@@ -1313,9 +1308,6 @@ const translations = {
     'footer.product.pricing': 'Pricing',
     'footer.product.docs': 'Docs',
     'footer.product.login': 'Log in',
-    'footer.ecosystem': 'Ecosystem',
-    'footer.ecosystem.editorial': 'Editorial MaalCa',
-    'footer.ecosystem.ciriwhispers': 'CiriWhispers',
     'footer.company': 'Company',
     'footer.company.about': 'About MaalCa',
     'footer.company.contact': 'Contact',

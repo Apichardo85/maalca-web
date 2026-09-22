@@ -37,12 +37,6 @@ export default function Header({
     { label: t('nav.docs'), href: '/docs' },
   ];
 
-  // Worlds nav (right of divider)
-  const worldsNav = [
-    { label: t('nav.editorial'), href: '/editorial' },
-    { label: t('nav.ciriwhispers'), href: '/ciriwhispers' },
-  ];
-
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
@@ -130,23 +124,6 @@ export default function Header({
                   )}
                 </Link>
               ))}
-
-              {/* Divider */}
-              <span className="w-px h-5 bg-border mx-3 self-center" aria-hidden="true" />
-
-              {/* Worlds nav */}
-              {worldsNav.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "px-3 py-2 text-sm font-medium transition-colors duration-300",
-                    "text-text-secondary hover:text-text-primary"
-                  )}
-                >
-                  {item.label}
-                </Link>
-              ))}
             </nav>
 
             {/* Actions */}
@@ -201,23 +178,6 @@ export default function Header({
                   </Link>
                 ))}
               </nav>
-
-              {/* Worlds nav */}
-              <div className="border-t border-border pt-4 mb-6">
-                <p className="px-4 text-xs font-semibold text-text-muted uppercase tracking-wider mb-2">
-                  Mundos
-                </p>
-                {worldsNav.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="block px-4 py-2.5 rounded-xl text-sm font-medium text-text-secondary hover:text-text-primary hover:bg-surface-elevated transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
 
               {/* Auth row */}
               <div className="border-t border-border pt-4 px-4">
