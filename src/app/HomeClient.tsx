@@ -307,17 +307,25 @@ export default function HomeClient({ featuredAffiliates }: Props) {
       <section className="w-full px-6 md:px-16 py-16 md:py-20 bg-surface flex flex-col items-center">
         <h2 className="text-2xl md:text-3xl font-bold text-text-primary">{t("home.steps.heading")}</h2>
         <div className="mt-9 w-full max-w-3xl relative">
-          {/* Línea de tiempo conectando los 4 pasos — solo en desktop (md+): en móvil la grilla
-              pasa a 2 columnas / 2 filas y una sola línea horizontal ya no representa el flujo
-              correctamente, así que se oculta ahí. */}
+          {/* Línea de tiempo conectando los 4 pasos. En móvil la grilla es una sola columna
+              con los pasos apilados, así que la línea es vertical a la izquierda de los
+              círculos; en desktop (md+) pasa a 4 columnas y la línea es horizontal por
+              arriba de los círculos. */}
+          <div
+            className="md:hidden absolute top-5 bottom-5 left-5 w-0.5 bg-brand-primary/20"
+            aria-hidden="true"
+          />
           <div
             className="hidden md:block absolute top-5 left-[12.5%] right-[12.5%] h-0.5 bg-brand-primary/20"
             aria-hidden="true"
           />
-          <div className="relative grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="relative flex flex-col gap-6 md:grid md:grid-cols-4">
             {STEP_KEYS.map((stepKey, i) => (
-              <div key={stepKey} className="flex flex-col items-center text-center gap-2.5">
-                <div className="relative z-10 w-10 h-10 rounded-full bg-brand-primary/10 text-brand-primary font-bold text-sm flex items-center justify-center">
+              <div
+                key={stepKey}
+                className="flex items-center gap-3 text-left md:flex-col md:items-center md:text-center md:gap-2.5"
+              >
+                <div className="relative z-10 shrink-0 w-10 h-10 rounded-full bg-brand-primary/10 text-brand-primary font-bold text-sm flex items-center justify-center">
                   {i + 1}
                 </div>
                 <div className="text-sm font-semibold text-text-primary">{t(stepKey)}</div>
