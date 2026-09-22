@@ -84,12 +84,23 @@ const STEP_KEYS = ["home.steps.1", "home.steps.2", "home.steps.3", "home.steps.4
 // Todo el copy pasa por t() (home.* en useSimpleLanguage.tsx) — la primera versión de esta
 // landing tenía el texto escrito directo en español y el toggle de idioma solo cambiaba el
 // Header/Footer, no el cuerpo de la página. Corregido sept. 2026.
-export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: Props) {
+export default function HomeClient({ featuredAffiliates }: Props) {
   const { t } = useTranslation();
   const [selectedId, setSelectedId] = useState(SHOWCASE[0].id);
   const [imageIndex, setImageIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-  const business = SHOWCASE.find((b) => b.id === selectedId) ?? SHOWCASE[0];
+  const baseBusiness = SHOWCASE.find((b) => b.id === selectedId) ?? SHOWCASE[0];
+  // Las capturas del carrusel siguen curadas a mano (SHOWCASE) -- no hay (todavia) un
+  // sistema para curar/ordenar screenshots por afiliado en el backend. Pero nombre, logo
+  // y descripcion ya se pueden traer en vivo desde /api/public/affiliates/featured (ver
+  // page.tsx) cuando el afiliado esta marcado is_featured y su slug coincide con el id
+  // de SHOWCASE -- si no hay match (afiliado no featured todavia, slug distinto, etc.)
+  // se usa el fallback hardcodeado de siempre, asi este merge nunca rompe el homepage.
+  const live = featuredAffiliates.find((a) => a.slug === baseBusiness.id);
+  const business = live
+    ? { ...baseBusiness, name: live.name, logoSrc: live.logoUrl || baseBusiness.logoSrc }
+    : baseBusiness;
+  const liveDescription = live?.description || null;
   const image = business.images[imageIndex] ?? business.images[0];
   const imageAlt = t(image.altKey);
 
@@ -238,7 +249,7 @@ export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: 
             <div>
               <span className="text-xs font-bold tracking-wider text-brand-primary">{t(business.categoryKey)}</span>
               <h3 className="mt-1 text-2xl font-bold text-text-primary">{business.name}</h3>
-              <p className="mt-2.5 text-sm leading-relaxed text-text-secondary">{t(business.descriptionKey)}</p>
+              <p className="mt-2.5 text-sm leading-relaxed text-text-secondary">{liveDescription ?? t(business.descriptionKey)}</p>
             </div>
           </div>
         </div>
