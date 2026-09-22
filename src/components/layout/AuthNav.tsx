@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 import type { Session } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/buttons";
+import { useTranslation } from "@/hooks/useSimpleLanguage";
 
 interface AuthNavProps {
   size?: "sm" | "lg";
@@ -16,6 +17,7 @@ interface AuthNavProps {
 export function AuthNav({ size = "sm", className, onNavigate }: AuthNavProps) {
   const [session, setSession] = useState<Session | null>(null);
   const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const supabase = createBrowserClient(
@@ -56,7 +58,7 @@ export function AuthNav({ size = "sm", className, onNavigate }: AuthNavProps) {
           onClick={handleSignOut}
           className="text-sm text-text-muted hover:text-brand-primary transition-colors px-2 py-1"
         >
-          Cerrar sesión
+          {t("auth.logout")}
         </button>
       </div>
     );
@@ -65,7 +67,7 @@ export function AuthNav({ size = "sm", className, onNavigate }: AuthNavProps) {
   return (
     <Link href="/login" className={className} onClick={onNavigate}>
       <Button variant="outline" size={size} className={className}>
-        Iniciar sesión
+        {t("auth.login")}
       </Button>
     </Link>
   );

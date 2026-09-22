@@ -41,13 +41,7 @@ const SHOWCASE: ShowcaseBusiness[] = [
     name: "Pegote",
     description:
       "Template dinámico ya sirviendo en producción — reservas, catálogo de servicios y perfil del negocio, todo desde un mismo espacio.",
-    images: [
-      { src: "/images/landing/pegote/waiting-queue.png", alt: "Fila de espera en tiempo real de Pegote Barbershop en MaalCa" },
-      { src: "/images/landing/pegote/screen-board.png", alt: "Pantalla pública con la fila y el menú de servicios de Pegote Barbershop en MaalCa" },
-      { src: "/images/landing/pegote/agenda.png", alt: "Agenda de citas por barbero de Pegote Barbershop en MaalCa" },
-      { src: "/images/landing/pegote/booking.png", alt: "Página pública de reservas con el equipo de barberos de Pegote Barbershop en MaalCa" },
-      { src: "/images/landing/pegote/branding.png", alt: "Personalización de marca y espacio digital de Pegote Barbershop en MaalCa" },
-    ],
+    images: [{ src: "/images/landing/pegote-dashboard.png", alt: "Panel de Pegote Barbershop en MaalCa" }],
   },
   {
     id: "little-dominicana",
@@ -79,7 +73,6 @@ const STEPS = ["Crea tu espacio", "Personaliza tu marca", "Publica en un clic", 
 export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: Props) {
   const [selectedId, setSelectedId] = useState(SHOWCASE[0].id);
   const [imageIndex, setImageIndex] = useState(0);
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const business = SHOWCASE.find((b) => b.id === selectedId) ?? SHOWCASE[0];
   const image = business.images[imageIndex] ?? business.images[0];
 
@@ -95,7 +88,7 @@ export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: 
       {/* ============ HERO ============ */}
       <section className="w-full px-6 md:px-16 pt-20 pb-16 md:pt-24 md:pb-20 flex flex-col items-center text-center bg-gradient-to-b from-surface-elevated to-surface">
         <span className="inline-block px-4 py-1.5 rounded-full bg-brand-primary/10 text-brand-primary text-sm font-semibold mb-6">
-          Para negocios independientes
+          Para negocios dominicanos y latinos
         </span>
         <h1 className="text-4xl md:text-6xl font-bold leading-[1.15] max-w-3xl text-text-primary">
           No necesitas una página web.
@@ -146,7 +139,7 @@ export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: 
               aria-pressed={selectedId === b.id}
               className={`px-5 py-2.5 rounded-full text-sm font-semibold border transition-colors ${
                 selectedId === b.id
-                  ? "bg-text-primary text-white border-text-primary"
+                  ? "bg-brand-primary text-white border-brand-primary"
                   : "bg-surface text-text-secondary border-black/10 hover:border-brand-primary/40"
               }`}
             >
@@ -174,14 +167,7 @@ export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: 
               )}
             </div>
             <div className="relative w-full rounded-xl overflow-hidden border border-black/5 bg-white flex items-center justify-center">
-              <button
-                type="button"
-                onClick={() => setIsLightboxOpen(true)}
-                aria-label="Ampliar imagen"
-                className="w-full cursor-zoom-in"
-              >
-                <img src={image.src} alt={image.alt} className="w-full h-auto object-contain" />
-              </button>
+              <img src={image.src} alt={image.alt} className="w-full h-auto object-contain" />
               {business.images.length > 1 && (
                 <>
                   <button
@@ -231,50 +217,6 @@ export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: 
           Retail (BritoColor) se suma cuando el catálogo esté publicado — no mostramos mockups como si fueran reales.
         </p>
       </section>
-
-      {/* Lightbox: en móvil la captura se ve pequeña dentro de la tarjeta — al hacer clic se
-          amplía a pantalla completa, con las mismas flechas para seguir navegando ahí mismo. */}
-      {isLightboxOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-          onClick={() => setIsLightboxOpen(false)}
-        >
-          <button
-            type="button"
-            onClick={() => setIsLightboxOpen(false)}
-            aria-label="Cerrar"
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-colors text-xl"
-          >
-            ×
-          </button>
-          <div className="relative w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
-            <img src={image.src} alt={image.alt} className="w-full h-auto max-h-[85vh] object-contain rounded-lg" />
-            {business.images.length > 1 && (
-              <>
-                <button
-                  type="button"
-                  onClick={prevImage}
-                  aria-label="Imagen anterior"
-                  className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
-                >
-                  ‹
-                </button>
-                <button
-                  type="button"
-                  onClick={nextImage}
-                  aria-label="Imagen siguiente"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
-                >
-                  ›
-                </button>
-                <p className="mt-3 text-center text-sm text-white/70">
-                  {imageIndex + 1} / {business.images.length}
-                </p>
-              </>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* ============ ASÍ DE SIMPLE ============ */}
       <section className="w-full px-6 md:px-16 py-16 md:py-20 bg-surface flex flex-col items-center">
