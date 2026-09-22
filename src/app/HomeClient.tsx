@@ -24,6 +24,7 @@ interface ShowcaseBusiness {
   pillLabelKey: string;
   categoryKey: string;
   name: string;
+  logoSrc: string;
   descriptionKey: string;
   images: ShowcaseImage[];
 }
@@ -42,6 +43,7 @@ const SHOWCASE: ShowcaseBusiness[] = [
     pillLabelKey: "home.showcase.pegote.pill",
     categoryKey: "home.showcase.pegote.category",
     name: "Pegote",
+    logoSrc: "/images/affiliates/pegote-logo.png",
     descriptionKey: "home.showcase.pegote.description",
     images: [
       { src: "/images/landing/pegote/waiting-queue.png", altKey: "home.showcase.pegote.img.waitingQueue" },
@@ -56,6 +58,7 @@ const SHOWCASE: ShowcaseBusiness[] = [
     pillLabelKey: "home.showcase.littleDominican.pill",
     categoryKey: "home.showcase.littleDominican.category",
     name: "The Little Dominican",
+    logoSrc: "/images/affiliates/little-dominican-logo-v2.png",
     descriptionKey: "home.showcase.littleDominican.description",
     images: [
       { src: "/images/landing/little-dominican/kitchen.png", altKey: "home.showcase.littleDominican.img.kitchen" },
@@ -226,10 +229,17 @@ export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: 
               </div>
             )}
           </div>
-          <div className="p-6 md:p-7">
-            <span className="text-xs font-bold tracking-wider text-brand-primary">{t(business.categoryKey)}</span>
-            <h3 className="mt-2 text-2xl font-bold text-text-primary">{business.name}</h3>
-            <p className="mt-2.5 text-sm leading-relaxed text-text-secondary">{t(business.descriptionKey)}</p>
+          <div className="p-6 md:p-7 flex gap-4 items-start">
+            <img
+              src={business.logoSrc}
+              alt={business.name}
+              className="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover border border-black/5 shrink-0"
+            />
+            <div>
+              <span className="text-xs font-bold tracking-wider text-brand-primary">{t(business.categoryKey)}</span>
+              <h3 className="mt-1 text-2xl font-bold text-text-primary">{business.name}</h3>
+              <p className="mt-2.5 text-sm leading-relaxed text-text-secondary">{t(business.descriptionKey)}</p>
+            </div>
           </div>
         </div>
 
