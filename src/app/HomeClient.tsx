@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import { useTranslation } from "@/hooks/useSimpleLanguage";
 
 export interface FeaturedAffiliate {
   slug: string;
@@ -15,15 +16,15 @@ interface Props {
 
 interface ShowcaseImage {
   src: string;
-  alt: string;
+  altKey: string;
 }
 
 interface ShowcaseBusiness {
   id: string;
-  pillLabel: string;
-  category: string;
+  pillLabelKey: string;
+  categoryKey: string;
   name: string;
-  description: string;
+  descriptionKey: string;
   images: ShowcaseImage[];
 }
 
@@ -32,37 +33,43 @@ interface ShowcaseBusiness {
 // esta lista puede volverse dinámica; por ahora son los dos casos con captura real aprobados.
 // Cada negocio trae varias capturas — las que muestran los módulos que más le importan a ESE
 // tipo de negocio (barbería: fila, agenda, pantalla pública / restaurante: cocina, POS, menú,
-// pedidos) — en vez de una sola imagen genérica del dashboard.
+// pedidos) — en vej de una sola imagen genérica del dashboard. Los textos son claves de
+// traducción (home.showcase.*, ver useSimpleLanguage.tsx) resueltas con t() al renderizar —
+// este array vive fuera del componente y no puede llamar a t() directamente.
 const SHOWCASE: ShowcaseBusiness[] = [
   {
     id: "pegote",
-    pillLabel: "Barbería — Pegote",
-    category: "BARBERÍA",
+    pillLabelKey: "home.showcase.pegote.pill",
+    categoryKey: "home.showcase.pegote.category",
     name: "Pegote",
-    description:
-      "Template dinámico ya sirviendo en producción — reservas, catálogo de servicios y perfil del negocio, todo desde un mismo espacio.",
-    images: [{ src: "/images/landing/pegote-dashboard.png", alt: "Panel de Pegote Barbershop en MaalCa" }],
+    descriptionKey: "home.showcase.pegote.description",
+    images: [
+      { src: "/images/landing/pegote/waiting-queue.png", altKey: "home.showcase.pegote.img.waitingQueue" },
+      { src: "/images/landing/pegote/screen-board.png", altKey: "home.showcase.pegote.img.screenBoard" },
+      { src: "/images/landing/pegote/agenda.png", altKey: "home.showcase.pegote.img.agenda" },
+      { src: "/images/landing/pegote/booking.png", altKey: "home.showcase.pegote.img.booking" },
+      { src: "/images/landing/pegote/branding.png", altKey: "home.showcase.pegote.img.branding" },
+    ],
   },
   {
     id: "little-dominicana",
-    pillLabel: "Restaurante — The Little Dominican",
-    category: "RESTAURANTE",
+    pillLabelKey: "home.showcase.littleDominican.pill",
+    categoryKey: "home.showcase.littleDominican.category",
     name: "The Little Dominican",
-    description:
-      "Menú, modificadores y pedidos gestionados desde el mismo panel — sin plantillas genéricas para un restaurante real.",
+    descriptionKey: "home.showcase.littleDominican.description",
     images: [
-      { src: "/images/landing/little-dominican/kitchen.png", alt: "Pantalla de cocina (KDS) de The Little Dominican en MaalCa" },
-      { src: "/images/landing/little-dominican/pos.png", alt: "Punto de venta de The Little Dominican en MaalCa" },
-      { src: "/images/landing/little-dominican/catalog.png", alt: "Catálogo / menú de The Little Dominican en MaalCa" },
-      { src: "/images/landing/little-dominican/orders.png", alt: "Pedidos de The Little Dominican en MaalCa" },
-      { src: "/images/landing/little-dominican/dashboard.png", alt: "Panel principal de The Little Dominican en MaalCa" },
-      { src: "/images/landing/little-dominican/stats.png", alt: "Estadísticas de The Little Dominican en MaalCa" },
-      { src: "/images/landing/little-dominican/qr-card.png", alt: "Código QR y tarjeta de negocio de The Little Dominican en MaalCa" },
+      { src: "/images/landing/little-dominican/kitchen.png", altKey: "home.showcase.littleDominican.img.kitchen" },
+      { src: "/images/landing/little-dominican/pos.png", altKey: "home.showcase.littleDominican.img.pos" },
+      { src: "/images/landing/little-dominican/catalog.png", altKey: "home.showcase.littleDominican.img.catalog" },
+      { src: "/images/landing/little-dominican/orders.png", altKey: "home.showcase.littleDominican.img.orders" },
+      { src: "/images/landing/little-dominican/dashboard.png", altKey: "home.showcase.littleDominican.img.dashboard" },
+      { src: "/images/landing/little-dominican/stats.png", altKey: "home.showcase.littleDominican.img.stats" },
+      { src: "/images/landing/little-dominican/qr-card.png", altKey: "home.showcase.littleDominican.img.qrCard" },
     ],
   },
 ];
 
-const STEPS = ["Crea tu espacio", "Personaliza tu marca", "Publica en un clic", "Gestiona todo desde ahí"];
+const STEP_KEYS = ["home.steps.1", "home.steps.2", "home.steps.3", "home.steps.4"];
 
 // Landing reordenada (sept. 2026): hero al tope, menos secciones, imágenes reales de negocios
 // afiliados en vez de mockups genéricos. Reemplaza la versión anterior "ecosistema MaalCa"
@@ -70,11 +77,18 @@ const STEPS = ["Crea tu espacio", "Personaliza tu marca", "Publica en un clic", 
 // aprobada primero como mockup, con fotos reales de Pegote y The Little Dominican ya en
 // producción (develop) antes de escribirse aquí. featuredAffiliates queda disponible (ya
 // vive en page.tsx) para cuando esta sección se vuelva data-driven.
+//
+// Todo el copy pasa por t() (home.* en useSimpleLanguage.tsx) — la primera versión de esta
+// landing tenía el texto escrito directo en español y el toggle de idioma solo cambiaba el
+// Header/Footer, no el cuerpo de la página. Corregido sept. 2026.
 export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: Props) {
+  const { t } = useTranslation();
   const [selectedId, setSelectedId] = useState(SHOWCASE[0].id);
   const [imageIndex, setImageIndex] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const business = SHOWCASE.find((b) => b.id === selectedId) ?? SHOWCASE[0];
   const image = business.images[imageIndex] ?? business.images[0];
+  const imageAlt = t(image.altKey);
 
   const selectBusiness = (id: string) => {
     setSelectedId(id);
@@ -88,26 +102,25 @@ export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: 
       {/* ============ HERO ============ */}
       <section className="w-full px-6 md:px-16 pt-20 pb-16 md:pt-24 md:pb-20 flex flex-col items-center text-center bg-gradient-to-b from-surface-elevated to-surface">
         <span className="inline-block px-4 py-1.5 rounded-full bg-brand-primary/10 text-brand-primary text-sm font-semibold mb-6">
-          Para negocios dominicanos y latinos
+          {t("home.hero.pill")}
         </span>
         <h1 className="text-4xl md:text-6xl font-bold leading-[1.15] max-w-3xl text-text-primary">
-          No necesitas una página web.
+          {t("home.hero.title1")}
           <br />
-          Necesitas tu <span className="text-brand-primary">espacio digital</span>.
+          {t("home.hero.title2")} <span className="text-brand-primary">{t("home.hero.titleHighlight")}</span>.
         </h1>
         <p className="max-w-xl mt-6 text-lg leading-relaxed text-text-secondary">
-          Crea, personaliza, publica y gestiona el espacio digital de tu negocio. Sin código. Sin plantillas
-          genéricas.
+          {t("home.hero.subtitle")}
         </p>
         <div className="mt-9 flex items-center gap-6 flex-wrap justify-center">
           <Link
             href="/servicios"
             className="px-7 py-3.5 rounded-full text-base font-semibold bg-brand-primary text-white hover:bg-brand-primary-hover transition-colors shadow-lg"
           >
-            Crear mi espacio gratis
+            {t("home.hero.ctaPrimary")}
           </Link>
           <a href="#plataforma" className="text-base font-semibold text-text-primary hover:text-brand-primary transition-colors">
-            Ver ejemplos reales →
+            {t("home.hero.ctaSecondary")}
           </a>
         </div>
 
@@ -119,7 +132,7 @@ export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: 
           </div>
           <img
             src="/images/landing/modules-panel.png"
-            alt="Panel de módulos del espacio digital de un afiliado en MaalCa"
+            alt={t("home.hero.mockupAlt")}
             className="w-full h-auto object-cover object-top"
           />
         </div>
@@ -127,8 +140,8 @@ export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: 
 
       {/* ============ NEGOCIOS REALES ============ */}
       <section id="plataforma" className="w-full px-6 md:px-16 py-20 md:py-24 bg-surface-muted flex flex-col items-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-center text-text-primary">Negocios reales, espacios reales</h2>
-        <p className="mt-2.5 text-text-secondary">Nada de mockups — así lucen hoy en producción</p>
+        <h2 className="text-3xl md:text-4xl font-bold text-center text-text-primary">{t("home.showcase.heading")}</h2>
+        <p className="mt-2.5 text-text-secondary">{t("home.showcase.subtitle")}</p>
 
         <div className="mt-8 flex gap-2.5 flex-wrap justify-center">
           {SHOWCASE.map((b) => (
@@ -143,7 +156,7 @@ export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: 
                   : "bg-surface text-text-secondary border-black/10 hover:border-brand-primary/40"
               }`}
             >
-              {b.pillLabel}
+              {t(b.pillLabelKey)}
             </button>
           ))}
         </div>
@@ -167,13 +180,20 @@ export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: 
               )}
             </div>
             <div className="relative w-full rounded-xl overflow-hidden border border-black/5 bg-white flex items-center justify-center">
-              <img src={image.src} alt={image.alt} className="w-full h-auto object-contain" />
+              <button
+                type="button"
+                onClick={() => setIsLightboxOpen(true)}
+                aria-label={t("home.showcase.zoomImage")}
+                className="w-full cursor-zoom-in"
+              >
+                <img src={image.src} alt={imageAlt} className="w-full h-auto object-contain" />
+              </button>
               {business.images.length > 1 && (
                 <>
                   <button
                     type="button"
                     onClick={prevImage}
-                    aria-label="Imagen anterior"
+                    aria-label={t("home.showcase.prevImage")}
                     className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
                   >
                     ‹
@@ -181,7 +201,7 @@ export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: 
                   <button
                     type="button"
                     onClick={nextImage}
-                    aria-label="Imagen siguiente"
+                    aria-label={t("home.showcase.nextImage")}
                     className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
                   >
                     ›
@@ -196,7 +216,7 @@ export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: 
                     key={img.src}
                     type="button"
                     onClick={() => setImageIndex(i)}
-                    aria-label={`Ver imagen ${i + 1}`}
+                    aria-label={`${t("home.showcase.viewImage")} ${i + 1}`}
                     aria-current={i === imageIndex}
                     className={`h-1.5 rounded-full transition-all ${
                       i === imageIndex ? "w-5 bg-brand-primary" : "w-1.5 bg-black/15"
@@ -207,41 +227,94 @@ export default function HomeClient({ featuredAffiliates: _featuredAffiliates }: 
             )}
           </div>
           <div className="p-6 md:p-7">
-            <span className="text-xs font-bold tracking-wider text-brand-primary">{business.category}</span>
+            <span className="text-xs font-bold tracking-wider text-brand-primary">{t(business.categoryKey)}</span>
             <h3 className="mt-2 text-2xl font-bold text-text-primary">{business.name}</h3>
-            <p className="mt-2.5 text-sm leading-relaxed text-text-secondary">{business.description}</p>
+            <p className="mt-2.5 text-sm leading-relaxed text-text-secondary">{t(business.descriptionKey)}</p>
           </div>
         </div>
 
         <p className="mt-5 text-xs text-text-muted text-center max-w-lg">
-          Retail (BritoColor) se suma cuando el catálogo esté publicado — no mostramos mockups como si fueran reales.
+          {t("home.showcase.footnote")}
         </p>
       </section>
 
+      {/* Lightbox: en móvil la captura se ve pequeña dentro de la tarjeta — al hacer clic se
+          amplía a pantalla completa, con las mismas flechas para seguir navegando ahí mismo. */}
+      {isLightboxOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setIsLightboxOpen(false)}
+        >
+          <button
+            type="button"
+            onClick={() => setIsLightboxOpen(false)}
+            aria-label={t("home.showcase.close")}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-colors text-xl"
+          >
+            ×
+          </button>
+          <div className="relative w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
+            <img src={image.src} alt={imageAlt} className="w-full h-auto max-h-[85vh] object-contain rounded-lg" />
+            {business.images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={prevImage}
+                  aria-label={t("home.showcase.prevImage")}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  onClick={nextImage}
+                  aria-label={t("home.showcase.nextImage")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
+                >
+                  ›
+                </button>
+                <p className="mt-3 text-center text-sm text-white/70">
+                  {imageIndex + 1} / {business.images.length}
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ============ ASÍ DE SIMPLE ============ */}
       <section className="w-full px-6 md:px-16 py-16 md:py-20 bg-surface flex flex-col items-center">
-        <h2 className="text-2xl md:text-3xl font-bold text-text-primary">Así de simple</h2>
-        <div className="mt-9 w-full max-w-3xl grid grid-cols-2 md:grid-cols-4 gap-6">
-          {STEPS.map((step, i) => (
-            <div key={step} className="flex flex-col items-center text-center gap-2.5">
-              <div className="w-10 h-10 rounded-full bg-brand-primary/10 text-brand-primary font-bold text-sm flex items-center justify-center">
-                {i + 1}
+        <h2 className="text-2xl md:text-3xl font-bold text-text-primary">{t("home.steps.heading")}</h2>
+        <div className="mt-9 w-full max-w-3xl relative">
+          {/* Línea de tiempo conectando los 4 pasos — solo en desktop (md+): en móvil la grilla
+              pasa a 2 columnas / 2 filas y una sola línea horizontal ya no representa el flujo
+              correctamente, así que se oculta ahí. */}
+          <div
+            className="hidden md:block absolute top-5 left-[12.5%] right-[12.5%] h-0.5 bg-brand-primary/20"
+            aria-hidden="true"
+          />
+          <div className="relative grid grid-cols-2 md:grid-cols-4 gap-6">
+            {STEP_KEYS.map((stepKey, i) => (
+              <div key={stepKey} className="flex flex-col items-center text-center gap-2.5">
+                <div className="relative z-10 w-10 h-10 rounded-full bg-brand-primary/10 text-brand-primary font-bold text-sm flex items-center justify-center">
+                  {i + 1}
+                </div>
+                <div className="text-sm font-semibold text-text-primary">{t(stepKey)}</div>
               </div>
-              <div className="text-sm font-semibold text-text-primary">{step}</div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ============ CTA FINAL ============ */}
       <section id="about" className="w-full px-6 md:px-16 py-20 md:py-24 bg-[#0b1220] flex flex-col items-center text-center">
-        <h2 className="text-3xl font-bold text-white">¿Listo para tener tu espacio digital?</h2>
-        <p className="mt-3 text-sm text-white/60">Sin tarjeta de crédito. Publica hoy mismo.</p>
+        <h2 className="text-3xl font-bold text-white">{t("home.cta.heading")}</h2>
+        <p className="mt-3 text-sm text-white/60">{t("home.cta.subtitle")}</p>
         <Link
           href="/servicios"
           className="mt-7 px-8 py-3.5 rounded-full text-base font-semibold bg-brand-primary text-white hover:bg-brand-primary-hover transition-colors"
         >
-          Crear mi espacio gratis
+          {t("home.hero.ctaPrimary")}
         </Link>
       </section>
     </main>
