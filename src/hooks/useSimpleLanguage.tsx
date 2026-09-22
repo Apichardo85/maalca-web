@@ -7,6 +7,16 @@ const translations = {
     // Auth nav
     'auth.login': 'Iniciar sesión',
     'auth.logout': 'Cerrar sesión',
+    'login.headline': 'Empieza gratis en segundos',
+    'login.subtitle': 'Sin tarjeta. Sin compromiso.',
+    'login.error.authFailed': 'No pudimos completar el login. Intenta de nuevo.',
+    'login.error.generic': 'Error inesperado.',
+    'login.connecting': 'Conectando...',
+    'login.continueGoogle': 'Continuar con Google',
+    'login.terms.prefix': 'Al continuar, aceptas los',
+    'login.terms.link': 'términos de uso',
+    'login.terms.suffix': 'de MaalCa.',
+    'login.backHome': '← Volver al inicio',
     // Homepage (HomeClient) — landing reordenada sept. 2026
     'home.hero.pill': 'Para negocios independientes',
     'home.hero.title1': 'No necesitas una página web.',
@@ -1342,6 +1352,16 @@ const translations = {
     // Auth nav
     'auth.login': 'Log in',
     'auth.logout': 'Log out',
+    'login.headline': 'Start free in seconds',
+    'login.subtitle': 'No card required. No commitment.',
+    'login.error.authFailed': "We couldn't complete the login. Try again.",
+    'login.error.generic': 'Unexpected error.',
+    'login.connecting': 'Connecting...',
+    'login.continueGoogle': 'Continue with Google',
+    'login.terms.prefix': 'By continuing, you agree to the',
+    'login.terms.link': 'terms of use',
+    'login.terms.suffix': 'of MaalCa.',
+    'login.backHome': '← Back to home',
     // Homepage (HomeClient) — reordered landing, sept. 2026
     'home.hero.pill': 'For independent businesses',
     'home.hero.title1': "You don't need a website.",

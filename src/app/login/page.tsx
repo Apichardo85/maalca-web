@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { useTranslation } from "@/hooks/useSimpleLanguage";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -22,6 +23,7 @@ function GoogleIcon() {
 // ─── Login form ───────────────────────────────────────────────────────────────
 
 function LoginForm() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const errorParam   = searchParams?.get("error");
 
@@ -55,10 +57,10 @@ function LoginForm() {
               <Logo variant="full" size="sm" />
             </Link>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-              Empieza gratis en segundos
+              {t("login.headline")}
             </h1>
             <p className="text-sm text-gray-500 dark:text-neutral-400">
-              Sin tarjeta. Sin compromiso.
+              {t("login.subtitle")}
             </p>
           </div>
 
@@ -67,8 +69,8 @@ function LoginForm() {
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-500/30 rounded-lg p-3 mb-5">
               <p className="text-sm text-red-600 dark:text-red-400">
                 {errorParam === "auth_failed"
-                  ? "No pudimos completar el login. Intenta de nuevo."
-                  : (googleError ?? "Error inesperado.")}
+                  ? t("login.error.authFailed")
+                  : (googleError ?? t("login.error.generic"))}
               </p>
             </div>
           )}
@@ -87,19 +89,19 @@ function LoginForm() {
             ) : (
               <GoogleIcon />
             )}
-            {googleLoading ? "Conectando..." : "Continuar con Google"}
+            {googleLoading ? t("login.connecting") : t("login.continueGoogle")}
           </button>
 
           <p className="text-xs text-center text-gray-400 dark:text-neutral-500 mt-5">
-            Al continuar, aceptas los{" "}
-            <a href="/terminos" className="underline hover:text-gray-600 dark:hover:text-neutral-300">términos de uso</a>
-            {" "}de MaalCa.
+            {t("login.terms.prefix")}{" "}
+            <a href="/terminos" className="underline hover:text-gray-600 dark:hover:text-neutral-300">{t("login.terms.link")}</a>
+            {" "}{t("login.terms.suffix")}
           </p>
         </div>
 
         <div className="mt-4 text-center">
           <Link href="/" className="text-sm text-gray-500 dark:text-neutral-400 hover:text-gray-800 dark:hover:text-white transition-colors">
-            ← Volver al inicio
+            {t("login.backHome")}
           </Link>
         </div>
       </div>
