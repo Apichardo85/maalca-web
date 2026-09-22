@@ -38,7 +38,7 @@ export default async function Image() {
           MaalCa
         </div>
         <div style={{ display: 'flex', fontSize: 32, color: '#a3a3a3', marginTop: 12 }}>
-          Ecosistema creativo dominicano
+          Espacios digitales para negocios reales
         </div>
       </div>
     ),

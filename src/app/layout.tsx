@@ -30,14 +30,14 @@ export const metadata: Metadata = {
   // fallback, etc.) resolve to an absolute URL instead of localhost when link
   // previews are unfurled in production.
   metadataBase: new URL("https://maalca.com"),
-  title: "MaalCa - Ecosistema Creativo",
+  title: "MaalCa — Tu espacio digital",
   description:
-    "Ecosistema creativo y empresarial que conecta ideas, personas y proyectos desde República Dominicana hacia el mundo",
+    "Crea, personaliza, publica y gestiona el espacio digital de tu negocio. Sin código. Sin plantillas genéricas.",
   keywords: [
-    "ecosistema creativo",
-    "editorial",
+    "espacio digital",
+    "negocios independientes",
     "República Dominicana",
-    "proyectos creativos",
+    "sin código",
     "MaalCa",
   ],
   authors: [{ name: "MaalCa" }],
@@ -62,15 +62,15 @@ export const metadata: Metadata = {
     locale: "es_ES",
     url: "https://maalca.com",
     siteName: "MaalCa",
-    title: "MaalCa - Ecosistema Creativo",
+    title: "MaalCa — Tu espacio digital",
     description:
-      "Ecosistema creativo y empresarial que conecta ideas, personas y proyectos desde República Dominicana hacia el mundo",
+      "Crea, personaliza, publica y gestiona el espacio digital de tu negocio. Sin código. Sin plantillas genéricas.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "MaalCa - Ecosistema Creativo",
+    title: "MaalCa — Tu espacio digital",
     description:
-      "Ecosistema creativo y empresarial que conecta ideas, personas y proyectos desde República Dominicana hacia el mundo",
+      "Crea, personaliza, publica y gestiona el espacio digital de tu negocio. Sin código. Sin plantillas genéricas.",
   },
   robots: {
     index: true,
