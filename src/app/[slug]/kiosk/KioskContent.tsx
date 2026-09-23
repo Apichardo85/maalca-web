@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from '@/hooks/useSimpleLanguage';
 
@@ -78,6 +79,10 @@ interface Props {
   items: KioskItem[];
   onlinePayments: boolean;
   businessType: string;
+  /** Color de marca del afiliado (business.primary_color) — mismo patrón que Restaurant/Barber/
+   *  Service.tsx: cae al azul de plataforma si el negocio no configuró uno propio. Antes este
+   *  archivo tenía un rojo fijo sin usar el color del afiliado en absoluto. */
+  accent?: string | null;
 }
 
 const ALL_TAB = '__all__';
@@ -86,8 +91,9 @@ const ALL_TAB = '__all__';
 // que parece colgado.
 const THANKS_RESET_MS = 8000;
 
-export function KioskContent({ slug, businessName, logoUrl, currency, items, onlinePayments, businessType }: Props) {
+export function KioskContent({ slug, businessName, logoUrl, currency, items, onlinePayments, businessType, accent }: Props) {
   const router = useRouter();
+  const kioskAccent = accent ?? '#045AFE';
   const searchParams = useSearchParams();
   const { t } = useTranslation();
   const itemFallbackIcon = businessType === 'retail' ? '🛍️' : '🍽️';
@@ -327,7 +333,10 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white lg:flex-row">
+    <div
+      className="flex min-h-screen flex-col bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white lg:flex-row"
+      style={{ '--kiosk-accent': kioskAccent } as CSSProperties}
+    >
       <div className="min-w-0 flex-1 px-4 py-6 lg:px-8">
         <div className="flex items-center gap-3">
           {logoUrl && (
@@ -356,7 +365,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
           <button
             type="button"
             onClick={() => document.getElementById('kiosk-cart-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-            className="sticky top-0 z-20 mt-3 flex w-full items-center justify-between gap-2 rounded-xl border border-[#C8102E]/30 bg-[#C8102E] px-4 py-3 text-white shadow-md lg:hidden"
+            className="sticky top-0 z-20 mt-3 flex w-full items-center justify-between gap-2 rounded-xl border border-[var(--kiosk-accent)]/30 bg-[var(--kiosk-accent)] px-4 py-3 text-white shadow-md lg:hidden"
           >
             <span className="flex items-center gap-2 text-sm font-semibold">
               🛒 {cart.reduce((sum, l) => sum + l.qty, 0)} {cart.reduce((sum, l) => sum + l.qty, 0) === 1 ? t('kiosk.item') : t('kiosk.items')}
@@ -381,7 +390,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                   onClick={() => setCategory(ALL_TAB)}
                   className={`shrink-0 rounded-full border px-5 py-2.5 text-sm font-semibold transition-colors ${
                     category === ALL_TAB
-                      ? 'border-[#C8102E] bg-[#C8102E] text-white'
+                      ? 'border-[var(--kiosk-accent)] bg-[var(--kiosk-accent)] text-white'
                       : 'border-gray-300 text-gray-700 dark:border-neutral-700 dark:text-neutral-300'
                   }`}
                 >
@@ -394,7 +403,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                     onClick={() => setCategory(c)}
                     className={`shrink-0 rounded-full border px-5 py-2.5 text-sm font-semibold transition-colors ${
                       category === c
-                        ? 'border-[#C8102E] bg-[#C8102E] text-white'
+                        ? 'border-[var(--kiosk-accent)] bg-[var(--kiosk-accent)] text-white'
                         : 'border-gray-300 text-gray-700 dark:border-neutral-700 dark:text-neutral-300'
                     }`}
                   >
@@ -410,7 +419,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                   <button
                     type="button"
                     onClick={() => (item.modifierGroups?.length ? openCustomize(item) : addToCart(item))}
-                    className="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-left shadow-sm transition-transform active:scale-95 hover:border-[#C8102E]"
+                    className="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-left shadow-sm transition-transform active:scale-95 hover:border-[var(--kiosk-accent)]"
                   >
                     {item.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -422,7 +431,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                     )}
                     <div className="flex min-h-[80px] flex-col items-start justify-between p-3">
                       <span className="text-sm font-semibold leading-snug">{item.name}</span>
-                      <span className="mt-2 text-base font-bold text-[#C8102E]">{fmt.format(item.price)}</span>
+                      <span className="mt-2 text-base font-bold text-[var(--kiosk-accent)]">{fmt.format(item.price)}</span>
                     </div>
                   </button>
                   {(item.description || (item.ingredients && item.ingredients.length > 0)) && (
@@ -478,7 +487,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                           type="button"
                           onClick={() => changeQty(line.lineId, -1)}
                           aria-label={t('kiosk.removeOne')}
-                          className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
+                          className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[var(--kiosk-accent)] hover:text-[var(--kiosk-accent)]"
                         >
                           −
                         </button>
@@ -487,7 +496,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                           type="button"
                           onClick={() => changeQty(line.lineId, 1)}
                           aria-label={t('kiosk.addOne')}
-                          className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
+                          className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[var(--kiosk-accent)] hover:text-[var(--kiosk-accent)]"
                         >
                           +
                         </button>
@@ -502,7 +511,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                         {line.selectedModifiers.map((s) => (
                           <span
                             key={s.optionId}
-                            className="rounded-full bg-[#C8102E]/10 px-2.5 py-1 text-xs font-medium text-[#C8102E]"
+                            className="rounded-full bg-[var(--kiosk-accent)]/10 px-2.5 py-1 text-xs font-medium text-[var(--kiosk-accent)]"
                           >
                             {s.optionName}
                             {s.priceDelta !== 0 ? ` (${s.priceDelta > 0 ? '+' : ''}${fmt.format(s.priceDelta)})` : ''}
@@ -531,7 +540,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                                 className={`rounded-full border px-2.5 py-1 text-xs font-medium ${
                                   excluded
                                     ? 'border-gray-200 bg-gray-100 text-gray-400 line-through dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-500'
-                                    : 'border-[#C8102E]/40 bg-[#C8102E]/10 text-[#C8102E]'
+                                    : 'border-[var(--kiosk-accent)]/40 bg-[var(--kiosk-accent)]/10 text-[var(--kiosk-accent)]'
                                 }`}
                               >
                                 {ing.name}
@@ -590,7 +599,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                     onClick={() => setTipMode((prev) => (prev === pct ? null : pct))}
                     className={`flex-1 rounded-full border px-2 py-2 text-xs font-semibold ${
                       tipMode === pct
-                        ? 'border-[#C8102E] bg-[#C8102E] text-white'
+                        ? 'border-[var(--kiosk-accent)] bg-[var(--kiosk-accent)] text-white'
                         : 'border-gray-300 text-gray-600 dark:border-neutral-700 dark:text-neutral-300'
                     }`}
                   >
@@ -602,7 +611,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                   onClick={() => setTipMode((prev) => (prev === 'custom' ? null : 'custom'))}
                   className={`flex-1 rounded-full border px-2 py-2 text-xs font-semibold ${
                     tipMode === 'custom'
-                      ? 'border-[#C8102E] bg-[#C8102E] text-white'
+                      ? 'border-[var(--kiosk-accent)] bg-[var(--kiosk-accent)] text-white'
                       : 'border-gray-300 text-gray-600 dark:border-neutral-700 dark:text-neutral-300'
                   }`}
                 >
@@ -633,7 +642,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
               <button
                 onClick={handleCheckout}
                 disabled={cart.length === 0 || checkoutState === 'loading'}
-                className="mt-3 w-full rounded-full bg-[#C8102E] px-5 py-3.5 text-base font-bold text-white disabled:opacity-40"
+                className="mt-3 w-full rounded-full bg-[var(--kiosk-accent)] px-5 py-3.5 text-base font-bold text-white disabled:opacity-40"
               >
                 {checkoutState === 'loading'
                   ? t('kiosk.redirecting')
@@ -677,7 +686,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
             <div className="max-h-[60vh] overflow-y-auto p-4">
               <div className="flex items-start justify-between gap-3">
                 <h3 className="text-base font-bold">{infoItem.name}</h3>
-                <span className="shrink-0 text-base font-bold text-[#C8102E]">{fmt.format(infoItem.price)}</span>
+                <span className="shrink-0 text-base font-bold text-[var(--kiosk-accent)]">{fmt.format(infoItem.price)}</span>
               </div>
               {infoItem.description && (
                 <p className="mt-2 text-sm text-gray-600 dark:text-neutral-300">{infoItem.description}</p>
@@ -713,7 +722,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                   addToCart(infoItem);
                   setInfoItem(null);
                 }}
-                className="mt-4 w-full rounded-full bg-[#C8102E] px-4 py-3 text-sm font-bold text-white"
+                className="mt-4 w-full rounded-full bg-[var(--kiosk-accent)] px-4 py-3 text-sm font-bold text-white"
               >
                 {infoItem.modifierGroups?.length ? t('kiosk.chooseSide') : t('kiosk.add').replace('{amount}', fmt.format(infoItem.price))}
               </button>
@@ -752,7 +761,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
             <div className="max-h-[60vh] overflow-y-auto p-4">
               <div className="flex items-start justify-between gap-3">
                 <h3 className="text-base font-bold">{customizeItem.name}</h3>
-                <span className="shrink-0 text-base font-bold text-[#C8102E]">{fmt.format(customizeItem.price)}</span>
+                <span className="shrink-0 text-base font-bold text-[var(--kiosk-accent)]">{fmt.format(customizeItem.price)}</span>
               </div>
               {customizeItem.description && (
                 <p className="mt-2 text-sm text-gray-600 dark:text-neutral-300">{customizeItem.description}</p>
@@ -765,7 +774,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                   <div key={group.id} className="mt-4">
                     <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-neutral-500">
                       {group.name}
-                      {group.required && <span className="text-[#C8102E]"> *</span>}
+                      {group.required && <span className="text-[var(--kiosk-accent)]"> *</span>}
                     </p>
                     <div className="mt-1.5 space-y-1.5">
                       {group.options.map((opt) => {
@@ -778,7 +787,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                             aria-pressed={isSelected}
                             className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-sm transition-colors ${
                               isSelected
-                                ? 'border-[#C8102E] bg-[#C8102E]/10 font-semibold text-[#C8102E]'
+                                ? 'border-[var(--kiosk-accent)] bg-[var(--kiosk-accent)]/10 font-semibold text-[var(--kiosk-accent)]'
                                 : 'border-gray-200 text-gray-700 dark:border-neutral-700 dark:text-neutral-300'
                             }`}
                           >
@@ -804,7 +813,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                 type="button"
                 onClick={() => addCustomizedToCart(customizeItem)}
                 disabled={!customizeSelectionsValid}
-                className="mt-5 w-full rounded-full bg-[#C8102E] px-4 py-3 text-sm font-bold text-white disabled:opacity-40"
+                className="mt-5 w-full rounded-full bg-[var(--kiosk-accent)] px-4 py-3 text-sm font-bold text-white disabled:opacity-40"
               >
                 {t('kiosk.add').replace('{amount}', fmt.format(customizeTotal))}
               </button>

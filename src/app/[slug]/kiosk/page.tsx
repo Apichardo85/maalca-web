@@ -108,6 +108,7 @@ export default async function KioskPage({ params }: PageProps) {
       items={items}
       onlinePayments={data.capabilities?.onlinePayments ?? false}
       businessType={businessType}
+      accent={data.affiliate.primaryColor}
     />
   );
 }

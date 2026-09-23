@@ -94,7 +94,7 @@ function CaseIcon({ className, style }: { className?: string; style?: CSSPropert
 }
 
 export function ServiceTemplate({ business, items, capabilities }: PublicTemplateProps) {
-  const accent = business.primary_color ?? '#C8102E';
+  const accent = business.primary_color ?? '#045AFE';
   const waRaw = resolveWhatsAppDigits(business);
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);

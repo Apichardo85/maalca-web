@@ -152,8 +152,8 @@ export function SpaceDashboard({
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
       <main className="px-6 py-8">
         {justUpgraded && (
-          <div className="mb-6 rounded-2xl border border-[#C8102E] bg-[#C8102E]/5 p-6 text-center">
-            <h2 className="text-xl font-semibold text-[#C8102E]">
+          <div className="mb-6 rounded-2xl border border-brand-primary bg-brand-primary/5 p-6 text-center">
+            <h2 className="text-xl font-semibold text-brand-primary">
               {getText('¡Bienvenido a Emprendedor! 🎉', 'Welcome to Entrepreneur! 🎉')}
             </h2>
             <p className="mt-2 text-sm text-neutral-700 dark:text-neutral-300">
@@ -169,7 +169,7 @@ export function SpaceDashboard({
         <div className="relative overflow-hidden rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm">
           <div
             className="absolute inset-0 opacity-[0.07] pointer-events-none"
-            style={{ background: 'radial-gradient(ellipse at top right, #C8102E, transparent 60%)' }}
+            style={{ background: 'radial-gradient(ellipse at top right, #045AFE, transparent 60%)' }}
           />
           <div className="relative px-6 sm:px-8 py-6 sm:py-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
@@ -299,7 +299,7 @@ export function SpaceDashboard({
                   </div>
                   <Link
                     href={`/space/${business.slug}/catalog/${item.id}/edit`}
-                    className="flex-shrink-0 text-xs font-medium text-[#C8102E] hover:underline"
+                    className="flex-shrink-0 text-xs font-medium text-brand-primary hover:underline"
                   >
                     {getText('Editar →', 'Edit →')}
                   </Link>
@@ -332,7 +332,7 @@ export function SpaceDashboard({
                   track('upgrade_clicked', { source: 'warning_banner', business_id: business.id });
                   setShowUpgrade(true);
                 }}
-                className="mt-1 text-sm font-medium text-[#C8102E] hover:underline"
+                className="mt-1 text-sm font-medium text-brand-primary hover:underline"
               >
                 {getText('Mejorar a Emprendedor →', 'Upgrade to Entrepreneur →')}
               </button>
@@ -342,8 +342,8 @@ export function SpaceDashboard({
 
         {/* At-limit card */}
         {atLimit && (
-          <div className="mt-6 rounded-2xl border border-[#C8102E] bg-[#C8102E]/5 p-6">
-            <p className="font-medium text-[#C8102E]">
+          <div className="mt-6 rounded-2xl border border-brand-primary bg-brand-primary/5 p-6">
+            <p className="font-medium text-brand-primary">
               {getText('Estás creciendo 🔥', "You're growing 🔥")}
             </p>
             <p className="mt-1 text-sm text-neutral-700 dark:text-neutral-300">
@@ -357,7 +357,7 @@ export function SpaceDashboard({
                 track('upgrade_clicked', { source: 'limit_reached', business_id: business.id });
                 setShowUpgrade(true);
               }}
-              className="mt-4 rounded-full bg-[#C8102E] px-5 py-2 text-sm font-medium text-white transition hover:bg-[#A00D26]"
+              className="mt-4 rounded-full bg-brand-primary px-5 py-2 text-sm font-medium text-white transition hover:bg-brand-primary-hover"
             >
               {getText(`Mejorar — $${PRICE_ENTREPRENEUR}/mes`, `Upgrade — $${PRICE_ENTREPRENEUR}/mo`)}
             </button>
@@ -380,7 +380,7 @@ export function SpaceDashboard({
                   track('upgrade_clicked', { source: 'trial_warning_banner', business_id: business.id });
                   setShowUpgrade(true);
                 }}
-                className="mt-1 text-sm font-medium text-[#C8102E] hover:underline"
+                className="mt-1 text-sm font-medium text-brand-primary hover:underline"
               >
                 {getText('Mejorar a Emprendedor →', 'Upgrade to Entrepreneur →')}
               </button>
@@ -390,8 +390,8 @@ export function SpaceDashboard({
 
         {/* Trial expired card */}
         {trialExpired && (
-          <div className="mt-6 rounded-2xl border border-[#C8102E] bg-[#C8102E]/5 p-6">
-            <p className="font-medium text-[#C8102E]">
+          <div className="mt-6 rounded-2xl border border-brand-primary bg-brand-primary/5 p-6">
+            <p className="font-medium text-brand-primary">
               {getText('Tu período gratuito terminó', 'Your free trial has ended')}
             </p>
             <p className="mt-1 text-sm text-neutral-700 dark:text-neutral-300">
@@ -405,7 +405,7 @@ export function SpaceDashboard({
                 track('upgrade_clicked', { source: 'trial_expired', business_id: business.id });
                 setShowUpgrade(true);
               }}
-              className="mt-4 rounded-full bg-[#C8102E] px-5 py-2 text-sm font-medium text-white transition hover:bg-[#A00D26]"
+              className="mt-4 rounded-full bg-brand-primary px-5 py-2 text-sm font-medium text-white transition hover:bg-brand-primary-hover"
             >
               {getText(`Mejorar — $${PRICE_ENTREPRENEUR}/mes`, `Upgrade — $${PRICE_ENTREPRENEUR}/mo`)}
             </button>
@@ -429,7 +429,7 @@ export function SpaceDashboard({
               </p>
               <Link
                 href={`/space/${business.slug}/inventory`}
-                className="mt-1 inline-block text-sm font-medium text-[#C8102E] hover:underline"
+                className="mt-1 inline-block text-sm font-medium text-brand-primary hover:underline"
               >
                 {getText('Ver inventario →', 'View inventory →')}
               </Link>
@@ -501,7 +501,7 @@ export function SpaceDashboard({
             <div className="mt-3 flex items-center gap-3">
               <div
                 className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl text-lg font-bold text-white"
-                style={{ backgroundColor: business.primary_color ?? '#C8102E' }}
+                style={{ backgroundColor: business.primary_color ?? '#045AFE' }}
               >
                 {business.name.charAt(0).toUpperCase()}
               </div>
@@ -667,7 +667,7 @@ function ChecklistItem({ done, label, description, href, onClick, cta }: Checkli
     >
       <div
         className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border-2 ${
-          done ? 'border-[#C8102E] bg-[#C8102E]' : 'border-neutral-300 dark:border-neutral-600'
+          done ? 'border-brand-primary bg-brand-primary' : 'border-neutral-300 dark:border-neutral-600'
         }`}
       >
         {done && (
@@ -685,7 +685,7 @@ function ChecklistItem({ done, label, description, href, onClick, cta }: Checkli
         <p className="text-xs text-neutral-500 dark:text-neutral-400">{description}</p>
       </div>
       {!done && cta && (
-        <span className="flex-shrink-0 text-xs font-medium text-[#C8102E]">{cta} →</span>
+        <span className="flex-shrink-0 text-xs font-medium text-brand-primary">{cta} →</span>
       )}
     </div>
   );

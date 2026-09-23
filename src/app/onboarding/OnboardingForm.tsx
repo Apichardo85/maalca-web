@@ -21,6 +21,7 @@ const BUSINESS_TYPES = [
 ] as const;
 
 const PALETTE = [
+  { nameKey: 'onboarding.palette.blueMaalca', hex: '#045AFE' },
   { nameKey: 'onboarding.palette.redMaalca', hex: '#C8102E' },
   { nameKey: 'onboarding.palette.oceanBlue', hex: '#0066CC' },
   { nameKey: 'onboarding.palette.emeraldGreen', hex: '#10B981' },
@@ -181,7 +182,7 @@ export function OnboardingForm() {
             <div
               key={s}
               className={`h-1.5 flex-1 rounded-full transition-colors ${
-                i <= step ? 'bg-[#C8102E]' : 'bg-neutral-200'
+                i <= step ? 'bg-brand-primary' : 'bg-neutral-200'
               }`}
             />
           ))}
@@ -224,7 +225,7 @@ export function OnboardingForm() {
                       bt.comingSoon
                         ? 'cursor-not-allowed border-neutral-100 bg-neutral-50 text-neutral-300'
                         : type === bt.value
-                          ? 'border-[#C8102E] bg-[#C8102E]/5 text-[#C8102E]'
+                          ? 'border-brand-primary bg-brand-primary/5 text-brand-primary'
                           : 'border-neutral-200 text-neutral-700 hover:border-neutral-300'
                     }`}
                   >
@@ -359,7 +360,7 @@ export function OnboardingForm() {
               type="button"
               onClick={goNext}
               disabled={!stepValid || pending}
-              className="flex-1 rounded-full bg-[#C8102E] py-3 text-sm font-medium text-white transition hover:bg-[#A00D26] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex-1 rounded-full bg-brand-primary py-3 text-sm font-medium text-white transition hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
               {pending
                 ? t('onboarding.button.creating')

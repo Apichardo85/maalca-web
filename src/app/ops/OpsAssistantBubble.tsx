@@ -93,7 +93,7 @@ export function OpsAssistantBubble() {
                   key={i}
                   className={`max-w-[85%] rounded-xl px-3 py-2 text-sm whitespace-pre-wrap ${
                     m.role === 'user'
-                      ? 'ml-auto bg-[#C8102E] text-white'
+                      ? 'ml-auto bg-brand-primary text-white'
                       : 'bg-gray-100 dark:bg-neutral-800 text-gray-800 dark:text-neutral-200'
                   }`}
                 >
@@ -126,7 +126,7 @@ export function OpsAssistantBubble() {
               <button
                 type="submit"
                 disabled={loading || !input.trim()}
-                className="rounded-full bg-[#C8102E] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+                className="rounded-full bg-brand-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
               >
                 Enviar
               </button>
@@ -137,7 +137,7 @@ export function OpsAssistantBubble() {
 
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex h-12 w-12 items-center justify-center rounded-full bg-[#C8102E] text-white shadow-lg hover:opacity-90"
+        className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-primary text-white shadow-lg hover:opacity-90"
         aria-label="Asistente"
       >
         {open ? (

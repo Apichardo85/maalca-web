@@ -100,7 +100,7 @@ export default async function DesignPage({
       timezone={biz.timezone ?? DEFAULT_TIMEZONE}
       name={biz.name ?? ''}
       whatsapp={biz.whatsapp ?? ''}
-      primaryColor={biz.primaryColor ?? '#C8102E'}
+      primaryColor={biz.primaryColor ?? '#045AFE'}
       profileLoaded={publicProfile !== null}
       description={publicProfile?.description ?? ''}
       descriptionEn={publicProfile?.descriptionEn ?? ''}

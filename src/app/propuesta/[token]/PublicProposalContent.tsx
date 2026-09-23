@@ -163,7 +163,7 @@ export function PublicProposalContent({ token, initial }: { token: string; initi
             target="_blank"
             rel="noopener noreferrer"
             className="mt-3 inline-flex items-center gap-1 text-xs font-semibold"
-            style={{ color: '#C8102E' }}
+            style={{ color: '#045AFE' }}
           >
             📎 Ver documento adjunto
           </a>
@@ -222,7 +222,7 @@ export function PublicProposalContent({ token, initial }: { token: string; initi
               onClick={handleAccept}
               disabled={!name.trim() || saving}
               className="w-full rounded-full px-4 py-3 text-sm font-semibold text-white disabled:opacity-40"
-              style={{ backgroundColor: '#C8102E' }}
+              style={{ backgroundColor: '#045AFE' }}
             >
               {saving ? 'Aceptando…' : 'Aceptar propuesta'}
             </button>

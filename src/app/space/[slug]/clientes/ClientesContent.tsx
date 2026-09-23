@@ -202,7 +202,7 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
         <button
           type="button"
           onClick={() => setShowForm(true)}
-          className="flex min-h-11 flex-shrink-0 items-center justify-center rounded-full bg-[#C8102E] px-4 text-sm font-medium text-white transition hover:bg-[#A00D26]"
+          className="flex min-h-11 flex-shrink-0 items-center justify-center rounded-full bg-brand-primary px-4 text-sm font-medium text-white transition hover:bg-brand-primary-hover"
         >
           + {getText('Cliente', 'Customer')}
         </button>
@@ -213,7 +213,7 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder={getText('Buscar por nombre, teléfono o email...', 'Search by name, phone, or email...')}
-        className="mb-4 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-[#C8102E] focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
+        className="mb-4 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-brand-primary focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
       />
 
       {filtered.length === 0 ? (
@@ -303,27 +303,27 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={getText('Nombre', 'Name')}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#C8102E] focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
           />
           <input
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder={getText('Teléfono', 'Phone')}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#C8102E] focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
           />
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder={getText('Email (opcional)', 'Email (optional)')}
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-[#C8102E] focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
           />
           <button
             type="button"
             onClick={handleAdd}
             disabled={!name.trim() || saving}
-            className="w-full rounded-lg bg-[#C8102E] py-2.5 text-sm font-medium text-white transition hover:bg-[#A00D26] disabled:opacity-50"
+            className="w-full rounded-lg bg-brand-primary py-2.5 text-sm font-medium text-white transition hover:bg-brand-primary-hover disabled:opacity-50"
           >
             {saving ? getText('Guardando...', 'Saving...') : getText('Agregar', 'Add')}
           </button>
@@ -336,7 +336,7 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
           <div className="max-h-[70vh] overflow-y-auto px-6 py-4">
             <div className="mb-4 flex flex-wrap gap-4 text-sm text-gray-600 dark:text-neutral-400">
               {selected.phone && (
-                <a href={`tel:${selected.phone}`} className="hover:text-[#C8102E]">
+                <a href={`tel:${selected.phone}`} className="hover:text-brand-primary">
                   📞 {selected.phone}
                 </a>
               )}

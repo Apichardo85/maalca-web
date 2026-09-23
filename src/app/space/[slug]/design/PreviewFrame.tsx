@@ -78,7 +78,7 @@ export function PreviewFrame({ business, capabilities }: Props) {
           aria-pressed={mode === 'desktop'}
           className={`rounded-lg px-2.5 py-1.5 text-sm transition-colors ${
             mode === 'desktop'
-              ? 'bg-[#C8102E]/10 text-[#C8102E]'
+              ? 'bg-brand-primary/10 text-brand-primary'
               : 'text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-800'
           }`}
         >
@@ -90,7 +90,7 @@ export function PreviewFrame({ business, capabilities }: Props) {
           aria-pressed={mode === 'mobile'}
           className={`rounded-lg px-2.5 py-1.5 text-sm transition-colors ${
             mode === 'mobile'
-              ? 'bg-[#C8102E]/10 text-[#C8102E]'
+              ? 'bg-brand-primary/10 text-brand-primary'
               : 'text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-800'
           }`}
         >

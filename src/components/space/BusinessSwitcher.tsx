@@ -96,7 +96,7 @@ export function BusinessSwitcher({ current, others, canCreateMore }: Props) {
               <Link
                 href="/onboarding?multi=1"
                 onClick={() => setOpen(false)}
-                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[#C8102E] transition hover:bg-[#C8102E]/5"
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-brand-primary transition hover:bg-brand-primary/5"
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

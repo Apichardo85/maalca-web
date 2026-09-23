@@ -69,7 +69,7 @@ export interface BusinessReports {
   currency: string;
 }
 
-const PIE_COLORS = ['#C8102E', '#0EA5E9', '#16A34A', '#9333EA', '#F59E0B', '#EC4899', '#14B8A6', '#6366F1'];
+const PIE_COLORS = ['#045AFE', '#0EA5E9', '#16A34A', '#9333EA', '#F59E0B', '#EC4899', '#14B8A6', '#6366F1'];
 
 // Same shape as maalca-api's DetailedMetricsResponse/DailyCountDto/CanalBreakdownDto
 // (MetricsDtos.cs), serialized camelCase by the default System.Text.Json policy.
@@ -186,7 +186,7 @@ export function StatsContent({ slug, kpis, plan, detailed: initialDetailed, repo
   });
 
   const METRIC_TABS: { key: MetricKey; label: string; color: string }[] = [
-    { key: 'pageViews', label: getText('Visitas', 'Visits'), color: '#C8102E' },
+    { key: 'pageViews', label: getText('Visitas', 'Visits'), color: '#045AFE' },
     { key: 'qrScans', label: getText('Escaneos QR', 'QR scans'), color: '#0EA5E9' },
     { key: 'canalClicks', label: getText('Clics a canales', 'Channel clicks'), color: '#16A34A' },
     { key: 'paidOrders', label: getText('Pedidos pagados', 'Paid orders'), color: '#9333EA' },
@@ -234,8 +234,8 @@ export function StatsContent({ slug, kpis, plan, detailed: initialDetailed, repo
             diferencia de los KPIs de arriba, esto nace ya con datos reales de Orders). */}
         {detailed && (
           <section className="mt-6">
-            <div className="rounded-2xl border border-[#C8102E]/20 bg-[#C8102E]/[0.03] dark:bg-[#C8102E]/[0.06] p-5">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-[#C8102E]">
+            <div className="rounded-2xl border border-brand-primary/20 bg-brand-primary/[0.03] dark:bg-brand-primary/[0.06] p-5">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-brand-primary">
                 {getText('Conversión', 'Conversion')}
               </h2>
               <div className="mt-3 grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -259,7 +259,7 @@ export function StatsContent({ slug, kpis, plan, detailed: initialDetailed, repo
                   <p className="text-[11px] font-medium text-gray-500 dark:text-neutral-400">
                     {getText('Tasa de conversión', 'Conversion rate')}
                   </p>
-                  <p className="text-xl font-bold text-[#C8102E] tabular-nums">
+                  <p className="text-xl font-bold text-brand-primary tabular-nums">
                     {detailed.conversion.conversionRatePct}%
                   </p>
                 </div>
@@ -309,7 +309,7 @@ export function StatsContent({ slug, kpis, plan, detailed: initialDetailed, repo
                   disabled={loadingRange}
                   className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors disabled:opacity-50 ${
                     days === r
-                      ? 'bg-[#C8102E] text-white'
+                      ? 'bg-brand-primary text-white'
                       : 'text-gray-500 hover:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-800'
                   }`}
                 >
@@ -409,7 +409,7 @@ export function StatsContent({ slug, kpis, plan, detailed: initialDetailed, repo
                               </span>
                             </div>
                             <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-neutral-800">
-                              <div className="h-full rounded-full bg-[#C8102E]" style={{ width: `${widthPct}%` }} />
+                              <div className="h-full rounded-full bg-brand-primary" style={{ width: `${widthPct}%` }} />
                             </div>
                           </div>
                         </div>
@@ -442,8 +442,8 @@ export function StatsContent({ slug, kpis, plan, detailed: initialDetailed, repo
                     <AreaChart data={reports.revenueByDay}>
                       <defs>
                         <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#C8102E" stopOpacity={0.35} />
-                          <stop offset="95%" stopColor="#C8102E" stopOpacity={0} />
+                          <stop offset="5%" stopColor="#045AFE" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#045AFE" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-gray-100 dark:text-neutral-800" />
@@ -458,7 +458,7 @@ export function StatsContent({ slug, kpis, plan, detailed: initialDetailed, repo
                         labelFormatter={(d: string) => formatShortDate(d, language)}
                         formatter={(v: number) => [`${reports.currency} ${v.toFixed(2)}`, getText('Ingresos', 'Revenue')]}
                       />
-                      <Area type="monotone" dataKey="revenue" stroke="#C8102E" fill="url(#revenueFill)" strokeWidth={2} />
+                      <Area type="monotone" dataKey="revenue" stroke="#045AFE" fill="url(#revenueFill)" strokeWidth={2} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
@@ -534,7 +534,7 @@ export function StatsContent({ slug, kpis, plan, detailed: initialDetailed, repo
                       <XAxis type="number" tick={{ fontSize: 10, fill: '#9ca3af' }} allowDecimals={false} />
                       <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: '#9ca3af' }} width={90} />
                       <Tooltip formatter={(v: number) => [v, getText('Atendidos', 'Handled')]} />
-                      <Bar dataKey="count" fill="#C8102E" radius={[0, 6, 6, 0]} />
+                      <Bar dataKey="count" fill="#045AFE" radius={[0, 6, 6, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

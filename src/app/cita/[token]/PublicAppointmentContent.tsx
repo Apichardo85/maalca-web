@@ -129,7 +129,7 @@ export function PublicAppointmentContent({
                 href={appointment.zoomLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-1 block break-all text-[#C8102E] underline"
+                className="mt-1 block break-all text-brand-primary underline"
               >
                 {appointment.zoomLink}
               </a>
@@ -161,7 +161,7 @@ export function PublicAppointmentContent({
                 type="button"
                 onClick={() => callAction('confirm')}
                 disabled={loading !== null}
-                className="rounded-lg bg-[#C8102E] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#a80d26] disabled:opacity-50"
+                className="rounded-lg bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-primary-hover disabled:opacity-50"
               >
                 {loading === 'confirm' ? getText('Confirmando…', 'Confirming…') : getText('Confirmar cita', 'Confirm appointment')}
               </button>
@@ -214,7 +214,7 @@ export function PublicAppointmentContent({
                 type="button"
                 onClick={handleReschedule}
                 disabled={loading !== null}
-                className="flex-1 rounded-lg bg-[#C8102E] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#a80d26] disabled:opacity-50"
+                className="flex-1 rounded-lg bg-brand-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-primary-hover disabled:opacity-50"
               >
                 {loading === 'reschedule' ? getText('Guardando…', 'Saving…') : getText('Guardar nueva fecha', 'Save new date')}
               </button>

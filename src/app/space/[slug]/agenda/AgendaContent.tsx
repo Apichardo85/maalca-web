@@ -480,7 +480,7 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
                         }}
                         className={`flex shrink-0 flex-col items-center rounded-xl border px-3 py-2 text-xs font-semibold transition-colors ${
                           active
-                            ? 'border-[#C8102E] bg-[#C8102E] text-white'
+                            ? 'border-brand-primary bg-brand-primary text-white'
                             : closed
                               ? 'border-gray-200 text-gray-300 dark:border-neutral-800 dark:text-neutral-600'
                               : 'border-gray-300 text-gray-700 dark:border-neutral-700 dark:text-neutral-300'
@@ -520,7 +520,7 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
                             onClick={() => setTime(slot)}
                             className={`flex min-h-11 items-center justify-center rounded-lg border px-2 text-xs font-semibold transition-colors ${
                               active
-                                ? 'border-[#C8102E] bg-[#C8102E] text-white'
+                                ? 'border-brand-primary bg-brand-primary text-white'
                                 : 'border-gray-300 text-gray-700 dark:border-neutral-700 dark:text-neutral-300'
                             }`}
                           >
@@ -536,7 +536,7 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
               <button
                 onClick={createAppointment}
                 disabled={saving || !customerName.trim() || !serviceId || !date || !time}
-                className="mt-4 rounded-full bg-[#C8102E] px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
+                className="mt-4 rounded-full bg-brand-primary px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
               >
                 {saving
                   ? getText('Agendando…', 'Booking…')
@@ -577,7 +577,7 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
                 {a.customer?.phone && (
                   <a
                     href={`tel:${a.customer.phone}`}
-                    className="flex items-center gap-1 rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-neutral-300 hover:border-[#C8102E] hover:text-[#C8102E]"
+                    className="flex items-center gap-1 rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-neutral-300 hover:border-brand-primary hover:text-brand-primary"
                     title={getText('Llamar al cliente', 'Call customer')}
                   >
                     📞 {a.customer.phone}
@@ -600,7 +600,7 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
                 {canManage && a.status === 'Completed' && a.customer && a.service && (
                   <Link
                     href={buildInvoiceLink(slug, { customerId: a.customer.id, desc: a.service.name, amount: a.service.price })}
-                    className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-neutral-300 hover:border-[#C8102E] hover:text-[#C8102E]"
+                    className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-neutral-300 hover:border-brand-primary hover:text-brand-primary"
                   >
                     {getText('Generar factura', 'Generate invoice')}
                   </Link>
@@ -705,7 +705,7 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
             <button
               onClick={createTimeBlock}
               disabled={savingBlock || !blockDate || !blockStart || !blockEnd}
-              className="mt-3 rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-2 text-xs font-semibold hover:border-[#C8102E] hover:text-[#C8102E] disabled:opacity-50"
+              className="mt-3 rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-2 text-xs font-semibold hover:border-brand-primary hover:text-brand-primary disabled:opacity-50"
             >
               {savingBlock ? getText('Guardando…', 'Saving…') : getText('+ Bloquear horario', '+ Block time')}
             </button>

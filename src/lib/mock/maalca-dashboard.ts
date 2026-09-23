@@ -18,7 +18,7 @@ export interface UnitInfo {
 }
 
 export const UNITS: UnitInfo[] = [
-  { id: "tld",       name: "The Little Dominicana", nameEs: "The Little Dominicana", color: "#C8102E" },
+  { id: "tld",       name: "The Little Dominicana", nameEs: "The Little Dominicana", color: "#045AFE" },
   { id: "pegote",    name: "Pegote Barbershop",      nameEs: "Pegote Barbershop",     color: "#1a1a1a" },
   { id: "editorial", name: "Editorial / CiriWhispers", nameEs: "Editorial / CiriWhispers", color: "#888780" },
   { id: "platform",  name: "Platform & Others",      nameEs: "Plataforma y Otros",    color: "#D3D1C7" },
@@ -92,7 +92,7 @@ export interface MaalCaDashboardData {
 // ─── Shared assets ────────────────────────────────────────────────────────────
 
 const TRAFFIC_SOURCES: TrafficSource[] = [
-  { name: "Organic",  nameEs: "Orgánico",  value: 42, color: "#C8102E" },
+  { name: "Organic",  nameEs: "Orgánico",  value: 42, color: "#045AFE" },
   { name: "Direct",   nameEs: "Directo",   value: 28, color: "#1a1a1a" },
   { name: "Social",   nameEs: "Redes",     value: 18, color: "#888780" },
   { name: "Referral", nameEs: "Referidos", value: 12, color: "#D3D1C7" },

@@ -756,7 +756,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
         </p>
 
         {!isEntrepreneur && (
-          <p className="mt-3 max-w-2xl rounded-lg bg-[#C8102E]/5 px-3 py-2 text-sm text-[#C8102E]">
+          <p className="mt-3 max-w-2xl rounded-lg bg-brand-primary/5 px-3 py-2 text-sm text-brand-primary">
             {getText(
               'Dar acceso al dashboard a más personas es parte del plan Emprendedor.',
               'Granting dashboard access to more people is part of the Entrepreneur plan.',
@@ -917,7 +917,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
               <button
                 onClick={addMember}
                 disabled={saving || !name.trim() || !newRole.trim()}
-                className="rounded-full bg-[#C8102E] px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
+                className="rounded-full bg-brand-primary px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
               >
                 {saving ? getText('Agregando…', 'Adding…') : getText('Agregar', 'Add')}
               </button>
@@ -1225,7 +1225,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                     <button
                       onClick={sendStandaloneInvite}
                       disabled={standaloneSaving || !standaloneEmail.trim()}
-                      className="rounded-full bg-[#C8102E] px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
+                      className="rounded-full bg-brand-primary px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
                     >
                       {standaloneSaving ? getText('Invitando…', 'Inviting…') : getText('Invitar', 'Invite')}
                     </button>
@@ -1368,7 +1368,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                     <button
                       onClick={saveTimeEntry}
                       disabled={teSaving || !teEditIn}
-                      className="rounded-full bg-[#C8102E] px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
+                      className="rounded-full bg-brand-primary px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
                     >
                       {teSaving ? getText('Guardando…', 'Saving…') : getText('Guardar', 'Save')}
                     </button>
@@ -1403,7 +1403,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
               <button
                 onClick={loadPayroll}
                 disabled={payrollLoading}
-                className="rounded-full bg-[#C8102E] px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
+                className="rounded-full bg-brand-primary px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
               >
                 {payrollLoading ? getText('Calculando…', 'Calculating…') : getText('Calcular', 'Calculate')}
               </button>
@@ -1496,7 +1496,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                 <button
                   onClick={createTask}
                   disabled={taskSaving || !taskTitle.trim()}
-                  className="rounded-full bg-[#C8102E] px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
+                  className="rounded-full bg-brand-primary px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
                 >
                   {taskSaving ? getText('Creando…', 'Creating…') : getText('Crear tarea', 'Create task')}
                 </button>

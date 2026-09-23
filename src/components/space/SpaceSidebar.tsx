@@ -166,7 +166,7 @@ export function SpaceSidebar({
           <span
             className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
               plan === 'entrepreneur'
-                ? 'bg-[#C8102E]/10 text-[#C8102E]'
+                ? 'bg-brand-primary/10 text-brand-primary'
                 : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400'
             }`}
           >
@@ -187,7 +187,7 @@ export function SpaceSidebar({
                 href={mod.href}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                   active
-                    ? 'bg-[#C8102E] text-white'
+                    ? 'bg-brand-primary text-white'
                     : 'text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-800 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >

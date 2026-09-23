@@ -114,7 +114,7 @@ export function TeamSection({ initialTeam }: { initialTeam: OpsTeamMember[] }) {
           <button
             onClick={invite}
             disabled={busy || !email.trim()}
-            className="rounded-md bg-[#C8102E] px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+            className="rounded-md bg-brand-primary px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
           >
             Invitar
           </button>

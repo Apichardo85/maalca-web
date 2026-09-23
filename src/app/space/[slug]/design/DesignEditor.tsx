@@ -271,7 +271,7 @@ export function DesignEditor({
             <button
               onClick={save}
               disabled={saving}
-              className="rounded-full bg-[#C8102E] px-5 py-2 text-sm font-medium text-white transition hover:bg-[#A00D26] disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-full bg-brand-primary px-5 py-2 text-sm font-medium text-white transition hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
               {saving ? getText('Guardando...', 'Saving...') : getText('Guardar', 'Save')}
             </button>
@@ -292,7 +292,7 @@ export function DesignEditor({
               onClick={() => setActiveTab(t.key)}
               className={`flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 activeTab === t.key
-                  ? 'bg-[#C8102E]/10 text-[#C8102E]'
+                  ? 'bg-brand-primary/10 text-brand-primary'
                   : 'text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-800'
               }`}
             >

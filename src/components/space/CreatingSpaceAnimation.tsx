@@ -37,13 +37,13 @@ export function CreatingSpaceAnimation({ businessName }: { businessName: string 
                 key={step}
                 className={`flex items-center gap-3 rounded-xl border p-4 transition-all duration-300 ${
                   done
-                    ? 'border-[#C8102E]/20 bg-white dark:bg-neutral-900 opacity-100'
+                    ? 'border-brand-primary/20 bg-white dark:bg-neutral-900 opacity-100'
                     : 'border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 opacity-40'
                 }`}
               >
                 <div
                   className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full transition ${
-                    done ? 'bg-[#C8102E]' : 'bg-neutral-200 dark:bg-neutral-700'
+                    done ? 'bg-brand-primary' : 'bg-neutral-200 dark:bg-neutral-700'
                   }`}
                 >
                   {done ? (

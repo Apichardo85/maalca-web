@@ -65,7 +65,7 @@ export function RichTextEditor({ value, onChange, onBlur, placeholder, maxLength
   const btn = (active: boolean) =>
     `rounded px-2 py-1 text-xs font-medium transition ${
       active
-        ? 'bg-[#C8102E] text-white'
+        ? 'bg-brand-primary text-white'
         : 'text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-700'
     }`;
 

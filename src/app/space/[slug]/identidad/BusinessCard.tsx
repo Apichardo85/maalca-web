@@ -42,7 +42,7 @@ export function BusinessCard({ business, qrDataUrl }: Props) {
   );
   const contacts = resolveContactItems(business, language);
   const social = resolveSocialLinks(business);
-  const primaryColor = business.primary_color || '#C8102E';
+  const primaryColor = business.primary_color || '#045AFE';
 
   const download = async () => {
     if (!cardRef.current) return;

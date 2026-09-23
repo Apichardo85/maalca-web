@@ -18,7 +18,7 @@ interface Props {
 export function IdentidadContent({ slug, publicUrl, qrTargetUrl, qrDataUrl, business }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
-  const primaryColor = business.primary_color || '#C8102E';
+  const primaryColor = business.primary_color || '#045AFE';
 
   // qrDataUrl (server prop) is the plain black fallback shown on first paint — generation
   // is async, so it can't run synchronously during render. Re-generated here in the

@@ -85,7 +85,7 @@ export function renderBoard(slug: string, data: BoardCatalogResponse) {
       business={{
         name: data.affiliate.name,
         logoUrl: data.affiliate.logoUrl ?? null,
-        primaryColor: data.affiliate.primaryColor ?? '#C8102E',
+        primaryColor: data.affiliate.primaryColor ?? '#045AFE',
         currency: data.affiliate.currency === 'DOP' ? 'DOP' : 'USD',
       }}
       initialItems={mappedItems}

@@ -360,7 +360,7 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
             type="button"
             onClick={() => (showForm ? closeForm() : startNew())}
             className="shrink-0 rounded-full px-4 py-2.5 text-sm font-semibold text-white"
-            style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+            style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
           >
             {showForm ? getText('Cancelar', 'Cancel') : getText('+ Agregar', '+ Add')}
           </button>
@@ -465,7 +465,7 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
             onClick={applyFilters}
             disabled={loadingPage}
             className="min-h-11 rounded-full px-4 text-sm font-semibold text-white disabled:opacity-40"
-            style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+            style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
           >
             {getText('Filtrar', 'Filter')}
           </button>
@@ -570,7 +570,7 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
                 onClick={handleSave}
                 disabled={!form.name.trim() || saving}
                 className="flex-1 rounded-full px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
-                style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+                style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
               >
                 {saving
                   ? getText('Guardando…', 'Saving…')
@@ -742,7 +742,7 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
                 onClick={handleMovement}
                 disabled={saving || !Number(movementQty)}
                 className="flex-1 rounded-full px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
-                style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+                style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
               >
                 {saving ? getText('Guardando…', 'Saving…') : getText('Confirmar', 'Confirm')}
               </button>

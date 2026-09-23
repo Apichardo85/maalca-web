@@ -504,7 +504,7 @@ export default function EditForm({
           <button
             type="submit"
             disabled={!form.name.trim() || busy}
-            className="w-full rounded-full bg-[#C8102E] py-3 text-sm font-medium text-white transition hover:bg-[#A00D26] disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded-full bg-brand-primary py-3 text-sm font-medium text-white transition hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             {pending ? getText('Guardando...', 'Saving...') : getText('Guardar cambios', 'Save changes')}
           </button>

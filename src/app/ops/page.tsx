@@ -50,7 +50,7 @@ export default async function OpsResumenPage() {
 
       <div className="mt-8 flex items-center justify-between">
         <h2 className="text-sm font-semibold text-gray-700 dark:text-neutral-300">Necesitan atención</h2>
-        <Link href="/ops/negocios" className="text-xs font-medium text-[#C8102E] hover:underline">
+        <Link href="/ops/negocios" className="text-xs font-medium text-brand-primary hover:underline">
           Ver todos los negocios →
         </Link>
       </div>
@@ -69,7 +69,7 @@ export default async function OpsResumenPage() {
             <Link
               key={a.id}
               href={`/ops/negocios/${a.id}`}
-              className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 hover:border-[#C8102E]"
+              className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 hover:border-brand-primary"
             >
               <div className="flex items-center gap-3">
                 <BusinessAvatar a={a} />

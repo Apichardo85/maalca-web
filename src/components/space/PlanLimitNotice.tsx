@@ -14,7 +14,7 @@ export function PlanLimitNotice({ slug }: Props) {
       </p>
       <Link
         href={`/space/${slug}/settings`}
-        className="inline-block rounded-full bg-[#C8102E] px-4 py-1.5 text-xs font-medium text-white transition hover:bg-[#A00D26]"
+        className="inline-block rounded-full bg-brand-primary px-4 py-1.5 text-xs font-medium text-white transition hover:bg-brand-primary-hover"
       >
         Mejorar a Emprendedor →
       </Link>

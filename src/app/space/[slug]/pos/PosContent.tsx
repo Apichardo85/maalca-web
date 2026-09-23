@@ -291,7 +291,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
           <button
             type="button"
             onClick={() => document.getElementById('pos-cart-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-            className="sticky top-0 z-20 mt-3 flex w-full items-center justify-between gap-2 rounded-xl border border-[#C8102E]/30 bg-[#C8102E] px-4 py-3 text-white shadow-md lg:hidden"
+            className="sticky top-0 z-20 mt-3 flex w-full items-center justify-between gap-2 rounded-xl border border-brand-primary/30 bg-brand-primary px-4 py-3 text-white shadow-md lg:hidden"
           >
             <span className="flex items-center gap-2 text-sm font-semibold">
               🛒 {cartCount} {getText(cartCount === 1 ? 'item' : 'items', cartCount === 1 ? 'item' : 'items')}
@@ -319,7 +319,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
                   onClick={() => setCategory(ALL_TAB)}
                   className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
                     category === ALL_TAB
-                      ? 'border-[#C8102E] bg-[#C8102E] text-white'
+                      ? 'border-brand-primary bg-brand-primary text-white'
                       : 'border-gray-300 text-gray-700 dark:border-neutral-700 dark:text-neutral-300'
                   }`}
                 >
@@ -332,7 +332,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
                     onClick={() => setCategory(c)}
                     className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
                       category === c
-                        ? 'border-[#C8102E] bg-[#C8102E] text-white'
+                        ? 'border-brand-primary bg-brand-primary text-white'
                         : 'border-gray-300 text-gray-700 dark:border-neutral-700 dark:text-neutral-300'
                     }`}
                   >
@@ -348,7 +348,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
                   <button
                     type="button"
                     onClick={() => addToCart(item)}
-                    className="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-left shadow-sm transition-transform active:scale-95 hover:border-[#C8102E]"
+                    className="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-left shadow-sm transition-transform active:scale-95 hover:border-brand-primary"
                   >
                     {item.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -360,7 +360,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
                     )}
                     <div className="flex min-h-[72px] flex-col items-start justify-between p-3">
                       <span className="text-sm font-semibold leading-snug">{item.name}</span>
-                      <span className="mt-2 text-base font-bold text-[#C8102E]">{fmt(item.price)}</span>
+                      <span className="mt-2 text-base font-bold text-brand-primary">{fmt(item.price)}</span>
                     </div>
                   </button>
                   {item.description && (
@@ -414,7 +414,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
                       type="button"
                       onClick={() => changeQty(line.itemId, -1)}
                       aria-label={getText('Quitar uno', 'Remove one')}
-                      className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
+                      className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-brand-primary hover:text-brand-primary"
                     >
                       −
                     </button>
@@ -423,7 +423,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
                       type="button"
                       onClick={() => changeQty(line.itemId, 1)}
                       aria-label={getText('Agregar uno', 'Add one')}
-                      className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-[#C8102E] hover:text-[#C8102E]"
+                      className="flex h-11 w-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 text-base font-bold hover:border-brand-primary hover:text-brand-primary"
                     >
                       +
                     </button>
@@ -479,7 +479,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
                     onClick={() => setTipMode((prev) => (prev === pct ? null : pct))}
                     className={`flex-1 rounded-full border px-2 py-1.5 text-xs font-semibold ${
                       tipMode === pct
-                        ? 'border-[#C8102E] bg-[#C8102E] text-white'
+                        ? 'border-brand-primary bg-brand-primary text-white'
                         : 'border-gray-300 text-gray-600 dark:border-neutral-700 dark:text-neutral-300'
                     }`}
                   >
@@ -491,7 +491,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
                   onClick={() => setTipMode((prev) => (prev === 'custom' ? null : 'custom'))}
                   className={`flex-1 rounded-full border px-2 py-1.5 text-xs font-semibold ${
                     tipMode === 'custom'
-                      ? 'border-[#C8102E] bg-[#C8102E] text-white'
+                      ? 'border-brand-primary bg-brand-primary text-white'
                       : 'border-gray-300 text-gray-600 dark:border-neutral-700 dark:text-neutral-300'
                   }`}
                 >
@@ -542,7 +542,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
                     <button
                       type="button"
                       onClick={() => setSplitCount((n) => Math.max(2, (n ?? 2) - 1))}
-                      className="flex h-7 w-7 items-center justify-center rounded-full border border-gray-300 text-sm font-bold hover:border-[#C8102E] hover:text-[#C8102E] dark:border-neutral-700"
+                      className="flex h-7 w-7 items-center justify-center rounded-full border border-gray-300 text-sm font-bold hover:border-brand-primary hover:text-brand-primary dark:border-neutral-700"
                     >
                       −
                     </button>
@@ -552,13 +552,13 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
                     <button
                       type="button"
                       onClick={() => setSplitCount((n) => Math.min(12, (n ?? 2) + 1))}
-                      className="flex h-7 w-7 items-center justify-center rounded-full border border-gray-300 text-sm font-bold hover:border-[#C8102E] hover:text-[#C8102E] dark:border-neutral-700"
+                      className="flex h-7 w-7 items-center justify-center rounded-full border border-gray-300 text-sm font-bold hover:border-brand-primary hover:text-brand-primary dark:border-neutral-700"
                     >
                       +
                     </button>
                   </div>
                   {perPersonTotal && (
-                    <span className="text-sm font-bold text-[#C8102E]">{fmt(perPersonTotal)} {getText('c/u', 'ea')}</span>
+                    <span className="text-sm font-bold text-brand-primary">{fmt(perPersonTotal)} {getText('c/u', 'ea')}</span>
                   )}
                 </div>
               )}
@@ -586,7 +586,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
                 onClick={() => setPaymentMethod(pm.value)}
                 className={`flex flex-col items-center gap-1 rounded-xl border px-2 py-2.5 text-xs font-semibold transition-colors ${
                   paymentMethod === pm.value
-                    ? 'border-[#C8102E] bg-[#C8102E]/10 text-[#C8102E]'
+                    ? 'border-brand-primary bg-brand-primary/10 text-brand-primary'
                     : 'border-gray-300 text-gray-600 dark:border-neutral-700 dark:text-neutral-300'
                 }`}
               >
@@ -599,7 +599,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
           <button
             onClick={chargeSale}
             disabled={cart.length === 0 || !paymentMethod || charging}
-            className="mt-3 w-full rounded-full bg-[#C8102E] px-5 py-3 text-sm font-bold text-white disabled:opacity-40"
+            className="mt-3 w-full rounded-full bg-brand-primary px-5 py-3 text-sm font-bold text-white disabled:opacity-40"
           >
             {charging
               ? getText('Registrando…', 'Registering…')
@@ -631,7 +631,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
             <div className="p-4">
               <div className="flex items-start justify-between gap-3">
                 <h3 className="text-base font-bold">{infoItem.name}</h3>
-                <span className="shrink-0 text-base font-bold text-[#C8102E]">{fmt(infoItem.price)}</span>
+                <span className="shrink-0 text-base font-bold text-brand-primary">{fmt(infoItem.price)}</span>
               </div>
               {infoItem.description && (
                 <p className="mt-2 text-sm text-gray-600 dark:text-neutral-300">{infoItem.description}</p>
@@ -666,7 +666,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
                 className="h-full w-full"
               />
             </div>
-            <p className="mt-4 text-2xl font-bold text-[#C8102E]">{fmt(total)}</p>
+            <p className="mt-4 text-2xl font-bold text-brand-primary">{fmt(total)}</p>
             <a
               href={checkoutModal.url}
               target="_blank"
@@ -676,7 +676,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
               {getText('O comparte este link', 'Or share this link')}
             </a>
             <div className="mt-4 flex items-center justify-center gap-2 text-xs font-medium text-gray-400 dark:text-neutral-500">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-[#C8102E]" />
+              <span className="h-2 w-2 animate-pulse rounded-full bg-brand-primary" />
               {getText('Esperando el pago…', 'Waiting for payment…')}
             </div>
             <button

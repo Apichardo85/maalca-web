@@ -304,7 +304,7 @@ export function BoardContent({
             'Comerciales o promos que se intercalan con tu menú en la pantalla pública. Ábrela en tu Smart TV: ',
             'Commercials or promos that rotate with your menu on the public screen. Open it on your Smart TV: ',
           )}
-          <a href={`/${slug}/board`} target="_blank" rel="noopener" className="text-[#C8102E] underline">
+          <a href={`/${slug}/board`} target="_blank" rel="noopener" className="text-brand-primary underline">
             maalca.com/{slug}/board
           </a>
         </p>
@@ -341,7 +341,7 @@ export function BoardContent({
             <button
               onClick={saveFrequency}
               disabled={savingFrequency}
-              className="rounded-full bg-[#C8102E] px-4 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+              className="rounded-full bg-brand-primary px-4 py-1.5 text-xs font-medium text-white disabled:opacity-50"
             >
               {savingFrequency ? getText('Guardando…', 'Saving…') : getText('Guardar', 'Save')}
             </button>
@@ -425,7 +425,7 @@ export function BoardContent({
             </div>
             <button
               onClick={() => setAddingScreen((v) => !v)}
-              className="shrink-0 rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium hover:border-[#C8102E] hover:text-[#C8102E]"
+              className="shrink-0 rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium hover:border-brand-primary hover:text-brand-primary"
             >
               {addingScreen ? getText('Cancelar', 'Cancel') : getText('+ Agregar', '+ Add')}
             </button>
@@ -443,7 +443,7 @@ export function BoardContent({
               <button
                 onClick={createScreen}
                 disabled={creatingScreen || !newScreenName.trim()}
-                className="rounded-full bg-[#C8102E] px-4 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+                className="rounded-full bg-brand-primary px-4 py-1.5 text-xs font-medium text-white disabled:opacity-50"
               >
                 {creatingScreen ? getText('Creando…', 'Creating…') : getText('Crear', 'Create')}
               </button>
@@ -465,7 +465,7 @@ export function BoardContent({
                         href={`/${slug}/board/${screen.id}`}
                         target="_blank"
                         rel="noopener"
-                        className="text-xs text-[#C8102E] underline truncate block"
+                        className="text-xs text-brand-primary underline truncate block"
                       >
                         maalca.com/{slug}/board/{screen.id}
                       </a>
@@ -473,7 +473,7 @@ export function BoardContent({
                     <div className="flex shrink-0 gap-2">
                       <button
                         onClick={() => setEditingScreenId((id) => (id === screen.id ? null : screen.id))}
-                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium hover:border-[#C8102E] hover:text-[#C8102E]"
+                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium hover:border-brand-primary hover:text-brand-primary"
                       >
                         {editingScreenId === screen.id ? getText('Cerrar', 'Close') : getText('Editar', 'Edit')}
                       </button>
@@ -575,8 +575,8 @@ export function BoardContent({
                                   onClick={() => toggleScreenCategory(screen, category)}
                                   className={`rounded-full border px-3 py-1 text-xs font-medium transition disabled:opacity-50 ${
                                     selected
-                                      ? 'border-[#C8102E] bg-[#C8102E]/10 text-[#C8102E]'
-                                      : 'border-gray-300 dark:border-neutral-700 text-gray-600 dark:text-neutral-300 hover:border-[#C8102E]'
+                                      ? 'border-brand-primary bg-brand-primary/10 text-brand-primary'
+                                      : 'border-gray-300 dark:border-neutral-700 text-gray-600 dark:text-neutral-300 hover:border-brand-primary'
                                   }`}
                                 >
                                   {category}
@@ -602,8 +602,8 @@ export function BoardContent({
                                   onClick={() => toggleScreenAd(screen, ad.id)}
                                   className={`rounded-full border px-3 py-1 text-xs font-medium transition disabled:opacity-50 ${
                                     selected
-                                      ? 'border-[#C8102E] bg-[#C8102E]/10 text-[#C8102E]'
-                                      : 'border-gray-300 dark:border-neutral-700 text-gray-600 dark:text-neutral-300 hover:border-[#C8102E]'
+                                      ? 'border-brand-primary bg-brand-primary/10 text-brand-primary'
+                                      : 'border-gray-300 dark:border-neutral-700 text-gray-600 dark:text-neutral-300 hover:border-brand-primary'
                                   }`}
                                 >
                                   {label}
@@ -633,7 +633,7 @@ export function BoardContent({
           />
           <label
             htmlFor="ad-upload"
-            className="cursor-pointer text-sm font-medium text-[#C8102E] hover:underline"
+            className="cursor-pointer text-sm font-medium text-brand-primary hover:underline"
           >
             {uploading
               ? getText('Subiendo…', 'Uploading…')
@@ -698,7 +698,7 @@ export function BoardContent({
                   <button
                     onClick={() => toggleActive(ad)}
                     disabled={busyId === ad.id}
-                    className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium hover:border-[#C8102E] hover:text-[#C8102E] disabled:opacity-50"
+                    className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium hover:border-brand-primary hover:text-brand-primary disabled:opacity-50"
                   >
                     {ad.active ? getText('Pausar', 'Pause') : getText('Activar', 'Activate')}
                   </button>

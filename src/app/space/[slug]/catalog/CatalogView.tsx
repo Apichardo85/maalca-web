@@ -90,7 +90,7 @@ export function CatalogView({ slug, plan, items: initialItems, productCount }: P
           </div>
           <Link
             href={`/space/${slug}/catalog/new?from=catalog`}
-            className="flex min-h-11 flex-shrink-0 items-center justify-center rounded-full bg-[#C8102E] px-4 text-sm font-medium text-white transition hover:bg-[#A00D26]"
+            className="flex min-h-11 flex-shrink-0 items-center justify-center rounded-full bg-brand-primary px-4 text-sm font-medium text-white transition hover:bg-brand-primary-hover"
           >
             {getText('+ Agregar item', '+ Add item')}
           </Link>
@@ -110,7 +110,7 @@ export function CatalogView({ slug, plan, items: initialItems, productCount }: P
             </p>
             <Link
               href={`/space/${slug}/catalog/new?from=catalog`}
-              className="mt-5 inline-block rounded-full bg-[#C8102E] px-5 py-2 text-sm font-medium text-white transition hover:bg-[#A00D26]"
+              className="mt-5 inline-block rounded-full bg-brand-primary px-5 py-2 text-sm font-medium text-white transition hover:bg-brand-primary-hover"
             >
               {getText('+ Agregar primer item', '+ Add first item')}
             </Link>
@@ -159,7 +159,7 @@ export function CatalogView({ slug, plan, items: initialItems, productCount }: P
                     onClick={() => setActiveTab(key)}
                     className={`flex-shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
                       activeTab === key
-                        ? 'bg-[#C8102E] text-white'
+                        ? 'bg-brand-primary text-white'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700'
                     }`}
                   >
@@ -174,7 +174,7 @@ export function CatalogView({ slug, plan, items: initialItems, productCount }: P
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={getText('Buscar por nombre o categoría...', 'Search by name or category...')}
-              className="mb-3 w-full rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-[#C8102E]/40"
+              className="mb-3 w-full rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-600 focus:outline-none focus:ring-2 focus:ring-brand-primary/40"
             />
 
             {filteredRealItems.length === 0 ? (
@@ -188,7 +188,7 @@ export function CatalogView({ slug, plan, items: initialItems, productCount }: P
                 <button
                   type="button"
                   onClick={clearFilters}
-                  className="mt-2 text-xs font-medium text-[#C8102E] hover:underline"
+                  className="mt-2 text-xs font-medium text-brand-primary hover:underline"
                 >
                   {getText('Quitar filtros', 'Clear filters')}
                 </button>
@@ -221,7 +221,7 @@ export function CatalogView({ slug, plan, items: initialItems, productCount }: P
               {productCount >= limits.itemsPerBusiness && (
                 <Link
                   href={`/space/${slug}/settings`}
-                  className="text-xs font-medium text-[#C8102E] hover:underline"
+                  className="text-xs font-medium text-brand-primary hover:underline"
                 >
                   {getText('Mejorar para más →', 'Upgrade for more →')}
                 </Link>
@@ -229,7 +229,7 @@ export function CatalogView({ slug, plan, items: initialItems, productCount }: P
             </div>
             <div className="h-1.5 rounded-full bg-gray-200 dark:bg-neutral-800">
               <div
-                className="h-full rounded-full bg-[#C8102E] transition-all"
+                className="h-full rounded-full bg-brand-primary transition-all"
                 style={{ width: `${Math.min(100, (productCount / limits.itemsPerBusiness) * 100)}%` }}
               />
             </div>

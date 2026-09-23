@@ -327,7 +327,7 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
                 </p>
               </div>
               {plan === 'entrepreneur' && (
-                <span className="rounded-full bg-[#C8102E]/10 px-3 py-1 text-xs font-medium text-[#C8102E]">
+                <span className="rounded-full bg-brand-primary/10 px-3 py-1 text-xs font-medium text-brand-primary">
                   $38/{getText('mes', 'mo')}
                 </span>
               )}
@@ -477,7 +477,7 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
                   <button
                     onClick={handleConnectPayments}
                     disabled={connectLoading}
-                    className="mt-4 w-full rounded-full border border-gray-300 dark:border-neutral-700 py-3 text-sm font-medium text-gray-900 dark:text-white transition hover:border-[#C8102E] hover:text-[#C8102E] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="mt-4 w-full rounded-full border border-gray-300 dark:border-neutral-700 py-3 text-sm font-medium text-gray-900 dark:text-white transition hover:border-brand-primary hover:text-brand-primary disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {connectLoading
                       ? getText('Redirigiendo a Stripe...', 'Redirecting to Stripe...')
@@ -510,7 +510,7 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
               <button
                 onClick={handleUpgrade}
                 disabled={loading}
-                className="mt-5 w-full rounded-full bg-[#C8102E] py-3 text-sm font-medium text-white transition hover:bg-[#A00D26] disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-5 w-full rounded-full bg-brand-primary py-3 text-sm font-medium text-white transition hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading
                   ? getText('Redirigiendo a Stripe...', 'Redirecting to Stripe...')

@@ -179,7 +179,7 @@ export function ReservationsContent({ slug, initialReservations, customers }: Pr
             type="button"
             onClick={() => setShowForm((v) => !v)}
             className="shrink-0 rounded-full px-4 py-2.5 text-sm font-semibold text-white"
-            style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+            style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
           >
             {showForm ? getText('Cancelar', 'Cancel') : getText('+ Agregar', '+ Add')}
           </button>
@@ -259,7 +259,7 @@ export function ReservationsContent({ slug, initialReservations, customers }: Pr
               onClick={handleAdd}
               disabled={!name.trim() || !phone.trim() || !date || !time || saving}
               className="w-full rounded-full px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
-              style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+              style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
             >
               {saving ? getText('Agregando…', 'Adding…') : getText('Agregar reserva', 'Add reservation')}
             </button>
@@ -299,7 +299,7 @@ export function ReservationsContent({ slug, initialReservations, customers }: Pr
                     onClick={() => updateStatus(r.id, 'Confirmed')}
                     disabled={actingOn === r.id}
                     className="rounded-full px-3 py-2 text-xs font-semibold text-white disabled:opacity-40"
-                    style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+                    style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
                   >
                     {getText('Confirmar', 'Confirm')}
                   </button>
@@ -310,7 +310,7 @@ export function ReservationsContent({ slug, initialReservations, customers }: Pr
                     onClick={() => updateStatus(r.id, 'Seated')}
                     disabled={actingOn === r.id}
                     className="rounded-full px-3 py-2 text-xs font-semibold text-white disabled:opacity-40"
-                    style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+                    style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
                   >
                     {getText('Sentar', 'Seat')}
                   </button>
@@ -364,7 +364,7 @@ export function ReservationsContent({ slug, initialReservations, customers }: Pr
                           customerId: r.customerId,
                           desc: getText(`Mesa · ${r.partySize} personas · ${fmtDate(r.date)}`, `Table · party of ${r.partySize} · ${fmtDate(r.date)}`),
                         })}
-                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-2 py-0.5 text-[11px] font-medium text-gray-600 dark:text-neutral-300 hover:border-[#C8102E] hover:text-[#C8102E]"
+                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-2 py-0.5 text-[11px] font-medium text-gray-600 dark:text-neutral-300 hover:border-brand-primary hover:text-brand-primary"
                       >
                         {getText('Generar factura', 'Generate invoice')}
                       </Link>

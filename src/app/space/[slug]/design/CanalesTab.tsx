@@ -547,7 +547,7 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
               <button
                 onClick={addCanal}
                 disabled={adding || !newTipo}
-                className="flex-shrink-0 rounded-lg bg-[#C8102E] px-4 py-2 text-sm font-medium text-white hover:bg-[#A00D26] disabled:opacity-50"
+                className="flex-shrink-0 rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:opacity-50"
               >
                 {adding ? getText('Agregando...', 'Adding...') : getText('Agregar', 'Add')}
               </button>

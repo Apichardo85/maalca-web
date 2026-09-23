@@ -181,7 +181,7 @@ export function KitchenContent({ slug, plan, affiliateId, initialOrders }: Props
               <button
                 type="button"
                 onClick={unlockSound}
-                className="flex min-h-11 items-center gap-1.5 rounded-full bg-[#C8102E] px-4 text-sm font-semibold text-white"
+                className="flex min-h-11 items-center gap-1.5 rounded-full bg-brand-primary px-4 text-sm font-semibold text-white"
               >
                 🔔 {getText('Activar sonido', 'Enable sound')}
               </button>
@@ -283,7 +283,7 @@ export function KitchenContent({ slug, plan, affiliateId, initialOrders }: Props
                         <button
                           onClick={() => advance(order.id, 'Preparing')}
                           disabled={busyId === order.id}
-                          className="mt-3 w-full rounded-full bg-[#C8102E] py-2 text-sm font-semibold text-white disabled:opacity-50"
+                          className="mt-3 w-full rounded-full bg-brand-primary py-2 text-sm font-semibold text-white disabled:opacity-50"
                         >
                           {getText('Empezar', 'Start')}
                         </button>
@@ -292,7 +292,7 @@ export function KitchenContent({ slug, plan, affiliateId, initialOrders }: Props
                         <button
                           onClick={() => advance(order.id, 'Fulfilled')}
                           disabled={busyId === order.id}
-                          className="mt-3 w-full rounded-full bg-[#C8102E] py-2 text-sm font-semibold text-white disabled:opacity-50"
+                          className="mt-3 w-full rounded-full bg-brand-primary py-2 text-sm font-semibold text-white disabled:opacity-50"
                         >
                           {getText('Listo', 'Ready')}
                         </button>

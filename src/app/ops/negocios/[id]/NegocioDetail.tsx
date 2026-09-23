@@ -255,7 +255,7 @@ export function NegocioDetail({
           <button
             onClick={impersonate}
             disabled={busy}
-            className="rounded-full bg-[#C8102E] px-3.5 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+            className="rounded-full bg-brand-primary px-3.5 py-1.5 text-xs font-medium text-white disabled:opacity-50"
           >
             Entrar como soporte
           </button>
@@ -359,7 +359,7 @@ export function NegocioDetail({
             <button
               onClick={saveModules}
               disabled={savingModules}
-              className="rounded-full bg-[#C8102E] px-3.5 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+              className="rounded-full bg-brand-primary px-3.5 py-1.5 text-xs font-medium text-white disabled:opacity-50"
             >
               {savingModules ? 'Guardando…' : 'Guardar cambios'}
             </button>
@@ -373,7 +373,7 @@ export function NegocioDetail({
           <button
             type="button"
             onClick={() => setShowAllModules((v) => !v)}
-            className="shrink-0 text-xs font-medium text-gray-500 dark:text-neutral-400 underline decoration-dotted underline-offset-2 hover:text-[#C8102E]"
+            className="shrink-0 text-xs font-medium text-gray-500 dark:text-neutral-400 underline decoration-dotted underline-offset-2 hover:text-brand-primary"
           >
             {showAllModules
               ? 'Mostrar solo relevantes'
@@ -392,7 +392,7 @@ export function NegocioDetail({
                 title={mod.descEs}
                 className={`flex items-start gap-2 rounded-xl border px-3 py-2.5 text-left text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
                   active
-                    ? 'border-[#C8102E] bg-[#C8102E]/10 text-[#C8102E]'
+                    ? 'border-brand-primary bg-brand-primary/10 text-brand-primary'
                     : 'border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-gray-500 dark:text-neutral-400'
                 }`}
               >
@@ -401,7 +401,7 @@ export function NegocioDetail({
                   <span className="block">{mod.es}</span>
                   <span className="mt-0.5 block truncate text-[10px] font-normal opacity-70">{mod.descEs}</span>
                 </span>
-                <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${active ? 'bg-[#C8102E]' : 'bg-gray-300 dark:bg-neutral-700'}`} />
+                <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${active ? 'bg-brand-primary' : 'bg-gray-300 dark:bg-neutral-700'}`} />
               </button>
             );
           })}
@@ -422,7 +422,7 @@ export function NegocioDetail({
             <button
               onClick={addNote}
               disabled={savingNote || !noteText.trim()}
-              className="rounded-md bg-[#C8102E] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+              className="rounded-md bg-brand-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
             >
               Agregar
             </button>

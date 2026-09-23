@@ -66,7 +66,7 @@ export default async function IdentidadPage({
     description: publicProfile?.description ?? null,
     descriptionEn: publicProfile?.descriptionEn ?? null,
     logo_url: publicProfile?.logoUrl ?? null,
-    primary_color: biz.primaryColor ?? '#C8102E',
+    primary_color: biz.primaryColor ?? '#045AFE',
     whatsapp: biz.whatsapp ?? null,
     address: publicProfile?.address ?? null,
     contactEmail: publicProfile?.contactEmail ?? null,

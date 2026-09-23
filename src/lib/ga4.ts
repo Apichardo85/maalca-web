@@ -116,7 +116,7 @@ async function runReport(
 // GA4 default channel groupings → our 4 display buckets
 
 const CHANNEL_MAP: Record<string, { name: string; nameEs: string; color: string }> = {
-  organic:  { name: "Organic",  nameEs: "Orgánico",  color: "#C8102E" },
+  organic:  { name: "Organic",  nameEs: "Orgánico",  color: "#045AFE" },
   direct:   { name: "Direct",   nameEs: "Directo",   color: "#1a1a1a" },
   social:   { name: "Social",   nameEs: "Redes",     color: "#888780" },
   referral: { name: "Referral", nameEs: "Referidos", color: "#D3D1C7" },

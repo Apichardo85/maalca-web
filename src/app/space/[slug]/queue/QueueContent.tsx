@@ -153,7 +153,7 @@ export function QueueContent({ slug, affiliateId, initialEntries, services, barb
             type="button"
             onClick={() => setShowForm((v) => !v)}
             className="shrink-0 rounded-full px-4 py-2.5 text-sm font-semibold text-white"
-            style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+            style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
           >
             {showForm ? getText('Cancelar', 'Cancel') : getText('+ Agregar', '+ Add')}
           </button>
@@ -202,7 +202,7 @@ export function QueueContent({ slug, affiliateId, initialEntries, services, barb
               onClick={handleAdd}
               disabled={!name.trim() || saving}
               className="w-full rounded-full px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
-              style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+              style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
             >
               {saving ? getText('Agregando…', 'Adding…') : getText('Agregar a la fila', 'Add to queue')}
             </button>
@@ -235,7 +235,7 @@ export function QueueContent({ slug, affiliateId, initialEntries, services, barb
                   onClick={() => updateStatus(entry.id, 'in_service', entry.preferredBarberId ?? undefined)}
                   disabled={actingOn === entry.id}
                   className="flex min-h-11 items-center justify-center rounded-full px-3 text-xs font-semibold text-white disabled:opacity-40"
-                  style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+                  style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
                 >
                   {getText('Llamar', 'Call')}
                 </button>
@@ -278,7 +278,7 @@ export function QueueContent({ slug, affiliateId, initialEntries, services, barb
                           onClick={() => completeAndInvoice(entry)}
                           disabled={actingOn === entry.id}
                           className="flex min-h-11 items-center justify-center rounded-full px-3 text-xs font-semibold text-white disabled:opacity-40"
-                          style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+                          style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
                         >
                           {getText('Completar y facturar', 'Complete & invoice')}
                         </button>

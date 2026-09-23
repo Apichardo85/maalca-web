@@ -168,7 +168,7 @@ export function ContenidoTab({
       <button
         onClick={save}
         disabled={saving}
-        className="w-full rounded-full bg-[#C8102E] py-2.5 text-sm font-medium text-white transition hover:bg-[#A00D26] disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full rounded-full bg-brand-primary py-2.5 text-sm font-medium text-white transition hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
       >
         {saving
           ? getText('Guardando...', 'Saving...')
@@ -321,7 +321,7 @@ function GallerySection({
             aria-checked={visible}
             onClick={() => onVisibleChange(!visible)}
             className={`relative h-5 w-9 flex-shrink-0 rounded-full transition-colors ${
-              visible ? 'bg-[#C8102E]' : 'bg-gray-300 dark:bg-neutral-600'
+              visible ? 'bg-brand-primary' : 'bg-gray-300 dark:bg-neutral-600'
             }`}
           >
             <span
@@ -488,7 +488,7 @@ function ListSection<T extends object>({
               aria-checked={visible}
               onClick={() => onVisibleChange(!visible)}
               className={`relative h-5 w-9 flex-shrink-0 rounded-full transition-colors ${
-                visible ? 'bg-[#C8102E]' : 'bg-gray-300 dark:bg-neutral-600'
+                visible ? 'bg-brand-primary' : 'bg-gray-300 dark:bg-neutral-600'
               }`}
             >
               <span
@@ -622,7 +622,7 @@ function ListSection<T extends object>({
         />
         <button
           onClick={addItem}
-          className="w-full rounded-lg bg-[#C8102E] px-4 py-2 text-sm font-medium text-white hover:bg-[#A00D26]"
+          className="w-full rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary-hover"
         >
           {addLabel}
         </button>

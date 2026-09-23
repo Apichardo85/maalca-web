@@ -70,7 +70,7 @@ type Status = 'ready' | 'submitting' | 'success' | 'error';
  */
 export function TableReservationSection({ slug, language, accent, horario }: Props) {
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
-  const color = accent || '#C8102E';
+  const color = accent || '#045AFE';
   const colorDark = darken(color, 30);
 
   const [modalOpen, setModalOpen] = useState(false);

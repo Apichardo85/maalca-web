@@ -506,7 +506,7 @@ export async function sendAppointmentConfirmationEmail(params: {
   const footer = params.manageUrl
     ? `
         <div style="text-align: center; margin: 20px 0;">
-          <a href="${params.manageUrl}" style="display: inline-block; background: #C8102E; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Gestiona tu cita</a>
+          <a href="${params.manageUrl}" style="display: inline-block; background: #045AFE; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Gestiona tu cita</a>
         </div>
         <p style="font-size: 13px; color: #737373;">Desde ese link puedes confirmar, reagendar o cancelar sin llamar al negocio.</p>
       `
@@ -567,7 +567,7 @@ export async function sendAppointmentReminderEmail(params: {
   const footer = params.manageUrl
     ? `
         <div style="text-align: center; margin: 20px 0;">
-          <a href="${params.manageUrl}" style="display: inline-block; background: #C8102E; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Gestiona tu cita</a>
+          <a href="${params.manageUrl}" style="display: inline-block; background: #045AFE; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Gestiona tu cita</a>
         </div>
         <p style="font-size: 13px; color: #737373;">¿No puedes venir? Reagenda o cancela desde ese link.</p>
       `
@@ -715,7 +715,7 @@ export async function sendInvoicePaymentLinkEmail(params: {
   }
 
   const greeting = params.customerName ? `Hola, ${params.customerName}` : 'Hola';
-  const brandColor = '#C8102E';
+  const brandColor = '#045AFE';
 
   try {
     await resend.emails.send({
@@ -766,7 +766,7 @@ export async function sendProposalEmail(params: {
   }
 
   const greeting = params.customerName ? `Hola, ${params.customerName}` : 'Hola';
-  const brandColor = '#C8102E';
+  const brandColor = '#045AFE';
   const expiresLine = params.expiresAt
     ? `<p style="font-size: 13px; color: #737373;">Válida hasta el ${new Date(params.expiresAt).toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric' })}.</p>`
     : '';
@@ -820,7 +820,7 @@ export async function sendProposalAcceptedEmail(params: {
     return false;
   }
 
-  const brandColor = '#C8102E';
+  const brandColor = '#045AFE';
   const acceptedDate = params.acceptedAt
     ? new Date(params.acceptedAt).toLocaleString('es-DO', { dateStyle: 'long', timeStyle: 'short' })
     : '';

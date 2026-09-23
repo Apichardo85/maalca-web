@@ -199,7 +199,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
   ref,
 ) {
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
-  const color = accent || '#C8102E';
+  const color = accent || '#045AFE';
   const colorDark = darken(color, 30);
 
   const [loadStatus, setLoadStatus] = useState<'loading' | 'ready' | 'error'>('loading');

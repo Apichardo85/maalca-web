@@ -300,7 +300,7 @@ export function ProposalsContent({ slug, currency, initialProposals, customers }
             type="button"
             onClick={() => setShowForm((v) => !v)}
             className="shrink-0 rounded-full px-4 py-2.5 text-sm font-semibold text-white"
-            style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+            style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
           >
             {showForm ? getText('Cancelar', 'Cancel') : getText('+ Nueva', '+ New')}
           </button>
@@ -411,7 +411,7 @@ export function ProposalsContent({ slug, currency, initialProposals, customers }
                   accept="application/pdf,image/jpeg,image/png,image/webp"
                   onChange={handleAttachmentChange}
                   disabled={uploadingAttachment}
-                  className="mt-1 w-full text-sm text-gray-500 dark:text-neutral-400 file:mr-3 file:rounded-full file:border-0 file:bg-[#C8102E] file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white disabled:opacity-40"
+                  className="mt-1 w-full text-sm text-gray-500 dark:text-neutral-400 file:mr-3 file:rounded-full file:border-0 file:bg-brand-primary file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white disabled:opacity-40"
                 />
               )}
               {uploadingAttachment && (
@@ -423,7 +423,7 @@ export function ProposalsContent({ slug, currency, initialProposals, customers }
               onClick={handleAdd}
               disabled={!name.trim() || !title.trim() || !amount || saving}
               className="w-full rounded-full px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
-              style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+              style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
             >
               {saving ? getText('Creando…', 'Creating…') : getText('Crear propuesta', 'Create proposal')}
             </button>
@@ -458,7 +458,7 @@ export function ProposalsContent({ slug, currency, initialProposals, customers }
                       href={p.attachmentUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-1 inline-block text-xs font-medium text-[#C8102E] hover:underline"
+                      className="mt-1 inline-block text-xs font-medium text-brand-primary hover:underline"
                     >
                       📎 {getText('Ver documento adjunto', 'View attached document')}
                     </a>
@@ -471,7 +471,7 @@ export function ProposalsContent({ slug, currency, initialProposals, customers }
                       onClick={() => handleSend(p.id)}
                       disabled={actingOn === p.id}
                       className="rounded-full px-3 py-2 text-xs font-semibold text-white disabled:opacity-40"
-                      style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+                      style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
                     >
                       {getText('Enviar', 'Send')}
                     </button>
@@ -528,7 +528,7 @@ export function ProposalsContent({ slug, currency, initialProposals, customers }
                         href={p.attachmentUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs font-medium text-[#C8102E] hover:underline"
+                        className="text-xs font-medium text-brand-primary hover:underline"
                       >
                         📎 {getText('Ver adjunto', 'View attachment')}
                       </a>
@@ -538,7 +538,7 @@ export function ProposalsContent({ slug, currency, initialProposals, customers }
                     {p.status === 'Accepted' && p.customerId && (
                       <Link
                         href={buildInvoiceLink(slug, { customerId: p.customerId, desc: p.title, amount: p.amount })}
-                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-2 py-0.5 text-[11px] font-medium text-gray-600 dark:text-neutral-300 hover:border-[#C8102E] hover:text-[#C8102E]"
+                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-2 py-0.5 text-[11px] font-medium text-gray-600 dark:text-neutral-300 hover:border-brand-primary hover:text-brand-primary"
                       >
                         {getText('Generar factura', 'Generate invoice')}
                       </Link>

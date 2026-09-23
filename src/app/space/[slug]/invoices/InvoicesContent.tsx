@@ -490,7 +490,7 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers, ca
               }
             }}
             className="shrink-0 rounded-full px-4 py-2.5 text-sm font-semibold text-white"
-            style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+            style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
           >
             {showForm ? getText('Cancelar', 'Cancel') : getText('+ Nueva factura', '+ New invoice')}
           </button>
@@ -642,7 +642,7 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers, ca
               onClick={handleCreate}
               disabled={!customerId || lines.every((l) => !l.description.trim()) || saving}
               className="w-full rounded-full px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
-              style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+              style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
             >
               {saving
                 ? editingInvoiceId
@@ -715,7 +715,7 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers, ca
                         onClick={() => generatePaymentLink(invoice)}
                         disabled={generatingLink === invoice.id}
                         className="flex min-h-11 items-center justify-center rounded-full px-3 text-xs font-semibold text-white disabled:opacity-40"
-                        style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
+                        style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
                       >
                         {generatingLink === invoice.id
                           ? getText('Generando…', 'Generating…')

@@ -108,7 +108,7 @@ function CreateTrialModal({
         <button
           onClick={create}
           disabled={busy || !name.trim()}
-          className="w-full rounded-md bg-[#C8102E] px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="w-full rounded-md bg-brand-primary px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
           {busy ? 'Creando…' : 'Crear espacio de prueba'}
         </button>
@@ -122,7 +122,7 @@ function PlanBadge({ plan }: { plan: string }) {
     <span
       className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
         plan === 'Entrepreneur'
-          ? 'bg-[#C8102E]/10 text-[#C8102E]'
+          ? 'bg-brand-primary/10 text-brand-primary'
           : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400'
       }`}
     >
@@ -226,7 +226,7 @@ function AffiliateActions({ a, canManage, busyId, setStatus, impersonate }: RowP
       <button
         onClick={() => impersonate(a)}
         disabled={busyId === a.id}
-        className="rounded-full bg-[#C8102E] px-3 py-1 text-xs font-medium text-white disabled:opacity-50"
+        className="rounded-full bg-brand-primary px-3 py-1 text-xs font-medium text-white disabled:opacity-50"
       >
         {busyId === a.id ? '…' : 'Soporte'}
       </button>
@@ -308,7 +308,7 @@ export function NegociosTable({ initialAffiliates }: { initialAffiliates: OpsAff
           {canManage && (
             <button
               onClick={() => setShowTrialModal(true)}
-              className="rounded-full bg-[#C8102E] px-3 py-1.5 text-xs font-medium text-white"
+              className="rounded-full bg-brand-primary px-3 py-1.5 text-xs font-medium text-white"
             >
               + Espacio de prueba
             </button>

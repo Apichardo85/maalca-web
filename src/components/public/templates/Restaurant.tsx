@@ -136,7 +136,7 @@ export function RestaurantTemplate({
   categories: categoriesProp,
   capabilities,
 }: PublicTemplateProps) {
-  const accent = business.primary_color ?? '#C8102E';
+  const accent = business.primary_color ?? '#045AFE';
   const waRaw = resolveWhatsAppDigits(business);
   const waHeroLink = waRaw
     ? `https://wa.me/${waRaw}?text=${encodeURIComponent(`Hola, quiero info sobre ${business.name}`)}`

@@ -170,7 +170,7 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
                     <button
                       onClick={() => updateStatus(order.id, 'Preparing')}
                       disabled={updatingId === order.id}
-                      className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-4 text-xs font-medium hover:border-[#C8102E] hover:text-[#C8102E] disabled:opacity-50"
+                      className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-4 text-xs font-medium hover:border-brand-primary hover:text-brand-primary disabled:opacity-50"
                     >
                       {getText('Marcar en preparación', 'Mark preparing')}
                     </button>
@@ -179,7 +179,7 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
                     <button
                       onClick={() => updateStatus(order.id, 'Fulfilled')}
                       disabled={updatingId === order.id}
-                      className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-4 text-xs font-medium hover:border-[#C8102E] hover:text-[#C8102E] disabled:opacity-50"
+                      className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-4 text-xs font-medium hover:border-brand-primary hover:text-brand-primary disabled:opacity-50"
                     >
                       {getText('Marcar entregado', 'Mark fulfilled')}
                     </button>
@@ -196,7 +196,7 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
                       <button
                         onClick={() => updateStatus(order.id, 'Paid')}
                         disabled={updatingId === order.id}
-                        className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-4 text-xs font-medium hover:border-[#C8102E] hover:text-[#C8102E] disabled:opacity-50"
+                        className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-4 text-xs font-medium hover:border-brand-primary hover:text-brand-primary disabled:opacity-50"
                       >
                         {getText('Marcar pagado', 'Mark paid')}
                       </button>

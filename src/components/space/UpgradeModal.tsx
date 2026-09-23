@@ -76,7 +76,7 @@ export function UpgradeModal({ businessId, businessSlug, onClose }: Props) {
         <ul className="mt-6 space-y-3">
           {FEATURES.map((f) => (
             <li key={f.es} className="flex items-start gap-2 text-sm">
-              <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#C8102E]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
               </svg>
               <span className="text-neutral-700 dark:text-neutral-300">{getText(f.es, f.en)}</span>
@@ -99,7 +99,7 @@ export function UpgradeModal({ businessId, businessSlug, onClose }: Props) {
         <button
           onClick={handleUpgrade}
           disabled={loading}
-          className="mt-6 w-full rounded-full bg-[#C8102E] py-3 text-sm font-medium text-white transition hover:bg-[#A00D26] disabled:opacity-50"
+          className="mt-6 w-full rounded-full bg-brand-primary py-3 text-sm font-medium text-white transition hover:bg-brand-primary-hover disabled:opacity-50"
         >
           {loading
             ? getText('Redirigiendo...', 'Redirecting...')

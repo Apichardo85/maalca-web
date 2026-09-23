@@ -7,7 +7,8 @@ import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import type { ProfileFormState, CanalDto } from './types';
 
 const PALETTE = [
-  { name: 'Rojo MaalCa', hex: '#C8102E' },
+  { name: 'Azul MaalCa', hex: '#045AFE' },
+  { name: 'Rojo', hex: '#C8102E' },
   { name: 'Azul Océano', hex: '#0066CC' },
   { name: 'Verde Esmeralda', hex: '#10B981' },
   { name: 'Morado', hex: '#7C3AED' },
