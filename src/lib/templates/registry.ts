@@ -6,7 +6,7 @@ import type { PlanCapabilities } from '@/lib/capabilities';
 import type { PublicCanal } from '@/lib/public-contact';
 import type { MealPeriod, WeekDay, MenuItemFlags } from '@/lib/types';
 
-export type BusinessType = 'restaurant' | 'barber' | 'service' | 'retail';
+export type BusinessType = 'restaurant' | 'barber' | 'service' | 'retail' | 'community';
 
 export interface Category {
   id: string;
@@ -62,6 +62,11 @@ export interface PublicTemplateProps {
     sectionVisibility?: Record<string, boolean> | null;
     /** Solo fotos, sin caption — máximo 12. */
     galleryImages?: string[] | null;
+    /** Solo businessType Community (WEB-COM-002/003) — viene de un fetch aparte a
+     *  /api/public/affiliates/{slug}/community-metrics, no del catálogo. null/undefined =
+     *  todavía no se pudo cargar o el afiliado no es Community; el template debe ocultar los
+     *  bloques que dependan de esto en vez de mostrar un 0 falso. */
+    communityMetrics?: { mealsServedThisMonth: number; avgCostPerPlate: number | null } | null;
   };
   items: Array<{
     id: string;
@@ -105,6 +110,7 @@ export const TEMPLATES: Record<BusinessType, ComponentType<PublicTemplateProps>>
   barber: dynamic(() => import('@/components/public/templates/Barber').then((m) => m.BarberTemplate)),
   service: dynamic(() => import('@/components/public/templates/Service').then((m) => m.ServiceTemplate)),
   retail: dynamic(() => import('@/components/public/templates/Retail').then((m) => m.RetailTemplate)),
+  community: dynamic(() => import('@/components/public/templates/Community').then((m) => m.CommunityTemplate)),
 };
 
 export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
@@ -112,6 +118,7 @@ export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
   barber: 'Barbería',
   service: 'Servicios',
   retail: 'Tienda',
+  community: 'Comunidad',
 };
 
 /** Same emoji as the onboarding business-type selector (BUSINESS_TYPES in
@@ -122,6 +129,7 @@ export const BUSINESS_TYPE_ICONS: Record<BusinessType, string> = {
   barber: '💈',
   service: '🛠️',
   retail: '🛍️',
+  community: '🤝',
 };
 
 /** Label for the /space nav item that leads to the catalog editor — the generic
@@ -131,4 +139,5 @@ export const CATALOG_NAV_LABELS: Record<BusinessType, { es: string; en: string }
   barber: { es: 'Servicios', en: 'Services' },
   service: { es: 'Servicios', en: 'Services' },
   retail: { es: 'Catálogo', en: 'Catalog' },
+  community: { es: 'Programas', en: 'Programs' },
 };

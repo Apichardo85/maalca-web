@@ -42,6 +42,24 @@ async function getCatalog(slug: string): Promise<PublicCatalogResponse | null> {
   }
 }
 
+// Solo para businessType Community (WEB-COM-002/003) — endpoint aparte del catálogo (Fase 2 del
+// backlog Comunidad). null = el afiliado no es Community o el fetch falló; el template ya sabe
+// ocultar los bloques que dependan de esto en vez de mostrar un 0 falso, así que no bloqueamos
+// el render del resto de la página por esto.
+async function getCommunityMetrics(slug: string): Promise<{ mealsServedThisMonth: number; avgCostPerPlate: number | null } | null> {
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/public/affiliates/${slug}/community-metrics`,
+      { next: { revalidate: 60, tags: [`affiliate:${slug}`] } },
+    );
+    if (!res.ok) return null;
+    return res.json();
+  } catch (e) {
+    console.error('[slug] getCommunityMetrics error', e);
+    return null;
+  }
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   if (RESERVED.has(slug)) return { title: 'MaalCa' };
@@ -83,6 +101,10 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
   const Template = TEMPLATES[affiliate.businessType.toLowerCase() as BusinessType];
   if (!Template) notFound();
 
+  const communityMetrics = affiliate.businessType.toLowerCase() === 'community'
+    ? await getCommunityMetrics(slug)
+    : null;
+
   const rawAffiliate = affiliate as typeof affiliate & { whatsApp?: string | null };
   const whatsappValue = affiliate.whatsapp ?? rawAffiliate.whatsApp ?? null;
   console.log('[slug] whatsapp keys — whatsapp:', affiliate.whatsapp, 'whatsApp:', rawAffiliate.whatsApp, 'resolved:', whatsappValue);
@@ -113,6 +135,7 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
           horario: affiliate.horario ?? null,
           currency: (affiliate.currency as 'USD' | 'DOP' | undefined) ?? 'USD',
           galleryImages: affiliate.galleryImages ?? null,
+          communityMetrics,
         }}
         items={mappedItems}
         categories={categories}
