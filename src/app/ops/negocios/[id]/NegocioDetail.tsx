@@ -41,6 +41,8 @@ export function NegocioDetail({
   const [showAllModules, setShowAllModules] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(initialAffiliate.plan);
   const [savingPlan, setSavingPlan] = useState(false);
+  const [trialAction, setTrialAction] = useState<'extend' | 'expireNow' | 'clearOverride' | null>(null);
+  const [trialResult, setTrialResult] = useState<{ trialOverrideEndsAt: string | null; isTrialExpired: boolean } | null>(null);
   const [selectedBusinessType, setSelectedBusinessType] = useState(initialAffiliate.businessType);
   const [savingBusinessType, setSavingBusinessType] = useState(false);
 
@@ -120,6 +122,25 @@ export function NegocioDetail({
       setSelectedPlan(prevPlan);
     } finally {
       setSavingPlan(false);
+    }
+  }
+
+  async function manageTrial(action: 'extend' | 'expireNow' | 'clearOverride') {
+    setTrialAction(action);
+    setError(null);
+    try {
+      const res = await fetch(`/api/ops/affiliates/${a.id}/trial`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(action === 'extend' ? { action, days: 30 } : { action }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error?.message ?? 'No se pudo actualizar el trial.');
+      setTrialResult(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Algo salió mal.');
+    } finally {
+      setTrialAction(null);
     }
   }
 
@@ -278,6 +299,45 @@ export function NegocioDetail({
           <p className="mt-1 text-sm font-semibold">{new Date(a.createdAt).toLocaleDateString()}</p>
         </div>
       </div>
+
+      {canManage && (
+        <div className="mt-4 rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-3">
+          <p className="text-xs text-gray-400 dark:text-neutral-500">
+            Trial (Free) — manejo manual, independiente de Stripe
+          </p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            <button
+              onClick={() => manageTrial('extend')}
+              disabled={trialAction !== null}
+              className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-neutral-300 hover:border-gray-400 disabled:opacity-50"
+            >
+              {trialAction === 'extend' ? 'Extendiendo…' : 'Extender 30 días'}
+            </button>
+            <button
+              onClick={() => manageTrial('expireNow')}
+              disabled={trialAction !== null}
+              className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-neutral-300 hover:border-red-400 hover:text-red-500 disabled:opacity-50"
+            >
+              {trialAction === 'expireNow' ? 'Forzando…' : 'Forzar vencimiento'}
+            </button>
+            <button
+              onClick={() => manageTrial('clearOverride')}
+              disabled={trialAction !== null}
+              className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-neutral-300 hover:border-gray-400 disabled:opacity-50"
+            >
+              {trialAction === 'clearOverride' ? 'Quitando…' : 'Quitar override'}
+            </button>
+          </div>
+          {trialResult && (
+            <p className="mt-2 text-xs text-gray-500 dark:text-neutral-400">
+              {trialResult.trialOverrideEndsAt
+                ? `Override activo hasta ${new Date(trialResult.trialOverrideEndsAt).toLocaleString()}`
+                : 'Sin override — usa el cálculo normal (30 días desde la creación).'}{' '}
+              · {trialResult.isTrialExpired ? 'Trial vencido' : 'Trial activo'}
+            </p>
+          )}
+        </div>
+      )}
 
       {a.alerts.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-1.5">
