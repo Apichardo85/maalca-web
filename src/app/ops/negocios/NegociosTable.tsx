@@ -14,6 +14,10 @@ const TRIAL_BUSINESS_TYPES = [
   { value: 'barber', label: 'Barbería' },
   { value: 'service', label: 'Servicios' },
   { value: 'retail', label: 'Tienda' },
+  // Comunidad (comedores, bancos de alimentos, causas) — solo disponible aquí (ops, admin-only)
+  // por ahora. Fase 2 del backlog Comunidad ya tiene vitrina pública; el onboarding público
+  // (OnboardingForm.tsx) todavía no la ofrece a clientes reales.
+  { value: 'community', label: 'Comunidad' },
 ] as const;
 
 function CreateTrialModal({
