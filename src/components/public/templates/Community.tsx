@@ -64,6 +64,10 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
   const mealsServed = metrics?.mealsServedThisMonth;
   const avgCostPerPlate = metrics?.avgCostPerPlate ?? null;
 
+  // Módulo — no todo trial comunitario acepta donaciones en dinero (ver comentario en
+  // registry.ts). Clave ausente = visible, mismo default que el resto de sectionVisibility.
+  const monetaryDonationsEnabled = business.sectionVisibility?.monetaryDonations ?? true;
+
   return (
     <div style={{ backgroundColor: PAPER, color: INK, minHeight: '100vh' }} className="font-sans">
       {/* ── Hero ────────────────────────────────────────────────────────── */}
@@ -135,30 +139,34 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
         </div>
       </section>
 
-      {/* ── Calculadora de impacto (WEB-COM-003) ────────────────────────── */}
-      <section className="mx-auto mt-10 max-w-[860px] px-4">
-        <div className="rounded-2xl border p-5 sm:p-6" style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}>
-          <h2 className="text-lg font-semibold" style={{ color: INK }}>
-            {getText('Calculadora de impacto', 'Impact calculator')}
-          </h2>
-          {avgCostPerPlate && avgCostPerPlate > 0 ? (
-            <ImpactCalculator accent={accent} costPerPlate={avgCostPerPlate} currency={currency} language={language} getText={getText} />
-          ) : (
-            <p className="mt-3 text-sm" style={{ color: MUTED }}>
-              {getText('Aún no hay datos de costo — vuelve pronto.', "There's no cost data yet — check back soon.")}
-            </p>
-          )}
-          <button
-            type="button"
-            disabled
-            title={getText('Próximamente', 'Coming soon')}
-            className="mt-5 w-full cursor-not-allowed rounded-full px-4 py-3 text-sm font-semibold text-white opacity-60"
-            style={{ backgroundColor: accent }}
-          >
-            {getText('Donar — próximamente', 'Donate — coming soon')}
-          </button>
-        </div>
-      </section>
+      {/* ── Calculadora de impacto + Donar (WEB-COM-003) — módulo "monetaryDonations":
+           todo el bloque depende de que el afiliado acepte dinero, no solo el botón. Sin esto
+           activado, mostrar una calculadora de "cuánto donar" no tiene sentido. */}
+      {monetaryDonationsEnabled && (
+        <section className="mx-auto mt-10 max-w-[860px] px-4">
+          <div className="rounded-2xl border p-5 sm:p-6" style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}>
+            <h2 className="text-lg font-semibold" style={{ color: INK }}>
+              {getText('Calculadora de impacto', 'Impact calculator')}
+            </h2>
+            {avgCostPerPlate && avgCostPerPlate > 0 ? (
+              <ImpactCalculator accent={accent} costPerPlate={avgCostPerPlate} currency={currency} language={language} getText={getText} />
+            ) : (
+              <p className="mt-3 text-sm" style={{ color: MUTED }}>
+                {getText('Aún no hay datos de costo — vuelve pronto.', "There's no cost data yet — check back soon.")}
+              </p>
+            )}
+            <button
+              type="button"
+              disabled
+              title={getText('Próximamente', 'Coming soon')}
+              className="mt-5 w-full cursor-not-allowed rounded-full px-4 py-3 text-sm font-semibold text-white opacity-60"
+              style={{ backgroundColor: accent }}
+            >
+              {getText('Donar — próximamente', 'Donate — coming soon')}
+            </button>
+          </div>
+        </section>
+      )}
 
       <div className="h-10" />
       <PublicFooter business={business} capabilities={capabilities} language={language} />

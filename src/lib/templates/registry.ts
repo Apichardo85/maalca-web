@@ -58,7 +58,18 @@ export interface PublicTemplateProps {
      *  todavía no la configuraron en Settings (ver SettingsContent.tsx). */
     currency?: 'USD' | 'DOP';
     /** Apagador explícito por sección opcional (Pasos, Galería) — clave ausente =
-     *  visible. Independiente de si la sección tiene contenido. */
+     *  visible. Independiente de si la sección tiene contenido.
+     *
+     *  Llaves reservadas para businessType Community (módulos — no todo trial comunitario
+     *  acepta lo mismo, ver backlog Comunidad):
+     *  - "monetaryDonations": calculadora de impacto + botón Donar (Fase 3, Stripe Connect).
+     *    Un comedor sin cuenta de donaciones configurada no debe mostrar esto.
+     *  - "causas": causas individuales con tipo dinero/tiempo/especie (Fase 4, entidad Causa).
+     *  - "puntoDeEntrega": bloque de entrega en persona (Fase 4, entidad PuntoDeEntrega).
+     *  - "eventos": agenda de actividades — sin entidad todavía, fuera del backlog actual.
+     *  Ninguna de las tres últimas tiene UI en Community.tsx aún — se agregan cuando su Fase
+     *  correspondiente tenga backend real. "monetaryDonations" sí es real hoy y ya gatea la
+     *  sección existente. */
     sectionVisibility?: Record<string, boolean> | null;
     /** Solo fotos, sin caption — máximo 12. */
     galleryImages?: string[] | null;
