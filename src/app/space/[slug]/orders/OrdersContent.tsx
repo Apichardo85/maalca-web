@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { DangerZoneDelete } from '@/components/space/DangerZoneDelete';
 
 interface OrderItem {
   itemId: string;
@@ -31,6 +32,9 @@ interface Props {
   slug: string;
   plan: 'free' | 'entrepreneur';
   initialOrders: OrderRow[];
+  // Solo true en modo soporte de plataforma (ver isImpersonation en layout.tsx) — el gate real
+  // vive en el backend, esto solo decide si se muestra el botón de borrar.
+  canHardDelete?: boolean;
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -49,11 +53,12 @@ const STATUS_LABELS: Record<string, { es: string; en: string }> = {
   Canceled: { es: 'Cancelado', en: 'Canceled' },
 };
 
-export function OrdersContent({ slug, plan, initialOrders }: Props) {
+export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const [orders, setOrders] = useState(initialOrders);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   async function updateStatus(orderId: string, status: string) {
     setUpdatingId(orderId);
@@ -69,6 +74,21 @@ export function OrdersContent({ slug, plan, initialOrders }: Props) {
       }
     } finally {
       setUpdatingId(null);
+    }
+  }
+
+  async function hardDeleteOrder(orderId: string) {
+    try {
+      const res = await fetch(`/api/space/${slug}/ops/orders/${orderId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirm: true }),
+      });
+      if (!res.ok && res.status !== 204) throw new Error('delete failed');
+      setOrders((prev) => prev.filter((o) => o.id !== orderId));
+      setDeleteTargetId(null);
+    } catch {
+      // El botón se queda visible — el admin puede reintentar.
     }
   }
 
@@ -183,6 +203,30 @@ export function OrdersContent({ slug, plan, initialOrders }: Props) {
                     </div>
                   )}
                 </div>
+
+                {canHardDelete && (
+                  deleteTargetId === order.id ? (
+                    <DangerZoneDelete
+                      title={getText('Zona de peligro', 'Danger zone')}
+                      description={getText(
+                        'Borra esta orden para siempre. No se puede deshacer — es solo para limpiar datos de prueba, nunca un pedido real.',
+                        'Permanently deletes this order. This cannot be undone — only for cleaning up test data, never a real order.',
+                      )}
+                      confirmWith={getText('BORRAR', 'DELETE')}
+                      confirmPlaceholder={getText('Escribe BORRAR para confirmar', 'Type DELETE to confirm')}
+                      buttonLabel={getText('Borrar orden permanentemente', 'Permanently delete order')}
+                      busyLabel={getText('Borrando…', 'Deleting…')}
+                      onConfirm={() => hardDeleteOrder(order.id)}
+                    />
+                  ) : (
+                    <button
+                      onClick={() => setDeleteTargetId(order.id)}
+                      className="mt-3 text-xs font-medium text-gray-400 hover:text-red-500 dark:text-neutral-600"
+                    >
+                      🗑️ {getText('Borrar permanentemente', 'Delete permanently')}
+                    </button>
+                  )
+                )}
               </div>
             ))}
           </div>

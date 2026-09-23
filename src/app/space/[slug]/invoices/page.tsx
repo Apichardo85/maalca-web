@@ -6,6 +6,7 @@ const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 interface SpaceResponse {
   business: { id: string; businessType: string; currency?: 'USD' | 'DOP'; modulosActivos: string[] };
+  isImpersonation?: boolean;
 }
 
 interface CustomerRow {
@@ -77,6 +78,7 @@ export default async function InvoicesPage({
       currency={currency}
       initialInvoices={invoices}
       customers={customers}
+      canHardDelete={space.isImpersonation === true}
     />
   );
 }

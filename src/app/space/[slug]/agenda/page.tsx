@@ -13,6 +13,7 @@ interface SpaceResponse {
     modulosActivos: string[];
   };
   role: string;
+  isImpersonation?: boolean;
 }
 
 export default async function AgendaPage({
@@ -57,6 +58,7 @@ export default async function AgendaPage({
       services={services}
       personal={personal.filter((p) => p.isActive)}
       horario={space.business.horario}
+      canHardDelete={space.isImpersonation === true}
     />
   );
 }

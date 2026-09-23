@@ -6,6 +6,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { buildInvoiceLink } from '@/lib/invoice-link';
+import { DangerZoneDelete } from '@/components/space/DangerZoneDelete';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -58,6 +59,9 @@ interface Props {
   personal: PersonalOption[];
   /** Horario configurado en Identidad — sin esto, cae a 9am–6pm todos los días. */
   horario?: HorarioDay[] | null;
+  // Solo true en modo soporte de plataforma (ver isImpersonation en layout.tsx) — el gate real
+  // vive en el backend, esto solo decide si se muestra el botón de borrar.
+  canHardDelete?: boolean;
 }
 
 const STATUS_OPTIONS = ['Scheduled', 'Confirmed', 'InProgress', 'Completed', 'Cancelled', 'NoShow'];
@@ -121,7 +125,7 @@ function formatApptDate(dateStr: string, locale: string): string {
   return new Date(y, m - 1, d).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
-export function AgendaContent({ slug, canManage, initialAppointments, services, personal, horario }: Props) {
+export function AgendaContent({ slug, canManage, initialAppointments, services, personal, horario, canHardDelete }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -137,6 +141,22 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+
+  async function hardDeleteAppointment(appointmentId: string) {
+    try {
+      const res = await fetch(`/api/space/${slug}/ops/appointments/${appointmentId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirm: true }),
+      });
+      if (!res.ok && res.status !== 204) throw new Error('delete failed');
+      setAppointments((prev) => prev.filter((a) => a.id !== appointmentId));
+      setDeleteTargetId(null);
+    } catch {
+      // El botón se queda visible — el admin puede reintentar.
+    }
+  }
 
   // Task #189 (reusado acá) — horas ya ocupadas para la fecha elegida, por staffId. El dashboard
   // usaba el mismo endpoint público que ya filtra citas Y bloqueos manuales (task #192), así el
@@ -531,8 +551,9 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
           {appointments.map((a) => (
             <div
               key={a.id}
-              className="flex flex-col gap-3 rounded-xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-3 rounded-xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 shadow-sm"
             >
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <p className="truncate text-sm font-medium">
@@ -594,6 +615,31 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
                   </button>
                 )}
               </div>
+              </div>
+
+              {canHardDelete && (
+                deleteTargetId === a.id ? (
+                  <DangerZoneDelete
+                    title={getText('Zona de peligro', 'Danger zone')}
+                    description={getText(
+                      'Borra esta cita para siempre. No se puede deshacer — es solo para limpiar datos de prueba, nunca una cita real.',
+                      'Permanently deletes this appointment. This cannot be undone — only for cleaning up test data, never a real appointment.',
+                    )}
+                    confirmWith={getText('BORRAR', 'DELETE')}
+                    confirmPlaceholder={getText('Escribe BORRAR para confirmar', 'Type DELETE to confirm')}
+                    buttonLabel={getText('Borrar cita permanentemente', 'Permanently delete appointment')}
+                    busyLabel={getText('Borrando…', 'Deleting…')}
+                    onConfirm={() => hardDeleteAppointment(a.id)}
+                  />
+                ) : (
+                  <button
+                    onClick={() => setDeleteTargetId(a.id)}
+                    className="mt-2 text-xs font-medium text-gray-400 hover:text-red-500 dark:text-neutral-600"
+                  >
+                    🗑️ {getText('Borrar permanentemente', 'Delete permanently')}
+                  </button>
+                )
+              )}
             </div>
           ))}
           {appointments.length === 0 && (

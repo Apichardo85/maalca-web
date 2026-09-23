@@ -5,6 +5,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { Modal } from '@/components/ui/Modal';
+import { DangerZoneDelete } from '@/components/space/DangerZoneDelete';
 
 export interface CustomerRow {
   id: string;
@@ -70,12 +71,16 @@ interface CustomerHistory {
 interface Props {
   slug: string;
   initialCustomers: CustomerRow[];
+  // Solo true cuando quien mira la página es un admin de plataforma en modo soporte (ver
+  // isImpersonation en layout.tsx) — el gate real (platform_admin + platform_role Owner) vive
+  // en el backend, esto solo decide si se muestra el botón.
+  canHardDelete?: boolean;
 }
 
 // Clientes (tarea #249) — lista + ficha con historial real. Reusa el backend Customer.cs que ya
 // existía (CRUD completo) desde antes de esta tarea, y el vínculo por teléfono con
 // Appointment/Invoice/QueueEntry/TableReservation/Proposal cableado en la tarea #244.
-export function ClientesContent({ slug, initialCustomers }: Props) {
+export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -153,6 +158,27 @@ export function ClientesContent({ slug, initialCustomers }: Props) {
       // El modal muestra "sin historial" si history queda null.
     } finally {
       setLoadingHistory(false);
+    }
+  }
+
+  async function hardDeleteCustomer(customer: CustomerRow) {
+    try {
+      const res = await fetch(`/api/space/${slug}/ops/customers/${customer.id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirm: true }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error?.message || 'delete failed');
+      }
+      toast.success(getText('Cliente borrado permanentemente.', 'Customer permanently deleted.'));
+      setSelected(null);
+      setHistory(null);
+      await refetch();
+    } catch (e) {
+      const message = e instanceof Error && e.message !== 'delete failed' ? e.message : undefined;
+      toast.error(message || getText('No se pudo borrar. Intenta de nuevo.', "Couldn't delete it. Try again."));
     }
   }
 
@@ -361,6 +387,21 @@ export function ClientesContent({ slug, initialCustomers }: Props) {
 
             {!loadingHistory && !history && (
               <p className="py-8 text-center text-sm text-gray-400">{getText('No se pudo cargar el historial.', "Couldn't load the history.")}</p>
+            )}
+
+            {canHardDelete && (
+              <DangerZoneDelete
+                title={getText('Zona de peligro', 'Danger zone')}
+                description={getText(
+                  'Borra este cliente y todo lo que cuelga de él (citas, fila, propuestas, reservas, facturas) para siempre. No se puede deshacer — es solo para limpiar datos de prueba, nunca para un cliente real.',
+                  'Permanently deletes this customer and everything linked to it (appointments, queue visits, proposals, reservations, invoices). This cannot be undone — only for cleaning up test data, never a real customer.',
+                )}
+                confirmWith={selected.name}
+                confirmPlaceholder={getText(`Escribe "${selected.name}" para confirmar`, `Type "${selected.name}" to confirm`)}
+                buttonLabel={getText('Borrar cliente permanentemente', 'Permanently delete customer')}
+                busyLabel={getText('Borrando…', 'Deleting…')}
+                onConfirm={() => hardDeleteCustomer(selected)}
+              />
             )}
           </div>
         )}

@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
+import { DangerZoneDelete } from '@/components/space/DangerZoneDelete';
 
 interface InvoiceItemRow {
   id: string;
@@ -62,6 +63,9 @@ interface Props {
   currency: 'USD' | 'DOP';
   initialInvoices: InvoiceRow[];
   customers: CustomerOption[];
+  // Gate por isImpersonation (modo soporte) — la autorización real vive en el backend
+  // (platform_admin + platform_role Owner), esto solo controla si se muestra el botón.
+  canHardDelete?: boolean;
 }
 
 const STATUS_STYLES: Record<InvoiceRow['status'], string> = {
@@ -73,7 +77,7 @@ const STATUS_STYLES: Record<InvoiceRow['status'], string> = {
 
 const emptyLine = (): LineDraft => ({ description: '', quantity: 1, unitPrice: 0 });
 
-export function InvoicesContent({ slug, currency, initialInvoices, customers }: Props) {
+export function InvoicesContent({ slug, currency, initialInvoices, customers, canHardDelete }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -103,6 +107,10 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
   const [voidReason, setVoidReason] = useState('');
   const [voiding, setVoiding] = useState(false);
   const [replacesInvoiceId, setReplacesInvoiceId] = useState<string | null>(null);
+  // Editar mientras está Pendiente/Vencida — a diferencia de anular+corregir, esto SÍ modifica
+  // el documento original. El backend solo lo permite en esos dos estados (ver InvoiceService).
+  const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [showActivity, setShowActivity] = useState(false);
   const [activity, setActivity] = useState<AuditLogRow[]>([]);
   const [activityLoading, setActivityLoading] = useState(false);
@@ -137,11 +145,51 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
     setLines((prev) => (prev.length === 1 ? [emptyLine()] : prev.filter((_, idx) => idx !== i)));
   }
 
+  function resetForm() {
+    setShowForm(false);
+    setCustomerId('');
+    setTax(0);
+    setDueDate('');
+    setNotes('');
+    setLines([emptyLine()]);
+    setReplacesInvoiceId(null);
+    setEditingInvoiceId(null);
+  }
+
   async function handleCreate() {
     const validLines = lines.filter((l) => l.description.trim() && l.unitPrice > 0);
     if (!customerId || validLines.length === 0 || saving) return;
     setSaving(true);
     try {
+      if (editingInvoiceId) {
+        const original = invoices.find((i) => i.id === editingInvoiceId);
+        if (!original) throw new Error('update failed');
+        const items = validLines.map((l) => ({ description: l.description.trim(), quantity: l.quantity, unitPrice: l.unitPrice }));
+        const subtotal = items.reduce((sum, l) => sum + l.quantity * l.unitPrice, 0);
+        const taxAmount = Number(tax) || 0;
+        const res = await fetch(`/api/space/${slug}/invoices/${editingInvoiceId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerId,
+            subtotal,
+            tax: taxAmount,
+            total: subtotal + taxAmount,
+            status: original.status,
+            dueDate: dueDate || null,
+            paidDate: original.paidDate,
+            notes: notes.trim() || null,
+            items,
+          }),
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(data?.error?.message || 'update failed');
+        setInvoices((prev) => prev.map((i) => (i.id === editingInvoiceId ? { ...i, ...data } : i)));
+        resetForm();
+        toast.success(getText('Factura actualizada.', 'Invoice updated.'));
+        return;
+      }
+
       const res = await fetch(`/api/space/${slug}/invoices`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -160,22 +208,37 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
         created,
         ...prev.map((i) => (i.id === replacesInvoiceId ? { ...i, replacedByInvoiceId: created.id } : i)),
       ]);
-      setShowForm(false);
-      setCustomerId('');
-      setTax(0);
-      setDueDate('');
-      setNotes('');
-      setLines([emptyLine()]);
-      setReplacesInvoiceId(null);
+      resetForm();
       toast.success(
         replacesInvoiceId
           ? getText('Factura de corrección creada.', 'Correction invoice created.')
           : getText('Factura creada.', 'Invoice created.'),
       );
-    } catch {
-      toast.error(getText('No se pudo crear la factura. Intenta de nuevo.', "Couldn't create the invoice. Try again."));
+    } catch (err) {
+      const message = err instanceof Error && err.message !== 'create failed' && err.message !== 'update failed' ? err.message : undefined;
+      toast.error(
+        message ||
+          (editingInvoiceId
+            ? getText('No se pudo guardar los cambios. Intenta de nuevo.', "Couldn't save the changes. Try again.")
+            : getText('No se pudo crear la factura. Intenta de nuevo.', "Couldn't create the invoice. Try again.")),
+      );
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function hardDeleteInvoice(invoiceId: string) {
+    try {
+      const res = await fetch(`/api/space/${slug}/ops/invoices/${invoiceId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirm: true }),
+      });
+      if (!res.ok && res.status !== 204) throw new Error('delete failed');
+      setInvoices((prev) => prev.filter((i) => i.id !== invoiceId));
+      setDeleteTargetId(null);
+    } catch {
+      // El botón se queda visible — el admin puede reintentar.
     }
   }
 
@@ -272,6 +335,23 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
   // guarda; queda enlazada vía replacesInvoiceId (ver handleCreate).
   function startCorrection(invoice: InvoiceRow) {
     setReplacesInvoiceId(invoice.id);
+    setCustomerId(invoice.customerId);
+    setTax(invoice.tax);
+    setDueDate(invoice.dueDate ? invoice.dueDate.slice(0, 10) : '');
+    setNotes(invoice.notes ?? '');
+    setLines(
+      invoice.items && invoice.items.length > 0
+        ? invoice.items.map((it) => ({ description: it.description, quantity: it.quantity, unitPrice: it.unitPrice }))
+        : [emptyLine()],
+    );
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Editar una factura Pendiente/Vencida en su lugar — sin pasar por anular+corregir. El
+  // backend rechaza esto si ya no está en uno de esos dos estados (ver InvoiceService.UpdateInvoiceAsync).
+  function startEdit(invoice: InvoiceRow) {
+    setEditingInvoiceId(invoice.id);
     setCustomerId(invoice.customerId);
     setTax(invoice.tax);
     setDueDate(invoice.dueDate ? invoice.dueDate.slice(0, 10) : '');
@@ -403,8 +483,11 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
           <button
             type="button"
             onClick={() => {
-              if (showForm) setReplacesInvoiceId(null);
-              setShowForm((v) => !v);
+              if (showForm) {
+                resetForm();
+              } else {
+                setShowForm(true);
+              }
             }}
             className="shrink-0 rounded-full px-4 py-2.5 text-sm font-semibold text-white"
             style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
@@ -426,6 +509,16 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
                 <button type="button" onClick={() => setReplacesInvoiceId(null)} className="font-semibold underline shrink-0">
                   {getText('quitar', 'remove')}
                 </button>
+              </div>
+            )}
+            {editingInvoiceId && (
+              <div className="flex items-center justify-between gap-2 rounded-xl bg-blue-50 dark:bg-blue-950 px-3 py-2 text-xs text-blue-800 dark:text-blue-300">
+                <span>
+                  {getText(
+                    'Editando esta factura mientras está pendiente. Al pagarla o anularla ya no se podrá editar.',
+                    'Editing this invoice while it is pending. Once paid or voided it can no longer be edited.',
+                  )}
+                </span>
               </div>
             )}
             <select
@@ -551,7 +644,13 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
               className="w-full rounded-full px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
               style={{ backgroundColor: 'var(--brand-primary, #C8102E)' }}
             >
-              {saving ? getText('Creando…', 'Creating…') : getText('Crear factura', 'Create invoice')}
+              {saving
+                ? editingInvoiceId
+                  ? getText('Guardando…', 'Saving…')
+                  : getText('Creando…', 'Creating…')
+                : editingInvoiceId
+                  ? getText('Guardar cambios', 'Save changes')
+                  : getText('Crear factura', 'Create invoice')}
             </button>
           </div>
         )}
@@ -700,7 +799,41 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers }: 
                           {getText('Crear factura corregida', 'Create correction invoice')}
                         </button>
                       )}
+                      {isCollectable && (
+                        <button
+                          type="button"
+                          onClick={() => startEdit(invoice)}
+                          className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-3 text-xs font-semibold"
+                        >
+                          {getText('Editar', 'Edit')}
+                        </button>
+                      )}
                     </div>
+
+                    {canHardDelete && (
+                      deleteTargetId === invoice.id ? (
+                        <DangerZoneDelete
+                          title={getText('Zona de peligro', 'Danger zone')}
+                          description={getText(
+                            'Borra esta factura para siempre, sin importar su estado. No se puede deshacer — es solo para limpiar datos de prueba, nunca un documento financiero real.',
+                            'Permanently deletes this invoice, regardless of status. This cannot be undone — only for cleaning up test data, never a real financial record.',
+                          )}
+                          confirmWith={getText('BORRAR', 'DELETE')}
+                          confirmPlaceholder={getText('Escribe BORRAR para confirmar', 'Type DELETE to confirm')}
+                          buttonLabel={getText('Borrar factura permanentemente', 'Permanently delete invoice')}
+                          busyLabel={getText('Borrando…', 'Deleting…')}
+                          onConfirm={() => hardDeleteInvoice(invoice.id)}
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setDeleteTargetId(invoice.id)}
+                          className="mt-3 text-xs font-medium text-gray-400 hover:text-red-500 dark:text-neutral-600"
+                        >
+                          🗑️ {getText('Borrar permanentemente', 'Delete permanently')}
+                        </button>
+                      )
+                    )}
                   </div>
                 )}
 

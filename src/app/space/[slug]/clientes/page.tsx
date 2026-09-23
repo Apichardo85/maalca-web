@@ -6,6 +6,7 @@ const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 interface SpaceResponse {
   business: { id: string; currency?: 'USD' | 'DOP' };
+  isImpersonation?: boolean;
 }
 
 // Clientes (tarea #249) — pantalla CRM mínima: lista + ficha con historial real (citas,
@@ -46,5 +47,5 @@ export default async function ClientesPage({
     // Queda vacío — ClientesContent renderiza el estado vacío en vez de tronar.
   }
 
-  return <ClientesContent slug={slug} initialCustomers={customers} />;
+  return <ClientesContent slug={slug} initialCustomers={customers} canHardDelete={space.isImpersonation === true} />;
 }

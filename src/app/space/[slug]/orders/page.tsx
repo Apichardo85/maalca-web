@@ -6,6 +6,7 @@ const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 interface SpaceResponse {
   business: { id: string; plan: 'free' | 'entrepreneur' };
+  isImpersonation?: boolean;
 }
 
 export default async function OrdersPage({
@@ -39,5 +40,5 @@ export default async function OrdersPage({
     // orders stays [] — OrdersContent renders the empty state rather than crashing the page.
   }
 
-  return <OrdersContent slug={slug} plan={space.business.plan} initialOrders={orders} />;
+  return <OrdersContent slug={slug} plan={space.business.plan} initialOrders={orders} canHardDelete={space.isImpersonation === true} />;
 }
