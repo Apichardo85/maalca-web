@@ -111,6 +111,16 @@ function nextDays(count: number): { dateStr: string; date: Date }[] {
   return out;
 }
 
+// El backend guarda la fecha de la cita como "YYYY-MM-DDT00:00:00Z" (medianoche UTC). Pasar eso
+// por `new Date(...).toLocaleDateString()` la interpreta en el huso horario del navegador, y
+// para cualquiera detrás de UTC (América) medianoche UTC cae en el día anterior — una cita del
+// jueves se mostraba como miércoles. Parseamos solo el año/mes/día y construimos una fecha local
+// con esos componentes, sin pasar por la conversión de huso horario.
+function formatApptDate(dateStr: string, locale: string): string {
+  const [y, m, d] = dateStr.slice(0, 10).split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
+}
+
 export function AgendaContent({ slug, canManage, initialAppointments, services, personal, horario }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -283,7 +293,17 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
       if (!apptRes.ok) {
         throw new Error(appt?.error?.message ?? getText('No pudimos crear la cita.', "We couldn't create the appointment."));
       }
-      setAppointments((prev) => [...prev, appt].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)));
+      // El POST del backend no incluye customer/service/assignedTo (solo los ids) — sin esto la
+      // cita recién creada se veía como "Cliente · —" hasta refrescar la página, aunque el dato
+      // en la base estuviera bien. Los completamos acá con lo que ya tenemos en el formulario en
+      // vez de depender de un include() en el backend.
+      const enrichedAppt: Appointment = {
+        ...appt,
+        customer: { id: customer.id, name: customer.name, phone: customer.phone ?? null },
+        service: services.find((s) => s.id === serviceId) ?? appt.service ?? null,
+        assignedTo: assignedToId ? personal.find((p) => p.id === assignedToId) ?? appt.assignedTo ?? null : null,
+      };
+      setAppointments((prev) => [...prev, enrichedAppt].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)));
       toast.success(getText('Cita creada.', 'Appointment created.'));
       setCustomerName('');
       setCustomerPhone('');
@@ -528,7 +548,7 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
                   )}
                 </div>
                 <p className="mt-0.5 text-xs text-gray-400 dark:text-neutral-500">
-                  {new Date(a.date).toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short' })} · {a.time}
+                  {formatApptDate(a.date, language === 'es' ? 'es-DO' : 'en-US')} · {a.time}
                   {a.assignedTo && ` · ${a.assignedTo.name}`}
                 </p>
               </div>
