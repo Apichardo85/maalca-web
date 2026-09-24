@@ -29,6 +29,7 @@ import { PublicFooter } from '@/components/public/PublicFooter';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 import { formatPrice } from '@/lib/currency';
+import { googleMapsUrl } from '@/lib/maps';
 
 const MAALCA_BLUE = '#045AFE';
 const PAPER = '#F7F8FA';
@@ -170,7 +171,16 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
           </span>
           <h1 className="mt-3 text-3xl font-bold sm:text-4xl">{business.name}</h1>
           {business.address && (
-            <p className="mt-2 text-sm text-white/80">📍 {business.address}</p>
+            <p className="mt-2 text-sm text-white/80">
+              <a
+                href={googleMapsUrl(business.address)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline decoration-white/40 underline-offset-2 hover:decoration-white"
+              >
+                📍 {business.address}
+              </a>
+            </p>
           )}
         </div>
       </header>
@@ -185,12 +195,16 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
       {/* ── Métricas de impacto (WEB-COM-002) — grid de 1 o 2 stats, nunca relleno inventado ── */}
       {typeof mealsServed === 'number' && (
         <section className="mx-auto mt-10 max-w-[860px] px-4">
-          <div className={`grid gap-3 ${secondStat ? 'grid-cols-2' : 'grid-cols-1'}`}>
+          {/* grid-cols-1 en mobile — un número grande (ej. "$1,240,000.00") no cabe en la
+              mitad de una pantalla angosta a la vez que el label; a partir de sm ya hay
+              espacio para las 2 tarjetas lado a lado. break-all + text-2xl/3xl responsivo
+              son el respaldo para montos igual de largos incluso en la tarjeta completa. */}
+          <div className={`grid gap-3 grid-cols-1 ${secondStat ? 'sm:grid-cols-2' : ''}`}>
             <div
               className="rounded-2xl border p-6 text-center"
               style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}
             >
-              <p className="text-3xl font-bold" style={{ color: accent }}>
+              <p className="break-all text-2xl font-bold sm:text-3xl" style={{ color: accent }}>
                 {mealsServed.toLocaleString(locale)}
               </p>
               <p className="mt-1 text-xs font-medium uppercase tracking-wide" style={{ color: MUTED }}>
@@ -202,7 +216,7 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
                 className="rounded-2xl border p-6 text-center"
                 style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}
               >
-                <p className="text-3xl font-bold" style={{ color: accent }}>
+                <p className="break-all text-2xl font-bold sm:text-3xl" style={{ color: accent }}>
                   {secondStat.value}
                 </p>
                 <p className="mt-1 text-xs font-medium uppercase tracking-wide" style={{ color: MUTED }}>
@@ -284,8 +298,8 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
                   {getText('Recaudado este mes', 'Raised this month')}
                 </span>
               </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold" style={{ color: INK }}>
+              <div className="flex flex-wrap items-baseline gap-2">
+                <span className="break-all text-2xl font-bold" style={{ color: INK }}>
                   {formatPrice(impact?.fundraisingCurrentAmount ?? 0, currency)}
                 </span>
                 {impact?.fundraisingGoalAmount != null && (
@@ -369,11 +383,34 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
             {impact?.deliverySchedule?.trim() && (
               <p className="mt-2 text-sm" style={{ color: MUTED }}>
                 {impact.deliverySchedule}
-                {business.address ? ` · ${business.address}` : ''}
+                {business.address ? (
+                  <>
+                    {' · '}
+                    <a
+                      href={googleMapsUrl(business.address)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                      style={{ color: MUTED }}
+                    >
+                      {business.address}
+                    </a>
+                  </>
+                ) : ''}
               </p>
             )}
             {!impact?.deliverySchedule?.trim() && business.address && (
-              <p className="mt-2 text-sm" style={{ color: MUTED }}>{business.address}</p>
+              <p className="mt-2 text-sm" style={{ color: MUTED }}>
+                <a
+                  href={googleMapsUrl(business.address)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                  style={{ color: MUTED }}
+                >
+                  {business.address}
+                </a>
+              </p>
             )}
             {impact?.deliveryAcceptedItems?.trim() && (
               <p className="mt-1 text-xs" style={{ color: MUTED }}>{impact.deliveryAcceptedItems}</p>

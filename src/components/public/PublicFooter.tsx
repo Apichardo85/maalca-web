@@ -9,6 +9,7 @@ import { resolveSocialLinks } from '@/lib/public-contact';
 import { trackCanalClick } from '@/lib/public-events';
 import { SOCIAL_ICON_BY_TIPO } from '@/components/public/SocialIcons';
 import { WEEK_DAY_ORDER, WEEK_DAY_LABELS_ES, WEEK_DAY_LABELS_EN } from '@/lib/business-hours';
+import { googleMapsUrl } from '@/lib/maps';
 
 interface Props {
   business: PublicTemplateProps['business'];
@@ -84,8 +85,15 @@ export function PublicFooter({ business, capabilities, language = 'es' }: Props)
         </p>
 
         {business.address && (
-          <p style={{ margin: '6px 0 0', fontSize: '13px', color: '#888' }}>
-            📍 {business.address}
+          <p style={{ margin: '6px 0 0', fontSize: '13px' }}>
+            <a
+              href={googleMapsUrl(business.address)}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: '#888', textDecoration: 'none' }}
+            >
+              📍 {business.address}
+            </a>
           </p>
         )}
 
