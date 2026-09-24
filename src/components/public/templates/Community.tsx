@@ -2,7 +2,7 @@
 // src/components/public/templates/Community.tsx
 //
 // Vitrina pública para MaalCa Comunidad (comedores, bancos de alimentos, causas
-// comunitarias) — Fase 2 del backlog (WEB-COM-001/002/003). Sigue el mismo patrón de
+// comunitarias) — Fase 2-4 del backlog (WEB-COM-001/002/003/004). Sigue el mismo patrón de
 // composición de los otros 3 templates (hero → descripción → bloques propios →
 // PublicFooter), pero deliberadamente más simple/institucional: esto no vende un
 // producto, muestra impacto real y cómo ayudar.
@@ -11,6 +11,16 @@
 // #045AFE) como acento por defecto — no se definió paleta nueva para este template. Si
 // el afiliado configuró su propio primary_color, ese gana (mismo patrón que los otros
 // templates: business.primary_color ?? fallback).
+//
+// Fase 4 (Causas / Punto de Entrega / meta de recaudación): TODO esto es contenido real,
+// editable por el afiliado desde Dashboard > Contenido (ver ContenidoTab.tsx) — nunca datos
+// de muestra fabricados, porque esta plantilla renderiza páginas públicas reales (ej.
+// maalca.com/neighborhood-transformation-center). "Recaudado este mes" es lo que el afiliado
+// REPORTA a mano (no existe integración de donaciones vía Stripe Connect todavía — Fase 3 del
+// backlog), por eso el copy dice "Recaudado este mes" y no "en vivo": sería engañoso implicar
+// un contador automático que no existe. El evento (ej. "Family Movie Night" del mockup) queda
+// deliberadamente FUERA de este template — Eventos/Agenda será un módulo transversal a todos
+// los business types, no algo Community-only (ver nota en registry.ts).
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
@@ -24,6 +34,14 @@ const MAALCA_BLUE = '#045AFE';
 const PAPER = '#F7F8FA';
 const INK = '#161A22';
 const MUTED = '#5B6472';
+const GREEN = '#1A8A5C';
+const GREEN_BG = '#E8F6EF';
+const AMBER = '#B4740E';
+const AMBER_BG = '#FBF1DF';
+const BLUE_BG = '#E8F0FE';
+
+type Causa = NonNullable<PublicTemplateProps['business']['causas']>[number];
+type CommunityImpact = NonNullable<PublicTemplateProps['business']['communityImpact']>;
 
 function BowlIcon({ className, style }: { className?: string; style?: CSSProperties }) {
   return (
@@ -54,19 +72,82 @@ function BoxIcon({ className, style }: { className?: string; style?: CSSProperti
   );
 }
 
+function HeartIcon({ className, style }: { className?: string; style?: CSSProperties }) {
+  return (
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 14c1.5-1.5 3-3.2 3-5.5A4.5 4.5 0 0 0 13.5 5 4.5 4.5 0 0 0 5 8.5C5 13 12 19 12 19s3.7-3.1 7-5" />
+      <path d="M12 19s-7-6-7-10.5" />
+    </svg>
+  );
+}
+
+function TruckIcon({ className, style }: { className?: string; style?: CSSProperties }) {
+  return (
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 6h11v10H3z" />
+      <path d="M14 10h4l3 3v3h-7z" />
+      <circle cx="7.5" cy="18" r="1.5" />
+      <circle cx="17.5" cy="18" r="1.5" />
+    </svg>
+  );
+}
+
+const CAUSA_META: Record<Causa['type'], { icon: typeof HeartIcon; color: string; bg: string; es: string; en: string }> = {
+  money: { icon: HeartIcon, color: GREEN, bg: GREEN_BG, es: 'Dinero', en: 'Money' },
+  time: { icon: HandsIcon, color: '#2E5BFF', bg: BLUE_BG, es: 'Tiempo', en: 'Time' },
+  in_kind: { icon: BoxIcon, color: AMBER, bg: AMBER_BG, es: 'Especie', en: 'In-kind' },
+};
+
+function whatsappDonateLink(whatsapp: string | null | undefined, businessName: string, getText: (es: string, en: string) => string): string | null {
+  if (!whatsapp) return null;
+  const digits = whatsapp.replace(/[^\d]/g, '');
+  if (!digits) return null;
+  const message = getText(
+    `Hola, quiero donar a ${businessName}`,
+    `Hi, I'd like to donate to ${businessName}`,
+  );
+  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+}
+
 export function CommunityTemplate({ business, capabilities }: PublicTemplateProps) {
   const accent = business.primary_color ?? MAALCA_BLUE;
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const currency = business.currency ?? 'USD';
+  const locale = language === 'es' ? 'es-DO' : 'en-US';
 
   const metrics = business.communityMetrics;
   const mealsServed = metrics?.mealsServedThisMonth;
   const avgCostPerPlate = metrics?.avgCostPerPlate ?? null;
 
-  // Módulo — no todo trial comunitario acepta donaciones en dinero (ver comentario en
-  // registry.ts). Clave ausente = visible, mismo default que el resto de sectionVisibility.
+  const causas = (business.causas ?? []).filter((c) => c.title?.trim());
+  const impact: CommunityImpact | null = business.communityImpact ?? null;
+
+  // Módulos — no todo trial comunitario acepta donaciones en dinero ni publicó causas/punto de
+  // entrega todavía. Clave ausente = visible, mismo default que el resto de sectionVisibility.
   const monetaryDonationsEnabled = business.sectionVisibility?.monetaryDonations ?? true;
+  const causasVisible = business.sectionVisibility?.causas ?? true;
+  const puntoDeEntregaVisible = business.sectionVisibility?.puntoDeEntrega ?? true;
+
+  const hasFundraisingGoal =
+    monetaryDonationsEnabled &&
+    impact != null &&
+    (impact.fundraisingGoalAmount != null || impact.fundraisingCurrentAmount != null);
+
+  const showCausas = causasVisible && causas.length > 0;
+  const showPuntoDeEntrega =
+    puntoDeEntregaVisible && !!(impact?.deliverySchedule?.trim() || impact?.deliveryAcceptedItems?.trim() || business.address);
+
+  const donateLink = whatsappDonateLink(business.whatsapp, business.name, getText);
+
+  // Segundo stat del grid: solo si hay algo real que mostrar además de comidas servidas — nunca
+  // un número inventado para llenar la cuadrícula. Prioridad: recaudado este mes > causas activas.
+  const secondStat =
+    monetaryDonationsEnabled && impact?.fundraisingCurrentAmount != null
+      ? { value: formatPrice(impact.fundraisingCurrentAmount, currency), label: getText('recaudado este mes', 'raised this month') }
+      : causas.length > 0
+        ? { value: String(causas.length), label: getText(causas.length === 1 ? 'causa activa' : 'causas activas', causas.length === 1 ? 'active cause' : 'active causes') }
+        : null;
 
   return (
     <div style={{ backgroundColor: PAPER, color: INK, minHeight: '100vh' }} className="font-sans">
@@ -101,21 +182,34 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
         language={language}
       />
 
-      {/* ── Métricas de impacto (WEB-COM-002) ───────────────────────────── */}
+      {/* ── Métricas de impacto (WEB-COM-002) — grid de 1 o 2 stats, nunca relleno inventado ── */}
       {typeof mealsServed === 'number' && (
         <section className="mx-auto mt-10 max-w-[860px] px-4">
-          <div
-            className="flex flex-col items-center gap-2 rounded-2xl border p-6 text-center sm:flex-row sm:justify-center sm:gap-10"
-            style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}
-          >
-            <div>
+          <div className={`grid gap-3 ${secondStat ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            <div
+              className="rounded-2xl border p-6 text-center"
+              style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}
+            >
               <p className="text-3xl font-bold" style={{ color: accent }}>
-                {mealsServed.toLocaleString(language === 'es' ? 'es-DO' : 'en-US')}
+                {mealsServed.toLocaleString(locale)}
               </p>
               <p className="mt-1 text-xs font-medium uppercase tracking-wide" style={{ color: MUTED }}>
                 {getText('Comidas servidas este mes', 'Meals served this month')}
               </p>
             </div>
+            {secondStat && (
+              <div
+                className="rounded-2xl border p-6 text-center"
+                style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}
+              >
+                <p className="text-3xl font-bold" style={{ color: accent }}>
+                  {secondStat.value}
+                </p>
+                <p className="mt-1 text-xs font-medium uppercase tracking-wide" style={{ color: MUTED }}>
+                  {secondStat.label}
+                </p>
+              </div>
+            )}
           </div>
         </section>
       )}
@@ -139,9 +233,9 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
         </div>
       </section>
 
-      {/* ── Calculadora de impacto + Donar (WEB-COM-003) — módulo "monetaryDonations":
-           todo el bloque depende de que el afiliado acepte dinero, no solo el botón. Sin esto
-           activado, mostrar una calculadora de "cuánto donar" no tiene sentido. */}
+      {/* ── Calculadora de impacto + meta de recaudación + Donar (WEB-COM-003/004) — todo el
+           bloque depende de "monetaryDonations": un comedor sin cuenta de donaciones configurada
+           no debe mostrar nada de esto, ni siquiera la meta del mes. */}
       {monetaryDonationsEnabled && (
         <section className="mx-auto mt-10 max-w-[860px] px-4">
           <div className="rounded-2xl border p-5 sm:p-6" style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}>
@@ -155,15 +249,135 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
                 {getText('Aún no hay datos de costo — vuelve pronto.', "There's no cost data yet — check back soon.")}
               </p>
             )}
-            <button
-              type="button"
-              disabled
-              title={getText('Próximamente', 'Coming soon')}
-              className="mt-5 w-full cursor-not-allowed rounded-full px-4 py-3 text-sm font-semibold text-white opacity-60"
-              style={{ backgroundColor: accent }}
-            >
-              {getText('Donar — próximamente', 'Donate — coming soon')}
-            </button>
+
+            {donateLink ? (
+              <a
+                href={donateLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+                style={{ backgroundColor: accent }}
+              >
+                {getText('Donar ahora', 'Donate now')}
+              </a>
+            ) : (
+              <button
+                type="button"
+                disabled
+                title={getText('Próximamente', 'Coming soon')}
+                className="mt-5 w-full cursor-not-allowed rounded-full px-4 py-3 text-sm font-semibold text-white opacity-60"
+                style={{ backgroundColor: accent }}
+              >
+                {getText('Donar — próximamente', 'Donate — coming soon')}
+              </button>
+            )}
+          </div>
+
+          {/* Meta de recaudación — reportada a mano por el afiliado (ver comentario arriba del
+               componente). "este mes", nunca "en vivo": sería implicar un contador automático
+               que todavía no existe. */}
+          {hasFundraisingGoal && (
+            <div className="mt-4 rounded-2xl border p-5" style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}>
+              <div className="mb-2 flex items-center gap-1.5">
+                <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: GREEN }} />
+                <span className="text-xs font-semibold" style={{ color: GREEN }}>
+                  {getText('Recaudado este mes', 'Raised this month')}
+                </span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold" style={{ color: INK }}>
+                  {formatPrice(impact?.fundraisingCurrentAmount ?? 0, currency)}
+                </span>
+                {impact?.fundraisingGoalAmount != null && (
+                  <span className="text-sm" style={{ color: MUTED }}>
+                    {getText('de', 'of')} {formatPrice(impact.fundraisingGoalAmount, currency)} {getText('meta', 'goal')}
+                  </span>
+                )}
+              </div>
+              {impact?.fundraisingGoalAmount != null && impact.fundraisingGoalAmount > 0 && (
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: PAPER }}>
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${Math.min(100, Math.round(((impact.fundraisingCurrentAmount ?? 0) / impact.fundraisingGoalAmount) * 100))}%`,
+                      backgroundColor: GREEN,
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ── Causas individuales (Fase 4) — dinero/tiempo/especie, contenido real del afiliado ── */}
+      {showCausas && (
+        <section className="mx-auto mt-10 max-w-[860px] px-4">
+          <h2 className="text-lg font-semibold" style={{ color: INK }}>
+            {getText('Formas de ayudar', 'Ways to help')}
+          </h2>
+          <div className="mt-4 flex flex-col gap-2">
+            {causas.map((causa) => {
+              const meta = CAUSA_META[causa.type] ?? CAUSA_META.in_kind;
+              const Icon = meta.icon;
+              const showProgress = causa.type === 'money' && causa.goalAmount != null && causa.goalAmount > 0;
+              const pct = showProgress
+                ? Math.min(100, Math.round(((causa.currentAmount ?? 0) / causa.goalAmount!) * 100))
+                : null;
+              return (
+                <div key={causa.id} className="rounded-xl border p-4" style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}>
+                  <div className="flex items-center gap-2.5">
+                    <Icon className="h-4 w-4 flex-shrink-0" style={{ color: meta.color }} />
+                    <span className="flex-1 text-sm font-medium" style={{ color: INK }}>{causa.title}</span>
+                    <span
+                      className="flex-shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold"
+                      style={{ color: meta.color, backgroundColor: meta.bg }}
+                    >
+                      {getText(meta.es, meta.en)}
+                    </span>
+                  </div>
+                  {causa.description && (
+                    <p className="mt-1.5 text-xs" style={{ color: MUTED }}>{causa.description}</p>
+                  )}
+                  {pct !== null && (
+                    <>
+                      <div className="mt-2.5 h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: PAPER }}>
+                        <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: accent }} />
+                      </div>
+                      <p className="mt-1 text-[11px]" style={{ color: MUTED }}>
+                        {formatPrice(causa.currentAmount ?? 0, currency)} {getText('de', 'of')} {formatPrice(causa.goalAmount!, currency)}
+                      </p>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* ── Punto de entrega (Fase 4) — texto libre del afiliado + dirección ya existente ── */}
+      {showPuntoDeEntrega && (
+        <section className="mx-auto mt-10 max-w-[860px] px-4">
+          <div className="rounded-2xl p-5" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E3E6EC' }}>
+            <div className="flex items-center gap-2">
+              <TruckIcon className="h-4 w-4" style={{ color: MUTED }} />
+              <span className="text-sm font-semibold" style={{ color: INK }}>
+                {getText('Entrega en persona', 'In-person drop-off')}
+              </span>
+            </div>
+            {impact?.deliverySchedule?.trim() && (
+              <p className="mt-2 text-sm" style={{ color: MUTED }}>
+                {impact.deliverySchedule}
+                {business.address ? ` · ${business.address}` : ''}
+              </p>
+            )}
+            {!impact?.deliverySchedule?.trim() && business.address && (
+              <p className="mt-2 text-sm" style={{ color: MUTED }}>{business.address}</p>
+            )}
+            {impact?.deliveryAcceptedItems?.trim() && (
+              <p className="mt-1 text-xs" style={{ color: MUTED }}>{impact.deliveryAcceptedItems}</p>
+            )}
           </div>
         </section>
       )}
@@ -173,6 +387,17 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
     </div>
   );
 }
+
+// Umbrales del tono del mensaje — arbitrarios (no vienen de ningún dato real), solo cambian el
+// texto según el monto, nunca la cifra de platos calculada.
+const JOKE_TIERS: { min: number; es: string; en: string }[] = [
+  { min: 0, es: 'Suficiente para que nadie le pelee a su hermanito la última cucharada.', en: "Enough that nobody has to fight their sibling for the last spoonful." },
+  { min: 10, es: 'Eso silencia una barriga rugiente por un buen rato.', en: 'That quiets a growling stomach for a good while.' },
+  { min: 20, es: 'Nivel héroe de barrio: nadie se va con hambre.', en: "Neighborhood-hero level: nobody leaves hungry." },
+  { min: 40, es: 'Ojo, con esto casi que abres tu propio restaurante pop-up.', en: "Careful, with this you're almost opening your own pop-up restaurant." },
+  { min: 80, es: 'El chef ya te está poniendo delantal honorario.', en: 'The chef is already handing you an honorary apron.' },
+  { min: 150, es: 'A este ritmo te van a pedir que cuentes chistes en la cena.', en: "At this rate they'll be asking you to tell jokes at dinner." },
+];
 
 function ImpactCalculator({
   accent,
@@ -194,14 +419,10 @@ function ImpactCalculator({
 
   const plates = Math.max(0, Math.floor(amount / costPerPlate));
 
-  // Mensaje corto según el monto — breve, sin exagerar. Los umbrales son arbitrarios (no
-  // vienen de ningún dato real), solo cambian el tono del texto, nunca la cifra de platos.
-  const tone =
-    amount >= 200
-      ? getText('¡Eso es un impacto enorme!', "That's a huge impact!")
-      : amount >= 75
-        ? getText('Eso alimenta a varias familias.', 'That feeds several families.')
-        : getText('Cada plato cuenta.', 'Every plate counts.');
+  let tone = JOKE_TIERS[0];
+  for (const tier of JOKE_TIERS) {
+    if (amount >= tier.min) tone = tier;
+  }
 
   return (
     <div className="mt-4">
@@ -229,7 +450,7 @@ function ImpactCalculator({
         <span className="font-semibold" style={{ color: INK }}>
           {plates} {getText(plates === 1 ? 'plato servido' : 'platos servidos', plates === 1 ? 'meal served' : 'meals served')}
         </span>
-        . {tone}
+        . {getText(tone.es, tone.en)}
       </p>
     </div>
   );

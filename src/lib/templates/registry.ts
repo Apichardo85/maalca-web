@@ -71,9 +71,9 @@ export interface PublicTemplateProps {
      *  una noche de música, etc.), así que cuando se construya debe ser una entidad y un módulo
      *  transversal, no algo Community-only namespaced acá. Sin entidad todavía, fuera del
      *  backlog actual.
-     *  "causas" y "puntoDeEntrega" no tienen UI en Community.tsx aún — se agregan cuando su
-     *  Fase correspondiente tenga backend real. "monetaryDonations" sí es real hoy y ya gatea
-     *  la sección existente. */
+     *  "causas" y "puntoDeEntrega" ya tienen backend real (Affiliate.Causas / .CommunityImpact,
+     *  Fase 4) y gatean las secciones correspondientes en Community.tsx. "monetaryDonations"
+     *  sigue gateando la calculadora de impacto + botón Donar. */
     sectionVisibility?: Record<string, boolean> | null;
     /** Solo fotos, sin caption — máximo 12. */
     galleryImages?: string[] | null;
@@ -82,6 +82,27 @@ export interface PublicTemplateProps {
      *  todavía no se pudo cargar o el afiliado no es Community; el template debe ocultar los
      *  bloques que dependan de esto en vez de mostrar un 0 falso. */
     communityMetrics?: { mealsServedThisMonth: number; avgCostPerPlate: number | null } | null;
+    /** Comunidad (Fase 4) — causas individuales publicadas por el afiliado (dinero/tiempo/
+     *  especie), editables en Dashboard > Contenido. Reemplazo total de la lista en cada
+     *  guardado (mismo patrón que processSteps/faq), no CRUD por fila. */
+    causas?: Array<{
+      id: string;
+      title: string;
+      type: 'money' | 'time' | 'in_kind';
+      description?: string | null;
+      goalAmount?: number | null;
+      currentAmount?: number | null;
+    }> | null;
+    /** Comunidad (Fase 4) — punto de entrega en persona y meta/recaudado del mes. Recaudado es
+     *  lo que el afiliado REPORTA a mano (no hay integración de donaciones vía Stripe Connect
+     *  todavía) — el template debe mostrarlo como algo reportado por el negocio, nunca como un
+     *  contador "en vivo" automático. */
+    communityImpact?: {
+      fundraisingGoalAmount?: number | null;
+      fundraisingCurrentAmount?: number | null;
+      deliverySchedule?: string | null;
+      deliveryAcceptedItems?: string | null;
+    } | null;
   };
   items: Array<{
     id: string;

@@ -49,5 +49,35 @@ export interface HorarioDayDto {
 }
 
 /** Clave ausente = visible (default true) — apagador explícito por sección, independiente
- *  de si tiene contenido. Hoy: "processSteps", "gallery". */
+ *  de si tiene contenido. Hoy: "processSteps", "gallery", y (solo Community) "causas",
+ *  "puntoDeEntrega", "monetaryDonations". */
 export type SectionVisibilityDto = Record<string, boolean>;
+
+// ── Comunidad (Fase 4) — solo se usan/editan cuando businessType === 'community' ──
+
+/** `id` lo genera el frontend (crypto.randomUUID()) solo como key estable — el backend no lo
+ *  valida como único, es reemplazo total de la lista en cada guardado (igual que processSteps). */
+export interface CausaDto {
+  id: string;
+  title: string;
+  type: 'money' | 'time' | 'in_kind';
+  description: string;
+  goalAmount: number | null;
+  currentAmount: number | null;
+}
+
+/** "Recaudado" es lo que el afiliado reporta a mano — no hay integración de donaciones vía
+ *  Stripe Connect todavía (Fase 3 del backlog). */
+export interface CommunityImpactDto {
+  fundraisingGoalAmount: number | null;
+  fundraisingCurrentAmount: number | null;
+  deliverySchedule: string;
+  deliveryAcceptedItems: string;
+}
+
+export const EMPTY_COMMUNITY_IMPACT: CommunityImpactDto = {
+  fundraisingGoalAmount: null,
+  fundraisingCurrentAmount: null,
+  deliverySchedule: '',
+  deliveryAcceptedItems: '',
+};

@@ -136,6 +136,8 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
           currency: (affiliate.currency as 'USD' | 'DOP' | undefined) ?? 'USD',
           galleryImages: affiliate.galleryImages ?? null,
           communityMetrics,
+          causas: affiliate.causas ?? null,
+          communityImpact: affiliate.communityImpact ?? null,
         }}
         items={mappedItems}
         categories={categories}
@@ -169,6 +171,8 @@ interface PublicCatalogResponse {
     currency?: string | null;
     sectionVisibility?: PublicTemplateProps['business']['sectionVisibility'];
     galleryImages?: PublicTemplateProps['business']['galleryImages'];
+    causas?: PublicTemplateProps['business']['causas'];
+    communityImpact?: PublicTemplateProps['business']['communityImpact'];
   };
   categories?: PublicTemplateProps['categories'];
   items: PublicTemplateProps['items'];

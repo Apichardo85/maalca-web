@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 import { getMaalcaApiToken } from '@/lib/api-auth';
 import { DesignEditor } from './DesignEditor';
-import type { ProcessStepDto, FaqEntryDto, HorarioDayDto, SectionVisibilityDto } from './types';
+import type { ProcessStepDto, FaqEntryDto, HorarioDayDto, SectionVisibilityDto, CausaDto, CommunityImpactDto } from './types';
+import { EMPTY_COMMUNITY_IMPACT } from './types';
 import type { BusinessType, Plan } from '@/lib/templates/registry';
 
 // The public template's default timezone fallback when a business hasn't configured one yet —
@@ -62,6 +63,8 @@ export default async function DesignPage({
   let horario: HorarioDayDto[] = [];
   let sectionVisibility: SectionVisibilityDto = {};
   let galleryImages: string[] = [];
+  let causas: CausaDto[] = [];
+  let communityImpact: CommunityImpactDto = EMPTY_COMMUNITY_IMPACT;
 
   try {
     const publicRes = await fetch(`${API}/api/public/affiliates/${slug}`, { cache: 'no-store' });
@@ -81,6 +84,8 @@ export default async function DesignPage({
       horario = p.horario ?? [];
       sectionVisibility = p.sectionVisibility ?? {};
       galleryImages = p.galleryImages ?? [];
+      causas = p.causas ?? [];
+      communityImpact = p.communityImpact ?? EMPTY_COMMUNITY_IMPACT;
     }
   } catch {
     // publicProfile stays null — DesignEditor omits these fields from any PATCH
@@ -115,6 +120,8 @@ export default async function DesignPage({
       horario={horario}
       sectionVisibility={sectionVisibility}
       galleryImages={galleryImages}
+      causas={causas}
+      communityImpact={communityImpact}
       publicUrl={publicUrl}
     />
   );

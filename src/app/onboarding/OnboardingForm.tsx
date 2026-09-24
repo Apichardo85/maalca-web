@@ -15,6 +15,11 @@ const BUSINESS_TYPES = [
   { value: 'barber', labelKey: 'onboarding.type.barber.label', emoji: '💈', examplesKey: 'onboarding.type.barber.examples', comingSoon: false },
   { value: 'service', labelKey: 'onboarding.type.service.label', emoji: '🛠️', examplesKey: 'onboarding.type.service.examples', comingSoon: false },
   { value: 'retail', labelKey: 'onboarding.type.retail.label', emoji: '🛍️', examplesKey: 'onboarding.type.retail.examples', comingSoon: false },
+  // Comunidad: Fase 2 (vitrina publica) y el modulo monetaryDonations ya estan en produccion —
+  // se abre al onboarding publico. "Donar" queda deshabilitado hasta Fase 3 (Stripe Connect), pero
+  // eso ya lo maneja el template (Community.tsx) mostrando "proximamente", no algo que bloquee
+  // la creacion del espacio aqui.
+  { value: 'community', labelKey: 'onboarding.type.community.label', emoji: '🤝', examplesKey: 'onboarding.type.community.examples', comingSoon: false },
   { value: 'creator', labelKey: 'onboarding.type.creator.label', emoji: '🎨', examplesKey: null, comingSoon: true },
   { value: 'publisher', labelKey: 'onboarding.type.publisher.label', emoji: '📚', examplesKey: null, comingSoon: true },
   { value: 'professional', labelKey: 'onboarding.type.professional.label', emoji: '💼', examplesKey: null, comingSoon: true },

@@ -20,6 +20,8 @@ import {
   type FaqEntryDto,
   type HorarioDayDto,
   type SectionVisibilityDto,
+  type CausaDto,
+  type CommunityImpactDto,
 } from './types';
 
 interface Props {
@@ -45,6 +47,8 @@ interface Props {
   horario: HorarioDayDto[];
   sectionVisibility: SectionVisibilityDto;
   galleryImages: string[];
+  causas: CausaDto[];
+  communityImpact: CommunityImpactDto;
   publicUrl: string;
 }
 
@@ -73,6 +77,8 @@ export function DesignEditor({
   horario: initialHorario,
   sectionVisibility: initialSectionVisibility,
   galleryImages: initialGalleryImages,
+  causas: initialCausas,
+  communityImpact: initialCommunityImpact,
   publicUrl,
 }: Props) {
   const router = useRouter();
@@ -106,6 +112,8 @@ export function DesignEditor({
   const [horario, setHorario] = useState<HorarioDayDto[]>(withAllDays(initialHorario));
   const [sectionVisibility, setSectionVisibility] = useState<SectionVisibilityDto>(initialSectionVisibility);
   const [galleryImages, setGalleryImages] = useState<string[]>(initialGalleryImages);
+  const [causas, setCausas] = useState<CausaDto[]>(initialCausas);
+  const [communityImpact, setCommunityImpact] = useState<CommunityImpactDto>(initialCommunityImpact);
 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -234,6 +242,8 @@ export function DesignEditor({
     horario: horario.length > 0 ? horario : null,
     sectionVisibility,
     galleryImages,
+    causas: causas.length > 0 ? causas : null,
+    communityImpact,
   };
 
   return (
@@ -334,6 +344,11 @@ export function DesignEditor({
               onSectionVisibilityChange={setSectionVisibility}
               galleryImages={galleryImages}
               onGalleryImagesChange={setGalleryImages}
+              businessType={businessType}
+              causas={causas}
+              onCausasChange={setCausas}
+              communityImpact={communityImpact}
+              onCommunityImpactChange={setCommunityImpact}
             />
           )}
         </div>

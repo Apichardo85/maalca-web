@@ -6,7 +6,8 @@ import { parseApiError } from '@/lib/api-errors';
 import { TrialExpiredNotice } from '@/components/space/TrialExpiredNotice';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import { stripRichTextToPlain } from '@/lib/sanitize-html';
-import type { ProcessStepDto, FaqEntryDto, HorarioDayDto, SectionVisibilityDto } from './types';
+import type { ProcessStepDto, FaqEntryDto, HorarioDayDto, SectionVisibilityDto, CausaDto, CommunityImpactDto } from './types';
+import type { BusinessType } from '@/lib/templates/registry';
 
 const MAX_GALLERY_IMAGES = 12;
 
@@ -52,6 +53,11 @@ interface Props {
   onSectionVisibilityChange: (v: SectionVisibilityDto) => void;
   galleryImages: string[];
   onGalleryImagesChange: (images: string[]) => void;
+  businessType: BusinessType;
+  causas: CausaDto[];
+  onCausasChange: (causas: CausaDto[]) => void;
+  communityImpact: CommunityImpactDto;
+  onCommunityImpactChange: (impact: CommunityImpactDto) => void;
 }
 
 // processSteps/faq/horario are now owned by DesignEditor (lifted so the real-template
@@ -68,6 +74,11 @@ export function ContenidoTab({
   onSectionVisibilityChange: setSectionVisibility,
   galleryImages,
   onGalleryImagesChange: setGalleryImages,
+  businessType,
+  causas,
+  onCausasChange: setCausas,
+  communityImpact,
+  onCommunityImpactChange: setCommunityImpact,
 }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -92,6 +103,9 @@ export function ContenidoTab({
           horario,
           sectionVisibility,
           galleryImages,
+          ...(businessType === 'community'
+            ? { causas, communityImpact }
+            : {}),
         }),
       });
       if (res.ok) {
@@ -112,6 +126,20 @@ export function ContenidoTab({
 
   return (
     <div className="space-y-8">
+      {businessType === 'community' && (
+        <>
+          <CausasSection causas={causas} onChange={setCausas} getText={getText}
+            visible={sectionVisibility.causas !== false}
+            onVisibleChange={(v) => setSectionVisibility({ ...sectionVisibility, causas: v })}
+          />
+          <PuntoDeEntregaSection impact={communityImpact} onChange={setCommunityImpact} getText={getText}
+            visible={sectionVisibility.puntoDeEntrega !== false}
+            onVisibleChange={(v) => setSectionVisibility({ ...sectionVisibility, puntoDeEntrega: v })}
+          />
+          <MetaRecaudacionSection impact={communityImpact} onChange={setCommunityImpact} getText={getText} />
+        </>
+      )}
+
       <HorarioSection horario={horario} onChange={setHorario} getText={getText} />
 
       <ListSection<ProcessStepDto>
@@ -626,6 +654,324 @@ function ListSection<T extends object>({
         >
           {addLabel}
         </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Comunidad (Fase 4) — Causas / Punto de Entrega / Meta de recaudación ──────────────────
+// Mismo lenguaje visual que ListSection/GallerySection (toggle de visibilidad, tarjetas con
+// borde redondeado) pero con su propia forma de datos — Causa no encaja en el molde genérico
+// fieldA/fieldB de ListSection (tiene tipo, montos opcionales, etc.).
+
+function VisibilityToggle({
+  visible,
+  onChange,
+  getText,
+}: {
+  visible: boolean;
+  onChange: (v: boolean) => void;
+  getText: (es: string, en: string) => string;
+}) {
+  return (
+    <label className="flex flex-shrink-0 items-center gap-2 text-xs text-gray-500 dark:text-neutral-400">
+      {visible ? getText('Visible', 'Visible') : getText('Oculta', 'Hidden')}
+      <button
+        type="button"
+        role="switch"
+        aria-checked={visible}
+        onClick={() => onChange(!visible)}
+        className={`relative h-5 w-9 flex-shrink-0 rounded-full transition-colors ${
+          visible ? 'bg-brand-primary' : 'bg-gray-300 dark:bg-neutral-600'
+        }`}
+      >
+        <span
+          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${
+            visible ? 'translate-x-4' : 'translate-x-0.5'
+          }`}
+        />
+      </button>
+    </label>
+  );
+}
+
+const CAUSA_TYPE_LABELS: { value: CausaDto['type']; es: string; en: string }[] = [
+  { value: 'money', es: 'Dinero', en: 'Money' },
+  { value: 'time', es: 'Tiempo', en: 'Time' },
+  { value: 'in_kind', es: 'Especie', en: 'In-kind' },
+];
+
+function emptyCausa(): CausaDto {
+  return {
+    id: typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `causa-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    title: '',
+    type: 'money',
+    description: '',
+    goalAmount: null,
+    currentAmount: null,
+  };
+}
+
+function CausasSection({
+  causas,
+  onChange,
+  getText,
+  visible,
+  onVisibleChange,
+}: {
+  causas: CausaDto[];
+  onChange: (causas: CausaDto[]) => void;
+  getText: (es: string, en: string) => string;
+  visible: boolean;
+  onVisibleChange: (v: boolean) => void;
+}) {
+  const [draft, setDraft] = useState<CausaDto>(emptyCausa());
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const startEdit = (causa: CausaDto) => {
+    setEditingId(causa.id);
+    setDraft({ ...causa });
+    setConfirmDeleteId(null);
+  };
+
+  const saveEdit = () => {
+    if (!draft.title.trim()) return;
+    onChange(causas.map((c) => (c.id === draft.id ? draft : c)));
+    setEditingId(null);
+    setDraft(emptyCausa());
+  };
+
+  const addNew = () => {
+    if (!draft.title.trim()) return;
+    onChange([...causas, draft]);
+    setDraft(emptyCausa());
+  };
+
+  const remove = (id: string) => {
+    onChange(causas.filter((c) => c.id !== id));
+    setConfirmDeleteId(null);
+  };
+
+  const isEditing = editingId !== null;
+  const form = (
+    <div className="mt-3 space-y-2 rounded-xl border border-dashed border-gray-300 dark:border-neutral-700 p-3">
+      <input
+        value={draft.title}
+        onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+        placeholder={getText('Título (ej. "Cirugía de rodilla — Delia R.")', 'Title (e.g. "Knee surgery — Delia R.")')}
+        maxLength={200}
+        className="w-full rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500"
+      />
+      <div className="flex gap-1.5">
+        {CAUSA_TYPE_LABELS.map((t) => (
+          <button
+            key={t.value}
+            type="button"
+            onClick={() => setDraft({ ...draft, type: t.value })}
+            className={`flex-1 rounded-lg px-2 py-1.5 text-xs font-medium transition ${
+              draft.type === t.value
+                ? 'bg-brand-primary text-white'
+                : 'bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300'
+            }`}
+          >
+            {getText(t.es, t.en)}
+          </button>
+        ))}
+      </div>
+      <input
+        value={draft.description}
+        onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+        placeholder={getText('Descripción breve (opcional)', 'Short description (optional)')}
+        maxLength={500}
+        className="w-full rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500"
+      />
+      {draft.type === 'money' && (
+        <div className="flex gap-2">
+          <input
+            type="number"
+            min={0}
+            value={draft.goalAmount ?? ''}
+            onChange={(e) => setDraft({ ...draft, goalAmount: e.target.value === '' ? null : Number(e.target.value) })}
+            placeholder={getText('Meta ($, opcional)', 'Goal ($, optional)')}
+            className="w-1/2 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500"
+          />
+          <input
+            type="number"
+            min={0}
+            value={draft.currentAmount ?? ''}
+            onChange={(e) => setDraft({ ...draft, currentAmount: e.target.value === '' ? null : Number(e.target.value) })}
+            placeholder={getText('Recaudado ($, opcional)', 'Raised ($, optional)')}
+            className="w-1/2 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500"
+          />
+        </div>
+      )}
+      <div className="flex gap-1.5">
+        <button
+          onClick={isEditing ? saveEdit : addNew}
+          className="flex-1 rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary-hover"
+        >
+          {isEditing ? getText('Guardar cambios', 'Save changes') : getText('+ Agregar causa', '+ Add cause')}
+        </button>
+        {isEditing && (
+          <button
+            onClick={() => { setEditingId(null); setDraft(emptyCausa()); }}
+            className="rounded-lg px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-700"
+          >
+            {getText('Cancelar', 'Cancel')}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
+          {getText('Formas de ayudar (causas)', 'Ways to help (causes)')}
+        </h2>
+        <VisibilityToggle visible={visible} onChange={onVisibleChange} getText={getText} />
+      </div>
+      <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
+        {getText(
+          'Causas individuales que se muestran en tu página pública — dinero, tiempo o especie.',
+          'Individual causes shown on your public page — money, time, or in-kind.',
+        )}
+      </p>
+
+      {causas.length === 0 && (
+        <p className="mt-3 text-sm text-gray-400 dark:text-neutral-500">
+          {getText('Aún no agregas causas.', "You haven't added any causes yet.")}
+        </p>
+      )}
+
+      <div className="mt-3 space-y-2">
+        {causas.map((causa) => (
+          <div key={causa.id} className="rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{causa.title}</p>
+                <p className="mt-0.5 text-xs text-gray-500 dark:text-neutral-400">
+                  {getText(CAUSA_TYPE_LABELS.find((t) => t.value === causa.type)?.es ?? '', CAUSA_TYPE_LABELS.find((t) => t.value === causa.type)?.en ?? '')}
+                  {causa.description ? ` · ${causa.description}` : ''}
+                </p>
+              </div>
+              <div className="flex flex-shrink-0 items-center gap-1">
+                {confirmDeleteId === causa.id ? (
+                  <>
+                    <button onClick={() => remove(causa.id)} className="flex min-h-11 items-center justify-center rounded-lg px-2.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+                      {getText('Confirmar', 'Confirm')}
+                    </button>
+                    <button onClick={() => setConfirmDeleteId(null)} className="flex min-h-11 items-center justify-center rounded-lg px-2.5 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-700">
+                      {getText('Cancelar', 'Cancel')}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={() => startEdit(causa)} className="flex min-h-11 items-center justify-center rounded-lg px-2.5 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-700">
+                      {getText('Editar', 'Edit')}
+                    </button>
+                    <button onClick={() => setConfirmDeleteId(causa.id)} className="flex min-h-11 items-center justify-center rounded-lg px-2.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+                      {getText('Eliminar', 'Delete')}
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {form}
+    </div>
+  );
+}
+
+function PuntoDeEntregaSection({
+  impact,
+  onChange,
+  getText,
+  visible,
+  onVisibleChange,
+}: {
+  impact: CommunityImpactDto;
+  onChange: (impact: CommunityImpactDto) => void;
+  getText: (es: string, en: string) => string;
+  visible: boolean;
+  onVisibleChange: (v: boolean) => void;
+}) {
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
+          {getText('Punto de entrega', 'Drop-off point')}
+        </h2>
+        <VisibilityToggle visible={visible} onChange={onVisibleChange} getText={getText} />
+      </div>
+      <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
+        {getText(
+          'La dirección se toma de tu perfil (pestaña Configuración). Aquí solo el horario y qué se acepta.',
+          'The address comes from your profile (Settings tab). Just the schedule and what you accept here.',
+        )}
+      </p>
+      <div className="mt-3 space-y-2">
+        <input
+          value={impact.deliverySchedule}
+          onChange={(e) => onChange({ ...impact, deliverySchedule: e.target.value })}
+          placeholder={getText('Horario (ej. "Lun–Vie 9am–1pm")', 'Schedule (e.g. "Mon–Fri 9am–1pm")')}
+          maxLength={200}
+          className="w-full rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500"
+        />
+        <input
+          value={impact.deliveryAcceptedItems}
+          onChange={(e) => onChange({ ...impact, deliveryAcceptedItems: e.target.value })}
+          placeholder={getText('Qué se acepta (ej. "Alimentos no perecederos, ropa, higiene")', 'What you accept (e.g. "Non-perishables, clothing, hygiene items")')}
+          maxLength={300}
+          className="w-full rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500"
+        />
+      </div>
+    </div>
+  );
+}
+
+function MetaRecaudacionSection({
+  impact,
+  onChange,
+  getText,
+}: {
+  impact: CommunityImpactDto;
+  onChange: (impact: CommunityImpactDto) => void;
+  getText: (es: string, en: string) => string;
+}) {
+  return (
+    <div>
+      <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
+        {getText('Meta de recaudación del mes', "This month's fundraising goal")}
+      </h2>
+      <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
+        {getText(
+          'Tú reportas estos montos a mano — todavía no hay cobro de donaciones integrado, así que no se calculan solos. Solo aparece en tu página si "Donar" está activado en Configuración.',
+          "You report these amounts by hand — donation collection isn't wired up yet, so nothing is calculated automatically. Only shows on your page if Donate is enabled in Settings.",
+        )}
+      </p>
+      <div className="mt-3 flex gap-2">
+        <input
+          type="number"
+          min={0}
+          value={impact.fundraisingGoalAmount ?? ''}
+          onChange={(e) => onChange({ ...impact, fundraisingGoalAmount: e.target.value === '' ? null : Number(e.target.value) })}
+          placeholder={getText('Meta ($, opcional)', 'Goal ($, optional)')}
+          className="w-1/2 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500"
+        />
+        <input
+          type="number"
+          min={0}
+          value={impact.fundraisingCurrentAmount ?? ''}
+          onChange={(e) => onChange({ ...impact, fundraisingCurrentAmount: e.target.value === '' ? null : Number(e.target.value) })}
+          placeholder={getText('Recaudado este mes ($)', 'Raised this month ($)')}
+          className="w-1/2 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500"
+        />
       </div>
     </div>
   );
