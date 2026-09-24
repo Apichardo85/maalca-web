@@ -74,6 +74,12 @@ export function SpaceSidebar({
     { label: getText('Diseñar mi Espacio', 'Design my Space'), icon: '🎨', href: `/space/${slug}/design` },
     { label: getText('Identidad', 'Identity'),                icon: '🪪', href: `/space/${slug}/identidad` },
     { label: catalogLabel,                                    icon: '📦', href: `/space/${slug}/catalog`, token: 'catalog' },
+    // Calculadora de impacto (insumos -> recetas -> combos -> servir) — solo Community, ver
+    // CommunityService.cs / ImpactContent.tsx. Sin token: no hay modulo activable/desactivable
+    // para esto todavia, es parte fija del businessType Community.
+    ...(businessType === 'community'
+      ? [{ label: getText('Calculadora de impacto', 'Impact calculator'), icon: '🍲', href: `/space/${slug}/impact` }]
+      : []),
     { label: getText('Pedidos', 'Orders'),                    icon: '🧾', href: `/space/${slug}/orders`, token: 'orders' },
     // Cocina/Fila/Facturas/Propuestas: antes filtrados acá por businessType, duplicando (y
     // desincronizados con) el gate real de la página, que ya es por módulo activo (ver
