@@ -177,3 +177,13 @@ export const CATALOG_NAV_LABELS: Record<BusinessType, { es: string; en: string }
   retail: { es: 'Catálogo', en: 'Catalog' },
   community: { es: 'Programas', en: 'Programs' },
 };
+
+// TODO (backlog, 2026-09-25): "Programas" para Community sigue siendo el modulo
+// generico de Catalogo (tabla Services) con el campo Precio relabeled a "Meta
+// (opcional)" -- un parche, no un rediseno. El campo real que un programa
+// comunitario necesita no es precio/meta en dolares: es cupos, horario,
+// dias de la semana, voluntarios requeridos, etc. -- mas parecido a las Causas
+// (goalAmount/currentAmount) o a un modulo propio, no a un item vendible.
+// Igual que Eventos/Agenda arriba, esto queda fuera del alcance actual: se
+// decidio arreglar el bug de guardado (BusinessType.Community faltante en los
+// switches de CatalogCrudService) y relabeled el precio, sin rediseno de datos.

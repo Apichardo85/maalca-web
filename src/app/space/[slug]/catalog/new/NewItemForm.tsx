@@ -47,6 +47,7 @@ export default function NewItemForm({ slug, businessType, from, inventoryItems =
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const isRestaurant = businessType === 'Restaurant';
   const isBarberOrService = businessType === 'Barber' || businessType === 'Service';
+  const isCommunity = businessType === 'Community';
   // Modality (Presencial/Virtual/Ambas) solo aplica a Servicios — Barbería siempre es presencial.
   const isService = businessType === 'Service';
   const namePlaceholderPair = (businessType && NAME_PLACEHOLDERS[businessType]) || DEFAULT_NAME_PLACEHOLDER;
@@ -81,7 +82,11 @@ export default function NewItemForm({ slug, businessType, from, inventoryItems =
     setPlanLimitReached(false);
     setTrialExpired(false);
     startTransition(async () => {
-      const body: Record<string, unknown> = { ...form, ...(images.length > 0 ? { images } : {}) };
+      const body: Record<string, unknown> = {
+        ...form,
+        price: form.price === '' ? 0 : Number(form.price),
+        ...(images.length > 0 ? { images } : {}),
+      };
       if (isRestaurant) {
         body.periods = periods;
         body.weekDays = weekDays;
@@ -210,7 +215,9 @@ export default function NewItemForm({ slug, businessType, from, inventoryItems =
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">{getText('Precio ($)', 'Price ($)')}</label>
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                {isCommunity ? getText('Meta (opcional)', 'Goal (optional)') : getText('Precio ($)', 'Price ($)')}
+              </label>
               <input
                 type="number"
                 value={form.price}

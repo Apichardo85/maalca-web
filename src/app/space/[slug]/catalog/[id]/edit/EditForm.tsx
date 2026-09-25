@@ -86,6 +86,7 @@ export default function EditForm({
   const router = useRouter();
   const isRestaurant = businessType === 'Restaurant';
   const isBarberOrService = businessType === 'Barber' || businessType === 'Service';
+  const isCommunity = businessType === 'Community';
   const isService = businessType === 'Service';
   const namePlaceholderPair = (businessType && NAME_PLACEHOLDERS[businessType]) || DEFAULT_NAME_PLACEHOLDER;
   const namePlaceholder = getText(namePlaceholderPair.es, namePlaceholderPair.en);
@@ -142,7 +143,11 @@ export default function EditForm({
     setPlanLimitReached(false);
     setTrialExpired(false);
     startTransition(async () => {
-      const body: Record<string, unknown> = { ...form, images };
+      const body: Record<string, unknown> = {
+        ...form,
+        price: form.price === '' ? null : Number(form.price),
+        images,
+      };
       if (isRestaurant) {
         body.periods = periods;
         body.weekDays = weekDays;
@@ -320,7 +325,9 @@ export default function EditForm({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">{getText('Precio ($)', 'Price ($)')}</label>
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                {isCommunity ? getText('Meta (opcional)', 'Goal (optional)') : getText('Precio ($)', 'Price ($)')}
+              </label>
               <input
                 type="number"
                 value={form.price}
