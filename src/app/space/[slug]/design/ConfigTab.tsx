@@ -222,7 +222,7 @@ export function ConfigTab({ slug, form, businessType, onChange, onCommit, onComm
         >
           {form.coverImageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={form.coverImageUrl} alt="Cover" className="h-full w-full object-cover" />
+            <img src={form.coverImageUrl} alt="Cover" className="h-full w-full object-contain" />
           ) : (
             <span className="text-sm text-gray-400 dark:text-neutral-500">
               {getText('Subir imagen de header →', 'Upload header image →')}

@@ -206,15 +206,12 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
       {/* ── Hero ────────────────────────────────────────────────────────── */}
       <header style={{ backgroundColor: accent }} className="relative overflow-hidden">
         {business.cover_image_url && (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={business.cover_image_url}
-              alt=""
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-            <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.45)' }} />
-          </>
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={business.cover_image_url}
+            alt=""
+            className="absolute inset-0 h-full w-full object-contain"
+          />
         )}
         <div className="absolute right-4 top-4 z-10">
           <SimpleLanguageToggle variant="dark" />
