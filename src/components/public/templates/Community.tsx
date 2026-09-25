@@ -325,19 +325,26 @@ export function CommunityTemplate({ business, items, capabilities }: PublicTempl
             {programs.map((program) => {
               const name = language === 'en' && program.nameEn?.trim() ? program.nameEn : program.name;
               const description = language === 'en' && program.descriptionEn?.trim() ? program.descriptionEn : program.description;
+              const imageUrl = program.imageUrl ?? program.image_url;
               return (
-                <div key={program.id} className="rounded-xl border p-4" style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}>
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-sm font-medium" style={{ color: INK }}>{name}</span>
-                    {program.price != null && (
-                      <span className="shrink-0 text-xs font-medium" style={{ color: MUTED }}>
-                        {getText('Meta: ', 'Goal: ')}{formatPrice(program.price, currency)}
-                      </span>
+                <div key={program.id} className="overflow-hidden rounded-xl border" style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}>
+                  {imageUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={imageUrl} alt={name} className="h-36 w-full object-cover" />
+                  )}
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-sm font-medium" style={{ color: INK }}>{name}</span>
+                      {program.price != null && (
+                        <span className="shrink-0 text-xs font-medium" style={{ color: MUTED }}>
+                          {getText('Meta: ', 'Goal: ')}{formatPrice(program.price, currency)}
+                        </span>
+                      )}
+                    </div>
+                    {description && (
+                      <p className="mt-1 text-xs" style={{ color: MUTED }}>{description}</p>
                     )}
                   </div>
-                  {description && (
-                    <p className="mt-1 text-xs" style={{ color: MUTED }}>{description}</p>
-                  )}
                 </div>
               );
             })}
