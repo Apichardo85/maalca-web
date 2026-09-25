@@ -51,11 +51,12 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/logo-icon.svg", type: "image/svg+xml" },
       { url: "/favicon.ico", sizes: "32x32", type: "image/x-icon" },
     ],
     shortcut: "/favicon.svg",
-    apple: "/logo-icon.svg",
+    // iOS no soporta SVG para el apple-touch-icon -- tiene que ser un PNG real (antes
+    // apuntaba a logo-icon.svg, que iOS simplemente ignoraba).
+    apple: "/apple-icon.png",
   },
   openGraph: {
     type: "website",
