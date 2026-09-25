@@ -161,6 +161,27 @@ export function ActivitiesContent({ slug, initialActivities }: Props) {
     minute: '2-digit',
   });
 
+  // Hora sola (sin fecha) para el extremo "Ends" cuando cae el mismo dia que "Starts" --
+  // evita repetir "vie, 2 oct" dos veces en la misma tarjeta.
+  const timeOnlyFormat = new Intl.DateTimeFormat(language === 'es' ? 'es-DO' : 'en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+
+  function formatActivityWhen(a: Activity): string {
+    const start = new Date(a.startsAt);
+    let label = dtFormat.format(start);
+    if (!a.endsAt) return label;
+    const end = new Date(a.endsAt);
+    if (Number.isNaN(end.getTime())) return label;
+    const sameDay =
+      start.getFullYear() === end.getFullYear() &&
+      start.getMonth() === end.getMonth() &&
+      start.getDate() === end.getDate();
+    label += sameDay ? ` – ${timeOnlyFormat.format(end)}` : ` – ${dtFormat.format(end)}`;
+    return label;
+  }
+
   return (
     <div className="mx-auto max-w-3xl p-4 md:p-6">
       <Toast toasts={toast.toasts} onRemove={toast.remove} />
@@ -302,7 +323,7 @@ export function ActivitiesContent({ slug, initialActivities }: Props) {
                   )}
                 </div>
                 <p className="mt-0.5 text-xs text-gray-500 dark:text-neutral-400">
-                  {dtFormat.format(new Date(a.startsAt))}
+                  {formatActivityWhen(a)}
                   {a.location ? ` · ${a.location}` : ''}
                 </p>
                 {a.description && (

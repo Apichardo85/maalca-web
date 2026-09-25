@@ -205,10 +205,21 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
     <div style={{ backgroundColor: PAPER, color: INK, minHeight: '100vh' }} className="font-sans">
       {/* ── Hero ────────────────────────────────────────────────────────── */}
       <header style={{ backgroundColor: accent }} className="relative overflow-hidden">
+        {business.cover_image_url && (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={business.cover_image_url}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.45)' }} />
+          </>
+        )}
         <div className="absolute right-4 top-4 z-10">
           <SimpleLanguageToggle variant="dark" />
         </div>
-        <div className="mx-auto max-w-[860px] px-4 pb-12 pt-14 text-center text-white sm:pt-16">
+        <div className="relative z-10 mx-auto max-w-[860px] px-4 pb-12 pt-14 text-center text-white sm:pt-16">
           {business.logo_url && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -514,6 +525,23 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
               const start = new Date(activity.startsAt);
               const dateLabel = start.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
               const timeLabel = start.toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit' });
+              // Si "Ends" existe, se agrega al lado de la hora de inicio -- solo la hora si cae
+              // el mismo dia que "Starts" (evita repetir la fecha dos veces), fecha completa si no.
+              let endLabel = '';
+              if (activity.endsAt) {
+                const end = new Date(activity.endsAt);
+                if (!Number.isNaN(end.getTime())) {
+                  const sameDay =
+                    start.getFullYear() === end.getFullYear() &&
+                    start.getMonth() === end.getMonth() &&
+                    start.getDate() === end.getDate();
+                  endLabel = sameDay
+                    ? end.toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit' })
+                    : end.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' }) +
+                      ' · ' +
+                      end.toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit' });
+                }
+              }
               const title = getText(activity.title, activity.titleEn?.trim() || activity.title);
               const description = getText(activity.description ?? '', activity.descriptionEn?.trim() || activity.description || '');
               return (
@@ -525,6 +553,7 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
                         <span className="text-sm font-medium" style={{ color: INK }}>{title}</span>
                         <span className="text-xs font-medium" style={{ color: MUTED }}>
                           {dateLabel} · {timeLabel}
+                          {endLabel ? ` – ${endLabel}` : ''}
                         </span>
                       </div>
                       {description && (

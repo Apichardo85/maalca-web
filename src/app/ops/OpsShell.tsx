@@ -13,6 +13,7 @@ const NAV = [
   // cada negocio). Son datos distintos por diseño: esto es Owner/Support internos de la
   // plataforma, no TeamMember de un afiliado.
   { href: '/ops/equipo', label: 'Staff MaalCa' },
+  { href: '/ops/modulos', label: 'Módulos' },
 ];
 
 function NavLink({ href, label }: { href: string; label: string }) {
