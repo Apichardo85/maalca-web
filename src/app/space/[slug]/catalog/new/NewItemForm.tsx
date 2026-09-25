@@ -122,6 +122,13 @@ export default function NewItemForm({ slug, businessType, from, inventoryItems =
             return;
           }
         }
+        // TODO (backlog, 2026-09-25): tras guardar OK (POST/PUT 201/200), este router.push
+        // de vuelta al catalogo a veces dispara un fetch RSC que devuelve 503 transitorio
+        // (visto en produccion: cold-start del contenedor en Vercel/Railway justo despues del
+        // deploy/scale-up). El guardado en si NO se pierde -- el POST ya completo con 201/200
+        // antes de este push -- pero la lista puede no reflejar el item nuevo hasta un reload
+        // manual. Pendiente: reintento automatico del RSC fetch, o un toast que diga "guardado,
+        // actualiza la lista" cuando el push falla, en vez de fallar silenciosamente.
         router.push(`/space/${slug}/catalog`);
       } else {
         const data = await res.json().catch(() => ({}));

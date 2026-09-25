@@ -123,6 +123,24 @@ function whatsappDonateLink(
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
 
+// Correo directo al negocio para causas de tipo "tiempo" (voluntariado) -- todavia no hay
+// un canal de inscripcion propio (ver comentario junto a expandedCausaId mas arriba), asi
+// que el mailto lleva un asunto/cuerpo pre-armado que menciona la causa especifica, para que
+// el afiliado sepa de inmediato a que se refiere el interesado.
+function volunteerMailtoLink(
+  email: string,
+  businessName: string,
+  getText: (es: string, en: string) => string,
+  causaTitle: string,
+): string {
+  const subject = getText(`Voluntariado: ${causaTitle}`, `Volunteering: ${causaTitle}`);
+  const body = getText(
+    `Hola, quiero ser voluntario/a en ${businessName} para: ${causaTitle}. ¿Como puedo ayudar?`,
+    `Hi, I'd like to volunteer with ${businessName} for: ${causaTitle}. How can I help?`,
+  );
+  return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
 export function CommunityTemplate({ business, capabilities }: PublicTemplateProps) {
   const accent = business.primary_color ?? MAALCA_BLUE;
   const { language } = useSimpleLanguage();
@@ -402,8 +420,17 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
                           "There's no volunteer sign-up channel yet — reach out to the business directly:",
                         )}
                       </p>
-                      {business.whatsapp && <p className="mt-1 font-medium" style={{ color: INK }}>{business.whatsapp}</p>}
-                      {business.contactEmail && <p className="mt-0.5 font-medium" style={{ color: INK }}>{business.contactEmail}</p>}
+                      {business.contactEmail && (
+                        <a
+                          href={volunteerMailtoLink(business.contactEmail, business.name, getText, causa.title)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="mt-1 block font-medium underline"
+                          style={{ color: INK }}
+                        >
+                        {business.contactEmail}
+                        </a>
+                      )}
+                      {business.whatsapp && <p className="mt-0.5 font-medium" style={{ color: INK }}>{business.whatsapp}</p>}
                       {!business.whatsapp && !business.contactEmail && (
                         <p className="mt-1">{getText('Contacto no disponible todavia.', 'Contact info not available yet.')}</p>
                       )}
@@ -433,15 +460,22 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
 
               if (causa.type === 'time') {
                 return (
-                  <button
+                  <div
                     key={causa.id}
-                    type="button"
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setExpandedCausaId((id) => (id === causa.id ? null : causa.id))}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setExpandedCausaId((id) => (id === causa.id ? null : causa.id));
+                      }
+                    }}
                     className={cardClassName}
                     style={cardStyle}
-                >
+                  >
                     {cardBody}
-                  </button>
+                  </div>
                 );
               }
 
