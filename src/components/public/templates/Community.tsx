@@ -99,14 +99,27 @@ const CAUSA_META: Record<Causa['type'], { icon: typeof HeartIcon; color: string;
   in_kind: { icon: BoxIcon, color: AMBER, bg: AMBER_BG, es: 'Especie', en: 'In-kind' },
 };
 
-function whatsappDonateLink(whatsapp: string | null | undefined, businessName: string, getText: (es: string, en: string) => string): string | null {
+function whatsappDonateLink(
+  whatsapp: string | null | undefined,
+  businessName: string,
+  getText: (es: string, en: string) => string,
+  causaTitle?: string,
+): string | null {
   if (!whatsapp) return null;
   const digits = whatsapp.replace(/[^\d]/g, '');
   if (!digits) return null;
-  const message = getText(
-    `Hola, quiero donar a ${businessName}`,
-    `Hi, I'd like to donate to ${businessName}`,
-  );
+  // Misma cuenta de WhatsApp del negocio para todas las causas de dinero — no hay Stripe
+  // Connect por causa todavia (Fase 3), asi que la causa solo cambia el TEXTO del mensaje
+  // para que el afiliado sepa a que quiere destinar la donacion.
+  const message = causaTitle
+    ? getText(
+        `Hola, quiero donar a ${businessName} para: ${causaTitle}`,
+        `Hi, I'd like to donate to ${businessName} for: ${causaTitle}`,
+      )
+    : getText(
+        `Hola, quiero donar a ${businessName}`,
+        `Hi, I'd like to donate to ${businessName}`,
+      );
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
 
@@ -123,6 +136,12 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
 
   const causas = (business.causas ?? []).filter((c) => c.title?.trim());
   const impact: CommunityImpact | null = business.communityImpact ?? null;
+
+  // Causas de tipo 'time' (voluntariado) todavia no tienen canal de inscripcion propio --
+  // al hacer clic solo se expande la tarjeta para mostrar el contacto del negocio (mismo
+  // WhatsApp que Dinero, pero SIN generar un link de donacion: aqui es solo informativo
+  // hasta que se decida un canal real de voluntariado).
+  const [expandedCausaId, setExpandedCausaId] = useState<string | null>(null);
 
   // Módulos — no todo trial comunitario acepta donaciones en dinero ni publicó causas/punto de
   // entrega todavía. Clave ausente = visible, mismo default que el resto de sectionVisibility.
@@ -338,8 +357,20 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
               const pct = showProgress
                 ? Math.min(100, Math.round(((causa.currentAmount ?? 0) / causa.goalAmount!) * 100))
                 : null;
-              return (
-                <div key={causa.id} className="rounded-xl border p-4" style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}>
+              const isExpanded = expandedCausaId === causa.id;
+
+              // Cada causa se puede "accionar" segun su tipo (ver comentario junto a
+              // whatsappDonateLink y expandedCausaId mas arriba en este archivo):
+              //   - money: WhatsApp del negocio, mismo numero que el boton general de
+              //     donar, pero con el texto del mensaje mencionando esta causa.
+              //   - in_kind: salta a la seccion "Entrega en persona" (misma pagina).
+              //   - time: todavia no hay canal de inscripcion para voluntariado, asi que
+              //     solo se expande la tarjeta para mostrar el contacto del negocio.
+              const causaDonateLink =
+                causa.type === 'money' ? whatsappDonateLink(business.whatsapp, business.name, getText, causa.title) : null;
+
+              const cardBody = (
+                <>
                   <div className="flex items-center gap-2.5">
                     <Icon className="h-4 w-4 flex-shrink-0" style={{ color: meta.color }} />
                     <span className="flex-1 text-sm font-medium" style={{ color: INK }}>{causa.title}</span>
@@ -363,6 +394,60 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
                       </p>
                     </>
                   )}
+                  {causa.type === 'time' && isExpanded && (
+                    <div className="mt-2.5 border-t pt-2.5 text-xs" style={{ borderColor: '#E3E6EC', color: MUTED }}>
+                      <p>
+                        {getText(
+                          'Aun no hay un canal de inscripcion para voluntariado — escribe directo al negocio:',
+                          "There's no volunteer sign-up channel yet — reach out to the business directly:",
+                        )}
+                      </p>
+                      {business.whatsapp && <p className="mt-1 font-medium" style={{ color: INK }}>{business.whatsapp}</p>}
+                      {business.contactEmail && <p className="mt-0.5 font-medium" style={{ color: INK }}>{business.contactEmail}</p>}
+                      {!business.whatsapp && !business.contactEmail && (
+                        <p className="mt-1">{getText('Contacto no disponible todavia.', 'Contact info not available yet.')}</p>
+                      )}
+                    </div>
+                  )}
+                </>
+              );
+
+              const cardClassName = 'rounded-xl border p-4 text-left w-full';
+              const cardStyle = { borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' } as const;
+
+              if (causa.type === 'money' && causaDonateLink) {
+                return (
+                  <a key={causa.id} href={causaDonateLink} target="_blank" rel="noopener noreferrer" className={cardClassName} style={cardStyle}>
+                    {cardBody}
+                  </a>
+                );
+              }
+
+              if (causa.type === 'in_kind' && showPuntoDeEntrega) {
+                return (
+                  <a key={causa.id} href="#punto-de-entrega" className={cardClassName} style={cardStyle}>
+                    {cardBody}
+                  </a>
+                );
+              }
+
+              if (causa.type === 'time') {
+                return (
+                  <button
+                    key={causa.id}
+                    type="button"
+                    onClick={() => setExpandedCausaId((id) => (id === causa.id ? null : causa.id))}
+                    className={cardClassName}
+                    style={cardStyle}
+                >
+                    {cardBody}
+                  </button>
+                );
+              }
+
+              return (
+                <div key={causa.id} className="rounded-xl border p-4" style={cardStyle}>
+                  {cardBody}
                 </div>
               );
             })}
@@ -372,7 +457,7 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
 
       {/* ── Punto de entrega (Fase 4) — texto libre del afiliado + dirección ya existente ── */}
       {showPuntoDeEntrega && (
-        <section className="mx-auto mt-10 max-w-[860px] px-4">
+        <section id="punto-de-entrega" className="mx-auto mt-10 max-w-[860px] scroll-mt-20 px-4">
           <div className="rounded-2xl p-5" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E3E6EC' }}>
             <div className="flex items-center gap-2">
               <TruckIcon className="h-4 w-4" style={{ color: MUTED }} />
