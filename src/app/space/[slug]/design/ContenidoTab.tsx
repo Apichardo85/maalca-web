@@ -103,8 +103,10 @@ export function ContenidoTab({
           horario,
           sectionVisibility,
           galleryImages,
+          // causas ya NO va en este PATCH (backlog 2026-09-25) -- CausasSection la guarda
+          // sola, por fila, contra /api/space/[slug]/causas (ver más abajo).
           ...(businessType === 'community'
-            ? { causas, communityImpact }
+            ? { communityImpact }
             : {}),
         }),
       });
@@ -128,7 +130,7 @@ export function ContenidoTab({
     <div className="space-y-8">
       {businessType === 'community' && (
         <>
-          <CausasSection causas={causas} onChange={setCausas} getText={getText}
+          <CausasSection slug={slug} causas={causas} onChange={setCausas} getText={getText}
             visible={sectionVisibility.causas !== false}
             onVisibleChange={(v) => setSectionVisibility({ ...sectionVisibility, causas: v })}
           />
@@ -703,7 +705,7 @@ const CAUSA_TYPE_LABELS: { value: CausaDto['type']; es: string; en: string }[] =
 
 function emptyCausa(): CausaDto {
   return {
-    id: typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `causa-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    id: '',
     title: '',
     type: 'money',
     description: '',
@@ -712,13 +714,20 @@ function emptyCausa(): CausaDto {
   };
 }
 
+// Causas ya no es reemplazo-total-del-array (backlog 2026-09-25, ver Causa.cs en maalca-api) --
+// cada alta/edicion/borrado pega directo a /api/space/[slug]/causas(/[id]) y se guarda al
+// instante, independiente del botón "Guardar cambios" del resto del tab (que sigue siendo
+// batch para processSteps/faq/horario/etc). `onChange` sigue existiendo solo para que
+// DesignEditor pueda reflejar la causa recién guardada en el preview en vivo.
 function CausasSection({
+  slug,
   causas,
   onChange,
   getText,
   visible,
   onVisibleChange,
 }: {
+  slug: string;
   causas: CausaDto[];
   onChange: (causas: CausaDto[]) => void;
   getText: (es: string, en: string) => string;
@@ -728,29 +737,92 @@ function CausasSection({
   const [draft, setDraft] = useState<CausaDto>(emptyCausa());
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const startEdit = (causa: CausaDto) => {
     setEditingId(causa.id);
-    setDraft({ ...causa });
+    setDraft({ ...causa, description: causa.description ?? '' });
     setConfirmDeleteId(null);
+    setError(null);
   };
 
-  const saveEdit = () => {
+  function payloadFromDraft() {
+    return {
+      title: draft.title.trim(),
+      type: draft.type,
+      description: draft.description?.trim() || null,
+      goalAmount: draft.goalAmount,
+      currentAmount: draft.currentAmount,
+    };
+  }
+
+  const saveEdit = async () => {
     if (!draft.title.trim()) return;
-    onChange(causas.map((c) => (c.id === draft.id ? draft : c)));
-    setEditingId(null);
-    setDraft(emptyCausa());
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/space/${slug}/causas/${draft.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payloadFromDraft()),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data) {
+        setError(getText('No se pudo guardar la causa.', 'Could not save the cause.'));
+        return;
+      }
+      onChange(causas.map((c) => (c.id === draft.id ? data : c)));
+      setEditingId(null);
+      setDraft(emptyCausa());
+    } catch {
+      setError(getText('No se pudo guardar la causa.', 'Could not save the cause.'));
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const addNew = () => {
+  const addNew = async () => {
     if (!draft.title.trim()) return;
-    onChange([...causas, draft]);
-    setDraft(emptyCausa());
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/space/${slug}/causas`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payloadFromDraft()),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data) {
+        setError(getText('No se pudo agregar la causa.', 'Could not add the cause.'));
+        return;
+      }
+      onChange([...causas, data]);
+      setDraft(emptyCausa());
+    } catch {
+      setError(getText('No se pudo agregar la causa.', 'Could not add the cause.'));
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const remove = (id: string) => {
-    onChange(causas.filter((c) => c.id !== id));
-    setConfirmDeleteId(null);
+  const remove = async (id: string) => {
+    setDeletingId(id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/space/${slug}/causas/${id}`, { method: 'DELETE' });
+      if (!res.ok && res.status !== 204) {
+        setError(getText('No se pudo eliminar la causa.', 'Could not delete the cause.'));
+        return;
+      }
+      onChange(causas.filter((c) => c.id !== id));
+      setConfirmDeleteId(null);
+    } catch {
+      setError(getText('No se pudo eliminar la causa.', 'Could not delete the cause.'));
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const isEditing = editingId !== null;
@@ -780,7 +852,7 @@ function CausasSection({
         ))}
       </div>
       <input
-        value={draft.description}
+        value={draft.description ?? ''}
         onChange={(e) => setDraft({ ...draft, description: e.target.value })}
         placeholder={getText('Descripción breve (opcional)', 'Short description (optional)')}
         maxLength={500}
@@ -806,16 +878,22 @@ function CausasSection({
           />
         </div>
       )}
+      {error && <p className="text-xs text-red-600">{error}</p>}
       <div className="flex gap-1.5">
         <button
           onClick={isEditing ? saveEdit : addNew}
-          className="flex-1 rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary-hover"
+          disabled={saving}
+          className="flex-1 rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {isEditing ? getText('Guardar cambios', 'Save changes') : getText('+ Agregar causa', '+ Add cause')}
+          {saving
+            ? getText('Guardando…', 'Saving…')
+            : isEditing
+              ? getText('Guardar cambios', 'Save changes')
+              : getText('+ Agregar causa', '+ Add cause')}
         </button>
         {isEditing && (
           <button
-            onClick={() => { setEditingId(null); setDraft(emptyCausa()); }}
+            onClick={() => { setEditingId(null); setDraft(emptyCausa()); setError(null); }}
             className="rounded-lg px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-700"
           >
             {getText('Cancelar', 'Cancel')}
@@ -835,8 +913,8 @@ function CausasSection({
       </div>
       <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
         {getText(
-          'Causas individuales que se muestran en tu página pública — dinero, tiempo o especie.',
-          'Individual causes shown on your public page — money, time, or in-kind.',
+          'Causas individuales que se muestran en tu página pública — dinero, tiempo o especie. Cada cambio se guarda al instante.',
+          'Individual causes shown on your public page — money, time, or in-kind. Every change saves instantly.',
         )}
       </p>
 
@@ -860,8 +938,8 @@ function CausasSection({
               <div className="flex flex-shrink-0 items-center gap-1">
                 {confirmDeleteId === causa.id ? (
                   <>
-                    <button onClick={() => remove(causa.id)} className="flex min-h-11 items-center justify-center rounded-lg px-2.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
-                      {getText('Confirmar', 'Confirm')}
+                    <button onClick={() => remove(causa.id)} disabled={deletingId === causa.id} className="flex min-h-11 items-center justify-center rounded-lg px-2.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50">
+                      {deletingId === causa.id ? getText('Eliminando…', 'Deleting…') : getText('Confirmar', 'Confirm')}
                     </button>
                     <button onClick={() => setConfirmDeleteId(null)} className="flex min-h-11 items-center justify-center rounded-lg px-2.5 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-neutral-700">
                       {getText('Cancelar', 'Cancel')}

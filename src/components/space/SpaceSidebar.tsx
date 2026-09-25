@@ -80,6 +80,11 @@ export function SpaceSidebar({
     ...(businessType === 'community'
       ? [{ label: getText('Calculadora de impacto', 'Impact calculator'), icon: '🍲', href: `/space/${slug}/impact` }]
       : []),
+    // Eventos/Actividades (backlog 2026-09-25, ver Activity.cs) — igual que Impacto, entidad
+    // transversal en el backend pero lanzamiento inicial solo Community en el nav.
+    ...(businessType === 'community'
+      ? [{ label: getText('Eventos', 'Events'), icon: '📅', href: `/space/${slug}/activities` }]
+      : []),
     { label: getText('Pedidos', 'Orders'),                    icon: '🧾', href: `/space/${slug}/orders`, token: 'orders' },
     // Cocina/Fila/Facturas/Propuestas: antes filtrados acá por businessType, duplicando (y
     // desincronizados con) el gate real de la página, que ya es por módulo activo (ver

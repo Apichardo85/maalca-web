@@ -55,13 +55,15 @@ export type SectionVisibilityDto = Record<string, boolean>;
 
 // ── Comunidad (Fase 4) — solo se usan/editan cuando businessType === 'community' ──
 
-/** `id` lo genera el frontend (crypto.randomUUID()) solo como key estable — el backend no lo
- *  valida como único, es reemplazo total de la lista en cada guardado (igual que processSteps). */
+/** Entidad propia con su propio CRUD (backlog 2026-09-25, /api/space/[slug]/causas) -- antes
+ *  era un array JSON de reemplazo total en Affiliate.Causas. `id` ahora lo genera el backend
+ *  (UUID real, no solo una key de React) y se persiste por fila, no como parte del PATCH de
+ *  contenido general. */
 export interface CausaDto {
   id: string;
   title: string;
   type: 'money' | 'time' | 'in_kind';
-  description: string;
+  description: string | null;
   goalAmount: number | null;
   currentAmount: number | null;
 }

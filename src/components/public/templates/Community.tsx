@@ -12,15 +12,17 @@
 // el afiliado configuró su propio primary_color, ese gana (mismo patrón que los otros
 // templates: business.primary_color ?? fallback).
 //
-// Fase 4 (Causas / Punto de Entrega / meta de recaudación): TODO esto es contenido real,
-// editable por el afiliado desde Dashboard > Contenido (ver ContenidoTab.tsx) — nunca datos
-// de muestra fabricados, porque esta plantilla renderiza páginas públicas reales (ej.
-// maalca.com/neighborhood-transformation-center). "Recaudado este mes" es lo que el afiliado
-// REPORTA a mano (no existe integración de donaciones vía Stripe Connect todavía — Fase 3 del
-// backlog), por eso el copy dice "Recaudado este mes" y no "en vivo": sería engañoso implicar
-// un contador automático que no existe. El evento (ej. "Family Movie Night" del mockup) queda
-// deliberadamente FUERA de este template — Eventos/Agenda será un módulo transversal a todos
-// los business types, no algo Community-only (ver nota en registry.ts).
+// Causas / Punto de Entrega / meta de recaudación: esto es contenido real, editable por el
+// afiliado desde Dashboard > Contenido (ver ContenidoTab.tsx) — nunca datos de muestra
+// fabricados, porque esta plantilla renderiza páginas públicas reales (ej.
+// maalca.com/neighborhood-transformation-center). Causas es tabla propia desde 2026-09-25
+// (Causa.cs, antes columna JSON) -- se lee via /api/public/affiliates/{slug}/causas.
+// "Recaudado este mes" es lo que el afiliado REPORTA a mano (no existe integración de
+// donaciones vía Stripe Connect todavía — Fase 3 del backlog), por eso el copy dice
+// "Recaudado este mes" y no "en vivo": sería engañoso implicar
+// un contador automático que no existe. Eventos/Actividades (2026-09-25) sí se renderiza acá
+// ahora ("Próximos eventos") — entidad propia y transversal (Activity.cs, ver registry.ts),
+// pero el nav del dashboard que lo alimenta solo está habilitado para Community por ahora.
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
@@ -93,6 +95,15 @@ function TruckIcon({ className, style }: { className?: string; style?: CSSProper
   );
 }
 
+function CalendarIcon({ className, style }: { className?: string; style?: CSSProperties }) {
+  return (
+    <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M16 3v4M8 3v4M3 10h18" />
+    </svg>
+  );
+}
+
 const CAUSA_META: Record<Causa['type'], { icon: typeof HeartIcon; color: string; bg: string; es: string; en: string }> = {
   money: { icon: HeartIcon, color: GREEN, bg: GREEN_BG, es: 'Dinero', en: 'Money' },
   time: { icon: HandsIcon, color: '#2E5BFF', bg: BLUE_BG, es: 'Tiempo', en: 'Time' },
@@ -154,6 +165,9 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
 
   const causas = (business.causas ?? []).filter((c) => c.title?.trim());
   const impact: CommunityImpact | null = business.communityImpact ?? null;
+  // Ya vienen filtrados a "proximos" y ordenados por fecha desde el endpoint publico (ver
+  // getActivities en app/[slug]/page.tsx) -- solo se descarta un titulo vacio, igual que causas.
+  const activities = (business.activities ?? []).filter((a) => a.title?.trim());
 
   // Causas de tipo 'time' (voluntariado) todavia no tienen canal de inscripcion propio --
   // al hacer clic solo se expande la tarjeta para mostrar el contacto del negocio (mismo
@@ -361,7 +375,7 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
         </section>
       )}
 
-      {/* ── Causas individuales (Fase 4) — dinero/tiempo/especie, contenido real del afiliado ── */}
+      {/* ── Causas individuales — dinero/tiempo/especie, tabla propia (Causa.cs, backlog 2026-09-25) ── */}
       {showCausas && (
         <section className="mx-auto mt-10 max-w-[860px] px-4">
           <h2 className="text-lg font-semibold" style={{ color: INK }}>
@@ -482,6 +496,45 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
               return (
                 <div key={causa.id} className="rounded-xl border p-4" style={cardStyle}>
                   {cardBody}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* ── Eventos/Actividades (backlog 2026-09-25) — modulo transversal, ver Activity.cs ── */}
+      {activities.length > 0 && (
+        <section className="mx-auto mt-10 max-w-[860px] px-4">
+          <h2 className="text-lg font-semibold" style={{ color: INK }}>
+            {getText('Próximos eventos', 'Upcoming events')}
+          </h2>
+          <div className="mt-4 flex flex-col gap-2">
+            {activities.map((activity) => {
+              const start = new Date(activity.startsAt);
+              const dateLabel = start.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
+              const timeLabel = start.toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit' });
+              const title = getText(activity.title, activity.titleEn?.trim() || activity.title);
+              const description = getText(activity.description ?? '', activity.descriptionEn?.trim() || activity.description || '');
+              return (
+                <div key={activity.id} className="rounded-xl border p-4" style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}>
+                  <div className="flex items-start gap-2.5">
+                    <CalendarIcon className="mt-0.5 h-4 w-4 flex-shrink-0" style={{ color: accent }} />
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-baseline gap-x-2">
+                        <span className="text-sm font-medium" style={{ color: INK }}>{title}</span>
+                        <span className="text-xs font-medium" style={{ color: MUTED }}>
+                          {dateLabel} · {timeLabel}
+                        </span>
+                      </div>
+                      {description && (
+                        <p className="mt-1 text-xs" style={{ color: MUTED }}>{description}</p>
+                      )}
+                      {activity.location && (
+                        <p className="mt-1 text-xs" style={{ color: MUTED }}>📍 {activity.location}</p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               );
             })}

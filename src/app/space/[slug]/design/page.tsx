@@ -84,7 +84,6 @@ export default async function DesignPage({
       horario = p.horario ?? [];
       sectionVisibility = p.sectionVisibility ?? {};
       galleryImages = p.galleryImages ?? [];
-      causas = p.causas ?? [];
       communityImpact = p.communityImpact ?? EMPTY_COMMUNITY_IMPACT;
     }
   } catch {
@@ -92,6 +91,22 @@ export default async function DesignPage({
     // unless the user explicitly edits them, so a failed fetch here can't cause data loss.
     // processSteps/faq/horario stay empty — worst case Contenido tab starts blank
     // instead of throwing; saving from there always sends a full explicit array.
+  }
+
+  // Causas -- ya no viene del payload público de arriba (backlog 2026-09-25, ver Causa.cs);
+  // tiene su propio CRUD autenticado, mismo patrón que Activities. Solo Community tiene UI
+  // para esto, así que no vale la pena el fetch para otros tipos de negocio.
+  if ((biz.businessType as string)?.toLowerCase() === 'community') {
+    try {
+      const causasRes = await fetch(`${API}/api/affiliates/${biz.id}/causas`, {
+        headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': biz.id },
+        cache: 'no-store',
+      });
+      if (causasRes.ok) causas = await causasRes.json();
+    } catch {
+      // causas arranca vacío -- el tab de Contenido simplemente no muestra nada que editar
+      // hasta que el usuario reintente (recargando), en vez de tumbar la página del editor.
+    }
   }
 
   const publicUrl = `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://maalca.com'}/${slug}`;

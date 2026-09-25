@@ -8,6 +8,17 @@ import type { PublicCanal } from '@/lib/public-contact';
 import { PageViewTracker } from '@/components/public/PageViewTracker';
 import { stripRichTextToPlain } from '@/lib/sanitize-html';
 
+interface PublicActivity {
+  id: string;
+  title: string;
+  titleEn?: string | null;
+  description?: string | null;
+  descriptionEn?: string | null;
+  location?: string | null;
+  startsAt: string;
+  endsAt?: string | null;
+}
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
@@ -60,6 +71,42 @@ async function getCommunityMetrics(slug: string): Promise<{ mealsServedThisMonth
   }
 }
 
+// Eventos/Actividades (backlog 2026-09-25) -- entidad transversal propia (Activity.cs), no
+// parte del payload de /catalog. El endpoint publico ya filtra a "proximos" (StartsAt >= ahora,
+// IsActive) y ordena por fecha -- el template no necesita volver a filtrar. [] = sin eventos o
+// el fetch falló; nunca bloqueamos el render del resto de la página por esto (mismo criterio
+// que getCommunityMetrics).
+// Causas (Community) -- movido de columna JSON en Affiliate a tabla propia (backlog
+// 2026-09-25, ver Causa.cs en maalca-api) -- antes venia embebido en el payload de /catalog,
+// ahora es su propio endpoint publico, mismo criterio que getActivities.
+async function getCausas(slug: string): Promise<PublicTemplateProps['business']['causas']> {
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/public/affiliates/${slug}/causas`,
+      { next: { revalidate: 60, tags: [`affiliate:${slug}`] } },
+    );
+    if (!res.ok) return [];
+    return res.json();
+  } catch (e) {
+    console.error('[slug] getCausas error', e);
+    return [];
+  }
+}
+
+async function getActivities(slug: string): Promise<PublicActivity[]> {
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/public/affiliates/${slug}/activities`,
+      { next: { revalidate: 60, tags: [`affiliate:${slug}`] } },
+    );
+    if (!res.ok) return [];
+    return res.json();
+  } catch (e) {
+    console.error('[slug] getActivities error', e);
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   if (RESERVED.has(slug)) return { title: 'MaalCa' };
@@ -105,6 +152,14 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
     ? await getCommunityMetrics(slug)
     : null;
 
+  const activities = affiliate.businessType.toLowerCase() === 'community'
+    ? await getActivities(slug)
+    : [];
+
+  const causas = affiliate.businessType.toLowerCase() === 'community'
+    ? await getCausas(slug)
+    : [];
+
   const rawAffiliate = affiliate as typeof affiliate & { whatsApp?: string | null };
   const whatsappValue = affiliate.whatsapp ?? rawAffiliate.whatsApp ?? null;
   console.log('[slug] whatsapp keys — whatsapp:', affiliate.whatsapp, 'whatsApp:', rawAffiliate.whatsApp, 'resolved:', whatsappValue);
@@ -136,8 +191,9 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
           currency: (affiliate.currency as 'USD' | 'DOP' | undefined) ?? 'USD',
           galleryImages: affiliate.galleryImages ?? null,
           communityMetrics,
-          causas: affiliate.causas ?? null,
+          causas,
           communityImpact: affiliate.communityImpact ?? null,
+          activities,
         }}
         items={mappedItems}
         categories={categories}
@@ -171,7 +227,6 @@ interface PublicCatalogResponse {
     currency?: string | null;
     sectionVisibility?: PublicTemplateProps['business']['sectionVisibility'];
     galleryImages?: PublicTemplateProps['business']['galleryImages'];
-    causas?: PublicTemplateProps['business']['causas'];
     communityImpact?: PublicTemplateProps['business']['communityImpact'];
   };
   categories?: PublicTemplateProps['categories'];

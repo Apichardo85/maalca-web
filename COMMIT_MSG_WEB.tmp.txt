@@ -1,0 +1,43 @@
+feat(comunidad): modulo de Eventos/Actividades + causas con CRUD propio
+
+Dos cambios relacionados, construidos en la misma sesion antes del primer
+push (por eso van en un commit): el modulo nuevo de Eventos/Actividades, y
+la migracion de Causas del patron "array JSON de reemplazo total" a
+entidad con su propio CRUD -- se hizo el segundo cambio al notar que
+Activity (recien construido) ya usaba el patron correcto y Causas se habia
+quedado en el viejo.
+
+Eventos/Actividades (nuevo, documentado como pendiente en registry.ts desde
+la feature de causas original):
+- Nuevo tab /space/[slug]/activities (alta/edicion/borrado con confirmacion
+  inline) -- habilitado solo para businessType Community por ahora, aunque
+  la entidad del backend ya es transversal.
+- Nav item "Eventos" en SpaceSidebar, solo Community.
+- Proxy /api/space/[slug]/activities(/[id]).
+- Vitrina publica (Community.tsx): nueva seccion "Proximos eventos".
+
+Causas (refactor, mismo patron que Activity):
+- ContenidoTab.tsx (CausasSection): cada alta/edicion/borrado ahora pega
+  directo a /api/space/[slug]/causas(/[id]) y se guarda al instante --
+  independiente del boton "Guardar cambios" del resto del tab (que sigue
+  siendo batch para processSteps/faq/horario/etc). El id ahora lo genera el
+  backend (UUID real), no crypto.randomUUID() del lado del cliente.
+- Proxy /api/space/[slug]/causas(/[id]).
+- design/page.tsx: el listado inicial de causas ya no viene del payload
+  publico de /api/public/affiliates/{slug} -- se carga aparte con el token
+  autenticado.
+- app/[slug]/page.tsx (vitrina publica): nuevo getCausas() que llama a
+  /api/public/affiliates/{slug}/causas en vez de leer affiliate.causas del
+  payload de /catalog (que ya no lo trae).
+
+registry.ts: PublicTemplateProps.business.activities (nuevo) + comentarios
+de causas/eventos actualizados para reflejar que ambos son entidades
+propias ahora, no array JSON.
+
+Requiere el companion PR en maalca-api (entidades Activity/Causa +
+migracion, incluye copia de datos existentes de Causas) para funcionar de
+punta a punta -- sin eso, ambos tabs cargan vacios y las secciones publicas
+simplemente no aparecen, no hay error.
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01R2QKsutmGsrVonxKk6wEQN

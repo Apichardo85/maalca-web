@@ -64,15 +64,17 @@ export interface PublicTemplateProps {
      *  acepta lo mismo, ver backlog Comunidad):
      *  - "monetaryDonations": calculadora de impacto + botón Donar (Fase 3, Stripe Connect).
      *    Un comedor sin cuenta de donaciones configurada no debe mostrar esto.
-     *  - "causas": causas individuales con tipo dinero/tiempo/especie (Fase 4, entidad Causa).
+     *  - "causas": causas individuales con tipo dinero/tiempo/especie (entidad Causa,
+     *    /api/affiliates/{id}/causas -- ver Causa.cs, movida de columna JSON 2026-09-25).
      *  - "puntoDeEntrega": bloque de entrega en persona (Fase 4, entidad PuntoDeEntrega).
-     *  "eventos"/agenda de actividades queda deliberadamente FUERA de esta lista: no es
-     *  exclusivo de Community (Restaurant/Barber/Service podrían querer lo mismo — un taller,
-     *  una noche de música, etc.), así que cuando se construya debe ser una entidad y un módulo
-     *  transversal, no algo Community-only namespaced acá. Sin entidad todavía, fuera del
-     *  backlog actual.
-     *  "causas" y "puntoDeEntrega" ya tienen backend real (Affiliate.Causas / .CommunityImpact,
-     *  Fase 4) y gatean las secciones correspondientes en Community.tsx. "monetaryDonations"
+     *  "eventos"/agenda de actividades (2026-09-25) ya tiene entidad propia y transversal
+     *  (Activity.cs, tabla Activities) en vez de vivir acá — sigue sin llave en
+     *  sectionVisibility a propósito: no es un módulo Community-only que se pueda apagar por
+     *  afiliado, es una entidad con su propio CRUD (/space/[slug]/activities) que ya devuelve
+     *  [] cuando no hay eventos, así que Community.tsx la oculta por lista vacía, no por
+     *  toggle. Lanzamiento inicial solo businessType Community (ver SpaceSidebar).
+     *  "causas" (tabla Causas) y "puntoDeEntrega" (Affiliate.CommunityImpact) ya tienen backend
+     *  real y gatean las secciones correspondientes en Community.tsx. "monetaryDonations"
      *  sigue gateando la calculadora de impacto + botón Donar. */
     sectionVisibility?: Record<string, boolean> | null;
     /** Solo fotos, sin caption — máximo 12. */
@@ -82,9 +84,11 @@ export interface PublicTemplateProps {
      *  todavía no se pudo cargar o el afiliado no es Community; el template debe ocultar los
      *  bloques que dependan de esto en vez de mostrar un 0 falso. */
     communityMetrics?: { mealsServedThisMonth: number; avgCostPerPlate: number | null } | null;
-    /** Comunidad (Fase 4) — causas individuales publicadas por el afiliado (dinero/tiempo/
-     *  especie), editables en Dashboard > Contenido. Reemplazo total de la lista en cada
-     *  guardado (mismo patrón que processSteps/faq), no CRUD por fila. */
+    /** Comunidad — causas individuales publicadas por el afiliado (dinero/tiempo/especie),
+     *  editables en Dashboard > Contenido. Entidad propia con su propio CRUD (backlog
+     *  2026-09-25, /api/affiliates/{id}/causas, ver Causa.cs) -- ya NO es un reemplazo total
+     *  de un array JSON como processSteps/faq (asi era hasta la migracion MoveCausasToTable).
+     *  Igual que activities, el endpoint publico ya devuelve solo las activas. */
     causas?: Array<{
       id: string;
       title: string;
@@ -103,6 +107,22 @@ export interface PublicTemplateProps {
       deliverySchedule?: string | null;
       deliveryAcceptedItems?: string | null;
     } | null;
+    /** Eventos/Actividades (backlog 2026-09-25) -- entidad propia y transversal (ver
+     *  Activity.cs), no un campo de contenido reemplazado entero como causas/processSteps.
+     *  Ya vienen filtrados a "proximos" (StartsAt >= ahora, IsActive) por el endpoint publico
+     *  /public/affiliates/{slug}/activities -- el template no necesita filtrar de nuevo.
+     *  Lanzamiento inicial solo businessType Community; null/[] = sin eventos o afiliado no
+     *  es Community todavia. */
+    activities?: Array<{
+      id: string;
+      title: string;
+      titleEn?: string | null;
+      description?: string | null;
+      descriptionEn?: string | null;
+      location?: string | null;
+      startsAt: string;
+      endsAt?: string | null;
+    }> | null;
   };
   items: Array<{
     id: string;
@@ -184,6 +204,7 @@ export const CATALOG_NAV_LABELS: Record<BusinessType, { es: string; en: string }
 // comunitario necesita no es precio/meta en dolares: es cupos, horario,
 // dias de la semana, voluntarios requeridos, etc. -- mas parecido a las Causas
 // (goalAmount/currentAmount) o a un modulo propio, no a un item vendible.
-// Igual que Eventos/Agenda arriba, esto queda fuera del alcance actual: se
-// decidio arreglar el bug de guardado (BusinessType.Community faltante en los
-// switches de CatalogCrudService) y relabeled el precio, sin rediseno de datos.
+// A diferencia de Eventos/Actividades (ya resuelto 2026-09-25 con su propia entidad
+// Activity.cs), esto queda fuera del alcance actual: se decidio arreglar el bug de
+// guardado (BusinessType.Community faltante en los switches de CatalogCrudService)
+// y relabeled el precio, sin rediseno de datos.
