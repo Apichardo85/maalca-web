@@ -28,6 +28,7 @@ import type { CSSProperties } from 'react';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { AboutSection } from '@/components/public/AboutSection';
 import { PublicFooter } from '@/components/public/PublicFooter';
+import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 import { formatPrice } from '@/lib/currency';
@@ -152,7 +153,7 @@ function volunteerMailtoLink(
   return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
-export function CommunityTemplate({ business, capabilities }: PublicTemplateProps) {
+export function CommunityTemplate({ business, items, capabilities }: PublicTemplateProps) {
   const accent = business.primary_color ?? MAALCA_BLUE;
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -162,6 +163,11 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
   const metrics = business.communityMetrics;
   const mealsServed = metrics?.mealsServedThisMonth;
   const avgCostPerPlate = metrics?.avgCostPerPlate ?? null;
+
+  // "Programas" en el dashboard (Catalogo, tabla Services reusada -- ver TODO en
+  // registry.ts) -- llegaba como prop `items` desde [slug]/page.tsx igual que a los otros
+  // 4 templates, pero este nunca lo leia: se guardaba bien, nunca se veia en la pagina.
+  const programs = (items ?? []).filter((i) => i.name?.trim());
 
   const causas = (business.causas ?? []).filter((c) => c.title?.trim());
   const impact: CommunityImpact | null = business.communityImpact ?? null;
@@ -305,6 +311,39 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
           ))}
         </div>
       </section>
+
+      {/* ── Programas — catalogo real del afiliado (tabla Services reusada, ver TODO en
+           registry.ts sobre el rediseno pendiente). "Precio" se relabela "Meta (opcional)"
+           igual que en el editor del dashboard, ya que un programa comunitario no vende algo
+           a un precio fijo. ── */}
+      {programs.length > 0 && (
+        <section className="mx-auto mt-10 max-w-[860px] px-4">
+          <h2 className="text-lg font-semibold" style={{ color: INK }}>
+            {getText('Programas', 'Programs')}
+          </h2>
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {programs.map((program) => {
+              const name = language === 'en' && program.nameEn?.trim() ? program.nameEn : program.name;
+              const description = language === 'en' && program.descriptionEn?.trim() ? program.descriptionEn : program.description;
+              return (
+                <div key={program.id} className="rounded-xl border p-4" style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-sm font-medium" style={{ color: INK }}>{name}</span>
+                    {program.price != null && (
+                      <span className="shrink-0 text-xs font-medium" style={{ color: MUTED }}>
+                        {getText('Meta: ', 'Goal: ')}{formatPrice(program.price, currency)}
+                      </span>
+                    )}
+                  </div>
+                  {description && (
+                    <p className="mt-1 text-xs" style={{ color: MUTED }}>{description}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* ── Calculadora de impacto + meta de recaudación + Donar (WEB-COM-003/004) — todo el
            bloque depende de "monetaryDonations": un comedor sin cuenta de donaciones configurada
@@ -613,6 +652,19 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
             {impact?.deliveryAcceptedItems?.trim() && (
               <p className="mt-1 text-xs" style={{ color: MUTED }}>{impact.deliveryAcceptedItems}</p>
             )}
+          </div>
+        </section>
+      )}
+
+      {/* Galeria -- mismo componente compartido que los otros 4 templates
+          (PublicGalleryLightbox); a este template se le habia quedado afuera. */}
+      {(business.sectionVisibility?.gallery ?? true) && business.galleryImages && business.galleryImages.length > 0 && (
+        <section className="mx-auto mt-10 max-w-[860px] px-4">
+          <h2 className="text-lg font-semibold" style={{ color: INK }}>
+            {getText('Galería', 'Gallery')}
+          </h2>
+          <div className="mt-4">
+            <PublicGalleryLightbox images={business.galleryImages} accent={accent} getText={getText} />
           </div>
         </section>
       )}
