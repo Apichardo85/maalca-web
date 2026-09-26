@@ -1,0 +1,7 @@
+chore(repo): eliminar archivos sueltos de mensajes de commit (COMMIT_MSG_WEB8/9.tmp.txt)
+
+Se colaron en commits anteriores por accidente (git add -A). No afectan build
+ni runtime, solo limpieza de repo.
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01R2QKsutmGsrVonxKk6wEQN
