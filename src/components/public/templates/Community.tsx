@@ -34,6 +34,7 @@ import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 import { formatPrice } from '@/lib/currency';
 import { googleMapsUrl } from '@/lib/maps';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 const MAALCA_BLUE = '#045AFE';
 const PAPER = '#F7F8FA';
 const INK = '#161A22';
@@ -198,11 +199,53 @@ export function CommunityTemplate({ business, items, capabilities }: PublicTempl
 
   const donateLink = whatsappDonateLink(business.whatsapp, business.name, getText);
 
+  // Cobro real via Stripe Connect (backlog 2026-09-26, DonationService) -- mismo patron que
+  // CartDrawer.handleCardCheckout: siempre intenta el cobro con tarjeta primero; si el
+  // afiliado no tiene Connect activo (checkoutUrl null) o el fetch falla, cae al link de
+  // WhatsApp existente (donateLink), y solo si tampoco hay WhatsApp configurado queda
+  // deshabilitado con "proximamente".
+  const [donationAmount, setDonationAmount] = useState(25);
+  const [donationCheckoutState, setDonationCheckoutState] = useState<'idle' | 'loading' | 'unavailable'>('idle');
+
+  async function handleDonateCheckout() {
+    setDonationCheckoutState('loading');
+    try {
+      const origin = window.location.origin;
+      const res = await fetch(`${API_BASE}/api/public/affiliates/${business.slug}/donations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: donationAmount,
+          currency,
+          successUrl: `${origin}${window.location.pathname}?donated=true`,
+          cancelUrl: `${origin}${window.location.pathname}?donated=false`,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+        return;
+      }
+    } catch {
+      // sigue al fallback de abajo
+    }
+    if (donateLink) {
+      window.location.href = donateLink;
+      return;
+    }
+    setDonationCheckoutState('unavailable');
+  }
+
   // Segundo stat del grid: solo si hay algo real que mostrar además de comidas servidas — nunca
   // un número inventado para llenar la cuadrícula. Prioridad: recaudado este mes > causas activas.
+  // Preferir el total real calculado por Stripe Connect (DonationService, backlog 2026-09-26)
+  // sobre el monto que el afiliado reporta a mano -- null significa "todavia sin Connect
+  // activo", ahi cae al reportado a mano como antes.
+  const raisedThisMonth = business.donationsRaisedThisMonth ?? impact?.fundraisingCurrentAmount ?? null;
+
   const secondStat =
-    monetaryDonationsEnabled && impact?.fundraisingCurrentAmount != null
-      ? { value: formatPrice(impact.fundraisingCurrentAmount, currency), label: getText('recaudado este mes', 'raised this month') }
+    monetaryDonationsEnabled && raisedThisMonth != null
+      ? { value: formatPrice(raisedThisMonth, currency), label: getText('recaudado este mes', 'raised this month') }
       : causas.length > 0
         ? { value: String(causas.length), label: getText(causas.length === 1 ? 'causa activa' : 'causas activas', causas.length === 1 ? 'active cause' : 'active causes') }
         : null;
@@ -362,24 +405,22 @@ export function CommunityTemplate({ business, items, capabilities }: PublicTempl
               {getText('Calculadora de impacto', 'Impact calculator')}
             </h2>
             {avgCostPerPlate && avgCostPerPlate > 0 ? (
-              <ImpactCalculator accent={accent} costPerPlate={avgCostPerPlate} currency={currency} language={language} getText={getText} />
+              <ImpactCalculator
+                accent={accent}
+                costPerPlate={avgCostPerPlate}
+                currency={currency}
+                language={language}
+                getText={getText}
+                amount={donationAmount}
+                onAmountChange={setDonationAmount}
+              />
             ) : (
               <p className="mt-3 text-sm" style={{ color: MUTED }}>
                 {getText('Aún no hay datos de costo — vuelve pronto.', "There's no cost data yet — check back soon.")}
               </p>
             )}
 
-            {donateLink ? (
-              <a
-                href={donateLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-5 flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90"
-                style={{ backgroundColor: accent }}
-              >
-                {getText('Donar ahora', 'Donate now')}
-              </a>
-            ) : (
+            {donationCheckoutState === 'unavailable' ? (
               <button
                 type="button"
                 disabled
@@ -388,6 +429,18 @@ export function CommunityTemplate({ business, items, capabilities }: PublicTempl
                 style={{ backgroundColor: accent }}
               >
                 {getText('Donar — próximamente', 'Donate — coming soon')}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleDonateCheckout}
+                disabled={donationCheckoutState === 'loading'}
+                className="mt-5 flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-wait disabled:opacity-70"
+                style={{ backgroundColor: accent }}
+              >
+                {donationCheckoutState === 'loading'
+                  ? getText('Redirigiendo…', 'Redirecting…')
+                  : getText('Donar ahora', 'Donate now')}
               </button>
             )}
           </div>
@@ -699,17 +752,22 @@ function ImpactCalculator({
   currency,
   language,
   getText,
+  amount,
+  onAmountChange,
 }: {
   accent: string;
   costPerPlate: number;
   currency: 'USD' | 'DOP';
   language: 'es' | 'en';
   getText: (es: string, en: string) => string;
+  // Controlado por el padre (CommunityTemplate) — el botón "Donar ahora" necesita leer el
+  // mismo monto que el slider para mandarlo al checkout real (ver handleDonateCheckout).
+  amount: number;
+  onAmountChange: (amount: number) => void;
 }) {
   const min = 5;
   const max = 500;
   const step = 5;
-  const [amount, setAmount] = useState(25);
 
   const plates = Math.max(0, Math.floor(amount / costPerPlate));
 
@@ -734,7 +792,7 @@ function ImpactCalculator({
         max={max}
         step={step}
         value={amount}
-        onChange={(e) => setAmount(Number(e.target.value))}
+        onChange={(e) => onAmountChange(Number(e.target.value))}
         className="mt-3 w-full accent-current"
         style={{ color: accent }}
         aria-label={getText('Monto de donación', 'Donation amount')}

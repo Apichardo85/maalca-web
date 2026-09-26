@@ -73,6 +73,14 @@ const SHOWCASE: ShowcaseBusiness[] = [
 ];
 
 const STEP_KEYS = ["home.steps.1", "home.steps.2", "home.steps.3", "home.steps.4"];
+// Timeline real de "Sobre MaalCa" (ver seccion id="about") -- claves ya existian en
+// useSimpleLanguage.tsx, nunca se habian consumido en ningun componente.
+const ABOUT_TIMELINE_KEYS = [
+  { title: "about.foundation", desc: "about.foundation.desc" },
+  { title: "about.expansion", desc: "about.expansion.desc" },
+  { title: "about.consolidation", desc: "about.consolidation.desc" },
+  { title: "about.platform", desc: "about.platform.desc" },
+];
 
 // Landing reordenada (sept. 2026): hero al tope, menos secciones, imágenes reales de negocios
 // afiliados en vez de mockups genéricos. Reemplaza la versión anterior "ecosistema MaalCa"
@@ -335,8 +343,50 @@ export default function HomeClient({ featuredAffiliates }: Props) {
         </div>
       </section>
 
+      {/* ============ SOBRE MAALCA ============
+          El footer enlaza "Sobre MaalCa" a /#about desde 2026-08 (Footer.tsx), pero esta
+          seccion nunca existio -- el id="about" estaba puesto en el CTA final de abajo, asi
+          que el link llevaba al mismo boton generico de "empieza ya" que ya se ve en el hero,
+          sin ningun contenido real sobre la empresa. Las claves de traduccion about.* (titulo,
+          descripcion, timeline de 4 pasos) ya estaban escritas en useSimpleLanguage.tsx desde
+          antes pero nunca se consumian en ningun componente -- se usan aca por primera vez. */}
+      <section id="about" className="w-full px-6 md:px-16 py-20 md:py-24 bg-surface flex flex-col items-center">
+        <div className="max-w-3xl text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-text-primary">{t("about.title")}</h2>
+          <p className="mt-4 text-base text-text-secondary leading-relaxed">{t("about.description")}</p>
+        </div>
+        <div className="mt-12 w-full max-w-3xl relative">
+          {/* Mismo patron de linea de tiempo que "ASÍ DE SIMPLE" arriba -- vertical en movil,
+              horizontal en desktop. */}
+          <div
+            className="md:hidden absolute top-5 bottom-5 left-5 w-0.5 bg-brand-primary/20"
+            aria-hidden="true"
+          />
+          <div
+            className="hidden md:block absolute top-5 left-[12.5%] right-[12.5%] h-0.5 bg-brand-primary/20"
+            aria-hidden="true"
+          />
+          <div className="relative flex flex-col gap-6 md:grid md:grid-cols-4">
+            {ABOUT_TIMELINE_KEYS.map((stepKey, i) => (
+              <div
+                key={stepKey.title}
+                className="flex items-start gap-3 text-left md:flex-col md:items-center md:text-center md:gap-2.5"
+              >
+                <div className="relative z-10 shrink-0 w-10 h-10 rounded-full bg-brand-primary/10 text-brand-primary font-bold text-sm flex items-center justify-center">
+                  {i + 1}
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-text-primary">{t(stepKey.title)}</div>
+                  <div className="mt-1 text-xs text-text-secondary leading-relaxed">{t(stepKey.desc)}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ============ CTA FINAL ============ */}
-      <section id="about" className="w-full px-6 md:px-16 py-20 md:py-24 bg-[#0b1220] flex flex-col items-center text-center">
+      <section className="w-full px-6 md:px-16 py-20 md:py-24 bg-[#0b1220] flex flex-col items-center text-center">
         <h2 className="text-3xl font-bold text-white">{t("home.cta.heading")}</h2>
         <p className="mt-3 text-sm text-white/60">{t("home.cta.subtitle")}</p>
         <Link

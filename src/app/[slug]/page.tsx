@@ -71,6 +71,23 @@ async function getCommunityMetrics(slug: string): Promise<{ mealsServedThisMonth
   }
 }
 
+// Solo Community con Stripe Connect activo — null significa "no aplica todavia" (afiliado no
+// es Community, o no tiene Connect activo): el template debe caer al monto reportado a mano en
+// CommunityImpact.fundraisingCurrentAmount en ese caso, nunca mostrar $0.
+async function getDonationsSummary(slug: string): Promise<{ raisedThisMonth: number | null } | null> {
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/public/affiliates/${slug}/donations/summary`,
+      { next: { revalidate: 60, tags: [`affiliate:${slug}`] } },
+    );
+    if (!res.ok) return null;
+    return res.json();
+  } catch (e) {
+    console.error('[slug] getDonationsSummary error', e);
+    return null;
+  }
+}
+
 // Eventos/Actividades (backlog 2026-09-25) -- entidad transversal propia (Activity.cs), no
 // parte del payload de /catalog. El endpoint publico ya filtra a "proximos" (StartsAt >= ahora,
 // IsActive) y ordena por fecha -- el template no necesita volver a filtrar. [] = sin eventos o
@@ -160,6 +177,10 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
     ? await getCausas(slug)
     : [];
 
+  const donationsSummary = affiliate.businessType.toLowerCase() === 'community'
+    ? await getDonationsSummary(slug)
+    : null;
+
   const rawAffiliate = affiliate as typeof affiliate & { whatsApp?: string | null };
   const whatsappValue = affiliate.whatsapp ?? rawAffiliate.whatsApp ?? null;
   console.log('[slug] whatsapp keys — whatsapp:', affiliate.whatsapp, 'whatsApp:', rawAffiliate.whatsApp, 'resolved:', whatsappValue);
@@ -194,6 +215,7 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
           causas,
           communityImpact: affiliate.communityImpact ?? null,
           activities,
+          donationsRaisedThisMonth: donationsSummary?.raisedThisMonth ?? null,
         }}
         items={mappedItems}
         categories={categories}

@@ -123,6 +123,12 @@ export interface PublicTemplateProps {
       startsAt: string;
       endsAt?: string | null;
     }> | null;
+    /** Solo Community con Stripe Connect activo (backlog 2026-09-26, DonationService) — total
+     *  real recaudado (Status=Paid) este mes calendario, calculado en el backend a partir de
+     *  la tabla Donations. null = el afiliado no tiene Connect activo todavia (nunca puede
+     *  haber donaciones Paid en ese caso); el template debe caer al monto reportado a mano en
+     *  communityImpact.fundraisingCurrentAmount, nunca mostrar $0 falso. */
+    donationsRaisedThisMonth?: number | null;
   };
   items: Array<{
     id: string;
