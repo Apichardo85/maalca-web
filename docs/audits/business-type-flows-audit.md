@@ -145,3 +145,42 @@ Todo lo anterior: commiteado y desplegado (`maalca-api` commit `ca18cfd`, `maalc
 5. **Firma/aceptación de propuesta en Servicios** — complementa la facturación ya resuelta.
 
 Dime con cuál seguimos, o si quieres que investigue algo de esto con más profundidad antes de tocar código.
+
+---
+
+## Actualización 2026-09-25 — quinto vertical (Comunidad) + cierre de pendientes de agosto
+
+Dos de los cinco puntos de la lista de priorización de la ronda anterior ya estaban resueltos en el código, sin que este doc se actualizara:
+
+- ✅ **"Agenda pública debe ocultar horarios ya ocupados"** — `PublicBookingSection.tsx` ya llama `GET /api/public/affiliates/{slug}/busy-times?date=` y filtra `timeSlots` con `isSlotTaken()` antes de pintarlos (`busyByStaff` por miembro del equipo). Ya no se puede intentar reservar un horario tomado.
+- ✅ **"Firma/aceptación de propuesta en Servicios"** — `/space/{slug}/proposals` (task #194) manda un link público con token, el cliente escribe su nombre y acepta en línea (`acceptedAt`/`acceptedByName` en `Proposal.cs`), y el PDF exportado ya incluye "Firmado por X · fecha". No es firma dibujada/certificada, es aceptación con nombre — mismo nivel de simplicidad que el resto del producto.
+
+### 🤝 Comunidad (quinto vertical, no existía en la auditoría original)
+
+**Cómo funciona en el mundo real:** un centro comunitario/comedor no vende nada — necesita mostrar impacto (comidas servidas, costo por plato), recibir donaciones (dinero/tiempo/especie), publicar eventos, y contar programas/causas activas para atraer voluntarios y donantes.
+
+**Lo que resuelve hoy, de verdad:**
+- Calculadora de impacto (insumos → recetas → combos → servir) con `communityMetrics` reales (comidas servidas del mes, costo promedio por plato).
+- Causas individuales con entidad propia (`Causa.cs`, migrada de columna JSON a tabla el 2026-09-25) — tipo dinero/tiempo/especie, meta y monto actual.
+- Eventos/Actividades con entidad propia y transversal (`Activity.cs`) — vencen por `EndsAt` (no por `StartsAt`, bug corregido esta sesión), con hora de fin visible tanto en dashboard como en la página pública.
+- Punto de entrega en persona + meta/recaudado del mes reportado a mano (`CommunityImpact`, sin Stripe Connect todavía — Fase 3 pendiente).
+- Galería y header de foto real (ambos faltaban por completo hasta esta sesión — nunca se leían de `business.cover_image_url`/`galleryImages` en el template).
+
+**Lo que sigue faltando o es débil:**
+- **"Programas" es un parche, no un rediseño** (ver TODO ya documentado en `registry.ts`): reusa la tabla `Services`/Catálogo genérico con "Precio" relabeled a "Meta (opcional)". Un programa comunitario real necesita cupos, horario, días de la semana, voluntarios requeridos — más parecido a Causas que a un ítem vendible. Backlog explícito, fuera de alcance actual.
+- **Donaciones monetarias reales (Stripe Connect) sin construir** — hoy `monetaryDonations` en `sectionVisibility` solo gatea si se muestra la calculadora + botón "Donar", pero el botón lleva a "próximamente"; el recaudado del mes es un número que el afiliado reporta a mano, no un cobro real.
+- **Modo oscuro no implementado en ningún template público** (Restaurant/Barber/Service/Retail/Community) — ver nota en memoria/backlog aparte, no es específico de Comunidad.
+
+**Dónde es original:** es el único vertical que no vende nada — el flujo entero (impacto → causas → eventos → donar) está diseñado para confianza y transparencia, no para checkout. La calculadora de costo-por-plato conectada a insumos reales es un dato que ningún competidor genérico ofrece.
+
+### Estado consolidado (2026-09-25)
+
+| Vertical | Flujo comercial | Página pública | Deuda principal |
+|---|---|---|---|
+| Restaurante | Pedidos+Kitchen+POS+Kiosko, un solo pipeline | Completa | Split de cuenta en POS |
+| Barbería | Reserva por barbero + fila walk-in en tiempo real | Completa | Recordatorios automáticos, bloqueo de horario |
+| Servicios | Agenda + Facturas + Propuestas con firma | Completa | Ninguna carencia estructural mayor |
+| Retail | Catálogo + stock real + POS/Kiosko abiertos | Completa | Ninguna carencia estructural mayor |
+| Comunidad | No vende — impacto/causas/eventos/donar | Recién completada esta sesión (header, galería, foto de programa) | Rediseño de "Programas", donaciones reales vía Stripe Connect |
+
+Verificado por lectura directa de código (no supuestos), mismo criterio que el resto de este documento. `tsc --noEmit`: 42 errores preexistentes (baseline), 0 nuevos, en cada commit de esta sesión.
