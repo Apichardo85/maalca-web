@@ -1,0 +1,25 @@
+feat(comunidad): rediseno del modulo Programas (entidad propia, cupos/horario/dias/voluntarios)
+
+Companion de maalca-api (CommunityProgram.cs). "Programas" ya no reusa el catalogo generico
+(items, tabla Services) -- tiene su propio dashboard, endpoint publico y campo en
+PublicTemplateProps.
+
+- Nuevo /space/[slug]/programs (ProgramsContent.tsx + page.tsx), mismo patron de pagina propia
+  que /activities: alta/edicion/borrado con titulo, descripcion, foto opcional (reusa el mismo
+  upload-image que el catalogo), meta opcional, cupos, horario en texto libre, dias de la
+  semana (reusa WeekDayEditor) y voluntarios requeridos.
+- Nuevos proxies /api/space/[slug]/programs(/[id]), mismo patron que /activities.
+- SpaceSidebar: Community ya no ve el item "Catalogo" (apuntaba a un modulo que ya no usa) --
+  gana "Programas" como item propio, mismo tratamiento que "Eventos".
+- registry.ts: nuevo campo business.programs (reemplaza el uso de items para Community);
+  activities gana imageUrl opcional (companion del backlog de fotos).
+- Community.tsx: la seccion Programas ahora lee business.programs y muestra cupos/horario/
+  dias/voluntarios cuando existen; Eventos gana foto opcional con el mismo tratamiento visual
+  (card se ve bien con o sin foto en ambos modulos, coherencia visual pedida).
+- [slug]/page.tsx: nuevo fetch a /api/public/affiliates/{slug}/programs, mismo criterio que
+  getActivities/getCausas (revalidate 60s, [] si falla, nunca bloquea el resto de la pagina).
+
+tsc --noEmit: 42 errores preexistentes, sin regresiones en los archivos tocados.
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01R2QKsutmGsrVonxKk6wEQN

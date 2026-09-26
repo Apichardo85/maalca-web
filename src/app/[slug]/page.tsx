@@ -17,6 +17,23 @@ interface PublicActivity {
   location?: string | null;
   startsAt: string;
   endsAt?: string | null;
+  imageUrl?: string | null;
+}
+
+// "Programas" -- rediseno backlog 2026-09-26, ver CommunityProgram.cs / comentario en
+// registry.ts sobre por que ya no viene por `items`.
+interface PublicCommunityProgram {
+  id: string;
+  title: string;
+  titleEn?: string | null;
+  description?: string | null;
+  descriptionEn?: string | null;
+  imageUrl?: string | null;
+  goalAmount?: number | null;
+  capacity?: number | null;
+  schedule?: string | null;
+  weekDays?: string | null;
+  volunteersNeeded?: number | null;
 }
 
 interface PageProps {
@@ -124,6 +141,20 @@ async function getActivities(slug: string): Promise<PublicActivity[]> {
   }
 }
 
+async function getPrograms(slug: string): Promise<PublicCommunityProgram[]> {
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/public/affiliates/${slug}/programs`,
+      { next: { revalidate: 60, tags: [`affiliate:${slug}`] } },
+    );
+    if (!res.ok) return [];
+    return res.json();
+  } catch (e) {
+    console.error('[slug] getPrograms error', e);
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   if (RESERVED.has(slug)) return { title: 'MaalCa' };
@@ -173,6 +204,10 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
     ? await getActivities(slug)
     : [];
 
+  const programs = affiliate.businessType.toLowerCase() === 'community'
+    ? await getPrograms(slug)
+    : [];
+
   const causas = affiliate.businessType.toLowerCase() === 'community'
     ? await getCausas(slug)
     : [];
@@ -215,6 +250,7 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
           causas,
           communityImpact: affiliate.communityImpact ?? null,
           activities,
+          programs,
           donationsRaisedThisMonth: donationsSummary?.raisedThisMonth ?? null,
         }}
         items={mappedItems}

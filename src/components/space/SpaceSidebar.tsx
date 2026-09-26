@@ -73,12 +73,23 @@ export function SpaceSidebar({
     { label: getText('Dashboard', 'Dashboard'),               icon: '🏠', href: `/space/${slug}` },
     { label: getText('Diseñar mi Espacio', 'Design my Space'), icon: '🎨', href: `/space/${slug}/design` },
     { label: getText('Identidad', 'Identity'),                icon: '🪪', href: `/space/${slug}/identidad` },
-    { label: catalogLabel,                                    icon: '📦', href: `/space/${slug}/catalog`, token: 'catalog' },
+    // Community ya no usa el catalogo generico (backlog 2026-09-26, ver CommunityProgram.cs) --
+    // "Programas" tiene su propia entidad/pagina mas abajo, así que el item de Catalogo se
+    // oculta acá en vez de apuntar a /catalog (que seguiría existiendo pero vacío para ellos).
+    ...(businessType !== 'community'
+      ? [{ label: catalogLabel, icon: '📦', href: `/space/${slug}/catalog`, token: 'catalog' }]
+      : []),
     // Calculadora de impacto (insumos -> recetas -> combos -> servir) — solo Community, ver
     // CommunityService.cs / ImpactContent.tsx. Sin token: no hay modulo activable/desactivable
     // para esto todavia, es parte fija del businessType Community.
     ...(businessType === 'community'
       ? [{ label: getText('Calculadora de impacto', 'Impact calculator'), icon: '🍲', href: `/space/${slug}/impact` }]
+      : []),
+    // Programas -- rediseno backlog 2026-09-26 (ver CommunityProgram.cs), reemplaza el item de
+    // Catalogo de arriba para Community. Igual patron que Eventos: entidad propia, sin token
+    // (no es un modulo activable/desactivable, es parte fija del businessType Community).
+    ...(businessType === 'community'
+      ? [{ label: getText('Programas', 'Programs'), icon: '📦', href: `/space/${slug}/programs` }]
       : []),
     // Eventos/Actividades (backlog 2026-09-25, ver Activity.cs) — igual que Impacto, entidad
     // transversal en el backend pero lanzamiento inicial solo Community en el nav.

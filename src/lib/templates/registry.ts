@@ -122,6 +122,9 @@ export interface PublicTemplateProps {
       location?: string | null;
       startsAt: string;
       endsAt?: string | null;
+      /** Foto opcional (backlog 2026-09-26) -- igual patron que CommunityProgram.imageUrl:
+       *  null/undefined = sin foto, el card publico se ve bien en ambos casos. */
+      imageUrl?: string | null;
     }> | null;
     /** Solo Community con Stripe Connect activo (backlog 2026-09-26, DonationService) — total
      *  real recaudado (Status=Paid) este mes calendario, calculado en el backend a partir de
@@ -129,6 +132,26 @@ export interface PublicTemplateProps {
      *  haber donaciones Paid en ese caso); el template debe caer al monto reportado a mano en
      *  communityImpact.fundraisingCurrentAmount, nunca mostrar $0 falso. */
     donationsRaisedThisMonth?: number | null;
+    /** "Programas" -- rediseno backlog 2026-09-26 (ver CommunityProgram.cs). Entidad propia,
+     *  ya NO es un item del catalogo generico (`items`, tabla Services) -- reemplaza por
+     *  completo el uso anterior de `items` en Community.tsx. Ya vienen filtrados a activos
+     *  (IsActive) y ordenados por SortOrder desde el endpoint publico
+     *  /public/affiliates/{slug}/programs, el template no necesita filtrar de nuevo.
+     *  Lanzamiento inicial solo businessType Community; null/[] = sin programas o afiliado
+     *  no es Community todavia. */
+    programs?: Array<{
+      id: string;
+      title: string;
+      titleEn?: string | null;
+      description?: string | null;
+      descriptionEn?: string | null;
+      imageUrl?: string | null;
+      goalAmount?: number | null;
+      capacity?: number | null;
+      schedule?: string | null;
+      weekDays?: string | null;
+      volunteersNeeded?: number | null;
+    }> | null;
   };
   items: Array<{
     id: string;
@@ -204,13 +227,11 @@ export const CATALOG_NAV_LABELS: Record<BusinessType, { es: string; en: string }
   community: { es: 'Programas', en: 'Programs' },
 };
 
-// TODO (backlog, 2026-09-25): "Programas" para Community sigue siendo el modulo
-// generico de Catalogo (tabla Services) con el campo Precio relabeled a "Meta
-// (opcional)" -- un parche, no un rediseno. El campo real que un programa
-// comunitario necesita no es precio/meta en dolares: es cupos, horario,
-// dias de la semana, voluntarios requeridos, etc. -- mas parecido a las Causas
-// (goalAmount/currentAmount) o a un modulo propio, no a un item vendible.
-// A diferencia de Eventos/Actividades (ya resuelto 2026-09-25 con su propia entidad
-// Activity.cs), esto queda fuera del alcance actual: se decidio arreglar el bug de
-// guardado (BusinessType.Community faltante en los switches de CatalogCrudService)
-// y relabeled el precio, sin rediseno de datos.
+// RESUELTO (backlog 2026-09-26): "Programas" para Community ya no es el catalogo
+// generico (tabla Services) con Precio relabeled -- tiene su propia entidad
+// CommunityProgram (titulo, descripcion, foto opcional, meta opcional, cupos,
+// horario, dias de la semana, voluntarios requeridos), su propio CRUD
+// (/space/[slug]/programs, /api/affiliates/{id}/programs) y su propio campo en
+// PublicTemplateProps.business (ver "programs" mas abajo) en vez de venir por
+// `items`. CATALOG_NAV_LABELS.community queda solo por si algo mas lo lee, pero
+// el nav de /space ya no lo usa para Community (ver SpaceSidebar.tsx).

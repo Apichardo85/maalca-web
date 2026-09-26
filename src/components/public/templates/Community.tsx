@@ -154,7 +154,10 @@ function volunteerMailtoLink(
   return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
-export function CommunityTemplate({ business, items, capabilities }: PublicTemplateProps) {
+export function CommunityTemplate({ business, capabilities }: PublicTemplateProps) {
+  // `items` (catalogo generico) ya no aplica a Community -- "Programas" tiene su propia
+  // entidad (business.programs, ver CommunityProgram.cs / registry.ts), por eso no se
+  // destructura acá aunque PublicTemplateProps siga exponiendolo para los otros 4 templates.
   const accent = business.primary_color ?? MAALCA_BLUE;
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -165,10 +168,10 @@ export function CommunityTemplate({ business, items, capabilities }: PublicTempl
   const mealsServed = metrics?.mealsServedThisMonth;
   const avgCostPerPlate = metrics?.avgCostPerPlate ?? null;
 
-  // "Programas" en el dashboard (Catalogo, tabla Services reusada -- ver TODO en
-  // registry.ts) -- llegaba como prop `items` desde [slug]/page.tsx igual que a los otros
-  // 4 templates, pero este nunca lo leia: se guardaba bien, nunca se veia en la pagina.
-  const programs = (items ?? []).filter((i) => i.name?.trim());
+  // "Programas" -- rediseno backlog 2026-09-26 (ver CommunityProgram.cs). Ya NO es el
+  // catalogo generico (`items`, tabla Services) -- viene de su propio campo
+  // `business.programs`, ya filtrado a activos y ordenado por el backend.
+  const programs = (business.programs ?? []).filter((p) => p.title?.trim());
 
   const causas = (business.causas ?? []).filter((c) => c.title?.trim());
   const impact: CommunityImpact | null = business.communityImpact ?? null;
@@ -355,10 +358,9 @@ export function CommunityTemplate({ business, items, capabilities }: PublicTempl
         </div>
       </section>
 
-      {/* ── Programas — catalogo real del afiliado (tabla Services reusada, ver TODO en
-           registry.ts sobre el rediseno pendiente). "Precio" se relabela "Meta (opcional)"
-           igual que en el editor del dashboard, ya que un programa comunitario no vende algo
-           a un precio fijo. ── */}
+      {/* ── Programas — entidad propia CommunityProgram (rediseno backlog 2026-09-26, ver
+           comentario en registry.ts). Foto opcional: el card se ve bien con o sin ella, igual
+           tratamiento visual que Eventos/Actividades mas abajo para mantener coherencia. ── */}
       {programs.length > 0 && (
         <section className="mx-auto mt-10 max-w-[860px] px-4">
           <h2 className="text-lg font-semibold" style={{ color: INK }}>
@@ -366,24 +368,37 @@ export function CommunityTemplate({ business, items, capabilities }: PublicTempl
           </h2>
           <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {programs.map((program) => {
-              const name = language === 'en' && program.nameEn?.trim() ? program.nameEn : program.name;
+              const title = language === 'en' && program.titleEn?.trim() ? program.titleEn : program.title;
               const description = language === 'en' && program.descriptionEn?.trim() ? program.descriptionEn : program.description;
-              const imageUrl = program.imageUrl ?? program.image_url;
+              const days = (program.weekDays ?? '').split(',').map((d) => d.trim()).filter(Boolean);
+              const dayShort: Record<string, string> = {
+                monday: getText('Lun', 'Mon'), tuesday: getText('Mar', 'Tue'), wednesday: getText('Mié', 'Wed'),
+                thursday: getText('Jue', 'Thu'), friday: getText('Vie', 'Fri'), saturday: getText('Sáb', 'Sat'), sunday: getText('Dom', 'Sun'),
+              };
+              const meta = [
+                program.schedule,
+                days.length > 0 ? days.map((d) => dayShort[d] ?? d).join(', ') : null,
+                program.capacity != null ? getText(`${program.capacity} cupos`, `${program.capacity} spots`) : null,
+                program.volunteersNeeded != null ? getText(`${program.volunteersNeeded} voluntarios`, `${program.volunteersNeeded} volunteers`) : null,
+              ].filter(Boolean).join(' · ');
               return (
                 <div key={program.id} className="overflow-hidden rounded-xl border" style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}>
-                  {imageUrl && (
+                  {program.imageUrl && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={imageUrl} alt={name} className="h-36 w-full object-cover" />
+                    <img src={program.imageUrl} alt={title} className="h-36 w-full object-cover" />
                   )}
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-2">
-                      <span className="text-sm font-medium" style={{ color: INK }}>{name}</span>
-                      {program.price != null && (
+                      <span className="text-sm font-medium" style={{ color: INK }}>{title}</span>
+                      {program.goalAmount != null && (
                         <span className="shrink-0 text-xs font-medium" style={{ color: MUTED }}>
-                          {getText('Meta: ', 'Goal: ')}{formatPrice(program.price, currency)}
+                          {getText('Meta: ', 'Goal: ')}{formatPrice(program.goalAmount, currency)}
                         </span>
                       )}
                     </div>
+                    {meta && (
+                      <p className="mt-1 text-xs font-medium" style={{ color: MUTED }}>{meta}</p>
+                    )}
                     {description && (
                       <p className="mt-1 text-xs" style={{ color: MUTED }}>{description}</p>
                     )}
@@ -641,8 +656,12 @@ export function CommunityTemplate({ business, items, capabilities }: PublicTempl
               const title = getText(activity.title, activity.titleEn?.trim() || activity.title);
               const description = getText(activity.description ?? '', activity.descriptionEn?.trim() || activity.description || '');
               return (
-                <div key={activity.id} className="rounded-xl border p-4" style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}>
-                  <div className="flex items-start gap-2.5">
+                <div key={activity.id} className="overflow-hidden rounded-xl border" style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}>
+                  {activity.imageUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={activity.imageUrl} alt={title} className="h-36 w-full object-cover" />
+                  )}
+                  <div className="flex items-start gap-2.5 p-4">
                     <CalendarIcon className="mt-0.5 h-4 w-4 flex-shrink-0" style={{ color: accent }} />
                     <div className="flex-1">
                       <div className="flex flex-wrap items-baseline gap-x-2">
