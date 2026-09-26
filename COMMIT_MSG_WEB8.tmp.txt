@@ -1,0 +1,26 @@
+feat(legal): agregar /privacidad y /terminos, y limpiar archivos sueltos de commit
+
+El footer (Footer.tsx) siempre enlazo a /privacidad y /terminos, pero esas
+rutas nunca existieron en src/app -- no era contenido vacio, era un 404 real
+al hacer click desde cualquier pagina de maalca.com. Se agregan ambas como
+paginas estaticas bilingues (mismo patron getText es/en que el resto del
+sitio), con contenido basado en como funciona la plataforma hoy:
+
+- Privacidad: que datos se recogen (dueno via Google login, cliente que
+  reserva/pide/dona), como se usan, los proveedores reales que procesan datos
+  (Supabase, Railway, Vercel, Stripe, Resend), retencion y derechos.
+- Terminos: que es MaalCa, cuenta/acceso via Google, planes y facturacion
+  (incluye que Stripe procesa los pagos, no MaalCa), tu contenido sigue
+  siendo tuyo, disponibilidad del servicio, cancelacion.
+
+Es un borrador funcional para no dejar el footer roto -- no reemplaza una
+revision legal real antes de procesar pagos en produccion con mas volumen.
+
+Limpieza aparte: se eliminan del repo los archivos COMMIT_MSG_*.tmp.txt que
+quedaron trackeados/sueltos de sesiones anteriores (eran solo mensajes de
+commit de trabajo, nunca debieron commitearse).
+
+tsc --noEmit: 42 errores (baseline), 0 nuevos.
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01R2QKsutmGsrVonxKk6wEQN
