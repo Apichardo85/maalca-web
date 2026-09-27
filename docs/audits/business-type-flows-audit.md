@@ -162,14 +162,14 @@ Dos de los cinco puntos de la lista de priorización de la ronda anterior ya est
 **Lo que resuelve hoy, de verdad:**
 - Calculadora de impacto (insumos → recetas → combos → servir) con `communityMetrics` reales (comidas servidas del mes, costo promedio por plato).
 - Causas individuales con entidad propia (`Causa.cs`, migrada de columna JSON a tabla el 2026-09-25) — tipo dinero/tiempo/especie, meta y monto actual.
-- Eventos/Actividades con entidad propia y transversal (`Activity.cs`) — vencen por `EndsAt` (no por `StartsAt`, bug corregido esta sesión), con hora de fin visible tanto en dashboard como en la página pública.
-- Punto de entrega en persona + meta/recaudado del mes reportado a mano (`CommunityImpact`, sin Stripe Connect todavía — Fase 3 pendiente).
-- Galería y header de foto real (ambos faltaban por completo hasta esta sesión — nunca se leían de `business.cover_image_url`/`galleryImages` en el template).
+- Eventos/Actividades con entidad propia y transversal (`Activity.cs`) — vencen por `EndsAt` (no por `StartsAt`, bug corregido esta sesión), con hora de fin visible tanto en dashboard como en la página pública. ✅ **Resuelto (2026-09-26):** foto opcional por evento (`Activity.ImageUrl`) — misma idea que Programas, se ve bien con o sin foto.
+- Punto de entrega en persona.
+- ✅ **Resuelto (2026-09-26):** donaciones monetarias reales vía Stripe Connect (`e5ea6b1`) — reemplaza el "recaudado" que el afiliado reportaba a mano; el botón "Donar" ya no lleva a "próximamente".
+- ✅ **Resuelto (2026-09-26):** "Programas" tiene entidad propia (`CommunityProgram.cs`, `a75a92e`) — cupos, horario, días de la semana y voluntarios requeridos, foto opcional con el mismo tratamiento visual que Eventos. Ya no reusa la tabla `Services`/Catálogo genérico. Los programas existentes de afiliados reales (ej. la "tutoría académica" de NTC) se migraron automáticamente a la tabla nueva vía SQL dentro de la migración de EF Core — no se perdió ningún dato ni hizo falta reingreso manual.
+- Galería y header de foto real (ambos faltaban por completo hasta la sesión del 2026-09-25 — nunca se leían de `business.cover_image_url`/`galleryImages` en el template).
 
 **Lo que sigue faltando o es débil:**
-- **"Programas" es un parche, no un rediseño** (ver TODO ya documentado en `registry.ts`): reusa la tabla `Services`/Catálogo genérico con "Precio" relabeled a "Meta (opcional)". Un programa comunitario real necesita cupos, horario, días de la semana, voluntarios requeridos — más parecido a Causas que a un ítem vendible. Backlog explícito, fuera de alcance actual.
-- **Donaciones monetarias reales (Stripe Connect) sin construir** — hoy `monetaryDonations` en `sectionVisibility` solo gatea si se muestra la calculadora + botón "Donar", pero el botón lleva a "próximamente"; el recaudado del mes es un número que el afiliado reporta a mano, no un cobro real.
-- **Modo oscuro no implementado en ningún template público** (Restaurant/Barber/Service/Retail/Community) — ver nota en memoria/backlog aparte, no es específico de Comunidad.
+- **Modo oscuro no implementado en ningún template público** (Restaurant/Barber/Service/Retail/Community) — ver nota en memoria/backlog aparte, no es específico de Comunidad. Único punto estructural que le queda a este vertical.
 
 **Dónde es original:** es el único vertical que no vende nada — el flujo entero (impacto → causas → eventos → donar) está diseñado para confianza y transparencia, no para checkout. La calculadora de costo-por-plato conectada a insumos reales es un dato que ningún competidor genérico ofrece.
 
@@ -181,6 +181,87 @@ Dos de los cinco puntos de la lista de priorización de la ronda anterior ya est
 | Barbería | Reserva por barbero + fila walk-in en tiempo real | Completa | Recordatorios automáticos, bloqueo de horario |
 | Servicios | Agenda + Facturas + Propuestas con firma | Completa | Ninguna carencia estructural mayor |
 | Retail | Catálogo + stock real + POS/Kiosko abiertos | Completa | Ninguna carencia estructural mayor |
-| Comunidad | No vende — impacto/causas/eventos/donar | Recién completada esta sesión (header, galería, foto de programa) | Rediseño de "Programas", donaciones reales vía Stripe Connect |
+| Comunidad | No vende — impacto/causas/eventos/donar | Completa (header, galería, foto en Programas y Eventos) | Modo oscuro (transversal a los 5, no específico de Comunidad) |
 
 Verificado por lectura directa de código (no supuestos), mismo criterio que el resto de este documento. `tsc --noEmit`: 42 errores preexistentes (baseline), 0 nuevos, en cada commit de esta sesión.
+
+---
+
+## Actualización 2026-09-27 — inventario completo de tipos de negocio y módulos, resumen ejecutivo
+
+Esta sección responde directamente a "¿qué tipos de negocio hay, qué módulos hay, y cuáles módulos arma el flujo de cada uno?" — leída del código real: el enum `BusinessType` (backend), `registry.ts` (frontend) y `SpaceSidebar.tsx` (nav real del dashboard, que es lo que de verdad determina qué ve cada afiliado).
+
+### Tipos de negocio
+
+**Con producto real (frontend + template público + dashboard funcional):**
+
+| Tipo | Vertical | Template público | Estado |
+|---|---|---|---|
+| `restaurant` | Restaurante | `Restaurant.tsx` | Completo |
+| `barber` | Barbería | `Barber.tsx` | Completo |
+| `service` | Servicios/profesionales | `Service.tsx` | Completo |
+| `retail` | Tienda/retail | `Retail.tsx` | Completo |
+| `community` | Comunidad/ONG | `Community.tsx` | Completo (falta modo oscuro, transversal) |
+
+**En el enum del backend pero sin template ni flujo propio en el frontend:** `Creator`, `Publisher`, `Professional` (`BusinessType.cs`: valores 4, 5, 6). `registry.ts` solo define `BusinessType = 'restaurant' | 'barber' | 'service' | 'retail' | 'community'` — no hay forma hoy de que un afiliado con uno de estos tres tipos tenga página pública o dashboard coherente; onboarding no los ofrece como opción. Son valores "reservados" en el schema, no verticales activos. Ver "Próximos pasos" — hay que decidir si se construyen o se eliminan del enum.
+
+### Módulos disponibles (todo el nav real de `/space/{slug}`, por `SpaceSidebar.tsx`)
+
+Los módulos sin "token" son fijos por tipo de negocio (no se pueden activar/desactivar desde `/ops`); los que tienen token se controlan por afiliado desde el panel de operaciones.
+
+| Módulo | Token | Restaurante | Barbería | Servicios | Retail | Comunidad |
+|---|---|:---:|:---:|:---:|:---:|:---:|
+| Dashboard, Diseñar, Identidad, Clientes, Módulos | — | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Catálogo | `catalog` | ✅ | ✅ | ✅ | ✅ | — (ver Programas) |
+| Calculadora de impacto | — | | | | | ✅ |
+| Programas | — | | | | | ✅ |
+| Eventos | — | | | | | ✅ |
+| Pedidos | `orders` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Cocina (Kitchen Display) | `kitchen` | ✅ | | | | |
+| Punto de venta (POS) | `pos` | ✅ | | | ✅ | |
+| Inventario | `inventory` | ✅ | | | ✅ | |
+| Guarniciones/modificadores | `modifiers` | ✅ | | | | |
+| Fila de espera | `queue` | | ✅ | | | |
+| Facturas | `invoices` | | | ✅ | | |
+| Propuestas (con firma) | `proposals` | | | ✅ | | |
+| Pantalla / Menu Board | `board` | ✅ | | | | |
+| Equipo | `staff` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Reservas (mesas) | `reservations` | ✅ | | | | |
+| Agenda (citas 1:1) | `appointments` | | ✅ | ✅ | | ✅* |
+| Estadísticas | `metrics` | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Facturación (plan MaalCa) | `billing` | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+\* Agenda está disponible para Comunidad a nivel de código (`SpaceSidebar.tsx` solo la excluye para `retail`/`creator`/`publisher`/`restaurant`), aunque en la práctica ningún afiliado Community la usa hoy — no hay un caso de uso definido (¿agendar voluntarios?). Los "✅" de la tabla marcan qué módulo pertenece al flujo diseñado de cada tipo, no si está activo para un afiliado específico (eso lo decide `/ops` vía `ModuleCatalog.DefaultBusinessTypes` + `Affiliate.modulosActivos`).
+
+**Cómo se integran en el flujo de cada tipo de negocio** (resumen — el detalle completo está en las secciones de arriba):
+
+- **Restaurante**: Catálogo (menú) → Pedidos → Cocina (Kitchen Display) → POS/Kiosko cobran → Inventario descuenta stock real → Pantalla muestra el menú en pantalla física → Guarniciones enriquecen cada línea de pedido → Reservas gestiona mesas (objeto separado de Agenda a propósito).
+- **Barbería**: Catálogo (servicios) → Agenda (reserva por barbero específico, con validación de doble-booking) → Fila de espera (walk-ins en tiempo real) → Equipo define disponibilidad por barbero.
+- **Servicios**: Catálogo (tarifas) → Agenda (consulta, mismo widget que Barbería) → Facturas (por trabajo realizado, totales en servidor) → Propuestas (cotización con aceptación/firma en línea, se refleja en el PDF).
+- **Retail**: Catálogo (`InventoryItem` con stock real) → Pedidos online + POS/Kiosko presencial → Inventario descuenta en los 3 caminos de venta con `InventoryMovement`.
+- **Comunidad**: Calculadora de impacto (insumos→recetas→combos→servir) + Causas (dinero/tiempo/especie) + Programas (cupos/horario/días/voluntarios) + Eventos (con foto opcional) → todo alimenta la página pública de transparencia; Donaciones ahora cobran de verdad vía Stripe Connect.
+
+### Resumen — dónde estamos ahora
+
+Los 5 verticales tienen flujo funcional completo y verificado contra producción (no solo build limpio). Ningún vertical depende hoy de una entidad "fantasma" sin cablear — el patrón que existía con `Invoice`/`QueueEntry`/`GiftCard`/`Campaign` en agosto, y con `Programs` reusando `Services` hasta hace dos días, ya no existe en ningún lado del producto. Las únicas dos entidades que se compartían entre verticales de forma forzada (Programas de Comunidad viviendo en la tabla de Catálogo) se separaron esta semana con migración automática de datos reales, sin pérdida.
+
+Lo que queda pendiente es, en su mayoría, pulido — no huecos estructurales:
+
+| Vertical | Completitud del flujo | Lo que falta (no estructural) |
+|---|---|---|
+| Restaurante | Completo | Split de cuenta en POS |
+| Barbería | Completo | Recordatorios automáticos, bloqueo de horario del barbero |
+| Servicios | Completo | Ninguna carencia mayor |
+| Retail | Completo | Ninguna carencia mayor |
+| Comunidad | Completo | Modo oscuro (transversal, no específico) |
+| Transversal (los 5) | — | Modo oscuro en los 5 templates públicos |
+
+### Próximos pasos (mi lectura, no es una decisión tomada)
+
+1. **Modo oscuro en los 5 templates públicos** — único punto pendiente que toca a todos los verticales por igual, ya estaba parqueado como backlog explícito de otra sesión.
+2. **Decidir el destino de `Creator`/`Publisher`/`Professional`** en el enum `BusinessType` — hoy son valores muertos sin template ni dashboard; o se construyen (definir primero cómo funciona cada uno en el mundo real, como se hizo con Comunidad) o se documentan explícitamente como reservados/futuros para que no generen confusión.
+3. **Split de cuenta en Restaurante POS** — siguiente paso natural del lado de mesas, ahora que `TableReservation` ya existe.
+4. **Recordatorios automáticos + bloqueo de horario en Barbería** — mejoras de calidad de vida, no bugs.
+5. **Limpieza menor de código muerto**: el relabeling `isCommunity` (Meta vs Precio) en `NewItemForm.tsx`/`EditForm.tsx` del catálogo genérico ya no aplica — Comunidad no navega más a esas pantallas desde que tiene Programas propio; y los archivos `COMMIT_MSG_*.tmp.txt` sueltos en la raíz de ambos repos (`COMMIT_MSG_API4.tmp.txt`, `COMMIT_MSG_API5.tmp.txt`) deberían borrarse — quedaron trackeados por accidente, mismo patrón de `git add -A` que ya causó un commit en la rama equivocada esta semana.
+
+Verificado por lectura directa de código (`SpaceSidebar.tsx`, `registry.ts`, `BusinessType.cs`, y los commits `a75a92e`/`e5ea6b1` de esta semana), mismo criterio que el resto de este documento.
