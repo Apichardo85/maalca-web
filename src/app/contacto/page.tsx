@@ -39,12 +39,12 @@ export default function ContactoPage() {
   };
   // Project type options
   const projectOptions = [
-    { value: "editorial", label: t('contactPage.project.editorial') },
-    { value: "tech", label: t('contactPage.project.tech') },
-    { value: "content", label: t('contactPage.project.content') },
-    { value: "real-estate", label: t('contactPage.project.realEstate') },
-    { value: "catering", label: t('contactPage.project.catering') },
-    { value: "consulting", label: t('contactPage.project.consulting') },
+    { value: "restaurant", label: t('contactPage.project.editorial') },
+    { value: "barber", label: t('contactPage.project.tech') },
+    { value: "service", label: t('contactPage.project.content') },
+    { value: "retail", label: t('contactPage.project.realEstate') },
+    { value: "community", label: t('contactPage.project.catering') },
+    { value: "unsure", label: t('contactPage.project.consulting') },
     { value: "collaboration", label: t('contactPage.project.collaboration') },
     { value: "other", label: t('contactPage.project.other') }
   ];
@@ -291,8 +291,8 @@ export default function ContactoPage() {
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-900 dark:text-white">{t('contactPage.info.emailLabel')}</h4>
-                      <a href="mailto:hola@maalca.com" className="text-brand-primary hover:underline">
-                        hola@maalca.com
+                      <a href="mailto:hello@maalca.com" className="text-brand-primary hover:underline">
+                        hello@maalca.com
                       </a>
                     </div>
                   </div>

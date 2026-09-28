@@ -67,7 +67,7 @@ export default function CiriFooter() {
               &ldquo;{t("ciriwhispers.footer.quote")}&rdquo;
             </p>
             <p className="text-xs mt-2" style={{ color: 'var(--ciri-footer-muted)', opacity: 0.6 }}>
-              &copy; {new Date().getFullYear()} CiriWhispers &mdash; Editorial MaalCa
+              &copy; {new Date().getFullYear()} CiriWhispers &mdash; Ciriaco A. Pichardo
             </p>
           </div>
         </div>
