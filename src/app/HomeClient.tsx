@@ -136,7 +136,7 @@ export default function HomeClient({ featuredAffiliates }: Props) {
         </p>
         <div className="mt-9 flex items-center gap-6 flex-wrap justify-center">
           <Link
-            href="/servicios"
+            href="/onboarding"
             className="px-7 py-3.5 rounded-full text-base font-semibold bg-brand-primary text-white hover:bg-brand-primary-hover transition-colors shadow-lg"
           >
             {t("home.hero.ctaPrimary")}
@@ -390,7 +390,7 @@ export default function HomeClient({ featuredAffiliates }: Props) {
         <h2 className="text-3xl font-bold text-white">{t("home.cta.heading")}</h2>
         <p className="mt-3 text-sm text-white/60">{t("home.cta.subtitle")}</p>
         <Link
-          href="/servicios"
+          href="/onboarding"
           className="mt-7 px-8 py-3.5 rounded-full text-base font-semibold bg-brand-primary text-white hover:bg-brand-primary-hover transition-colors"
         >
           {t("home.hero.ctaPrimary")}

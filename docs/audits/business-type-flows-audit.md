@@ -265,3 +265,58 @@ Lo que queda pendiente es, en su mayoría, pulido — no huecos estructurales:
 5. **Limpieza menor de código muerto**: el relabeling `isCommunity` (Meta vs Precio) en `NewItemForm.tsx`/`EditForm.tsx` del catálogo genérico ya no aplica — Comunidad no navega más a esas pantallas desde que tiene Programas propio; y los archivos `COMMIT_MSG_*.tmp.txt` sueltos en la raíz de ambos repos (`COMMIT_MSG_API4.tmp.txt`, `COMMIT_MSG_API5.tmp.txt`) deberían borrarse — quedaron trackeados por accidente, mismo patrón de `git add -A` que ya causó un commit en la rama equivocada esta semana.
 
 Verificado por lectura directa de código (`SpaceSidebar.tsx`, `registry.ts`, `BusinessType.cs`, y los commits `a75a92e`/`e5ea6b1` de esta semana), mismo criterio que el resto de este documento.
+
+## Actualización 2026-09-29 — documentos, correos y notificaciones: auditoría antes de seguir creciendo
+
+Disparado por una observación directa del usuario: las facturas y propuestas generadas hoy no tienen plantilla bonita ni personalizada — son PDFs genéricos. Verificado leyendo el código real de ambos repos, no por impresión.
+
+### Documentos (PDF) — el hallazgo es peor de lo que parecía
+
+Hay **tres implementaciones separadas** de generación de PDF, todas con `jsPDF` client-side, todas duplicando el mismo layout a mano:
+
+- `src/app/space/[slug]/invoices/InvoicesContent.tsx` — factura del dashboard del negocio
+- `src/app/space/[slug]/proposals/ProposalsContent.tsx` — propuesta del dashboard del negocio
+- `src/app/propuesta/[token]/PublicProposalContent.tsx` — la misma propuesta vista por el cliente en el link público (tarea #337)
+
+Las tres dibujan texto plano con `doc.text(...)` en Helvetica negro/gris sobre fondo blanco. Ninguna usa `doc.addImage()` — **ningún PDF muestra el logo del negocio**, y ninguna lee `primary_color` aunque esa columna ya existe en la DB y ya se usa para pintar la página pública del negocio. Es decir: el negocio personaliza su color en Configuración, ese color se ve en su página pública, pero desaparece en el documento que le manda a su cliente a cobrar. Y como son tres copias independientes del mismo código, cualquier mejora (agregar logo, por ejemplo) hay que hacerla tres veces y ya hoy hay deriva entre ellas.
+
+**Reportes**: `StatsContent.tsx` no exporta nada — ni PDF ni CSV. Un negocio no tiene forma de sacar sus métricas del dashboard hoy.
+
+### Correos — mismo patrón, sin duplicación de lógica pero sin marca
+
+`src/lib/services/resend-service.ts` (853 líneas) tiene 13 funciones de envío, cada una con su propio HTML inline:
+
+`addSubscriber` (bienvenida newsletter), `sendOnboardingWelcome`, `notifyNewSpace`, `sendTeamInviteEmail`, `sendPlatformTeamInviteEmail`, `sendOrderConfirmationEmail`, `sendOrderFulfilledEmail`, `sendAppointmentConfirmationEmail`, `sendAppointmentReminderEmail`, `sendContactFormEmail`, `sendInvoicePaymentLinkEmail`, `sendProposalEmail`, `sendProposalAcceptedEmail`.
+
+Ninguna comparte un layout base (header con logo, footer con links) — cada una arma su propio `<div style="...">` con estilos inline repetidos. No es tan grave como los PDFs (no hay tres copias de la misma lógica, cada correo es distinto y legítimo), pero sí falta una envoltura visual consistente de marca MaalCa, y ninguna lee el logo/color del negocio remitente cuando el correo es en nombre de un negocio (confirmación de cita, factura, etc.) — le llega al cliente final un correo genérico de "MaalCa", no de "Pegote Barbershop".
+
+**Gaps reales** (correos que deberían existir y no existen, no solo cuestión de diseño):
+- Recordatorio de propuesta pendiente de firmar (hoy solo se envía una vez, al crearla)
+- Recordatorio de factura próxima a vencer o vencida (hoy `sendInvoicePaymentLinkEmail` es un solo disparo al generar el link, sin seguimiento — confirmado en `InvoiceNotificationService.cs`, que solo notifica en la creación)
+- Recibo/confirmación al cliente cuando una factura se marca pagada (el flujo manual de cash/transferencia/Zelle no dispara ningún correo, según el comentario en el propio código de `InvoiceService`)
+- Resumen periódico al afiliado de cómo le fue (stats semanales/mensuales) — no existe ningún cron/digest hoy
+
+### La pregunta del usuario: ¿plantillas en código o en un storage?
+
+Antes de mover algo, vale separar dos cosas que hoy están mezcladas en la misma pregunta:
+
+1. **Los datos que personalizan cada documento/correo** (logo, color, nombre del negocio) — esto **ya vive en la base de datos**, no hace falta moverlo a ningún lado. El problema no es dónde vive el dato, es que el código de generación de PDF/correo no lo está leyendo.
+2. **El diseño/layout en sí** (qué tan bonito es el PDF, la estructura del correo) — esto es lo que hoy vive hardcodeado y duplicado en el código.
+
+Mi recomendación, en dos fases:
+
+- **Fase 1 (la urgente, resuelve "feo" y la duplicación)**: un módulo compartido — un solo generador de PDF (`lib/pdf/document.ts` o similar) que las tres pantallas llamen, y un layout base de correo (`lib/email/layout.tsx` con Resend soporta React Email) — ambos leyendo `logo_url`/`primary_color`/`name` del negocio en tiempo real. Esto **sigue viviendo en código**, pero dinámico por negocio, no un archivo por afiliado. Elimina la triplicación y ya resuelve el 90% del problema visual sin tocar infraestructura nueva.
+- **Fase 2 (solo si hace falta variar el diseño en sí, no solo los datos)**: si en el futuro quieren ofrecer, por ejemplo, distintos layouts de factura según plan (Free vs Premium con diseño custom), o dejar que un negocio suba su propio layout — ahí sí tiene sentido que las plantillas (el layout, no los datos) vivan en storage (Vercel Blob o un bucket) y se carguen en runtime, igual que planteas para que esto no crezca infinito dentro del repo como las plantillas públicas de `src/components/public/templates/*.tsx`. Pero mover a storage antes de tener un solo layout bueno sería resolver un problema de escala que todavía no existe — hoy el problema es que no hay ningún layout bueno, no que haya demasiados.
+
+No es una decisión tomada — es mi lectura para que la valides antes de que se construya.
+
+### Notificaciones push y canal de feedback de afiliados
+
+Verificado: **no existe ninguna infraestructura de push hoy** — no hay manifest, no hay service worker, no hay VAPID keys, no hay integración con OneSignal/FCM. La única mención de "push" en todo el código es un valor del enum de canales de campaña en `src/lib/types/campaigns.ts`, sin ninguna implementación detrás — es un placeholder, no una feature a medio construir.
+
+Importante: lo que describes son en realidad **dos necesidades distintas** que conviene no mezclar:
+
+1. **MaalCa → afiliado** (notificación push real: "te llegó un pago", "tienes una cita en 1 hora", "propuesta aceptada"). Esto sí es Web Push clásico — requiere service worker, VAPID keys, permiso del navegador, y una tabla de `PushSubscription` por usuario. Es trabajo de infraestructura nuevo, no trivial.
+2. **Afiliado → MaalCa** (que el negocio pueda reportar un problema o sugerencia y que ustedes lo reciban). Esto **no es una notificación push** — es un canal de feedback/soporte, y hoy tampoco existe en absoluto (confirmé: cero código de feedback, tickets o soporte en ninguno de los dos repos, más allá del bubble de asistente de `/ops` que es interno). Esto es mucho más barato de construir: un formulario simple en el dashboard del negocio + una tabla en Postgres + que les llegue una notificación a ustedes (por ahora puede ser email a `hola@maalca.com` una vez que ya funcione el reenvío que estamos armando, o más adelante un canal de Slack).
+
+Mi lectura: el canal de feedback (2) es más urgente y mucho más barato que el push real (1) — no depende de infraestructura de navegador ni de que el afiliado dé permisos, y resuelve un problema real de hoy (ustedes no tienen forma de saber si un afiliado tiene un problema a menos que les escriba directo). El push real (1) tiene sentido evaluarlo después de que el resto de documentos/correos esté pulido, no antes.
