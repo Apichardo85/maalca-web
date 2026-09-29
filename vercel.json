@@ -35,6 +35,14 @@
     {
       "path": "/api/cron/appointment-reminders",
       "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/cron/proposal-reminders",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/invoice-due-reminders",
+      "schedule": "0 15 * * *"
     }
   ]
 }

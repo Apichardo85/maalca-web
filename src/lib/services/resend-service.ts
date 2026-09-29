@@ -777,3 +777,158 @@ export async function sendProposalAcceptedEmail(params: {
     return false;
   }
 }
+
+/**
+ * Recibo de pago (tarea #4 del backlog de documentos/correos, ver
+ * docs/audits/business-type-flows-audit.md, 2026-09-29) — dispara desde
+ * InvoiceService.UpdateInvoiceAsync (maalca-api) cuando "Marcar pagada" pasa una factura a
+ * Paid manualmente (cash/transferencia/Zelle). No se dispara en pagos por Stripe Checkout —
+ * esos ya traen su propio recibo automático de Stripe si el negocio lo tiene activado; mandar
+ * otro acá sería duplicar.
+ */
+export async function sendInvoiceReceiptEmail(params: {
+  customerEmail: string;
+  customerName: string | null;
+  businessName: string;
+  invoiceNumber: string;
+  total: number;
+  currency: string;
+  paidDate: string | null;
+}): Promise<boolean> {
+  if (!resend) {
+    console.log('[Resend] Skipped invoice receipt — RESEND_API_KEY not set');
+    return false;
+  }
+
+  const greeting = params.customerName ? `Hola, ${params.customerName}` : 'Hola';
+  const paidDateLine = params.paidDate
+    ? new Date(params.paidDate).toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric' })
+    : new Date().toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: params.customerEmail,
+      subject: `Recibo de pago — Factura ${params.invoiceNumber} (${params.businessName})`,
+      html: renderPlainEmail(`
+        <p style="font-size: 15px; line-height: 1.6;">${greeting},</p>
+        <p style="font-size: 15px; line-height: 1.6;">Confirmamos tu pago a <strong>${params.businessName}</strong>:</p>
+        <p style="font-size: 15px; line-height: 1.6; background: #fafafa; border-radius: 8px; padding: 12px 16px;">
+          <strong>Factura ${params.invoiceNumber}</strong><br/>
+          Total pagado: ${params.currency} ${params.total.toFixed(2)}<br/>
+          Fecha de pago: ${paidDateLine}
+        </p>
+        <p style="font-size: 13px; color: #737373;">Este correo es tu comprobante de pago. Consérvalo para tus registros.</p>
+      `),
+    });
+    return true;
+  } catch (err: unknown) {
+    console.error('[Resend] Invoice receipt failed:', err instanceof Error ? err.message : String(err));
+    return false;
+  }
+}
+
+/**
+ * Recordatorio de propuesta sin firmar (tarea #4 del backlog) — corre vía Vercel Cron
+ * (/api/cron/proposal-reminders), pide a maalca-api las propuestas "Sent" hace varios días que
+ * siguen sin firmar (Proposal.ReminderSentAt == null), manda este correo una sola vez, y marca
+ * cada una como recordada para no repetir. Antes de esto una propuesta enviada y olvidada se
+ * quedaba así para siempre — nadie le daba seguimiento al cliente.
+ */
+export async function sendProposalReminderEmail(params: {
+  customerEmail: string;
+  customerName: string | null;
+  businessName: string;
+  title: string;
+  amount: number;
+  currency: string;
+  expiresAt: string | null;
+  proposalLink: string;
+}): Promise<boolean> {
+  if (!resend) {
+    console.log('[Resend] Skipped proposal reminder — RESEND_API_KEY not set');
+    return false;
+  }
+
+  const greeting = params.customerName ? `Hola, ${params.customerName}` : 'Hola';
+  const expiresLine = params.expiresAt
+    ? `<p style="font-size: 13px; color: #737373;">Válida hasta el ${new Date(params.expiresAt).toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric' })}.</p>`
+    : '';
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: params.customerEmail,
+      subject: `Recordatorio: propuesta pendiente — ${params.businessName}`,
+      html: renderPlainEmail(`
+        <p style="font-size: 15px; line-height: 1.6;">${greeting},</p>
+        <p style="font-size: 15px; line-height: 1.6;">Sigue pendiente la propuesta que te envió <strong>${params.businessName}</strong>:</p>
+        <p style="font-size: 15px; line-height: 1.6; background: #fafafa; border-radius: 8px; padding: 12px 16px;">
+          <strong>${params.title}</strong><br/>
+          Monto: ${params.currency} ${params.amount.toFixed(2)}
+        </p>
+        <div style="text-align: center; margin: 20px 0;">
+          <a href="${params.proposalLink}" style="display: inline-block; background: ${MAALCA_BRAND_COLOR}; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Ver y aceptar propuesta</a>
+        </div>
+        ${expiresLine}
+      `),
+    });
+    return true;
+  } catch (err: unknown) {
+    console.error('[Resend] Proposal reminder failed:', err instanceof Error ? err.message : String(err));
+    return false;
+  }
+}
+
+/**
+ * Recordatorio de factura por vencer/vencida (tarea #4 del backlog) — corre vía Vercel Cron
+ * (/api/cron/invoice-due-reminders), pide a maalca-api las facturas Pending/Overdue con
+ * vencimiento próximo o ya pasado (Invoice.ReminderSentAt == null), manda este correo una sola
+ * vez. A propósito sin botón de pago: generar un link de cobro real requiere Stripe conectado
+ * por el negocio (no todos lo tienen — muchos cobran cash/transferencia), así que el recordatorio
+ * es informativo y remite al cliente a contactar al negocio directamente.
+ */
+export async function sendInvoiceDueReminderEmail(params: {
+  customerEmail: string;
+  customerName: string | null;
+  businessName: string;
+  invoiceNumber: string;
+  total: number;
+  currency: string;
+  dueDate: string | null;
+  isOverdue: boolean;
+}): Promise<boolean> {
+  if (!resend) {
+    console.log('[Resend] Skipped invoice due reminder — RESEND_API_KEY not set');
+    return false;
+  }
+
+  const greeting = params.customerName ? `Hola, ${params.customerName}` : 'Hola';
+  const dueDateLine = params.dueDate
+    ? new Date(params.dueDate).toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric' })
+    : null;
+  const statusLine = params.isOverdue
+    ? `<p style="font-size: 15px; line-height: 1.6; color: #B42828; font-weight: 600;">Esta factura está vencida.</p>`
+    : `<p style="font-size: 15px; line-height: 1.6;">Esta factura vence pronto.</p>`;
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: params.customerEmail,
+      subject: `${params.isOverdue ? 'Factura vencida' : 'Recordatorio de pago'} — ${params.invoiceNumber} (${params.businessName})`,
+      html: renderPlainEmail(`
+        <p style="font-size: 15px; line-height: 1.6;">${greeting},</p>
+        ${statusLine}
+        <p style="font-size: 15px; line-height: 1.6; background: #fafafa; border-radius: 8px; padding: 12px 16px;">
+          <strong>Factura ${params.invoiceNumber}</strong> — <strong>${params.businessName}</strong><br/>
+          Total: ${params.currency} ${params.total.toFixed(2)}${dueDateLine ? `<br/>Vencimiento: ${dueDateLine}` : ''}
+        </p>
+        <p style="font-size: 13px; color: #737373;">Contacta a ${params.businessName} para coordinar el pago.</p>
+      `),
+    });
+    return true;
+  } catch (err: unknown) {
+    console.error('[Resend] Invoice due reminder failed:', err instanceof Error ? err.message : String(err));
+    return false;
+  }
+}
