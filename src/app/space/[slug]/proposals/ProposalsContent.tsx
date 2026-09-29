@@ -6,6 +6,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { buildInvoiceLink } from '@/lib/invoice-link';
+import { downloadBrandedPdf } from '@/lib/pdf/document';
 
 export interface ProposalRow {
   id: string;
@@ -42,6 +43,8 @@ interface Props {
   currency: 'USD' | 'DOP';
   initialProposals: ProposalRow[];
   customers: CustomerOption[];
+  /** Para el PDF de marca -- logo/color del negocio (Affiliate.LogoUrl/PrimaryColor via /api/space/{slug}). */
+  business: { name: string; logoUrl?: string | null; primaryColor?: string | null };
 }
 
 const STATUS_STYLES: Record<ProposalRow['status'], string> = {
@@ -63,7 +66,7 @@ const STATUS_LABELS: Record<ProposalRow['status'], { es: string; en: string }> =
 // booking/reservas/checkout público de este proyecto. Ver Proposal.cs en maalca-api.
 const NEW_CUSTOMER = '__new__';
 
-export function ProposalsContent({ slug, currency, initialProposals, customers }: Props) {
+export function ProposalsContent({ slug, currency, initialProposals, customers, business }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -203,69 +206,32 @@ export function ProposalsContent({ slug, currency, initialProposals, customers }
     setPhone(c.phone ?? '');
   }
 
-  // PDF descargable (tarea #337) — mismo generador en el navegador que la página pública, para
-  // que el dueño también pueda bajar un resumen sin tener que abrir el link público.
+  // Migrado al generador compartido (tarea #2 del backlog de documentos -- ver
+  // docs/audits/business-type-flows-audit.md, 2026-09-29). Antes dibujaba el PDF a mano aqui,
+  // duplicado con InvoicesContent/PublicProposalContent; el criterio de "misma vista que la
+  // publica" (tarea #337) se mantiene, solo cambia quien dibuja.
   async function handleDownloadPdf(p: ProposalRow) {
-    const { jsPDF } = await import('jspdf');
-    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-    const marginX = 56;
-    let y = 72;
     const pFmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: p.currency });
 
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(20);
-    doc.setTextColor(20, 20, 20);
-    doc.text(p.title, marginX, y);
-    y += 22;
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(11);
-    doc.setTextColor(90, 90, 90);
-    doc.text(`Cliente: ${p.customerName}`, marginX, y);
-    y += 20;
-
-    if (p.description) {
-      const lines = doc.splitTextToSize(p.description, 480);
-      doc.text(lines, marginX, y);
-      y += lines.length * 15 + 12;
-    }
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.setTextColor(140, 140, 140);
-    doc.text(`Emitida el ${fmtDate(p.createdAt)}`, marginX, y);
-    y += 24;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(24);
-    doc.setTextColor(20, 20, 20);
-    doc.text(pFmt.format(p.amount), marginX, y);
-    y += 24;
-
-    if (p.status === 'Accepted' && p.acceptedByName) {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(13);
-      doc.setTextColor(22, 130, 70);
-      doc.text('Propuesta aceptada ✓', marginX, y);
-      y += 18;
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.setTextColor(90, 90, 90);
-      doc.text(`Firmado por ${p.acceptedByName}${p.acceptedAt ? ` · ${fmtDate(p.acceptedAt)}` : ''}`, marginX, y);
-      y += 18;
-    }
-
-    if (p.attachmentUrl) {
-      y += 12;
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.setTextColor(140, 140, 140);
-      doc.text('Documento adjunto:', marginX, y);
-      y += 13;
-      doc.textWithLink(p.attachmentUrl, marginX, y, { url: p.attachmentUrl });
-    }
-
-    doc.save(`propuesta-${p.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.pdf`);
+    await downloadBrandedPdf({
+      brand: { name: business.name, logoUrl: business.logoUrl, primaryColor: business.primaryColor },
+      documentTitle: p.title,
+      counterpartLabel: 'Cliente',
+      counterpartName: p.customerName,
+      metaLines: [`Emitida el ${fmtDate(p.createdAt)}`],
+      description: p.description ?? undefined,
+      amountValue: pFmt.format(p.amount),
+      status:
+        p.status === 'Accepted' && p.acceptedByName
+          ? {
+              label: 'Propuesta aceptada ✓',
+              tone: 'success',
+              note: `Firmado por ${p.acceptedByName}${p.acceptedAt ? ` · ${fmtDate(p.acceptedAt)}` : ''}`,
+            }
+          : undefined,
+      attachmentUrl: p.attachmentUrl ?? undefined,
+      filename: `propuesta-${p.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`,
+    });
   }
 
   function copyLink(token: string) {

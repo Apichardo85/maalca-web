@@ -5,7 +5,15 @@ import { InvoicesContent, type InvoiceRow } from './InvoicesContent';
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 interface SpaceResponse {
-  business: { id: string; businessType: string; currency?: 'USD' | 'DOP'; modulosActivos: string[] };
+  business: {
+    id: string;
+    name: string;
+    businessType: string;
+    currency?: 'USD' | 'DOP';
+    modulosActivos: string[];
+    logoUrl?: string | null;
+    primaryColor?: string | null;
+  };
   isImpersonation?: boolean;
 }
 
@@ -79,6 +87,7 @@ export default async function InvoicesPage({
       initialInvoices={invoices}
       customers={customers}
       canHardDelete={space.isImpersonation === true}
+      business={{ name: space.business.name, logoUrl: space.business.logoUrl, primaryColor: space.business.primaryColor }}
     />
   );
 }

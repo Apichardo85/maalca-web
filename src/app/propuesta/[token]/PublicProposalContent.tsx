@@ -1,9 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { downloadBrandedPdf } from '@/lib/pdf/document';
 
 export interface PublicProposal {
   businessName: string;
+  businessLogoUrl?: string | null;
+  businessPrimaryColor?: string | null;
   title: string;
   description: string | null;
   amount: number;
@@ -60,88 +63,40 @@ export function PublicProposalContent({ token, initial }: { token: string; initi
   const fmtDate = (iso: string) =>
     new Date(iso).toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric' });
 
-  // PDF descargable (tarea #337) — generado 100% en el navegador con jsPDF, sin depender de
-  // ningún servicio de PDF en el backend .NET (no había ninguna librería de PDF instalada ahí,
-  // y agregar una nueva dependencia NuGet sin poder verificar el build no valía la pena para
-  // algo tan simple como un resumen de texto). Funciona igual esté la propuesta firmada o no.
+  // Migrado al generador compartido (tarea #2 del backlog de documentos -- ver
+  // docs/audits/business-type-flows-audit.md, 2026-09-29). Antes dibujaba el PDF a mano aqui
+  // (comentario original explicaba por que: no hay libreria de PDF en el backend .NET, y no
+  // valia la pena agregar una dependencia nueva sin poder verificar el build para esto), ahora
+  // usa el mismo modulo que InvoicesContent/ProposalsContent -- funciona igual este firmada o no.
   async function handleDownloadPdf() {
-    const { jsPDF } = await import('jspdf');
-    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-    const marginX = 56;
-    let y = 72;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.setTextColor(120, 120, 120);
-    doc.text(proposal.businessName.toUpperCase(), marginX, y);
-    y += 28;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(20);
-    doc.setTextColor(20, 20, 20);
-    doc.text(proposal.title, marginX, y);
-    y += 26;
-
-    if (proposal.description) {
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(11);
-      doc.setTextColor(70, 70, 70);
-      const lines = doc.splitTextToSize(proposal.description, 480);
-      doc.text(lines, marginX, y);
-      y += lines.length * 15 + 12;
-    }
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.setTextColor(140, 140, 140);
-    doc.text(`Emitida el ${fmtDate(proposal.createdAt)}`, marginX, y);
-    y += 24;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(24);
-    doc.setTextColor(20, 20, 20);
-    doc.text(fmt.format(proposal.amount), marginX, y);
-    y += 20;
-
-    if (proposal.expiresAt) {
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.setTextColor(140, 140, 140);
-      doc.text(`Válida hasta el ${fmtDate(proposal.expiresAt)}`, marginX, y);
-      y += 24;
-    }
-
-    if (proposal.status === 'Accepted') {
-      y += 12;
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(13);
-      doc.setTextColor(22, 130, 70);
-      doc.text('Propuesta aceptada ✓', marginX, y);
-      y += 18;
-      if (proposal.acceptedByName) {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-        doc.setTextColor(90, 90, 90);
-        doc.text(
-          `Firmado por ${proposal.acceptedByName}${proposal.acceptedAt ? ` · ${fmtDate(proposal.acceptedAt)}` : ''}`,
-          marginX,
-          y,
-        );
-        y += 18;
-      }
-    }
-
-    if (proposal.attachmentUrl) {
-      y += 12;
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.setTextColor(140, 140, 140);
-      doc.text('Documento adjunto:', marginX, y);
-      y += 13;
-      doc.textWithLink(proposal.attachmentUrl, marginX, y, { url: proposal.attachmentUrl });
-    }
-
-    doc.save(`propuesta-${proposal.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.pdf`);
+    await downloadBrandedPdf({
+      brand: {
+        name: proposal.businessName,
+        logoUrl: proposal.businessLogoUrl,
+        primaryColor: proposal.businessPrimaryColor,
+      },
+      documentTitle: proposal.title,
+      // Sin contraparte separada -- la vista publica ya se identifica con el nombre del negocio
+      // en el encabezado (brand.name); no hay un customerName distinto en este payload.
+      metaLines: [
+        `Emitida el ${fmtDate(proposal.createdAt)}`,
+        ...(proposal.expiresAt ? [`V\u00e1lida hasta el ${fmtDate(proposal.expiresAt)}`] : []),
+      ],
+      description: proposal.description ?? undefined,
+      amountValue: fmt.format(proposal.amount),
+      status:
+        proposal.status === 'Accepted'
+          ? {
+              label: 'Propuesta aceptada \u2713',
+              tone: 'success',
+              note: proposal.acceptedByName
+                ? `Firmado por ${proposal.acceptedByName}${proposal.acceptedAt ? ` \u00b7 ${fmtDate(proposal.acceptedAt)}` : ''}`
+                : undefined,
+            }
+          : undefined,
+      attachmentUrl: proposal.attachmentUrl ?? undefined,
+      filename: `propuesta-${proposal.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}`,
+    });
   }
 
   return (

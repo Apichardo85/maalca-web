@@ -45,8 +45,9 @@ export interface BrandedDocumentConfig {
   brand: BrandInfo;
   /** Número de factura o título de la propuesta. */
   documentTitle: string;
-  counterpartLabel: string;
-  counterpartName: string;
+  /** Omitir si el documento no tiene una contraparte separada que mostrar (p.ej. la vista publica de una propuesta). */
+  counterpartLabel?: string;
+  counterpartName?: string;
   /** Líneas de metadata bajo el título -- "Emitida: ...", "Vence: ...". */
   metaLines?: string[];
   /** Descripción libre (propuestas) -- se envuelve automáticamente al ancho de la página. */
@@ -152,11 +153,13 @@ export async function downloadBrandedPdf(config: BrandedDocumentConfig): Promise
   doc.text(config.documentTitle, marginX, y);
   y += 26;
 
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(11);
-  doc.setTextColor(90, 90, 90);
-  doc.text(`${config.counterpartLabel}: ${config.counterpartName}`, marginX, y);
-  y += 18;
+  if (config.counterpartLabel && config.counterpartName) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(90, 90, 90);
+    doc.text(`${config.counterpartLabel}: ${config.counterpartName}`, marginX, y);
+    y += 18;
+  }
 
   for (const line of config.metaLines ?? []) {
     doc.text(line, marginX, y);

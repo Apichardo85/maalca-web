@@ -6,6 +6,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { DangerZoneDelete } from '@/components/space/DangerZoneDelete';
+import { downloadBrandedPdf } from '@/lib/pdf/document';
 
 interface InvoiceItemRow {
   id: string;
@@ -66,6 +67,8 @@ interface Props {
   // Gate por isImpersonation (modo soporte) — la autorización real vive en el backend
   // (platform_admin + platform_role Owner), esto solo controla si se muestra el botón.
   canHardDelete?: boolean;
+  /** Para el PDF de marca -- logo/color del negocio (Affiliate.LogoUrl/PrimaryColor via /api/space/{slug}). */
+  business: { name: string; logoUrl?: string | null; primaryColor?: string | null };
 }
 
 const STATUS_STYLES: Record<InvoiceRow['status'], string> = {
@@ -77,7 +80,7 @@ const STATUS_STYLES: Record<InvoiceRow['status'], string> = {
 
 const emptyLine = (): LineDraft => ({ description: '', quantity: 1, unitPrice: 0 });
 
-export function InvoicesContent({ slug, currency, initialInvoices, customers, canHardDelete }: Props) {
+export function InvoicesContent({ slug, currency, initialInvoices, customers, canHardDelete, business }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -365,89 +368,40 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers, ca
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  // Migrado al generador compartido (tarea #2 del backlog de documentos -- ver
+  // docs/audits/business-type-flows-audit.md, 2026-09-29). Antes dibujaba el PDF a mano aqui
+  // mismo, duplicado con ProposalsContent/PublicProposalContent; ahora solo arma la config con
+  // los datos de esta factura y deja el dibujo (incluyendo logo/color de marca) al modulo.
   async function handleDownloadPdf(invoice: InvoiceRow) {
-    const { jsPDF } = await import('jspdf');
-    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-    const marginX = 56;
-    let y = 72;
+    const metaLines = [`${getText('Emitida', 'Issued')}: ${dateFmt(invoice.issueDate)}`];
+    if (invoice.dueDate) metaLines.push(`${getText('Vence', 'Due')}: ${dateFmt(invoice.dueDate)}`);
 
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(20);
-    doc.setTextColor(20, 20, 20);
-    doc.text(invoice.invoiceNumber, marginX, y);
-    y += 22;
+    const subtotalLines = [{ label: getText('Subtotal', 'Subtotal'), value: fmt.format(invoice.subtotal) }];
+    if (invoice.tax > 0) subtotalLines.push({ label: getText('Impuesto', 'Tax'), value: fmt.format(invoice.tax) });
 
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(11);
-    doc.setTextColor(90, 90, 90);
-    doc.text(`${getText('Cliente', 'Customer')}: ${invoice.customer?.name ?? '—'}`, marginX, y);
-    y += 18;
-    doc.text(`${getText('Emitida', 'Issued')}: ${dateFmt(invoice.issueDate)}`, marginX, y);
-    y += 18;
-    if (invoice.dueDate) {
-      doc.text(`${getText('Vence', 'Due')}: ${dateFmt(invoice.dueDate)}`, marginX, y);
-      y += 18;
-    }
-    y += 6;
+    const status =
+      invoice.status === 'Paid'
+        ? { label: getText('Pagada ✓', 'Paid ✓'), tone: 'success' as const }
+        : invoice.status === 'Cancelled'
+          ? {
+              label: getText('Anulada', 'Voided'),
+              tone: 'danger' as const,
+              note: invoice.voidReason ? `${getText('Motivo', 'Reason')}: ${invoice.voidReason}` : undefined,
+            }
+          : undefined;
 
-    if (invoice.items && invoice.items.length > 0) {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.setTextColor(60, 60, 60);
-      doc.text(getText('Descripción', 'Description'), marginX, y);
-      doc.text(getText('Cant.', 'Qty'), 380, y);
-      doc.text(getText('Total', 'Total'), 460, y);
-      y += 14;
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(40, 40, 40);
-      for (const item of invoice.items) {
-        doc.text(item.description, marginX, y, { maxWidth: 310 });
-        doc.text(String(item.quantity), 380, y);
-        doc.text(fmt.format(item.total), 460, y);
-        y += 16;
-      }
-      y += 8;
-    }
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.setTextColor(90, 90, 90);
-    doc.text(`${getText('Subtotal', 'Subtotal')}: ${fmt.format(invoice.subtotal)}`, marginX, y);
-    y += 14;
-    if (invoice.tax > 0) {
-      doc.text(`${getText('Impuesto', 'Tax')}: ${fmt.format(invoice.tax)}`, marginX, y);
-      y += 14;
-    }
-    y += 6;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(20);
-    doc.setTextColor(20, 20, 20);
-    doc.text(fmt.format(invoice.total), marginX, y);
-    y += 24;
-
-    if (invoice.status === 'Paid') {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(13);
-      doc.setTextColor(22, 130, 70);
-      doc.text(getText('Pagada ✓', 'Paid ✓'), marginX, y);
-      y += 18;
-    } else if (invoice.status === 'Cancelled') {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(13);
-      doc.setTextColor(180, 40, 40);
-      doc.text(getText('Anulada', 'Voided'), marginX, y);
-      y += 18;
-      if (invoice.voidReason) {
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-        doc.setTextColor(90, 90, 90);
-        doc.text(`${getText('Motivo', 'Reason')}: ${invoice.voidReason}`, marginX, y, { maxWidth: 480 });
-        y += 18;
-      }
-    }
-
-    doc.save(`factura-${invoice.invoiceNumber.toLowerCase()}.pdf`);
+    await downloadBrandedPdf({
+      brand: { name: business.name, logoUrl: business.logoUrl, primaryColor: business.primaryColor },
+      documentTitle: invoice.invoiceNumber,
+      counterpartLabel: getText('Cliente', 'Customer'),
+      counterpartName: invoice.customer?.name ?? '—',
+      metaLines,
+      items: invoice.items?.map((it) => ({ description: it.description, quantity: it.quantity, total: fmt.format(it.total) })),
+      subtotalLines,
+      amountValue: fmt.format(invoice.total),
+      status,
+      filename: `factura-${invoice.invoiceNumber.toLowerCase()}`,
+    });
   }
 
   async function loadActivity() {

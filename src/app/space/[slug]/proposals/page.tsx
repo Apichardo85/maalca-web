@@ -5,7 +5,15 @@ import { ProposalsContent, type ProposalRow } from './ProposalsContent';
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 interface SpaceResponse {
-  business: { id: string; businessType: string; currency?: 'USD' | 'DOP'; modulosActivos: string[] };
+  business: {
+    id: string;
+    name: string;
+    businessType: string;
+    currency?: 'USD' | 'DOP';
+    modulosActivos: string[];
+    logoUrl?: string | null;
+    primaryColor?: string | null;
+  };
 }
 
 interface CustomerRow {
@@ -67,5 +75,13 @@ export default async function ProposalsPage({
 
   const currency = space.business.currency === 'DOP' ? 'DOP' : 'USD';
 
-  return <ProposalsContent slug={slug} currency={currency} initialProposals={proposals} customers={customers} />;
+  return (
+    <ProposalsContent
+      slug={slug}
+      currency={currency}
+      initialProposals={proposals}
+      customers={customers}
+      business={{ name: space.business.name, logoUrl: space.business.logoUrl, primaryColor: space.business.primaryColor }}
+    />
+  );
 }
