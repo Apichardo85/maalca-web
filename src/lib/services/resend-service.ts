@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { renderCardEmail, renderPlainEmail, emailCtaButton, MAALCA_BRAND_COLOR } from '@/lib/email/layout'
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -70,28 +71,18 @@ function welcomeSubject(source: string): string {
 }
 
 function buildWelcomeEmail(source: string): string {
-  const brandColor = '#DC2626'
   const greeting = sourceGreeting(source)
 
-  return `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 32px 24px; background: #fafafa;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <h1 style="color: ${brandColor}; font-size: 24px; margin: 0;">MaalCa</h1>
-      </div>
-      <div style="background: white; border-radius: 12px; padding: 32px; border: 1px solid #e5e5e5;">
-        <h2 style="color: #1a1a1a; font-size: 20px; margin-top: 0;">${greeting.title}</h2>
-        <p style="color: #525252; line-height: 1.6; font-size: 15px;">${greeting.body}</p>
-        <p style="color: #525252; line-height: 1.6; font-size: 15px;">
-          Si tienes preguntas, responde a este email — estamos aquí.
-        </p>
-        <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;" />
-        <p style="color: #a3a3a3; font-size: 12px; margin: 0;">
-          Recibes este email porque te suscribiste en <a href="https://maalca.com" style="color: ${brandColor};">maalca.com</a>.
-          <br/>Puedes cancelar tu suscripción en cualquier momento.
-        </p>
-      </div>
-    </div>
-  `
+  return renderCardEmail({
+    bodyHtml: `
+      <h2 style="color: #1a1a1a; font-size: 20px; margin-top: 0;">${greeting.title}</h2>
+      <p style="color: #525252; line-height: 1.6; font-size: 15px;">${greeting.body}</p>
+      <p style="color: #525252; line-height: 1.6; font-size: 15px;">
+        Si tienes preguntas, responde a este email — estamos aquí.
+      </p>
+    `,
+    footerText: `Recibes este email porque te suscribiste en <a href="https://maalca.com" style="color: ${MAALCA_BRAND_COLOR};">maalca.com</a>.<br/>Puedes cancelar tu suscripción en cualquier momento.`,
+  })
 }
 
 /**
@@ -152,39 +143,26 @@ export async function notifyNewSpace(
 }
 
 function buildOnboardingWelcomeEmail(businessName: string, slug: string): string {
-  const brandColor = '#DC2626';
   const publicUrl = `https://maalca.com/${slug}`;
   const dashboardUrl = `https://maalca.com/space/${slug}`;
 
-  return `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 32px 24px; background: #fafafa;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <h1 style="color: ${brandColor}; font-size: 24px; margin: 0;">MaalCa</h1>
-      </div>
-      <div style="background: white; border-radius: 12px; padding: 32px; border: 1px solid #e5e5e5;">
-        <h2 style="color: #1a1a1a; font-size: 20px; margin-top: 0;">¡${businessName} está en línea! 🚀</h2>
-        <p style="color: #525252; line-height: 1.6; font-size: 15px;">
-          Tu espacio ya está creado y visible para tus clientes. Aquí están tus links:
-        </p>
-        <div style="margin: 24px 0;">
-          <a href="${publicUrl}" style="display: inline-block; background: ${brandColor}; color: white; padding: 12px 24px; border-radius: 99px; text-decoration: none; font-weight: 600; font-size: 14px;">
-            Ver mi página →
-          </a>
-        </div>
-        <p style="color: #525252; line-height: 1.6; font-size: 14px;">
-          <strong>Tu página pública:</strong> <a href="${publicUrl}" style="color: ${brandColor};">${publicUrl}</a><br/>
-          <strong>Tu dashboard:</strong> <a href="${dashboardUrl}" style="color: ${brandColor};">${dashboardUrl}</a>
-        </p>
-        <p style="color: #525252; line-height: 1.6; font-size: 14px;">
-          Próximos pasos: agrega tus productos, conecta WhatsApp y comparte tu link.
-        </p>
-        <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;" />
-        <p style="color: #a3a3a3; font-size: 12px; margin: 0;">
-          Recibes este email porque creaste tu espacio en <a href="https://maalca.com" style="color: ${brandColor};">maalca.com</a>.
-        </p>
-      </div>
-    </div>
-  `;
+  return renderCardEmail({
+    bodyHtml: `
+      <h2 style="color: #1a1a1a; font-size: 20px; margin-top: 0;">¡${businessName} está en línea! 🚀</h2>
+      <p style="color: #525252; line-height: 1.6; font-size: 15px;">
+        Tu espacio ya está creado y visible para tus clientes. Aquí están tus links:
+      </p>
+      ${emailCtaButton('Ver mi página →', publicUrl)}
+      <p style="color: #525252; line-height: 1.6; font-size: 14px;">
+        <strong>Tu página pública:</strong> <a href="${publicUrl}" style="color: ${MAALCA_BRAND_COLOR};">${publicUrl}</a><br/>
+        <strong>Tu dashboard:</strong> <a href="${dashboardUrl}" style="color: ${MAALCA_BRAND_COLOR};">${dashboardUrl}</a>
+      </p>
+      <p style="color: #525252; line-height: 1.6; font-size: 14px;">
+        Próximos pasos: agrega tus productos, conecta WhatsApp y comparte tu link.
+      </p>
+    `,
+    footerText: `Recibes este email porque creaste tu espacio en <a href="https://maalca.com" style="color: ${MAALCA_BRAND_COLOR};">maalca.com</a>.`,
+  });
 }
 
 function buildNewSpaceNotificationEmail(
@@ -245,38 +223,25 @@ function buildTeamInviteEmail(params: {
   role: string;
   inviterEmail: string | null;
 }): string {
-  const brandColor = '#DC2626';
   const roleLabel = ROLE_LABELS_ES[params.role] ?? params.role;
   const signupUrl = `https://maalca.com/login`;
   const inviterLine = params.inviterEmail
     ? `<strong>${params.inviterEmail}</strong> te invitó`
     : 'Te invitaron';
 
-  return `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 32px 24px; background: #fafafa;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <h1 style="color: ${brandColor}; font-size: 24px; margin: 0;">MaalCa</h1>
-      </div>
-      <div style="background: white; border-radius: 12px; padding: 32px; border: 1px solid #e5e5e5;">
-        <h2 style="color: #1a1a1a; font-size: 20px; margin-top: 0;">Te invitaron a ${params.businessName} 🤝</h2>
-        <p style="color: #525252; line-height: 1.6; font-size: 15px;">
-          ${inviterLine} a ayudar a administrar <strong>${params.businessName}</strong> en MaalCa, con acceso de <strong>${roleLabel}</strong>.
-        </p>
-        <div style="margin: 24px 0;">
-          <a href="${signupUrl}" style="display: inline-block; background: ${brandColor}; color: white; padding: 12px 24px; border-radius: 99px; text-decoration: none; font-weight: 600; font-size: 14px;">
-            Iniciar sesión →
-          </a>
-        </div>
-        <p style="color: #525252; line-height: 1.6; font-size: 14px;">
-          Entra con este mismo correo (creando una cuenta si aún no tienes una) y verás el negocio automáticamente.
-        </p>
-        <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;" />
-        <p style="color: #a3a3a3; font-size: 12px; margin: 0;">
-          Recibes este correo porque alguien te invitó a un negocio en <a href="https://maalca.com" style="color: ${brandColor};">maalca.com</a>.
-        </p>
-      </div>
-    </div>
-  `;
+  return renderCardEmail({
+    bodyHtml: `
+      <h2 style="color: #1a1a1a; font-size: 20px; margin-top: 0;">Te invitaron a ${params.businessName} 🤝</h2>
+      <p style="color: #525252; line-height: 1.6; font-size: 15px;">
+        ${inviterLine} a ayudar a administrar <strong>${params.businessName}</strong> en MaalCa, con acceso de <strong>${roleLabel}</strong>.
+      </p>
+      ${emailCtaButton('Iniciar sesión →', signupUrl)}
+      <p style="color: #525252; line-height: 1.6; font-size: 14px;">
+        Entra con este mismo correo (creando una cuenta si aún no tienes una) y verás el negocio automáticamente.
+      </p>
+    `,
+    footerText: `Recibes este correo porque alguien te invitó a un negocio en <a href="https://maalca.com" style="color: ${MAALCA_BRAND_COLOR};">maalca.com</a>.`,
+  });
 }
 
 const PLATFORM_ROLE_LABELS_ES: Record<string, string> = { Owner: 'Dueño', Support: 'Soporte' };
@@ -298,7 +263,6 @@ export async function sendPlatformTeamInviteEmail(params: {
     return false;
   }
 
-  const brandColor = '#DC2626';
   const roleLabel = PLATFORM_ROLE_LABELS_ES[params.role] ?? params.role;
   const loginUrl = 'https://maalca.com/login';
   const inviterLine = params.inviterEmail
@@ -310,31 +274,19 @@ export async function sendPlatformTeamInviteEmail(params: {
       from: FROM_EMAIL,
       to: params.inviteeEmail,
       subject: 'Te invitaron al equipo interno de MaalCa',
-      html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 32px 24px; background: #fafafa;">
-          <div style="text-align: center; margin-bottom: 24px;">
-            <h1 style="color: ${brandColor}; font-size: 24px; margin: 0;">MaalCa</h1>
-          </div>
-          <div style="background: white; border-radius: 12px; padding: 32px; border: 1px solid #e5e5e5;">
-            <h2 style="color: #1a1a1a; font-size: 20px; margin-top: 0;">Te invitaron al equipo de MaalCa 🤝</h2>
-            <p style="color: #525252; line-height: 1.6; font-size: 15px;">
-              ${inviterLine} a formar parte del equipo interno de MaalCa, con acceso de <strong>${roleLabel}</strong> al panel de operaciones.
-            </p>
-            <div style="margin: 24px 0;">
-              <a href="${loginUrl}" style="display: inline-block; background: ${brandColor}; color: white; padding: 12px 24px; border-radius: 99px; text-decoration: none; font-weight: 600; font-size: 14px;">
-                Iniciar sesión →
-              </a>
-            </div>
-            <p style="color: #525252; line-height: 1.6; font-size: 14px;">
-              Entra con este mismo correo (creando una cuenta si aún no tienes una) y tendrás acceso automáticamente a /ops.
-            </p>
-            <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;" />
-            <p style="color: #a3a3a3; font-size: 12px; margin: 0;">
-              Recibes este correo porque alguien te invitó al equipo interno en <a href="https://maalca.com" style="color: ${brandColor};">maalca.com</a>.
-            </p>
-          </div>
-        </div>
-      `,
+      html: renderCardEmail({
+        bodyHtml: `
+          <h2 style="color: #1a1a1a; font-size: 20px; margin-top: 0;">Te invitaron al equipo de MaalCa 🤝</h2>
+          <p style="color: #525252; line-height: 1.6; font-size: 15px;">
+            ${inviterLine} a formar parte del equipo interno de MaalCa, con acceso de <strong>${roleLabel}</strong> al panel de operaciones.
+          </p>
+          ${emailCtaButton('Iniciar sesión →', loginUrl)}
+          <p style="color: #525252; line-height: 1.6; font-size: 14px;">
+            Entra con este mismo correo (creando una cuenta si aún no tienes una) y tendrás acceso automáticamente a /ops.
+          </p>
+        `,
+        footerText: `Recibes este correo porque alguien te invitó al equipo interno en <a href="https://maalca.com" style="color: ${MAALCA_BRAND_COLOR};">maalca.com</a>.`,
+      }),
     });
     return true;
   } catch (err: unknown) {
@@ -425,7 +377,6 @@ function buildOrderStatusEmail(params: {
   total: number;
   currency: string;
 }): string {
-  const brandColor = '#DC2626';
   const greeting = params.customerName ? `¡Hola, ${params.customerName}!` : '¡Hola!';
   const title =
     params.kind === 'confirmed'
@@ -446,29 +397,21 @@ function buildOrderStatusEmail(params: {
     )
     .join('');
 
-  return `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 32px 24px; background: #fafafa;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <h1 style="color: ${brandColor}; font-size: 24px; margin: 0;">MaalCa</h1>
-      </div>
-      <div style="background: white; border-radius: 12px; padding: 32px; border: 1px solid #e5e5e5;">
-        <h2 style="color: #1a1a1a; font-size: 20px; margin-top: 0;">${title}</h2>
-        <p style="color: #525252; line-height: 1.6; font-size: 15px;">${greeting} ${body}</p>
-        <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border-top: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5;">
-          ${itemRows}
-          <tr>
-            <td style="padding: 12px 0 0; font-weight: 600; color: #1a1a1a; font-size: 15px;">Total</td>
-            <td style="padding: 12px 0 0; font-weight: 600; color: #1a1a1a; font-size: 15px; text-align: right;">${params.currency} ${params.total.toFixed(2)}</td>
-          </tr>
-        </table>
-        <p style="color: #a3a3a3; font-size: 12px; margin: 0;">Pedido #${params.orderId.slice(0, 8)}</p>
-        <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;" />
-        <p style="color: #a3a3a3; font-size: 12px; margin: 0;">
-          Recibes este correo porque hiciste un pedido a través de <a href="https://maalca.com" style="color: ${brandColor};">maalca.com</a>.
-        </p>
-      </div>
-    </div>
-  `;
+  return renderCardEmail({
+    bodyHtml: `
+      <h2 style="color: #1a1a1a; font-size: 20px; margin-top: 0;">${title}</h2>
+      <p style="color: #525252; line-height: 1.6; font-size: 15px;">${greeting} ${body}</p>
+      <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border-top: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5;">
+        ${itemRows}
+        <tr>
+          <td style="padding: 12px 0 0; font-weight: 600; color: #1a1a1a; font-size: 15px;">Total</td>
+          <td style="padding: 12px 0 0; font-weight: 600; color: #1a1a1a; font-size: 15px; text-align: right;">${params.currency} ${params.total.toFixed(2)}</td>
+        </tr>
+      </table>
+      <p style="color: #a3a3a3; font-size: 12px; margin: 0;">Pedido #${params.orderId.slice(0, 8)}</p>
+    `,
+    footerText: `Recibes este correo porque hiciste un pedido a través de <a href="https://maalca.com" style="color: ${MAALCA_BRAND_COLOR};">maalca.com</a>.`,
+  });
 }
 
 /**
@@ -506,7 +449,7 @@ export async function sendAppointmentConfirmationEmail(params: {
   const footer = params.manageUrl
     ? `
         <div style="text-align: center; margin: 20px 0;">
-          <a href="${params.manageUrl}" style="display: inline-block; background: #045AFE; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Gestiona tu cita</a>
+          <a href="${params.manageUrl}" style="display: inline-block; background: ${MAALCA_BRAND_COLOR}; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Gestiona tu cita</a>
         </div>
         <p style="font-size: 13px; color: #737373;">Desde ese link puedes confirmar, reagendar o cancelar sin llamar al negocio.</p>
       `
@@ -517,18 +460,16 @@ export async function sendAppointmentConfirmationEmail(params: {
       from: FROM_EMAIL,
       to: params.customerEmail,
       subject: `Cita confirmada — ${params.businessName}`,
-      html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
-          <p style="font-size: 15px; line-height: 1.6;">${greeting},</p>
-          <p style="font-size: 15px; line-height: 1.6;">Tu cita en <strong>${params.businessName}</strong> quedó confirmada:</p>
-          <p style="font-size: 15px; line-height: 1.6; background: #fafafa; border-radius: 8px; padding: 12px 16px;">
-            <strong>${params.serviceName}</strong><br/>
-            ${dateFmt} · ${params.time}${staffLine}
-          </p>
-          ${params.zoomLink ? `<div style="text-align: center; margin: 16px 0;"><a href="${params.zoomLink}" style="display: inline-block; background: #1a1a1a; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">💻 Unirme a la reunión (Zoom)</a></div>` : ''}
-          ${footer}
-        </div>
-      `,
+      html: renderPlainEmail(`
+        <p style="font-size: 15px; line-height: 1.6;">${greeting},</p>
+        <p style="font-size: 15px; line-height: 1.6;">Tu cita en <strong>${params.businessName}</strong> quedó confirmada:</p>
+        <p style="font-size: 15px; line-height: 1.6; background: #fafafa; border-radius: 8px; padding: 12px 16px;">
+          <strong>${params.serviceName}</strong><br/>
+          ${dateFmt} · ${params.time}${staffLine}
+        </p>
+        ${params.zoomLink ? `<div style="text-align: center; margin: 16px 0;"><a href="${params.zoomLink}" style="display: inline-block; background: #1a1a1a; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">💻 Unirme a la reunión (Zoom)</a></div>` : ''}
+        ${footer}
+      `),
     });
     return true;
   } catch (err: unknown) {
@@ -567,7 +508,7 @@ export async function sendAppointmentReminderEmail(params: {
   const footer = params.manageUrl
     ? `
         <div style="text-align: center; margin: 20px 0;">
-          <a href="${params.manageUrl}" style="display: inline-block; background: #045AFE; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Gestiona tu cita</a>
+          <a href="${params.manageUrl}" style="display: inline-block; background: ${MAALCA_BRAND_COLOR}; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Gestiona tu cita</a>
         </div>
         <p style="font-size: 13px; color: #737373;">¿No puedes venir? Reagenda o cancela desde ese link.</p>
       `
@@ -578,17 +519,15 @@ export async function sendAppointmentReminderEmail(params: {
       from: FROM_EMAIL,
       to: params.customerEmail,
       subject: `Recordatorio: tu cita hoy en ${params.businessName}`,
-      html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
-          <p style="font-size: 15px; line-height: 1.6;">${greeting},</p>
-          <p style="font-size: 15px; line-height: 1.6;">Recordatorio de tu cita en <strong>${params.businessName}</strong>:</p>
-          <p style="font-size: 15px; line-height: 1.6; background: #fafafa; border-radius: 8px; padding: 12px 16px;">
-            <strong>${params.serviceName}</strong><br/>
-            ${dateFmt} · ${params.time}${staffLine}
-          </p>
-          ${footer}
-        </div>
-      `,
+      html: renderPlainEmail(`
+        <p style="font-size: 15px; line-height: 1.6;">${greeting},</p>
+        <p style="font-size: 15px; line-height: 1.6;">Recordatorio de tu cita en <strong>${params.businessName}</strong>:</p>
+        <p style="font-size: 15px; line-height: 1.6; background: #fafafa; border-radius: 8px; padding: 12px 16px;">
+          <strong>${params.serviceName}</strong><br/>
+          ${dateFmt} · ${params.time}${staffLine}
+        </p>
+        ${footer}
+      `),
     });
     return true;
   } catch (err: unknown) {
@@ -625,18 +564,16 @@ export async function sendContactFormEmail(params: {
       to: NOTIFY_EMAIL,
       replyTo: params.email,
       subject: `Nuevo mensaje de contacto — ${params.name}`,
-      html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
-          <h2 style="font-size: 18px;">Nuevo mensaje desde maalca.com</h2>
-          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-            <tr><td style="padding: 6px 8px; font-weight: bold; width: 120px;">Nombre:</td><td style="padding: 6px 8px;">${params.name}</td></tr>
-            <tr><td style="padding: 6px 8px; font-weight: bold;">Correo:</td><td style="padding: 6px 8px;">${params.email}</td></tr>
-            ${params.company ? `<tr><td style="padding: 6px 8px; font-weight: bold;">Negocio:</td><td style="padding: 6px 8px;">${params.company}</td></tr>` : ''}
-            ${params.project ? `<tr><td style="padding: 6px 8px; font-weight: bold;">Tipo:</td><td style="padding: 6px 8px;">${params.project}</td></tr>` : ''}
-          </table>
-          <p style="font-size: 14px; line-height: 1.6; background: #fafafa; border-radius: 8px; padding: 12px 16px; margin-top: 16px; white-space: pre-line;">${params.message}</p>
-        </div>
-      `,
+      html: renderPlainEmail(`
+        <h2 style="font-size: 18px;">Nuevo mensaje desde maalca.com</h2>
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+          <tr><td style="padding: 6px 8px; font-weight: bold; width: 120px;">Nombre:</td><td style="padding: 6px 8px;">${params.name}</td></tr>
+          <tr><td style="padding: 6px 8px; font-weight: bold;">Correo:</td><td style="padding: 6px 8px;">${params.email}</td></tr>
+          ${params.company ? `<tr><td style="padding: 6px 8px; font-weight: bold;">Negocio:</td><td style="padding: 6px 8px;">${params.company}</td></tr>` : ''}
+          ${params.project ? `<tr><td style="padding: 6px 8px; font-weight: bold;">Tipo:</td><td style="padding: 6px 8px;">${params.project}</td></tr>` : ''}
+        </table>
+        <p style="font-size: 14px; line-height: 1.6; background: #fafafa; border-radius: 8px; padding: 12px 16px; margin-top: 16px; white-space: pre-line;">${params.message}</p>
+      `),
     });
     notified = true;
   } catch (err: unknown) {
@@ -648,13 +585,11 @@ export async function sendContactFormEmail(params: {
       from: FROM_EMAIL,
       to: params.email,
       subject: 'Recibimos tu mensaje — MaalCa',
-      html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
-          <p style="font-size: 15px; line-height: 1.6;">Hola ${params.name},</p>
-          <p style="font-size: 15px; line-height: 1.6;">Recibimos tu mensaje y te respondemos pronto, normalmente en menos de 24 horas.</p>
-          <p style="font-size: 13px; color: #737373;">Si necesitas algo urgente, responde directamente a este correo.</p>
-        </div>
-      `,
+      html: renderPlainEmail(`
+        <p style="font-size: 15px; line-height: 1.6;">Hola ${params.name},</p>
+        <p style="font-size: 15px; line-height: 1.6;">Recibimos tu mensaje y te respondemos pronto, normalmente en menos de 24 horas.</p>
+        <p style="font-size: 13px; color: #737373;">Si necesitas algo urgente, responde directamente a este correo.</p>
+      `),
     });
     confirmed = true;
   } catch (err: unknown) {
@@ -715,27 +650,24 @@ export async function sendInvoicePaymentLinkEmail(params: {
   }
 
   const greeting = params.customerName ? `Hola, ${params.customerName}` : 'Hola';
-  const brandColor = '#045AFE';
 
   try {
     await resend.emails.send({
       from: FROM_EMAIL,
       to: params.customerEmail,
       subject: `Factura ${params.invoiceNumber} — ${params.businessName}`,
-      html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
-          <p style="font-size: 15px; line-height: 1.6;">${greeting},</p>
-          <p style="font-size: 15px; line-height: 1.6;"><strong>${params.businessName}</strong> te envió una factura por cobrar:</p>
-          <p style="font-size: 15px; line-height: 1.6; background: #fafafa; border-radius: 8px; padding: 12px 16px;">
-            <strong>Factura ${params.invoiceNumber}</strong><br/>
-            Total: ${params.currency} ${params.total.toFixed(2)}
-          </p>
-          <div style="text-align: center; margin: 20px 0;">
-            <a href="${params.paymentLink}" style="display: inline-block; background: ${brandColor}; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Pagar ahora</a>
-          </div>
-          <p style="font-size: 13px; color: #737373;">Pago seguro procesado por Stripe.</p>
+      html: renderPlainEmail(`
+        <p style="font-size: 15px; line-height: 1.6;">${greeting},</p>
+        <p style="font-size: 15px; line-height: 1.6;"><strong>${params.businessName}</strong> te envió una factura por cobrar:</p>
+        <p style="font-size: 15px; line-height: 1.6; background: #fafafa; border-radius: 8px; padding: 12px 16px;">
+          <strong>Factura ${params.invoiceNumber}</strong><br/>
+          Total: ${params.currency} ${params.total.toFixed(2)}
+        </p>
+        <div style="text-align: center; margin: 20px 0;">
+          <a href="${params.paymentLink}" style="display: inline-block; background: ${MAALCA_BRAND_COLOR}; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Pagar ahora</a>
         </div>
-      `,
+        <p style="font-size: 13px; color: #737373;">Pago seguro procesado por Stripe.</p>
+      `),
     });
     return true;
   } catch (err: unknown) {
@@ -766,7 +698,6 @@ export async function sendProposalEmail(params: {
   }
 
   const greeting = params.customerName ? `Hola, ${params.customerName}` : 'Hola';
-  const brandColor = '#045AFE';
   const expiresLine = params.expiresAt
     ? `<p style="font-size: 13px; color: #737373;">Válida hasta el ${new Date(params.expiresAt).toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric' })}.</p>`
     : '';
@@ -776,8 +707,7 @@ export async function sendProposalEmail(params: {
       from: FROM_EMAIL,
       to: params.customerEmail,
       subject: `Propuesta: ${params.title} — ${params.businessName}`,
-      html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
+      html: renderPlainEmail(`
           <p style="font-size: 15px; line-height: 1.6;">${greeting},</p>
           <p style="font-size: 15px; line-height: 1.6;"><strong>${params.businessName}</strong> te envió una propuesta:</p>
           <p style="font-size: 15px; line-height: 1.6; background: #fafafa; border-radius: 8px; padding: 12px 16px;">
@@ -786,11 +716,10 @@ export async function sendProposalEmail(params: {
             Monto: ${params.currency} ${params.amount.toFixed(2)}
           </p>
           <div style="text-align: center; margin: 20px 0;">
-            <a href="${params.proposalLink}" style="display: inline-block; background: ${brandColor}; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Ver y aceptar propuesta</a>
+            <a href="${params.proposalLink}" style="display: inline-block; background: ${MAALCA_BRAND_COLOR}; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Ver y aceptar propuesta</a>
           </div>
           ${expiresLine}
-        </div>
-      `,
+      `),
     });
     return true;
   } catch (err: unknown) {
@@ -820,7 +749,6 @@ export async function sendProposalAcceptedEmail(params: {
     return false;
   }
 
-  const brandColor = '#045AFE';
   const acceptedDate = params.acceptedAt
     ? new Date(params.acceptedAt).toLocaleString('es-DO', { dateStyle: 'long', timeStyle: 'short' })
     : '';
@@ -834,16 +762,14 @@ export async function sendProposalAcceptedEmail(params: {
       from: FROM_EMAIL,
       to: params.businessEmail,
       subject: `✅ Propuesta aceptada: ${params.title}`,
-      html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
+      html: renderPlainEmail(`
           <p style="font-size: 15px; line-height: 1.6;">Hola,</p>
           <p style="font-size: 15px; line-height: 1.6;">Tu cliente aceptó la propuesta <strong>${params.title}</strong> por <strong>${params.currency} ${params.amount.toFixed(2)}</strong>.</p>
           <p style="font-size: 15px; line-height: 1.6; background: #fafafa; border-radius: 8px; padding: 12px 16px;">
             Firmado por: <strong>${params.acceptedByName ?? 'N/A'}</strong>${acceptedDate ? `<br/>Fecha: ${acceptedDate}` : ''}${contactLine ? `<br/>${contactLine}` : ''}
           </p>
           <p style="font-size: 13px; color: #737373;">Entra a tu panel de Propuestas en MaalCa para ver el detalle y dar seguimiento.</p>
-        </div>
-      `,
+      `),
     });
     return true;
   } catch (err: unknown) {
