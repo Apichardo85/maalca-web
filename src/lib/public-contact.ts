@@ -123,3 +123,33 @@ export function resolveSocialLinks(business: ContactSourceBusiness): ResolvedSoc
     .filter((c) => SOCIAL_TIPOS.includes(c.tipo))
     .map((c) => ({ tipo: c.tipo, href: c.enlaceGenerado || c.valorCrudo, canalId: c.id }));
 }
+
+export interface ResolvedDeliveryLink {
+  tipo: string;
+  label: string;
+  href: string;
+  canalId: string | null;
+}
+
+const DELIVERY_LABELS: Record<string, string> = {
+  DoorDash: 'DoorDash',
+  UberEats: 'Uber Eats',
+  Grubhub: 'Grubhub',
+};
+
+/**
+ * Enlaces a la tienda del negocio en servicios externos de delivery (DoorDash, Uber Eats,
+ * Grubhub), en `orden`. El backend ya restringe el host al del proveedor (CanalService), pero
+ * acá se exige además https: es lo único que se acepta pintar como href.
+ */
+export function resolveDeliveryLinks(business: ContactSourceBusiness): ResolvedDeliveryLink[] {
+  return activeSorted(business.canales)
+    .filter((c) => c.tipo in DELIVERY_LABELS)
+    .map((c) => ({
+      tipo: c.tipo,
+      label: DELIVERY_LABELS[c.tipo],
+      href: c.enlaceGenerado || c.valorCrudo,
+      canalId: c.id,
+    }))
+    .filter((l) => l.href.startsWith('https://'));
+}

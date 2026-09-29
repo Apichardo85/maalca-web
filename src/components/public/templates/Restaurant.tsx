@@ -15,12 +15,12 @@
 // when `business.timezone` is set AND at least one item has periods/
 // weekDays populated; otherwise the full menu shows with no filter, so a
 // business without that data configured never sees a confusing empty view.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Fraunces, Inter } from 'next/font/google';
 import type { ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
 import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
-import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
+import { resolveWhatsAppDigits, resolveContactItems, resolveDeliveryLinks } from '@/lib/public-contact';
 import { trackCanalClick } from '@/lib/public-events';
 import { AboutSection } from '@/components/public/AboutSection';
 import { sanitizeRichText } from '@/lib/sanitize-html';
@@ -34,6 +34,17 @@ import { formatPrice } from '@/lib/currency';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 import { MEAL_PERIOD_LABELS, MEAL_PERIOD_ORDER } from '@/lib/menu-availability';
 import { matchesCatalogQuery } from '@/lib/catalog-search';
+// Los días del Horario del negocio son claves en español (lunes…domingo), distintas de los
+// WeekDay en inglés que usa el menú más abajo — de ahí los alias.
+import {
+  WEEK_DAY_ORDER as HORARIO_DAY_ORDER,
+  WEEK_DAY_LABELS_ES as HORARIO_LABELS_ES,
+  WEEK_DAY_LABELS_EN as HORARIO_LABELS_EN,
+  getOpenStatus,
+  todayKeyInTimezone,
+  formatHour,
+  type OpenStatus,
+} from '@/lib/business-hours';
 import type { MealPeriod, WeekDay } from '@/lib/types';
 
 // Scoped to this template only — Fraunces italic gives names/Destacados a
@@ -138,15 +149,25 @@ export function RestaurantTemplate({
 }: PublicTemplateProps) {
   const accent = business.primary_color ?? '#045AFE';
   const waRaw = resolveWhatsAppDigits(business);
-  const waHeroLink = waRaw
-    ? `https://wa.me/${waRaw}?text=${encodeURIComponent(`Hola, quiero info sobre ${business.name}`)}`
-    : null;
-  // Resolved canal (with canalId) for click tracking — waRaw/waHeroLink above are digits-only,
-  // used for the href/message; the canalId is what lets maalca-api attribute this click to a
-  // specific canal row instead of excluding it from the byCanal breakdown (Program.cs:854).
-  const whatsappEntry = resolveContactItems(business).find((c) => c.tipo === 'WhatsApp');
+  const deliveryLinks = resolveDeliveryLinks(business);
 
   const { cart, addToCart, removeFromCart, cartTotal, cartCount, updateNotes } = useCart();
+  const [cartOpen, setCartOpen] = useState(false);
+
+  // "Abierto ahora" depende del reloj: se calcula solo en el cliente (así la página cacheada por
+  // ISR no se congela en el estado del momento del build ni desajusta la hidratación) y se
+  // refresca cada minuto. Sin horario o sin zona horaria queda en null y la barra no se muestra.
+  const [openStatus, setOpenStatus] = useState<OpenStatus | null>(null);
+  const [todayKey, setTodayKey] = useState<string | null>(null);
+  useEffect(() => {
+    const update = () => {
+      setOpenStatus(getOpenStatus(business.horario, business.timezone));
+      setTodayKey(todayKeyInTimezone(business.timezone));
+    };
+    update();
+    const id = setInterval(update, 60_000);
+    return () => clearInterval(id);
+  }, [business.horario, business.timezone]);
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const periodLabel = (p: MealPeriod) => (language === 'en' ? MEAL_PERIOD_LABELS_EN[p] : MEAL_PERIOD_LABELS[p]);
@@ -235,7 +256,10 @@ export function RestaurantTemplate({
   const visibleItems = itemsFor(activeTab);
 
   return (
-    <div className={`${fraunces.variable} ${inter.variable}`} style={{ minHeight: '100vh', backgroundColor: CREMA, fontFamily: inter.style.fontFamily }}>
+    <div id="top" className={`${fraunces.variable} ${inter.variable}`} style={{ minHeight: '100vh', backgroundColor: CREMA, fontFamily: inter.style.fontFamily }}>
+      {/* ── ESTADO (abierto/cerrado) — pegada arriba mientras se hace scroll ── */}
+      <OpenStatusBar status={openStatus} language={language} getText={getText} />
+
       {/* ── HERO ── */}
       <section
         style={{
@@ -341,18 +365,45 @@ export function RestaurantTemplate({
           )}
 
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '18px' }}>
-            {waHeroLink && (
+            {items.length > 0 && (
               <a
-                href={waHeroLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => trackCanalClick(business.slug, 'WhatsApp', whatsappEntry?.canalId)}
+                href="#menu"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('menu')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '8px',
+                  minHeight: '44px',
                   backgroundColor: accent,
                   border: '1px solid rgba(255,255,255,0.8)',
+                  color: '#ffffff',
+                  padding: '10px 22px',
+                  borderRadius: '9999px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                }}
+              >
+                {getText('Ordenar', 'Order now')}
+              </a>
+            )}
+            {deliveryLinks.map((d) => (
+              <a
+                key={d.tipo}
+                href={d.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackCanalClick(business.slug, d.tipo, d.canalId)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  minHeight: '44px',
+                  background: 'transparent',
+                  border: '1px solid rgba(255,255,255,0.35)',
                   color: '#ffffff',
                   padding: '10px 20px',
                   borderRadius: '9999px',
@@ -361,10 +412,9 @@ export function RestaurantTemplate({
                   textDecoration: 'none',
                 }}
               >
-                <WhatsAppIcon className="h-4 w-4" />
-                WhatsApp
+                {getText(`Delivery con ${d.label}`, `Delivery on ${d.label}`)} ↗
               </a>
-            )}
+            ))}
             {business.address && (
               <a
                 href={`https://maps.google.com?q=${encodeURIComponent(business.address)}`}
@@ -374,6 +424,7 @@ export function RestaurantTemplate({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '8px',
+                  minHeight: '44px',
                   background: 'transparent',
                   border: '1px solid rgba(255,255,255,0.35)',
                   color: '#ffffff',
@@ -649,7 +700,7 @@ export function RestaurantTemplate({
       )}
 
       {/* ── CONTENT ── */}
-      <main className="mx-auto max-w-public-content" style={{ padding: '32px 24px' }}>
+      <main id="menu" className="mx-auto max-w-public-content" style={{ padding: '32px 24px', scrollMarginTop: '48px' }}>
         {items.length === 0 ? (
           <div
             style={{
@@ -733,8 +784,11 @@ export function RestaurantTemplate({
           TableReservationSection.tsx y docs/audits/business-type-flows-audit.md. */}
       <TableReservationSection slug={business.slug} language={language} accent={business.primary_color} horario={business.horario} />
 
-      {/* ── CONTACTO ── */}
-      <ContactSection business={business} language={language} />
+      {/* ── HORARIO + CONTACTO — destino del botón "Info" de la barra inferior ── */}
+      <div id="info" style={{ scrollMarginTop: '48px' }}>
+        <HoursSection horario={business.horario} todayKey={todayKey} language={language} getText={getText} />
+        <ContactSection business={business} language={language} />
+      </div>
 
       {/* ── FOOTER ── */}
       <PublicFooter business={business} capabilities={capabilities} language={language} />
@@ -754,12 +808,311 @@ export function RestaurantTemplate({
         updateNotes={updateNotes}
         restaurantMode
         getText={getText}
+        isOpen={cartOpen}
+        onOpenChange={setCartOpen}
+        hideFab
+        bottomInset={64}
       />
+
+      {/* Barra de pedido + navegación inferior (móvil): reemplazan al botón flotante genérico. */}
+      <CartBar count={cartCount} total={cartTotal} currency={business.currency} accent={accent} hidden={cartOpen} onOpen={() => setCartOpen(true)} getText={getText} />
+      <BottomNav cartCount={cartCount} accent={accent} onOpenCart={() => setCartOpen(true)} getText={getText} />
+      <div className="sm:hidden" aria-hidden style={{ height: 'calc(64px + env(safe-area-inset-bottom, 0px))' }} />
     </div>
   );
 }
 
 // ── SUB-COMPONENTS ──────────────────────────────────────────────────────────
+
+function OpenStatusBar({
+  status,
+  language,
+  getText,
+}: {
+  status: OpenStatus | null;
+  language: 'es' | 'en';
+  getText: (es: string, en: string) => string;
+}) {
+  if (!status) return null;
+
+  const dayLabel = (day: string) =>
+    (language === 'en' ? HORARIO_LABELS_EN[day] : HORARIO_LABELS_ES[day]) ?? day;
+
+  let dot = PALMA;
+  let bg = '#E8F0E6';
+  let border = '#cfe0cc';
+  let color = '#2E4A34';
+  let strong: string;
+  let rest = '';
+
+  if (status.state === 'open') {
+    strong = getText('Abierto ahora', 'Open now');
+    rest = getText(`Cierra a las ${formatHour(status.closesAt)}`, `Closes at ${formatHour(status.closesAt)}`);
+  } else if (status.state === 'opening_soon') {
+    dot = '#B7791F';
+    bg = '#FBF0DC';
+    border = '#f0dfba';
+    color = '#6B4A12';
+    strong = getText('Abre pronto', 'Opening soon');
+    rest = getText(`Abre a las ${formatHour(status.opensAt)}`, `Opens at ${formatHour(status.opensAt)}`);
+  } else {
+    dot = MUTED;
+    bg = '#F1E9DD';
+    border = '#e8ddc9';
+    color = CAFE;
+    strong = getText('Cerrado ahora', 'Closed now');
+    const n = status.next;
+    if (n) {
+      const at = formatHour(n.opensAt);
+      rest =
+        n.daysAhead === 0
+          ? getText(`Abre hoy a las ${at}`, `Opens today at ${at}`)
+          : n.daysAhead === 1
+            ? getText(`Abre mañana a las ${at}`, `Opens tomorrow at ${at}`)
+            : getText(`Abre el ${dayLabel(n.day)} a las ${at}`, `Opens ${dayLabel(n.day)} at ${at}`);
+    }
+  }
+
+  return (
+    <div
+      role="status"
+      style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 40,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px',
+        minHeight: '40px',
+        padding: '8px 16px',
+        backgroundColor: bg,
+        borderBottom: `1px solid ${border}`,
+        color,
+        fontSize: '13px',
+        textAlign: 'center',
+      }}
+    >
+      <span aria-hidden style={{ width: '8px', height: '8px', borderRadius: '9999px', backgroundColor: dot, flexShrink: 0 }} />
+      <span style={{ fontWeight: 600 }}>{strong}</span>
+      {rest && <span>· {rest}</span>}
+    </div>
+  );
+}
+
+function HoursSection({
+  horario,
+  todayKey,
+  language,
+  getText,
+}: {
+  horario: PublicTemplateProps['business']['horario'];
+  todayKey: string | null;
+  language: 'es' | 'en';
+  getText: (es: string, en: string) => string;
+}) {
+  const rows = HORARIO_DAY_ORDER.map((day) => ({ day, entry: horario?.find((h) => h.dia === day) })).filter(
+    (r): r is { day: string; entry: NonNullable<typeof r.entry> } => Boolean(r.entry),
+  );
+  if (rows.length === 0) return null;
+
+  return (
+    <section className="mx-auto max-w-public-content" style={{ padding: '0 24px 32px' }}>
+      <h2 className={fraunces.className} style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 600, fontStyle: 'italic', color: TERRACOTA }}>
+        {getText('Horario', 'Hours')}
+      </h2>
+      <div style={{ backgroundColor: '#ffffff', border: '0.5px solid #ece2d3', borderRadius: '12px', padding: '4px 16px' }}>
+        {rows.map(({ day, entry }, i) => {
+          const isToday = day === todayKey;
+          const label = language === 'en' ? HORARIO_LABELS_EN[day] : HORARIO_LABELS_ES[day];
+          return (
+            <div
+              key={day}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: '12px',
+                padding: '11px 0',
+                borderTop: i === 0 ? 'none' : '1px solid #f0e8da',
+                fontSize: '14px',
+                color: CAFE,
+                fontWeight: isToday ? 600 : 400,
+              }}
+            >
+              <span>
+                {label}
+                {isToday && (
+                  <span style={{ marginLeft: '8px', fontSize: '11px', color: TERRACOTA, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    {getText('Hoy', 'Today')}
+                  </span>
+                )}
+              </span>
+              <span style={{ color: entry.cerrado ? MUTED : CAFE }}>
+                {entry.cerrado ? getText('Cerrado', 'Closed') : `${formatHour(entry.abre)} – ${formatHour(entry.cierra)}`}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function CartBar({
+  count,
+  total,
+  currency,
+  accent,
+  hidden,
+  onOpen,
+  getText,
+}: {
+  count: number;
+  total: number;
+  currency: PublicTemplateProps['business']['currency'];
+  accent: string;
+  hidden: boolean;
+  onOpen: () => void;
+  getText: (es: string, en: string) => string;
+}) {
+  if (count === 0 || hidden) return null;
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-label={getText(`Ver pedido: ${count} ${count === 1 ? 'artículo' : 'artículos'}`, `View order: ${count} ${count === 1 ? 'item' : 'items'}`)}
+      className="fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom,0px)+76px)] sm:left-auto sm:right-6 sm:bottom-6 sm:w-[380px]"
+      style={{
+        zIndex: 90,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        minHeight: '56px',
+        padding: '0 18px',
+        border: 'none',
+        borderRadius: '14px',
+        backgroundColor: CAFE,
+        color: '#ffffff',
+        fontFamily: 'inherit',
+        fontWeight: 600,
+        fontSize: '15px',
+        cursor: 'pointer',
+        boxShadow: '0 8px 32px rgba(0,0,0,.25)',
+      }}
+    >
+      <span
+        style={{
+          minWidth: '26px',
+          height: '26px',
+          padding: '0 6px',
+          borderRadius: '9999px',
+          backgroundColor: accent,
+          fontSize: '13px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {count}
+      </span>
+      <span style={{ flex: 1, textAlign: 'left' }}>{getText('Ver pedido', 'View order')}</span>
+      <span>{formatPrice(total, currency)}</span>
+    </button>
+  );
+}
+
+function BottomNav({
+  cartCount,
+  accent,
+  onOpenCart,
+  getText,
+}: {
+  cartCount: number;
+  accent: string;
+  onOpenCart: () => void;
+  getText: (es: string, en: string) => string;
+}) {
+  const go = (id: string) => (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  const itemStyle = {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '3px',
+    minHeight: '44px',
+    border: 'none',
+    background: 'transparent',
+    fontFamily: 'inherit',
+    fontSize: '11px',
+    fontWeight: 500,
+    color: MUTED,
+    textDecoration: 'none',
+    cursor: 'pointer',
+  };
+  const icon = {
+    width: 22,
+    height: 22,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.8,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    'aria-hidden': true,
+  };
+
+  return (
+    <nav
+      aria-label={getText('Navegación principal', 'Main navigation')}
+      className="sm:hidden fixed bottom-0 left-0 right-0"
+      style={{ zIndex: 80, backgroundColor: '#ffffff', borderTop: '1px solid #e8ddc9', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+    >
+      <div style={{ height: '64px', display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
+        <a href="#top" onClick={go('top')} style={itemStyle}>
+          <svg {...icon}><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z" /></svg>
+          {getText('Inicio', 'Home')}
+        </a>
+        <a href="#menu" onClick={go('menu')} style={itemStyle}>
+          <svg {...icon}><path d="M6 5h12M6 10h12M6 15h12M6 20h8" /></svg>
+          {getText('Menú', 'Menu')}
+        </a>
+        <button type="button" onClick={onOpenCart} style={{ ...itemStyle, position: 'relative', color: cartCount > 0 ? CAFE : MUTED }}>
+          <svg {...icon}><path d="M6 7h12l-1 13H7L6 7z" /><path d="M9 7a3 3 0 0 1 6 0" /></svg>
+          {getText('Pedido', 'Order')}
+          {cartCount > 0 && (
+            <span
+              style={{
+                position: 'absolute',
+                top: '4px',
+                left: 'calc(50% + 6px)',
+                minWidth: '18px',
+                height: '18px',
+                padding: '0 5px',
+                borderRadius: '9999px',
+                backgroundColor: accent,
+                color: '#ffffff',
+                fontSize: '11px',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {cartCount}
+            </span>
+          )}
+        </button>
+        <a href="#info" onClick={go('info')} style={itemStyle}>
+          <svg {...icon}><path d="M12 21s-6.5-5.6-6.5-11A6.5 6.5 0 0 1 12 3.5 6.5 6.5 0 0 1 18.5 10c0 5.4-6.5 11-6.5 11Z" /><circle cx="12" cy="10" r="2.3" /></svg>
+          {getText('Info', 'Info')}
+        </a>
+      </div>
+    </nav>
+  );
+}
 
 function ProcessSection({
   steps,
@@ -1292,13 +1645,5 @@ function ContactSection({
         </div>
       </div>
     </section>
-  );
-}
-
-function WhatsAppIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-    </svg>
   );
 }

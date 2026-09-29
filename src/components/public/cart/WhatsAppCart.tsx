@@ -24,6 +24,14 @@ export interface WhatsAppCartProps {
   restaurantMode?: boolean
   /** Idioma seleccionado por el visitante — con fallback a español si el template no lo pasa aún. */
   getText?: (es: string, en: string) => string
+  /** Modo controlado (opcional): el template abre/cierra el cajón desde su propia UI (ej. la barra
+   *  inferior del Restaurante). Sin estas props el cajón se maneja solo, como siempre. */
+  isOpen?: boolean
+  onOpenChange?: (open: boolean) => void
+  /** Oculta el botón flotante "Ver orden" cuando el template ya trae su propia barra de carrito. */
+  hideFab?: boolean
+  /** Px extra sobre el borde inferior para el aviso "Agregado al carrito" (ej. si hay una barra fija). */
+  bottomInset?: number
 }
 
 export function WhatsAppCart({
@@ -41,8 +49,17 @@ export function WhatsAppCart({
   updateNotes,
   restaurantMode = false,
   getText = (es) => es,
+  isOpen: isOpenProp,
+  onOpenChange,
+  hideFab = false,
+  bottomInset = 0,
 }: WhatsAppCartProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpenInternal, setIsOpenInternal] = useState(false)
+  const isOpen = isOpenProp ?? isOpenInternal
+  const setIsOpen = useCallback((next: boolean) => {
+    if (onOpenChange) onOpenChange(next)
+    else setIsOpenInternal(next)
+  }, [onOpenChange])
   const [toast, setToast] = useState({ message: '', visible: false })
   const prevCountRef = useRef(cartCount)
 
@@ -67,13 +84,13 @@ export function WhatsAppCart({
     }
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
-  }, [])
+  }, [setIsOpen])
 
   return (
     <>
-      <Toast message={toast.message} visible={toast.visible} />
+      <Toast message={toast.message} visible={toast.visible} bottomInset={bottomInset} />
 
-      {!isOpen && (
+      {!isOpen && !hideFab && (
         <CartFab cartCount={cartCount} onClick={() => setIsOpen(true)} />
       )}
 
@@ -99,14 +116,14 @@ export function WhatsAppCart({
   )
 }
 
-function Toast({ message, visible }: { message: string; visible: boolean }) {
+function Toast({ message, visible, bottomInset = 0 }: { message: string; visible: boolean; bottomInset?: number }) {
   return (
     <div
       role="status"
       aria-live="polite"
       style={{
         position: 'fixed',
-        bottom: '5.5rem',
+        bottom: `calc(5.5rem + ${bottomInset}px)`,
         left: '50%',
         transform: `translateX(-50%) translateY(${visible ? '0' : '16px'})`,
         zIndex: 300,

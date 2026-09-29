@@ -63,6 +63,15 @@ function TikTokIcon({ className }: { className?: string }) {
   );
 }
 
+function DeliveryIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M6 8h12l-1 11.5a1 1 0 0 1-1 .9H8a1 1 0 0 1-1-.9L6 8Z" />
+      <path d="M9 8V6.5a3 3 0 0 1 6 0V8" />
+    </svg>
+  );
+}
+
 const TIPOS = [
   { value: 'WhatsApp', Icon: WhatsAppIcon, labelEs: 'WhatsApp', labelEn: 'WhatsApp', placeholder: '18095551234' },
   { value: 'Email', Icon: MailIcon, labelEs: 'Email', labelEn: 'Email', placeholder: 'contacto@negocio.com' },
@@ -70,6 +79,9 @@ const TIPOS = [
   { value: 'Facebook', Icon: FacebookIcon, labelEs: 'Facebook', labelEn: 'Facebook', placeholder: 'tunegocio' },
   { value: 'Instagram', Icon: InstagramIcon, labelEs: 'Instagram', labelEn: 'Instagram', placeholder: 'tu_usuario' },
   { value: 'TikTok', Icon: TikTokIcon, labelEs: 'TikTok', labelEn: 'TikTok', placeholder: 'tu_usuario' },
+  { value: 'DoorDash', Icon: DeliveryIcon, labelEs: 'DoorDash (delivery)', labelEn: 'DoorDash (delivery)', placeholder: 'doordash.com/store/tu-negocio' },
+  { value: 'UberEats', Icon: DeliveryIcon, labelEs: 'Uber Eats (delivery)', labelEn: 'Uber Eats (delivery)', placeholder: 'ubereats.com/store/tu-negocio' },
+  { value: 'Grubhub', Icon: DeliveryIcon, labelEs: 'Grubhub (delivery)', labelEn: 'Grubhub (delivery)', placeholder: 'grubhub.com/restaurant/tu-negocio' },
 ] as const;
 
 /** Solo estos 3 tienen un dominio fijo — se muestra como prefijo no editable junto al
@@ -110,6 +122,29 @@ const ALLOW_MULTIPLE = ['Telefono'] as const;
 /** These 3 are link-based canales (Metodo="Enlace") — no digit-count validation applies. */
 const SOCIAL_TIPOS = ['Facebook', 'Instagram', 'TikTok'] as const;
 
+/** Enlaces a la tienda del negocio en un servicio externo de delivery (Metodo="Enlace"). Se
+ *  valida el dominio igual que en CanalService.BuildDeliveryLink: solo el host del proveedor
+ *  (o su acortador oficial) — el enlace se publica como href en la página pública. */
+const DELIVERY_HOSTS: Record<string, string[]> = {
+  DoorDash: ['doordash.com', 'drd.sh'],
+  UberEats: ['ubereats.com', 'ubr.to'],
+  Grubhub: ['grubhub.com'],
+};
+const DELIVERY_TIPOS = Object.keys(DELIVERY_HOSTS);
+
+function isDeliveryLinkValid(tipo: string, value: string): boolean {
+  const hosts = DELIVERY_HOSTS[tipo];
+  if (!hosts) return false;
+  const raw = value.trim();
+  const withScheme = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  try {
+    const host = new URL(withScheme).hostname.toLowerCase();
+    return hosts.some((h) => host === h || host.endsWith(`.${h}`));
+  } catch {
+    return false;
+  }
+}
+
 /** Mirrors the backend's own validation (CanalService.cs) plus the tighter 15-digit
  *  upper bound already used in onboarding, for a consistent UX. WhatsApp requires a
  *  country code (11+ digits) since it's dialed internationally via wa.me links —
@@ -127,6 +162,9 @@ function isValueValid(tipo: string, value: string): boolean {
   if (tipo === 'Email') {
     return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value.trim());
   }
+  if (DELIVERY_TIPOS.includes(tipo)) {
+    return isDeliveryLinkValid(tipo, value);
+  }
   return true;
 }
 
@@ -140,6 +178,12 @@ function invalidMessage(tipo: string, getText: (es: string, en: string) => strin
   if (tipo === 'WhatsApp') {
     return WHATSAPP_INVALID_MESSAGE;
   }
+  if (DELIVERY_TIPOS.includes(tipo)) {
+    return getText(
+      'Pega el enlace de tu tienda en ese servicio (ej. doordash.com/store/tu-negocio).',
+      "Paste your store's link on that service (e.g. doordash.com/store/your-business).",
+    );
+  }
   return getText('Ese valor no se ve válido.', "That value doesn't look valid.");
 }
 
@@ -152,8 +196,8 @@ function inputAttrsForTipo(tipo: string) {
   if (tipo === 'Email') {
     return { type: 'email' as const, maxLength: 100 };
   }
-  if ((SOCIAL_TIPOS as readonly string[]).includes(tipo)) {
-    return { type: 'url' as const, maxLength: 200 };
+  if ((SOCIAL_TIPOS as readonly string[]).includes(tipo) || DELIVERY_TIPOS.includes(tipo)) {
+    return { type: 'url' as const, maxLength: 300 };
   }
   return { type: 'text' as const, maxLength: 100 };
 }
@@ -213,7 +257,7 @@ export function CanalesTab({ slug, canales, onChange }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           tipo: newTipo,
-          metodo: (SOCIAL_TIPOS as readonly string[]).includes(newTipo) ? 'Enlace' : 'Manual',
+          metodo: (SOCIAL_TIPOS as readonly string[]).includes(newTipo) || DELIVERY_TIPOS.includes(newTipo) ? 'Enlace' : 'Manual',
           valorCrudo: sanitizeContactValue(buildSocialValue(newTipo, newValue)),
           orden: canales.length,
         }),

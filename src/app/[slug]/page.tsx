@@ -7,6 +7,7 @@ import { ApiError } from '@/lib/api-client';
 import type { PublicCanal } from '@/lib/public-contact';
 import { PageViewTracker } from '@/components/public/PageViewTracker';
 import { stripRichTextToPlain } from '@/lib/sanitize-html';
+import { RestaurantJsonLd } from '@/components/seo/JsonLd';
 
 interface PublicActivity {
   id: string;
@@ -222,6 +223,17 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
 
   return (
     <>
+      {affiliate.businessType.toLowerCase() === 'restaurant' && (
+        <RestaurantJsonLd
+          name={affiliate.name}
+          url={`https://maalca.com/${affiliate.slug}`}
+          description={affiliate.description ? stripRichTextToPlain(affiliate.description) : undefined}
+          image={affiliate.coverImageUrl || affiliate.logoUrl || undefined}
+          phone={affiliate.canales?.find((c) => c.activo && c.tipo === 'Telefono')?.valorCrudo}
+          address={affiliate.address ?? undefined}
+          horario={affiliate.horario}
+        />
+      )}
       <PageViewTracker slug={affiliate.slug} />
       <Template
         business={{
