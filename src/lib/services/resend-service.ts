@@ -932,3 +932,75 @@ export async function sendInvoiceDueReminderEmail(params: {
     return false;
   }
 }
+
+/**
+ * Digest semanal a afiliados (tarea #4 del backlog, cierre) — corre vía Vercel Cron
+ * (/api/cron/affiliate-digest, lunes), pide a maalca-api el resumen de la semana anterior por
+ * afiliado y manda este correo. A propósito usa la tarjeta ilustrada (renderCardEmail), no el
+ * wrapper liviano -- es un resumen para leer con calma, no una notificación transaccional.
+ */
+export async function sendAffiliateDigestEmail(params: {
+  businessEmail: string;
+  businessName: string;
+  slug: string | null;
+  currency: string;
+  revenueThisWeek: number;
+  invoicesPaidCount: number;
+  proposalsSentCount: number;
+  proposalsAcceptedCount: number;
+  newCustomersCount: number;
+}): Promise<boolean> {
+  if (!resend) {
+    console.log('[Resend] Skipped affiliate digest — RESEND_API_KEY not set');
+    return false;
+  }
+
+  const origin = (process.env.NEXT_PUBLIC_SITE_URL || 'https://maalca.com').replace(/\/$/, '');
+  const dashboardUrl = params.slug ? `${origin}/space/${params.slug}` : origin;
+
+  const hasActivity =
+    params.revenueThisWeek > 0 ||
+    params.proposalsSentCount > 0 ||
+    params.proposalsAcceptedCount > 0 ||
+    params.newCustomersCount > 0;
+
+  const summaryRow = (label: string, value: string) => `
+    <tr>
+      <td style="padding: 8px 0; font-size: 14px; color: #5a5a5a;">${label}</td>
+      <td style="padding: 8px 0; font-size: 14px; color: #1a1a1a; font-weight: 600; text-align: right;">${value}</td>
+    </tr>
+  `;
+
+  const bodyHtml = `
+    <h2 style="font-size: 18px; margin: 0 0 4px 0;">Tu semana en ${params.businessName}</h2>
+    <p style="font-size: 13px; color: #a3a3a3; margin: 0 0 20px 0;">Resumen de los últimos 7 días</p>
+    ${
+      hasActivity
+        ? `<table style="width: 100%; border-collapse: collapse;">
+            ${summaryRow('Ingresos cobrados', `${params.currency} ${params.revenueThisWeek.toFixed(2)}`)}
+            ${summaryRow('Facturas pagadas', String(params.invoicesPaidCount))}
+            ${summaryRow('Propuestas enviadas', String(params.proposalsSentCount))}
+            ${summaryRow('Propuestas aceptadas', String(params.proposalsAcceptedCount))}
+            ${summaryRow('Clientes nuevos', String(params.newCustomersCount))}
+          </table>`
+        : `<p style="font-size: 14px; line-height: 1.6; color: #5a5a5a;">No hubo actividad registrada esta semana (sin facturas pagadas, propuestas ni clientes nuevos).</p>`
+    }
+    ${emailCtaButton('Ver mi panel →', dashboardUrl)}
+  `;
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: params.businessEmail,
+      subject: `Tu semana en ${params.businessName}`,
+      html: renderCardEmail({
+        bodyHtml,
+        footerText: 'Recibes este resumen semanal porque tienes un negocio activo en MaalCa.',
+      }),
+    });
+    return true;
+  } catch (err: unknown) {
+    console.error('[Resend] Affiliate digest failed:', err instanceof Error ? err.message : String(err));
+    return false;
+  }
+}
