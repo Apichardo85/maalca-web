@@ -69,6 +69,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
 
   const [cart, setCart] = useState<CartLine[]>([]);
   const [category, setCategory] = useState(ALL_TAB);
+  const [productQuery, setProductQuery] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
   const [charging, setCharging] = useState(false);
   // Propina — solo Restaurante (ver businessType prop). null = sin propina, number = % del
@@ -132,7 +133,12 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
     return Array.from(set);
   }, [items]);
 
-  const visibleItems = category === ALL_TAB ? items : items.filter((i) => i.category === category);
+  const pq = productQuery.trim().toLowerCase();
+  const searchedItems = pq
+    ? items.filter((i) => [i.name, i.description, i.category].some((v) => (v ?? '').toLowerCase().includes(pq)))
+    : items;
+  const visibleItems = category === ALL_TAB ? searchedItems : searchedItems.filter((i) => i.category === category);
+  const categoryCount = (c: string) => searchedItems.filter((i) => i.category === c).length;
 
   // Defensa extra por si currency llega vacío/inválido desde algún otro caller — Intl.NumberFormat
   // revienta con "Invalid currency code" en vez de degradar con gracia.
@@ -312,8 +318,15 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
           </p>
         ) : (
           <>
+            <input
+              type="search"
+              value={productQuery}
+              onChange={(e) => setProductQuery(e.target.value)}
+              placeholder={getText('Buscar producto…', 'Search products…')}
+              className="mt-4 min-h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700"
+            />
             {categories.length > 0 && (
-              <div className="-mx-1 mt-4 flex gap-1.5 overflow-x-auto px-1 pb-1">
+              <div className="mt-3 flex flex-wrap gap-1.5">
                 <button
                   type="button"
                   onClick={() => setCategory(ALL_TAB)}
@@ -323,7 +336,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
                       : 'border-gray-300 text-gray-700 dark:border-neutral-700 dark:text-neutral-300'
                   }`}
                 >
-                  {getText('Todo', 'All')}
+                  {getText('Todo', 'All')} ({searchedItems.length})
                 </button>
                 {categories.map((c) => (
                   <button
@@ -336,12 +349,27 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
                         : 'border-gray-300 text-gray-700 dark:border-neutral-700 dark:text-neutral-300'
                     }`}
                   >
-                    {c}
+                    {c} ({categoryCount(c)})
                   </button>
                 ))}
               </div>
             )}
 
+            {visibleItems.length === 0 && (
+              <p className="mt-4 text-sm text-gray-400 dark:text-neutral-500">
+                {getText('Ningún producto coincide con la búsqueda o la categoría.', 'No products match your search or category.')}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProductQuery('');
+                    setCategory(ALL_TAB);
+                  }}
+                  className="ml-2 underline"
+                >
+                  {getText('Quitar filtros', 'Clear filters')}
+                </button>
+              </p>
+            )}
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
               {visibleItems.map((item) => (
                 <div key={item.id} className="group relative">
@@ -404,7 +432,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
                 <div key={line.itemId} className="flex items-center justify-between gap-2 rounded-xl border border-gray-200/70 dark:border-neutral-800 p-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{line.name}</p>
-                    <p className="text-xs text-gray-400 dark:text-neutral-500">{fmt(line.price)} c/u</p>
+                    <p className="text-xs text-gray-400 dark:text-neutral-500">{fmt(line.price)} {getText('c/u', 'each')}</p>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     <button

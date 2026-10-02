@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { useToast } from '@/hooks/useToast';
+import { Toast } from '@/components/ui/Toast';
 import { DangerZoneDelete } from '@/components/space/DangerZoneDelete';
 
 interface OrderItem {
@@ -71,6 +73,25 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
   const [orders, setOrders] = useState(initialOrders);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const toast = useToast();
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | OrderRow['status']>('all');
+
+  const q = query.trim().toLowerCase();
+  const searched = useMemo(
+    () =>
+      !q
+        ? orders
+        : orders.filter((o) =>
+            [o.customerName, o.customerPhone, o.customerEmail, o.tableNumber, o.id]
+              .filter(Boolean)
+              .some((v) => String(v).toLowerCase().includes(q)),
+          ),
+    [orders, q],
+  );
+  const statusCount = (st: OrderRow['status']) => searched.filter((o) => o.status === st).length;
+  const visibleOrders = statusFilter === 'all' ? searched : searched.filter((o) => o.status === statusFilter);
+  const filtering = !!q || statusFilter !== 'all';
 
   async function updateStatus(orderId: string, status: string) {
     setUpdatingId(orderId);
@@ -83,7 +104,12 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
       if (res.ok) {
         const updated = await res.json();
         setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: updated.status } : o)));
+        toast.success(getText('Pedido actualizado.', 'Order updated.'));
+      } else {
+        toast.error(getText('No se pudo actualizar. Intenta de nuevo.', "Couldn't update. Try again."));
       }
+    } catch {
+      toast.error(getText('No se pudo actualizar. Intenta de nuevo.', "Couldn't update. Try again."));
     } finally {
       setUpdatingId(null);
     }
@@ -99,8 +125,10 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
       if (!res.ok && res.status !== 204) throw new Error('delete failed');
       setOrders((prev) => prev.filter((o) => o.id !== orderId));
       setDeleteTargetId(null);
+      toast.success(getText('Orden borrada.', 'Order deleted.'));
     } catch {
       // El botón se queda visible — el admin puede reintentar.
+      toast.error(getText('No se pudo borrar. Intenta de nuevo.', "Couldn't delete. Try again."));
     }
   }
 
@@ -109,6 +137,7 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
+      <Toast toasts={toast.toasts} onRemove={toast.remove} />
       <div className="mx-auto max-w-7xl px-6 py-12">
         <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
           {getText('Tu espacio', 'Your space')}
@@ -131,8 +160,42 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
             </p>
           </div>
         ) : (
-          <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {orders.map((order) => (
+          <>
+          <div className="mt-6 max-w-3xl space-y-3">
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={getText('Buscar por nombre, teléfono, correo o mesa…', 'Search by name, phone, email or table…')}
+              className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+            />
+            <div className="flex flex-wrap gap-2">
+              <FilterChip active={statusFilter === 'all'} onClick={() => setStatusFilter('all')}>
+                {getText('Todos', 'All')} ({searched.length})
+              </FilterChip>
+              {(['Pending', 'Paid', 'Preparing', 'Fulfilled', 'Canceled'] as const).map((st) => (
+                <FilterChip key={st} active={statusFilter === st} onClick={() => setStatusFilter(st)}>
+                  {STATUS_LABELS[st][language]} ({statusCount(st)})
+                </FilterChip>
+              ))}
+            </div>
+          </div>
+          {visibleOrders.length === 0 && (
+            <p className="mt-4 text-sm text-gray-400 dark:text-neutral-500">
+              {getText('Ningún pedido coincide con los filtros.', 'No orders match the filters.')}
+              {filtering && (
+                <button
+                  type="button"
+                  onClick={() => { setQuery(''); setStatusFilter('all'); }}
+                  className="ml-2 font-semibold text-brand-primary"
+                >
+                  {getText('Limpiar filtros', 'Clear filters')}
+                </button>
+              )}
+            </p>
+          )}
+          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            {visibleOrders.map((order) => (
               <div
                 key={order.id}
                 className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5"
@@ -175,7 +238,7 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
                 <ul className="mt-3 space-y-1">
                   {order.items.map((item) => (
                     <li key={item.itemId} className="text-sm text-gray-600 dark:text-neutral-300">
-                      <div className="flex justify-between">
+                      <div className="flex justify-between gap-2">
                         <span>{item.qty}x {item.name}</span>
                         <span>{fmt(item.price * item.qty, order.currency)}</span>
                       </div>
@@ -215,7 +278,7 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
                     </button>
                   )}
                   {order.status === 'Pending' && (
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() => updateStatus(order.id, 'Canceled')}
                         disabled={updatingId === order.id}
@@ -262,8 +325,26 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
               </div>
             ))}
           </div>
+          </>
         )}
       </div>
     </div>
+  );
+}
+
+function FilterChip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`min-h-11 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors sm:min-h-0 ${
+        active
+          ? 'border-gray-900 bg-gray-900 text-white dark:border-white dark:bg-white dark:text-gray-900'
+          : 'border-gray-300 text-gray-600 dark:border-neutral-700 dark:text-neutral-300'
+      }`}
+    >
+      {children}
+    </button>
   );
 }

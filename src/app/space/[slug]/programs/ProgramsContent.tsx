@@ -72,6 +72,8 @@ export function ProgramsContent({ slug, initialPrograms }: Props) {
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  const [visFilter, setVisFilter] = useState<'all' | 'visible' | 'hidden'>('all');
 
   function startCreate() {
     setEditingId(null);
@@ -177,17 +179,29 @@ export function ProgramsContent({ slug, initialPrograms }: Props) {
     toast.success(getText('Programa eliminado.', 'Program deleted.'));
   }
 
-  const dayShort: Record<string, string> = {
-    monday: 'Lun', tuesday: 'Mar', wednesday: 'Mié', thursday: 'Jue',
-    friday: 'Vie', saturday: 'Sáb', sunday: 'Dom',
+  const dayShort: Record<string, { es: string; en: string }> = {
+    monday: { es: 'Lun', en: 'Mon' }, tuesday: { es: 'Mar', en: 'Tue' }, wednesday: { es: 'Mié', en: 'Wed' },
+    thursday: { es: 'Jue', en: 'Thu' }, friday: { es: 'Vie', en: 'Fri' }, saturday: { es: 'Sáb', en: 'Sat' },
+    sunday: { es: 'Dom', en: 'Sun' },
   };
+
+  const q = query.trim().toLowerCase();
+  const searched = programs.filter(
+    (p) =>
+      !q ||
+      [p.title, p.titleEn, p.description, p.descriptionEn, p.schedule].some((v) => (v ?? '').toLowerCase().includes(q)),
+  );
+  const visiblePrograms = searched.filter(
+    (p) => visFilter === 'all' || (visFilter === 'visible' ? p.isActive : !p.isActive),
+  );
+  const filtering = q.length > 0 || visFilter !== 'all';
 
   return (
     <div className="mx-auto max-w-3xl p-4 md:p-6">
       <Toast toasts={toast.toasts} onRemove={toast.remove} />
 
-      <div className="mb-6 flex items-center justify-between">
-        <div>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-xl font-bold">{getText('Programas', 'Programs')}</h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-neutral-400">
             {getText(
@@ -197,7 +211,7 @@ export function ProgramsContent({ slug, initialPrograms }: Props) {
           </p>
         </div>
         {!showForm && (
-          <button type="button" onClick={startCreate} className={primaryBtn}>
+          <button type="button" onClick={startCreate} className={`${primaryBtn} min-h-11`}>
             {getText('+ Nuevo programa', '+ New program')}
           </button>
         )}
@@ -356,12 +370,65 @@ export function ProgramsContent({ slug, initialPrograms }: Props) {
         </div>
       )}
 
+      {programs.length > 0 && (
+        <div className="mb-3 space-y-2">
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={getText('Buscar programa…', 'Search programs…')}
+            className={inputClass}
+          />
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ['all', getText('Todos', 'All'), searched.length],
+                ['visible', getText('Visibles', 'Visible'), searched.filter((p) => p.isActive).length],
+                ['hidden', getText('Ocultos', 'Hidden'), searched.filter((p) => !p.isActive).length],
+              ] as ['all' | 'visible' | 'hidden', string, number][]
+            ).map(([key, label, count]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setVisFilter(key)}
+                aria-pressed={visFilter === key}
+                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  visFilter === key
+                    ? 'border-gray-900 bg-gray-900 text-white dark:border-white dark:bg-white dark:text-gray-900'
+                    : 'border-gray-300 text-gray-600 dark:border-neutral-700 dark:text-neutral-300'
+                }`}
+              >
+                {label} ({count})
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {programs.length > 0 && visiblePrograms.length === 0 && (
+        <div className={`${cardClass} text-center text-sm text-gray-500 dark:text-neutral-400`}>
+          {getText('Ningún programa coincide con los filtros.', 'No programs match the filters.')}
+          {filtering && (
+            <button
+              type="button"
+              onClick={() => {
+                setQuery('');
+                setVisFilter('all');
+              }}
+              className="ml-2 underline"
+            >
+              {getText('Quitar filtros', 'Clear filters')}
+            </button>
+          )}
+        </div>
+      )}
+
       <div className="space-y-2">
-        {programs.map((p) => {
+        {visiblePrograms.map((p) => {
           const days = (p.weekDays ?? '').split(',').map((d) => d.trim()).filter(Boolean);
           return (
-            <div key={p.id} className={`${cardClass} flex items-start justify-between gap-3`}>
-              <div className="flex items-start gap-3">
+            <div key={p.id} className={`${cardClass} flex flex-wrap items-start justify-between gap-3`}>
+              <div className="flex min-w-0 items-start gap-3">
                 {p.imageUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={p.imageUrl} alt="" className="h-12 w-12 flex-shrink-0 rounded-lg object-cover" />
@@ -378,7 +445,7 @@ export function ProgramsContent({ slug, initialPrograms }: Props) {
                   <p className="mt-0.5 text-xs text-gray-500 dark:text-neutral-400">
                     {[
                       p.schedule,
-                      days.length > 0 ? days.map((d) => dayShort[d] ?? d).join(', ') : null,
+                      days.length > 0 ? days.map((d) => dayShort[d]?.[language] ?? d).join(', ') : null,
                       p.capacity != null ? getText(`${p.capacity} cupos`, `${p.capacity} spots`) : null,
                       p.volunteersNeeded != null ? getText(`${p.volunteersNeeded} voluntarios`, `${p.volunteersNeeded} volunteers`) : null,
                     ].filter(Boolean).join(' · ')}
@@ -388,8 +455,8 @@ export function ProgramsContent({ slug, initialPrograms }: Props) {
                   )}
                 </div>
               </div>
-              <div className="flex flex-shrink-0 gap-2">
-                <button type="button" onClick={() => startEdit(p)} className={secondaryBtn}>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" onClick={() => startEdit(p)} className={`${secondaryBtn} min-h-11`}>
                   {getText('Editar', 'Edit')}
                 </button>
                 {confirmingDeleteId === p.id ? (
@@ -397,16 +464,16 @@ export function ProgramsContent({ slug, initialPrograms }: Props) {
                     <button
                       type="button"
                       onClick={() => handleDelete(p.id)}
-                      className="rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                      className="min-h-11 rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
                     >
                       {getText('Confirmar', 'Confirm')}
                     </button>
-                    <button type="button" onClick={() => setConfirmingDeleteId(null)} className={secondaryBtn}>
+                    <button type="button" onClick={() => setConfirmingDeleteId(null)} className={`${secondaryBtn} min-h-11`}>
                       {getText('Cancelar', 'Cancel')}
                     </button>
                   </>
                 ) : (
-                  <button type="button" onClick={() => setConfirmingDeleteId(p.id)} className={secondaryBtn}>
+                  <button type="button" onClick={() => setConfirmingDeleteId(p.id)} className={`${secondaryBtn} min-h-11`}>
                     {getText('Eliminar', 'Delete')}
                   </button>
                 )}

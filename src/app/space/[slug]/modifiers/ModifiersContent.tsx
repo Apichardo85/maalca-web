@@ -63,6 +63,8 @@ export function ModifiersContent({ slug, initialGroups }: Props) {
   const [form, setForm] = useState(emptyForm());
   const [saving, setSaving] = useState(false);
   const [actingOn, setActingOn] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  const [reqFilter, setReqFilter] = useState<'all' | 'required' | 'optional'>('all');
 
   const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 
@@ -179,12 +181,21 @@ export function ModifiersContent({ slug, initialGroups }: Props) {
     }
   }
 
+  const q = query.trim().toLowerCase();
+  const searched = groups.filter(
+    (g) => !q || g.name.toLowerCase().includes(q) || g.options.some((o) => o.name.toLowerCase().includes(q)),
+  );
+  const visibleGroups = searched.filter(
+    (g) => reqFilter === 'all' || (reqFilter === 'required' ? g.required : !g.required),
+  );
+  const filtering = q.length > 0 || reqFilter !== 'all';
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       <Toast toasts={toast.toasts} onRemove={toast.remove} />
 
-      <div className="flex items-center justify-between gap-3">
-        <div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-xl font-bold text-text-primary">{getText('Guarniciones y modificadores', 'Modifiers')}</h1>
           <p className="mt-1 text-sm text-text-muted">
             {getText(
@@ -197,7 +208,7 @@ export function ModifiersContent({ slug, initialGroups }: Props) {
           <button
             type="button"
             onClick={startCreate}
-            className="shrink-0 rounded-lg bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover"
+            className="min-h-11 shrink-0 rounded-lg bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-primary-hover"
           >
             {getText('+ Nuevo grupo', '+ New group')}
           </button>
@@ -248,12 +259,12 @@ export function ModifiersContent({ slug, initialGroups }: Props) {
               </p>
               <div className="mt-1.5 space-y-2">
                 {form.options.map((opt, i) => (
-                  <div key={i} className="flex items-center gap-2">
+                  <div key={i} className="flex flex-wrap items-center gap-2">
                     <input
                       value={opt.name}
                       onChange={(e) => updateOption(i, { name: e.target.value })}
                       placeholder={getText('Nombre (ej. Tostones)', 'Name (e.g. Tostones)')}
-                      className="flex-1 rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm text-text-primary"
+                      className="min-w-[8rem] flex-1 rounded-lg border border-border bg-background px-2.5 py-1.5 text-sm text-text-primary"
                     />
                     <input
                       type="number"
@@ -274,7 +285,7 @@ export function ModifiersContent({ slug, initialGroups }: Props) {
                     <button
                       type="button"
                       onClick={() => removeOptionRow(i)}
-                      className="shrink-0 text-neutral-400 hover:text-red-600"
+                      className="flex h-11 w-11 shrink-0 items-center justify-center text-neutral-400 hover:text-red-600"
                       aria-label={getText('Quitar opción', 'Remove option')}
                     >
                       ✕
@@ -292,7 +303,7 @@ export function ModifiersContent({ slug, initialGroups }: Props) {
             </div>
           </div>
 
-          <div className="mt-4 flex gap-2">
+          <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
               onClick={handleSave}
@@ -316,6 +327,57 @@ export function ModifiersContent({ slug, initialGroups }: Props) {
       )}
 
       <div className="mt-6 space-y-3">
+        {groups.length > 0 && (
+          <div className="space-y-2">
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={getText('Buscar grupo u opción…', 'Search group or option…')}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-text-primary"
+            />
+            <div className="flex flex-wrap gap-2">
+              {(
+                [
+                  ['all', getText('Todos', 'All'), searched.length],
+                  ['required', getText('Obligatorios', 'Required'), searched.filter((g) => g.required).length],
+                  ['optional', getText('Opcionales', 'Optional'), searched.filter((g) => !g.required).length],
+                ] as ['all' | 'required' | 'optional', string, number][]
+              ).map(([key, label, count]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setReqFilter(key)}
+                  aria-pressed={reqFilter === key}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    reqFilter === key
+                      ? 'border-brand-primary bg-brand-primary text-white'
+                      : 'border-border text-text-secondary'
+                  }`}
+                >
+                  {label} ({count})
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {groups.length > 0 && visibleGroups.length === 0 && (
+          <p className="text-sm text-text-muted">
+            {getText('Ningún grupo coincide con los filtros.', 'No groups match the filters.')}
+            {filtering && (
+              <button
+                type="button"
+                onClick={() => {
+                  setQuery('');
+                  setReqFilter('all');
+                }}
+                className="ml-2 underline"
+              >
+                {getText('Quitar filtros', 'Clear filters')}
+              </button>
+            )}
+          </p>
+        )}
         {groups.length === 0 && !showForm && (
           <p className="text-sm text-text-muted">
             {getText(
@@ -324,10 +386,10 @@ export function ModifiersContent({ slug, initialGroups }: Props) {
             )}
           </p>
         )}
-        {groups.map((group) => (
+        {visibleGroups.map((group) => (
           <div key={group.id} className="rounded-xl border border-border bg-surface p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
                 <p className="text-sm font-semibold text-text-primary">
                   {group.name}
                   {group.required && <span className="ml-1.5 text-xs font-normal text-text-muted">({getText('obligatorio', 'required')})</span>}
@@ -344,11 +406,11 @@ export function ModifiersContent({ slug, initialGroups }: Props) {
                   ))}
                 </div>
               </div>
-              <div className="flex shrink-0 gap-2">
+              <div className="flex shrink-0 gap-3">
                 <button
                   type="button"
                   onClick={() => startEdit(group)}
-                  className="text-xs font-medium text-brand-primary hover:underline"
+                  className="min-h-11 text-xs font-medium text-brand-primary hover:underline"
                 >
                   {getText('Editar', 'Edit')}
                 </button>
@@ -356,7 +418,7 @@ export function ModifiersContent({ slug, initialGroups }: Props) {
                   type="button"
                   onClick={() => handleDelete(group.id)}
                   disabled={actingOn === group.id}
-                  className="text-xs font-medium text-red-600 hover:underline disabled:opacity-40"
+                  className="min-h-11 text-xs font-medium text-red-600 hover:underline disabled:opacity-40"
                 >
                   {getText('Eliminar', 'Delete')}
                 </button>

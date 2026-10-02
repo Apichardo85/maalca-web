@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useOrdersRealtime } from '@/hooks/useOrdersRealtime';
+import { useToast } from '@/hooks/useToast';
+import { Toast } from '@/components/ui/Toast';
 import { formatScheduledFor, type OrderRow } from '../orders/OrdersContent';
 
 interface Props {
@@ -68,6 +70,7 @@ export function KitchenContent({ slug, plan, affiliateId, initialOrders }: Props
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const [orders, setOrders] = useState(initialOrders);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const toast = useToast();
 
   // Sonido: el navegador bloquea el audio hasta que la persona interactúa una vez con la
   // página (política estándar de autoplay) — de ahí el botón "Activar sonido". Una vez
@@ -135,7 +138,11 @@ export function KitchenContent({ slug, plan, affiliateId, initialOrders }: Props
       if (res.ok) {
         const updated = await res.json();
         setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: updated.status } : o)));
+      } else {
+        toast.error(getText('No se pudo actualizar. Intenta de nuevo.', "Couldn't update. Try again."));
       }
+    } catch {
+      toast.error(getText('No se pudo actualizar. Intenta de nuevo.', "Couldn't update. Try again."));
     } finally {
       setBusyId(null);
     }
@@ -172,7 +179,8 @@ export function KitchenContent({ slug, plan, affiliateId, initialOrders }: Props
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
-      <div className="px-6 py-8">
+      <Toast toasts={toast.toasts} onRemove={toast.remove} />
+      <div className="px-4 py-8 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-bold">{getText('Cocina', 'Kitchen')}</h1>
 
@@ -237,7 +245,7 @@ export function KitchenContent({ slug, plan, affiliateId, initialOrders }: Props
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <p className="text-base font-bold">
+                        <p className="min-w-0 break-words text-base font-bold">
                           {order.tableNumber
                             ? getText(`Mesa ${order.tableNumber}`, `Table ${order.tableNumber}`)
                             : order.customerName || getText('Cliente sin nombre', 'Unnamed customer')}
@@ -293,7 +301,7 @@ export function KitchenContent({ slug, plan, affiliateId, initialOrders }: Props
                         <button
                           onClick={() => advance(order.id, 'Preparing')}
                           disabled={busyId === order.id}
-                          className="mt-3 w-full rounded-full bg-brand-primary py-2 text-sm font-semibold text-white disabled:opacity-50"
+                          className="mt-3 min-h-11 w-full rounded-full bg-brand-primary py-2 text-sm font-semibold text-white disabled:opacity-50"
                         >
                           {getText('Empezar', 'Start')}
                         </button>
@@ -302,7 +310,7 @@ export function KitchenContent({ slug, plan, affiliateId, initialOrders }: Props
                         <button
                           onClick={() => advance(order.id, 'Fulfilled')}
                           disabled={busyId === order.id}
-                          className="mt-3 w-full rounded-full bg-brand-primary py-2 text-sm font-semibold text-white disabled:opacity-50"
+                          className="mt-3 min-h-11 w-full rounded-full bg-brand-primary py-2 text-sm font-semibold text-white disabled:opacity-50"
                         >
                           {getText('Listo', 'Ready')}
                         </button>

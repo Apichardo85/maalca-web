@@ -106,6 +106,7 @@ export function QueueContent({ slug, affiliateId, initialEntries, services, barb
       if (assignBarberId) qs.set('barberId', assignBarberId);
       const res = await fetch(`/api/space/${slug}/queue/${id}?${qs.toString()}`, { method: 'PATCH' });
       if (!res.ok) throw new Error('update failed');
+      toast.success(getText('Fila actualizada.', 'Queue updated.'));
     } catch {
       toast.error(getText('No se pudo actualizar. Intenta de nuevo.', "Couldn't update. Try again."));
     } finally {
@@ -136,7 +137,7 @@ export function QueueContent({ slug, affiliateId, initialEntries, services, barb
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
       <Toast toasts={toast.toasts} onRemove={toast.remove} />
       <div className="px-6 py-8 max-w-3xl mx-auto">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
               {getText('Tu espacio', 'Your space')}
@@ -152,7 +153,7 @@ export function QueueContent({ slug, affiliateId, initialEntries, services, barb
           <button
             type="button"
             onClick={() => setShowForm((v) => !v)}
-            className="shrink-0 rounded-full px-4 py-2.5 text-sm font-semibold text-white"
+            className="min-h-11 shrink-0 rounded-full px-4 py-2.5 text-sm font-semibold text-white"
             style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
           >
             {showForm ? getText('Cancelar', 'Cancel') : getText('+ Agregar', '+ Add')}
@@ -165,19 +166,19 @@ export function QueueContent({ slug, affiliateId, initialEntries, services, barb
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={getText('Nombre del cliente', "Customer's name")}
-              className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+              className="min-h-11 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
             />
             <input
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder={getText('Teléfono (opcional)', 'Phone (optional)')}
-              className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+              className="min-h-11 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
             />
             {services.length > 0 && (
               <select
                 value={serviceId}
                 onChange={(e) => setServiceId(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+                className="min-h-11 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
               >
                 <option value="">{getText('Servicio (opcional)', 'Service (optional)')}</option>
                 {services.map((s) => (
@@ -189,7 +190,7 @@ export function QueueContent({ slug, affiliateId, initialEntries, services, barb
               <select
                 value={barberId}
                 onChange={(e) => setBarberId(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+                className="min-h-11 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
               >
                 <option value="">{getText('Barbero preferido (opcional)', 'Preferred barber (optional)')}</option>
                 {barbers.map((b) => (
@@ -218,9 +219,9 @@ export function QueueContent({ slug, affiliateId, initialEntries, services, barb
           {waiting.map((entry) => (
             <div
               key={entry.id}
-              className="flex items-center justify-between gap-3 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4"
             >
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-neutral-500">
                   {statusLabel(entry.position)}
                 </p>
@@ -229,7 +230,7 @@ export function QueueContent({ slug, affiliateId, initialEntries, services, barb
                   {[entry.phone, entry.service?.name, entry.assignedTo?.name].filter(Boolean).join(' · ') || '—'}
                 </p>
               </div>
-              <div className="flex shrink-0 items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={() => updateStatus(entry.id, 'in_service', entry.preferredBarberId ?? undefined)}
@@ -263,15 +264,15 @@ export function QueueContent({ slug, affiliateId, initialEntries, services, barb
                 .map((entry) => (
                   <div
                     key={entry.id}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-gray-200/70 dark:border-neutral-800 p-3"
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200/70 dark:border-neutral-800 p-3"
                   >
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{entry.displayName}</p>
                       <p className="text-xs text-gray-400 dark:text-neutral-500">
                         {entry.assignedTo?.name ?? getText('Sin asignar', 'Unassigned')}
                       </p>
                     </div>
-                    <div className="flex shrink-0 items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       {entry.customerId && (
                         <button
                           type="button"

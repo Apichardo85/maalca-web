@@ -303,7 +303,7 @@ export function ImpactContent({ slug, initialInventoryItems, initialRecipes, ini
 
         {/* ── Insumos ── */}
         <section className="space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-base font-semibold">{getText('1. Insumos', '1. Items')}</h2>
             <button
               type="button"
@@ -348,8 +348,8 @@ export function ImpactContent({ slug, initialInventoryItems, initialRecipes, ini
               <p className="text-sm text-gray-500 dark:text-neutral-400">{getText('Aún no agregas insumos.', "You haven't added any items yet.")}</p>
             )}
             {items.map((item) => (
-              <div key={item.id} className={cardClass + ' flex items-center justify-between'}>
-                <div>
+              <div key={item.id} className={cardClass + ' flex flex-wrap items-center justify-between gap-2'}>
+                <div className="min-w-0">
                   <p className="text-sm font-medium">
                     {item.name} {item.isLowStock && <span className="ml-1 text-xs text-amber-600">{getText('· stock bajo', '· low stock')}</span>}
                   </p>
@@ -369,7 +369,7 @@ export function ImpactContent({ slug, initialInventoryItems, initialRecipes, ini
 
         {/* ── Recetas ── */}
         <section className="space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-base font-semibold">{getText('2. Recetas', '2. Recipes')}</h2>
             <button type="button" className={secondaryBtn} onClick={() => setShowRecipeForm((v) => !v)}>
               {showRecipeForm ? getText('Cancelar', 'Cancel') : getText('+ Agregar receta', '+ Add recipe')}
@@ -396,8 +396,8 @@ export function ImpactContent({ slug, initialInventoryItems, initialRecipes, ini
               const expanded = expandedRecipeId === recipe.id;
               return (
                 <div key={recipe.id} className={cardClass}>
-                  <div className="flex items-center justify-between">
-                    <button type="button" className="text-left" onClick={() => setExpandedRecipeId(expanded ? null : recipe.id)}>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <button type="button" className="min-w-0 text-left" onClick={() => setExpandedRecipeId(expanded ? null : recipe.id)}>
                       <p className="text-sm font-medium">{recipe.name}</p>
                       <p className="text-xs text-gray-500 dark:text-neutral-400">
                         {recipe.servings} {getText('porciones', 'servings')} · ${recipe.costPerServing.toFixed(2)} {getText('por porción', 'per serving')}
@@ -417,14 +417,14 @@ export function ImpactContent({ slug, initialInventoryItems, initialRecipes, ini
                         <p className="text-xs text-gray-500 dark:text-neutral-400">{getText('Sin insumos todavía.', 'No ingredients yet.')}</p>
                       )}
                       {recipe.ingredients.map((ing) => (
-                        <div key={ing.id} className="flex items-center justify-between text-xs">
+                        <div key={ing.id} className="flex flex-wrap items-center justify-between gap-x-2 text-xs">
                           <span>{ing.inventoryItemName} — {ing.quantityRequired} {ing.unit} (${ing.lineCost.toFixed(2)})</span>
                           <button type="button" className="text-red-600 hover:underline" onClick={() => removeIngredient(recipe.id, ing.id)}>
                             {getText('Quitar', 'Remove')}
                           </button>
                         </div>
                       ))}
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <select className={inputClass} value={ingredientDraft.inventoryItemId}
                           onChange={(e) => setIngredientDraft({ ...ingredientDraft, inventoryItemId: e.target.value })}>
                           <option value="">{getText('Elegir insumo...', 'Choose item...')}</option>
@@ -447,7 +447,7 @@ export function ImpactContent({ slug, initialInventoryItems, initialRecipes, ini
 
         {/* ── Combos ── */}
         <section className="space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-base font-semibold">{getText('3. Combos y servir', '3. Combos & serve')}</h2>
             <button type="button" className={secondaryBtn} onClick={() => setShowComboForm((v) => !v)}>
               {showComboForm ? getText('Cancelar', 'Cancel') : getText('+ Agregar combo', '+ Add combo')}
@@ -482,8 +482,8 @@ export function ImpactContent({ slug, initialInventoryItems, initialRecipes, ini
             )}
             {combos.map((combo) => (
               <div key={combo.id} className={cardClass}>
-                <div className="flex items-center justify-between">
-                  <div>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="min-w-0">
                     <p className="text-sm font-medium">{combo.name}</p>
                     <p className="text-xs text-gray-500 dark:text-neutral-400">
                       {combo.recipeIds.map((id) => recipes.find((r) => r.id === id)?.name).filter(Boolean).join(', ')}
@@ -494,7 +494,7 @@ export function ImpactContent({ slug, initialInventoryItems, initialRecipes, ini
                     {getText('Eliminar', 'Delete')}
                   </button>
                 </div>
-                <div className="mt-3 flex items-center gap-2 border-t border-gray-200/70 dark:border-neutral-800 pt-3">
+                <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-gray-200/70 dark:border-neutral-800 pt-3">
                   <input
                     className={inputClass + ' max-w-[90px]'}
                     type="number"

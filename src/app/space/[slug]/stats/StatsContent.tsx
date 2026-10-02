@@ -17,6 +17,8 @@ import {
   Legend,
 } from 'recharts';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { useToast } from '@/hooks/useToast';
+import { Toast } from '@/components/ui/Toast';
 import { KpiTile, type SpaceKpis } from '@/components/space/KpiTile';
 import type { Plan } from '@/lib/plan-limits';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
@@ -132,6 +134,7 @@ function formatShortDate(date: string, language: 'es' | 'en'): string {
 export function StatsContent({ slug, kpis, plan, detailed: initialDetailed, reports: initialReports }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
+  const toast = useToast();
 
   // Rango de días — 7/30/90. El server ya trae 30 días de una vez (sin round-trip extra al
   // cargar la página); cambiar de rango refresca ambos endpoints desde el cliente vía los
@@ -157,6 +160,12 @@ export function StatsContent({ slug, kpis, plan, detailed: initialDetailed, repo
         if (cancelled) return;
         if (m) setDetailed(m);
         if (r) setReports(r);
+        if (!m || !r) {
+          toast.error(getText('No se pudieron cargar todos los datos de este período.', "Couldn't load all the data for this period."));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) toast.error(getText('No se pudieron cargar los datos. Intenta de nuevo.', "Couldn't load the data. Try again."));
       })
       .finally(() => {
         if (!cancelled) setLoadingRange(false);
@@ -197,6 +206,7 @@ export function StatsContent({ slug, kpis, plan, detailed: initialDetailed, repo
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
+      <Toast toasts={toast.toasts} onRemove={toast.remove} />
       <div className="px-6 py-12">
         <div>
           <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">

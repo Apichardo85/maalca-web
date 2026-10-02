@@ -69,6 +69,8 @@ export function ActivitiesContent({ slug, initialActivities }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [query, setQuery] = useState('');
+  const [timeFilter, setTimeFilter] = useState<'all' | 'upcoming' | 'past'>('all');
 
   function startCreate() {
     setEditingId(null);
@@ -182,12 +184,24 @@ export function ActivitiesContent({ slug, initialActivities }: Props) {
     return label;
   }
 
+  const q = query.trim().toLowerCase();
+  const isPastActivity = (a: Activity) => new Date(a.startsAt).getTime() < Date.now();
+  const searched = activities.filter(
+    (a) =>
+      !q ||
+      [a.title, a.titleEn, a.description, a.descriptionEn, a.location].some((v) => (v ?? '').toLowerCase().includes(q)),
+  );
+  const visibleActivities = searched.filter(
+    (a) => timeFilter === 'all' || (timeFilter === 'past' ? isPastActivity(a) : !isPastActivity(a)),
+  );
+  const filtering = q.length > 0 || timeFilter !== 'all';
+
   return (
     <div className="mx-auto max-w-3xl p-4 md:p-6">
       <Toast toasts={toast.toasts} onRemove={toast.remove} />
 
-      <div className="mb-6 flex items-center justify-between">
-        <div>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-xl font-bold">{getText('Eventos y actividades', 'Events & activities')}</h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-neutral-400">
             {getText(
@@ -197,7 +211,7 @@ export function ActivitiesContent({ slug, initialActivities }: Props) {
           </p>
         </div>
         {!showForm && (
-          <button type="button" onClick={startCreate} className={primaryBtn}>
+          <button type="button" onClick={startCreate} className={`${primaryBtn} min-h-11`}>
             {getText('+ Nuevo evento', '+ New event')}
           </button>
         )}
@@ -308,12 +322,65 @@ export function ActivitiesContent({ slug, initialActivities }: Props) {
         </div>
       )}
 
+      {activities.length > 0 && (
+        <div className="mb-3 space-y-2">
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={getText('Buscar por título, descripción o ubicación…', 'Search by title, description or location…')}
+            className={inputClass}
+          />
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ['all', getText('Todos', 'All'), searched.length],
+                ['upcoming', getText('Próximos', 'Upcoming'), searched.filter((a) => !isPastActivity(a)).length],
+                ['past', getText('Pasados', 'Past'), searched.filter(isPastActivity).length],
+              ] as ['all' | 'upcoming' | 'past', string, number][]
+            ).map(([key, label, count]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setTimeFilter(key)}
+                aria-pressed={timeFilter === key}
+                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  timeFilter === key
+                    ? 'border-gray-900 bg-gray-900 text-white dark:border-white dark:bg-white dark:text-gray-900'
+                    : 'border-gray-300 text-gray-600 dark:border-neutral-700 dark:text-neutral-300'
+                }`}
+              >
+                {label} ({count})
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activities.length > 0 && visibleActivities.length === 0 && (
+        <div className={`${cardClass} text-center text-sm text-gray-500 dark:text-neutral-400`}>
+          {getText('Ningún evento coincide con los filtros.', 'No events match the filters.')}
+          {filtering && (
+            <button
+              type="button"
+              onClick={() => {
+                setQuery('');
+                setTimeFilter('all');
+              }}
+              className="ml-2 underline"
+            >
+              {getText('Quitar filtros', 'Clear filters')}
+            </button>
+          )}
+        </div>
+      )}
+
       <div className="space-y-2">
-        {activities.map((a) => {
-          const isPast = new Date(a.startsAt).getTime() < Date.now();
+        {visibleActivities.map((a) => {
+          const isPast = isPastActivity(a);
           return (
-            <div key={a.id} className={`${cardClass} flex items-start justify-between gap-3`}>
-              <div>
+            <div key={a.id} className={`${cardClass} flex flex-wrap items-start justify-between gap-3`}>
+              <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">{a.title}</span>
                   {isPast && (
@@ -330,8 +397,8 @@ export function ActivitiesContent({ slug, initialActivities }: Props) {
                   <p className="mt-1 text-xs text-gray-600 dark:text-neutral-300">{a.description}</p>
                 )}
               </div>
-              <div className="flex flex-shrink-0 gap-2">
-                <button type="button" onClick={() => startEdit(a)} className={secondaryBtn}>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" onClick={() => startEdit(a)} className={`${secondaryBtn} min-h-11`}>
                   {getText('Editar', 'Edit')}
                 </button>
                 {confirmingDeleteId === a.id ? (
@@ -339,16 +406,16 @@ export function ActivitiesContent({ slug, initialActivities }: Props) {
                     <button
                       type="button"
                       onClick={() => handleDelete(a.id)}
-                      className="rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                      className="min-h-11 rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
                     >
                       {getText('Confirmar', 'Confirm')}
                     </button>
-                    <button type="button" onClick={() => setConfirmingDeleteId(null)} className={secondaryBtn}>
+                    <button type="button" onClick={() => setConfirmingDeleteId(null)} className={`${secondaryBtn} min-h-11`}>
                       {getText('Cancelar', 'Cancel')}
                     </button>
                   </>
                 ) : (
-                  <button type="button" onClick={() => setConfirmingDeleteId(a.id)} className={secondaryBtn}>
+                  <button type="button" onClick={() => setConfirmingDeleteId(a.id)} className={`${secondaryBtn} min-h-11`}>
                     {getText('Eliminar', 'Delete')}
                   </button>
                 )}
