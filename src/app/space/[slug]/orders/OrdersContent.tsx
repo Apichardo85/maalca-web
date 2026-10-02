@@ -26,6 +26,9 @@ export interface OrderRow {
   currency: string;
   status: 'Pending' | 'Paid' | 'Preparing' | 'Fulfilled' | 'Canceled';
   createdAt: string;
+  // Pedido desde la mesa (QR por mesa). paymentMethod === 'PayAtTable' = el cliente paga al mesero.
+  tableNumber?: string | null;
+  paymentMethod?: string | null;
 }
 
 interface Props {
@@ -133,6 +136,16 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
                     {order.customerPhone && (
                       <p className="truncate text-xs text-gray-500 dark:text-neutral-400">{order.customerPhone}</p>
                     )}
+                    {order.tableNumber && (
+                      <p className="mt-1 text-xs font-semibold text-brand-primary">
+                        {getText(`Mesa ${order.tableNumber}`, `Table ${order.tableNumber}`)}
+                        {order.paymentMethod === 'PayAtTable' && (
+                          <span className="ml-1 font-normal text-gray-500 dark:text-neutral-400">
+                            · {getText('paga al mesero', 'pays the server')}
+                          </span>
+                        )}
+                      </p>
+                    )}
                     <p className="mt-1 text-xs text-gray-400 dark:text-neutral-500">
                       {new Date(order.createdAt).toLocaleString(language === 'es' ? 'es-DO' : 'en-US')}
                     </p>
@@ -198,7 +211,9 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
                         disabled={updatingId === order.id}
                         className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-4 text-xs font-medium hover:border-brand-primary hover:text-brand-primary disabled:opacity-50"
                       >
-                        {getText('Marcar pagado', 'Mark paid')}
+                        {order.paymentMethod === 'PayAtTable'
+                          ? getText('Aceptar pedido', 'Accept order')
+                          : getText('Marcar pagado', 'Mark paid')}
                       </button>
                     </div>
                   )}

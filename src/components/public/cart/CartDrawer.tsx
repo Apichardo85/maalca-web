@@ -75,6 +75,8 @@ interface CartDrawerProps {
   restaurantMode?: boolean
   /** Idioma seleccionado por el visitante — con fallback a español si el template no lo pasa aún. */
   getText?: (es: string, en: string) => string
+  /** Pedido desde la mesa (QR `?mesa=7`). Con valor: sin WhatsApp, y se ofrece "Pagar al mesero". */
+  tableNumber?: string
 }
 
 const TIP_PRESETS = [0.1, 0.15, 0.2] as const
@@ -96,13 +98,15 @@ export function CartDrawer({
   updateNotes,
   restaurantMode = false,
   getText = (es) => es,
+  tableNumber,
 }: CartDrawerProps) {
   const FALLBACK_IMG = getText(FALLBACK_IMG_ES, FALLBACK_IMG_EN)
   const fmt = useMemo(
     () => new Intl.NumberFormat('en-US', { style: 'currency', currency }),
     [currency],
   )
-  const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'unavailable'>('idle')
+  const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'unavailable' | 'placed' | 'error'>('idle')
+  const [tableError, setTableError] = useState('')
   // null = sin propina, number = porcentaje del preset elegido (ej. 0.15), 'custom' = usa customTip.
   const [tipMode, setTipMode] = useState<number | 'custom' | null>(null)
   const [customTip, setCustomTip] = useState('')
@@ -141,8 +145,9 @@ export function CartDrawer({
           tip,
           total,
           currency,
-          successUrl: `${origin}${window.location.pathname}?paid=true`,
-          cancelUrl: `${origin}${window.location.pathname}?paid=false`,
+          successUrl: `${origin}${window.location.pathname}?paid=true${tableNumber ? `&mesa=${encodeURIComponent(tableNumber)}` : ''}`,
+          cancelUrl: `${origin}${window.location.pathname}?paid=false${tableNumber ? `&mesa=${encodeURIComponent(tableNumber)}` : ''}`,
+          tableNumber: tableNumber || undefined,
         }),
       })
       const data = await res.json().catch(() => null)
@@ -155,6 +160,44 @@ export function CartDrawer({
       window.location.href = data.checkoutUrl
     } catch {
       setCheckoutState('unavailable')
+    }
+  }
+
+  // Pedido de mesa pagando al mesero: sin Stripe, el pedido le llega al personal para que lo acepte.
+  async function handlePayAtTable() {
+    if (!slug || !tableNumber) return
+    setCheckoutState('loading')
+    setTableError('')
+    try {
+      const res = await fetch(`${API_BASE}/api/public/affiliates/${slug}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: cart.map(e => ({
+            itemId: e.item.id,
+            name: e.item.name,
+            price: e.item.price,
+            qty: e.qty,
+            notes: e.notes?.trim() || undefined,
+          })),
+          subtotal: cartTotal,
+          tax,
+          tip,
+          total,
+          currency,
+          tableNumber,
+          payAtTable: true,
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        setTableError(data?.error?.message ?? '')
+        setCheckoutState('error')
+        return
+      }
+      setCheckoutState('placed')
+    } catch {
+      setCheckoutState('error')
     }
   }
 
@@ -465,7 +508,45 @@ export function CartDrawer({
             </div>
           </div>
 
-          {onlinePayments && slug && (
+          {tableNumber && (
+            <p
+              style={{
+                margin: '0 0 12px',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                backgroundColor: '#f6f1e7',
+                fontSize: '13px',
+                fontWeight: 600,
+                color: '#1a1a1a',
+                textAlign: 'center',
+              }}
+            >
+              {getText(`Mesa ${tableNumber}`, `Table ${tableNumber}`)}
+            </p>
+          )}
+
+          {tableNumber && checkoutState === 'placed' && (
+            <p
+              role="status"
+              style={{
+                margin: '0 0 10px',
+                padding: '14px',
+                borderRadius: '12px',
+                backgroundColor: '#e8f5e9',
+                color: '#1b5e20',
+                fontSize: '14px',
+                fontWeight: 600,
+                textAlign: 'center',
+              }}
+            >
+              {getText(
+                '¡Pedido enviado! Un mesero lo confirmará en un momento y pagas al final.',
+                'Order sent! A server will confirm it shortly and you pay at the end.',
+              )}
+            </p>
+          )}
+
+          {onlinePayments && slug && !(tableNumber && checkoutState === 'placed') && (
             <>
               <button
                 onClick={handleCardCheckout}
@@ -505,7 +586,46 @@ export function CartDrawer({
             </>
           )}
 
-          <a
+          {tableNumber && slug && checkoutState !== 'placed' && (
+            <>
+              <button
+                onClick={handlePayAtTable}
+                disabled={checkoutState === 'loading'}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '100%',
+                  backgroundColor: onlinePayments ? '#ffffff' : '#1a1a1a',
+                  color: onlinePayments ? '#1a1a1a' : '#ffffff',
+                  border: onlinePayments ? '1px solid #1a1a1a' : 'none',
+                  borderRadius: '9999px',
+                  padding: '14px',
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  minHeight: '48px',
+                  boxSizing: 'border-box',
+                  cursor: checkoutState === 'loading' ? 'default' : 'pointer',
+                  opacity: checkoutState === 'loading' ? 0.7 : 1,
+                }}
+              >
+                {checkoutState === 'loading'
+                  ? getText('Enviando...', 'Sending...')
+                  : getText('Pedir y pagar al mesero', 'Order and pay the server')}
+              </button>
+              {checkoutState === 'error' && (
+                <p style={{ margin: '10px 0 0', fontSize: '12px', color: '#b91c1c', textAlign: 'center' }}>
+                  {tableError ||
+                    getText(
+                      'No pudimos enviar el pedido. Llama a un mesero.',
+                      'We could not send the order. Please call a server.',
+                    )}
+                </p>
+              )}
+            </>
+          )}
+
+          {!tableNumber && (<a
             href={waUrl}
             target="_blank"
             rel="noopener noreferrer"
@@ -529,7 +649,7 @@ export function CartDrawer({
           >
             <WhatsAppIcon />
             {getText('Confirmar por WhatsApp', 'Confirm via WhatsApp')}
-          </a>
+          </a>)}
         </div>
       </div>
     </div>

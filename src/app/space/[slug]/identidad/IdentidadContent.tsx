@@ -6,6 +6,7 @@ import { generateBrandedQrDataUrl, generateQrDataUrl, generateQrSvgDataUrl } fro
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { QrCopyButton } from './QrCopyButton';
 import { BusinessCard } from './BusinessCard';
+import { TableQrSheet } from './TableQrSheet';
 
 interface Props {
   slug: string;
@@ -56,6 +57,7 @@ export function IdentidadContent({ slug, publicUrl, qrTargetUrl, qrDataUrl, busi
   }, [qrTargetUrl, primaryColor, business.logo_url, business.name]);
 
   return (
+    <>
     <div className="mx-auto flex max-w-lg flex-col items-center gap-10 p-6 lg:max-w-5xl lg:flex-row lg:items-start lg:justify-center lg:gap-8">
       <div className="flex w-full flex-col items-center lg:flex-1">
         <h2 className="self-start text-sm font-semibold text-gray-900 dark:text-white">
@@ -131,5 +133,14 @@ export function IdentidadContent({ slug, publicUrl, qrTargetUrl, qrDataUrl, busi
         </div>
       </div>
     </div>
+    {business.business_type === 'restaurant' && (
+      <TableQrSheet
+        publicUrl={publicUrl}
+        businessName={business.name}
+        logoUrl={business.logo_url}
+        primaryColor={primaryColor}
+      />
+    )}
+    </>
   );
 }
