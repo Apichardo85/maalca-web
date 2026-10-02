@@ -508,6 +508,13 @@ export function RestaurantTemplate({
               const imageUrl = item.imageUrl ?? item.image_url;
               const isPopular = item.popular;
               const destacadoName = language === 'en' && item.nameEn ? item.nameEn : item.name;
+              const hlQty = cart.find((e) => e.item.id === item.id)?.qty ?? 0;
+              const hlAdd = () => addToCart({
+                id: item.id,
+                name: destacadoName,
+                price: item.price ?? 0,
+                image: imageUrl ?? undefined,
+              });
               return (
                 <div
                   key={item.id}
@@ -559,11 +566,57 @@ export function RestaurantTemplate({
                     <p className={inter.className} style={{ margin: 0, fontSize: '13px', fontWeight: 800, letterSpacing: '-0.01em', color: CAFE, lineHeight: 1.3 }}>
                       {destacadoName}
                     </p>
-                    {item.price != null && (
-                      <p style={{ margin: '4px 0 0', fontSize: '13px', fontWeight: 700, color: CAFE }}>
-                        {formatPrice(item.price, business.currency)}
-                      </p>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginTop: '4px' }}>
+                      {item.price != null ? (
+                        <p style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: CAFE }}>
+                          {formatPrice(item.price, business.currency)}
+                        </p>
+                      ) : (
+                        <span />
+                      )}
+                      {hlQty === 0 ? (
+                        <button
+                          type="button"
+                          onClick={hlAdd}
+                          aria-label={`${getText('Agregar', 'Add')} ${destacadoName}`}
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '9999px',
+                            border: 'none',
+                            backgroundColor: accent,
+                            color: 'var(--rt-on-accent, #ffffff)',
+                            fontSize: '20px',
+                            fontWeight: 700,
+                            lineHeight: 1,
+                            cursor: 'pointer',
+                            flexShrink: 0,
+                          }}
+                        >
+                          +
+                        </button>
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                          <button
+                            type="button"
+                            onClick={() => removeFromCart(item.id)}
+                            aria-label={`${getText('Quitar', 'Remove')} ${destacadoName}`}
+                            style={{ width: '28px', height: '28px', borderRadius: '9999px', border: 'none', backgroundColor: 'var(--rt-placeholder, #f2e9db)', color: CAFE, fontSize: '16px', fontWeight: 700, cursor: 'pointer' }}
+                          >
+                            −
+                          </button>
+                          <span style={{ minWidth: '14px', textAlign: 'center', fontSize: '13px', fontWeight: 700, color: CAFE }}>{hlQty}</span>
+                          <button
+                            type="button"
+                            onClick={hlAdd}
+                            aria-label={`${getText('Agregar', 'Add')} ${destacadoName}`}
+                            style={{ width: '28px', height: '28px', borderRadius: '9999px', border: 'none', backgroundColor: accent, color: 'var(--rt-on-accent, #ffffff)', fontSize: '16px', fontWeight: 700, cursor: 'pointer' }}
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
