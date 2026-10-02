@@ -7,6 +7,8 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { SpaceTopBarControls } from '@/components/space/SpaceTopBarControls';
 import { BusinessSwitcher } from '@/components/space/BusinessSwitcher';
 import { UserBadge } from '@/components/space/UserBadge';
+import { NotificationBell } from '@/components/space/NotificationBell';
+import { useNotifications } from '@/components/space/NotificationsProvider';
 import { cn } from '@/lib/utils';
 import type { Plan } from '@/lib/plan-limits';
 import { CATALOG_NAV_LABELS, type BusinessType } from '@/lib/templates/registry';
@@ -59,6 +61,7 @@ export function SpaceMobileNav({
 }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const { badgeForHref } = useNotifications();
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
 
@@ -158,7 +161,10 @@ export function SpaceMobileNav({
             <span className="truncate">{businessName}</span>
           </span>
         </div>
-        <SpaceTopBarControls />
+        <div className="flex flex-shrink-0 items-center gap-2">
+          <NotificationBell slug={slug} />
+          <SpaceTopBarControls />
+        </div>
       </div>
 
       {/* Drawer — mobile only, mirrors SpaceSidebar's desktop <aside> content
@@ -211,7 +217,12 @@ export function SpaceMobileNav({
                     )}
                   >
                     <span className="text-base">{item.icon}</span>
-                    <span>{item.label}</span>
+                    <span className="flex-1">{item.label}</span>
+                    {badgeForHref(item.href) > 0 && (
+                      <span className="ml-auto min-w-[1.25rem] rounded-full bg-red-500 px-1.5 text-center text-[11px] font-bold leading-5 text-white">
+                        {badgeForHref(item.href)}
+                      </span>
+                    )}
                   </Link>
                 );
               })}

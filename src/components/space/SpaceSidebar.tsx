@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { CATALOG_NAV_LABELS, type BusinessType } from '@/lib/templates/registry';
 import { UserBadge } from './UserBadge';
+import { useNotifications } from './NotificationsProvider';
 
 // Ancho real del sidebar cuando está abierto (coincide con w-60 = 15rem) — se expone como CSS
 // var en :root para que el wrapper de contenido en layout.tsx (server component, no puede leer
@@ -43,6 +44,7 @@ export function SpaceSidebar({
   activeModules,
 }: Props) {
   const pathname = usePathname();
+  const { badgeForHref } = useNotifications();
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => language === 'es' ? es : en;
 
@@ -214,7 +216,12 @@ export function SpaceSidebar({
                 }`}
               >
                 <span className="text-base">{mod.icon}</span>
-                <span>{mod.label}</span>
+                <span className="flex-1">{mod.label}</span>
+                {badgeForHref(mod.href) > 0 && (
+                  <span className="ml-auto min-w-[1.25rem] rounded-full bg-red-500 px-1.5 text-center text-[11px] font-bold leading-5 text-white">
+                    {badgeForHref(mod.href)}
+                  </span>
+                )}
               </Link>
             );
           })}

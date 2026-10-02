@@ -5,6 +5,7 @@ import type { BusinessType } from '@/lib/templates/registry';
 import { SpaceSidebar } from '@/components/space/SpaceSidebar';
 import { SpaceMobileNav } from '@/components/space/SpaceMobileNav';
 import { SupportModeBanner } from '@/components/space/SupportModeBanner';
+import { NotificationsProvider } from '@/components/space/NotificationsProvider';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -51,6 +52,7 @@ export default async function SpaceSlugLayout({
   const canCreateMore = canAddBusiness(highestPlan, affiliates.length);
 
   return (
+    <NotificationsProvider slug={slug}>
     <div className="flex min-h-screen bg-background">
       <SpaceSidebar
         slug={slug}
@@ -89,5 +91,6 @@ export default async function SpaceSlugLayout({
         {children}
       </div>
     </div>
+    </NotificationsProvider>
   );
 }
