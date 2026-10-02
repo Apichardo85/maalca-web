@@ -18,21 +18,53 @@ interface Props {
   accent?: string | null;
   /** Horario configurado en Identidad — sin esto, cae a 9am–6pm todos los días. */
   horario?: HorarioDay[] | null;
+  /** IANA del negocio (ej. "America/New_York"). "Hoy" y "ahora" se miden ahí, no en el reloj del visitante. */
+  timezone?: string | null;
 }
 
-const WEEKDAY_KEYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+// Mismos tokens (español, sin acento) que Affiliate.Horario — antes eran en inglés y nunca
+// coincidían con horario.dia, así que el horario configurado se ignoraba.
+const WEEKDAY_KEYS = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
 const DEFAULT_HOURS = { abre: '09:00', cierra: '18:00' };
+const DAYS_AHEAD = 14;
 
-function generateTimeSlots(abre: string, cierra: string, isToday: boolean): string[] {
+/** Fecha y hora actuales tal como se ven en la zona del negocio (sin timezone: la del navegador). */
+function nowInZone(timezone?: string | null): { y: number; m: number; d: number; minutes: number } {
+  const fallback = () => {
+    const n = new Date();
+    return { y: n.getFullYear(), m: n.getMonth() + 1, d: n.getDate(), minutes: n.getHours() * 60 + n.getMinutes() };
+  };
+  if (!timezone) return fallback();
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: false,
+    }).formatToParts(new Date());
+    const get = (t: string) => Number(parts.find((p) => p.type === t)?.value);
+    const y = get('year');
+    const m = get('month');
+    const d = get('day');
+    const minutes = (get('hour') % 24) * 60 + get('minute');
+    if ([y, m, d, minutes].some((n) => Number.isNaN(n))) return fallback();
+    return { y, m, d, minutes };
+  } catch {
+    return fallback();
+  }
+}
+
+function generateTimeSlots(abre: string, cierra: string, nowMinutes: number | null): string[] {
   const [openH, openM] = abre.split(':').map(Number);
   const [closeH, closeM] = cierra.split(':').map(Number);
   if ([openH, openM, closeH, closeM].some((n) => Number.isNaN(n))) return [];
 
-  const now = new Date();
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
   const slots: string[] = [];
   for (let mins = openH * 60 + openM; mins < closeH * 60 + closeM; mins += 30) {
-    if (isToday && mins <= nowMinutes + 15) continue;
+    if (nowMinutes !== null && mins <= nowMinutes + 15) continue;
     const h = Math.floor(mins / 60);
     const m = mins % 60;
     slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
@@ -40,12 +72,17 @@ function generateTimeSlots(abre: string, cierra: string, isToday: boolean): stri
   return slots;
 }
 
-function nextDays(count: number): { dateStr: string; date: Date }[] {
+/**
+ * Los próximos N días a partir de "hoy" EN LA ZONA DEL NEGOCIO. Cada día se ancla a medianoche UTC
+ * del calendario (Date.UTC) y se lee siempre con getUTC*: así dateStr/día de la semana no dependen
+ * de la zona del navegador ni caen en el día equivocado (el bug anterior usaba toISOString(), que
+ * pasa a "mañana" después de las ~8pm en Nueva York).
+ */
+function nextDays(count: number, today: { y: number; m: number; d: number }): { dateStr: string; date: Date }[] {
   const out: { dateStr: string; date: Date }[] = [];
   for (let i = 0; i < count; i++) {
-    const d = new Date();
-    d.setDate(d.getDate() + i);
-    out.push({ dateStr: d.toISOString().slice(0, 10), date: d });
+    const date = new Date(Date.UTC(today.y, today.m - 1, today.d + i));
+    out.push({ dateStr: date.toISOString().slice(0, 10), date });
   }
   return out;
 }
@@ -68,7 +105,7 @@ type Status = 'ready' | 'submitting' | 'success' | 'error';
  * reutilizaba PublicBookingSection, forzando al comensal por el flujo de barbería. Ver
  * docs/audits/business-type-flows-audit.md y TableReservation.cs en maalca-api.
  */
-export function TableReservationSection({ slug, language, accent, horario }: Props) {
+export function TableReservationSection({ slug, language, accent, horario, timezone }: Props) {
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const color = accent || '#045AFE';
   const colorDark = darken(color, 30);
@@ -143,21 +180,24 @@ export function TableReservationSection({ slug, language, accent, horario }: Pro
     }
   }
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  // Se recalcula en cada render (barato) para que el modal abierto un rato no use una "hora actual"
+  // vieja. Solo se usa dentro del modal, que no se renderiza en el servidor: sin riesgo de hidratación.
+  const nowInfo = nowInZone(timezone);
+  const todayStr = new Date(Date.UTC(nowInfo.y, nowInfo.m - 1, nowInfo.d)).toISOString().slice(0, 10);
 
   function hoursFor(dateObj: Date): { abre: string; cierra: string; cerrado: boolean } {
-    const key = WEEKDAY_KEYS[dateObj.getDay()];
+    const key = WEEKDAY_KEYS[dateObj.getUTCDay()];
     const entry = horario?.find((h) => h.dia === key);
     if (!entry) return { ...DEFAULT_HOURS, cerrado: false };
     return entry;
   }
 
-  const dayOptions = nextDays(14);
-  const selectedDateObj = date ? new Date(`${date}T00:00:00`) : null;
+  const dayOptions = nextDays(DAYS_AHEAD, nowInfo);
+  const selectedDateObj = date ? new Date(`${date}T00:00:00Z`) : null;
   const selectedDayHours = selectedDateObj ? hoursFor(selectedDateObj) : null;
   const timeSlots =
     selectedDateObj && selectedDayHours && !selectedDayHours.cerrado
-      ? generateTimeSlots(selectedDayHours.abre, selectedDayHours.cierra, date === todayStr)
+      ? generateTimeSlots(selectedDayHours.abre, selectedDayHours.cierra, date === todayStr ? nowInfo.minutes : null)
       : [];
 
   return (
@@ -264,11 +304,12 @@ export function TableReservationSection({ slug, language, accent, horario }: Pro
                             <button
                               key={dateStr}
                               type="button"
+                              disabled={closed}
                               onClick={() => {
                                 setDate(dateStr);
                                 setTime('');
                               }}
-                              className="flex min-h-[52px] shrink-0 flex-col items-center justify-center rounded-xl border px-3.5 py-2 text-xs font-semibold transition-colors"
+                              className="flex min-h-[52px] shrink-0 flex-col items-center justify-center rounded-xl border px-3.5 py-2 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                               style={
                                 active
                                   ? { backgroundColor: color, borderColor: color, color: '#fff' }
@@ -276,9 +317,9 @@ export function TableReservationSection({ slug, language, accent, horario }: Pro
                               }
                             >
                               <span className="uppercase tracking-wide">
-                                {d.toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { weekday: 'short' })}
+                                {d.toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { weekday: 'short', timeZone: 'UTC' })}
                               </span>
-                              <span className="mt-0.5 text-sm">{d.getDate()}</span>
+                              <span className="mt-0.5 text-sm">{d.getUTCDate()}</span>
                             </button>
                           );
                         })}
@@ -345,6 +386,19 @@ export function TableReservationSection({ slug, language, accent, horario }: Pro
                         required
                         value={customerPhone}
                         onChange={(e) => setCustomerPhone(e.target.value)}
+                        className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                        {getText('Correo (opcional)', 'Email (optional)')}
+                      </label>
+                      <input
+                        type="email"
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        placeholder={getText('Para enviarte la confirmación', 'So we can email you a confirmation')}
                         className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
                       />
                     </div>

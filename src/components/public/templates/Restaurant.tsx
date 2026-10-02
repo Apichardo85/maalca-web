@@ -159,10 +159,15 @@ export function RestaurantTemplate({
   // refresca cada minuto. Sin horario o sin zona horaria queda en null y la barra no se muestra.
   const [openStatus, setOpenStatus] = useState<OpenStatus | null>(null);
   const [todayKey, setTodayKey] = useState<string | null>(null);
+  // Día de la semana (monday..sunday, igual que item.weekDays) en la zona del negocio. También
+  // solo-cliente por la misma razón: Destacados lo usa para ocultar el plato de otro día sin
+  // desajustar la hidratación de la página cacheada.
+  const [weekdayNow, setWeekdayNow] = useState<WeekDay | null>(null);
   useEffect(() => {
     const update = () => {
       setOpenStatus(getOpenStatus(business.horario, business.timezone));
       setTodayKey(todayKeyInTimezone(business.timezone));
+      setWeekdayNow(business.timezone ? resolveNowInTimezone(business.timezone)?.weekday ?? null : null);
     };
     update();
     const id = setInterval(update, 60_000);
@@ -215,11 +220,14 @@ export function RestaurantTemplate({
       p !== 'all_day' && items.some((i) => i.periods?.includes(p)),
   );
 
-  // Destacados deliberately ignores Vista Hoy: it's a curated "best of the
-  // kitchen" showcase, not a "what can I order this instant" listing — if it
-  // filtered by time it could shrink to near-empty at odd hours, undermining
-  // the one section meant to build confidence right after the hero.
-  const destacados = items.filter((i) => i.featured || i.popular).slice(0, MAX_DESTACADOS);
+  // Destacados ignora Vista Hoy en cuanto a PERÍODO (es una vitrina "lo mejor de la cocina", no un
+  // "qué puedo pedir ahora": si filtrara por hora se vaciaría a deshoras). Pero SÍ respeta el DÍA:
+  // un plato que el restaurante solo hace los sábados no puede ser el "popular" de un martes (el
+  // pedido, además, se rechaza en el servidor). Un item sin weekDays aplica todos los días.
+  const destacados = items
+    .filter((i) => i.featured || i.popular)
+    .filter((i) => !weekdayNow || !i.weekDays || i.weekDays.length === 0 || i.weekDays.includes(weekdayNow))
+    .slice(0, MAX_DESTACADOS);
 
   function matchesPeriod(item: (typeof items)[number]): boolean {
     if (activePeriod === ALL_PERIODS) return true;
@@ -390,6 +398,29 @@ export function RestaurantTemplate({
                 {getText('Ordenar', 'Order now')}
               </a>
             )}
+            <a
+              href="#reservar"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('reservar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                minHeight: '44px',
+                backgroundColor: 'transparent',
+                border: '1px solid rgba(255,255,255,0.8)',
+                color: '#ffffff',
+                padding: '10px 22px',
+                borderRadius: '9999px',
+                fontSize: '14px',
+                fontWeight: 600,
+                textDecoration: 'none',
+              }}
+            >
+              {getText('Reservar mesa', 'Book a table')}
+            </a>
             {deliveryLinks.map((d) => (
               <a
                 key={d.tipo}
@@ -782,7 +813,7 @@ export function RestaurantTemplate({
 
       {/* ── RESERVA DE MESA ── deliberadamente NO PublicBookingSection: ver
           TableReservationSection.tsx y docs/audits/business-type-flows-audit.md. */}
-      <TableReservationSection slug={business.slug} language={language} accent={business.primary_color} horario={business.horario} />
+      <TableReservationSection slug={business.slug} language={language} accent={business.primary_color} horario={business.horario} timezone={business.timezone} />
 
       {/* ── HORARIO + CONTACTO — destino del botón "Info" de la barra inferior ── */}
       <div id="info" style={{ scrollMarginTop: '48px' }}>

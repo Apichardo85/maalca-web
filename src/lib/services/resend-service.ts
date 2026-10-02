@@ -1004,3 +1004,118 @@ export async function sendAffiliateDigestEmail(params: {
     return false;
   }
 }
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+/**
+ * Reserva de mesa recién pedida desde la página pública (status "Requested"). Manda dos correos
+ * independientes, cada uno best-effort: (1) aviso al restaurante (Affiliate.ContactEmail) con los
+ * datos del comensal y botón al panel de reservas, (2) acuse de recibo al comensal si dejó correo
+ * — dejando claro que está PENDIENTE de confirmación, no confirmada. Todo texto que viene del
+ * comensal se escapa antes de entrar al HTML.
+ */
+export async function sendReservationRequestedEmail(params: {
+  businessName: string
+  businessEmail?: string | null
+  slug?: string | null
+  customerName: string
+  customerPhone: string
+  customerEmail?: string | null
+  date: string // YYYY-MM-DD
+  time: string // HH:mm
+  partySize: number
+  notes?: string | null
+}): Promise<{ businessSent: boolean; customerSent: boolean }> {
+  const result = { businessSent: false, customerSent: false }
+  if (!resend) {
+    console.log('[Resend] Skipped reservation emails — RESEND_API_KEY not set')
+    return result
+  }
+
+  const origin = (process.env.NEXT_PUBLIC_SITE_URL || 'https://maalca.com').replace(/\/$/, '')
+  const reservationsUrl = params.slug ? `${origin}/space/${params.slug}/reservations` : origin
+
+  const when = (() => {
+    const d = new Date(`${params.date}T00:00:00Z`)
+    if (Number.isNaN(d.getTime())) return params.date
+    const label = d.toLocaleDateString('es-DO', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
+    return `${label} · ${params.time}`
+  })()
+
+  const row = (label: string, value: string) => `
+    <tr>
+      <td style="padding: 6px 0; font-size: 14px; color: #5a5a5a;">${label}</td>
+      <td style="padding: 6px 0; font-size: 14px; color: #1a1a1a; font-weight: 600; text-align: right;">${value}</td>
+    </tr>
+  `
+
+  const name = escapeHtml(params.customerName)
+  const business = escapeHtml(params.businessName)
+
+  if (params.businessEmail) {
+    const bodyHtml = `
+      <h2 style="font-size: 18px; margin: 0 0 4px 0;">Nueva reserva pendiente</h2>
+      <p style="font-size: 13px; color: #a3a3a3; margin: 0 0 20px 0;">Entró desde tu página pública. Confírmala o cancélala desde tu panel.</p>
+      <table style="width: 100%; border-collapse: collapse;">
+        ${row('Cuándo', escapeHtml(when))}
+        ${row('Personas', String(params.partySize))}
+        ${row('Nombre', name)}
+        ${row('Teléfono', escapeHtml(params.customerPhone))}
+        ${params.customerEmail ? row('Correo', escapeHtml(params.customerEmail)) : ''}
+      </table>
+      ${params.notes ? `<p style="font-size: 14px; line-height: 1.6; color: #5a5a5a; margin: 16px 0 0 0;"><strong>Nota:</strong> ${escapeHtml(params.notes)}</p>` : ''}
+      ${emailCtaButton('Ver reservas →', reservationsUrl)}
+    `
+    try {
+      await resend.emails.send({
+        from: FROM_EMAIL,
+        to: params.businessEmail,
+        subject: `Nueva reserva: ${params.customerName} · ${params.partySize} personas · ${when}`,
+        html: renderCardEmail({
+          bodyHtml,
+          footerText: 'Recibes este aviso porque tienes reservas en línea activas en MaalCa.',
+        }),
+      })
+      result.businessSent = true
+    } catch (err: unknown) {
+      console.error('[Resend] Reservation business email failed:', err instanceof Error ? err.message : String(err))
+    }
+  }
+
+  if (params.customerEmail) {
+    const bodyHtml = `
+      <h2 style="font-size: 18px; margin: 0 0 4px 0;">Recibimos tu solicitud de reserva</h2>
+      <p style="font-size: 14px; line-height: 1.6; color: #5a5a5a; margin: 0 0 20px 0;">
+        Hola ${name}, ${business} recibió tu solicitud. <strong>Todavía no está confirmada</strong>: el restaurante te contactará al teléfono que dejaste para confirmarla.
+      </p>
+      <table style="width: 100%; border-collapse: collapse;">
+        ${row('Cuándo', escapeHtml(when))}
+        ${row('Personas', String(params.partySize))}
+        ${row('Restaurante', business)}
+      </table>
+    `
+    try {
+      await resend.emails.send({
+        from: FROM_EMAIL,
+        to: params.customerEmail,
+        subject: `Solicitud de reserva en ${params.businessName}`,
+        html: renderCardEmail({
+          bodyHtml,
+          footerText: `Enviado porque pediste una reserva en ${business} a través de MaalCa.`,
+        }),
+      })
+      result.customerSent = true
+    } catch (err: unknown) {
+      console.error('[Resend] Reservation customer email failed:', err instanceof Error ? err.message : String(err))
+    }
+  }
+
+  return result
+}
