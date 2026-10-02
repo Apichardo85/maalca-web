@@ -8,7 +8,9 @@
 // pricing, expandable) as the signature element — deliberately distinct from
 // the circular numbered badges used for the Process/"Cómo trabajamos" flow,
 // so the two numbering systems never read as the same thing.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { OpenStatusBar } from '@/components/public/OpenStatusBar';
+import { getOpenStatus, type OpenStatus } from '@/lib/business-hours';
 import type { CSSProperties } from 'react';
 import { Fraunces, IBM_Plex_Mono } from 'next/font/google';
 import type { FaqEntry, ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
@@ -135,6 +137,14 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const [openItems, setOpenItems] = useState<Set<string>>(new Set());
+  // Solo cliente (la página es ISR); se refresca cada minuto. Sin horario no se muestra.
+  const [openStatus, setOpenStatus] = useState<OpenStatus | null>(null);
+  useEffect(() => {
+    const update = () => setOpenStatus(getOpenStatus(business.horario, business.timezone));
+    update();
+    const id = setInterval(update, 60_000);
+    return () => clearInterval(id);
+  }, [business.horario, business.timezone]);
 
   const contacts = resolveContactItems(business);
   const secondaryContacts = contacts.filter((c) => c.tipo === 'Telefono' || c.tipo === 'Email');
@@ -163,6 +173,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
       style={{ backgroundColor: PAPER, color: INK }}
     >
       <style dangerouslySetInnerHTML={{ __html: themeCss }} />
+      <OpenStatusBar status={openStatus} language={language} />
       {/* Cover strip — purely atmospheric, no text overlay (identity lives in the sidebar/mobile bar) */}
       {business.cover_image_url && (
         <div className="relative h-36 w-full overflow-hidden lg:h-52">

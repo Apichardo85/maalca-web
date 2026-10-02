@@ -8,7 +8,9 @@
 // and finishes) becomes the page's own graphic device instead of a generic
 // icon-and-card grid — deliberately distinct from Service's mono rate-card
 // index and Barber's ticket-stub cards.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { OpenStatusBar } from '@/components/public/OpenStatusBar';
+import { getOpenStatus, getScheduleTarget, cartScheduleFrom, type OpenStatus } from '@/lib/business-hours';
 import { Roboto_Slab } from 'next/font/google';
 import type { ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
@@ -103,6 +105,18 @@ export function RetailTemplate({
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
 
+  // Abierto/cerrado depende del reloj: solo en cliente (la página es ISR) y se refresca cada minuto.
+  // Cerrado => el pedido se programa para la próxima apertura; el API lo exige igual (ResolveSchedule)
+  // y sin esto un pedido fuera de horario era rechazado.
+  const [openStatus, setOpenStatus] = useState<OpenStatus | null>(null);
+  useEffect(() => {
+    const update = () => setOpenStatus(getOpenStatus(business.horario, business.timezone));
+    update();
+    const id = setInterval(update, 60_000);
+    return () => clearInterval(id);
+  }, [business.horario, business.timezone]);
+  const cartSchedule = cartScheduleFrom(getScheduleTarget(openStatus, business.timezone));
+
   const categoryNames: string[] =
     categoriesProp.length > 0
       ? [...categoriesProp].sort((a, b) => a.sort_order - b.sort_order).map((c) => c.name)
@@ -123,6 +137,7 @@ export function RetailTemplate({
   return (
     <div className={`${robotoSlab.variable} rl-scope`} style={{ minHeight: '100vh', backgroundColor: PIEDRA }}>
       <style dangerouslySetInnerHTML={{ __html: themeCss }} />
+      <OpenStatusBar status={openStatus} language={language} sticky />
       {/* ── HERO ── */}
       <section
         style={{
@@ -359,6 +374,7 @@ export function RetailTemplate({
           businessName={business.name}
           slug={business.slug}
           onlinePayments={capabilities.onlinePayments}
+          schedule={cartSchedule}
           getText={getText}
         />
       )}
