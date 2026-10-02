@@ -1395,6 +1395,8 @@ function MenuCard({
   const periodList = (item.periods ?? []).filter((p) => p !== 'all_day').map((p) => (language === 'en' ? MEAL_PERIOD_LABELS_EN[p] : MEAL_PERIOD_LABELS[p]));
   const availabilityText = [periodList.join(', '), dayList.length ? dayList.join(', ') : ''].filter(Boolean).join(' · ') || null;
   const stop = (e: React.MouseEvent) => e.stopPropagation();
+  // Sin foto, descripción, etiquetas ni horario, el detalle repetiría lo que ya se ve en la tarjeta.
+  const hasDetail = Boolean(imageUrl || description || detailTags.length > 0 || availabilityText);
 
   // Etiquetas Destacado/Popular: sobre la foto si hay foto; en línea sobre el nombre si no la hay
   // (sin foto no se reserva un cuadro vacío — la tarjeta es solo texto, como en las apps de delivery).
@@ -1420,12 +1422,12 @@ function MenuCard({
   return (
     <>
     <div
-      role="button"
-      tabIndex={0}
-      onClick={() => setDetailOpen(true)}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailOpen(true); } }}
+      role={hasDetail ? 'button' : undefined}
+      tabIndex={hasDetail ? 0 : undefined}
+      onClick={hasDetail ? () => setDetailOpen(true) : undefined}
+      onKeyDown={hasDetail ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailOpen(true); } } : undefined}
       style={{
-        cursor: 'pointer',
+        cursor: hasDetail ? 'pointer' : 'default',
         backgroundColor: '#ffffff',
         border: '0.5px solid var(--rt-border-soft, #ece2d3)',
         borderRadius: '16px',

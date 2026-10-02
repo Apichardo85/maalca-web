@@ -88,34 +88,18 @@ export function ItemDetailSheet({
   );
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={name}
-      onClick={onClose}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 70,
-        background: 'rgba(0,0,0,0.5)',
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: '100%',
-          maxWidth: 520,
-          maxHeight: '92vh',
-          overflowY: 'auto',
-          background: '#ffffff',
-          borderRadius: '20px 20px 0 0',
-          position: 'relative',
-          paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
-        }}
-      >
+    <div role="dialog" aria-modal="true" aria-label={name} onClick={onClose} className="ids-overlay">
+      <style>{`
+        .ids-overlay{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center}
+        .ids-sheet{width:100%;max-width:520px;max-height:92vh;overflow-y:auto;background:#fff;border-radius:20px 20px 0 0;position:relative;padding-bottom:max(16px,env(safe-area-inset-bottom))}
+        .ids-img{border-radius:20px 20px 0 0}
+        @media (min-width:640px){
+          .ids-overlay{align-items:center;padding:24px}
+          .ids-sheet{max-width:460px;max-height:86vh;border-radius:20px;padding-bottom:16px}
+          .ids-img{border-radius:20px 20px 0 0;max-height:320px !important}
+        }
+      `}</style>
+      <div onClick={(e) => e.stopPropagation()} className="ids-sheet">
         <button
           type="button"
           onClick={onClose}
@@ -144,7 +128,8 @@ export function ItemDetailSheet({
           <img
             src={imageUrl}
             alt={name}
-            style={{ display: 'block', width: '100%', maxHeight: '45vh', objectFit: 'cover', borderRadius: '20px 20px 0 0' }}
+            className="ids-img"
+            style={{ display: 'block', width: '100%', maxHeight: '45vh', objectFit: 'cover' }}
           />
         )}
 

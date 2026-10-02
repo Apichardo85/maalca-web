@@ -442,17 +442,18 @@ function ProductCard({
   const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
   const [detailOpen, setDetailOpen] = useState(false);
   const stop = (e: React.MouseEvent) => e.stopPropagation();
+  const hasDetail = Boolean(imageUrl || description);
   const addThis = () => addToCart({ id: item.id, name: displayName, price: item.price ?? 0, image: imageUrl ?? undefined });
 
   return (
     <>
     <div
-      role="button"
-      tabIndex={0}
-      onClick={() => setDetailOpen(true)}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailOpen(true); } }}
+      role={hasDetail ? 'button' : undefined}
+      tabIndex={hasDetail ? 0 : undefined}
+      onClick={hasDetail ? () => setDetailOpen(true) : undefined}
+      onKeyDown={hasDetail ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailOpen(true); } } : undefined}
       style={{
-        cursor: 'pointer',
+        cursor: hasDetail ? 'pointer' : 'default',
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
