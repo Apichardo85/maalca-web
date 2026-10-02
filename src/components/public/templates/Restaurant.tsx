@@ -234,6 +234,16 @@ export function RestaurantTemplate({
     .filter((i) => !weekdayNow || !i.weekDays || i.weekDays.length === 0 || i.weekDays.includes(weekdayNow))
     .slice(0, MAX_DESTACADOS);
 
+  // Menú completo (Vista Hoy apagada): un plato que hoy no se hace sigue visible pero en gris y sin
+  // botón de agregar, con la etiqueta de qué días sí. El servidor igual rechaza el pedido.
+  function unavailableLabel(item: (typeof items)[number]): string | null {
+    if (vistaHoyActive || !weekdayNow) return null;
+    if (!item.weekDays || item.weekDays.length === 0 || item.weekDays.includes(weekdayNow)) return null;
+    const names = item.weekDays.map((d) => (language === 'en' ? WEEK_DAY_LABELS_EN[d] : WEEK_DAY_LABELS_ES[d]));
+    const list = names.length > 1 ? `${names.slice(0, -1).join(', ')} ${language === 'en' ? 'and' : 'y'} ${names[names.length - 1]}` : names[0];
+    return language === 'en' ? `Only ${list}` : `Solo ${list.toLowerCase()}`;
+  }
+
   function matchesPeriod(item: (typeof items)[number]): boolean {
     if (activePeriod === ALL_PERIODS) return true;
     if (!item.periods || item.periods.length === 0) return true;
@@ -781,6 +791,7 @@ export function RestaurantTemplate({
                         })}
                         onRemove={() => removeFromCart(item.id)}
                         currency={business.currency}
+                        unavailableLabel={unavailableLabel(item)}
                       />
                     );
                   })}
@@ -809,6 +820,7 @@ export function RestaurantTemplate({
                   })}
                   onRemove={() => removeFromCart(item.id)}
                   currency={business.currency}
+                  unavailableLabel={unavailableLabel(item)}
                 />
               );
             })}
@@ -1338,7 +1350,9 @@ function MenuCard({
   onAdd,
   onRemove,
   currency,
+  unavailableLabel,
 }: {
+  unavailableLabel?: string | null;
   item: PublicTemplateProps['items'][number];
   language: 'es' | 'en';
   accent: string;
@@ -1362,6 +1376,8 @@ function MenuCard({
         display: 'flex',
         flexDirection: 'row',
         minHeight: '120px',
+        opacity: unavailableLabel ? 0.55 : 1,
+        filter: unavailableLabel ? 'grayscale(0.6)' : undefined,
       }}
     >
       <div style={{ position: 'relative', flexShrink: 0, margin: '8px 0 8px 8px' }}>
@@ -1502,7 +1518,11 @@ function MenuCard({
             <span />
           )}
 
-          {cartQty === 0 ? (
+          {unavailableLabel ? (
+            <span style={{ fontSize: '11px', fontWeight: 600, color: MUTED, textAlign: 'right', lineHeight: 1.3 }}>
+              {unavailableLabel}
+            </span>
+          ) : cartQty === 0 ? (
             <button
               onClick={onAdd}
               aria-label={`${getText('Agregar', 'Add')} ${displayName}`}

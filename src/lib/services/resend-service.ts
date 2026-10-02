@@ -1137,3 +1137,83 @@ export async function sendReservationRequestedEmail(params: {
 
   return result
 }
+
+/**
+ * El negocio confirmó o canceló la reserva: aviso al comensal con la marca del negocio. Las
+ * respuestas del comensal llegan directo al correo del negocio (replyTo).
+ */
+export async function sendReservationStatusEmail(params: {
+  kind: 'confirmed' | 'cancelled'
+  businessName: string
+  businessEmail?: string | null
+  slug?: string | null
+  customerName: string
+  customerPhone: string
+  customerEmail?: string | null
+  date: string // YYYY-MM-DD
+  time: string // HH:mm
+  partySize: number
+  notes?: string | null
+  brand?: EmailBrand
+}): Promise<{ customerSent: boolean }> {
+  const result = { customerSent: false }
+  if (!params.customerEmail) return result
+  if (!resend) {
+    console.log('[Resend] Skipped reservation status email — RESEND_API_KEY not set')
+    return result
+  }
+
+  const when = (() => {
+    const d = new Date(`${params.date}T00:00:00Z`)
+    if (Number.isNaN(d.getTime())) return params.date
+    const label = d.toLocaleDateString('es-DO', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
+    return `${label} · ${params.time}`
+  })()
+
+  const row = (label: string, value: string) => `
+    <tr>
+      <td style="padding: 6px 8px 6px 0; font-size: 14px; color: #5a5a5a; vertical-align: top; white-space: nowrap;">${label}</td>
+      <td style="padding: 6px 0; font-size: 14px; color: #1a1a1a; font-weight: 600; text-align: right; vertical-align: top; word-break: break-all;">${value}</td>
+    </tr>
+  `
+
+  const name = escapeHtml(params.customerName)
+  const business = escapeHtml(params.businessName)
+  const confirmed = params.kind === 'confirmed'
+
+  const title = confirmed ? '¡Tu reserva está confirmada! ✅' : 'Tu reserva fue cancelada'
+  const intro = confirmed
+    ? `Hola ${name}, ${business} confirmó tu reserva. ¡Te esperamos!`
+    : `Hola ${name}, lamentamos avisarte que ${business} no pudo mantener tu reserva. Si quieres reprogramarla, contáctanos${params.businessEmail ? ` respondiendo a este correo` : ''}.`
+
+  const bodyHtml = `
+    <h2 style="font-size: 18px; margin: 0 0 4px 0;">${title}</h2>
+    <p style="font-size: 14px; line-height: 1.6; color: #5a5a5a; margin: 0 0 20px 0;">${intro}</p>
+    <table style="width: 100%; border-collapse: collapse;">
+      ${row('Cuándo', escapeHtml(when))}
+      ${row('Personas', String(params.partySize))}
+      ${row('Restaurante', business)}
+    </table>
+  `
+
+  try {
+    await resend.emails.send({
+      from: fromFor(params.brand),
+      replyTo: params.businessEmail || undefined,
+      to: params.customerEmail,
+      subject: confirmed
+        ? `Reserva confirmada en ${params.businessName}`
+        : `Reserva cancelada en ${params.businessName}`,
+      html: renderCardEmail({
+        bodyHtml,
+        brand: params.brand,
+        footerText: `Enviado porque pediste una reserva en ${business}.`,
+      }),
+    })
+    result.customerSent = true
+  } catch (err: unknown) {
+    console.error('[Resend] Reservation status email failed:', err instanceof Error ? err.message : String(err))
+  }
+
+  return result
+}
