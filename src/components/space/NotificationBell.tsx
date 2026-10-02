@@ -72,7 +72,7 @@ export function NotificationBell({ slug }: { slug: string }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-11 z-50 w-80 max-w-[90vw] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl dark:border-neutral-700 dark:bg-neutral-900">
+        <div className="fixed inset-x-3 top-16 z-50 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl dark:border-neutral-700 dark:bg-neutral-900 sm:absolute sm:inset-x-auto sm:right-0 sm:top-11 sm:w-80">
           <div className="flex items-center justify-between border-b border-gray-100 px-4 py-2.5 dark:border-neutral-800">
             <span className="text-sm font-semibold text-gray-900 dark:text-white">{getText('Notificaciones', 'Notifications')}</span>
             {unread > 0 && (
@@ -86,7 +86,7 @@ export function NotificationBell({ slug }: { slug: string }) {
             )}
           </div>
 
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-[60vh] overflow-y-auto sm:max-h-96">
             {items.length === 0 ? (
               <p className="px-4 py-8 text-center text-sm text-gray-500 dark:text-neutral-400">
                 {getText('Sin avisos todavía. Aquí verás pedidos, reservas, citas y pagos.', 'No notifications yet. Orders, reservations, appointments and payments will show here.')}
