@@ -101,6 +101,29 @@ const DEFAULT_PERIOD_HOURS: Record<Exclude<MealPeriod, 'all_day'>, { start: numb
   late_night: { start: 22 * 60, end: 5 * 60 },
 };
 
+const FLAG_LABELS: Record<string, [string, string]> = {
+  vegetarian: ['Vegetariano', 'Vegetarian'],
+  spicy: ['Picante', 'Spicy'],
+  glutenFree: ['Sin gluten', 'Gluten-free'],
+};
+
+/** Datos de texto del detalle de un plato (etiquetas, horario/días) — los usan MenuCard y Destacados. */
+function itemDetailText(
+  item: PublicTemplateProps['items'][number],
+  language: 'es' | 'en',
+): { tags: string[]; availability: string | null } {
+  const t = (es: string, en: string) => (language === 'es' ? es : en);
+  const tags = [
+    ...(item.featured ? [`⭐ ${t('Destacado', 'Featured')}`] : []),
+    ...(item.popular ? [`🔥 ${t('Popular', 'Popular')}`] : []),
+    ...(item.flags ?? []).map((f) => `${FLAG_ICONS[f] ?? ''} ${FLAG_LABELS[f] ? t(FLAG_LABELS[f][0], FLAG_LABELS[f][1]) : f}`.trim()),
+  ];
+  const days = (item.weekDays ?? []).map((d) => (language === 'en' ? WEEK_DAY_LABELS_EN[d] : WEEK_DAY_LABELS_ES[d]));
+  const periods = (item.periods ?? []).filter((p) => p !== 'all_day').map((p) => (language === 'en' ? MEAL_PERIOD_LABELS_EN[p] : MEAL_PERIOD_LABELS[p]));
+  const availability = [periods.join(', '), days.join(', ')].filter(Boolean).join(' · ') || null;
+  return { tags, availability };
+}
+
 /**
  * Resolves the current meal period + weekday AS SEEN IN the given IANA
  * timezone — via Intl.DateTimeFormat's `timeZone` option, which correctly
@@ -171,6 +194,7 @@ export function RestaurantTemplate({
   const [weekdayNow, setWeekdayNow] = useState<WeekDay | null>(null);
   // Momento de comida actual (desayuno/almuerzo/cena…). Solo-cliente por la misma razón: se usa para
   // ORDENAR (lo del momento primero), no para ocultar nada.
+  const [hlOpenId, setHlOpenId] = useState<string | null>(null);
   const [periodNow, setPeriodNow] = useState<Exclude<MealPeriod, 'all_day'> | null>(null);
   useEffect(() => {
     const update = () => {
@@ -558,7 +582,12 @@ export function RestaurantTemplate({
               return (
                 <div
                   key={item.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setHlOpenId(item.id)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setHlOpenId(item.id); } }}
                   style={{
+                    cursor: 'pointer',
                     flex: '0 0 auto',
                     width: '170px',
                     scrollSnapAlign: 'start',
@@ -609,7 +638,7 @@ export function RestaurantTemplate({
                     <p className={inter.className} style={{ margin: 0, fontSize: '13px', fontWeight: 800, letterSpacing: '-0.01em', color: CAFE, lineHeight: 1.3 }}>
                       {destacadoName}
                     </p>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginTop: '4px' }}>
+                    <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginTop: '4px' }}>
                       {item.price != null ? (
                         <p style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: CAFE }}>
                           {formatPrice(item.price, business.currency)}
@@ -665,6 +694,33 @@ export function RestaurantTemplate({
               );
             })}
           </div>
+          {(() => {
+            const hl = hlOpenId ? destacados.find((d) => d.id === hlOpenId) : undefined;
+            if (!hl) return null;
+            const txt = itemDetailText(hl, language);
+            const hlName = language === 'en' && hl.nameEn ? hl.nameEn : hl.name;
+            return (
+              <ItemDetailSheet
+                open
+                onClose={() => setHlOpenId(null)}
+                name={hlName}
+                description={language === 'en' && hl.descriptionEn ? hl.descriptionEn : hl.description}
+                priceLabel={hl.price != null ? formatPrice(hl.price, business.currency) : null}
+                imageUrl={hl.imageUrl ?? hl.image_url}
+                category={hl.category}
+                tags={txt.tags}
+                availabilityLabel={txt.availability}
+                qty={cart.find((e) => e.item.id === hl.id)?.qty ?? 0}
+                onAdd={() => addToCart({ id: hl.id, name: hlName, price: hl.price ?? 0, image: (hl.imageUrl ?? hl.image_url) ?? undefined })}
+                onRemove={() => removeFromCart(hl.id)}
+                accent={accent}
+                onAccent="var(--rt-on-accent, #ffffff)"
+                textColor={CAFE}
+                mutedColor={MUTED}
+                language={language}
+              />
+            );
+          })()}
         </section>
       )}
 
@@ -1477,19 +1533,7 @@ function MenuCard({
   const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const [detailOpen, setDetailOpen] = useState(false);
-  const FLAG_LABELS: Record<string, [string, string]> = {
-    vegetarian: ['Vegetariano', 'Vegetarian'],
-    spicy: ['Picante', 'Spicy'],
-    glutenFree: ['Sin gluten', 'Gluten-free'],
-  };
-  const detailTags = [
-    ...(item.featured ? [`⭐ ${getText('Destacado', 'Featured')}`] : []),
-    ...(item.popular ? [`🔥 ${getText('Popular', 'Popular')}`] : []),
-    ...((item.flags ?? []).map((f) => `${FLAG_ICONS[f] ?? ''} ${FLAG_LABELS[f] ? getText(FLAG_LABELS[f][0], FLAG_LABELS[f][1]) : f}`.trim())),
-  ];
-  const dayList = (item.weekDays ?? []).map((d) => (language === 'en' ? WEEK_DAY_LABELS_EN[d] : WEEK_DAY_LABELS_ES[d]));
-  const periodList = (item.periods ?? []).filter((p) => p !== 'all_day').map((p) => (language === 'en' ? MEAL_PERIOD_LABELS_EN[p] : MEAL_PERIOD_LABELS[p]));
-  const availabilityText = [periodList.join(', '), dayList.length ? dayList.join(', ') : ''].filter(Boolean).join(' · ') || null;
+  const { tags: detailTags, availability: availabilityText } = itemDetailText(item, language);
   const stop = (e: React.MouseEvent) => e.stopPropagation();
   // Sin foto, descripción, etiquetas ni horario, el detalle repetiría lo que ya se ve en la tarjeta.
   const hasDetail = Boolean(imageUrl || description || detailTags.length > 0 || availabilityText);
