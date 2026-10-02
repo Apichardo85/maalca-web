@@ -316,7 +316,7 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
             className="absolute inset-0 h-full w-full object-contain"
           />
         )}
-        <div className="absolute right-4 top-4 z-10 flex items-center gap-2">
+        <div className="absolute right-4 top-4 z-20 flex items-center gap-2">
           <SimpleLanguageToggle variant="dark" />
           <PublicThemeToggle variant="dark" />
         </div>
