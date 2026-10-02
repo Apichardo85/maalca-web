@@ -33,17 +33,54 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 import { formatPrice } from '@/lib/currency';
 import { googleMapsUrl } from '@/lib/maps';
+import PublicThemeToggle from '@/components/public/PublicThemeToggle';
+import { deriveDarkBrandPalette, themeVarsCss } from '@/lib/brand-palette';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 const MAALCA_BLUE = '#045AFE';
-const PAPER = '#F7F8FA';
-const INK = '#161A22';
-const MUTED = '#5B6472';
-const GREEN = '#1A8A5C';
-const GREEN_BG = '#E8F6EF';
-const AMBER = '#B4740E';
-const AMBER_BG = '#FBF1DF';
-const BLUE_BG = '#E8F0FE';
+// Neutros y tintes semánticos como variables CSS (definidas en <style> con themeVarsCss, claro +
+// html[data-theme="dark"]); el hex de cada fallback es el valor claro original.
+const PAPER = 'var(--cm-bg, #F7F8FA)';
+const SURFACE = 'var(--cm-surface, #FFFFFF)';
+const BORDER = 'var(--cm-border, #E3E6EC)';
+const TRACK = 'var(--cm-track, #F7F8FA)';
+const INK = 'var(--cm-ink, #161A22)';
+const MUTED = 'var(--cm-muted, #5B6472)';
+const GREEN = 'var(--cm-green, #1A8A5C)';
+const GREEN_BG = 'var(--cm-green-bg, #E8F6EF)';
+const AMBER = 'var(--cm-amber, #B4740E)';
+const AMBER_BG = 'var(--cm-amber-bg, #FBF1DF)';
+const BLUE = 'var(--cm-blue, #2E5BFF)';
+const BLUE_BG = 'var(--cm-blue-bg, #E8F0FE)';
+
+const LIGHT_VARS: Record<string, string> = {
+  'cm-bg': '#F7F8FA',
+  'cm-surface': SURFACE,
+  'cm-border': BORDER,
+  'cm-track': '#F7F8FA',
+  'cm-ink': '#161A22',
+  'cm-muted': '#5B6472',
+  'cm-green': '#1A8A5C',
+  'cm-green-bg': '#E8F6EF',
+  'cm-amber': '#B4740E',
+  'cm-amber-bg': '#FBF1DF',
+  'cm-blue': '#2E5BFF',
+  'cm-blue-bg': '#E8F0FE',
+};
+const DARK_VARS: Record<string, string> = {
+  'cm-bg': '#0E1118',
+  'cm-surface': '#161A23',
+  'cm-border': '#262C38',
+  'cm-track': '#262C38',
+  'cm-ink': '#E8EBF2',
+  'cm-muted': '#9AA3B2',
+  'cm-green': '#4CD697',
+  'cm-green-bg': 'rgba(76,214,151,0.16)',
+  'cm-amber': '#F2B556',
+  'cm-amber-bg': 'rgba(242,181,86,0.16)',
+  'cm-blue': '#8CA9FF',
+  'cm-blue-bg': 'rgba(140,169,255,0.16)',
+};
 
 type Causa = NonNullable<PublicTemplateProps['business']['causas']>[number];
 type CommunityImpact = NonNullable<PublicTemplateProps['business']['communityImpact']>;
@@ -108,7 +145,7 @@ function CalendarIcon({ className, style }: { className?: string; style?: CSSPro
 
 const CAUSA_META: Record<Causa['type'], { icon: typeof HeartIcon; color: string; bg: string; es: string; en: string }> = {
   money: { icon: HeartIcon, color: GREEN, bg: GREEN_BG, es: 'Dinero', en: 'Money' },
-  time: { icon: HandsIcon, color: '#2E5BFF', bg: BLUE_BG, es: 'Tiempo', en: 'Time' },
+  time: { icon: HandsIcon, color: BLUE, bg: BLUE_BG, es: 'Tiempo', en: 'Time' },
   in_kind: { icon: BoxIcon, color: AMBER, bg: AMBER_BG, es: 'Especie', en: 'In-kind' },
 };
 
@@ -159,6 +196,19 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
   // entidad (business.programs, ver CommunityProgram.cs / registry.ts), por eso no se
   // destructura acá aunque PublicTemplateProps siga exponiendolo para los otros 4 templates.
   const accent = business.primary_color ?? MAALCA_BLUE;
+  // Acento en oscuro: el color de marca se aclara lo necesario para leerse sobre el fondo oscuro
+  // (texto ≥4.5:1, botones/barras ≥3:1) y el texto sobre el botón se recalcula. En claro todo
+  // sigue siendo el acento original, tal cual. El hero conserva el acento crudo con texto blanco.
+  const darkPalette = deriveDarkBrandPalette(business.primary_color, business.secondary_color, business.accent_color, MAALCA_BLUE);
+  const lightAccentHex = /^#[0-9a-fA-F]{3,8}$/.test(accent.trim()) ? accent.trim() : MAALCA_BLUE;
+  const themeCss = themeVarsCss(
+    'cm-scope',
+    { ...LIGHT_VARS, 'cm-accent': lightAccentHex, 'cm-accent-text': lightAccentHex, 'cm-on-accent': '#ffffff' },
+    { ...DARK_VARS, 'cm-accent': darkPalette.accent, 'cm-accent-text': darkPalette.accentText, 'cm-on-accent': darkPalette.onAccent },
+  );
+  const accentText = `var(--cm-accent-text, ${lightAccentHex})`;
+  const accentFill = `var(--cm-accent, ${lightAccentHex})`;
+  const onAccent = 'var(--cm-on-accent, #ffffff)';
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const currency = business.currency ?? 'USD';
@@ -254,7 +304,8 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
         : null;
 
   return (
-    <div style={{ backgroundColor: PAPER, color: INK, minHeight: '100vh' }} className="font-sans">
+    <div style={{ backgroundColor: PAPER, color: INK, minHeight: '100vh' }} className="font-sans cm-scope">
+      <style dangerouslySetInnerHTML={{ __html: themeCss }} />
       {/* ── Hero ────────────────────────────────────────────────────────── */}
       <header style={{ backgroundColor: accent }} className="relative overflow-hidden">
         {business.cover_image_url && (
@@ -265,8 +316,9 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
             className="absolute inset-0 h-full w-full object-contain"
           />
         )}
-        <div className="absolute right-4 top-4 z-10">
+        <div className="absolute right-4 top-4 z-10 flex items-center gap-2">
           <SimpleLanguageToggle variant="dark" />
+          <PublicThemeToggle variant="dark" />
         </div>
         <div className="relative z-10 mx-auto max-w-[860px] px-4 pb-12 pt-14 text-center text-white sm:pt-16">
           {business.logo_url && (
@@ -313,9 +365,9 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
           <div className={`grid gap-3 grid-cols-1 ${secondStat ? 'sm:grid-cols-2' : ''}`}>
             <div
               className="rounded-2xl border p-6 text-center"
-              style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}
+              style={{ borderColor: BORDER, backgroundColor: SURFACE }}
             >
-              <p className="break-all text-2xl font-bold sm:text-3xl" style={{ color: accent }}>
+              <p className="break-all text-2xl font-bold sm:text-3xl" style={{ color: accentText }}>
                 {mealsServed.toLocaleString(locale)}
               </p>
               <p className="mt-1 text-xs font-medium uppercase tracking-wide" style={{ color: MUTED }}>
@@ -325,9 +377,9 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
             {secondStat && (
               <div
                 className="rounded-2xl border p-6 text-center"
-                style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}
+                style={{ borderColor: BORDER, backgroundColor: SURFACE }}
               >
-                <p className="break-all text-2xl font-bold sm:text-3xl" style={{ color: accent }}>
+                <p className="break-all text-2xl font-bold sm:text-3xl" style={{ color: accentText }}>
                   {secondStat.value}
                 </p>
                 <p className="mt-1 text-xs font-medium uppercase tracking-wide" style={{ color: MUTED }}>
@@ -350,8 +402,8 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
             { Icon: HandsIcon, es: 'Voluntarios que dan su tiempo', en: 'Volunteers who give their time' },
             { Icon: BoxIcon, es: 'Donaciones monetarias y en especie', en: 'Monetary and in-kind donations' },
           ].map(({ Icon, es, en }, i) => (
-            <div key={i} className="rounded-xl border p-4" style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}>
-              <Icon className="h-6 w-6" style={{ color: accent }} />
+            <div key={i} className="rounded-xl border p-4" style={{ borderColor: BORDER, backgroundColor: SURFACE }}>
+              <Icon className="h-6 w-6" style={{ color: accentText }} />
               <p className="mt-2 text-sm" style={{ color: MUTED }}>{getText(es, en)}</p>
             </div>
           ))}
@@ -382,7 +434,7 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
                 program.volunteersNeeded != null ? getText(`${program.volunteersNeeded} voluntarios`, `${program.volunteersNeeded} volunteers`) : null,
               ].filter(Boolean).join(' · ');
               return (
-                <div key={program.id} className="overflow-hidden rounded-xl border" style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}>
+                <div key={program.id} className="overflow-hidden rounded-xl border" style={{ borderColor: BORDER, backgroundColor: SURFACE }}>
                   {program.imageUrl && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={program.imageUrl} alt={title} className="h-36 w-full object-cover" />
@@ -415,13 +467,13 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
            no debe mostrar nada de esto, ni siquiera la meta del mes. */}
       {monetaryDonationsEnabled && (
         <section className="mx-auto mt-10 max-w-[860px] px-4">
-          <div className="rounded-2xl border p-5 sm:p-6" style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}>
+          <div className="rounded-2xl border p-5 sm:p-6" style={{ borderColor: BORDER, backgroundColor: SURFACE }}>
             <h2 className="text-lg font-semibold" style={{ color: INK }}>
               {getText('Calculadora de impacto', 'Impact calculator')}
             </h2>
             {avgCostPerPlate && avgCostPerPlate > 0 ? (
               <ImpactCalculator
-                accent={accent}
+                accent={accentText}
                 costPerPlate={avgCostPerPlate}
                 currency={currency}
                 language={language}
@@ -440,8 +492,8 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
                 type="button"
                 disabled
                 title={getText('Próximamente', 'Coming soon')}
-                className="mt-5 w-full cursor-not-allowed rounded-full px-4 py-3 text-sm font-semibold text-white opacity-60"
-                style={{ backgroundColor: accent }}
+                className="mt-5 w-full cursor-not-allowed rounded-full px-4 py-3 text-sm font-semibold opacity-60"
+                style={{ backgroundColor: accentFill, color: onAccent }}
               >
                 {getText('Donar — próximamente', 'Donate — coming soon')}
               </button>
@@ -450,8 +502,8 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
                 type="button"
                 onClick={handleDonateCheckout}
                 disabled={donationCheckoutState === 'loading'}
-                className="mt-5 flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-wait disabled:opacity-70"
-                style={{ backgroundColor: accent }}
+                className="mt-5 flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-semibold transition hover:opacity-90 disabled:cursor-wait disabled:opacity-70"
+                style={{ backgroundColor: accentFill, color: onAccent }}
               >
                 {donationCheckoutState === 'loading'
                   ? getText('Redirigiendo…', 'Redirecting…')
@@ -464,7 +516,7 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
                componente). "este mes", nunca "en vivo": sería implicar un contador automático
                que todavía no existe. */}
           {hasFundraisingGoal && (
-            <div className="mt-4 rounded-2xl border p-5" style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}>
+            <div className="mt-4 rounded-2xl border p-5" style={{ borderColor: BORDER, backgroundColor: SURFACE }}>
               <div className="mb-2 flex items-center gap-1.5">
                 <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ backgroundColor: GREEN }} />
                 <span className="text-xs font-semibold" style={{ color: GREEN }}>
@@ -482,7 +534,7 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
                 )}
               </div>
               {impact?.fundraisingGoalAmount != null && impact.fundraisingGoalAmount > 0 && (
-                <div className="mt-2 h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: PAPER }}>
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: TRACK }}>
                   <div
                     className="h-full rounded-full"
                     style={{
@@ -540,8 +592,8 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
                   )}
                   {pct !== null && (
                     <>
-                      <div className="mt-2.5 h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: PAPER }}>
-                        <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: accent }} />
+                      <div className="mt-2.5 h-1.5 overflow-hidden rounded-full" style={{ backgroundColor: TRACK }}>
+                        <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: accentFill }} />
                       </div>
                       <p className="mt-1 text-[11px]" style={{ color: MUTED }}>
                         {formatPrice(causa.currentAmount ?? 0, currency)} {getText('de', 'of')} {formatPrice(causa.goalAmount!, currency)}
@@ -549,7 +601,7 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
                     </>
                   )}
                   {causa.type === 'time' && isExpanded && (
-                    <div className="mt-2.5 border-t pt-2.5 text-xs" style={{ borderColor: '#E3E6EC', color: MUTED }}>
+                    <div className="mt-2.5 border-t pt-2.5 text-xs" style={{ borderColor: BORDER, color: MUTED }}>
                       <p>
                         {getText(
                           'Aun no hay un canal de inscripcion para voluntariado — escribe directo al negocio:',
@@ -576,7 +628,7 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
               );
 
               const cardClassName = 'rounded-xl border p-4 text-left w-full';
-              const cardStyle = { borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' } as const;
+              const cardStyle = { borderColor: BORDER, backgroundColor: SURFACE } as const;
 
               if (causa.type === 'money' && causaDonateLink) {
                 return (
@@ -656,13 +708,13 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
               const title = getText(activity.title, activity.titleEn?.trim() || activity.title);
               const description = getText(activity.description ?? '', activity.descriptionEn?.trim() || activity.description || '');
               return (
-                <div key={activity.id} className="overflow-hidden rounded-xl border" style={{ borderColor: '#E3E6EC', backgroundColor: '#FFFFFF' }}>
+                <div key={activity.id} className="overflow-hidden rounded-xl border" style={{ borderColor: BORDER, backgroundColor: SURFACE }}>
                   {activity.imageUrl && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={activity.imageUrl} alt={title} className="h-36 w-full object-cover" />
                   )}
                   <div className="flex items-start gap-2.5 p-4">
-                    <CalendarIcon className="mt-0.5 h-4 w-4 flex-shrink-0" style={{ color: accent }} />
+                    <CalendarIcon className="mt-0.5 h-4 w-4 flex-shrink-0" style={{ color: accentText }} />
                     <div className="flex-1">
                       <div className="flex flex-wrap items-baseline gap-x-2">
                         <span className="text-sm font-medium" style={{ color: INK }}>{title}</span>
@@ -689,7 +741,7 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
       {/* ── Punto de entrega (Fase 4) — texto libre del afiliado + dirección ya existente ── */}
       {showPuntoDeEntrega && (
         <section id="punto-de-entrega" className="mx-auto mt-10 max-w-[860px] scroll-mt-20 px-4">
-          <div className="rounded-2xl p-5" style={{ backgroundColor: '#FFFFFF', border: '1px solid #E3E6EC' }}>
+          <div className="rounded-2xl p-5" style={{ backgroundColor: SURFACE, border: `1px solid ${BORDER}` }}>
             <div className="flex items-center gap-2">
               <TruckIcon className="h-4 w-4" style={{ color: MUTED }} />
               <span className="text-sm font-semibold" style={{ color: INK }}>

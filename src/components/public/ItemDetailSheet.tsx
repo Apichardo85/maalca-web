@@ -27,6 +27,9 @@ interface Props {
   onAccent?: string;
   textColor?: string;
   mutedColor?: string;
+  /** Fondo de la hoja. Las plantillas pasan su superficie (p. ej. "var(--rt-surface, #ffffff)"); por
+   *  defecto usa --pub-surface, que este componente define en modo oscuro. */
+  surfaceColor?: string;
   language: 'es' | 'en';
 }
 
@@ -46,8 +49,9 @@ export function ItemDetailSheet({
   onRemove,
   accent,
   onAccent = '#ffffff',
-  textColor = '#1f1a14',
-  mutedColor = '#6b6257',
+  textColor = 'var(--pub-ink, #1f1a14)',
+  mutedColor = 'var(--pub-muted, #6b6257)',
+  surfaceColor = 'var(--pub-surface, #ffffff)',
   language,
 }: Props) {
   const t = (es: string, en: string) => (language === 'es' ? es : en);
@@ -71,6 +75,7 @@ export function ItemDetailSheet({
       type="button"
       onClick={onClick}
       aria-label={label}
+      className={filled ? undefined : 'ids-btn-minus'}
       style={{
         width: 40,
         height: 40,
@@ -79,7 +84,7 @@ export function ItemDetailSheet({
         fontSize: 20,
         fontWeight: 700,
         cursor: 'pointer',
-        backgroundColor: filled ? accent : 'rgba(0,0,0,0.07)',
+        backgroundColor: filled ? accent : undefined,
         color: filled ? onAccent : textColor,
       }}
     >
@@ -91,19 +96,27 @@ export function ItemDetailSheet({
     <div role="dialog" aria-modal="true" aria-label={name} onClick={onClose} className="ids-overlay">
       <style>{`
         .ids-overlay{position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center}
-        .ids-sheet{width:100%;max-width:520px;max-height:92vh;max-height:92dvh;overflow-y:auto;overscroll-behavior:contain;background:#fff;border-radius:20px 20px 0 0;position:relative;padding-bottom:max(16px,env(safe-area-inset-bottom))}
+        .ids-sheet{width:100%;max-width:520px;max-height:92vh;max-height:92dvh;overflow-y:auto;overscroll-behavior:contain;border-radius:20px 20px 0 0;position:relative;padding-bottom:max(16px,env(safe-area-inset-bottom))}
         .ids-img{border-radius:20px 20px 0 0}
+        .ids-btn-minus{background:rgba(0,0,0,0.07)}
+        .ids-close{background:rgba(255,255,255,0.92);box-shadow:0 1px 4px rgba(0,0,0,0.25);color:#1f1a14}
+        .ids-tag{background:rgba(0,0,0,0.06)}
+        [data-theme="dark"] .ids-sheet{--pub-surface:#1d1b18;--pub-ink:#ece8e0;--pub-muted:#a29b8d}
+        [data-theme="dark"] .ids-btn-minus{background:rgba(255,255,255,0.12)}
+        [data-theme="dark"] .ids-close{background:rgba(42,39,35,0.92);box-shadow:0 1px 4px rgba(0,0,0,0.5);color:#ece8e0}
+        [data-theme="dark"] .ids-tag{background:rgba(255,255,255,0.1)}
         @media (min-width:640px){
           .ids-overlay{align-items:center;padding:24px}
           .ids-sheet{max-width:460px;max-height:86vh;max-height:86dvh;border-radius:20px;padding-bottom:16px}
           .ids-img{border-radius:20px 20px 0 0;max-height:320px !important}
         }
       `}</style>
-      <div onClick={(e) => e.stopPropagation()} className="ids-sheet">
+      <div onClick={(e) => e.stopPropagation()} className="ids-sheet" style={{ background: surfaceColor }}>
         <button
           type="button"
           onClick={onClose}
           aria-label={t('Cerrar', 'Close')}
+          className="ids-close"
           style={{
             position: 'absolute',
             top: 10,
@@ -113,11 +126,8 @@ export function ItemDetailSheet({
             height: 36,
             borderRadius: 9999,
             border: 'none',
-            background: 'rgba(255,255,255,0.92)',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
             fontSize: 18,
             cursor: 'pointer',
-            color: '#1f1a14',
           }}
         >
           ✕
@@ -145,7 +155,7 @@ export function ItemDetailSheet({
           {tags.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
               {tags.map((tag) => (
-                <span key={tag} style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 9999, background: 'rgba(0,0,0,0.06)', color: textColor }}>
+                <span key={tag} className="ids-tag" style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 9999, color: textColor }}>
                   {tag}
                 </span>
               ))}

@@ -21,16 +21,42 @@ import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { formatPrice } from '@/lib/currency';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
+import PublicThemeToggle from '@/components/public/PublicThemeToggle';
+import { deriveBrandPalette, deriveDarkBrandPalette, themeVarsCss } from '@/lib/brand-palette';
 
 // Scoped to this template only — Fraunces gives the pull-quote/headers real
 // character; Plex Mono is the "spec sheet" voice for numbers, prices, labels.
 const fraunces = Fraunces({ subsets: ['latin'], weight: ['500', '600'], variable: '--font-service-display' });
 const plexMono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['500'], variable: '--font-service-mono' });
 
-const PAPER = '#FAF8F4';
-const MIST = '#F0EEE9';
-const INK = '#1C1B1F';
-const STONE = '#8A8578';
+// Neutrals are CSS vars (scope .sv-scope, dark values under html[data-theme="dark"]) with the
+// original light hex as fallback, so light mode renders exactly as before.
+const PAPER = 'var(--sv-bg, #FAF8F4)';
+// MIST is only ever used as a hairline border color; in dark it is the border tone.
+const MIST = 'var(--sv-mist, #F0EEE9)';
+const INK = 'var(--sv-ink, #1C1B1F)';
+const STONE = 'var(--sv-stone, #8A8578)';
+const DOT = 'var(--sv-dot, #c9c5ba)';
+const INK_SOFT = 'var(--sv-ink-soft, #4a4740)';
+// Text on the brand-colored buttons/badges (white in light; contrast-picked in dark).
+const ON_ACCENT = 'var(--sv-on-accent, #fff)';
+
+const SV_LIGHT = {
+  'sv-bg': '#FAF8F4',
+  'sv-mist': '#F0EEE9',
+  'sv-ink': '#1C1B1F',
+  'sv-stone': '#8A8578',
+  'sv-dot': '#c9c5ba',
+  'sv-ink-soft': '#4a4740',
+};
+const SV_DARK = {
+  'sv-bg': '#141311',
+  'sv-mist': '#34302A',
+  'sv-ink': '#EFECE6',
+  'sv-stone': '#A29B8D',
+  'sv-dot': '#4A453D',
+  'sv-ink-soft': '#C9C4B8',
+};
 
 function PinIcon({ className }: { className?: string }) {
   return (
@@ -94,7 +120,17 @@ function CaseIcon({ className, style }: { className?: string; style?: CSSPropert
 }
 
 export function ServiceTemplate({ business, items, capabilities }: PublicTemplateProps) {
-  const accent = business.primary_color ?? '#045AFE';
+  const accentHex = business.primary_color ?? '#045AFE';
+  // Brand color as a CSS var (dark mode lightens it); the hex is the fallback. Components that
+  // concatenate alpha onto the color (gallery, booking) still receive the plain hex.
+  const accent = `var(--sv-accent, ${accentHex})`;
+  const lightPal = deriveBrandPalette(business.primary_color, business.secondary_color, business.accent_color);
+  const darkPal = deriveDarkBrandPalette(business.primary_color, business.secondary_color, business.accent_color);
+  const themeCss = themeVarsCss(
+    'sv-scope',
+    { ...SV_LIGHT, 'sv-accent': lightPal.accent, 'sv-on-accent': '#fff' },
+    { ...SV_DARK, 'sv-accent': darkPal.accent, 'sv-on-accent': darkPal.onAccent },
+  );
   const waRaw = resolveWhatsAppDigits(business);
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -123,9 +159,10 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
 
   return (
     <div
-      className={`${fraunces.variable} ${plexMono.variable} min-h-screen`}
+      className={`${fraunces.variable} ${plexMono.variable} sv-scope min-h-screen`}
       style={{ backgroundColor: PAPER, color: INK }}
     >
+      <style dangerouslySetInnerHTML={{ __html: themeCss }} />
       {/* Cover strip — purely atmospheric, no text overlay (identity lives in the sidebar/mobile bar) */}
       {business.cover_image_url && (
         <div className="relative h-36 w-full overflow-hidden lg:h-52">
@@ -148,8 +185,8 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
           <img src={business.logo_url} alt={business.name} className="h-11 w-11 shrink-0 rounded-xl object-cover" />
         ) : (
           <div
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-base font-semibold text-white"
-            style={{ backgroundColor: accent }}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-base font-semibold"
+            style={{ backgroundColor: accent, color: ON_ACCENT }}
           >
             {business.name.charAt(0).toUpperCase()}
           </div>
@@ -157,8 +194,9 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
         <p className={`${fraunces.className} min-w-0 flex-1 truncate text-[17px] font-semibold`}>
           {business.name}
         </p>
-        <div className="shrink-0">
+        <div className="flex shrink-0 items-center gap-2">
           <SimpleLanguageToggle variant="light" />
+          <PublicThemeToggle variant="light" />
         </div>
         {waHeroLink && (
           <a
@@ -166,8 +204,8 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => trackCanalClick(business.slug, 'WhatsApp', whatsappEntry?.canalId)}
-            className="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold text-white"
-            style={{ backgroundColor: accent }}
+            className="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold"
+            style={{ backgroundColor: accent, color: ON_ACCENT }}
           >
             <ChatIcon className="h-3.5 w-3.5" />
             WhatsApp
@@ -208,13 +246,16 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
                 <img src={business.logo_url} alt={business.name} className="h-16 w-16 rounded-2xl object-cover" />
               ) : (
                 <div
-                  className="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-semibold text-white"
-                  style={{ backgroundColor: accent }}
+                  className="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-semibold"
+                  style={{ backgroundColor: accent, color: ON_ACCENT }}
                 >
                   {business.name.charAt(0).toUpperCase()}
                 </div>
               )}
-              <SimpleLanguageToggle variant="light" />
+              <div className="flex items-center gap-2">
+                <SimpleLanguageToggle variant="light" />
+                <PublicThemeToggle variant="light" />
+              </div>
             </div>
 
             <div>
@@ -240,8 +281,8 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => trackCanalClick(business.slug, 'WhatsApp', whatsappEntry?.canalId)}
-                className="flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold text-white transition hover:opacity-90"
-                style={{ backgroundColor: accent }}
+                className="flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold transition hover:opacity-90"
+                style={{ backgroundColor: accent, color: ON_ACCENT }}
               >
                 <ChatIcon className="h-4 w-4" />
                 WhatsApp
@@ -297,7 +338,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
 
           <ProcessSection steps={business.processSteps} visible={business.sectionVisibility?.processSteps !== false} accent={accent} displayClassName={fraunces.className} getText={getText} />
 
-          <GallerySection images={business.galleryImages} visible={business.sectionVisibility?.gallery !== false} accent={accent} displayClassName={fraunces.className} getText={getText} />
+          <GallerySection images={business.galleryImages} visible={business.sectionVisibility?.gallery !== false} accent={accentHex} displayClassName={fraunces.className} getText={getText} />
 
           <section className="mt-12">
             <h2 className={`${fraunces.className} text-lg font-semibold`}>{getText('Servicios', 'Services')}</h2>
@@ -333,7 +374,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
                           {String(i + 1).padStart(2, '0')}
                         </span>
                         <span className="text-[15px] font-medium">{displayName}</span>
-                        <span className="h-px flex-1 border-b border-dotted" style={{ borderColor: '#c9c5ba' }} />
+                        <span className="h-px flex-1 border-b border-dotted" style={{ borderColor: DOT }} />
                         {item.price != null && (
                           <span className={`${plexMono.className} text-sm`}>{formatPrice(item.price, business.currency)}</span>
                         )}
@@ -352,7 +393,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
                           )}
                           <div className="flex flex-1 flex-col gap-3">
                             {description && (
-                              <p className="text-sm leading-relaxed" style={{ color: '#4a4740' }}>
+                              <p className="text-sm leading-relaxed" style={{ color: INK_SOFT }}>
                                 {description}
                               </p>
                             )}
@@ -362,8 +403,8 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 onClick={() => trackCanalClick(business.slug, 'WhatsApp', whatsappEntry?.canalId)}
-                                className="inline-flex w-fit items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold text-white"
-                                style={{ backgroundColor: accent }}
+                                className="inline-flex w-fit items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold"
+                                style={{ backgroundColor: accent, color: ON_ACCENT }}
                               >
                                 {capabilities.bookingCalendar
                                   ? getText('Reservar', 'Book')
@@ -415,8 +456,8 @@ function ProcessSection({
         {steps.map((step, i) => (
           <li key={`${i}-${step.title}`}>
             <span
-              className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold text-white"
-              style={{ backgroundColor: accent }}
+              className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold"
+              style={{ backgroundColor: accent, color: ON_ACCENT }}
             >
               {i + 1}
             </span>

@@ -7,7 +7,7 @@
 // with a single bold accent rule ("the blade") as the recurring graphic
 // motif and a perforated "ticket stub" service card as the signature
 // element — distinct from Service's mono rate-card index.
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Oswald } from 'next/font/google';
 import type { ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
 import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
@@ -22,7 +22,8 @@ import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { formatPrice } from '@/lib/currency';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
-import { deriveBrandPalette, brandPaletteVars } from '@/lib/brand-palette';
+import PublicThemeToggle from '@/components/public/PublicThemeToggle';
+import { deriveBrandPalette, deriveDarkBrandPalette, brandPaletteCss } from '@/lib/brand-palette';
 import { getOpenStatus, formatHour, type OpenStatus } from '@/lib/business-hours';
 import { categoryLabel } from '@/lib/category-label';
 
@@ -34,7 +35,8 @@ const oswald = Oswald({ subsets: ['latin'], weight: ['500', '600', '700'], varia
 const ALL_TAB = '__all__';
 
 // Colores derivados del color primario del negocio (ver src/lib/brand-palette.ts): las variables
-// --bb-* se fijan en el contenedor raíz; el segundo valor de var() es el respaldo anterior.
+// --bb-* las define una hoja de estilos (brandPaletteCss) bajo la clase .bb-scope, en claro y en oscuro
+// (html[data-theme="dark"]); el segundo valor de var() es el respaldo anterior (modo claro).
 const ACCENT = 'var(--bb-accent, #045AFE)';
 const ON_ACCENT = 'var(--bb-on-accent, #ffffff)';
 const TINTA = 'var(--bb-ink, #151312)';
@@ -42,6 +44,17 @@ const ESCARCHA = 'var(--bb-bg, #EFF1F4)';
 const ACERO = 'var(--bb-muted, #5B5B5B)';
 const ACERO_LIGHT = 'var(--bb-placeholder, #E4E6EA)';
 const LINE = 'var(--bb-border, #dcdfe3)';
+// Superficies claras (tarjetas, botón secundario) y superficies "tinta" (barras/hero con texto blanco encima):
+// en oscuro la tinta es casi blanca, así que los fondos usan --bb-ink-surface.
+const SURFACE = 'var(--bb-surface, #ffffff)';
+const INK_SURFACE = 'var(--bb-ink-surface, #151312)';
+// Semánticos (abierto / pronto / cerrado) con variante oscura definida en SEMANTIC_CSS.
+const OK = 'var(--bb-ok, #34c759)';
+const WARN = 'var(--bb-warn, #f5a524)';
+const BAD = 'var(--bb-bad, #ff453a)';
+const SEMANTIC_CSS =
+  '.bb-scope{--bb-ok:#34c759;--bb-warn:#f5a524;--bb-bad:#ff453a}' +
+  '[data-theme="dark"] .bb-scope{--bb-ok:#30d158;--bb-warn:#ffb340;--bb-bad:#ff6961}';
 
 // Franja de poste de barbero: acento / blanco / tinta, en diagonal. Es el motivo gráfico que
 // identifica la plantilla como barbería (hero y barra de acciones), con los colores de CADA negocio.
@@ -62,7 +75,16 @@ export function BarberTemplate({
   capabilities,
 }: PublicTemplateProps) {
   const accent = business.primary_color ?? '#045AFE';
-  const paletteVars = brandPaletteVars(deriveBrandPalette(business.primary_color, business.secondary_color, business.accent_color), 'bb');
+  const paletteCss = useMemo(
+    () =>
+      brandPaletteCss(
+        'bb-scope',
+        'bb',
+        deriveBrandPalette(business.primary_color, business.secondary_color, business.accent_color),
+        deriveDarkBrandPalette(business.primary_color, business.secondary_color, business.accent_color),
+      ) + SEMANTIC_CSS,
+    [business.primary_color, business.secondary_color, business.accent_color],
+  );
   const waRaw = resolveWhatsAppDigits(business);
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -111,15 +133,16 @@ export function BarberTemplate({
 
   return (
     <div
-      className={oswald.variable}
-      style={{ minHeight: '100vh', backgroundColor: ESCARCHA, paddingBottom: '76px', ...paletteVars } as React.CSSProperties}
+      className={`${oswald.variable} bb-scope`}
+      style={{ minHeight: '100vh', backgroundColor: ESCARCHA, paddingBottom: '76px' }}
     >
+      <style dangerouslySetInnerHTML={{ __html: paletteCss }} />
       {/* ── HERO — Tinta + duotone-leaning cover treatment ── */}
       <section
         style={{
           position: 'relative',
           height: '460px',
-          backgroundColor: TINTA,
+          backgroundColor: INK_SURFACE,
           overflow: 'hidden',
         }}
       >
@@ -159,7 +182,8 @@ export function BarberTemplate({
 
         {/* language toggle — top-right corner, clear of the bottom-anchored
             content below and never covered by it at any viewport */}
-        <div style={{ position: 'absolute', top: '22px', right: '16px', zIndex: 2 }}>
+        <div style={{ position: 'absolute', top: '22px', right: '16px', zIndex: 2, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <PublicThemeToggle variant="dark" />
           <SimpleLanguageToggle variant="dark" />
         </div>
 
@@ -273,7 +297,7 @@ export function BarberTemplate({
                 gap: '8px',
                 flex: '1 1 150px',
                 minHeight: '52px',
-                background: '#ffffff',
+                background: SURFACE,
                 color: TINTA,
                 padding: '12px 20px',
                 fontSize: '17px',
@@ -382,7 +406,7 @@ export function BarberTemplate({
                     borderTop: 'none',
                     borderLeft: 'none',
                     borderRight: 'none',
-                    borderBottom: activeTab === key ? `3px solid ${accent}` : '3px solid transparent',
+                    borderBottom: activeTab === key ? `3px solid ${ACCENT}` : '3px solid transparent',
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
                   }}
@@ -449,7 +473,7 @@ export function BarberTemplate({
       <nav
         aria-label={getText('Acciones rápidas', 'Quick actions')}
         className="sm:hidden fixed bottom-0 left-0 right-0"
-        style={{ zIndex: 40, backgroundColor: TINTA, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        style={{ zIndex: 40, backgroundColor: INK_SURFACE, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <div aria-hidden style={{ height: '6px', background: POLE_STRIPE }} />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', padding: '8px 12px 10px' }}>
@@ -465,7 +489,7 @@ export function BarberTemplate({
             type="button"
             onClick={() => bookingRef.current?.openBooking()}
             className={oswald.className}
-            style={{ minHeight: '48px', backgroundColor: '#ffffff', color: '#151312', border: 'none', fontSize: '15px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}
+            style={{ minHeight: '48px', backgroundColor: SURFACE, color: TINTA, border: 'none', fontSize: '15px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}
           >
             {getText('Reservar cita', 'Book a cut')}
           </button>
@@ -476,17 +500,17 @@ export function BarberTemplate({
 }
 
 function BarberOpenPill({ status, getText }: { status: OpenStatus; getText: (es: string, en: string) => string }) {
-  let dot = '#34c759';
+  let dot = OK;
   let strong = getText('Abierto ahora', 'Open now');
   let rest = '';
   if (status.state === 'open') {
     rest = getText(`cierra a las ${formatHour(status.closesAt)}`, `closes at ${formatHour(status.closesAt)}`);
   } else if (status.state === 'opening_soon') {
-    dot = '#f5a524';
+    dot = WARN;
     strong = getText('Abre pronto', 'Opening soon');
     rest = getText(`a las ${formatHour(status.opensAt)}`, `at ${formatHour(status.opensAt)}`);
   } else {
-    dot = '#ff453a';
+    dot = BAD;
     strong = getText('Cerrado ahora', 'Closed now');
   }
   return (
@@ -526,7 +550,7 @@ function ProcessSection({
           <li
             key={`${i}-${step.title}`}
             style={{
-              backgroundColor: '#ffffff',
+              backgroundColor: SURFACE,
               border: `1px solid ${LINE}`,
               borderRadius: '10px',
               padding: '16px',
@@ -633,7 +657,7 @@ function ServiceCard({
   return (
     <div
       style={{
-        backgroundColor: '#ffffff',
+        backgroundColor: SURFACE,
         border: `1px solid ${LINE}`,
         borderRadius: '10px',
         overflow: 'hidden',
@@ -671,7 +695,7 @@ function ServiceCard({
             text={description}
             language={language}
             textStyle={{ margin: '4px 0 0', fontSize: '11px', color: ACERO, lineHeight: 1.4 }}
-            buttonColor={accent}
+            buttonColor={ACCENT}
             buttonStyle={{ fontSize: '11px' }}
           />
         )}
@@ -792,7 +816,7 @@ function ContactSection({
               rel="noopener noreferrer"
               onClick={() => trackCanalClick(business.slug, c.tipo, c.canalId)}
               style={{
-                backgroundColor: '#ffffff',
+                backgroundColor: SURFACE,
                 border: `1px solid ${LINE}`,
                 borderRadius: '10px',
                 padding: '16px',

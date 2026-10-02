@@ -62,13 +62,10 @@ export function ScrollStrip({
           width: 40,
           height: 40,
           borderRadius: 9999,
-          border: '1px solid rgba(0,0,0,0.08)',
-          background: '#ffffff',
           boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
           fontSize: 22,
           lineHeight: 1,
           cursor: 'pointer',
-          color: '#1f1a14',
           alignItems: 'center',
           justifyContent: 'center',
         }}
@@ -79,7 +76,7 @@ export function ScrollStrip({
 
   return (
     <div style={{ position: 'relative', margin: `0 -${bleed}px` }}>
-      <style>{`.ss-arrow{display:none}@media (hover:hover){.ss-arrow{display:flex}}`}</style>
+      <style>{`.ss-arrow{display:none;border:1px solid rgba(0,0,0,0.08);background:#ffffff;color:#1f1a14}@media (hover:hover){.ss-arrow{display:flex}}[data-theme="dark"] .ss-arrow{border-color:rgba(255,255,255,0.14);background:#2a2723;color:#ece8e0}`}</style>
       <div
         ref={ref}
         style={{
