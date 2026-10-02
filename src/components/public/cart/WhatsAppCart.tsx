@@ -60,6 +60,14 @@ export function WhatsAppCart({
     if (onOpenChange) onOpenChange(next)
     else setIsOpenInternal(next)
   }, [onOpenChange])
+  // Pedido desde la mesa: el QR de cada mesa apunta a /{slug}?mesa=7. Se lee en el cliente (no en
+  // el servidor) para no volver dinámica la página ISR. Solo Restaurante.
+  const [tableNumber, setTableNumber] = useState<string | undefined>(undefined)
+  useEffect(() => {
+    if (!restaurantMode) return
+    const raw = new URLSearchParams(window.location.search).get('mesa')?.trim()
+    if (raw && raw.length <= 20 && /^[\p{L}\p{N}\- ]+$/u.test(raw)) setTableNumber(raw)
+  }, [restaurantMode])
   const [toast, setToast] = useState({ message: '', visible: false })
   const prevCountRef = useRef(cartCount)
 
@@ -111,6 +119,7 @@ export function WhatsAppCart({
         updateNotes={updateNotes}
         restaurantMode={restaurantMode}
         getText={getText}
+        tableNumber={tableNumber}
       />
     </>
   )

@@ -235,7 +235,9 @@ export function KitchenContent({ slug, plan, affiliateId, initialOrders }: Props
                     >
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-base font-bold">
-                          {order.customerName || getText('Cliente sin nombre', 'Unnamed customer')}
+                          {order.tableNumber
+                            ? getText(`Mesa ${order.tableNumber}`, `Table ${order.tableNumber}`)
+                            : order.customerName || getText('Cliente sin nombre', 'Unnamed customer')}
                         </p>
                         <div className="flex shrink-0 flex-col items-end gap-0.5">
                           <span className="text-xs text-gray-400 dark:text-neutral-500">
