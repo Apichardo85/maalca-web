@@ -44,6 +44,8 @@ import {
   WEEK_DAY_LABELS_ES as HORARIO_LABELS_ES,
   WEEK_DAY_LABELS_EN as HORARIO_LABELS_EN,
   getOpenStatus,
+  getScheduleTarget,
+  hhmmToMinutes,
   todayKeyInTimezone,
   formatHour,
   type OpenStatus,
@@ -170,6 +172,17 @@ function resolveNowInTimezone(
   }
 }
 
+/** Momento de comida que corresponde a una hora del día (minutos desde medianoche). */
+function periodAtMinutes(totalMin: number): Exclude<MealPeriod, 'all_day'> {
+  for (const [p, range] of Object.entries(DEFAULT_PERIOD_HOURS) as Array<[Exclude<MealPeriod, 'all_day'>, { start: number; end: number }]>) {
+    const within = range.end > range.start
+      ? totalMin >= range.start && totalMin < range.end
+      : totalMin >= range.start || totalMin < range.end;
+    if (within) return p;
+  }
+  return 'late_night';
+}
+
 export function RestaurantTemplate({
   business,
   items,
@@ -229,16 +242,26 @@ export function RestaurantTemplate({
 
   const [vistaHoyActive, setVistaHoyActive] = useState(vistaHoyAvailable);
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
-  const [activePeriod, setActivePeriod] = useState<string>(
-    vistaHoyAvailable && nowInfo ? nowInfo.period : ALL_PERIODS,
-  );
+  // Momento elegido a mano (null = automático: sigue la hora real del negocio, minuto a minuto, así
+  // una pestaña abierta en el desayuno pasa sola al almuerzo).
+  const [periodPick, setPeriodPick] = useState<string | null>(null);
+  const setActivePeriod = (key: string) => setPeriodPick(key);
+
+  // Negocio cerrado (con horario y zona configurados): no se pide "para ahora", solo se programa para
+  // la próxima apertura. El menú que se muestra pasa a ser el de ESE día y momento (p. ej. cerrado el
+  // martes en la noche => el desayuno del miércoles), no el de la hora actual.
+  const schedule = getScheduleTarget(openStatus, business.timezone);
+  const effWeekday: WeekDay | null = schedule ? (schedule.weekday as WeekDay) : nowInfo?.weekday ?? null;
+  const openMin = schedule ? hhmmToMinutes(schedule.opensAt) : null;
+  const effPeriod: Exclude<MealPeriod, 'all_day'> | null = schedule && openMin !== null ? periodAtMinutes(openMin) : nowInfo?.period ?? null;
+  const activePeriod = periodPick ?? (vistaHoyActive && effPeriod ? effPeriod : ALL_PERIODS);
   const [query, setQuery] = useState('');
   const searchActive = query.trim().length > 0;
 
   // Prioridad por momento de comida: si el cliente eligió un período, ese; si no, el de ahora.
   // 0 = se sirve en este momento, 1 = sin período (todo el día), 2 = solo en otro momento.
   // El orden es estable (lo demás conserva su orden) y NUNCA oculta: solo pone primero lo del momento.
-  const focusPeriod = activePeriod !== ALL_PERIODS ? (activePeriod as MealPeriod) : periodNow;
+  const focusPeriod = activePeriod !== ALL_PERIODS ? (activePeriod as MealPeriod) : effPeriod ?? periodNow;
   function periodRank(item: (typeof items)[number]): number {
     if (!focusPeriod || !item.periods || item.periods.length === 0 || item.periods.includes('all_day')) return 1;
     return item.periods.includes(focusPeriod) ? 0 : 2;
@@ -265,13 +288,13 @@ export function RestaurantTemplate({
 
   function clearVistaHoy() {
     setVistaHoyActive(false);
-    setActivePeriod(ALL_PERIODS);
+    setPeriodPick(ALL_PERIODS);
   }
 
   function matchesWeekday(item: (typeof items)[number]): boolean {
-    if (!vistaHoyActive || !nowInfo) return true;
+    if (!vistaHoyActive || !effWeekday) return true;
     if (!item.weekDays || item.weekDays.length === 0) return true;
-    return item.weekDays.includes(nowInfo.weekday);
+    return item.weekDays.includes(effWeekday);
   }
 
   const availablePeriods = MEAL_PERIOD_ORDER.filter(
@@ -279,21 +302,26 @@ export function RestaurantTemplate({
       p !== 'all_day' && items.some((i) => i.periods?.includes(p)),
   );
 
-  // Destacados ignora Vista Hoy en cuanto a PERÍODO (es una vitrina "lo mejor de la cocina", no un
-  // "qué puedo pedir ahora": si filtrara por hora se vaciaría a deshoras). Pero SÍ respeta el DÍA:
-  // un plato que el restaurante solo hace los sábados no puede ser el "popular" de un martes (el
-  // pedido, además, se rechaza en el servidor). Un item sin weekDays aplica todos los días.
+  // Destacados es "lo mejor de la cocina" PERO vivo: respeta el día y el momento de comida reales del
+  // negocio (o los de la próxima apertura si está cerrado). Una sopa que solo se hace los sábados no es
+  // el "popular" de un martes, y una cena no aparece primero en el desayuno. Un plato sin días ni
+  // períodos aplica siempre. Si nada coincide con este momento, la franja se oculta (no se rellena con
+  // platos fuera de horario). El pedido, además, se valida en el servidor.
+  const servesNow = (i: (typeof items)[number]) => {
+    if (effWeekday && i.weekDays && i.weekDays.length > 0 && !i.weekDays.includes(effWeekday)) return false;
+    if (focusPeriod && i.periods && i.periods.length > 0 && !i.periods.includes('all_day') && !i.periods.includes(focusPeriod)) return false;
+    return true;
+  };
   const destacados = byPeriod(
-    items
-      .filter((i) => i.featured || i.popular)
-      .filter((i) => !weekdayNow || !i.weekDays || i.weekDays.length === 0 || i.weekDays.includes(weekdayNow)),
+    items.filter((i) => i.featured || i.popular).filter(servesNow),
   ).slice(0, MAX_DESTACADOS);
 
   // Menú completo (Vista Hoy apagada): un plato que hoy no se hace sigue visible pero en gris y sin
   // botón de agregar, con la etiqueta de qué días sí. El servidor igual rechaza el pedido.
   function unavailableLabel(item: (typeof items)[number]): string | null {
-    if (vistaHoyActive || !weekdayNow) return null;
-    if (!item.weekDays || item.weekDays.length === 0 || item.weekDays.includes(weekdayNow)) return null;
+    const day = effWeekday ?? weekdayNow;
+    if (vistaHoyActive || !day) return null;
+    if (!item.weekDays || item.weekDays.length === 0 || item.weekDays.includes(day)) return null;
     const names = item.weekDays.map((d) => (language === 'en' ? WEEK_DAY_LABELS_EN[d] : WEEK_DAY_LABELS_ES[d]));
     const list = names.length > 1 ? `${names.slice(0, -1).join(', ')} ${language === 'en' ? 'and' : 'y'} ${names[names.length - 1]}` : names[0];
     return language === 'en' ? `Only ${list}` : `Solo ${list.toLowerCase()}`;
@@ -880,10 +908,15 @@ export function RestaurantTemplate({
             }}
           >
             <span style={{ fontSize: '13px', color: CAFE, fontWeight: 500 }}>
-              {getText(
-                `Mostrando el menú de ahora: ${periodLabel(nowInfo.period)} · ${WEEK_DAY_LABELS_ES[nowInfo.weekday]}`,
-                `Showing today's menu: ${periodLabel(nowInfo.period)} · ${WEEK_DAY_LABELS_EN[nowInfo.weekday]}`,
-              )}
+              {schedule && effPeriod && effWeekday
+                ? getText(
+                    `Cerrado ahora · mostrando el menú de ${schedule.daysAhead === 0 ? 'hoy' : schedule.daysAhead === 1 ? 'mañana' : 'la próxima apertura'}: ${periodLabel(effPeriod)} · ${WEEK_DAY_LABELS_ES[effWeekday]}`,
+                    `Closed now · showing the ${schedule.daysAhead === 0 ? "today's" : schedule.daysAhead === 1 ? "tomorrow's" : 'next opening'} menu: ${periodLabel(effPeriod)} · ${WEEK_DAY_LABELS_EN[effWeekday]}`,
+                  )
+                : getText(
+                    `Mostrando el menú de ahora: ${periodLabel(nowInfo.period)} · ${WEEK_DAY_LABELS_ES[nowInfo.weekday]}`,
+                    `Showing today's menu: ${periodLabel(nowInfo.period)} · ${WEEK_DAY_LABELS_EN[nowInfo.weekday]}`,
+                  )}
             </span>
             <button
               onClick={clearVistaHoy}
@@ -1015,6 +1048,20 @@ export function RestaurantTemplate({
         onlinePayments={capabilities.onlinePayments}
         updateNotes={updateNotes}
         restaurantMode
+        schedule={
+          schedule
+            ? (() => {
+                const dayEs = (HORARIO_LABELS_ES[schedule.dayKey] ?? schedule.dayKey).toLowerCase();
+                const dayEn = HORARIO_LABELS_EN[schedule.dayKey] ?? schedule.dayKey;
+                return {
+                  dateIso: schedule.dateIso,
+                  whenEs: schedule.daysAhead === 0 ? 'hoy' : schedule.daysAhead === 1 ? 'mañana' : `el ${dayEs}`,
+                  whenEn: schedule.daysAhead === 0 ? 'today' : schedule.daysAhead === 1 ? 'tomorrow' : dayEn,
+                  opensAtLabel: formatHour(schedule.opensAt),
+                };
+              })()
+            : null
+        }
         getText={getText}
         isOpen={cartOpen}
         onOpenChange={setCartOpen}

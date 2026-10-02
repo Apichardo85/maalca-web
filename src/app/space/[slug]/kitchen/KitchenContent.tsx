@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useOrdersRealtime } from '@/hooks/useOrdersRealtime';
-import type { OrderRow } from '../orders/OrdersContent';
+import { formatScheduledFor, type OrderRow } from '../orders/OrdersContent';
 
 interface Props {
   slug: string;
@@ -220,8 +220,11 @@ export function KitchenContent({ slug, plan, affiliateId, initialOrders }: Props
                   const waitMinutes = minutesSince(order.createdAt, now);
                   // La urgencia por tiempo solo aplica a Nuevo/Preparando — un ticket Listo
                   // ya no está "esperando" nada, así que no debe competir visualmente.
-                  const isUrgent = col.status !== 'Fulfilled' && waitMinutes >= URGENT_MINUTES;
-                  const isWarning = col.status !== 'Fulfilled' && waitMinutes >= WARNING_MINUTES;
+                  // Un pedido programado para otro día no está "esperando": sin urgencia hasta ese día.
+                  const todayIso = new Date(now).toLocaleDateString('en-CA');
+                  const isFuture = !!order.scheduledFor && order.scheduledFor > todayIso;
+                  const isUrgent = col.status !== 'Fulfilled' && !isFuture && waitMinutes >= URGENT_MINUTES;
+                  const isWarning = col.status !== 'Fulfilled' && !isFuture && waitMinutes >= WARNING_MINUTES;
                   return (
                     <div
                       key={order.id}
@@ -238,6 +241,11 @@ export function KitchenContent({ slug, plan, affiliateId, initialOrders }: Props
                           {order.tableNumber
                             ? getText(`Mesa ${order.tableNumber}`, `Table ${order.tableNumber}`)
                             : order.customerName || getText('Cliente sin nombre', 'Unnamed customer')}
+                          {order.scheduledFor && (
+                            <span className="mt-1 block w-fit rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                              📅 {formatScheduledFor(order.scheduledFor, language)}
+                            </span>
+                          )}
                         </p>
                         <div className="flex shrink-0 flex-col items-end gap-0.5">
                           <span className="text-xs text-gray-400 dark:text-neutral-500">

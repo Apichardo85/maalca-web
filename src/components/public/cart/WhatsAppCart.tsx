@@ -22,6 +22,8 @@ export interface WhatsAppCartProps {
   updateNotes?: (itemId: string, notes: string) => void
   /** Restaurante: habilita notas de personalización por línea + selector de propina. */
   restaurantMode?: boolean
+  /** Negocio cerrado: el pedido solo se acepta programado (ver CartDrawer). */
+  schedule?: { dateIso: string; whenEs: string; whenEn: string; opensAtLabel: string } | null
   /** Idioma seleccionado por el visitante — con fallback a español si el template no lo pasa aún. */
   getText?: (es: string, en: string) => string
   /** Modo controlado (opcional): el template abre/cierra el cajón desde su propia UI (ej. la barra
@@ -48,6 +50,7 @@ export function WhatsAppCart({
   onlinePayments = false,
   updateNotes,
   restaurantMode = false,
+  schedule = null,
   getText = (es) => es,
   isOpen: isOpenProp,
   onOpenChange,
@@ -120,6 +123,7 @@ export function WhatsAppCart({
         restaurantMode={restaurantMode}
         getText={getText}
         tableNumber={tableNumber}
+        schedule={schedule}
       />
     </>
   )
