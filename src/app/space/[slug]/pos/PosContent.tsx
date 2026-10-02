@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
+import { CustomerPicker } from '@/components/ui/CustomerPicker';
 import { useOrdersRealtime } from '@/hooks/useOrdersRealtime';
 import { Toast } from '@/components/ui/Toast';
 
@@ -441,18 +442,14 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
                 {getText('Cliente (opcional)', 'Customer (optional)')}
               </p>
               {customers.length > 0 && (
-                <select
-                  value={selectedCustomerId}
-                  onChange={(e) => selectCustomer(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
-                >
-                  <option value={NEW_CUSTOMER}>— {getText('Cliente nuevo', 'New customer')} —</option>
-                  {customers.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
+                <CustomerPicker
+                  customers={customers}
+                  selectedId={selectedCustomerId === NEW_CUSTOMER ? null : selectedCustomerId}
+                  onSelect={(c) => selectCustomer(c ? c.id : NEW_CUSTOMER)}
+                  placeholder={getText('Buscar cliente…', 'Search customer…')}
+                  newLabel={getText('+ Cliente nuevo', '+ New customer')}
+                  noResultsLabel={getText('Sin resultados', 'No results')}
+                />
               )}
               <input
                 value={customerName}

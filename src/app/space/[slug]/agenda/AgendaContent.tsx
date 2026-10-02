@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPhoneInput, isValidPhone, normalizePhone, PHONE_INPUT_PROPS } from '@/lib/phone';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
@@ -276,6 +277,10 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
 
   async function createAppointment() {
     if (!customerName.trim() || !serviceId || !date || !time) return;
+    if (customerPhone && !isValidPhone(customerPhone)) {
+      setError(getText('El teléfono no es válido: escribe 10 dígitos o déjalo vacío.', 'Invalid phone: enter 10 digits or leave it empty.'));
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -284,7 +289,7 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: customerName.trim(),
-          phone: customerPhone.trim() || null,
+          phone: customerPhone ? normalizePhone(customerPhone) : null,
           email: customerEmail.trim() || null,
         }),
       });
@@ -425,8 +430,9 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
                   className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
                 />
                 <input
+                  {...PHONE_INPUT_PROPS}
                   value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  onChange={(e) => setCustomerPhone(formatPhoneInput(e.target.value))}
                   placeholder={getText('Teléfono (opcional)', 'Phone (optional)')}
                   className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
                 />

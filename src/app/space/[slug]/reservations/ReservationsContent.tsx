@@ -4,8 +4,10 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
+import { CustomerPicker } from '@/components/ui/CustomerPicker';
 import { Toast } from '@/components/ui/Toast';
 import { buildInvoiceLink } from '@/lib/invoice-link';
+import { formatPhoneInput, isValidPhone, normalizePhone, PHONE_INPUT_PROPS } from '@/lib/phone';
 
 export interface ReservationRow {
   id: string;
@@ -86,7 +88,7 @@ export function ReservationsContent({ slug, initialReservations, customers }: Pr
     if (!c) return;
     setName(c.name);
     setEmail(c.email ?? '');
-    setPhone(c.phone ?? '');
+    setPhone(formatPhoneInput(c.phone ?? ''));
   }
 
   async function refetch() {
@@ -101,7 +103,7 @@ export function ReservationsContent({ slug, initialReservations, customers }: Pr
   }
 
   async function handleAdd() {
-    if (!name.trim() || !phone.trim() || !date || !time || saving) return;
+    if (!name.trim() || !isValidPhone(phone) || !date || !time || saving) return;
     setSaving(true);
     try {
       const res = await fetch(`/api/space/${slug}/reservations`, {
@@ -109,7 +111,7 @@ export function ReservationsContent({ slug, initialReservations, customers }: Pr
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           customerName: name.trim(),
-          customerPhone: phone.trim(),
+          customerPhone: normalizePhone(phone),
           customerEmail: email.trim() || null,
           date,
           time,
@@ -193,16 +195,15 @@ export function ReservationsContent({ slug, initialReservations, customers }: Pr
                 <label className="text-xs text-gray-500 dark:text-neutral-400">
                   {getText('Cliente', 'Customer')}
                 </label>
-                <select
-                  value={selectedCustomerId}
-                  onChange={(e) => selectCustomer(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
-                >
-                  <option value={NEW_CUSTOMER}>{getText('— Cliente nuevo —', '— New customer —')}</option>
-                  {customers.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                <CustomerPicker
+                  className="mt-1"
+                  customers={customers}
+                  selectedId={selectedCustomerId === NEW_CUSTOMER ? null : selectedCustomerId}
+                  onSelect={(c) => selectCustomer(c ? c.id : NEW_CUSTOMER)}
+                  placeholder={getText('Buscar por nombre, teléfono o correo…', 'Search by name, phone or email…')}
+                  newLabel={getText('+ Cliente nuevo', '+ New customer')}
+                  noResultsLabel={getText('Sin resultados', 'No results')}
+                />
               </div>
             )}
             <input
@@ -211,12 +212,21 @@ export function ReservationsContent({ slug, initialReservations, customers }: Pr
               placeholder={getText('Nombre del cliente', "Customer's name")}
               className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
             />
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder={getText('Teléfono', 'Phone')}
-              className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
-            />
+            <div>
+              <input
+                {...PHONE_INPUT_PROPS}
+                value={phone}
+                onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
+                placeholder={getText('Teléfono (809) 555-1234', 'Phone (809) 555-1234')}
+                aria-invalid={phone.length > 0 && !isValidPhone(phone)}
+                className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm aria-[invalid=true]:border-red-400"
+              />
+              {phone.length > 0 && !isValidPhone(phone) && (
+                <p className="mt-1 text-xs text-red-500">
+                  {getText('Escribe 10 dígitos (o +código de país).', 'Enter 10 digits (or +country code).')}
+                </p>
+              )}
+            </div>
             <input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -258,7 +268,7 @@ export function ReservationsContent({ slug, initialReservations, customers }: Pr
             <button
               type="button"
               onClick={handleAdd}
-              disabled={!name.trim() || !phone.trim() || !date || !time || saving}
+              disabled={!name.trim() || !isValidPhone(phone) || !date || !time || saving}
               className="w-full rounded-full px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
               style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
             >

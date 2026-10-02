@@ -255,11 +255,11 @@ function ItemRow({
 }) {
   return (
     <div
-      className={`flex items-center justify-between rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-3 shadow-sm dark:shadow-none ${
+      className={`flex flex-col gap-2 rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-3 shadow-sm dark:shadow-none sm:flex-row sm:items-center sm:justify-between ${
         item.active ? '' : 'opacity-60'
       }`}
     >
-      <div className="flex items-center gap-3 min-w-0">
+      <div className="flex items-start gap-3 min-w-0">
         {item.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -276,7 +276,7 @@ function ItemRow({
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             {item.isDemo && (
               <span className="flex-shrink-0 rounded-full bg-amber-100 dark:bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
                 {getText('Demo', 'Demo')}
@@ -287,23 +287,23 @@ function ItemRow({
                 {getText('Inactivo', 'Inactive')}
               </span>
             )}
-            <span className="truncate text-sm font-medium text-gray-900 dark:text-white">
+            <span className="break-words text-sm font-medium text-gray-900 dark:text-white">
               {item.name}
             </span>
             {item.category && (
-              <span className="hidden truncate text-xs text-gray-400 dark:text-neutral-500 sm:block">
+              <span className="text-xs text-gray-400 dark:text-neutral-500">
                 {item.category}
               </span>
             )}
           </div>
           {item.description && (
-            <p className="mt-0.5 line-clamp-2 text-xs text-gray-400 dark:text-neutral-500">
+            <p className="mt-0.5 line-clamp-3 break-words text-xs text-gray-500 dark:text-neutral-400">
               {item.description}
             </p>
           )}
         </div>
       </div>
-      <div className="ml-4 flex flex-shrink-0 items-center gap-3">
+      <div className="flex flex-shrink-0 items-center justify-end gap-3 sm:ml-4">
         <button
           type="button"
           onClick={() => onToggleActive(item)}

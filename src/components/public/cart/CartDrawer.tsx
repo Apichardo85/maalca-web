@@ -1,4 +1,5 @@
 'use client'
+import { formatPhoneInput, isValidPhone, normalizePhone, PHONE_INPUT_PROPS } from '@/lib/phone';
 import { useMemo, useState } from 'react'
 import type { CartEntry, CartItem } from './useCart'
 
@@ -149,7 +150,7 @@ export function CartDrawer({
           total,
           currency,
           customerName: guestName.trim() || undefined,
-          customerPhone: guestPhone.trim() || undefined,
+          customerPhone: guestPhone && isValidPhone(guestPhone) ? normalizePhone(guestPhone) : undefined,
           successUrl: `${origin}${window.location.pathname}?paid=true${tableNumber ? `&mesa=${encodeURIComponent(tableNumber)}` : ''}`,
           cancelUrl: `${origin}${window.location.pathname}?paid=false${tableNumber ? `&mesa=${encodeURIComponent(tableNumber)}` : ''}`,
           tableNumber: tableNumber || undefined,
@@ -191,7 +192,7 @@ export function CartDrawer({
           total,
           currency,
           customerName: guestName.trim() || undefined,
-          customerPhone: guestPhone.trim() || undefined,
+          customerPhone: guestPhone && isValidPhone(guestPhone) ? normalizePhone(guestPhone) : undefined,
           tableNumber,
           payAtTable: true,
         }),
@@ -494,11 +495,9 @@ export function CartDrawer({
                 style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e3de', fontSize: '13px' }}
               />
               <input
-                type="tel"
+                {...PHONE_INPUT_PROPS}
                 value={guestPhone}
-                onChange={e => setGuestPhone(e.target.value)}
-                maxLength={30}
-                autoComplete="tel"
+                onChange={e => setGuestPhone(formatPhoneInput(e.target.value))}
                 placeholder={getText('Teléfono (opcional)', 'Phone (optional)')}
                 style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e3de', fontSize: '13px' }}
               />

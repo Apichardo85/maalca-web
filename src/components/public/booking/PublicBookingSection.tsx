@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPhoneInput, isValidPhone, normalizePhone, PHONE_INPUT_PROPS } from '@/lib/phone';
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
@@ -140,12 +141,6 @@ function initials(name: string): string {
     .slice(0, 2)
     .map((p) => p[0]?.toUpperCase())
     .join('');
-}
-
-/** Deja solo lo que un teléfono real puede tener — sin esto el input type="tel" es puramente
- *  cosmético (solo cambia el teclado en mobile) y aceptaba letras sin problema. */
-function sanitizePhone(value: string): string {
-  return value.replace(/[^\d\s()+-]/g, '').slice(0, 20);
 }
 
 interface SelectOption {
@@ -395,7 +390,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
           date,
           time,
           customerName,
-          customerPhone,
+          customerPhone: normalizePhone(customerPhone),
           customerEmail: customerEmail.trim() || null,
           notes: notes || null,
           wantsVirtual: selectedService?.modality === 'Both' ? wantsVirtual : undefined,
@@ -450,7 +445,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           customerName: walkInName,
-          customerPhone: walkInPhone || null,
+          customerPhone: walkInPhone ? normalizePhone(walkInPhone) : null,
           serviceId: walkInServiceId || null,
           notes: null,
         }),
@@ -870,9 +865,9 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                         type="tel"
                         inputMode="tel"
                         required
-                        maxLength={20}
+                        maxLength={17}
                         value={customerPhone}
-                        onChange={(e) => setCustomerPhone(sanitizePhone(e.target.value))}
+                        onChange={(e) => setCustomerPhone(formatPhoneInput(e.target.value))}
                         className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none"
                       />
                     </div>
@@ -914,7 +909,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                   )}
                   <button
                     type="submit"
-                    disabled={status === 'submitting' || !date || !time}
+                    disabled={status === 'submitting' || !date || !time || !isValidPhone(customerPhone)}
                     className="w-full rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-md transition-transform hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100"
                     style={{ background: `linear-gradient(135deg, ${color}, ${colorDark})` }}
                   >
@@ -1011,9 +1006,9 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                       <input
                         type="tel"
                         inputMode="tel"
-                        maxLength={20}
+                        maxLength={17}
                         value={walkInPhone}
-                        onChange={(e) => setWalkInPhone(sanitizePhone(e.target.value))}
+                        onChange={(e) => setWalkInPhone(formatPhoneInput(e.target.value))}
                         className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none"
                       />
                     </div>
@@ -1026,7 +1021,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                   )}
                   <button
                     type="submit"
-                    disabled={walkInStatus === 'submitting' || !walkInName.trim()}
+                    disabled={walkInStatus === 'submitting' || !walkInName.trim() || (walkInPhone.length > 0 && !isValidPhone(walkInPhone))}
                     className="w-full rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-md transition-transform hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100"
                     style={{ background: `linear-gradient(135deg, ${color}, ${colorDark})` }}
                   >

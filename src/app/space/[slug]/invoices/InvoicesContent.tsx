@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
+import { CustomerPicker } from '@/components/ui/CustomerPicker';
 import { Toast } from '@/components/ui/Toast';
 import { DangerZoneDelete } from '@/components/space/DangerZoneDelete';
 import { downloadBrandedPdf } from '@/lib/pdf/document';
@@ -475,16 +476,14 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers, ca
                 </span>
               </div>
             )}
-            <select
-              value={customerId}
-              onChange={(e) => setCustomerId(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
-            >
-              <option value="">{getText('Elige un cliente', 'Choose a customer')}</option>
-              {customers.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
+            <CustomerPicker
+              customers={customers}
+              selectedId={customerId || null}
+              onSelect={(c) => setCustomerId(c ? c.id : '')}
+              placeholder={getText('Buscar cliente por nombre, teléfono o correo…', 'Search customer by name, phone or email…')}
+              newLabel={getText('Quitar selección', 'Clear selection')}
+              noResultsLabel={getText('Sin resultados', 'No results')}
+            />
 
             <div className="space-y-2">
               {lines.map((line, i) => (
