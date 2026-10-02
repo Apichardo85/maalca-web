@@ -107,6 +107,9 @@ export function CartDrawer({
   )
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'unavailable' | 'placed' | 'error'>('idle')
   const [tableError, setTableError] = useState('')
+  // Datos de contacto opcionales (restaurante): si los dejan, el pedido crea/enlaza el cliente.
+  const [guestName, setGuestName] = useState('')
+  const [guestPhone, setGuestPhone] = useState('')
   // null = sin propina, number = porcentaje del preset elegido (ej. 0.15), 'custom' = usa customTip.
   const [tipMode, setTipMode] = useState<number | 'custom' | null>(null)
   const [customTip, setCustomTip] = useState('')
@@ -145,6 +148,8 @@ export function CartDrawer({
           tip,
           total,
           currency,
+          customerName: guestName.trim() || undefined,
+          customerPhone: guestPhone.trim() || undefined,
           successUrl: `${origin}${window.location.pathname}?paid=true${tableNumber ? `&mesa=${encodeURIComponent(tableNumber)}` : ''}`,
           cancelUrl: `${origin}${window.location.pathname}?paid=false${tableNumber ? `&mesa=${encodeURIComponent(tableNumber)}` : ''}`,
           tableNumber: tableNumber || undefined,
@@ -185,6 +190,8 @@ export function CartDrawer({
           tip,
           total,
           currency,
+          customerName: guestName.trim() || undefined,
+          customerPhone: guestPhone.trim() || undefined,
           tableNumber,
           payAtTable: true,
         }),
@@ -473,6 +480,28 @@ export function CartDrawer({
                   }}
                 />
               )}
+            </div>
+          )}
+          {restaurantMode && slug && checkoutState !== 'placed' && (
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+              <input
+                type="text"
+                value={guestName}
+                onChange={e => setGuestName(e.target.value)}
+                maxLength={80}
+                autoComplete="name"
+                placeholder={getText('Tu nombre (opcional)', 'Your name (optional)')}
+                style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e3de', fontSize: '13px' }}
+              />
+              <input
+                type="tel"
+                value={guestPhone}
+                onChange={e => setGuestPhone(e.target.value)}
+                maxLength={30}
+                autoComplete="tel"
+                placeholder={getText('Teléfono (opcional)', 'Phone (optional)')}
+                style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e3de', fontSize: '13px' }}
+              />
             </div>
           )}
           <div

@@ -131,7 +131,10 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold">
-                      {order.customerName || getText('Cliente sin nombre', 'Unnamed customer')}
+                      {order.customerName ||
+                        (order.tableNumber
+                          ? getText(`Mesa ${order.tableNumber}`, `Table ${order.tableNumber}`)
+                          : getText('Cliente sin nombre', 'Unnamed customer'))}
                     </p>
                     {order.customerPhone && (
                       <p className="truncate text-xs text-gray-500 dark:text-neutral-400">{order.customerPhone}</p>

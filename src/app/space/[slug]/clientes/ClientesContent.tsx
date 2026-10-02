@@ -59,6 +59,15 @@ interface HistoryProposal {
   status: string;
 }
 
+interface HistoryOrder {
+  id: string;
+  total: number;
+  status: string;
+  createdAt: string;
+  tableNumber?: string | null;
+  channel: string;
+}
+
 interface CustomerHistory {
   customer: CustomerRow;
   appointments: HistoryAppointment[];
@@ -66,6 +75,7 @@ interface CustomerHistory {
   reservations: HistoryReservation[];
   queueVisits: HistoryQueueVisit[];
   proposals: HistoryProposal[];
+  orders?: HistoryOrder[];
 }
 
 interface Props {
@@ -352,6 +362,27 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
 
             {!loadingHistory && history && (
               <div className="space-y-5">
+                {(history.orders?.length ?? 0) > 0 && (
+                  <p className="text-sm text-gray-600 dark:text-neutral-400">
+                    {getText('Pedidos', 'Orders')}: <strong className="text-gray-900 dark:text-white">{history.orders!.length}</strong>
+                    {' · '}
+                    {getText('Gastado', 'Spent')}:{' '}
+                    <strong className="text-gray-900 dark:text-white">
+                      ${history.orders!
+                        .filter((o) => o.status === 'Paid' || o.status === 'Preparing' || o.status === 'Fulfilled')
+                        .reduce((sum, o) => sum + o.total, 0)
+                        .toFixed(2)}
+                    </strong>
+                  </p>
+                )}
+                <HistorySection
+                  title={getText('Pedidos', 'Orders')}
+                  empty={getText('Sin pedidos.', 'No orders.')}
+                  items={history.orders ?? []}
+                  render={(o) =>
+                    `${dateFmt(o.createdAt)} — $${o.total.toFixed(2)}${o.tableNumber ? ` · ${getText('Mesa', 'Table')} ${o.tableNumber}` : ''} · ${o.status}`
+                  }
+                />
                 <HistorySection
                   title={getText('Citas', 'Appointments')}
                   empty={getText('Sin citas.', 'No appointments.')}
