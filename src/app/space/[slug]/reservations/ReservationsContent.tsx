@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
@@ -59,6 +59,19 @@ const STATUS_LABELS: Record<ReservationRow['status'], { es: string; en: string }
   NoShow: { es: 'No llegó', en: 'No-show' },
 };
 
+type DateFilter = 'today' | 'tomorrow' | 'week' | 'all';
+
+// La fecha llega como 'YYYY-MM-DD' (o ISO con hora). Se compara por texto y se formatea con el
+// calendario local: `new Date('2026-10-02')` se interpreta en UTC y en América muestra el día anterior.
+const dayKey = (iso: string) => iso.slice(0, 10);
+const toKey = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const addDays = (d: Date, n: number) => {
+  const c = new Date(d);
+  c.setDate(c.getDate() + n);
+  return c;
+};
+
 // Reservas de mesa — deliberadamente separado de Agenda (Appointment). Aquí no hay "servicio" ni
 // "quién atiende": lo que importa es cuántas personas, a qué hora, y a qué mesa sentarlas. Ver
 // docs/audits/business-type-flows-audit.md.
@@ -80,6 +93,9 @@ export function ReservationsContent({ slug, initialReservations, customers }: Pr
   const [saving, setSaving] = useState(false);
   const [actingOn, setActingOn] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [dateFilter, setDateFilter] = useState<DateFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'Requested' | 'Confirmed' | 'Seated'>('all');
+  const [query, setQuery] = useState('');
 
   function selectCustomer(id: string) {
     setSelectedCustomerId(id);
@@ -154,15 +170,50 @@ export function ReservationsContent({ slug, initialReservations, customers }: Pr
     }
   }
 
-  const fmtDate = (iso: string) =>
-    new Date(iso).toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { month: 'short', day: 'numeric' });
+  const fmtDate = (iso: string) => {
+    const [y, m, d] = dayKey(iso).split('-').map(Number);
+    return new Date(y, (m || 1) - 1, d || 1).toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
 
-  const upcoming = reservations
-    .filter((r) => !['Completed', 'Cancelled', 'NoShow'].includes(r.status))
-    .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+  const now = new Date();
+  const todayKey = toKey(now);
+  const tomorrowKey = toKey(addDays(now, 1));
+  const weekEndKey = toKey(addDays(now, 7));
+
+  const isClosed = (r: ReservationRow) => ['Completed', 'Cancelled', 'NoShow'].includes(r.status);
+  const q = query.trim().toLowerCase();
+  const qDigits = q.replace(/\D/g, '');
+  const matchesQuery = (r: ReservationRow) =>
+    !q ||
+    r.customerName.toLowerCase().includes(q) ||
+    (qDigits.length >= 3 && r.customerPhone.replace(/\D/g, '').includes(qDigits)) ||
+    (r.customerEmail ?? '').toLowerCase().includes(q);
+  const matchesDate = (r: ReservationRow) => {
+    const k = dayKey(r.date);
+    if (dateFilter === 'today') return k === todayKey;
+    if (dateFilter === 'tomorrow') return k === tomorrowKey;
+    if (dateFilter === 'week') return k >= todayKey && k <= weekEndKey;
+    return true;
+  };
+
+  const open = useMemo(
+    () => reservations.filter((r) => !isClosed(r)).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)),
+    [reservations],
+  );
+  // Los contadores de estado respetan fecha y búsqueda, para que el número coincida con lo que se verá.
+  const baseFiltered = open.filter((r) => matchesDate(r) && matchesQuery(r));
+  const statusCount = (st: 'Requested' | 'Confirmed' | 'Seated') => baseFiltered.filter((r) => r.status === st).length;
+  const upcoming = baseFiltered.filter((r) => statusFilter === 'all' || r.status === statusFilter);
   const past = reservations
-    .filter((r) => ['Completed', 'Cancelled', 'NoShow'].includes(r.status))
+    .filter((r) => isClosed(r) && matchesQuery(r))
     .sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
+  const todayCount = open.filter((r) => dayKey(r.date) === todayKey).length;
+  const pendingCount = open.filter((r) => r.status === 'Requested').length;
+  const filtering = dateFilter !== 'all' || statusFilter !== 'all' || q !== '';
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
@@ -175,7 +226,10 @@ export function ReservationsContent({ slug, initialReservations, customers }: Pr
             </p>
             <h1 className="mt-1 text-2xl font-bold">{getText('Reservas de mesa', 'Table reservations')}</h1>
             <p className="mt-1 text-sm text-gray-500 dark:text-neutral-400">
-              {getText(`${upcoming.length} próximas`, `${upcoming.length} upcoming`)}
+              {getText(
+                `${open.length} próximas · ${todayCount} hoy${pendingCount ? ` · ${pendingCount} por confirmar` : ''}`,
+                `${open.length} upcoming · ${todayCount} today${pendingCount ? ` · ${pendingCount} to confirm` : ''}`,
+              )}
             </p>
           </div>
           <button
@@ -278,9 +332,55 @@ export function ReservationsContent({ slug, initialReservations, customers }: Pr
         )}
 
         <div className="mt-6 space-y-3">
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={getText('Buscar por nombre, teléfono o correo…', 'Search by name, phone or email…')}
+            className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+          />
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ['all', getText('Todas', 'All')],
+                ['today', getText('Hoy', 'Today')],
+                ['tomorrow', getText('Mañana', 'Tomorrow')],
+                ['week', getText('7 días', 'Next 7 days')],
+              ] as [DateFilter, string][]
+            ).map(([key, label]) => (
+              <FilterChip key={key} active={dateFilter === key} onClick={() => setDateFilter(key)}>
+                {label}
+              </FilterChip>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <FilterChip active={statusFilter === 'all'} onClick={() => setStatusFilter('all')}>
+              {getText('Todos los estados', 'Any status')} ({baseFiltered.length})
+            </FilterChip>
+            {(['Requested', 'Confirmed', 'Seated'] as const).map((st) => (
+              <FilterChip key={st} active={statusFilter === st} onClick={() => setStatusFilter(st)}>
+                {STATUS_LABELS[st][language]} ({statusCount(st)})
+              </FilterChip>
+            ))}
+          </div>
           {upcoming.length === 0 && (
             <p className="text-sm text-gray-400 dark:text-neutral-500">
-              {getText('No hay reservas próximas.', 'No upcoming reservations.')}
+              {filtering
+                ? getText('Ninguna reserva coincide con los filtros.', 'No reservations match the filters.')
+                : getText('No hay reservas próximas.', 'No upcoming reservations.')}
+              {filtering && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDateFilter('all');
+                    setStatusFilter('all');
+                    setQuery('');
+                  }}
+                  className="ml-2 underline"
+                >
+                  {getText('Quitar filtros', 'Clear filters')}
+                </button>
+              )}
             </p>
           )}
           {upcoming.map((r) => (
@@ -292,6 +392,7 @@ export function ReservationsContent({ slug, initialReservations, customers }: Pr
               fmtDate={fmtDate}
               getText={getText}
               language={language}
+              isToday={dayKey(r.date) === todayKey}
               expanded={expandedId === r.id}
               onToggle={() => setExpandedId(expandedId === r.id ? null : r.id)}
             />
@@ -313,6 +414,7 @@ export function ReservationsContent({ slug, initialReservations, customers }: Pr
                   fmtDate={fmtDate}
                   getText={getText}
                   language={language}
+                  isToday={false}
                   expanded={expandedId === r.id}
                   onToggle={() => setExpandedId(expandedId === r.id ? null : r.id)}
                   invoiceHref={
@@ -340,6 +442,7 @@ function ReservationCard({
   fmtDate,
   getText,
   language,
+  isToday,
   expanded,
   onToggle,
   invoiceHref,
@@ -350,6 +453,7 @@ function ReservationCard({
   fmtDate: (iso: string) => string;
   getText: (es: string, en: string) => string;
   language: 'es' | 'en';
+  isToday: boolean;
   expanded: boolean;
   onToggle: () => void;
   invoiceHref?: string;
@@ -362,7 +466,9 @@ function ReservationCard({
 
   return (
     <div
-      className={`rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 ${closed ? 'opacity-80' : ''}`}
+      className={`rounded-2xl border bg-white dark:bg-neutral-900 ${
+        isToday ? 'border-[var(--brand-primary,#045AFE)]' : 'border-gray-200/70 dark:border-neutral-800'
+      } ${closed ? 'opacity-80' : ''}`}
     >
       <button type="button" onClick={onToggle} aria-expanded={expanded} className="flex w-full items-start gap-3 p-4 text-left">
         <div className="min-w-0 flex-1">
@@ -370,6 +476,11 @@ function ReservationCard({
             <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLES[r.status]}`}>
               {STATUS_LABELS[r.status][language]}
             </span>
+            {isToday && (
+              <span className="shrink-0 rounded-full bg-gray-900 px-2 py-0.5 text-[11px] font-semibold text-white dark:bg-white dark:text-gray-900">
+                {getText('Hoy', 'Today')}
+              </span>
+            )}
             <span className="text-sm font-semibold">
               {fmtDate(r.date)} · {r.time}
             </span>
@@ -457,5 +568,22 @@ function ReservationCard({
         </div>
       )}
     </div>
+  );
+}
+
+function FilterChip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+        active
+          ? 'border-gray-900 bg-gray-900 text-white dark:border-white dark:bg-white dark:text-gray-900'
+          : 'border-gray-300 text-gray-600 dark:border-neutral-700 dark:text-neutral-300'
+      }`}
+    >
+      {children}
+    </button>
   );
 }
