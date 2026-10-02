@@ -6,7 +6,7 @@ import { parseApiError } from '@/lib/api-errors';
 import { TrialExpiredNotice } from '@/components/space/TrialExpiredNotice';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import { stripRichTextToPlain } from '@/lib/sanitize-html';
-import type { ProcessStepDto, FaqEntryDto, HorarioDayDto, SectionVisibilityDto, CausaDto, CommunityImpactDto } from './types';
+import type { ProcessStepDto, FaqEntryDto, HorarioDayDto, SectionVisibilityDto, CausaDto, CommunityImpactDto, MealPeriodHoursDto, MealPeriodKey } from './types';
 import type { BusinessType } from '@/lib/templates/registry';
 
 const MAX_GALLERY_IMAGES = 12;
@@ -49,6 +49,8 @@ interface Props {
   onFaqChange: (faq: FaqEntryDto[]) => void;
   horario: HorarioDayDto[];
   onHorarioChange: (horario: HorarioDayDto[]) => void;
+  mealPeriodHours: MealPeriodHoursDto;
+  onMealPeriodHoursChange: (v: MealPeriodHoursDto) => void;
   sectionVisibility: SectionVisibilityDto;
   onSectionVisibilityChange: (v: SectionVisibilityDto) => void;
   galleryImages: string[];
@@ -70,6 +72,8 @@ export function ContenidoTab({
   onFaqChange: setFaq,
   horario,
   onHorarioChange: setHorario,
+  mealPeriodHours,
+  onMealPeriodHoursChange: setMealPeriodHours,
   sectionVisibility,
   onSectionVisibilityChange: setSectionVisibility,
   galleryImages,
@@ -101,6 +105,8 @@ export function ContenidoTab({
           processSteps,
           faq,
           horario,
+          // {} = volver a los cortes por defecto (la API borra el campo).
+          ...(businessType === 'restaurant' ? { mealPeriodHours } : {}),
           sectionVisibility,
           galleryImages,
           // causas ya NO va en este PATCH (backlog 2026-09-25) -- CausasSection la guarda
@@ -143,6 +149,10 @@ export function ContenidoTab({
       )}
 
       <HorarioSection horario={horario} onChange={setHorario} getText={getText} />
+
+      {businessType === 'restaurant' && (
+        <MealPeriodsSection value={mealPeriodHours} onChange={setMealPeriodHours} getText={getText} />
+      )}
 
       <ListSection<ProcessStepDto>
         title={getText('Cómo trabajamos', 'How we work')}
@@ -270,6 +280,97 @@ function HorarioSection({
                   />
                 </div>
               )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Cortes por defecto — iguales a DEFAULT_PERIOD_HOURS de la plantilla Restaurant. Aquí se muestran
+// como valor inicial; solo lo que el dueño toca se guarda.
+const MEAL_PERIOD_ROWS: Array<{ key: MealPeriodKey; es: string; en: string; start: string; end: string }> = [
+  { key: 'breakfast', es: 'Desayuno', en: 'Breakfast', start: '05:00', end: '11:00' },
+  { key: 'lunch', es: 'Almuerzo', en: 'Lunch', start: '11:00', end: '16:00' },
+  { key: 'dinner', es: 'Cena', en: 'Dinner', start: '16:00', end: '22:00' },
+  { key: 'late_night', es: 'Trasnoche', en: 'Late night', start: '22:00', end: '05:00' },
+];
+
+function MealPeriodsSection({
+  value,
+  onChange,
+  getText,
+}: {
+  value: MealPeriodHoursDto;
+  onChange: (v: MealPeriodHoursDto) => void;
+  getText: (es: string, en: string) => string;
+}) {
+  const eff = (i: number) => ({
+    start: value[MEAL_PERIOD_ROWS[i].key]?.start ?? MEAL_PERIOD_ROWS[i].start,
+    end: value[MEAL_PERIOD_ROWS[i].key]?.end ?? MEAL_PERIOD_ROWS[i].end,
+  });
+  const setRange = (i: number, patch: Partial<{ start: string; end: string }>) => {
+    if ((patch.start !== undefined && !patch.start) || (patch.end !== undefined && !patch.end)) return;
+    const next: MealPeriodHoursDto = { ...value };
+    next[MEAL_PERIOD_ROWS[i].key] = { ...eff(i), ...patch };
+    // El fin de un momento es el inicio del siguiente: se mueven juntos para no dejar huecos.
+    if (patch.end !== undefined && i < MEAL_PERIOD_ROWS.length - 1) {
+      const j = i + 1;
+      next[MEAL_PERIOD_ROWS[j].key] = { ...eff(j), start: patch.end };
+    }
+    onChange(next);
+  };
+  const customized = Object.keys(value).length > 0;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
+          {getText('Momentos de comida', 'Meal periods')}
+        </h2>
+        {customized && (
+          <button
+            type="button"
+            onClick={() => onChange({})}
+            className="text-xs text-gray-500 underline hover:text-gray-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+          >
+            {getText('Restablecer', 'Reset')}
+          </button>
+        )}
+      </div>
+      <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
+        {getText(
+          'Define cuándo es desayuno, almuerzo y cena. Tu página los usa para mostrar primero el menú que toca a esa hora.',
+          'Define when breakfast, lunch and dinner are. Your page uses them to show the menu that fits the time of day first.',
+        )}
+      </p>
+      <div className="mt-3 space-y-1.5">
+        {MEAL_PERIOD_ROWS.map((row, i) => {
+          const r = eff(i);
+          return (
+            <div
+              key={row.key}
+              className="flex flex-wrap items-center gap-3 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2"
+            >
+              <span className="w-24 flex-shrink-0 text-sm font-medium text-gray-700 dark:text-neutral-300">
+                {getText(row.es, row.en)}
+              </span>
+              <div className="flex flex-1 items-center gap-2">
+                <input
+                  type="time"
+                  value={r.start}
+                  onChange={(e) => setRange(i, { start: e.target.value })}
+                  className="rounded-md border border-gray-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 px-2 py-1 text-sm text-gray-900 dark:text-white"
+                />
+                <span className="text-xs text-gray-400 dark:text-neutral-500">{getText('a', 'to')}</span>
+                <input
+                  type="time"
+                  value={r.end}
+                  onChange={(e) => setRange(i, { end: e.target.value })}
+                  className="rounded-md border border-gray-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 px-2 py-1 text-sm text-gray-900 dark:text-white"
+                />
+              </div>
             </div>
           );
         })}

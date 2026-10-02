@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getMaalcaApiToken } from '@/lib/api-auth';
 import { DesignEditor } from './DesignEditor';
-import type { ProcessStepDto, FaqEntryDto, HorarioDayDto, SectionVisibilityDto, CausaDto, CommunityImpactDto } from './types';
+import type { ProcessStepDto, FaqEntryDto, HorarioDayDto, SectionVisibilityDto, CausaDto, CommunityImpactDto, MealPeriodHoursDto } from './types';
 import { EMPTY_COMMUNITY_IMPACT } from './types';
 import type { BusinessType, Plan } from '@/lib/templates/registry';
 
@@ -61,6 +61,7 @@ export default async function DesignPage({
   let processSteps: ProcessStepDto[] = [];
   let faq: FaqEntryDto[] = [];
   let horario: HorarioDayDto[] = [];
+  let mealPeriodHours: MealPeriodHoursDto = {};
   let sectionVisibility: SectionVisibilityDto = {};
   let galleryImages: string[] = [];
   let causas: CausaDto[] = [];
@@ -82,6 +83,7 @@ export default async function DesignPage({
       processSteps = p.processSteps ?? [];
       faq = p.faq ?? [];
       horario = p.horario ?? [];
+      mealPeriodHours = p.mealPeriodHours ?? {};
       sectionVisibility = p.sectionVisibility ?? {};
       galleryImages = p.galleryImages ?? [];
       communityImpact = p.communityImpact ?? EMPTY_COMMUNITY_IMPACT;
@@ -135,6 +137,7 @@ export default async function DesignPage({
       processSteps={processSteps}
       faq={faq}
       horario={horario}
+      mealPeriodHours={mealPeriodHours}
       sectionVisibility={sectionVisibility}
       galleryImages={galleryImages}
       causas={causas}

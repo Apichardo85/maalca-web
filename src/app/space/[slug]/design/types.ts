@@ -51,6 +51,11 @@ export interface HorarioDayDto {
   cerrado: boolean;
 }
 
+/** Momentos de comida del negocio (solo restaurantes): "HH:mm" 24h, end < start cruza medianoche.
+ *  Clave ausente = corte por defecto de la plantilla. */
+export type MealPeriodKey = 'breakfast' | 'lunch' | 'dinner' | 'late_night';
+export type MealPeriodHoursDto = Partial<Record<MealPeriodKey, { start: string; end: string }>>;
+
 /** Clave ausente = visible (default true) — apagador explícito por sección, independiente
  *  de si tiene contenido. Hoy: "processSteps", "gallery", y (solo Community) "causas",
  *  "puntoDeEntrega", "monetaryDonations". */

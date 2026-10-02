@@ -19,6 +19,7 @@ import {
   type ProcessStepDto,
   type FaqEntryDto,
   type HorarioDayDto,
+  type MealPeriodHoursDto,
   type SectionVisibilityDto,
   type CausaDto,
   type CommunityImpactDto,
@@ -47,6 +48,7 @@ interface Props {
   processSteps: ProcessStepDto[];
   faq: FaqEntryDto[];
   horario: HorarioDayDto[];
+  mealPeriodHours: MealPeriodHoursDto;
   sectionVisibility: SectionVisibilityDto;
   galleryImages: string[];
   causas: CausaDto[];
@@ -79,6 +81,7 @@ export function DesignEditor({
   processSteps: initialProcessSteps,
   faq: initialFaq,
   horario: initialHorario,
+  mealPeriodHours: initialMealPeriodHours,
   sectionVisibility: initialSectionVisibility,
   galleryImages: initialGalleryImages,
   causas: initialCausas,
@@ -114,6 +117,7 @@ export function DesignEditor({
   const [processSteps, setProcessSteps] = useState<ProcessStepDto[]>(initialProcessSteps);
   const [faq, setFaq] = useState<FaqEntryDto[]>(initialFaq);
   const [horario, setHorario] = useState<HorarioDayDto[]>(withAllDays(initialHorario));
+  const [mealPeriodHours, setMealPeriodHours] = useState<MealPeriodHoursDto>(initialMealPeriodHours);
   const [sectionVisibility, setSectionVisibility] = useState<SectionVisibilityDto>(initialSectionVisibility);
   const [galleryImages, setGalleryImages] = useState<string[]>(initialGalleryImages);
   const [causas, setCausas] = useState<CausaDto[]>(initialCausas);
@@ -249,6 +253,7 @@ export function DesignEditor({
     faq: faq.length > 0 ? faq : null,
     timezone,
     horario: horario.length > 0 ? horario : null,
+    mealPeriodHours: Object.keys(mealPeriodHours).length > 0 ? mealPeriodHours : null,
     sectionVisibility,
     galleryImages,
     causas: causas.length > 0 ? causas : null,
@@ -349,6 +354,8 @@ export function DesignEditor({
               onFaqChange={setFaq}
               horario={horario}
               onHorarioChange={setHorario}
+              mealPeriodHours={mealPeriodHours}
+              onMealPeriodHoursChange={setMealPeriodHours}
               sectionVisibility={sectionVisibility}
               onSectionVisibilityChange={setSectionVisibility}
               galleryImages={galleryImages}
