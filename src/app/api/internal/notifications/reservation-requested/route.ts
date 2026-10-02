@@ -11,6 +11,8 @@ interface ReservationRequestedBody {
   businessName: string;
   businessEmail?: string | null;
   slug?: string | null;
+  logoUrl?: string | null;
+  brandColor?: string | null;
   customerName: string;
   customerPhone: string;
   customerEmail?: string | null;
@@ -49,6 +51,7 @@ export async function POST(request: NextRequest) {
     businessName: body.businessName,
     businessEmail: body.businessEmail ?? null,
     slug: body.slug ?? null,
+    brand: { name: body.businessName, logoUrl: body.logoUrl ?? null, color: body.brandColor ?? null },
     customerName: body.customerName,
     customerPhone: body.customerPhone,
     customerEmail: body.customerEmail ?? null,

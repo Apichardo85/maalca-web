@@ -98,8 +98,8 @@ export function ContenidoTab({
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          processSteps: processSteps.length > 0 ? processSteps : null,
-          faq: faq.length > 0 ? faq : null,
+          processSteps,
+          faq,
           horario,
           sectionVisibility,
           galleryImages,

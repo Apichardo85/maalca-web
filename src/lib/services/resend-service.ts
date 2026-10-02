@@ -1,5 +1,5 @@
 import { Resend } from 'resend'
-import { renderCardEmail, renderPlainEmail, emailCtaButton, MAALCA_BRAND_COLOR } from '@/lib/email/layout'
+import { renderCardEmail, renderPlainEmail, emailCtaButton, safeBrandColor, MAALCA_BRAND_COLOR, type EmailBrand } from '@/lib/email/layout'
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -7,6 +7,14 @@ const resend = process.env.RESEND_API_KEY
 
 const AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID || ''
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'MaalCa <noreply@maalca.com>'
+
+/** Remitente con el nombre del negocio ("Negocio vía MaalCa") sobre el mismo dominio verificado. */
+function fromFor(brand?: EmailBrand): string {
+  if (!brand?.name) return FROM_EMAIL
+  const addr = FROM_EMAIL.match(/<([^>]+)>/)?.[1] ?? FROM_EMAIL
+  const clean = brand.name.replace(/["<>\r\n]/g, '').trim().slice(0, 60)
+  return clean ? `${clean} <${addr}>` : FROM_EMAIL
+}
 
 /**
  * Add a contact to the Resend audience and send a welcome email.
@@ -315,6 +323,7 @@ export async function sendOrderConfirmationEmail(params: {
   items: OrderEmailItem[];
   total: number;
   currency: string;
+  brand?: EmailBrand;
 }): Promise<boolean> {
   if (!resend) {
     console.log('[Resend] Skipped order confirmation — RESEND_API_KEY not set');
@@ -323,7 +332,7 @@ export async function sendOrderConfirmationEmail(params: {
 
   try {
     await resend.emails.send({
-      from: FROM_EMAIL,
+      from: fromFor(params.brand),
       to: params.customerEmail,
       subject: `Pedido confirmado — ${params.businessName}`,
       html: buildOrderStatusEmail({ ...params, kind: 'confirmed' }),
@@ -348,6 +357,7 @@ export async function sendOrderFulfilledEmail(params: {
   items: OrderEmailItem[];
   total: number;
   currency: string;
+  brand?: EmailBrand;
 }): Promise<boolean> {
   if (!resend) {
     console.log('[Resend] Skipped order fulfilled notice — RESEND_API_KEY not set');
@@ -356,7 +366,7 @@ export async function sendOrderFulfilledEmail(params: {
 
   try {
     await resend.emails.send({
-      from: FROM_EMAIL,
+      from: fromFor(params.brand),
       to: params.customerEmail,
       subject: `Tu pedido está listo — ${params.businessName}`,
       html: buildOrderStatusEmail({ ...params, kind: 'fulfilled' }),
@@ -376,6 +386,7 @@ function buildOrderStatusEmail(params: {
   items: OrderEmailItem[];
   total: number;
   currency: string;
+  brand?: EmailBrand;
 }): string {
   const greeting = params.customerName ? `¡Hola, ${params.customerName}!` : '¡Hola!';
   const title =
@@ -398,6 +409,7 @@ function buildOrderStatusEmail(params: {
     .join('');
 
   return renderCardEmail({
+    brand: params.brand,
     bodyHtml: `
       <h2 style="color: #1a1a1a; font-size: 20px; margin-top: 0;">${title}</h2>
       <p style="color: #525252; line-height: 1.6; font-size: 15px;">${greeting} ${body}</p>
@@ -410,7 +422,9 @@ function buildOrderStatusEmail(params: {
       </table>
       <p style="color: #a3a3a3; font-size: 12px; margin: 0;">Pedido #${params.orderId.slice(0, 8)}</p>
     `,
-    footerText: `Recibes este correo porque hiciste un pedido a través de <a href="https://maalca.com" style="color: ${MAALCA_BRAND_COLOR};">maalca.com</a>.`,
+    footerText: params.brand
+      ? `Recibes este correo porque hiciste un pedido en ${params.businessName}.`
+      : `Recibes este correo porque hiciste un pedido a través de <a href="https://maalca.com" style="color: ${MAALCA_BRAND_COLOR};">maalca.com</a>.`,
   });
 }
 
@@ -1032,6 +1046,7 @@ export async function sendReservationRequestedEmail(params: {
   time: string // HH:mm
   partySize: number
   notes?: string | null
+  brand?: EmailBrand
 }): Promise<{ businessSent: boolean; customerSent: boolean }> {
   const result = { businessSent: false, customerSent: false }
   if (!resend) {
@@ -1051,8 +1066,8 @@ export async function sendReservationRequestedEmail(params: {
 
   const row = (label: string, value: string) => `
     <tr>
-      <td style="padding: 6px 0; font-size: 14px; color: #5a5a5a;">${label}</td>
-      <td style="padding: 6px 0; font-size: 14px; color: #1a1a1a; font-weight: 600; text-align: right;">${value}</td>
+      <td style="padding: 6px 8px 6px 0; font-size: 14px; color: #5a5a5a; vertical-align: top; white-space: nowrap;">${label}</td>
+      <td style="padding: 6px 0; font-size: 14px; color: #1a1a1a; font-weight: 600; text-align: right; vertical-align: top; word-break: break-all;">${value}</td>
     </tr>
   `
 
@@ -1071,16 +1086,17 @@ export async function sendReservationRequestedEmail(params: {
         ${params.customerEmail ? row('Correo', escapeHtml(params.customerEmail)) : ''}
       </table>
       ${params.notes ? `<p style="font-size: 14px; line-height: 1.6; color: #5a5a5a; margin: 16px 0 0 0;"><strong>Nota:</strong> ${escapeHtml(params.notes)}</p>` : ''}
-      ${emailCtaButton('Ver reservas →', reservationsUrl)}
+      ${emailCtaButton('Ver reservas →', reservationsUrl, safeBrandColor(params.brand?.color))}
     `
     try {
       await resend.emails.send({
-        from: FROM_EMAIL,
+        from: fromFor(params.brand),
         to: params.businessEmail,
         subject: `Nueva reserva: ${params.customerName} · ${params.partySize} personas · ${when}`,
         html: renderCardEmail({
           bodyHtml,
-          footerText: 'Recibes este aviso porque tienes reservas en línea activas en MaalCa.',
+          brand: params.brand,
+          footerText: 'Recibes este aviso porque tienes reservas en línea activas en tu página.',
         }),
       })
       result.businessSent = true
@@ -1103,12 +1119,14 @@ export async function sendReservationRequestedEmail(params: {
     `
     try {
       await resend.emails.send({
-        from: FROM_EMAIL,
+        from: fromFor(params.brand),
+        replyTo: params.businessEmail || undefined,
         to: params.customerEmail,
         subject: `Solicitud de reserva en ${params.businessName}`,
         html: renderCardEmail({
           bodyHtml,
-          footerText: `Enviado porque pediste una reserva en ${business} a través de MaalCa.`,
+          brand: params.brand,
+          footerText: `Enviado porque pediste una reserva en ${business}.`,
         }),
       })
       result.customerSent = true

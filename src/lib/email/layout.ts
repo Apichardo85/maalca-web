@@ -37,18 +37,43 @@ export function emailCtaButton(label: string, url: string, color: string = MAALC
  * contenido propio de cada correo (título, párrafos, botón vía emailCtaButton); este helper solo
  * pone el header "MaalCa", la caja blanca y el disclaimer del footer.
  */
-export function renderCardEmail(opts: { bodyHtml: string; footerText: string; brandColor?: string }): string {
-  const color = opts.brandColor || MAALCA_BRAND_COLOR;
+export interface EmailBrand {
+  name: string;
+  logoUrl?: string | null;
+  color?: string | null;
+}
+
+/** Solo acepta #RGB/#RRGGBB; cualquier otra cosa cae al azul de MaalCa (el valor entra a un style=""). */
+export function safeBrandColor(color?: string | null): string {
+  return color && /^#[0-9a-fA-F]{3,8}$/.test(color.trim()) ? color.trim() : MAALCA_BRAND_COLOR;
+}
+
+function escHtml(v: string): string {
+  return v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+export function renderCardEmail(opts: { bodyHtml: string; footerText: string; brandColor?: string; brand?: EmailBrand }): string {
+  const color = opts.brand ? safeBrandColor(opts.brand.color) : opts.brandColor || MAALCA_BRAND_COLOR;
+  const logo = opts.brand?.logoUrl && /^https:\/\//i.test(opts.brand.logoUrl)
+    ? `<img src="${escHtml(opts.brand.logoUrl)}" alt="${escHtml(opts.brand.name)}" height="56" style="max-height: 56px; max-width: 200px; display: block; margin: 0 auto 8px;" />`
+    : '';
+  const header = opts.brand
+    ? `${logo}<h1 style="color: ${color}; font-size: 22px; margin: 0;">${escHtml(opts.brand.name)}</h1>`
+    : `<h1 style="color: ${color}; font-size: 24px; margin: 0;">MaalCa</h1>`;
+  const poweredBy = opts.brand
+    ? `<p style="text-align: center; color: #a3a3a3; font-size: 11px; margin: 16px 0 0;">Enviado con MaalCa</p>`
+    : '';
   return `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 32px 24px; background: #fafafa;">
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 24px 12px; background: #fafafa;">
       <div style="text-align: center; margin-bottom: 24px;">
-        <h1 style="color: ${color}; font-size: 24px; margin: 0;">MaalCa</h1>
+        ${header}
       </div>
-      <div style="background: white; border-radius: 12px; padding: 32px; border: 1px solid #e5e5e5;">
+      <div style="background: white; border-radius: 12px; padding: 24px 20px; border: 1px solid #e5e5e5; word-break: break-word; overflow-wrap: anywhere;">
         ${opts.bodyHtml}
         <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;" />
         <p style="color: #a3a3a3; font-size: 12px; margin: 0;">${opts.footerText}</p>
       </div>
+      ${poweredBy}
     </div>
   `;
 }

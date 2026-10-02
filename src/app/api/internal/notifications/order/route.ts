@@ -13,6 +13,8 @@ interface OrderNotificationBody {
   orderId: string;
   businessName: string;
   slug: string;
+  logoUrl?: string | null;
+  brandColor?: string | null;
   customerEmail: string;
   customerName?: string | null;
   items: OrderEmailItem[];
@@ -47,6 +49,7 @@ export async function POST(request: NextRequest) {
     customerName: body.customerName ?? null,
     businessName: body.businessName,
     slug: body.slug,
+    brand: { name: body.businessName, logoUrl: body.logoUrl ?? null, color: body.brandColor ?? null },
     orderId: body.orderId,
     items: body.items || [],
     total: body.total,
