@@ -571,7 +571,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
       )}
 
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
+        <div className="fixed inset-0 z-[150] flex items-end justify-center sm:items-center sm:p-4">
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={closeModal}
@@ -862,7 +862,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
       )}
 
       {walkInOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
+        <div className="fixed inset-0 z-[150] flex items-end justify-center sm:items-center sm:p-4">
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={closeWalkIn}
