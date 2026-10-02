@@ -322,35 +322,43 @@ export function MenuBoard({
           <div className="grid h-full w-full grid-cols-3 grid-rows-2 gap-6">
             {slide.items.map((item) => {
               const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
+              const hasMedia = Boolean(item.video_url || item.image_url);
               return (
               <div
                 key={item.id}
                 className={`flex flex-col overflow-hidden rounded-2xl ${c.card}`}
               >
-                <div className={`relative flex-1 overflow-hidden ${c.mediaFallback}`}>
-                  {item.video_url ? (
-                    <video
-                      src={item.video_url}
-                      className="absolute inset-0 h-full w-full object-cover"
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                    />
-                  ) : item.image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={item.image_url}
-                      alt={displayName}
-                      className="absolute inset-0 h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-6xl opacity-30">🍽️</div>
-                  )}
-                </div>
-                <div className="flex items-center justify-between gap-3 px-5 py-4">
-                  <span className="text-2xl font-bold leading-tight">{displayName}</span>
-                  <span className="text-2xl font-extrabold whitespace-nowrap" style={{ color: business.primaryColor }}>
+                {/* Sin foto ni video: la tarjeta es de solo texto (nombre grande + precio), sin el recuadro vacío con 🍽️. */}
+                {hasMedia && (
+                  <div className={`relative flex-1 overflow-hidden ${c.mediaFallback}`}>
+                    {item.video_url ? (
+                      <video
+                        src={item.video_url}
+                        className="absolute inset-0 h-full w-full object-cover"
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                      />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={item.image_url ?? undefined}
+                        alt={displayName}
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
+                    )}
+                  </div>
+                )}
+                <div
+                  className={
+                    hasMedia
+                      ? 'flex items-center justify-between gap-3 px-5 py-4'
+                      : 'flex flex-1 flex-col items-center justify-center gap-3 px-6 py-6 text-center'
+                  }
+                >
+                  <span className={`${hasMedia ? 'text-2xl' : 'text-3xl'} font-bold leading-tight`}>{displayName}</span>
+                  <span className={`${hasMedia ? 'text-2xl' : 'text-3xl'} font-extrabold whitespace-nowrap`} style={{ color: business.primaryColor }}>
                     {formatPrice(item.price, business.currency)}
                   </span>
                 </div>

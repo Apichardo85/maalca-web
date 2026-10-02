@@ -5,17 +5,6 @@ import type { CartEntry, CartItem } from './useCart'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080'
 
-const FALLBACK_IMG_ES =
-  'data:image/svg+xml;base64,' +
-  btoa(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="#ece9e2"><rect width="80" height="80"/><text x="40" y="46" text-anchor="middle" fill="#aaa" font-family="sans-serif" font-size="11">sin foto</text></svg>`,
-  )
-const FALLBACK_IMG_EN =
-  'data:image/svg+xml;base64,' +
-  btoa(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="#ece9e2"><rect width="80" height="80"/><text x="40" y="46" text-anchor="middle" fill="#aaa" font-family="sans-serif" font-size="11">no photo</text></svg>`,
-  )
-
 function buildWhatsAppUrl(
   cart: CartEntry[],
   subtotal: number,
@@ -107,7 +96,6 @@ export function CartDrawer({
   tableNumber,
   schedule = null,
 }: CartDrawerProps) {
-  const FALLBACK_IMG = getText(FALLBACK_IMG_ES, FALLBACK_IMG_EN)
   const fmt = useMemo(
     () => new Intl.NumberFormat('en-US', { style: 'currency', currency }),
     [currency],
@@ -327,23 +315,27 @@ export function CartDrawer({
                 gap: '12px',
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={entry.item.image ?? FALLBACK_IMG}
-                alt={entry.item.name}
-                loading="lazy"
-                onError={e => {
-                  ;(e.target as HTMLImageElement).src = FALLBACK_IMG
-                }}
-                style={{
-                  width: '52px',
-                  height: '52px',
-                  borderRadius: '8px',
-                  objectFit: 'cover',
-                  flexShrink: 0,
-                  backgroundColor: '#f0ede8',
-                }}
-              />
+              {/* Sin foto: no hay miniatura (como DoorDash) — el nombre y el precio ocupan todo el ancho. */}
+              {entry.item.image && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={entry.item.image}
+                  alt={entry.item.name}
+                  loading="lazy"
+                  onError={e => {
+                    // Foto rota: se oculta en vez de mostrar un recuadro vacío.
+                    ;(e.target as HTMLImageElement).style.display = 'none'
+                  }}
+                  style={{
+                    width: '52px',
+                    height: '52px',
+                    borderRadius: '8px',
+                    objectFit: 'cover',
+                    flexShrink: 0,
+                    backgroundColor: '#f0ede8',
+                  }}
+                />
+              )}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p
                   style={{
