@@ -169,8 +169,12 @@ export function RestaurantTemplate({
   // solo-cliente por la misma razón: Destacados lo usa para ocultar el plato de otro día sin
   // desajustar la hidratación de la página cacheada.
   const [weekdayNow, setWeekdayNow] = useState<WeekDay | null>(null);
+  // Momento de comida actual (desayuno/almuerzo/cena…). Solo-cliente por la misma razón: se usa para
+  // ORDENAR (lo del momento primero), no para ocultar nada.
+  const [periodNow, setPeriodNow] = useState<Exclude<MealPeriod, 'all_day'> | null>(null);
   useEffect(() => {
     const update = () => {
+      setPeriodNow(business.timezone ? resolveNowInTimezone(business.timezone)?.period ?? null : null);
       setOpenStatus(getOpenStatus(business.horario, business.timezone));
       setTodayKey(todayKeyInTimezone(business.timezone));
       setWeekdayNow(business.timezone ? resolveNowInTimezone(business.timezone)?.weekday ?? null : null);
@@ -183,7 +187,7 @@ export function RestaurantTemplate({
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const periodLabel = (p: MealPeriod) => (language === 'en' ? MEAL_PERIOD_LABELS_EN[p] : MEAL_PERIOD_LABELS[p]);
 
-  const categoryNames: string[] =
+  const categoryNamesBase: string[] =
     categoriesProp.length > 0
       ? [...categoriesProp].sort((a, b) => a.sort_order - b.sort_order).map((c) => c.name)
       : Array.from(new Set(items.map((i) => i.category).filter((c): c is string => !!c)));
@@ -205,6 +209,30 @@ export function RestaurantTemplate({
   );
   const [query, setQuery] = useState('');
   const searchActive = query.trim().length > 0;
+
+  // Prioridad por momento de comida: si el cliente eligió un período, ese; si no, el de ahora.
+  // 0 = se sirve en este momento, 1 = sin período (todo el día), 2 = solo en otro momento.
+  // El orden es estable (lo demás conserva su orden) y NUNCA oculta: solo pone primero lo del momento.
+  const focusPeriod = activePeriod !== ALL_PERIODS ? (activePeriod as MealPeriod) : periodNow;
+  function periodRank(item: (typeof items)[number]): number {
+    if (!focusPeriod || !item.periods || item.periods.length === 0 || item.periods.includes('all_day')) return 1;
+    return item.periods.includes(focusPeriod) ? 0 : 2;
+  }
+  function byPeriod<T extends (typeof items)[number]>(list: T[]): T[] {
+    return focusPeriod ? [...list].sort((a, b) => periodRank(a) - periodRank(b)) : list;
+  }
+  // Las categorías con platos del momento suben (Desayuno primero en la mañana); tabs y listado coinciden.
+  const categoryNames: string[] = focusPeriod
+    ? [...categoryNamesBase]
+        .map((name, index) => {
+          const catId = categoriesProp.find((c) => c.name === name)?.id;
+          const inCat = items.filter((i) => (catId !== undefined && i.category_id === catId) || i.category === name);
+          const best = inCat.length > 0 ? Math.min(...inCat.map(periodRank)) : 1;
+          return { name, index, best };
+        })
+        .sort((a, b) => a.best - b.best || a.index - b.index)
+        .map((c) => c.name)
+    : categoryNamesBase;
 
   function clearSearch() {
     setQuery('');
@@ -230,10 +258,11 @@ export function RestaurantTemplate({
   // "qué puedo pedir ahora": si filtrara por hora se vaciaría a deshoras). Pero SÍ respeta el DÍA:
   // un plato que el restaurante solo hace los sábados no puede ser el "popular" de un martes (el
   // pedido, además, se rechaza en el servidor). Un item sin weekDays aplica todos los días.
-  const destacados = items
-    .filter((i) => i.featured || i.popular)
-    .filter((i) => !weekdayNow || !i.weekDays || i.weekDays.length === 0 || i.weekDays.includes(weekdayNow))
-    .slice(0, MAX_DESTACADOS);
+  const destacados = byPeriod(
+    items
+      .filter((i) => i.featured || i.popular)
+      .filter((i) => !weekdayNow || !i.weekDays || i.weekDays.length === 0 || i.weekDays.includes(weekdayNow)),
+  ).slice(0, MAX_DESTACADOS);
 
   // Menú completo (Vista Hoy apagada): un plato que hoy no se hace sigue visible pero en gris y sin
   // botón de agregar, con la etiqueta de qué días sí. El servidor igual rechaza el pedido.
@@ -263,7 +292,7 @@ export function RestaurantTemplate({
         : items.filter(
             (i) => (catId !== undefined && i.category_id === catId) || i.category === tab,
           );
-    return base.filter(matchesPeriod).filter(matchesWeekday).filter(matchesQuery);
+    return byPeriod(base.filter(matchesPeriod).filter(matchesWeekday).filter(matchesQuery));
   }
 
   // While searching, a per-category breakdown reads as sparse/confusing for a
@@ -493,8 +522,8 @@ export function RestaurantTemplate({
       </section>
 
       {/* ── DESTACADOS — signature element: featured/popular picks, capped at
-          MAX_DESTACADOS and laid out as a wrapping grid (not a scroll
-          carousel) so no card ever gets cropped by a viewport edge ── */}
+          MAX_DESTACADOS and laid out as a single horizontal scroll strip
+          (una sola fila; la siguiente tarjeta asoma para indicar que se desliza) ── */}
       {destacados.length > 0 && (
         <section className="mx-auto max-w-public-content" style={{ padding: '24px 24px 0' }}>
           <h2
@@ -503,7 +532,18 @@ export function RestaurantTemplate({
           >
             {getText('Destacados', 'Highlights')}
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          <div
+            style={{
+              display: 'flex',
+              gap: '12px',
+              overflowX: 'auto',
+              scrollSnapType: 'x proximity',
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none',
+              margin: '0 -24px',
+              padding: '2px 24px 6px',
+            }}
+          >
             {destacados.map((item) => {
               const imageUrl = item.imageUrl ?? item.image_url;
               const isPopular = item.popular;
@@ -519,6 +559,9 @@ export function RestaurantTemplate({
                 <div
                   key={item.id}
                   style={{
+                    flex: '0 0 auto',
+                    width: '170px',
+                    scrollSnapAlign: 'start',
                     backgroundColor: '#ffffff',
                     border: '0.5px solid var(--rt-border-soft, #ece2d3)',
                     borderRadius: '14px',
