@@ -82,10 +82,20 @@ export function renderCardEmail(opts: { bodyHtml: string; footerText: string; br
  * Wrapper liviano -- cita, factura, propuesta, formulario de contacto. Sin caja ni disclaimer;
  * solo el margen/tipografía consistente que ya compartían estas funciones a mano.
  */
-export function renderPlainEmail(bodyHtml: string): string {
+export function renderPlainEmail(bodyHtml: string, brand?: EmailBrand): string {
+  const color = safeBrandColor(brand?.color);
+  const logo = brand?.logoUrl && /^https:\/\//i.test(brand.logoUrl)
+    ? `<img src="${escHtml(brand.logoUrl)}" alt="${escHtml(brand.name)}" height="48" style="max-height: 48px; max-width: 180px; display: block; margin: 0 auto 6px;" />`
+    : '';
+  const header = brand
+    ? `<div style="text-align: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid ${color};">${logo}<div style="color: ${color}; font-size: 18px; font-weight: 700;">${escHtml(brand.name)}</div></div>`
+    : '';
+  const footer = brand ? `<p style="text-align: center; color: #a3a3a3; font-size: 11px; margin: 24px 0 0;">Enviado con MaalCa</p>` : '';
   return `
-    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1a1a1a; word-break: break-word; overflow-wrap: anywhere;">
+      ${header}
       ${bodyHtml}
+      ${footer}
     </div>
   `;
 }

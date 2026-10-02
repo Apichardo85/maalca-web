@@ -11,6 +11,8 @@ interface InvoicePaidNotificationBody {
   customerEmail: string;
   customerName?: string | null;
   businessName: string;
+  logoUrl?: string | null;
+  brandColor?: string | null;
   invoiceNumber: string;
   total: number;
   currency: string;
@@ -47,6 +49,7 @@ export async function POST(request: NextRequest) {
     total: body.total,
     currency: body.currency,
     paidDate: body.paidDate ?? null,
+    brand: { name: body.businessName, logoUrl: body.logoUrl ?? null, color: body.brandColor ?? null },
   });
 
   return NextResponse.json({ sent });

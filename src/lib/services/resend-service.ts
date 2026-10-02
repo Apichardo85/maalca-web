@@ -447,6 +447,7 @@ export async function sendAppointmentConfirmationEmail(params: {
   // Tarea #405/#408 — solo viene cuando la cita quedó marcada IsVirtual=true (ver
   // Service.Modality/Appointment.IsVirtual). El link fijo de Zoom del negocio.
   zoomLink?: string | null;
+  brand?: EmailBrand;
 }): Promise<boolean> {
   if (!resend) {
     console.log('[Resend] Skipped appointment confirmation — RESEND_API_KEY not set');
@@ -463,7 +464,7 @@ export async function sendAppointmentConfirmationEmail(params: {
   const footer = params.manageUrl
     ? `
         <div style="text-align: center; margin: 20px 0;">
-          <a href="${params.manageUrl}" style="display: inline-block; background: ${MAALCA_BRAND_COLOR}; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Gestiona tu cita</a>
+          <a href="${params.manageUrl}" style="display: inline-block; background: ${safeBrandColor(params.brand?.color)}; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Gestiona tu cita</a>
         </div>
         <p style="font-size: 13px; color: #737373;">Desde ese link puedes confirmar, reagendar o cancelar sin llamar al negocio.</p>
       `
@@ -471,7 +472,7 @@ export async function sendAppointmentConfirmationEmail(params: {
 
   try {
     await resend.emails.send({
-      from: FROM_EMAIL,
+      from: fromFor(params.brand),
       to: params.customerEmail,
       subject: `Cita confirmada — ${params.businessName}`,
       html: renderPlainEmail(`
@@ -483,7 +484,7 @@ export async function sendAppointmentConfirmationEmail(params: {
         </p>
         ${params.zoomLink ? `<div style="text-align: center; margin: 16px 0;"><a href="${params.zoomLink}" style="display: inline-block; background: #1a1a1a; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">💻 Unirme a la reunión (Zoom)</a></div>` : ''}
         ${footer}
-      `),
+      `, params.brand),
     });
     return true;
   } catch (err: unknown) {
@@ -657,6 +658,7 @@ export async function sendInvoicePaymentLinkEmail(params: {
   total: number;
   currency: string;
   paymentLink: string;
+  brand?: EmailBrand;
 }): Promise<boolean> {
   if (!resend) {
     console.log('[Resend] Skipped invoice payment link — RESEND_API_KEY not set');
@@ -667,7 +669,7 @@ export async function sendInvoicePaymentLinkEmail(params: {
 
   try {
     await resend.emails.send({
-      from: FROM_EMAIL,
+      from: fromFor(params.brand),
       to: params.customerEmail,
       subject: `Factura ${params.invoiceNumber} — ${params.businessName}`,
       html: renderPlainEmail(`
@@ -678,10 +680,10 @@ export async function sendInvoicePaymentLinkEmail(params: {
           Total: ${params.currency} ${params.total.toFixed(2)}
         </p>
         <div style="text-align: center; margin: 20px 0;">
-          <a href="${params.paymentLink}" style="display: inline-block; background: ${MAALCA_BRAND_COLOR}; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Pagar ahora</a>
+          <a href="${params.paymentLink}" style="display: inline-block; background: ${safeBrandColor(params.brand?.color)}; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Pagar ahora</a>
         </div>
         <p style="font-size: 13px; color: #737373;">Pago seguro procesado por Stripe.</p>
-      `),
+      `, params.brand),
     });
     return true;
   } catch (err: unknown) {
@@ -705,6 +707,7 @@ export async function sendProposalEmail(params: {
   currency: string;
   expiresAt: string | null;
   proposalLink: string;
+  brand?: EmailBrand;
 }): Promise<boolean> {
   if (!resend) {
     console.log('[Resend] Skipped proposal email — RESEND_API_KEY not set');
@@ -718,7 +721,7 @@ export async function sendProposalEmail(params: {
 
   try {
     await resend.emails.send({
-      from: FROM_EMAIL,
+      from: fromFor(params.brand),
       to: params.customerEmail,
       subject: `Propuesta: ${params.title} — ${params.businessName}`,
       html: renderPlainEmail(`
@@ -730,10 +733,10 @@ export async function sendProposalEmail(params: {
             Monto: ${params.currency} ${params.amount.toFixed(2)}
           </p>
           <div style="text-align: center; margin: 20px 0;">
-            <a href="${params.proposalLink}" style="display: inline-block; background: ${MAALCA_BRAND_COLOR}; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Ver y aceptar propuesta</a>
+            <a href="${params.proposalLink}" style="display: inline-block; background: ${safeBrandColor(params.brand?.color)}; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Ver y aceptar propuesta</a>
           </div>
           ${expiresLine}
-      `),
+      `, params.brand),
     });
     return true;
   } catch (err: unknown) {
@@ -808,6 +811,7 @@ export async function sendInvoiceReceiptEmail(params: {
   total: number;
   currency: string;
   paidDate: string | null;
+  brand?: EmailBrand;
 }): Promise<boolean> {
   if (!resend) {
     console.log('[Resend] Skipped invoice receipt — RESEND_API_KEY not set');
@@ -821,7 +825,7 @@ export async function sendInvoiceReceiptEmail(params: {
 
   try {
     await resend.emails.send({
-      from: FROM_EMAIL,
+      from: fromFor(params.brand),
       to: params.customerEmail,
       subject: `Recibo de pago — Factura ${params.invoiceNumber} (${params.businessName})`,
       html: renderPlainEmail(`
@@ -833,7 +837,7 @@ export async function sendInvoiceReceiptEmail(params: {
           Fecha de pago: ${paidDateLine}
         </p>
         <p style="font-size: 13px; color: #737373;">Este correo es tu comprobante de pago. Consérvalo para tus registros.</p>
-      `),
+      `, params.brand),
     });
     return true;
   } catch (err: unknown) {
@@ -1216,4 +1220,70 @@ export async function sendReservationStatusEmail(params: {
   }
 
   return result
+}
+
+/**
+ * El negocio confirmó o canceló la cita desde su panel: aviso al cliente con la marca del negocio.
+ * Mismo diseño liviano que la confirmación de reserva de cita.
+ */
+export async function sendAppointmentStatusEmail(params: {
+  kind: 'confirmed' | 'cancelled'
+  customerEmail: string
+  customerName: string | null
+  businessName: string
+  serviceName: string
+  date: string // yyyy-MM-dd
+  time: string // HH:mm
+  staffName?: string | null
+  manageUrl?: string | null
+  zoomLink?: string | null
+  brand?: EmailBrand
+}): Promise<boolean> {
+  if (!resend) {
+    console.log('[Resend] Skipped appointment status email — RESEND_API_KEY not set')
+    return false
+  }
+
+  const confirmed = params.kind === 'confirmed'
+  const name = params.customerName ? escapeHtml(params.customerName) : null
+  const business = escapeHtml(params.businessName)
+  const greeting = name ? `Hola, ${name}` : 'Hola'
+  const dateFmt = new Date(`${params.date}T00:00:00`).toLocaleDateString('es-DO', { weekday: 'long', day: 'numeric', month: 'long' })
+  const staffLine = params.staffName ? `<br/>Con: ${escapeHtml(params.staffName)}` : ''
+  const color = safeBrandColor(params.brand?.color)
+
+  const intro = confirmed
+    ? `<strong>${business}</strong> confirmó tu cita. ¡Te esperamos!`
+    : `<strong>${business}</strong> canceló tu cita. Si quieres reprogramarla, contáctanos o agenda una nueva.`
+  const action = params.manageUrl
+    ? `<div style="text-align: center; margin: 20px 0;"><a href="${params.manageUrl}" style="display: inline-block; background: ${color}; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">${confirmed ? 'Gestiona tu cita' : 'Ver detalle'}</a></div>`
+    : ''
+  const zoom = confirmed && params.zoomLink
+    ? `<div style="text-align: center; margin: 16px 0;"><a href="${params.zoomLink}" style="display: inline-block; background: #1a1a1a; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">💻 Unirme a la reunión (Zoom)</a></div>`
+    : ''
+
+  try {
+    await resend.emails.send({
+      from: fromFor(params.brand),
+      to: params.customerEmail,
+      subject: confirmed ? `Cita confirmada — ${params.businessName}` : `Cita cancelada — ${params.businessName}`,
+      html: renderPlainEmail(
+        `
+        <p style="font-size: 15px; line-height: 1.6;">${greeting},</p>
+        <p style="font-size: 15px; line-height: 1.6;">${intro}</p>
+        <p style="font-size: 15px; line-height: 1.6; background: #fafafa; border-radius: 8px; padding: 12px 16px;">
+          <strong>${escapeHtml(params.serviceName)}</strong><br/>
+          ${dateFmt} · ${params.time}${staffLine}
+        </p>
+        ${zoom}
+        ${action}
+      `,
+        params.brand,
+      ),
+    })
+    return true
+  } catch (err: unknown) {
+    console.error('[Resend] Appointment status email failed:', err instanceof Error ? err.message : String(err))
+    return false
+  }
 }

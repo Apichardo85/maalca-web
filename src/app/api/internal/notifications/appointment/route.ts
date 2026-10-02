@@ -11,6 +11,8 @@ interface AppointmentNotificationBody {
   token: string;
   slug: string;
   businessName: string;
+  logoUrl?: string | null;
+  brandColor?: string | null;
   customerEmail: string;
   customerName?: string | null;
   serviceName: string;
@@ -56,6 +58,7 @@ export async function POST(request: NextRequest) {
     staffName: body.staffName,
     manageUrl,
     zoomLink: body.isVirtual ? body.zoomLink : null,
+    brand: { name: body.businessName, logoUrl: body.logoUrl ?? null, color: body.brandColor ?? null },
   });
 
   return NextResponse.json({ sent });
