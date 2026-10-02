@@ -13,6 +13,8 @@ interface DueProposalReminder {
   currency: string;
   expiresAt: string | null;
   token: string;
+  logoUrl?: string | null;
+  brandColor?: string | null;
 }
 
 /**
@@ -61,6 +63,7 @@ export async function GET(request: NextRequest) {
         currency: p.currency,
         expiresAt: p.expiresAt,
         proposalLink: `${origin}/propuesta/${p.token}`,
+        brand: { name: p.businessName, logoUrl: p.logoUrl ?? null, color: p.brandColor ?? null },
       });
       if (ok) {
         sent += 1;

@@ -14,6 +14,8 @@ interface DueReminder {
   time: string;
   staffName?: string | null;
   token: string;
+  logoUrl?: string | null;
+  brandColor?: string | null;
 }
 
 /**
@@ -68,6 +70,7 @@ export async function GET(request: NextRequest) {
         time: appt.time,
         staffName: appt.staffName ?? null,
         manageUrl: appt.token ? `${origin}/cita/${appt.token}` : null,
+        brand: { name: appt.affiliateName, logoUrl: appt.logoUrl ?? null, color: appt.brandColor ?? null },
       });
       if (ok) {
         sent += 1;

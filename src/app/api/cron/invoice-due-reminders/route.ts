@@ -13,6 +13,8 @@ interface DueInvoiceReminder {
   currency: string;
   dueDate: string | null;
   isOverdue: boolean;
+  logoUrl?: string | null;
+  brandColor?: string | null;
 }
 
 /**
@@ -58,6 +60,7 @@ export async function GET(request: NextRequest) {
         currency: inv.currency,
         dueDate: inv.dueDate,
         isOverdue: inv.isOverdue,
+        brand: { name: inv.businessName, logoUrl: inv.logoUrl ?? null, color: inv.brandColor ?? null },
       });
       if (ok) {
         sent += 1;
