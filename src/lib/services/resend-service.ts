@@ -507,6 +507,7 @@ export async function sendAppointmentReminderEmail(params: {
   // Tarea #247 — mismo link que la confirmación, para que el recordatorio también deje
   // reagendar/cancelar sin tener que llamar al negocio.
   manageUrl?: string | null;
+  brand?: EmailBrand;
 }): Promise<boolean> {
   if (!resend) {
     console.log('[Resend] Skipped appointment reminder — RESEND_API_KEY not set');
@@ -523,7 +524,7 @@ export async function sendAppointmentReminderEmail(params: {
   const footer = params.manageUrl
     ? `
         <div style="text-align: center; margin: 20px 0;">
-          <a href="${params.manageUrl}" style="display: inline-block; background: ${MAALCA_BRAND_COLOR}; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Gestiona tu cita</a>
+          <a href="${params.manageUrl}" style="display: inline-block; background: ${safeBrandColor(params.brand?.color)}; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Gestiona tu cita</a>
         </div>
         <p style="font-size: 13px; color: #737373;">¿No puedes venir? Reagenda o cancela desde ese link.</p>
       `
@@ -531,7 +532,7 @@ export async function sendAppointmentReminderEmail(params: {
 
   try {
     await resend.emails.send({
-      from: FROM_EMAIL,
+      from: fromFor(params.brand),
       to: params.customerEmail,
       subject: `Recordatorio: tu cita hoy en ${params.businessName}`,
       html: renderPlainEmail(`
@@ -542,7 +543,7 @@ export async function sendAppointmentReminderEmail(params: {
           ${dateFmt} · ${params.time}${staffLine}
         </p>
         ${footer}
-      `),
+      `, params.brand),
     });
     return true;
   } catch (err: unknown) {
@@ -862,6 +863,7 @@ export async function sendProposalReminderEmail(params: {
   currency: string;
   expiresAt: string | null;
   proposalLink: string;
+  brand?: EmailBrand;
 }): Promise<boolean> {
   if (!resend) {
     console.log('[Resend] Skipped proposal reminder — RESEND_API_KEY not set');
@@ -870,12 +872,12 @@ export async function sendProposalReminderEmail(params: {
 
   const greeting = params.customerName ? `Hola, ${params.customerName}` : 'Hola';
   const expiresLine = params.expiresAt
-    ? `<p style="font-size: 13px; color: #737373;">Válida hasta el ${new Date(params.expiresAt).toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric' })}.</p>`
+    ? `<p style="font-size: 13px; color: #737373;">Válida hasta el ${new Date(params.expiresAt).toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })}.</p>`
     : '';
 
   try {
     await resend.emails.send({
-      from: FROM_EMAIL,
+      from: fromFor(params.brand),
       to: params.customerEmail,
       subject: `Recordatorio: propuesta pendiente — ${params.businessName}`,
       html: renderPlainEmail(`
@@ -886,10 +888,10 @@ export async function sendProposalReminderEmail(params: {
           Monto: ${params.currency} ${params.amount.toFixed(2)}
         </p>
         <div style="text-align: center; margin: 20px 0;">
-          <a href="${params.proposalLink}" style="display: inline-block; background: ${MAALCA_BRAND_COLOR}; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Ver y aceptar propuesta</a>
+          <a href="${params.proposalLink}" style="display: inline-block; background: ${safeBrandColor(params.brand?.color)}; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">Ver y aceptar propuesta</a>
         </div>
         ${expiresLine}
-      `),
+      `, params.brand),
     });
     return true;
   } catch (err: unknown) {
@@ -915,6 +917,7 @@ export async function sendInvoiceDueReminderEmail(params: {
   currency: string;
   dueDate: string | null;
   isOverdue: boolean;
+  brand?: EmailBrand;
 }): Promise<boolean> {
   if (!resend) {
     console.log('[Resend] Skipped invoice due reminder — RESEND_API_KEY not set');
@@ -923,7 +926,7 @@ export async function sendInvoiceDueReminderEmail(params: {
 
   const greeting = params.customerName ? `Hola, ${params.customerName}` : 'Hola';
   const dueDateLine = params.dueDate
-    ? new Date(params.dueDate).toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric' })
+    ? new Date(params.dueDate).toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
     : null;
   const statusLine = params.isOverdue
     ? `<p style="font-size: 15px; line-height: 1.6; color: #B42828; font-weight: 600;">Esta factura está vencida.</p>`
@@ -931,7 +934,7 @@ export async function sendInvoiceDueReminderEmail(params: {
 
   try {
     await resend.emails.send({
-      from: FROM_EMAIL,
+      from: fromFor(params.brand),
       to: params.customerEmail,
       subject: `${params.isOverdue ? 'Factura vencida' : 'Recordatorio de pago'} — ${params.invoiceNumber} (${params.businessName})`,
       html: renderPlainEmail(`
@@ -942,7 +945,7 @@ export async function sendInvoiceDueReminderEmail(params: {
           Total: ${params.currency} ${params.total.toFixed(2)}${dueDateLine ? `<br/>Vencimiento: ${dueDateLine}` : ''}
         </p>
         <p style="font-size: 13px; color: #737373;">Contacta a ${params.businessName} para coordinar el pago.</p>
-      `),
+      `, params.brand),
     });
     return true;
   } catch (err: unknown) {
