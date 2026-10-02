@@ -15,7 +15,7 @@
 // when `business.timezone` is set AND at least one item has periods/
 // weekDays populated; otherwise the full menu shows with no filter, so a
 // business without that data configured never sees a confusing empty view.
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Inter } from 'next/font/google';
 import { deriveBrandPalette, brandPaletteVars } from '@/lib/brand-palette';
 import type { ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
@@ -93,16 +93,37 @@ const WEEK_DAY_LABELS_EN: Record<WeekDay, string> = {
   friday: 'Friday', saturday: 'Saturday', sunday: 'Sunday',
 };
 
-// Default meal-period time boundaries (24h, minutes since midnight). There is
-// no per-affiliate custom schedule in the new dynamic-tenant model — this is
-// a single fixed default applied to every restaurant, not a per-business
-// setting. late_night crosses midnight (22:00 -> 05:00).
+// Cortes POR DEFECTO de los momentos de comida (24h, minutos desde medianoche). Cada negocio
+// puede sobreescribir los suyos en Diseñar mi Espacio → Contenido ("Momentos de comida",
+// business.mealPeriodHours); lo que no configura cae a estos. late_night cruza medianoche.
 const DEFAULT_PERIOD_HOURS: Record<Exclude<MealPeriod, 'all_day'>, { start: number; end: number }> = {
   breakfast: { start: 5 * 60, end: 11 * 60 },
   lunch: { start: 11 * 60, end: 16 * 60 },
   dinner: { start: 16 * 60, end: 22 * 60 },
   late_night: { start: 22 * 60, end: 5 * 60 },
 };
+
+type PeriodRanges = Record<Exclude<MealPeriod, 'all_day'>, { start: number; end: number }>;
+
+function hhmmToMin(v: string | undefined): number | null {
+  const m = /^(\d{1,2}):(\d{2})$/.exec((v ?? '').trim());
+  if (!m) return null;
+  const h = Number(m[1]);
+  const min = Number(m[2]);
+  return h > 23 || min > 59 ? null : h * 60 + min;
+}
+
+/** Cortes del negocio sobre los de por defecto (minutos). Un rango inválido o start==end se ignora. */
+function resolvePeriodRanges(custom: PublicTemplateProps['business']['mealPeriodHours']): PeriodRanges {
+  const out: PeriodRanges = { ...DEFAULT_PERIOD_HOURS };
+  if (!custom) return out;
+  for (const p of Object.keys(DEFAULT_PERIOD_HOURS) as Array<Exclude<MealPeriod, 'all_day'>>) {
+    const start = hhmmToMin(custom[p]?.start);
+    const end = hhmmToMin(custom[p]?.end);
+    if (start !== null && end !== null && start !== end) out[p] = { start, end };
+  }
+  return out;
+}
 
 const FLAG_LABELS: Record<string, [string, string]> = {
   vegetarian: ['Vegetariano', 'Vegetarian'],
@@ -136,6 +157,7 @@ function itemDetailText(
  */
 function resolveNowInTimezone(
   timezone: string,
+  ranges: PeriodRanges,
   now: Date = new Date(),
 ): { period: Exclude<MealPeriod, 'all_day'>; weekday: WeekDay } | null {
   try {
@@ -157,7 +179,7 @@ function resolveNowInTimezone(
     const weekday = weekdayStr.toLowerCase() as WeekDay;
 
     let period: Exclude<MealPeriod, 'all_day'> = 'late_night';
-    for (const [p, range] of Object.entries(DEFAULT_PERIOD_HOURS) as Array<
+    for (const [p, range] of Object.entries(ranges) as Array<
       [Exclude<MealPeriod, 'all_day'>, { start: number; end: number }]
     >) {
       const withinRange = range.end > range.start
@@ -173,8 +195,8 @@ function resolveNowInTimezone(
 }
 
 /** Momento de comida que corresponde a una hora del día (minutos desde medianoche). */
-function periodAtMinutes(totalMin: number): Exclude<MealPeriod, 'all_day'> {
-  for (const [p, range] of Object.entries(DEFAULT_PERIOD_HOURS) as Array<[Exclude<MealPeriod, 'all_day'>, { start: number; end: number }]>) {
+function periodAtMinutes(totalMin: number, ranges: PeriodRanges): Exclude<MealPeriod, 'all_day'> {
+  for (const [p, range] of Object.entries(ranges) as Array<[Exclude<MealPeriod, 'all_day'>, { start: number; end: number }]>) {
     const within = range.end > range.start
       ? totalMin >= range.start && totalMin < range.end
       : totalMin >= range.start || totalMin < range.end;
@@ -210,17 +232,18 @@ export function RestaurantTemplate({
   // ORDENAR (lo del momento primero), no para ocultar nada.
   const [hlOpenId, setHlOpenId] = useState<string | null>(null);
   const [periodNow, setPeriodNow] = useState<Exclude<MealPeriod, 'all_day'> | null>(null);
+  const periodRanges = useMemo(() => resolvePeriodRanges(business.mealPeriodHours), [business.mealPeriodHours]);
   useEffect(() => {
     const update = () => {
-      setPeriodNow(business.timezone ? resolveNowInTimezone(business.timezone)?.period ?? null : null);
+      setPeriodNow(business.timezone ? resolveNowInTimezone(business.timezone, periodRanges)?.period ?? null : null);
       setOpenStatus(getOpenStatus(business.horario, business.timezone));
       setTodayKey(todayKeyInTimezone(business.timezone));
-      setWeekdayNow(business.timezone ? resolveNowInTimezone(business.timezone)?.weekday ?? null : null);
+      setWeekdayNow(business.timezone ? resolveNowInTimezone(business.timezone, periodRanges)?.weekday ?? null : null);
     };
     update();
     const id = setInterval(update, 60_000);
     return () => clearInterval(id);
-  }, [business.horario, business.timezone]);
+  }, [business.horario, business.timezone, periodRanges]);
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const periodLabel = (p: MealPeriod) => (language === 'en' ? MEAL_PERIOD_LABELS_EN[p] : MEAL_PERIOD_LABELS[p]);
@@ -237,7 +260,7 @@ export function RestaurantTemplate({
   const hasSchedulingData = items.some(
     (i) => (i.periods && i.periods.length > 0) || (i.weekDays && i.weekDays.length > 0),
   );
-  const nowInfo = business.timezone ? resolveNowInTimezone(business.timezone) : null;
+  const nowInfo = business.timezone ? resolveNowInTimezone(business.timezone, periodRanges) : null;
   const vistaHoyAvailable = Boolean(nowInfo) && hasSchedulingData;
 
   const [vistaHoyActive, setVistaHoyActive] = useState(vistaHoyAvailable);
@@ -253,7 +276,7 @@ export function RestaurantTemplate({
   const schedule = getScheduleTarget(openStatus, business.timezone);
   const effWeekday: WeekDay | null = schedule ? (schedule.weekday as WeekDay) : nowInfo?.weekday ?? null;
   const openMin = schedule ? hhmmToMinutes(schedule.opensAt) : null;
-  const effPeriod: Exclude<MealPeriod, 'all_day'> | null = schedule && openMin !== null ? periodAtMinutes(openMin) : nowInfo?.period ?? null;
+  const effPeriod: Exclude<MealPeriod, 'all_day'> | null = schedule && openMin !== null ? periodAtMinutes(openMin, periodRanges) : nowInfo?.period ?? null;
   const activePeriod = periodPick ?? (vistaHoyActive && effPeriod ? effPeriod : ALL_PERIODS);
   const [query, setQuery] = useState('');
   const searchActive = query.trim().length > 0;

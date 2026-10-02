@@ -58,6 +58,9 @@ export interface PublicTemplateProps {
     /** IANA timezone (e.g. "America/New_York"). Null if not configured yet. */
     timezone?: string | null;
     horario?: HorarioDay[] | null;
+    /** Cortes de los momentos de comida del negocio ("HH:mm", end < start cruza medianoche). Clave
+     *  ausente = corte por defecto de la plantilla Restaurant. Solo aplica a restaurantes. */
+    mealPeriodHours?: Partial<Record<'breakfast' | 'lunch' | 'dinner' | 'late_night', { start: string; end: string }>> | null;
     /** "USD" | "DOP" — cómo el negocio muestra sus precios. Default "USD" para negocios que
      *  todavía no la configuraron en Settings (ver SettingsContent.tsx). */
     currency?: 'USD' | 'DOP';
