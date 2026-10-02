@@ -20,6 +20,7 @@ import {
   type FaqEntryDto,
   type HorarioDayDto,
   type MealPeriodHoursDto,
+  type CategoryTranslationsDto,
   type SectionVisibilityDto,
   type CausaDto,
   type CommunityImpactDto,
@@ -49,6 +50,8 @@ interface Props {
   faq: FaqEntryDto[];
   horario: HorarioDayDto[];
   mealPeriodHours: MealPeriodHoursDto;
+  categoryTranslations: CategoryTranslationsDto;
+  categoryNames: string[];
   sectionVisibility: SectionVisibilityDto;
   galleryImages: string[];
   causas: CausaDto[];
@@ -82,6 +85,8 @@ export function DesignEditor({
   faq: initialFaq,
   horario: initialHorario,
   mealPeriodHours: initialMealPeriodHours,
+  categoryTranslations: initialCategoryTranslations,
+  categoryNames,
   sectionVisibility: initialSectionVisibility,
   galleryImages: initialGalleryImages,
   causas: initialCausas,
@@ -118,6 +123,7 @@ export function DesignEditor({
   const [faq, setFaq] = useState<FaqEntryDto[]>(initialFaq);
   const [horario, setHorario] = useState<HorarioDayDto[]>(withAllDays(initialHorario));
   const [mealPeriodHours, setMealPeriodHours] = useState<MealPeriodHoursDto>(initialMealPeriodHours);
+  const [categoryTranslations, setCategoryTranslations] = useState<CategoryTranslationsDto>(initialCategoryTranslations);
   const [sectionVisibility, setSectionVisibility] = useState<SectionVisibilityDto>(initialSectionVisibility);
   const [galleryImages, setGalleryImages] = useState<string[]>(initialGalleryImages);
   const [causas, setCausas] = useState<CausaDto[]>(initialCausas);
@@ -254,6 +260,7 @@ export function DesignEditor({
     timezone,
     horario: horario.length > 0 ? horario : null,
     mealPeriodHours: Object.keys(mealPeriodHours).length > 0 ? mealPeriodHours : null,
+    categoryTranslations: Object.keys(categoryTranslations).length > 0 ? categoryTranslations : null,
     sectionVisibility,
     galleryImages,
     causas: causas.length > 0 ? causas : null,
@@ -356,6 +363,9 @@ export function DesignEditor({
               onHorarioChange={setHorario}
               mealPeriodHours={mealPeriodHours}
               onMealPeriodHoursChange={setMealPeriodHours}
+              categoryTranslations={categoryTranslations}
+              onCategoryTranslationsChange={setCategoryTranslations}
+              categoryNames={categoryNames}
               sectionVisibility={sectionVisibility}
               onSectionVisibilityChange={setSectionVisibility}
               galleryImages={galleryImages}

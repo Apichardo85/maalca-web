@@ -61,6 +61,8 @@ export interface PublicTemplateProps {
     /** Cortes de los momentos de comida del negocio ("HH:mm", end < start cruza medianoche). Clave
      *  ausente = corte por defecto de la plantilla Restaurant. Solo aplica a restaurantes. */
     mealPeriodHours?: Partial<Record<'breakfast' | 'lunch' | 'dinner' | 'late_night', { start: string; end: string }>> | null;
+    /** Traducción es/en de los nombres de categoría (clave = nombre guardado). Ver lib/category-label. */
+    categoryTranslations?: Record<string, { es?: string | null; en?: string | null }> | null;
     /** "USD" | "DOP" — cómo el negocio muestra sus precios. Default "USD" para negocios que
      *  todavía no la configuraron en Settings (ver SettingsContent.tsx). */
     currency?: 'USD' | 'DOP';

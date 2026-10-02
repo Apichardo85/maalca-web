@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getMaalcaApiToken } from '@/lib/api-auth';
 import { DesignEditor } from './DesignEditor';
-import type { ProcessStepDto, FaqEntryDto, HorarioDayDto, SectionVisibilityDto, CausaDto, CommunityImpactDto, MealPeriodHoursDto } from './types';
+import type { ProcessStepDto, FaqEntryDto, HorarioDayDto, SectionVisibilityDto, CausaDto, CommunityImpactDto, MealPeriodHoursDto, CategoryTranslationsDto } from './types';
 import { EMPTY_COMMUNITY_IMPACT } from './types';
 import type { BusinessType, Plan } from '@/lib/templates/registry';
 
@@ -62,6 +62,8 @@ export default async function DesignPage({
   let faq: FaqEntryDto[] = [];
   let horario: HorarioDayDto[] = [];
   let mealPeriodHours: MealPeriodHoursDto = {};
+  let categoryTranslations: CategoryTranslationsDto = {};
+  let categoryNames: string[] = [];
   let sectionVisibility: SectionVisibilityDto = {};
   let galleryImages: string[] = [];
   let causas: CausaDto[] = [];
@@ -84,6 +86,7 @@ export default async function DesignPage({
       faq = p.faq ?? [];
       horario = p.horario ?? [];
       mealPeriodHours = p.mealPeriodHours ?? {};
+      categoryTranslations = p.categoryTranslations ?? {};
       sectionVisibility = p.sectionVisibility ?? {};
       galleryImages = p.galleryImages ?? [];
       communityImpact = p.communityImpact ?? EMPTY_COMMUNITY_IMPACT;
@@ -93,6 +96,24 @@ export default async function DesignPage({
     // unless the user explicitly edits them, so a failed fetch here can't cause data loss.
     // processSteps/faq/horario stay empty — worst case Contenido tab starts blank
     // instead of throwing; saving from there always sends a full explicit array.
+  }
+
+  // Categorías del catálogo (para traducirlas en Contenido). Solo tipos con menú/catálogo con
+  // categorías; si el fetch falla la sección simplemente no aparece (no tumba el editor).
+  if (['restaurant', 'retail', 'barber'].includes((biz.businessType as string)?.toLowerCase())) {
+    try {
+      const catRes = await fetch(`${API}/api/public/affiliates/${slug}/catalog`, { cache: 'no-store' });
+      if (catRes.ok) {
+        const c = await catRes.json();
+        const names = new Set<string>();
+        for (const i of (c.items ?? []) as Array<{ category?: string | null }>) if (i.category) names.add(i.category);
+        for (const cat of (c.categories ?? []) as Array<{ name?: string | null }>) if (cat.name) names.add(cat.name);
+        for (const k of Object.keys(categoryTranslations)) names.add(k);
+        categoryNames = Array.from(names).sort((a, b) => a.localeCompare(b));
+      }
+    } catch {
+      // sin lista de categorías: la sección de traducciones queda oculta
+    }
   }
 
   // Causas -- ya no viene del payload público de arriba (backlog 2026-09-25, ver Causa.cs);
@@ -138,6 +159,8 @@ export default async function DesignPage({
       faq={faq}
       horario={horario}
       mealPeriodHours={mealPeriodHours}
+      categoryTranslations={categoryTranslations}
+      categoryNames={categoryNames}
       sectionVisibility={sectionVisibility}
       galleryImages={galleryImages}
       causas={causas}

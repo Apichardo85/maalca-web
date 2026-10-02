@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
+import { categoryLabel } from '@/lib/category-label';
 import { formatPrice as formatCurrencyPrice } from '@/lib/currency';
 
 type BoardItem = PublicTemplateProps['items'][number];
@@ -26,6 +27,7 @@ interface Props {
     logoUrl: string | null;
     primaryColor: string;
     currency?: 'USD' | 'DOP';
+    categoryTranslations?: Record<string, { es?: string | null; en?: string | null }> | null;
   };
   initialItems: BoardItem[];
   initialCategories: BoardCategory[];
@@ -281,7 +283,7 @@ export function MenuBoard({
         <h1 className="text-3xl font-bold tracking-tight">{business.name}</h1>
         {slide?.kind === 'menu' && (
           <span className="ml-auto text-xl font-semibold uppercase tracking-widest text-white/80">
-            {slide.category}
+            {categoryLabel(slide.category, language, business.categoryTranslations)}
           </span>
         )}
       </header>

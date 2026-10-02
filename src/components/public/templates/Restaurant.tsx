@@ -51,6 +51,7 @@ import {
   type OpenStatus,
 } from '@/lib/business-hours';
 import type { MealPeriod, WeekDay } from '@/lib/types';
+import { categoryLabel } from '@/lib/category-label';
 
 // Scoped to this template only. Una sola familia (Inter) con pesos fuertes: el serif cursivo
 // anterior se sentía de papelería/invitación, no de pedir comida. Los colores ya no son fijos:
@@ -748,7 +749,7 @@ export function RestaurantTemplate({
                 description={language === 'en' && hl.descriptionEn ? hl.descriptionEn : hl.description}
                 priceLabel={hl.price != null ? formatPrice(hl.price, business.currency) : null}
                 imageUrl={hl.imageUrl ?? hl.image_url}
-                category={hl.category}
+                category={categoryLabel(hl.category, language, business.categoryTranslations)}
                 tags={txt.tags}
                 availabilityLabel={txt.availability}
                 qty={cart.find((e) => e.item.id === hl.id)?.qty ?? 0}
@@ -850,7 +851,7 @@ export function RestaurantTemplate({
             >
               {[
                 { key: ALL_TAB, label: getText('Todos', 'All') },
-                ...categoryNames.map((n) => ({ key: n, label: n })),
+                ...categoryNames.map((n) => ({ key: n, label: categoryLabel(n, language, business.categoryTranslations) })),
               ].map(({ key, label }) => (
                 <button
                   key={key}
@@ -985,13 +986,14 @@ export function RestaurantTemplate({
           ) : (
             groupedForAll.map(({ categoryName, groupItems }) => (
               <div key={categoryName || '__ungrouped__'} style={{ marginBottom: '32px' }}>
-                {categoryName && <SectLabel label={categoryName} />}
+                {categoryName && <SectLabel label={categoryLabel(categoryName, language, business.categoryTranslations)} />}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {groupItems.map((item) => {
                     const cartQty = cart.find(e => e.item.id === item.id)?.qty ?? 0;
                     return (
                       <MenuCard
                         key={item.id}
+                        categoryTranslations={business.categoryTranslations}
                         item={item}
                         language={language}
                         accent={accent}
@@ -1021,6 +1023,7 @@ export function RestaurantTemplate({
               return (
                 <MenuCard
                   key={item.id}
+                  categoryTranslations={business.categoryTranslations}
                   item={item}
                   language={language}
                   accent={accent}
@@ -1578,8 +1581,10 @@ function MenuCard({
   onRemove,
   currency,
   unavailableLabel,
+  categoryTranslations,
 }: {
   unavailableLabel?: string | null;
+  categoryTranslations?: PublicTemplateProps['business']['categoryTranslations'];
   item: PublicTemplateProps['items'][number];
   language: 'es' | 'en';
   accent: string;
@@ -1832,7 +1837,7 @@ function MenuCard({
       description={description}
       priceLabel={item.price != null ? formatPrice(item.price, currency) : null}
       imageUrl={imageUrl}
-      category={item.category}
+      category={categoryLabel(item.category, language, categoryTranslations)}
       tags={detailTags}
       unavailableLabel={unavailableLabel}
       availabilityLabel={availabilityText}
