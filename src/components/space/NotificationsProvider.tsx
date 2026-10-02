@@ -35,6 +35,8 @@ interface Ctx {
   /** Badge de un item del menú por su href (/space/{slug}/orders → pedidos sin leer). */
   badgeForHref: (href: string) => number;
   markRead: (opts?: { ids?: string[]; type?: string }) => Promise<void>;
+  /** Fuerza una consulta ahora mismo (ej. al abrir la campana). */
+  refresh: () => Promise<void>;
   push: PushState;
   enablePush: () => Promise<void>;
   disablePush: () => Promise<void>;
@@ -48,7 +50,7 @@ export function useNotifications(): Ctx {
     // Fuera del provider (ej. previews): sin avisos, nunca rompe la página.
     return {
       unread: 0, unreadByType: {}, items: [], badgeForHref: () => 0,
-      markRead: async () => {}, push: 'unsupported', enablePush: async () => {}, disablePush: async () => {},
+      markRead: async () => {}, refresh: async () => {}, push: 'unsupported', enablePush: async () => {}, disablePush: async () => {},
     };
   }
   return ctx;
@@ -217,8 +219,8 @@ export function NotificationsProvider({ slug, children }: { slug: string; childr
   }, [slug, unreadByType]);
 
   const value = useMemo<Ctx>(
-    () => ({ unread, unreadByType, items, badgeForHref, markRead, push, enablePush, disablePush }),
-    [unread, unreadByType, items, badgeForHref, markRead, push, enablePush, disablePush],
+    () => ({ unread, unreadByType, items, badgeForHref, markRead, refresh, push, enablePush, disablePush }),
+    [unread, unreadByType, items, badgeForHref, markRead, refresh, push, enablePush, disablePush],
   );
 
   return <NotificationsContext.Provider value={value}>{children}</NotificationsContext.Provider>;

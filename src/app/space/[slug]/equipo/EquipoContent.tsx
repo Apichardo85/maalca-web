@@ -133,6 +133,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
   const [customRole, setCustomRole] = useState(false);
   const [newHourlyRate, setNewHourlyRate] = useState('');
   const [saving, setSaving] = useState(false);
+  const [memberQuery, setMemberQuery] = useState('');
   const [newPhotoUrl, setNewPhotoUrl] = useState<string | null>(null);
   const [newPhotoUploading, setNewPhotoUploading] = useState(false);
 
@@ -161,8 +162,11 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
   // Nómina (PayrollReport)
   const today = new Date();
   const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  const [payrollFrom, setPayrollFrom] = useState(firstOfMonth.toISOString().slice(0, 10));
-  const [payrollTo, setPayrollTo] = useState(today.toISOString().slice(0, 10));
+  // Fecha local (no UTC): toISOString() en la tarde/noche de América ya devuelve "mañana".
+  const toLocalYmd = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const [payrollFrom, setPayrollFrom] = useState(toLocalYmd(firstOfMonth));
+  const [payrollTo, setPayrollTo] = useState(toLocalYmd(today));
   const [payroll, setPayroll] = useState<PayrollReport | null>(null);
   const [payrollLoading, setPayrollLoading] = useState(false);
 
@@ -932,7 +936,21 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
         )}
 
         <div className="mt-6 space-y-2 lg:mt-0">
-          {personal.map((member) => {
+          {personal.length > 6 && (
+            <input
+              type="search"
+              value={memberQuery}
+              onChange={(e) => setMemberQuery(e.target.value)}
+              placeholder={getText('Buscar por nombre o rol…', 'Search by name or role…')}
+              className="w-full rounded-xl border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm"
+            />
+          )}
+          {personal.length > 6 && memberQuery.trim() && !personal.some((m) => `${m.name} ${m.role}`.toLowerCase().includes(memberQuery.trim().toLowerCase())) && (
+            <p className="py-4 text-center text-sm text-gray-400 dark:text-neutral-500">
+              {getText('Sin resultados.', 'No results.')}
+            </p>
+          )}
+          {personal.filter((m) => personal.length <= 6 || !memberQuery.trim() || `${m.name} ${m.role}`.toLowerCase().includes(memberQuery.trim().toLowerCase())).map((member) => {
             const link = linkedByTeamMemberId.get(member.id);
             return (
               <div
@@ -1525,7 +1543,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                         <p className="text-sm font-medium">{t.title}</p>
                         <p className="mt-0.5 text-xs text-gray-400 dark:text-neutral-500">
                           {t.teamMember?.name ?? getText('Sin asignar', 'Unassigned')}
-                          {t.dueDate && ` · ${new Date(t.dueDate).toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US')}`}
+                          {t.dueDate && ` · ${new Date(t.dueDate).toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { timeZone: 'UTC' })}`}
                         </p>
                         <div className="mt-2 flex flex-wrap items-center gap-1.5">
                           {status !== 'Pending' && (

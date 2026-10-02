@@ -88,6 +88,8 @@ export function ProposalsContent({ slug, currency, initialProposals, customers, 
   const [attachmentUrl, setAttachmentUrl] = useState<string | null>(null);
   const [attachmentName, setAttachmentName] = useState<string | null>(null);
   const [uploadingAttachment, setUploadingAttachment] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | ProposalRow['status']>('all');
+  const [query, setQuery] = useState('');
 
   async function refetch() {
     try {
@@ -246,8 +248,31 @@ export function ProposalsContent({ slug, currency, initialProposals, customers, 
   const fmtDate = (iso: string) =>
     new Date(iso).toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-  const active = proposals.filter((p) => p.status !== 'Accepted' && p.status !== 'Expired');
-  const resolved = proposals.filter((p) => p.status === 'Accepted' || p.status === 'Expired');
+  // expiresAt viene de un <input type="date"> (medianoche UTC) — con new Date() se vería el día
+  // anterior en América, así que se arma la fecha local con año/mes/día.
+  const fmtDateOnly = (iso: string) => {
+    const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
+    if (!y || !m || !d) return fmtDate(iso);
+    return new Date(y, m - 1, d).toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const q = query.trim().toLowerCase();
+  const matchesQuery = (p: ProposalRow) =>
+    !q || p.title.toLowerCase().includes(q) || p.customerName.toLowerCase().includes(q) || (p.customerEmail ?? '').toLowerCase().includes(q);
+  const searched = proposals.filter(matchesQuery);
+  const statusCount = (st: ProposalRow['status']) => searched.filter((p) => p.status === st).length;
+  const visible = searched.filter((p) => statusFilter === 'all' || p.status === statusFilter);
+  const active = visible.filter((p) => p.status !== 'Accepted' && p.status !== 'Expired');
+  const resolved = visible.filter((p) => p.status === 'Accepted' || p.status === 'Expired');
+  const filtering = statusFilter !== 'all' || q !== '';
+  // Pendiente = borradores + enviadas, agrupado por moneda (cada fila trae la suya).
+  const pendingByCurrency = proposals
+    .filter((p) => p.status === 'Draft' || p.status === 'Sent')
+    .reduce<Record<string, number>>((acc, p) => {
+      acc[p.currency] = (acc[p.currency] ?? 0) + p.amount;
+      return acc;
+    }, {});
+  const pendingEntries = Object.entries(pendingByCurrency);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
@@ -396,10 +421,66 @@ export function ProposalsContent({ slug, currency, initialProposals, customers, 
           </div>
         )}
 
+        {proposals.length > 0 && (
+          <div className="mt-6 space-y-3">
+            {pendingEntries.length > 0 && (
+              <p className="text-sm text-gray-500 dark:text-neutral-400">
+                {getText('Pendiente de aceptar', 'Pending acceptance')}:{' '}
+                <span className="font-semibold text-gray-900 dark:text-white">
+                  {pendingEntries
+                    .map(([cur, total]) => new Intl.NumberFormat('en-US', { style: 'currency', currency: cur }).format(total))
+                    .join(' + ')}
+                </span>
+              </p>
+            )}
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={getText('Buscar por título o cliente…', 'Search by title or customer…')}
+              className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+            />
+            <div className="flex flex-wrap gap-2">
+              {([['all', getText('Todas', 'All'), searched.length]] as [string, string, number][])
+                .concat((['Draft', 'Sent', 'Accepted', 'Expired'] as const).map((st) => [st, STATUS_LABELS[st][language], statusCount(st)] as [string, string, number]))
+                .map(([key, label, count]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setStatusFilter(key as 'all' | ProposalRow['status'])}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      statusFilter === key
+                        ? 'border-brand-primary bg-brand-primary text-white'
+                        : 'border-gray-300 text-gray-600 dark:border-neutral-700 dark:text-neutral-300'
+                    }`}
+                  >
+                    {label} ({count})
+                  </button>
+                ))}
+            </div>
+          </div>
+        )}
+
         <div className="mt-6 space-y-3">
           {active.length === 0 && (
             <p className="text-sm text-gray-400 dark:text-neutral-500">
-              {getText('No hay propuestas activas.', 'No active proposals.')}
+              {filtering
+                ? getText('Ninguna propuesta coincide con los filtros.', 'No proposals match the filters.')
+                : proposals.length === 0
+                  ? getText('Todavía no has creado propuestas.', "You haven't created any proposals yet.")
+                  : getText('No hay propuestas activas.', 'No active proposals.')}
+              {filtering && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStatusFilter('all');
+                    setQuery('');
+                  }}
+                  className="ml-2 font-medium text-brand-primary hover:underline"
+                >
+                  {getText('Quitar filtros', 'Clear filters')}
+                </button>
+              )}
             </p>
           )}
           {active.map((p) => (
@@ -407,7 +488,7 @@ export function ProposalsContent({ slug, currency, initialProposals, customers, 
               key={p.id}
               className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4"
             >
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLES[p.status]}`}>
@@ -417,7 +498,7 @@ export function ProposalsContent({ slug, currency, initialProposals, customers, 
                   </div>
                   <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
                     {p.customerName} · {fmt.format(p.amount)}
-                    {p.expiresAt ? ` · ${getText('expira', 'expires')} ${fmtDate(p.expiresAt)}` : ''}
+                    {p.expiresAt ? ` · ${getText('expira', 'expires')} ${fmtDateOnly(p.expiresAt)}` : ''}
                   </p>
                   {p.attachmentUrl && (
                     <a
@@ -430,7 +511,7 @@ export function ProposalsContent({ slug, currency, initialProposals, customers, 
                     </a>
                   )}
                 </div>
-                <div className="flex shrink-0 items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
                   {p.status === 'Draft' && (
                     <button
                       type="button"
@@ -481,7 +562,7 @@ export function ProposalsContent({ slug, currency, initialProposals, customers, 
               {resolved.slice(0, 20).map((p) => (
                 <div
                   key={p.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-gray-200/70 dark:border-neutral-800 p-3"
+                  className="flex flex-col gap-2 rounded-xl border border-gray-200/70 dark:border-neutral-800 p-3 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{p.title}</p>
@@ -500,7 +581,7 @@ export function ProposalsContent({ slug, currency, initialProposals, customers, 
                       </a>
                     )}
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
                     {p.status === 'Accepted' && p.customerId && (
                       <Link
                         href={buildInvoiceLink(slug, { customerId: p.customerId, desc: p.title, amount: p.amount })}

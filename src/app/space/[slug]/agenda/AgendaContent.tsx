@@ -106,12 +106,19 @@ function generateTimeSlots(abre: string, cierra: string, isToday: boolean): stri
   return slots;
 }
 
+// YYYY-MM-DD en calendario local (toISOString() da el día UTC, que de noche en América ya es mañana).
+function localDateStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+type DateFilter = 'today' | 'tomorrow' | 'week' | 'all';
+
 function nextDays(count: number): { dateStr: string; date: Date }[] {
   const out: { dateStr: string; date: Date }[] = [];
   for (let i = 0; i < count; i++) {
     const d = new Date();
     d.setDate(d.getDate() + i);
-    out.push({ dateStr: d.toISOString().slice(0, 10), date: d });
+    out.push({ dateStr: localDateStr(d), date: d });
   }
   return out;
 }
@@ -143,6 +150,9 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [dateFilter, setDateFilter] = useState<DateFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [query, setQuery] = useState('');
 
   async function hardDeleteAppointment(appointmentId: string) {
     try {
@@ -154,8 +164,10 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
       if (!res.ok && res.status !== 204) throw new Error('delete failed');
       setAppointments((prev) => prev.filter((a) => a.id !== appointmentId));
       setDeleteTargetId(null);
+      toast.success(getText('Cita eliminada.', 'Appointment deleted.'));
     } catch {
       // El botón se queda visible — el admin puede reintentar.
+      toast.error(getText('No se pudo eliminar la cita. Intenta de nuevo.', "Couldn't delete the appointment. Try again."));
     }
   }
 
@@ -260,7 +272,7 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
     return entry;
   }
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = localDateStr(new Date());
   const dayOptions = nextDays(14);
   const selectedDateObj = date ? new Date(`${date}T00:00:00`) : null;
   const selectedDayHours = selectedDateObj ? hoursFor(selectedDateObj) : null;
@@ -389,6 +401,27 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
       setBusyId(null);
     }
   }
+
+  const tomorrowStr = localDateStr(dayOptions[1].date);
+  const weekEndStr = localDateStr(dayOptions[6].date);
+  const q = query.trim().toLowerCase();
+  const apptKey = (a: Appointment) => a.date.slice(0, 10);
+  const matchesDate = (a: Appointment) => {
+    const k = apptKey(a);
+    if (dateFilter === 'today') return k === todayStr;
+    if (dateFilter === 'tomorrow') return k === tomorrowStr;
+    if (dateFilter === 'week') return k >= todayStr && k <= weekEndStr;
+    return true;
+  };
+  const matchesQuery = (a: Appointment) =>
+    !q ||
+    (a.customer?.name ?? '').toLowerCase().includes(q) ||
+    (a.customer?.phone ?? '').toLowerCase().includes(q) ||
+    (a.service?.name ?? '').toLowerCase().includes(q) ||
+    (a.assignedTo?.name ?? '').toLowerCase().includes(q);
+  const baseFiltered = appointments.filter((a) => matchesDate(a) && matchesQuery(a));
+  const visibleAppointments = baseFiltered.filter((a) => statusFilter === 'all' || a.status === statusFilter);
+  const filtering = dateFilter !== 'all' || statusFilter !== 'all' || q !== '';
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
@@ -554,15 +587,71 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
           )}
 
           <div className="mt-6 space-y-2 lg:mt-0">
-          {appointments.map((a) => (
+          {appointments.length > 0 && (
+            <div className="space-y-2">
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={getText('Buscar por cliente, teléfono o servicio…', 'Search by customer, phone or service…')}
+                className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm"
+              />
+              <div className="flex flex-wrap gap-2">
+                {(
+                  [
+                    ['today', getText('Hoy', 'Today')],
+                    ['tomorrow', getText('Mañana', 'Tomorrow')],
+                    ['week', getText('7 días', '7 days')],
+                    ['all', getText('Todas', 'All')],
+                  ] as [DateFilter, string][]
+                ).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setDateFilter(key)}
+                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      dateFilter === key
+                        ? 'border-brand-primary bg-brand-primary text-white'
+                        : 'border-gray-300 text-gray-600 dark:border-neutral-700 dark:text-neutral-300'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {([['all', getText('Todos los estados', 'Any status'), baseFiltered.length]] as [string, string, number][])
+                  .concat(STATUS_OPTIONS.map((st) => [st, STATUS_LABELS[st][language], baseFiltered.filter((a) => a.status === st).length] as [string, string, number]))
+                  .map(([key, label, count]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setStatusFilter(key)}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                        statusFilter === key
+                          ? 'border-brand-primary bg-brand-primary text-white'
+                          : 'border-gray-300 text-gray-600 dark:border-neutral-700 dark:text-neutral-300'
+                      }`}
+                    >
+                      {label} ({count})
+                    </button>
+                  ))}
+              </div>
+            </div>
+          )}
+          {visibleAppointments.map((a) => (
             <div
               key={a.id}
-              className="flex flex-col gap-3 rounded-xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 shadow-sm"
+              className={`flex flex-col gap-3 rounded-xl border bg-white dark:bg-neutral-900 p-4 shadow-sm ${
+                apptKey(a) === todayStr
+                  ? 'border-brand-primary/60 ring-1 ring-brand-primary/30'
+                  : 'border-gray-200/70 dark:border-neutral-800'
+              }`}
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="truncate text-sm font-medium">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="min-w-0 truncate text-sm font-medium">
                     {a.customer?.name ?? getText('Cliente', 'Customer')} · {a.service?.name ?? '—'}
                   </p>
                   <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${STATUS_STYLES[a.status] ?? 'bg-gray-100 text-gray-500 dark:bg-neutral-800 dark:text-neutral-400'}`}>
@@ -575,6 +664,11 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
                   )}
                 </div>
                 <p className="mt-0.5 text-xs text-gray-400 dark:text-neutral-500">
+                  {apptKey(a) === todayStr && (
+                    <span className="mr-1.5 rounded-full bg-brand-primary/10 px-2 py-0.5 text-[11px] font-semibold text-brand-primary">
+                      {getText('Hoy', 'Today')}
+                    </span>
+                  )}
                   {formatApptDate(a.date, language === 'es' ? 'es-DO' : 'en-US')} · {a.time}
                   {a.assignedTo && ` · ${a.assignedTo.name}`}
                 </p>
@@ -653,6 +747,24 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
               {getText('No hay citas agendadas todavía.', 'No appointments booked yet.')}
             </p>
           )}
+          {appointments.length > 0 && visibleAppointments.length === 0 && (
+            <p className="text-sm text-gray-400 dark:text-neutral-500">
+              {getText('Ninguna cita coincide con los filtros.', 'No appointments match the filters.')}
+              {filtering && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDateFilter('all');
+                    setStatusFilter('all');
+                    setQuery('');
+                  }}
+                  className="ml-2 font-medium text-brand-primary hover:underline"
+                >
+                  {getText('Quitar filtros', 'Clear filters')}
+                </button>
+              )}
+            </p>
+          )}
           </div>
         </div>
         )}
@@ -724,7 +836,7 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
                     className="flex items-center justify-between gap-2 rounded-lg border border-gray-200/70 dark:border-neutral-800 px-3 py-2 text-xs"
                   >
                     <span className="min-w-0 truncate">
-                      {new Date(b.date).toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { day: 'numeric', month: 'short' })}
+                      {formatApptDate(b.date, language === 'es' ? 'es-DO' : 'en-US')}
                       {' · '}
                       {b.startTime}–{b.endTime}
                       {' · '}

@@ -79,6 +79,15 @@ const STATUS_STYLES: Record<InvoiceRow['status'], string> = {
   Cancelled: 'bg-gray-100 text-gray-500 dark:bg-neutral-800 dark:text-neutral-400',
 };
 
+const STATUS_LABELS: Record<InvoiceRow['status'], { es: string; en: string }> = {
+  Pending: { es: 'Pendiente', en: 'Pending' },
+  Paid: { es: 'Pagada', en: 'Paid' },
+  Overdue: { es: 'Vencida', en: 'Overdue' },
+  Cancelled: { es: 'Anulada', en: 'Voided' },
+};
+
+type StatusFilter = 'all' | InvoiceRow['status'];
+
 const emptyLine = (): LineDraft => ({ description: '', quantity: 1, unitPrice: 0 });
 
 export function InvoicesContent({ slug, currency, initialInvoices, customers, canHardDelete, business }: Props) {
@@ -115,6 +124,8 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers, ca
   // el documento original. El backend solo lo permite en esos dos estados (ver InvoiceService).
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [query, setQuery] = useState('');
   const [showActivity, setShowActivity] = useState(false);
   const [activity, setActivity] = useState<AuditLogRow[]>([]);
   const [activityLoading, setActivityLoading] = useState(false);
@@ -134,7 +145,16 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers, ca
   }, []);
 
   const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency });
-  const dateFmt = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString() : '—');
+  // Fechas sin hora ('2026-10-02' o '...T00:00:00') se muestran con el calendario local: `new Date()` las
+  // lee como UTC y en América se verían un día antes.
+  const dateFmt = (iso: string | null) => {
+    if (!iso) return '—';
+    if (/^\d{4}-\d{2}-\d{2}(T00:00:00(\.0+)?Z?)?$/.test(iso)) {
+      const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString();
+    }
+    return new Date(iso).toLocaleDateString();
+  };
 
   const linesTotal = lines.reduce((sum, l) => sum + l.quantity * l.unitPrice, 0);
   const grandTotal = linesTotal + (Number(tax) || 0);
@@ -424,6 +444,23 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers, ca
     if (next && activity.length === 0) loadActivity();
   }
 
+  // Una factura Pendiente cuya fecha de vencimiento ya pasó se trata como Vencida, aunque el
+  // backend todavía no la haya marcado: es lo que el dueño necesita ver para cobrar.
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const effectiveStatus = (i: InvoiceRow): InvoiceRow['status'] =>
+    i.status === 'Pending' && i.dueDate && i.dueDate.slice(0, 10) < todayKey ? 'Overdue' : i.status;
+  const q = query.trim().toLowerCase();
+  const matchesQuery = (i: InvoiceRow) =>
+    !q || i.invoiceNumber.toLowerCase().includes(q) || (i.customer?.name ?? '').toLowerCase().includes(q);
+  const searched = invoices.filter(matchesQuery);
+  const countOf = (st: InvoiceRow['status']) => searched.filter((i) => effectiveStatus(i) === st).length;
+  const visibleInvoices = searched.filter((i) => statusFilter === 'all' || effectiveStatus(i) === statusFilter);
+  const sumOf = (sts: InvoiceRow['status'][]) =>
+    invoices.filter((i) => sts.includes(effectiveStatus(i))).reduce((acc, i) => acc + i.total, 0);
+  const receivable = sumOf(['Pending', 'Overdue']);
+  const overdueTotal = sumOf(['Overdue']);
+  const collected = sumOf(['Paid']);
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
       <Toast toasts={toast.toasts} onRemove={toast.remove} />
@@ -608,13 +645,68 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers, ca
           </div>
         )}
 
+        {invoices.length > 0 && (
+          <div className="mt-6 grid grid-cols-3 gap-3">
+            {[
+              { label: getText('Por cobrar', 'Receivable'), value: receivable, tone: '' },
+              { label: getText('Vencido', 'Overdue'), value: overdueTotal, tone: overdueTotal > 0 ? 'text-red-600 dark:text-red-400' : '' },
+              { label: getText('Cobrado', 'Collected'), value: collected, tone: 'text-green-600 dark:text-green-400' },
+            ].map((c) => (
+              <div key={c.label} className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3 py-3">
+                <p className="text-[11px] uppercase tracking-wide text-gray-400 dark:text-neutral-500">{c.label}</p>
+                <p className={`mt-1 truncate text-base font-bold ${c.tone}`}>{fmt.format(c.value)}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {invoices.length > 0 && (
+          <div className="mt-4 space-y-3">
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={getText('Buscar por número o cliente…', 'Search by number or customer…')}
+              className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+            />
+            <div className="flex flex-wrap gap-2">
+              {([
+                ['all', getText('Todas', 'All'), searched.length],
+                ['Pending', STATUS_LABELS.Pending[language], countOf('Pending')],
+                ['Overdue', STATUS_LABELS.Overdue[language], countOf('Overdue')],
+                ['Paid', STATUS_LABELS.Paid[language], countOf('Paid')],
+                ['Cancelled', STATUS_LABELS.Cancelled[language], countOf('Cancelled')],
+              ] as [StatusFilter, string, number][]).map(([key, label, n]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setStatusFilter(key)}
+                  aria-pressed={statusFilter === key}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    statusFilter === key
+                      ? 'border-gray-900 bg-gray-900 text-white dark:border-white dark:bg-white dark:text-gray-900'
+                      : 'border-gray-300 text-gray-600 dark:border-neutral-700 dark:text-neutral-300'
+                  }`}
+                >
+                  {label} ({n})
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="mt-6 space-y-3">
           {invoices.length === 0 && (
             <p className="text-sm text-gray-400 dark:text-neutral-500">
               {getText('Todavía no tienes facturas.', "You don't have any invoices yet.")}
             </p>
           )}
-          {invoices.map((invoice) => {
+          {invoices.length > 0 && visibleInvoices.length === 0 && (
+            <p className="text-sm text-gray-400 dark:text-neutral-500">
+              {getText('Ninguna factura coincide con los filtros.', 'No invoices match the filters.')}
+            </p>
+          )}
+          {visibleInvoices.map((invoice) => {
             const isCollectable = invoice.status === 'Pending' || invoice.status === 'Overdue';
             const paymentLink = paymentLinks[invoice.id];
             const customerPhone = customers.find((c) => c.id === invoice.customerId)?.phone;
@@ -636,8 +728,8 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers, ca
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-semibold">{invoice.invoiceNumber}</p>
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${STATUS_STYLES[invoice.status]}`}>
-                        {invoice.status}
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${STATUS_STYLES[effectiveStatus(invoice)]}`}>
+                        {STATUS_LABELS[effectiveStatus(invoice)][language]}
                       </span>
                     </div>
                     <p className="mt-0.5 text-xs text-gray-500 dark:text-neutral-400">

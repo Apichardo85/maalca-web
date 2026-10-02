@@ -99,7 +99,12 @@ export function BoardContent({
         setScreens((prev) => [...prev, created]);
         setNewScreenName('');
         setAddingScreen(false);
+        toast.success(getText('Pantalla creada.', 'Screen created.'));
+      } else {
+        toast.error(getText('No se pudo crear la pantalla.', "Couldn't create the screen."));
       }
+    } catch {
+      toast.error(getText('No se pudo crear la pantalla.', "Couldn't create the screen."));
     } finally {
       setCreatingScreen(false);
     }
@@ -127,7 +132,12 @@ export function BoardContent({
       const updated = await res.json().catch(() => null);
       if (res.ok && updated?.id) {
         setScreens((prev) => prev.map((s) => (s.id === screen.id ? updated : s)));
+        toast.success(getText('Guardado.', 'Saved.'));
+      } else {
+        toast.error(getText('No se pudo guardar el cambio.', "Couldn't save the change."));
       }
+    } catch {
+      toast.error(getText('No se pudo guardar el cambio.', "Couldn't save the change."));
     } finally {
       setScreenBusyId(null);
     }
@@ -220,7 +230,11 @@ export function BoardContent({
       if (res.ok) {
         const updated = await res.json();
         setAds((prev) => prev.map((a) => (a.id === ad.id ? updated : a)));
+      } else {
+        toast.error(getText('No se pudo actualizar el comercial.', "Couldn't update the ad."));
       }
+    } catch {
+      toast.error(getText('No se pudo actualizar el comercial.', "Couldn't update the ad."));
     } finally {
       setBusyId(null);
     }
@@ -246,11 +260,17 @@ export function BoardContent({
   async function saveFrequency() {
     setSavingFrequency(true);
     try {
-      await fetch(`/api/space/${slug}/settings`, {
+      const value = Math.min(20, Math.max(0, Math.round(adFrequency) || 0));
+      setAdFrequency(value);
+      const res = await fetch(`/api/space/${slug}/settings`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ adFrequency }),
+        body: JSON.stringify({ adFrequency: value }),
       });
+      if (!res.ok) throw new Error('save failed');
+      toast.success(getText('Frecuencia guardada.', 'Frequency saved.'));
+    } catch {
+      toast.error(getText('No se pudo guardar. Intenta de nuevo.', "Couldn't save. Try again."));
     } finally {
       setSavingFrequency(false);
     }
@@ -265,11 +285,15 @@ export function BoardContent({
   }) {
     setSavingPrefs(true);
     try {
-      await fetch(`/api/space/${slug}/settings`, {
+      const res = await fetch(`/api/space/${slug}/settings`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(next),
       });
+      if (!res.ok) throw new Error('save failed');
+      toast.success(getText('Guardado.', 'Saved.'));
+    } catch {
+      toast.error(getText('No se pudo guardar. Intenta de nuevo.', "Couldn't save. Try again."));
     } finally {
       setSavingPrefs(false);
     }
@@ -286,9 +310,23 @@ export function BoardContent({
       if (res.ok) {
         const updated = await res.json();
         setAds((prev) => prev.map((a) => (a.id === ad.id ? updated : a)));
+        toast.success(getText('Guardado.', 'Saved.'));
+      } else {
+        toast.error(getText('No se pudo guardar el ajuste.', "Couldn't save the fit."));
       }
+    } catch {
+      toast.error(getText('No se pudo guardar el ajuste.', "Couldn't save the fit."));
     } finally {
       setBusyId(null);
+    }
+  }
+
+  async function copyLink(path: string) {
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}${path}`);
+      toast.success(getText('Link copiado.', 'Link copied.'));
+    } catch {
+      toast.error(getText('No se pudo copiar. Cópialo a mano.', "Couldn't copy. Copy it manually."));
     }
   }
 
@@ -306,7 +344,14 @@ export function BoardContent({
           )}
           <a href={`/${slug}/board`} target="_blank" rel="noopener" className="text-brand-primary underline">
             maalca.com/{slug}/board
-          </a>
+          </a>{' '}
+          <button
+            type="button"
+            onClick={() => copyLink(`/${slug}/board`)}
+            className="ml-1 rounded-full border border-gray-300 dark:border-neutral-700 px-2.5 py-0.5 text-xs font-medium hover:border-brand-primary hover:text-brand-primary"
+          >
+            {getText('Copiar link', 'Copy link')}
+          </button>
         </p>
 
         {plan === 'free' && (
@@ -356,7 +401,7 @@ export function BoardContent({
               "Since nobody interacts with the TV, this is set here — it doesn't change with this panel's language.",
             )}
           </p>
-          <div className="mt-3 grid grid-cols-3 gap-3">
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <label className="flex flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
               {getText('Idioma', 'Language')}
               <select
@@ -458,7 +503,7 @@ export function BoardContent({
             <div className="mt-4 space-y-2">
               {screens.map((screen) => (
                 <div key={screen.id} className="rounded-xl border border-gray-200/70 dark:border-neutral-800 p-3">
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-sm font-medium truncate">{screen.name}</p>
                       <a
@@ -470,7 +515,13 @@ export function BoardContent({
                         maalca.com/{slug}/board/{screen.id}
                       </a>
                     </div>
-                    <div className="flex shrink-0 gap-2">
+                    <div className="flex shrink-0 flex-wrap gap-2">
+                      <button
+                        onClick={() => copyLink(`/${slug}/board/${screen.id}`)}
+                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium hover:border-brand-primary hover:text-brand-primary"
+                      >
+                        {getText('Copiar link', 'Copy link')}
+                      </button>
                       <button
                         onClick={() => setEditingScreenId((id) => (id === screen.id ? null : screen.id))}
                         className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium hover:border-brand-primary hover:text-brand-primary"
@@ -654,7 +705,7 @@ export function BoardContent({
             {ads.map((ad) => (
               <div
                 key={ad.id}
-                className="flex items-center gap-4 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4"
+                className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4"
               >
                 <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100 dark:bg-neutral-800">
                   {ad.mediaType === 'Video' ? (

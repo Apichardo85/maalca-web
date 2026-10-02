@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
@@ -88,7 +88,17 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [onlyLowStock, setOnlyLowStock] = useState(false);
-  const knownCategories = Array.from(new Set(items.map((i) => i.category).filter((c): c is string => !!c))).sort();
+  // Acumulamos las categorías vistas: si se calculara solo con los items en pantalla, al filtrar por
+  // una categoría el selector se quedaría con esa única opción y no habría cómo cambiar.
+  const [seenCategories, setSeenCategories] = useState<string[]>([]);
+  useEffect(() => {
+    const fresh = items.map((i) => i.category).filter((c): c is string => !!c);
+    setSeenCategories((prev) => {
+      const next = Array.from(new Set([...prev, ...fresh])).sort();
+      return next.length === prev.length ? prev : next;
+    });
+  }, [items]);
+  const knownCategories = seenCategories;
 
   async function fetchSummary() {
     try {
@@ -124,27 +134,23 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
     fetchSummary();
   }
 
-  function applyFilters() {
-    refetch(1);
-  }
+  // Los filtros se aplican solos: la búsqueda con una pausa de 350 ms al escribir; la categoría y
+  // "stock bajo" al instante. Ya no hay que pulsar "Filtrar".
+  const firstFilterRun = useRef(true);
+  useEffect(() => {
+    if (firstFilterRun.current) {
+      firstFilterRun.current = false;
+      return;
+    }
+    const t = setTimeout(() => refetch(1), search.trim() ? 350 : 0);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, category, onlyLowStock]);
 
   function clearFilters() {
     setSearch('');
     setCategory('');
     setOnlyLowStock(false);
-    // Refetch directo sin filtros — no puede esperar a que los 3 setState de arriba se
-    // reflejen en el próximo render, buildQuery leería los valores viejos.
-    setLoadingPage(true);
-    fetch(`/api/space/${slug}/inventory?page=1`, { cache: 'no-store' })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (!data) return;
-        setItems(data.data ?? []);
-        setTotal(data.total ?? 0);
-        setTotalPages(data.totalPages ?? 1);
-        setPage(1);
-      })
-      .finally(() => setLoadingPage(false));
   }
 
   function startEdit(item: InventoryItemRow) {
@@ -387,20 +393,7 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
             {!onlyLowStock && (
               <button
                 type="button"
-                onClick={() => {
-                  setOnlyLowStock(true);
-                  setLoadingPage(true);
-                  fetch(`/api/space/${slug}/inventory?page=1&lowStock=true${search.trim() ? `&search=${encodeURIComponent(search.trim())}` : ''}${category ? `&category=${encodeURIComponent(category)}` : ''}`, { cache: 'no-store' })
-                    .then((r) => (r.ok ? r.json() : null))
-                    .then((data) => {
-                      if (!data) return;
-                      setItems(data.data ?? []);
-                      setTotal(data.total ?? 0);
-                      setTotalPages(data.totalPages ?? 1);
-                      setPage(1);
-                    })
-                    .finally(() => setLoadingPage(false));
-                }}
+                onClick={() => setOnlyLowStock(true)}
                 className="shrink-0 rounded-full border border-amber-400 px-3 py-1.5 text-xs font-semibold text-amber-800 dark:border-amber-600 dark:text-amber-200"
               >
                 {getText('Ver solo estos', 'View only these')}
@@ -433,8 +426,7 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
-            placeholder={getText('Buscar por nombre…', 'Search by name…')}
+            placeholder={getText('Buscar por nombre o código…', 'Search by name or code…')}
             className="min-h-11 flex-1 min-w-[160px] rounded-full border border-gray-300 dark:border-neutral-700 bg-transparent px-4 text-sm"
           />
           {knownCategories.length > 0 && (
@@ -459,15 +451,6 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
             }`}
           >
             {getText('Solo stock bajo', 'Low stock only')}
-          </button>
-          <button
-            type="button"
-            onClick={applyFilters}
-            disabled={loadingPage}
-            className="min-h-11 rounded-full px-4 text-sm font-semibold text-white disabled:opacity-40"
-            style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
-          >
-            {getText('Filtrar', 'Filter')}
           </button>
           {(search || category || onlyLowStock) && (
             <button
@@ -593,7 +576,11 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
         <div className="mt-6 space-y-3">
           {items.length === 0 && (
             <p className="text-sm text-gray-400 dark:text-neutral-500">
-              {getText('Todavía no hay items en el inventario.', 'No inventory items yet.')}
+              {loadingPage
+                ? getText('Cargando…', 'Loading…')
+                : search || category || onlyLowStock
+                  ? getText('Ningún item coincide con los filtros.', 'No items match the filters.')
+                  : getText('Todavía no hay items en el inventario.', 'No inventory items yet.')}
             </p>
           )}
           {items.map((item) => {
