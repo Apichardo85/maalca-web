@@ -29,6 +29,15 @@ export interface OrderRow {
   // Pedido desde la mesa (QR por mesa). paymentMethod === 'PayAtTable' = el cliente paga al mesero.
   tableNumber?: string | null;
   paymentMethod?: string | null;
+  // Pedido programado: "yyyy-MM-dd" de la apertura para la que se pidió (el negocio estaba cerrado).
+  scheduledFor?: string | null;
+}
+
+/** "2026-10-03" -> "mié, 3 oct". Se arma con partes numéricas para no correrse de día por zona horaria. */
+export function formatScheduledFor(iso: string, language: 'es' | 'en'): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  if (!y || !m || !d) return iso;
+  return new Date(y, m - 1, d).toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
 interface Props {
@@ -147,6 +156,11 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
                             · {getText('paga al mesero', 'pays the server')}
                           </span>
                         )}
+                      </p>
+                    )}
+                    {order.scheduledFor && (
+                      <p className="mt-1 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                        📅 {getText('Programado para', 'Scheduled for')} {formatScheduledFor(order.scheduledFor, language)}
                       </p>
                     )}
                     <p className="mt-1 text-xs text-gray-400 dark:text-neutral-500">

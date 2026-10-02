@@ -26,6 +26,7 @@ function buildWhatsAppUrl(
   businessName: string,
   taxRate: number,
   getText: (es: string, en: string) => string,
+  scheduleNote?: string,
 ): string {
   const lines = cart.map(e => {
     const base = `• ${e.qty}x ${e.item.name} — $${(e.item.price * e.qty).toFixed(2)}`
@@ -38,6 +39,7 @@ function buildWhatsAppUrl(
   const tipLabel = tip > 0 ? `${getText('Propina', 'Tip')}: $${tip.toFixed(2)}` : null
   const msg = [
     `🍽 *${getText('Orden', 'Order')} — ${businessName}*`,
+    scheduleNote ? `🕒 *${scheduleNote}*` : null,
     '',
     ...lines,
     '',
@@ -78,6 +80,9 @@ interface CartDrawerProps {
   getText?: (es: string, en: string) => string
   /** Pedido desde la mesa (QR `?mesa=7`). Con valor: sin WhatsApp, y se ofrece "Pagar al mesero". */
   tableNumber?: string
+  /** Negocio cerrado: el pedido solo se acepta programado para la próxima apertura. Null/ausente =
+   *  abierto (o sin horario configurado): sin restricción. La web lo bloquea al instante; el API repite la regla. */
+  schedule?: { dateIso: string; whenEs: string; whenEn: string; opensAtLabel: string } | null
 }
 
 const TIP_PRESETS = [0.1, 0.15, 0.2] as const
@@ -100,6 +105,7 @@ export function CartDrawer({
   restaurantMode = false,
   getText = (es) => es,
   tableNumber,
+  schedule = null,
 }: CartDrawerProps) {
   const FALLBACK_IMG = getText(FALLBACK_IMG_ES, FALLBACK_IMG_EN)
   const fmt = useMemo(
@@ -114,8 +120,21 @@ export function CartDrawer({
   // null = sin propina, number = porcentaje del preset elegido (ej. 0.15), 'custom' = usa customTip.
   const [tipMode, setTipMode] = useState<number | 'custom' | null>(null)
   const [customTip, setCustomTip] = useState('')
+  // Cerrado: el cliente confirma que entiende que el pedido es para la próxima apertura.
+  const [scheduleAck, setScheduleAck] = useState(false)
 
   if (!isOpen) return null
+
+  const scheduleWhen = schedule ? getText(schedule.whenEs, schedule.whenEn) : ''
+  const scheduleNote = schedule
+    ? getText(
+        `PEDIDO PROGRAMADO para ${schedule.whenEs} a las ${schedule.opensAtLabel}`,
+        `ORDER SCHEDULED for ${schedule.whenEn} at ${schedule.opensAtLabel}`,
+      )
+    : undefined
+  // Cerrado y sin confirmar (o pedido de mesa, que no se programa): los botones de envío quedan apagados.
+  const closedBlocked = !!schedule && (!scheduleAck || !!tableNumber)
+  const scheduledFor = schedule && scheduleAck && !tableNumber ? schedule.dateIso : undefined
 
   const tax = cartTotal * taxRate
   const tip = !restaurantMode
@@ -126,11 +145,12 @@ export function CartDrawer({
         ? cartTotal * tipMode
         : 0
   const total = cartTotal + tax + tip
-  const waUrl = buildWhatsAppUrl(cart, cartTotal, tax, tip, total, whatsappNumber, businessName, taxRate, getText)
+  const waUrl = buildWhatsAppUrl(cart, cartTotal, tax, tip, total, whatsappNumber, businessName, taxRate, getText, scheduledFor ? scheduleNote : undefined)
 
   async function handleCardCheckout() {
-    if (!slug) return
+    if (!slug || closedBlocked) return
     setCheckoutState('loading')
+    setTableError('')
     try {
       const origin = window.location.origin
       const res = await fetch(`${API_BASE}/api/public/affiliates/${slug}/orders`, {
@@ -154,9 +174,16 @@ export function CartDrawer({
           successUrl: `${origin}${window.location.pathname}?paid=true${tableNumber ? `&mesa=${encodeURIComponent(tableNumber)}` : ''}`,
           cancelUrl: `${origin}${window.location.pathname}?paid=false${tableNumber ? `&mesa=${encodeURIComponent(tableNumber)}` : ''}`,
           tableNumber: tableNumber || undefined,
+          scheduledFor,
         }),
       })
       const data = await res.json().catch(() => null)
+      if (!res.ok && res.status < 500 && data?.error?.message) {
+        // Regla del servidor (cerrado, plato de otro día…): se muestra el motivo real.
+        setTableError(data.error.message)
+        setCheckoutState('error')
+        return
+      }
       if (!res.ok || !data?.checkoutUrl) {
         // El pedido queda guardado igual (visible para el afiliado) aunque no haya cobro —
         // esto solo significa que el afiliado no completó su conexión de Stripe todavía.
@@ -171,7 +198,7 @@ export function CartDrawer({
 
   // Pedido de mesa pagando al mesero: sin Stripe, el pedido le llega al personal para que lo acepte.
   async function handlePayAtTable() {
-    if (!slug || !tableNumber) return
+    if (!slug || !tableNumber || closedBlocked) return
     setCheckoutState('loading')
     setTableError('')
     try {
@@ -576,11 +603,54 @@ export function CartDrawer({
             </p>
           )}
 
+          {schedule && checkoutState !== 'placed' && (
+            <div
+              role="status"
+              style={{
+                margin: '0 0 12px',
+                padding: '12px 14px',
+                borderRadius: '12px',
+                backgroundColor: '#FBF0DC',
+                border: '1px solid #f0dfba',
+                color: '#6B4A12',
+                fontSize: '13px',
+                lineHeight: 1.45,
+              }}
+            >
+              <p style={{ margin: 0, fontWeight: 700 }}>
+                {getText('Estamos cerrados ahora.', "We're closed right now.")}
+              </p>
+              {tableNumber ? (
+                <p style={{ margin: '4px 0 0' }}>
+                  {getText(
+                    'Los pedidos de mesa solo se pueden hacer mientras estamos abiertos.',
+                    'Table orders can only be placed while we are open.',
+                  )}
+                </p>
+              ) : (
+                <label style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginTop: '6px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={scheduleAck}
+                    onChange={e => setScheduleAck(e.target.checked)}
+                    style={{ marginTop: '2px', width: '18px', height: '18px', flexShrink: 0 }}
+                  />
+                  <span>
+                    {getText(
+                      `Programar mi pedido para ${scheduleWhen} a las ${schedule.opensAtLabel}.`,
+                      `Schedule my order for ${scheduleWhen} at ${schedule.opensAtLabel}.`,
+                    )}
+                  </span>
+                </label>
+              )}
+            </div>
+          )}
+
           {onlinePayments && slug && !(tableNumber && checkoutState === 'placed') && (
             <>
               <button
                 onClick={handleCardCheckout}
-                disabled={checkoutState === 'loading'}
+                disabled={checkoutState === 'loading' || closedBlocked}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -596,8 +666,8 @@ export function CartDrawer({
                   fontSize: '14px',
                   minHeight: '48px',
                   boxSizing: 'border-box',
-                  cursor: checkoutState === 'loading' ? 'default' : 'pointer',
-                  opacity: checkoutState === 'loading' ? 0.7 : 1,
+                  cursor: checkoutState === 'loading' || closedBlocked ? 'default' : 'pointer',
+                  opacity: checkoutState === 'loading' ? 0.7 : closedBlocked ? 0.45 : 1,
                   marginBottom: '10px',
                 }}
               >
@@ -605,6 +675,11 @@ export function CartDrawer({
                   ? getText('Redirigiendo...', 'Redirecting...')
                   : getText(`Pagar ${fmt.format(total)} con tarjeta`, `Pay ${fmt.format(total)} with card`)}
               </button>
+              {checkoutState === 'error' && !tableNumber && (
+                <p style={{ margin: '0 0 10px', fontSize: '12px', color: '#b91c1c', textAlign: 'center' }}>
+                  {tableError || getText('No pudimos enviar el pedido. Inténtalo de nuevo.', 'We could not send the order. Please try again.')}
+                </p>
+              )}
               {checkoutState === 'unavailable' && (
                 <p style={{ margin: '0 0 10px', fontSize: '12px', color: '#b91c1c', textAlign: 'center' }}>
                   {getText(
@@ -620,7 +695,7 @@ export function CartDrawer({
             <>
               <button
                 onClick={handlePayAtTable}
-                disabled={checkoutState === 'loading'}
+                disabled={checkoutState === 'loading' || closedBlocked}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -635,8 +710,8 @@ export function CartDrawer({
                   fontSize: '14px',
                   minHeight: '48px',
                   boxSizing: 'border-box',
-                  cursor: checkoutState === 'loading' ? 'default' : 'pointer',
-                  opacity: checkoutState === 'loading' ? 0.7 : 1,
+                  cursor: checkoutState === 'loading' || closedBlocked ? 'default' : 'pointer',
+                  opacity: checkoutState === 'loading' ? 0.7 : closedBlocked ? 0.45 : 1,
                 }}
               >
                 {checkoutState === 'loading'
@@ -656,10 +731,14 @@ export function CartDrawer({
           )}
 
           {!tableNumber && (<a
-            href={waUrl}
+            href={closedBlocked ? undefined : waUrl}
             target="_blank"
             rel="noopener noreferrer"
+            aria-disabled={closedBlocked}
+            onClick={e => { if (closedBlocked) e.preventDefault() }}
             style={{
+              opacity: closedBlocked ? 0.45 : 1,
+              pointerEvents: closedBlocked ? 'none' : 'auto',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

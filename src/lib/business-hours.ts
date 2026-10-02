@@ -153,3 +153,73 @@ export function todayKeyInTimezone(timezone: string | null | undefined, now: Dat
   if (!timezone) return null;
   return nowInTimezone(timezone, now)?.day ?? null;
 }
+
+// ── Pedido cuando el negocio está cerrado ───────────────────────────────────
+// Cerrado (o a punto de abrir) => no se pide "para ahora": solo se programa para la próxima
+// apertura. Lo calcula la web al instante (sin esperar al API); el API repite la regla.
+
+const KEY_TO_EN_WEEKDAY: Record<string, string> = Object.fromEntries(
+  Object.entries(EN_WEEKDAY_TO_KEY).map(([en, es]) => [es, en]),
+);
+
+export interface ScheduleTarget {
+  /** "yyyy-MM-dd" en la zona del negocio — es lo que se manda como scheduledFor. */
+  dateIso: string;
+  /** Día en clave del Horario (lunes…domingo). */
+  dayKey: string;
+  /** Día en inglés (monday…sunday), igual que item.weekDays. */
+  weekday: string;
+  /** "HH:mm" de apertura. */
+  opensAt: string;
+  /** 0 = hoy (abre más tarde), 1 = mañana, … */
+  daysAhead: number;
+}
+
+/** Fecha local (yyyy-MM-dd) en la zona del negocio, más `plusDays` días. */
+export function localDateIso(timezone: string, plusDays = 0, now: Date = new Date()): string | null {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', { timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(now);
+    const y = Number(parts.find((p) => p.type === 'year')?.value);
+    const m = Number(parts.find((p) => p.type === 'month')?.value);
+    const d = Number(parts.find((p) => p.type === 'day')?.value);
+    if (!y || !m || !d) return null;
+    return new Date(Date.UTC(y, m - 1, d + plusDays)).toISOString().slice(0, 10);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * A qué apertura se puede programar un pedido ahora mismo. Null si el negocio está abierto o si
+ * no se puede afirmar nada (sin horario / sin zona horaria): en ese caso no hay restricción.
+ */
+export function getScheduleTarget(
+  status: OpenStatus | null,
+  timezone: string | null | undefined,
+  now: Date = new Date(),
+): ScheduleTarget | null {
+  if (!status || status.state === 'open' || !timezone) return null;
+  let day: string | null;
+  let opensAt: string;
+  let daysAhead: number;
+  if (status.state === 'opening_soon') {
+    day = todayKeyInTimezone(timezone, now);
+    opensAt = status.opensAt;
+    daysAhead = 0;
+  } else {
+    if (!status.next) return null;
+    day = status.next.day;
+    opensAt = status.next.opensAt;
+    daysAhead = status.next.daysAhead;
+  }
+  if (!day) return null;
+  const dateIso = localDateIso(timezone, daysAhead, now);
+  const weekday = KEY_TO_EN_WEEKDAY[day];
+  if (!dateIso || !weekday) return null;
+  return { dateIso, dayKey: day, weekday, opensAt, daysAhead };
+}
+
+/** "08:30" -> 510. Null si no es una hora válida. */
+export function hhmmToMinutes(hhmm: string): number | null {
+  return toMinutes(hhmm);
+}

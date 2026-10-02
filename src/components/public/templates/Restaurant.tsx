@@ -27,6 +27,7 @@ import { AboutSection } from '@/components/public/AboutSection';
 import { sanitizeRichText } from '@/lib/sanitize-html';
 import { ClampedDescription } from '@/components/public/ClampedDescription';
 import { ItemDetailSheet } from '@/components/public/ItemDetailSheet';
+import { ScrollStrip } from '@/components/public/ScrollStrip';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox';
@@ -43,6 +44,8 @@ import {
   WEEK_DAY_LABELS_ES as HORARIO_LABELS_ES,
   WEEK_DAY_LABELS_EN as HORARIO_LABELS_EN,
   getOpenStatus,
+  getScheduleTarget,
+  hhmmToMinutes,
   todayKeyInTimezone,
   formatHour,
   type OpenStatus,
@@ -101,6 +104,29 @@ const DEFAULT_PERIOD_HOURS: Record<Exclude<MealPeriod, 'all_day'>, { start: numb
   late_night: { start: 22 * 60, end: 5 * 60 },
 };
 
+const FLAG_LABELS: Record<string, [string, string]> = {
+  vegetarian: ['Vegetariano', 'Vegetarian'],
+  spicy: ['Picante', 'Spicy'],
+  glutenFree: ['Sin gluten', 'Gluten-free'],
+};
+
+/** Datos de texto del detalle de un plato (etiquetas, horario/días) — los usan MenuCard y Destacados. */
+function itemDetailText(
+  item: PublicTemplateProps['items'][number],
+  language: 'es' | 'en',
+): { tags: string[]; availability: string | null } {
+  const t = (es: string, en: string) => (language === 'es' ? es : en);
+  const tags = [
+    ...(item.featured ? [`⭐ ${t('Destacado', 'Featured')}`] : []),
+    ...(item.popular ? [`🔥 ${t('Popular', 'Popular')}`] : []),
+    ...(item.flags ?? []).map((f) => `${FLAG_ICONS[f] ?? ''} ${FLAG_LABELS[f] ? t(FLAG_LABELS[f][0], FLAG_LABELS[f][1]) : f}`.trim()),
+  ];
+  const days = (item.weekDays ?? []).map((d) => (language === 'en' ? WEEK_DAY_LABELS_EN[d] : WEEK_DAY_LABELS_ES[d]));
+  const periods = (item.periods ?? []).filter((p) => p !== 'all_day').map((p) => (language === 'en' ? MEAL_PERIOD_LABELS_EN[p] : MEAL_PERIOD_LABELS[p]));
+  const availability = [periods.join(', '), days.join(', ')].filter(Boolean).join(' · ') || null;
+  return { tags, availability };
+}
+
 /**
  * Resolves the current meal period + weekday AS SEEN IN the given IANA
  * timezone — via Intl.DateTimeFormat's `timeZone` option, which correctly
@@ -146,6 +172,17 @@ function resolveNowInTimezone(
   }
 }
 
+/** Momento de comida que corresponde a una hora del día (minutos desde medianoche). */
+function periodAtMinutes(totalMin: number): Exclude<MealPeriod, 'all_day'> {
+  for (const [p, range] of Object.entries(DEFAULT_PERIOD_HOURS) as Array<[Exclude<MealPeriod, 'all_day'>, { start: number; end: number }]>) {
+    const within = range.end > range.start
+      ? totalMin >= range.start && totalMin < range.end
+      : totalMin >= range.start || totalMin < range.end;
+    if (within) return p;
+  }
+  return 'late_night';
+}
+
 export function RestaurantTemplate({
   business,
   items,
@@ -169,8 +206,13 @@ export function RestaurantTemplate({
   // solo-cliente por la misma razón: Destacados lo usa para ocultar el plato de otro día sin
   // desajustar la hidratación de la página cacheada.
   const [weekdayNow, setWeekdayNow] = useState<WeekDay | null>(null);
+  // Momento de comida actual (desayuno/almuerzo/cena…). Solo-cliente por la misma razón: se usa para
+  // ORDENAR (lo del momento primero), no para ocultar nada.
+  const [hlOpenId, setHlOpenId] = useState<string | null>(null);
+  const [periodNow, setPeriodNow] = useState<Exclude<MealPeriod, 'all_day'> | null>(null);
   useEffect(() => {
     const update = () => {
+      setPeriodNow(business.timezone ? resolveNowInTimezone(business.timezone)?.period ?? null : null);
       setOpenStatus(getOpenStatus(business.horario, business.timezone));
       setTodayKey(todayKeyInTimezone(business.timezone));
       setWeekdayNow(business.timezone ? resolveNowInTimezone(business.timezone)?.weekday ?? null : null);
@@ -183,7 +225,7 @@ export function RestaurantTemplate({
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const periodLabel = (p: MealPeriod) => (language === 'en' ? MEAL_PERIOD_LABELS_EN[p] : MEAL_PERIOD_LABELS[p]);
 
-  const categoryNames: string[] =
+  const categoryNamesBase: string[] =
     categoriesProp.length > 0
       ? [...categoriesProp].sort((a, b) => a.sort_order - b.sort_order).map((c) => c.name)
       : Array.from(new Set(items.map((i) => i.category).filter((c): c is string => !!c)));
@@ -200,11 +242,45 @@ export function RestaurantTemplate({
 
   const [vistaHoyActive, setVistaHoyActive] = useState(vistaHoyAvailable);
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
-  const [activePeriod, setActivePeriod] = useState<string>(
-    vistaHoyAvailable && nowInfo ? nowInfo.period : ALL_PERIODS,
-  );
+  // Momento elegido a mano (null = automático: sigue la hora real del negocio, minuto a minuto, así
+  // una pestaña abierta en el desayuno pasa sola al almuerzo).
+  const [periodPick, setPeriodPick] = useState<string | null>(null);
+  const setActivePeriod = (key: string) => setPeriodPick(key);
+
+  // Negocio cerrado (con horario y zona configurados): no se pide "para ahora", solo se programa para
+  // la próxima apertura. El menú que se muestra pasa a ser el de ESE día y momento (p. ej. cerrado el
+  // martes en la noche => el desayuno del miércoles), no el de la hora actual.
+  const schedule = getScheduleTarget(openStatus, business.timezone);
+  const effWeekday: WeekDay | null = schedule ? (schedule.weekday as WeekDay) : nowInfo?.weekday ?? null;
+  const openMin = schedule ? hhmmToMinutes(schedule.opensAt) : null;
+  const effPeriod: Exclude<MealPeriod, 'all_day'> | null = schedule && openMin !== null ? periodAtMinutes(openMin) : nowInfo?.period ?? null;
+  const activePeriod = periodPick ?? (vistaHoyActive && effPeriod ? effPeriod : ALL_PERIODS);
   const [query, setQuery] = useState('');
   const searchActive = query.trim().length > 0;
+
+  // Prioridad por momento de comida: si el cliente eligió un período, ese; si no, el de ahora.
+  // 0 = se sirve en este momento, 1 = sin período (todo el día), 2 = solo en otro momento.
+  // El orden es estable (lo demás conserva su orden) y NUNCA oculta: solo pone primero lo del momento.
+  const focusPeriod = activePeriod !== ALL_PERIODS ? (activePeriod as MealPeriod) : effPeriod ?? periodNow;
+  function periodRank(item: (typeof items)[number]): number {
+    if (!focusPeriod || !item.periods || item.periods.length === 0 || item.periods.includes('all_day')) return 1;
+    return item.periods.includes(focusPeriod) ? 0 : 2;
+  }
+  function byPeriod<T extends (typeof items)[number]>(list: T[]): T[] {
+    return focusPeriod ? [...list].sort((a, b) => periodRank(a) - periodRank(b)) : list;
+  }
+  // Las categorías con platos del momento suben (Desayuno primero en la mañana); tabs y listado coinciden.
+  const categoryNames: string[] = focusPeriod
+    ? [...categoryNamesBase]
+        .map((name, index) => {
+          const catId = categoriesProp.find((c) => c.name === name)?.id;
+          const inCat = items.filter((i) => (catId !== undefined && i.category_id === catId) || i.category === name);
+          const best = inCat.length > 0 ? Math.min(...inCat.map(periodRank)) : 1;
+          return { name, index, best };
+        })
+        .sort((a, b) => a.best - b.best || a.index - b.index)
+        .map((c) => c.name)
+    : categoryNamesBase;
 
   function clearSearch() {
     setQuery('');
@@ -212,13 +288,13 @@ export function RestaurantTemplate({
 
   function clearVistaHoy() {
     setVistaHoyActive(false);
-    setActivePeriod(ALL_PERIODS);
+    setPeriodPick(ALL_PERIODS);
   }
 
   function matchesWeekday(item: (typeof items)[number]): boolean {
-    if (!vistaHoyActive || !nowInfo) return true;
+    if (!vistaHoyActive || !effWeekday) return true;
     if (!item.weekDays || item.weekDays.length === 0) return true;
-    return item.weekDays.includes(nowInfo.weekday);
+    return item.weekDays.includes(effWeekday);
   }
 
   const availablePeriods = MEAL_PERIOD_ORDER.filter(
@@ -226,20 +302,26 @@ export function RestaurantTemplate({
       p !== 'all_day' && items.some((i) => i.periods?.includes(p)),
   );
 
-  // Destacados ignora Vista Hoy en cuanto a PERÍODO (es una vitrina "lo mejor de la cocina", no un
-  // "qué puedo pedir ahora": si filtrara por hora se vaciaría a deshoras). Pero SÍ respeta el DÍA:
-  // un plato que el restaurante solo hace los sábados no puede ser el "popular" de un martes (el
-  // pedido, además, se rechaza en el servidor). Un item sin weekDays aplica todos los días.
-  const destacados = items
-    .filter((i) => i.featured || i.popular)
-    .filter((i) => !weekdayNow || !i.weekDays || i.weekDays.length === 0 || i.weekDays.includes(weekdayNow))
-    .slice(0, MAX_DESTACADOS);
+  // Destacados es "lo mejor de la cocina" PERO vivo: respeta el día y el momento de comida reales del
+  // negocio (o los de la próxima apertura si está cerrado). Una sopa que solo se hace los sábados no es
+  // el "popular" de un martes, y una cena no aparece primero en el desayuno. Un plato sin días ni
+  // períodos aplica siempre. Si nada coincide con este momento, la franja se oculta (no se rellena con
+  // platos fuera de horario). El pedido, además, se valida en el servidor.
+  const servesNow = (i: (typeof items)[number]) => {
+    if (effWeekday && i.weekDays && i.weekDays.length > 0 && !i.weekDays.includes(effWeekday)) return false;
+    if (focusPeriod && i.periods && i.periods.length > 0 && !i.periods.includes('all_day') && !i.periods.includes(focusPeriod)) return false;
+    return true;
+  };
+  const destacados = byPeriod(
+    items.filter((i) => i.featured || i.popular).filter(servesNow),
+  ).slice(0, MAX_DESTACADOS);
 
   // Menú completo (Vista Hoy apagada): un plato que hoy no se hace sigue visible pero en gris y sin
   // botón de agregar, con la etiqueta de qué días sí. El servidor igual rechaza el pedido.
   function unavailableLabel(item: (typeof items)[number]): string | null {
-    if (vistaHoyActive || !weekdayNow) return null;
-    if (!item.weekDays || item.weekDays.length === 0 || item.weekDays.includes(weekdayNow)) return null;
+    const day = effWeekday ?? weekdayNow;
+    if (vistaHoyActive || !day) return null;
+    if (!item.weekDays || item.weekDays.length === 0 || item.weekDays.includes(day)) return null;
     const names = item.weekDays.map((d) => (language === 'en' ? WEEK_DAY_LABELS_EN[d] : WEEK_DAY_LABELS_ES[d]));
     const list = names.length > 1 ? `${names.slice(0, -1).join(', ')} ${language === 'en' ? 'and' : 'y'} ${names[names.length - 1]}` : names[0];
     return language === 'en' ? `Only ${list}` : `Solo ${list.toLowerCase()}`;
@@ -263,7 +345,7 @@ export function RestaurantTemplate({
         : items.filter(
             (i) => (catId !== undefined && i.category_id === catId) || i.category === tab,
           );
-    return base.filter(matchesPeriod).filter(matchesWeekday).filter(matchesQuery);
+    return byPeriod(base.filter(matchesPeriod).filter(matchesWeekday).filter(matchesQuery));
   }
 
   // While searching, a per-category breakdown reads as sparse/confusing for a
@@ -493,8 +575,8 @@ export function RestaurantTemplate({
       </section>
 
       {/* ── DESTACADOS — signature element: featured/popular picks, capped at
-          MAX_DESTACADOS and laid out as a wrapping grid (not a scroll
-          carousel) so no card ever gets cropped by a viewport edge ── */}
+          MAX_DESTACADOS and laid out as a single horizontal scroll strip
+          (una sola fila; la siguiente tarjeta asoma para indicar que se desliza) ── */}
       {destacados.length > 0 && (
         <section className="mx-auto max-w-public-content" style={{ padding: '24px 24px 0' }}>
           <h2
@@ -503,15 +585,30 @@ export function RestaurantTemplate({
           >
             {getText('Destacados', 'Highlights')}
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          <ScrollStrip language={language}>
             {destacados.map((item) => {
               const imageUrl = item.imageUrl ?? item.image_url;
               const isPopular = item.popular;
               const destacadoName = language === 'en' && item.nameEn ? item.nameEn : item.name;
+              const hlQty = cart.find((e) => e.item.id === item.id)?.qty ?? 0;
+              const hlAdd = () => addToCart({
+                id: item.id,
+                name: destacadoName,
+                price: item.price ?? 0,
+                image: imageUrl ?? undefined,
+              });
               return (
                 <div
                   key={item.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setHlOpenId(item.id)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setHlOpenId(item.id); } }}
                   style={{
+                    cursor: 'pointer',
+                    flex: '0 0 auto',
+                    width: '170px',
+                    scrollSnapAlign: 'start',
                     backgroundColor: '#ffffff',
                     border: '0.5px solid var(--rt-border-soft, #ece2d3)',
                     borderRadius: '14px',
@@ -559,16 +656,89 @@ export function RestaurantTemplate({
                     <p className={inter.className} style={{ margin: 0, fontSize: '13px', fontWeight: 800, letterSpacing: '-0.01em', color: CAFE, lineHeight: 1.3 }}>
                       {destacadoName}
                     </p>
-                    {item.price != null && (
-                      <p style={{ margin: '4px 0 0', fontSize: '13px', fontWeight: 700, color: CAFE }}>
-                        {formatPrice(item.price, business.currency)}
-                      </p>
-                    )}
+                    <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginTop: '4px' }}>
+                      {item.price != null ? (
+                        <p style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: CAFE }}>
+                          {formatPrice(item.price, business.currency)}
+                        </p>
+                      ) : (
+                        <span />
+                      )}
+                      {hlQty === 0 ? (
+                        <button
+                          type="button"
+                          onClick={hlAdd}
+                          aria-label={`${getText('Agregar', 'Add')} ${destacadoName}`}
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '9999px',
+                            border: 'none',
+                            backgroundColor: accent,
+                            color: 'var(--rt-on-accent, #ffffff)',
+                            fontSize: '20px',
+                            fontWeight: 700,
+                            lineHeight: 1,
+                            cursor: 'pointer',
+                            flexShrink: 0,
+                          }}
+                        >
+                          +
+                        </button>
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                          <button
+                            type="button"
+                            onClick={() => removeFromCart(item.id)}
+                            aria-label={`${getText('Quitar', 'Remove')} ${destacadoName}`}
+                            style={{ width: '28px', height: '28px', borderRadius: '9999px', border: 'none', backgroundColor: 'var(--rt-placeholder, #f2e9db)', color: CAFE, fontSize: '16px', fontWeight: 700, cursor: 'pointer' }}
+                          >
+                            −
+                          </button>
+                          <span style={{ minWidth: '14px', textAlign: 'center', fontSize: '13px', fontWeight: 700, color: CAFE }}>{hlQty}</span>
+                          <button
+                            type="button"
+                            onClick={hlAdd}
+                            aria-label={`${getText('Agregar', 'Add')} ${destacadoName}`}
+                            style={{ width: '28px', height: '28px', borderRadius: '9999px', border: 'none', backgroundColor: accent, color: 'var(--rt-on-accent, #ffffff)', fontSize: '16px', fontWeight: 700, cursor: 'pointer' }}
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
             })}
-          </div>
+          </ScrollStrip>
+          {(() => {
+            const hl = hlOpenId ? destacados.find((d) => d.id === hlOpenId) : undefined;
+            if (!hl) return null;
+            const txt = itemDetailText(hl, language);
+            const hlName = language === 'en' && hl.nameEn ? hl.nameEn : hl.name;
+            return (
+              <ItemDetailSheet
+                open
+                onClose={() => setHlOpenId(null)}
+                name={hlName}
+                description={language === 'en' && hl.descriptionEn ? hl.descriptionEn : hl.description}
+                priceLabel={hl.price != null ? formatPrice(hl.price, business.currency) : null}
+                imageUrl={hl.imageUrl ?? hl.image_url}
+                category={hl.category}
+                tags={txt.tags}
+                availabilityLabel={txt.availability}
+                qty={cart.find((e) => e.item.id === hl.id)?.qty ?? 0}
+                onAdd={() => addToCart({ id: hl.id, name: hlName, price: hl.price ?? 0, image: (hl.imageUrl ?? hl.image_url) ?? undefined })}
+                onRemove={() => removeFromCart(hl.id)}
+                accent={accent}
+                onAccent="var(--rt-on-accent, #ffffff)"
+                textColor={CAFE}
+                mutedColor={MUTED}
+                language={language}
+              />
+            );
+          })()}
         </section>
       )}
 
@@ -738,10 +908,15 @@ export function RestaurantTemplate({
             }}
           >
             <span style={{ fontSize: '13px', color: CAFE, fontWeight: 500 }}>
-              {getText(
-                `Mostrando el menú de ahora: ${periodLabel(nowInfo.period)} · ${WEEK_DAY_LABELS_ES[nowInfo.weekday]}`,
-                `Showing today's menu: ${periodLabel(nowInfo.period)} · ${WEEK_DAY_LABELS_EN[nowInfo.weekday]}`,
-              )}
+              {schedule && effPeriod && effWeekday
+                ? getText(
+                    `Cerrado ahora · mostrando el menú de ${schedule.daysAhead === 0 ? 'hoy' : schedule.daysAhead === 1 ? 'mañana' : 'la próxima apertura'}: ${periodLabel(effPeriod)} · ${WEEK_DAY_LABELS_ES[effWeekday]}`,
+                    `Closed now · showing the ${schedule.daysAhead === 0 ? "today's" : schedule.daysAhead === 1 ? "tomorrow's" : 'next opening'} menu: ${periodLabel(effPeriod)} · ${WEEK_DAY_LABELS_EN[effWeekday]}`,
+                  )
+                : getText(
+                    `Mostrando el menú de ahora: ${periodLabel(nowInfo.period)} · ${WEEK_DAY_LABELS_ES[nowInfo.weekday]}`,
+                    `Showing today's menu: ${periodLabel(nowInfo.period)} · ${WEEK_DAY_LABELS_EN[nowInfo.weekday]}`,
+                  )}
             </span>
             <button
               onClick={clearVistaHoy}
@@ -873,6 +1048,20 @@ export function RestaurantTemplate({
         onlinePayments={capabilities.onlinePayments}
         updateNotes={updateNotes}
         restaurantMode
+        schedule={
+          schedule
+            ? (() => {
+                const dayEs = (HORARIO_LABELS_ES[schedule.dayKey] ?? schedule.dayKey).toLowerCase();
+                const dayEn = HORARIO_LABELS_EN[schedule.dayKey] ?? schedule.dayKey;
+                return {
+                  dateIso: schedule.dateIso,
+                  whenEs: schedule.daysAhead === 0 ? 'hoy' : schedule.daysAhead === 1 ? 'mañana' : `el ${dayEs}`,
+                  whenEn: schedule.daysAhead === 0 ? 'today' : schedule.daysAhead === 1 ? 'tomorrow' : dayEn,
+                  opensAtLabel: formatHour(schedule.opensAt),
+                };
+              })()
+            : null
+        }
         getText={getText}
         isOpen={cartOpen}
         onOpenChange={setCartOpen}
@@ -1381,19 +1570,7 @@ function MenuCard({
   const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const [detailOpen, setDetailOpen] = useState(false);
-  const FLAG_LABELS: Record<string, [string, string]> = {
-    vegetarian: ['Vegetariano', 'Vegetarian'],
-    spicy: ['Picante', 'Spicy'],
-    glutenFree: ['Sin gluten', 'Gluten-free'],
-  };
-  const detailTags = [
-    ...(item.featured ? [`⭐ ${getText('Destacado', 'Featured')}`] : []),
-    ...(item.popular ? [`🔥 ${getText('Popular', 'Popular')}`] : []),
-    ...((item.flags ?? []).map((f) => `${FLAG_ICONS[f] ?? ''} ${FLAG_LABELS[f] ? getText(FLAG_LABELS[f][0], FLAG_LABELS[f][1]) : f}`.trim())),
-  ];
-  const dayList = (item.weekDays ?? []).map((d) => (language === 'en' ? WEEK_DAY_LABELS_EN[d] : WEEK_DAY_LABELS_ES[d]));
-  const periodList = (item.periods ?? []).filter((p) => p !== 'all_day').map((p) => (language === 'en' ? MEAL_PERIOD_LABELS_EN[p] : MEAL_PERIOD_LABELS[p]));
-  const availabilityText = [periodList.join(', '), dayList.length ? dayList.join(', ') : ''].filter(Boolean).join(' · ') || null;
+  const { tags: detailTags, availability: availabilityText } = itemDetailText(item, language);
   const stop = (e: React.MouseEvent) => e.stopPropagation();
   // Sin foto, descripción, etiquetas ni horario, el detalle repetiría lo que ya se ve en la tarjeta.
   const hasDetail = Boolean(imageUrl || description || detailTags.length > 0 || availabilityText);
