@@ -37,6 +37,8 @@ interface Props {
   /** Muestra el CTA "Ahora mismo" (walk-in → Fila, no Agenda) — solo Barbería tiene módulo
    *  "queue" hoy. Ver POST /api/public/affiliates/{slug}/queue. */
   enableWalkIn?: boolean;
+  /** IANA del negocio — "hoy" y "ahora" se miden ahí, no en el reloj del visitante. */
+  timezone?: string | null;
 }
 
 /** Handle imperativo — permite que un "Reservar" en la tarjeta de un servicio, más
@@ -50,22 +52,51 @@ export interface PublicBookingSectionHandle {
   openWalkIn: () => void;
 }
 
-// getDay() indexa 0=domingo..6=sábado; Horario.dia usa claves en minúscula en inglés.
-const WEEKDAY_KEYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+// getUTCDay() indexa 0=domingo..6=sábado; Horario.dia usa claves en español sin acento (lunes…domingo,
+// ver DiaSemanaTokens en maalca-api). Antes eran claves en inglés que nunca coincidían, así que el
+// horario configurado en Identidad se ignoraba y siempre se ofrecía 9:00–18:00.
+const WEEKDAY_KEYS = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
 
 const DEFAULT_HOURS = { abre: '09:00', cierra: '18:00' };
 
-/** Slots de 30 en 30 min entre abre y cierra, excluyendo los ya pasados si es hoy. */
-function generateTimeSlots(abre: string, cierra: string, isToday: boolean): string[] {
+/** Fecha y hora actuales tal como se ven en la zona del negocio (sin timezone: la del navegador). */
+function nowInZone(timezone?: string | null): { y: number; m: number; d: number; minutes: number } {
+  const fallback = () => {
+    const n = new Date();
+    return { y: n.getFullYear(), m: n.getMonth() + 1, d: n.getDate(), minutes: n.getHours() * 60 + n.getMinutes() };
+  };
+  if (!timezone) return fallback();
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: false,
+    }).formatToParts(new Date());
+    const get = (t: string) => Number(parts.find((p) => p.type === t)?.value);
+    const y = get('year');
+    const m = get('month');
+    const d = get('day');
+    const minutes = (get('hour') % 24) * 60 + get('minute');
+    if ([y, m, d, minutes].some((n) => Number.isNaN(n))) return fallback();
+    return { y, m, d, minutes };
+  } catch {
+    return fallback();
+  }
+}
+
+/** Slots de 30 en 30 min entre abre y cierra; con nowMinutes (solo "hoy") excluye los ya pasados. */
+function generateTimeSlots(abre: string, cierra: string, nowMinutes: number | null): string[] {
   const [openH, openM] = abre.split(':').map(Number);
   const [closeH, closeM] = cierra.split(':').map(Number);
   if ([openH, openM, closeH, closeM].some((n) => Number.isNaN(n))) return [];
 
-  const now = new Date();
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
   const slots: string[] = [];
   for (let mins = openH * 60 + openM; mins < closeH * 60 + closeM; mins += 30) {
-    if (isToday && mins <= nowMinutes + 15) continue; // margen de 15min para reservas de último minuto
+    if (nowMinutes !== null && mins <= nowMinutes + 15) continue; // margen de 15min para reservas de último minuto
     const h = Math.floor(mins / 60);
     const m = mins % 60;
     slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
@@ -73,12 +104,16 @@ function generateTimeSlots(abre: string, cierra: string, isToday: boolean): stri
   return slots;
 }
 
-function nextDays(count: number): { dateStr: string; date: Date }[] {
+/**
+ * Próximos N días desde "hoy" EN LA ZONA DEL NEGOCIO. Cada día se ancla a medianoche UTC del
+ * calendario y se lee con getUTC*: dateStr y día de la semana no dependen de la zona del
+ * navegador (antes toISOString() saltaba a "mañana" pasadas las ~8pm en Nueva York).
+ */
+function nextDays(count: number, today: { y: number; m: number; d: number }): { dateStr: string; date: Date }[] {
   const out: { dateStr: string; date: Date }[] = [];
   for (let i = 0; i < count; i++) {
-    const d = new Date();
-    d.setDate(d.getDate() + i);
-    out.push({ dateStr: d.toISOString().slice(0, 10), date: d });
+    const date = new Date(Date.UTC(today.y, today.m - 1, today.d + i));
+    out.push({ dateStr: date.toISOString().slice(0, 10), date });
   }
   return out;
 }
@@ -199,7 +234,7 @@ function CustomSelect({
  * configurados en Agenda todavía.
  */
 export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props>(function PublicBookingSection(
-  { slug, language, accent, horario, enableWalkIn },
+  { slug, language, accent, horario, timezone, enableWalkIn },
   ref,
 ) {
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -438,22 +473,23 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
   if (loadStatus === 'loading') return null;
   if (services.length === 0) return null;
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const nowInfo = nowInZone(timezone);
+  const todayStr = new Date(Date.UTC(nowInfo.y, nowInfo.m - 1, nowInfo.d)).toISOString().slice(0, 10);
   const selectedService = services.find((s) => s.id === serviceId);
 
   function hoursFor(dateObj: Date): { abre: string; cierra: string; cerrado: boolean } {
-    const key = WEEKDAY_KEYS[dateObj.getDay()];
+    const key = WEEKDAY_KEYS[dateObj.getUTCDay()];
     const entry = horario?.find((h) => h.dia === key);
     if (!entry) return { ...DEFAULT_HOURS, cerrado: false };
     return entry;
   }
 
-  const dayOptions = nextDays(14);
-  const selectedDateObj = date ? new Date(`${date}T00:00:00`) : null;
+  const dayOptions = nextDays(14, nowInfo);
+  const selectedDateObj = date ? new Date(`${date}T00:00:00Z`) : null;
   const selectedDayHours = selectedDateObj ? hoursFor(selectedDateObj) : null;
   const rawTimeSlots =
     selectedDateObj && selectedDayHours && !selectedDayHours.cerrado
-      ? generateTimeSlots(selectedDayHours.abre, selectedDayHours.cierra, date === todayStr)
+      ? generateTimeSlots(selectedDayHours.abre, selectedDayHours.cierra, date === todayStr ? nowInfo.minutes : null)
       : [];
 
   // Task #189 — con un profesional elegido, se oculta cualquier hora ya tomada por él/ella. Con
@@ -655,7 +691,41 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                     </div>
                   </div>
 
-                  <div className="grid gap-3.5">
+                  {/* Elegir profesional DENTRO del modal: quien llega desde el botón del hero o la barra
+                      inferior (sin haber tocado a nadie en el equipo) también puede escoger barbero. Con
+                      un solo miembro no hay nada que elegir (el encabezado ya lo muestra). */}
+                  {team.length > 1 && (
+                    <div className="mb-5">
+                      <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                        {getText('Con quién', 'With')}
+                      </label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {[null, ...team].map((member) => {
+                          const active = (selectedMember?.id ?? null) === (member?.id ?? null);
+                          return (
+                            <button
+                              key={member?.id ?? ANYONE}
+                              type="button"
+                              onClick={() => {
+                                setSelectedMember(member);
+                                setTime('');
+                              }}
+                              className="rounded-full border px-3.5 py-2 text-xs font-semibold transition-colors"
+                              style={
+                                active
+                                  ? { backgroundColor: color, borderColor: color, color: '#fff' }
+                                  : { borderColor: '#e5e7eb', color: '#374151', backgroundColor: '#fff' }
+                              }
+                            >
+                              {member ? member.name : getText('Cualquiera', 'Anyone')}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3.5">
                     <div>
                       <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
                         {getText('Servicio', 'Service')}
@@ -731,9 +801,9 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                               }
                             >
                               <span className="uppercase tracking-wide">
-                                {d.toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { weekday: 'short' })}
+                                {d.toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { weekday: 'short', timeZone: 'UTC' })}
                               </span>
-                              <span className="mt-0.5 text-sm">{d.getDate()}</span>
+                              <span className="mt-0.5 text-sm">{d.getUTCDate()}</span>
                             </button>
                           );
                         })}
@@ -788,7 +858,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                         maxLength={80}
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
-                        className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
+                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none"
                       />
                     </div>
 
@@ -803,7 +873,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                         maxLength={20}
                         value={customerPhone}
                         onChange={(e) => setCustomerPhone(sanitizePhone(e.target.value))}
-                        className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
+                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none"
                       />
                     </div>
 
@@ -817,7 +887,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                         value={customerEmail}
                         onChange={(e) => setCustomerEmail(e.target.value)}
                         placeholder={getText('Para recibir tu confirmación', 'To receive your confirmation')}
-                        className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
+                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none"
                       />
                     </div>
 
@@ -830,7 +900,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                         onChange={(e) => setNotes(e.target.value)}
                         rows={2}
                         maxLength={300}
-                        className="mt-2 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:border-gray-500 focus:outline-none"
+                        className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none"
                       />
                     </details>
                   </div>
@@ -908,7 +978,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                   <p className="mb-4 pr-8 text-base font-black text-gray-900">
                     {getText('Únete a la fila', 'Join the queue')}
                   </p>
-                  <div className="grid gap-3.5">
+                  <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3.5">
                     <div>
                       <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
                         {getText('Servicio (opcional)', 'Service (optional)')}
@@ -931,7 +1001,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                         maxLength={80}
                         value={walkInName}
                         onChange={(e) => setWalkInName(e.target.value)}
-                        className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
+                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none"
                       />
                     </div>
                     <div>
@@ -944,7 +1014,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                         maxLength={20}
                         value={walkInPhone}
                         onChange={(e) => setWalkInPhone(sanitizePhone(e.target.value))}
-                        className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
+                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none"
                       />
                     </div>
                   </div>

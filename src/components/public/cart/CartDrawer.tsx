@@ -425,6 +425,8 @@ export function CartDrawer({
                     borderRadius: '8px',
                     border: '1px solid #e5e3de',
                     fontSize: '13px',
+                    color: '#1a1a1a',
+                    backgroundColor: '#ffffff',
                   }}
                 />
               )}

@@ -268,7 +268,7 @@ export function TableReservationSection({ slug, language, accent, horario, timez
                     grid de horas, el padding) mete un scroll horizontal fantasma que corta los
                     inputs y el botón por la derecha. Reportado en producción 2026-08-16. */}
                 <div className="flex-1 overflow-y-auto overflow-x-hidden p-5 pt-8 sm:p-6">
-                  <div className="grid gap-3.5">
+                  <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3.5">
                     <div>
                       <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
                         {getText('Personas', 'Party size')}
@@ -373,7 +373,7 @@ export function TableReservationSection({ slug, language, accent, horario, timez
                         required
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
-                        className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
+                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none"
                       />
                     </div>
 
@@ -386,7 +386,7 @@ export function TableReservationSection({ slug, language, accent, horario, timez
                         required
                         value={customerPhone}
                         onChange={(e) => setCustomerPhone(e.target.value)}
-                        className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
+                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none"
                       />
                     </div>
 
@@ -399,7 +399,7 @@ export function TableReservationSection({ slug, language, accent, horario, timez
                         value={customerEmail}
                         onChange={(e) => setCustomerEmail(e.target.value)}
                         placeholder={getText('Para enviarte la confirmación', 'So we can email you a confirmation')}
-                        className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:border-gray-500 focus:outline-none"
+                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none"
                       />
                     </div>
 
@@ -412,7 +412,7 @@ export function TableReservationSection({ slug, language, accent, horario, timez
                         onChange={(e) => setNotes(e.target.value)}
                         rows={2}
                         placeholder={getText('Ej. mesa junto a la ventana, alergias, ocasión especial', 'E.g. window table, allergies, special occasion')}
-                        className="mt-2 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:border-gray-500 focus:outline-none"
+                        className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none"
                       />
                     </details>
                   </div>
