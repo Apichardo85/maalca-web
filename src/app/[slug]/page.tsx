@@ -163,18 +163,36 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const data = await getCatalog(slug);
   if (!data) return { title: 'MaalCa' };
 
+  const name = data.affiliate.name;
   const description = data.affiliate.description
     ? stripRichTextToPlain(data.affiliate.description)
-    : `Visita ${data.affiliate.name} en MaalCa`;
-  const ogImage = data.affiliate.logoUrl || '/logo-icon.svg';
+    : [name, data.affiliate.address].filter(Boolean).join(' · ');
+  const logo = data.affiliate.logoUrl || undefined;
+  const url = `https://maalca.com/${slug}`;
 
+  // Identidad del NEGOCIO al compartir el link (título, descripción, nombre del sitio, íconos,
+  // autor). La imagen la genera [slug]/opengraph-image.tsx. Nada de esto menciona a MaalCa.
   return {
-    title: `${data.affiliate.name} | MaalCa`,
+    title: name,
     description,
+    applicationName: name,
+    authors: [{ name }],
+    creator: name,
+    publisher: name,
+    keywords: [name],
+    alternates: { canonical: url },
+    ...(logo ? { icons: { icon: logo, shortcut: logo, apple: logo } } : {}),
     openGraph: {
-      title: data.affiliate.name,
+      type: 'website',
+      url,
+      siteName: name,
+      title: name,
       description,
-      images: [ogImage],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: name,
+      description,
     },
   };
 }
