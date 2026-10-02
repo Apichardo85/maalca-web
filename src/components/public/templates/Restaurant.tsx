@@ -517,30 +517,44 @@ export function RestaurantTemplate({
                     overflow: 'hidden',
                   }}
                 >
-                  <div style={{ position: 'relative', height: '110px', backgroundColor: 'var(--rt-placeholder, #f2e9db)' }}>
-                    {imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
+                  {imageUrl && (
+                    <div style={{ position: 'relative', height: '110px', backgroundColor: 'var(--rt-placeholder, #f2e9db)' }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={imageUrl} alt={destacadoName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-2xl">🍽️</div>
-                    )}
-                    <span
-                      style={{
-                        position: 'absolute',
-                        top: '6px',
-                        left: '6px',
-                        fontSize: '10px',
-                        fontWeight: 700,
-                        padding: '2px 6px',
-                        borderRadius: '9999px',
-                        backgroundColor: isPopular ? ACCENT : CAFE,
-                        color: isPopular ? 'var(--rt-on-accent, #ffffff)' : '#ffffff',
-                      }}
-                    >
-                      {isPopular ? `🔥 ${getText('Popular', 'Popular')}` : `⭐ ${getText('Destacado', 'Featured')}`}
-                    </span>
-                  </div>
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: '6px',
+                          left: '6px',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          padding: '2px 6px',
+                          borderRadius: '9999px',
+                          backgroundColor: isPopular ? ACCENT : CAFE,
+                          color: isPopular ? 'var(--rt-on-accent, #ffffff)' : '#ffffff',
+                        }}
+                      >
+                        {isPopular ? `🔥 ${getText('Popular', 'Popular')}` : `⭐ ${getText('Destacado', 'Featured')}`}
+                      </span>
+                    </div>
+                  )}
                   <div style={{ padding: '8px 10px' }}>
+                    {!imageUrl && (
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          marginBottom: '6px',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          padding: '2px 6px',
+                          borderRadius: '9999px',
+                          backgroundColor: isPopular ? ACCENT : CAFE,
+                          color: isPopular ? 'var(--rt-on-accent, #ffffff)' : '#ffffff',
+                        }}
+                      >
+                        {isPopular ? `🔥 ${getText('Popular', 'Popular')}` : `⭐ ${getText('Destacado', 'Featured')}`}
+                      </span>
+                    )}
                     <p className={inter.className} style={{ margin: 0, fontSize: '13px', fontWeight: 800, letterSpacing: '-0.01em', color: CAFE, lineHeight: 1.3 }}>
                       {destacadoName}
                     </p>
@@ -1366,6 +1380,27 @@ function MenuCard({
   const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
 
+  // Etiquetas Destacado/Popular: sobre la foto si hay foto; en línea sobre el nombre si no la hay
+  // (sin foto no se reserva un cuadro vacío — la tarjeta es solo texto, como en las apps de delivery).
+  const badgeEls = (
+    <>
+      {item.featured && (
+        <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '9999px', backgroundColor: CAFE, color: '#ffffff' }}>
+          ⭐ {getText('Destacado', 'Featured')}
+        </span>
+      )}
+      {item.popular && (
+        <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '9999px', backgroundColor: ACCENT, color: 'var(--rt-on-accent, #ffffff)' }}>
+          🔥 {getText('Popular', 'Popular')}
+        </span>
+      )}
+    </>
+  );
+  const hasBadges = Boolean(item.featured || item.popular);
+  const badgesOverlay = hasBadges ? (
+    <div style={{ position: 'absolute', top: '4px', left: '4px', display: 'flex', gap: '4px' }}>{badgeEls}</div>
+  ) : null;
+
   return (
     <div
       style={{
@@ -1375,14 +1410,14 @@ function MenuCard({
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'row',
-        minHeight: '120px',
+        minHeight: imageUrl ? '120px' : '84px',
         opacity: unavailableLabel ? 0.55 : 1,
         filter: unavailableLabel ? 'grayscale(0.6)' : undefined,
       }}
     >
-      <div style={{ position: 'relative', flexShrink: 0, margin: '8px 0 8px 8px' }}>
-        {imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
+      {imageUrl && (
+        <div style={{ position: 'relative', flexShrink: 0, margin: '8px 0 8px 8px' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={imageUrl}
             alt={displayName}
@@ -1394,55 +1429,9 @@ function MenuCard({
               borderRadius: '12px',
             }}
           />
-        ) : (
-          <div
-            style={{
-              width: '120px',
-              height: '120px',
-              backgroundColor: 'var(--rt-placeholder, #f2e9db)',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '28px',
-            }}
-          >
-            🍽️
-          </div>
-        )}
-        {(item.featured || item.popular) && (
-          <div style={{ position: 'absolute', top: '4px', left: '4px', display: 'flex', gap: '4px' }}>
-            {item.featured && (
-              <span
-                style={{
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  padding: '2px 6px',
-                  borderRadius: '9999px',
-                  backgroundColor: CAFE,
-                  color: '#ffffff',
-                }}
-              >
-                ⭐ {getText('Destacado', 'Featured')}
-              </span>
-            )}
-            {item.popular && (
-              <span
-                style={{
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  padding: '2px 6px',
-                  borderRadius: '9999px',
-                  backgroundColor: ACCENT,
-                  color: 'var(--rt-on-accent, #ffffff)',
-                }}
-              >
-                🔥 {getText('Popular', 'Popular')}
-              </span>
-            )}
-          </div>
-        )}
-      </div>
+          {badgesOverlay}
+        </div>
+      )}
 
       <div
         style={{
@@ -1456,6 +1445,9 @@ function MenuCard({
       >
         {/* Name + description */}
         <div>
+          {!imageUrl && hasBadges && (
+            <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>{badgeEls}</div>
+          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <p
               className={inter.className}

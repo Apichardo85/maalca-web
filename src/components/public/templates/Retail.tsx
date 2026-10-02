@@ -455,20 +455,12 @@ function ProductCard({
       {/* swatch tab — every card carries a corner of the strip above */}
       <div style={{ height: '5px', backgroundColor: chipColor, flexShrink: 0 }} />
 
-      <div className="aspect-square" style={{ backgroundColor: '#f1efe9', flexShrink: 0 }}>
-        {imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={imageUrl}
-            alt={displayName}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center" style={{ color: '#c7c2b4' }}>
-            <NoImageIcon size={32} />
-          </div>
-        )}
-      </div>
+      {imageUrl && (
+        <div className="aspect-square" style={{ backgroundColor: '#f1efe9', flexShrink: 0 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={imageUrl} alt={displayName} className="h-full w-full object-cover" />
+        </div>
+      )}
 
       <div style={{ padding: '10px', display: 'flex', flexDirection: 'column', flex: 1 }}>
         <p
