@@ -66,7 +66,6 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
-  const itemFallbackIcon = businessType === 'retail' ? '🛍️' : '🍽️';
 
   const [cart, setCart] = useState<CartLine[]>([]);
   const [category, setCategory] = useState(ALL_TAB);
@@ -351,15 +350,12 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
                     onClick={() => addToCart(item)}
                     className="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-left shadow-sm transition-transform active:scale-95 hover:border-brand-primary"
                   >
-                    {item.imageUrl ? (
+                    {/* Sin foto: tarjeta de solo texto, sin recuadro vacío ni ícono de relleno. */}
+                    {item.imageUrl && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={item.imageUrl} alt={item.name} className="h-24 w-full object-cover" />
-                    ) : (
-                      <div className="flex h-24 w-full items-center justify-center bg-gray-100 dark:bg-neutral-800 text-2xl">
-                        {itemFallbackIcon}
-                      </div>
                     )}
-                    <div className="flex min-h-[72px] flex-col items-start justify-between p-3">
+                    <div className={`flex min-h-[72px] flex-col items-start justify-between p-3 ${!item.imageUrl && item.description ? 'pr-10' : ''}`}>
                       <span className="text-sm font-semibold leading-snug">{item.name}</span>
                       <span className="mt-2 text-base font-bold text-brand-primary">{fmt(item.price)}</span>
                     </div>
@@ -617,13 +613,9 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
             className="w-full max-w-sm overflow-hidden rounded-2xl bg-white dark:bg-neutral-900 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {infoItem.imageUrl ? (
+            {infoItem.imageUrl && (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={infoItem.imageUrl} alt={infoItem.name} className="h-40 w-full object-cover" />
-            ) : (
-              <div className="flex h-40 w-full items-center justify-center bg-gray-100 dark:bg-neutral-800 text-4xl">
-                {itemFallbackIcon}
-              </div>
             )}
             <div className="p-4">
               <div className="flex items-start justify-between gap-3">

@@ -288,20 +288,14 @@ function ItemRow({
         aria-expanded={open}
         className="flex w-full items-start gap-3 px-4 pt-3 pb-2 text-left"
       >
-        {item.imageUrl ? (
+        {/* Sin foto: sin recuadro vacío — el nombre usa todo el ancho; el aviso va como etiqueta abajo. */}
+        {item.imageUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={item.imageUrl}
             alt={item.name}
             className="h-12 w-12 flex-shrink-0 rounded-lg object-cover bg-gray-100 dark:bg-neutral-800"
           />
-        ) : (
-          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-neutral-800 text-gray-300 dark:text-neutral-600">
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-              <circle cx="12" cy="13" r="4"/>
-            </svg>
-          </div>
         )}
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
@@ -316,6 +310,7 @@ function ItemRow({
               <span className="rounded-full bg-gray-100 dark:bg-neutral-800 px-2 py-0.5 font-medium">{getText('Inactivo', 'Inactive')}</span>
             )}
             {item.category && <span>{item.category}</span>}
+            {!item.imageUrl && <span className="text-gray-400 dark:text-neutral-500">📷 {getText('Sin foto', 'No photo')}</span>}
             {days.length > 0 && <span className="rounded-full bg-blue-50 dark:bg-blue-500/10 px-2 py-0.5 text-blue-700 dark:text-blue-300">{days.join(' · ')}</span>}
             {item.featured && <span>⭐</span>}
             {item.popular && <span>🔥</span>}
