@@ -16,7 +16,8 @@
 // weekDays populated; otherwise the full menu shows with no filter, so a
 // business without that data configured never sees a confusing empty view.
 import { useEffect, useState } from 'react';
-import { Fraunces, Inter } from 'next/font/google';
+import { Inter } from 'next/font/google';
+import { deriveBrandPalette, brandPaletteVars } from '@/lib/brand-palette';
 import type { ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
 import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
@@ -47,20 +48,23 @@ import {
 } from '@/lib/business-hours';
 import type { MealPeriod, WeekDay } from '@/lib/types';
 
-// Scoped to this template only — Fraunces italic gives names/Destacados a
-// warm, handwritten-menu feel; Inter carries the body copy.
-const fraunces = Fraunces({ subsets: ['latin'], weight: ['500', '600'], style: ['italic'], variable: '--font-restaurant-display' });
-const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-restaurant-body' });
+// Scoped to this template only. Una sola familia (Inter) con pesos fuertes: el serif cursivo
+// anterior se sentía de papelería/invitación, no de pedir comida. Los colores ya no son fijos:
+// vienen de las variables --rt-* que calcula deriveBrandPalette() a partir del color primario del
+// negocio (ver src/lib/brand-palette.ts) y se fijan en el contenedor raíz de la plantilla.
+// El segundo valor de cada var() es el respaldo si la variable no existe.
+const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'], variable: '--font-restaurant-body' });
 
 const ALL_TAB = '__all__';
 const ALL_PERIODS = '__all_periods__';
 const MAX_DESTACADOS = 8;
 
-const TERRACOTA = '#C1522A';
-const CREMA = '#FBF3E7';
+const ACCENT = 'var(--rt-accent, #C1522A)';
+const TERRACOTA = 'var(--rt-accent-text, #C1522A)'; // acento como TEXTO sobre fondo claro (contraste garantizado)
+const CREMA = 'var(--rt-bg, #FBF3E7)';
 const PALMA = '#3A5A40';
-const CAFE = '#2B1D14';
-const MUTED = '#8A7B6E';
+const CAFE = 'var(--rt-ink, #2B1D14)';
+const MUTED = 'var(--rt-muted, #8A7B6E)';
 
 const FLAG_ICONS: Record<string, string> = {
   vegetarian: '🌱',
@@ -148,6 +152,7 @@ export function RestaurantTemplate({
   capabilities,
 }: PublicTemplateProps) {
   const accent = business.primary_color ?? '#045AFE';
+  const paletteVars = brandPaletteVars(deriveBrandPalette(business.primary_color), 'rt');
   const waRaw = resolveWhatsAppDigits(business);
   const deliveryLinks = resolveDeliveryLinks(business);
 
@@ -264,7 +269,7 @@ export function RestaurantTemplate({
   const visibleItems = itemsFor(activeTab);
 
   return (
-    <div id="top" className={`${fraunces.variable} ${inter.variable}`} style={{ minHeight: '100vh', backgroundColor: CREMA, fontFamily: inter.style.fontFamily }}>
+    <div id="top" className={inter.variable} style={{ minHeight: '100vh', backgroundColor: CREMA, fontFamily: inter.style.fontFamily, ...paletteVars } as React.CSSProperties}>
       {/* ── ESTADO (abierto/cerrado) — pegada arriba mientras se hace scroll ── */}
       <OpenStatusBar status={openStatus} language={language} getText={getText} />
 
@@ -294,7 +299,7 @@ export function RestaurantTemplate({
               style={{
                 position: 'absolute',
                 top: 0, left: 0, right: 0, bottom: 0,
-                backgroundColor: 'rgba(0,0,0,0.55)',
+                background: 'var(--rt-hero-overlay, rgba(0,0,0,0.55))',
               }}
             />
           </>
@@ -354,7 +359,7 @@ export function RestaurantTemplate({
           )}
 
           <h1
-            className={fraunces.className}
+            className={inter.className}
             style={{
               margin: 0,
               fontSize: '30px',
@@ -387,7 +392,7 @@ export function RestaurantTemplate({
                   minHeight: '44px',
                   backgroundColor: accent,
                   border: '1px solid rgba(255,255,255,0.8)',
-                  color: '#ffffff',
+                  color: 'var(--rt-on-accent, #ffffff)',
                   padding: '10px 22px',
                   borderRadius: '9999px',
                   fontSize: '14px',
@@ -479,8 +484,8 @@ export function RestaurantTemplate({
       {destacados.length > 0 && (
         <section className="mx-auto max-w-public-content" style={{ padding: '24px 24px 0' }}>
           <h2
-            className={fraunces.className}
-            style={{ margin: '0 0 12px', fontSize: '20px', fontWeight: 600, fontStyle: 'italic', color: TERRACOTA }}
+            className={inter.className}
+            style={{ margin: '0 0 12px', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.01em', color: TERRACOTA }}
           >
             {getText('Destacados', 'Highlights')}
           </h2>
@@ -494,12 +499,12 @@ export function RestaurantTemplate({
                   key={item.id}
                   style={{
                     backgroundColor: '#ffffff',
-                    border: '0.5px solid #ece2d3',
+                    border: '0.5px solid var(--rt-border-soft, #ece2d3)',
                     borderRadius: '14px',
                     overflow: 'hidden',
                   }}
                 >
-                  <div style={{ position: 'relative', height: '110px', backgroundColor: '#f2e9db' }}>
+                  <div style={{ position: 'relative', height: '110px', backgroundColor: 'var(--rt-placeholder, #f2e9db)' }}>
                     {imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={imageUrl} alt={destacadoName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -515,15 +520,15 @@ export function RestaurantTemplate({
                         fontWeight: 700,
                         padding: '2px 6px',
                         borderRadius: '9999px',
-                        backgroundColor: isPopular ? '#ff5a3c' : TERRACOTA,
-                        color: '#ffffff',
+                        backgroundColor: isPopular ? ACCENT : CAFE,
+                        color: isPopular ? 'var(--rt-on-accent, #ffffff)' : '#ffffff',
                       }}
                     >
                       {isPopular ? `🔥 ${getText('Popular', 'Popular')}` : `⭐ ${getText('Destacado', 'Featured')}`}
                     </span>
                   </div>
                   <div style={{ padding: '8px 10px' }}>
-                    <p className={fraunces.className} style={{ margin: 0, fontSize: '13px', fontWeight: 600, fontStyle: 'italic', color: CAFE, lineHeight: 1.3 }}>
+                    <p className={inter.className} style={{ margin: 0, fontSize: '13px', fontWeight: 800, letterSpacing: '-0.01em', color: CAFE, lineHeight: 1.3 }}>
                       {destacadoName}
                     </p>
                     {item.price != null && (
@@ -575,7 +580,7 @@ export function RestaurantTemplate({
                 padding: '10px 14px 10px 38px',
                 fontSize: '14px',
                 borderRadius: '12px',
-                border: '1px solid #e8ddc9',
+                border: '1px solid var(--rt-border, #e8ddc9)',
                 backgroundColor: '#ffffff',
                 color: CAFE,
                 outline: 'none',
@@ -614,7 +619,7 @@ export function RestaurantTemplate({
             top: 0,
             zIndex: 20,
             backgroundColor: CREMA,
-            borderBottom: '1px solid #e8ddc9',
+            borderBottom: '1px solid var(--rt-border, #e8ddc9)',
           }}
         >
           <div className="mx-auto max-w-public-content" style={{ padding: '0 24px' }}>
@@ -674,9 +679,9 @@ export function RestaurantTemplate({
                   fontSize: '13px',
                   fontWeight: 600,
                   borderRadius: '9999px',
-                  border: activePeriod === key ? `1px solid ${TERRACOTA}` : '1px solid #e8ddc9',
-                  backgroundColor: activePeriod === key ? TERRACOTA : '#ffffff',
-                  color: activePeriod === key ? '#ffffff' : MUTED,
+                  border: activePeriod === key ? `1px solid ${ACCENT}` : '1px solid var(--rt-border, #e8ddc9)',
+                  backgroundColor: activePeriod === key ? ACCENT : '#ffffff',
+                  color: activePeriod === key ? 'var(--rt-on-accent, #ffffff)' : MUTED,
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
                 }}
@@ -698,7 +703,7 @@ export function RestaurantTemplate({
               justifyContent: 'space-between',
               flexWrap: 'wrap',
               gap: '10px',
-              backgroundColor: 'rgba(193,82,42,0.08)',
+              backgroundColor: 'var(--rt-accent-soft, rgba(193,82,42,0.08))',
               border: `1px solid ${TERRACOTA}`,
               borderRadius: '12px',
               padding: '10px 16px',
@@ -889,7 +894,7 @@ function OpenStatusBar({
   } else {
     dot = MUTED;
     bg = '#F1E9DD';
-    border = '#e8ddc9';
+    border = 'var(--rt-border, #e8ddc9)';
     color = CAFE;
     strong = getText('Cerrado ahora', 'Closed now');
     const n = status.next;
@@ -949,10 +954,10 @@ function HoursSection({
 
   return (
     <section className="mx-auto max-w-public-content" style={{ padding: '0 24px 32px' }}>
-      <h2 className={fraunces.className} style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 600, fontStyle: 'italic', color: TERRACOTA }}>
+      <h2 className={inter.className} style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 800, letterSpacing: '-0.01em', color: TERRACOTA }}>
         {getText('Horario', 'Hours')}
       </h2>
-      <div style={{ backgroundColor: '#ffffff', border: '0.5px solid #ece2d3', borderRadius: '12px', padding: '4px 16px' }}>
+      <div style={{ backgroundColor: '#ffffff', border: '0.5px solid var(--rt-border-soft, #ece2d3)', borderRadius: '12px', padding: '4px 16px' }}>
         {rows.map(({ day, entry }, i) => {
           const isToday = day === todayKey;
           const label = language === 'en' ? HORARIO_LABELS_EN[day] : HORARIO_LABELS_ES[day];
@@ -964,7 +969,7 @@ function HoursSection({
                 justifyContent: 'space-between',
                 gap: '12px',
                 padding: '11px 0',
-                borderTop: i === 0 ? 'none' : '1px solid #f0e8da',
+                borderTop: i === 0 ? 'none' : '1px solid var(--rt-border-soft, #f0e8da)',
                 fontSize: '14px',
                 color: CAFE,
                 fontWeight: isToday ? 600 : 400,
@@ -1038,6 +1043,7 @@ function CartBar({
           padding: '0 6px',
           borderRadius: '9999px',
           backgroundColor: accent,
+          color: 'var(--rt-on-accent, #ffffff)',
           fontSize: '13px',
           display: 'flex',
           alignItems: 'center',
@@ -1099,7 +1105,7 @@ function BottomNav({
     <nav
       aria-label={getText('Navegación principal', 'Main navigation')}
       className="sm:hidden fixed bottom-0 left-0 right-0"
-      style={{ zIndex: 80, backgroundColor: '#ffffff', borderTop: '1px solid #e8ddc9', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      style={{ zIndex: 80, backgroundColor: '#ffffff', borderTop: '1px solid var(--rt-border, #e8ddc9)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div style={{ height: '64px', display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
         <a href="#top" onClick={go('top')} style={itemStyle}>
@@ -1124,7 +1130,7 @@ function BottomNav({
                 padding: '0 5px',
                 borderRadius: '9999px',
                 backgroundColor: accent,
-                color: '#ffffff',
+                color: 'var(--rt-on-accent, #ffffff)',
                 fontSize: '11px',
                 fontWeight: 600,
                 display: 'flex',
@@ -1160,7 +1166,7 @@ function ProcessSection({
 
   return (
     <section className="mx-auto max-w-public-content" style={{ padding: '24px 24px 0' }}>
-      <h2 className={fraunces.className} style={{ margin: '0 0 16px', fontSize: '20px', fontWeight: 600, fontStyle: 'italic', color: TERRACOTA }}>
+      <h2 className={inter.className} style={{ margin: '0 0 16px', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.01em', color: TERRACOTA }}>
         {getText('Cómo trabajamos', 'How we work')}
       </h2>
       <ol className="grid gap-4 sm:grid-cols-3">
@@ -1169,7 +1175,7 @@ function ProcessSection({
             key={`${i}-${step.title}`}
             style={{
               backgroundColor: '#ffffff',
-              border: '0.5px solid #ece2d3',
+              border: '0.5px solid var(--rt-border-soft, #ece2d3)',
               borderRadius: '14px',
               padding: '16px',
             }}
@@ -1183,14 +1189,14 @@ function ProcessSection({
                 height: '28px',
                 borderRadius: '9999px',
                 backgroundColor: accent,
-                color: '#ffffff',
+                color: 'var(--rt-on-accent, #ffffff)',
                 fontSize: '13px',
                 fontWeight: 700,
               }}
             >
               {i + 1}
             </span>
-            <p className={fraunces.className} style={{ margin: '10px 0 0', fontSize: '15px', fontWeight: 600, fontStyle: 'italic', color: CAFE }}>
+            <p className={inter.className} style={{ margin: '10px 0 0', fontSize: '15px', fontWeight: 800, letterSpacing: '-0.01em', color: CAFE }}>
               {step.title}
             </p>
             {step.description && (
@@ -1222,7 +1228,7 @@ function GallerySection({
 
   return (
     <section className="mx-auto max-w-public-content" style={{ padding: '24px 24px 0' }}>
-      <h2 className={fraunces.className} style={{ margin: '0 0 16px', fontSize: '20px', fontWeight: 600, fontStyle: 'italic', color: TERRACOTA }}>
+      <h2 className={inter.className} style={{ margin: '0 0 16px', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.01em', color: TERRACOTA }}>
         {getText('Galería', 'Gallery')}
       </h2>
       <PublicGalleryLightbox images={images} accent={accent} getText={getText} />
@@ -1245,7 +1251,7 @@ function SectLabel({ label }: { label: string }) {
       >
         {label}
       </span>
-      <div style={{ flex: 1, height: '1px', backgroundColor: '#e8ddc9' }} />
+      <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--rt-border, #e8ddc9)' }} />
     </div>
   );
 }
@@ -1347,7 +1353,7 @@ function MenuCard({
     <div
       style={{
         backgroundColor: '#ffffff',
-        border: '0.5px solid #ece2d3',
+        border: '0.5px solid var(--rt-border-soft, #ece2d3)',
         borderRadius: '16px',
         overflow: 'hidden',
         display: 'flex',
@@ -1374,7 +1380,7 @@ function MenuCard({
             style={{
               width: '120px',
               height: '120px',
-              backgroundColor: '#f2e9db',
+              backgroundColor: 'var(--rt-placeholder, #f2e9db)',
               borderRadius: '12px',
               display: 'flex',
               alignItems: 'center',
@@ -1394,7 +1400,7 @@ function MenuCard({
                   fontWeight: 700,
                   padding: '2px 6px',
                   borderRadius: '9999px',
-                  backgroundColor: TERRACOTA,
+                  backgroundColor: CAFE,
                   color: '#ffffff',
                 }}
               >
@@ -1408,8 +1414,8 @@ function MenuCard({
                   fontWeight: 700,
                   padding: '2px 6px',
                   borderRadius: '9999px',
-                  backgroundColor: '#ff5a3c',
-                  color: '#ffffff',
+                  backgroundColor: ACCENT,
+                  color: 'var(--rt-on-accent, #ffffff)',
                 }}
               >
                 🔥 {getText('Popular', 'Popular')}
@@ -1433,11 +1439,11 @@ function MenuCard({
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <p
-              className={fraunces.className}
+              className={inter.className}
               style={{
                 margin: 0,
                 fontWeight: 600,
-                fontStyle: 'italic',
+                letterSpacing: '-0.01em',
                 fontSize: '15px',
                 color: CAFE,
                 lineHeight: 1.3,
@@ -1499,7 +1505,7 @@ function MenuCard({
               aria-label={`${getText('Agregar', 'Add')} ${displayName}`}
               style={{
                 backgroundColor: accent,
-                color: '#ffffff',
+                color: 'var(--rt-on-accent, #ffffff)',
                 border: 'none',
                 borderRadius: '8px',
                 padding: '6px 12px',
@@ -1529,7 +1535,7 @@ function MenuCard({
                   height: '28px',
                   borderRadius: '6px',
                   border: 'none',
-                  backgroundColor: '#f2e9db',
+                  backgroundColor: 'var(--rt-placeholder, #f2e9db)',
                   cursor: 'pointer',
                   fontWeight: 700,
                   fontSize: '14px',
@@ -1564,7 +1570,7 @@ function MenuCard({
                   cursor: 'pointer',
                   fontWeight: 700,
                   fontSize: '14px',
-                  color: '#ffffff',
+                  color: 'var(--rt-on-accent, #ffffff)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -1591,12 +1597,12 @@ function FaqSection({
 
   return (
     <section className="mx-auto max-w-public-content" style={{ padding: '0 24px 32px' }}>
-      <h2 className={fraunces.className} style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 600, fontStyle: 'italic', color: TERRACOTA }}>
+      <h2 className={inter.className} style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 800, letterSpacing: '-0.01em', color: TERRACOTA }}>
         {getText('Preguntas frecuentes', 'FAQ')}
       </h2>
-      <div style={{ borderTop: '1px solid #e8ddc9' }}>
+      <div style={{ borderTop: '1px solid var(--rt-border, #e8ddc9)' }}>
         {faq.map((entry, i) => (
-          <details key={`${i}-${entry.question}`} style={{ borderBottom: '1px solid #e8ddc9', padding: '14px 0' }}>
+          <details key={`${i}-${entry.question}`} style={{ borderBottom: '1px solid var(--rt-border, #e8ddc9)', padding: '14px 0' }}>
             <summary style={{ cursor: 'pointer', listStyle: 'none', fontWeight: 500, color: CAFE, fontSize: '14px' }}>
               {entry.question}
             </summary>
@@ -1624,7 +1630,7 @@ function ContactSection({
   if (contacts.length === 0) return null;
 
   return (
-    <section style={{ borderTop: '1px solid #e8ddc9' }}>
+    <section style={{ borderTop: '1px solid var(--rt-border, #e8ddc9)' }}>
       <div className="mx-auto max-w-public-content" style={{ padding: '32px 24px' }}>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {contacts.map((c) => {
@@ -1638,7 +1644,7 @@ function ContactSection({
               onClick={() => trackCanalClick(business.slug, c.tipo, c.canalId)}
               style={{
                 backgroundColor: '#ffffff',
-                border: '0.5px solid #ece2d3',
+                border: '0.5px solid var(--rt-border-soft, #ece2d3)',
                 borderRadius: '12px',
                 padding: '16px',
                 display: 'flex',

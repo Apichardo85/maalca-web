@@ -7,7 +7,7 @@
 // with a single bold accent rule ("the blade") as the recurring graphic
 // motif and a perforated "ticket stub" service card as the signature
 // element — distinct from Service's mono rate-card index.
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Oswald } from 'next/font/google';
 import type { ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
 import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
@@ -22,6 +22,8 @@ import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { formatPrice } from '@/lib/currency';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
+import { deriveBrandPalette, brandPaletteVars } from '@/lib/brand-palette';
+import { getOpenStatus, formatHour, type OpenStatus } from '@/lib/business-hours';
 
 // Scoped to this template only — condensed uppercase display for headers,
 // duration and price (no separate mono role; the condensed weight already
@@ -30,10 +32,20 @@ const oswald = Oswald({ subsets: ['latin'], weight: ['500', '600', '700'], varia
 
 const ALL_TAB = '__all__';
 
-const TINTA = '#151312';
-const ESCARCHA = '#EFF1F4';
-const ACERO = '#5B5B5B';
-const ACERO_LIGHT = '#E4E6EA';
+// Colores derivados del color primario del negocio (ver src/lib/brand-palette.ts): las variables
+// --bb-* se fijan en el contenedor raíz; el segundo valor de var() es el respaldo anterior.
+const ACCENT = 'var(--bb-accent, #045AFE)';
+const ON_ACCENT = 'var(--bb-on-accent, #ffffff)';
+const TINTA = 'var(--bb-ink, #151312)';
+const ESCARCHA = 'var(--bb-bg, #EFF1F4)';
+const ACERO = 'var(--bb-muted, #5B5B5B)';
+const ACERO_LIGHT = 'var(--bb-placeholder, #E4E6EA)';
+const LINE = 'var(--bb-border, #dcdfe3)';
+
+// Franja de poste de barbero: acento / blanco / tinta, en diagonal. Es el motivo gráfico que
+// identifica la plantilla como barbería (hero y barra de acciones), con los colores de CADA negocio.
+const POLE_STRIPE =
+  'repeating-linear-gradient(-45deg, var(--bb-accent, #045AFE) 0 10px, #ffffff 10px 20px, var(--bb-ink, #151312) 20px 30px, #ffffff 30px 40px)';
 
 function formatDuration(mins: number): string {
   if (mins < 60) return `${mins} min`;
@@ -49,6 +61,7 @@ export function BarberTemplate({
   capabilities,
 }: PublicTemplateProps) {
   const accent = business.primary_color ?? '#045AFE';
+  const paletteVars = brandPaletteVars(deriveBrandPalette(business.primary_color), 'bb');
   const waRaw = resolveWhatsAppDigits(business);
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -67,6 +80,15 @@ export function BarberTemplate({
 
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const bookingRef = useRef<PublicBookingSectionHandle>(null);
+  // "Abierto ahora" depende del reloj: solo en el cliente (ISR cacheada no se congela ni desajusta la
+  // hidratación) y se refresca cada minuto. Sin horario/zona horaria queda en null y no se muestra.
+  const [openStatus, setOpenStatus] = useState<OpenStatus | null>(null);
+  useEffect(() => {
+    const update = () => setOpenStatus(getOpenStatus(business.horario, business.timezone));
+    update();
+    const id = setInterval(update, 60_000);
+    return () => clearInterval(id);
+  }, [business.horario, business.timezone]);
   const handleReserve = (serviceId: string) => bookingRef.current?.openWithService(serviceId);
 
   function itemsFor(tab: string): typeof items {
@@ -87,12 +109,15 @@ export function BarberTemplate({
   const visibleItems = itemsFor(activeTab);
 
   return (
-    <div className={oswald.variable} style={{ minHeight: '100vh', backgroundColor: ESCARCHA }}>
+    <div
+      className={oswald.variable}
+      style={{ minHeight: '100vh', backgroundColor: ESCARCHA, paddingBottom: '76px', ...paletteVars } as React.CSSProperties}
+    >
       {/* ── HERO — Tinta + duotone-leaning cover treatment ── */}
       <section
         style={{
           position: 'relative',
-          height: '420px',
+          height: '460px',
           backgroundColor: TINTA,
           overflow: 'hidden',
         }}
@@ -122,15 +147,18 @@ export function BarberTemplate({
                 left: 0,
                 right: 0,
                 bottom: 0,
-                background: `linear-gradient(180deg, rgba(21,19,18,0.35), rgba(21,19,18,0.85))`,
+                background: 'var(--bb-hero-overlay, linear-gradient(180deg, rgba(21,19,18,0.35), rgba(21,19,18,0.85)))',
               }}
             />
           </>
         )}
 
+        {/* franja de poste — el sello visual de la barbería */}
+        <div aria-hidden style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', zIndex: 2, background: POLE_STRIPE }} />
+
         {/* language toggle — top-right corner, clear of the bottom-anchored
             content below and never covered by it at any viewport */}
-        <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 2 }}>
+        <div style={{ position: 'absolute', top: '22px', right: '16px', zIndex: 2 }}>
           <SimpleLanguageToggle variant="dark" />
         </div>
 
@@ -203,9 +231,63 @@ export function BarberTemplate({
           )}
 
           {/* "the blade" — single bold accent rule, the recurring graphic motif */}
-          <div style={{ height: '4px', width: '64px', backgroundColor: accent, marginTop: '18px', marginBottom: '18px' }} />
+          <div style={{ height: '4px', width: '64px', backgroundColor: ACCENT, marginTop: '14px', marginBottom: '16px' }} />
 
+          {openStatus && <BarberOpenPill status={openStatus} getText={getText} />}
+
+          {/* acciones principales: lo primero que hace quien llega es entrar a la fila o pedir cita */}
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={() => bookingRef.current?.openWalkIn()}
+              className={oswald.className}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                flex: '1 1 150px',
+                minHeight: '52px',
+                backgroundColor: ACCENT,
+                color: ON_ACCENT,
+                padding: '12px 20px',
+                fontSize: '17px',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              {getText('Entrar a la fila', 'Join the line')}
+            </button>
+            <button
+              type="button"
+              onClick={() => bookingRef.current?.openBooking()}
+              className={oswald.className}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                flex: '1 1 150px',
+                minHeight: '52px',
+                background: '#ffffff',
+                color: TINTA,
+                padding: '12px 20px',
+                fontSize: '17px',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              {getText('Reservar cita', 'Book a cut')}
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginTop: '16px' }}>
             {waHeroLink && (
               <a
                 href={waHeroLink}
@@ -217,14 +299,13 @@ export function BarberTemplate({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '8px',
-                  backgroundColor: accent,
                   color: '#ffffff',
-                  padding: '10px 22px',
                   fontSize: '13px',
                   fontWeight: 600,
                   textTransform: 'uppercase',
                   letterSpacing: '0.04em',
-                  textDecoration: 'none',
+                  textDecoration: 'underline',
+                  textUnderlineOffset: '4px',
                 }}
               >
                 <WhatsAppIcon className="h-4 w-4" />
@@ -241,15 +322,13 @@ export function BarberTemplate({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '8px',
-                  background: 'transparent',
-                  border: '1px solid rgba(255,255,255,0.4)',
                   color: '#ffffff',
-                  padding: '10px 22px',
                   fontSize: '13px',
                   fontWeight: 600,
                   textTransform: 'uppercase',
                   letterSpacing: '0.04em',
-                  textDecoration: 'none',
+                  textDecoration: 'underline',
+                  textUnderlineOffset: '4px',
                 }}
               >
                 {getText('Cómo llegar', 'Get directions')}
@@ -275,7 +354,7 @@ export function BarberTemplate({
             top: 0,
             zIndex: 20,
             backgroundColor: ESCARCHA,
-            borderBottom: `1px solid #dcdfe3`,
+            borderBottom: `1px solid ${LINE}`,
           }}
         >
           <div className="mx-auto max-w-public-content" style={{ padding: '0 24px' }}>
@@ -364,6 +443,59 @@ export function BarberTemplate({
 
       {/* ── FOOTER ── */}
       <PublicFooter business={business} capabilities={capabilities} language={language} />
+
+      {/* ── BARRA DE ACCIONES (móvil) — siempre a mano: fila o cita en un toque ── */}
+      <nav
+        aria-label={getText('Acciones rápidas', 'Quick actions')}
+        className="sm:hidden fixed bottom-0 left-0 right-0"
+        style={{ zIndex: 40, backgroundColor: TINTA, paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      >
+        <div aria-hidden style={{ height: '6px', background: POLE_STRIPE }} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', padding: '8px 12px 10px' }}>
+          <button
+            type="button"
+            onClick={() => bookingRef.current?.openWalkIn()}
+            className={oswald.className}
+            style={{ minHeight: '48px', backgroundColor: ACCENT, color: ON_ACCENT, border: 'none', fontSize: '15px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}
+          >
+            {getText('Entrar a la fila', 'Join the line')}
+          </button>
+          <button
+            type="button"
+            onClick={() => bookingRef.current?.openBooking()}
+            className={oswald.className}
+            style={{ minHeight: '48px', backgroundColor: '#ffffff', color: '#151312', border: 'none', fontSize: '15px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}
+          >
+            {getText('Reservar cita', 'Book a cut')}
+          </button>
+        </div>
+      </nav>
+    </div>
+  );
+}
+
+function BarberOpenPill({ status, getText }: { status: OpenStatus; getText: (es: string, en: string) => string }) {
+  let dot = '#34c759';
+  let strong = getText('Abierto ahora', 'Open now');
+  let rest = '';
+  if (status.state === 'open') {
+    rest = getText(`cierra a las ${formatHour(status.closesAt)}`, `closes at ${formatHour(status.closesAt)}`);
+  } else if (status.state === 'opening_soon') {
+    dot = '#f5a524';
+    strong = getText('Abre pronto', 'Opening soon');
+    rest = getText(`a las ${formatHour(status.opensAt)}`, `at ${formatHour(status.opensAt)}`);
+  } else {
+    dot = '#ff453a';
+    strong = getText('Cerrado ahora', 'Closed now');
+  }
+  return (
+    <div
+      role="status"
+      style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', margin: '0 0 14px', padding: '6px 12px', backgroundColor: 'rgba(0,0,0,0.55)', color: '#ffffff', fontSize: '12px', fontWeight: 600 }}
+    >
+      <span aria-hidden style={{ width: '8px', height: '8px', borderRadius: '9999px', backgroundColor: dot }} />
+      <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>{strong}</span>
+      {rest && <span style={{ fontWeight: 400, opacity: 0.85 }}>· {rest}</span>}
     </div>
   );
 }
@@ -394,7 +526,7 @@ function ProcessSection({
             key={`${i}-${step.title}`}
             style={{
               backgroundColor: '#ffffff',
-              border: '1px solid #dcdfe3',
+              border: `1px solid ${LINE}`,
               borderRadius: '10px',
               padding: '16px',
             }}
@@ -408,8 +540,8 @@ function ProcessSection({
                 width: '28px',
                 height: '28px',
                 borderRadius: '6px',
-                backgroundColor: accent,
-                color: '#ffffff',
+                backgroundColor: ACCENT,
+                color: ON_ACCENT,
                 fontSize: '13px',
                 fontWeight: 700,
               }}
@@ -471,7 +603,7 @@ function SectLabel({ label }: { label: string }) {
       >
         {label}
       </span>
-      <div style={{ flex: 1, height: '1px', backgroundColor: '#dcdfe3' }} />
+      <div style={{ flex: 1, height: '1px', backgroundColor: LINE }} />
     </div>
   );
 }
@@ -501,7 +633,7 @@ function ServiceCard({
     <div
       style={{
         backgroundColor: '#ffffff',
-        border: '1px solid #dcdfe3',
+        border: `1px solid ${LINE}`,
         borderRadius: '10px',
         overflow: 'hidden',
       }}
@@ -530,7 +662,7 @@ function ServiceCard({
       )}
 
       {/* ticket-stub perforation — the signature detail separating photo from price */}
-      <div style={{ borderTop: `2px dashed #c7cbd1`, margin: '0 10px' }} />
+      <div style={{ borderTop: `2px dashed ${LINE}`, margin: '0 10px' }} />
 
       <div style={{ padding: '10px' }}>
         <p
@@ -551,7 +683,7 @@ function ServiceCard({
           <ClampedDescription
             text={description}
             language={language}
-            textStyle={{ margin: '4px 0 0', fontSize: '11px', color: '#6b6f76', lineHeight: 1.4 }}
+            textStyle={{ margin: '4px 0 0', fontSize: '11px', color: ACERO, lineHeight: 1.4 }}
             buttonColor={accent}
             buttonStyle={{ fontSize: '11px' }}
           />
@@ -582,7 +714,7 @@ function ServiceCard({
           }}
         >
           {item.price != null ? (
-            <p className={displayClassName} style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: accent }}>
+            <p className={displayClassName} style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--bb-accent-text, #045AFE)' }}>
               {formatPrice(item.price, currency)}
             </p>
           ) : (
@@ -601,13 +733,14 @@ function ServiceCard({
               width: '28px',
               height: '28px',
               borderRadius: '6px',
-              backgroundColor: accent,
+              backgroundColor: ACCENT,
+              color: ON_ACCENT,
               flexShrink: 0,
               border: 'none',
               cursor: 'pointer',
             }}
           >
-            <CalendarIcon className="w-[14px] h-[14px] text-white" />
+            <CalendarIcon className="w-[14px] h-[14px]" />
           </button>
         </div>
       </div>
@@ -629,9 +762,9 @@ function FaqSection({
       <h2 className={oswald.className} style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 700, textTransform: 'uppercase', color: TINTA }}>
         {getText('Preguntas frecuentes', 'FAQ')}
       </h2>
-      <div style={{ borderTop: '1px solid #dcdfe3' }}>
+      <div style={{ borderTop: `1px solid ${LINE}` }}>
         {faq.map((entry, i) => (
-          <details key={`${i}-${entry.question}`} style={{ borderBottom: '1px solid #dcdfe3', padding: '14px 0' }}>
+          <details key={`${i}-${entry.question}`} style={{ borderBottom: `1px solid ${LINE}`, padding: '14px 0' }}>
             <summary style={{ cursor: 'pointer', listStyle: 'none', fontWeight: 600, color: TINTA, fontSize: '14px' }}>
               {entry.question}
             </summary>
@@ -659,7 +792,7 @@ function ContactSection({
   if (contacts.length === 0) return null;
 
   return (
-    <section style={{ borderTop: '1px solid #dcdfe3' }}>
+    <section style={{ borderTop: `1px solid ${LINE}` }}>
       <div className="mx-auto max-w-public-content" style={{ padding: '32px 24px' }}>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {contacts.map((c) => {
@@ -673,7 +806,7 @@ function ContactSection({
               onClick={() => trackCanalClick(business.slug, c.tipo, c.canalId)}
               style={{
                 backgroundColor: '#ffffff',
-                border: '1px solid #dcdfe3',
+                border: `1px solid ${LINE}`,
                 borderRadius: '10px',
                 padding: '16px',
                 display: 'flex',

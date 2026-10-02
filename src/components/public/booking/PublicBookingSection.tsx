@@ -44,6 +44,10 @@ interface Props {
  *  duplicar el flujo de reserva por WhatsApp. */
 export interface PublicBookingSectionHandle {
   openWithService: (serviceId: string) => void;
+  /** Abre el modal de reserva sin servicio preseleccionado (CTA del hero / barra inferior). */
+  openBooking: () => void;
+  /** Abre el formulario de fila de espera (solo tiene efecto si la sección tiene enableWalkIn). */
+  openWalkIn: () => void;
 }
 
 // getDay() indexa 0=domingo..6=sábado; Horario.dia usa claves en minúscula en inglés.
@@ -315,6 +319,14 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
       setStatus('ready');
       setErrorMsg(null);
       setModalOpen(true);
+    },
+    openBooking() {
+      setStatus('ready');
+      setErrorMsg(null);
+      setModalOpen(true);
+    },
+    openWalkIn() {
+      openWalkIn();
     },
   }));
 
