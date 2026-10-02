@@ -16,7 +16,22 @@ interface CatalogItem {
   isDemo: boolean;
   active: boolean;
   imageUrl?: string | null;
+  price?: number | null;
+  nameEn?: string | null;
+  descriptionEn?: string | null;
+  periods?: string[];
+  weekDays?: string[];
+  flags?: string[];
+  featured?: boolean;
+  popular?: boolean;
 }
+
+const DAY_ES: Record<string, string> = { monday: 'lun', tuesday: 'mar', wednesday: 'mié', thursday: 'jue', friday: 'vie', saturday: 'sáb', sunday: 'dom' };
+const DAY_EN: Record<string, string> = { monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu', friday: 'Fri', saturday: 'Sat', sunday: 'Sun' };
+const PERIOD_ES: Record<string, string> = { breakfast: 'Desayuno', lunch: 'Almuerzo', dinner: 'Cena', late_night: 'Madrugada', all_day: 'Todo el día' };
+const PERIOD_EN: Record<string, string> = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner', late_night: 'Late night', all_day: 'All day' };
+const FLAG_ES: Record<string, string> = { vegetarian: '🌱 Vegetariano', spicy: '🌶️ Picante', glutenFree: '🌾 Sin gluten' };
+const FLAG_EN: Record<string, string> = { vegetarian: '🌱 Vegetarian', spicy: '🌶️ Spicy', glutenFree: '🌾 Gluten-free' };
 
 interface Props {
   slug: string;
@@ -253,22 +268,35 @@ function ItemRow({
   onToggleActive: (item: CatalogItem) => void;
   toggling: boolean;
 }) {
+  const [open, setOpen] = useState(false);
+  const es = getText('es', 'en') === 'es';
+  const days = (item.weekDays ?? []).map((d) => (es ? DAY_ES[d] : DAY_EN[d]) ?? d);
+  const periods = (item.periods ?? []).filter((p) => p !== 'all_day').map((p) => (es ? PERIOD_ES[p] : PERIOD_EN[p]) ?? p);
+  const flags = (item.flags ?? []).map((f) => (es ? FLAG_ES[f] : FLAG_EN[f]) ?? f);
+  const price = item.price != null ? `$${Number(item.price).toFixed(2)}` : null;
+  const hasEn = Boolean(item.nameEn || item.descriptionEn);
+
   return (
     <div
-      className={`flex items-center justify-between rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-3 shadow-sm dark:shadow-none ${
+      className={`rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm dark:shadow-none ${
         item.active ? '' : 'opacity-60'
       }`}
     >
-      <div className="flex items-center gap-3 min-w-0">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex w-full items-start gap-3 px-4 pt-3 pb-2 text-left"
+      >
         {item.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={item.imageUrl}
             alt={item.name}
-            className="h-10 w-10 flex-shrink-0 rounded-lg object-cover bg-gray-100 dark:bg-neutral-800"
+            className="h-12 w-12 flex-shrink-0 rounded-lg object-cover bg-gray-100 dark:bg-neutral-800"
           />
         ) : (
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-neutral-800 text-gray-300 dark:text-neutral-600">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-neutral-800 text-gray-300 dark:text-neutral-600">
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
               <circle cx="12" cy="13" r="4"/>
@@ -276,34 +304,57 @@ function ItemRow({
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-3">
+          <div className="flex items-start justify-between gap-3">
+            <span className="break-words text-sm font-semibold text-gray-900 dark:text-white">{item.name}</span>
+            {price && <span className="flex-shrink-0 text-sm font-bold text-gray-900 dark:text-white">{price}</span>}
+          </div>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-gray-500 dark:text-neutral-400">
             {item.isDemo && (
-              <span className="flex-shrink-0 rounded-full bg-amber-100 dark:bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
-                {getText('Demo', 'Demo')}
-              </span>
+              <span className="rounded-full bg-amber-100 dark:bg-amber-500/20 px-2 py-0.5 font-medium text-amber-700 dark:text-amber-400">Demo</span>
             )}
             {!item.active && (
-              <span className="flex-shrink-0 rounded-full bg-gray-100 dark:bg-neutral-800 px-2 py-0.5 text-xs font-medium text-gray-500 dark:text-neutral-400">
-                {getText('Inactivo', 'Inactive')}
-              </span>
+              <span className="rounded-full bg-gray-100 dark:bg-neutral-800 px-2 py-0.5 font-medium">{getText('Inactivo', 'Inactive')}</span>
             )}
-            <span className="truncate text-sm font-medium text-gray-900 dark:text-white">
-              {item.name}
-            </span>
-            {item.category && (
-              <span className="hidden truncate text-xs text-gray-400 dark:text-neutral-500 sm:block">
-                {item.category}
-              </span>
-            )}
+            {item.category && <span>{item.category}</span>}
+            {days.length > 0 && <span className="rounded-full bg-blue-50 dark:bg-blue-500/10 px-2 py-0.5 text-blue-700 dark:text-blue-300">{days.join(' · ')}</span>}
+            {item.featured && <span>⭐</span>}
+            {item.popular && <span>🔥</span>}
           </div>
-          {item.description && (
-            <p className="mt-0.5 line-clamp-2 text-xs text-gray-400 dark:text-neutral-500">
-              {item.description}
+          {item.description ? (
+            <p className={`mt-1 break-words text-xs text-gray-500 dark:text-neutral-400 ${open ? '' : 'line-clamp-2'}`}>{item.description}</p>
+          ) : (
+            <p className="mt-1 text-xs italic text-gray-400 dark:text-neutral-600">{getText('Sin descripción', 'No description')}</p>
+          )}
+        </div>
+        <span className="mt-1 flex-shrink-0 text-gray-400 dark:text-neutral-500" aria-hidden>{open ? '▴' : '▾'}</span>
+      </button>
+
+      {open && (
+        <div className="space-y-2 border-t border-gray-100 dark:border-neutral-800 px-4 py-3 text-xs text-gray-600 dark:text-neutral-300">
+          <p>
+            <span className="font-semibold">{getText('Nombre (EN): ', 'Name (EN): ')}</span>
+            {item.nameEn || <span className="italic text-gray-400">{getText('sin traducir', 'not translated')}</span>}
+          </p>
+          <p className="break-words">
+            <span className="font-semibold">{getText('Descripción (EN): ', 'Description (EN): ')}</span>
+            {item.descriptionEn || <span className="italic text-gray-400">{getText('sin traducir', 'not translated')}</span>}
+          </p>
+          {periods.length > 0 && (
+            <p><span className="font-semibold">{getText('Horario: ', 'Served: ')}</span>{periods.join(', ')}</p>
+          )}
+          {days.length > 0 && (
+            <p><span className="font-semibold">{getText('Días: ', 'Days: ')}</span>{days.join(', ')}</p>
+          )}
+          {flags.length > 0 && <p>{flags.join(' · ')}</p>}
+          {!hasEn && (
+            <p className="text-amber-600 dark:text-amber-400">
+              {getText('Los visitantes en inglés verán el nombre y la descripción en español.', 'English visitors will see the Spanish name and description.')}
             </p>
           )}
         </div>
-      </div>
-      <div className="ml-4 flex flex-shrink-0 items-center gap-3">
+      )}
+
+      <div className="flex items-center justify-end gap-3 border-t border-gray-100 dark:border-neutral-800 px-4 py-2">
         <button
           type="button"
           onClick={() => onToggleActive(item)}
@@ -322,7 +373,7 @@ function ItemRow({
         </button>
         <Link
           href={`/space/${slug}/catalog/${item.id}/edit?from=catalog`}
-          className="flex min-h-11 items-center justify-center px-2 text-xs font-medium text-gray-400 dark:text-neutral-500 transition hover:text-gray-900 dark:hover:text-white"
+          className="flex min-h-11 items-center justify-center px-2 text-xs font-medium text-gray-500 dark:text-neutral-400 transition hover:text-gray-900 dark:hover:text-white"
         >
           {getText('Editar →', 'Edit →')}
         </Link>

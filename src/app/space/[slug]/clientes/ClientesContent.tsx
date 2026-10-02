@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPhoneInput, isValidPhone, normalizePhone, PHONE_INPUT_PROPS } from '@/lib/phone';
 import { useMemo, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
@@ -131,6 +132,10 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
 
   async function handleAdd() {
     if (!name.trim() || saving) return;
+    if (phone && !isValidPhone(phone)) {
+      toast.error(getText('El teléfono no es válido: escribe 10 dígitos o déjalo vacío.', 'Invalid phone: enter 10 digits or leave it empty.'));
+      return;
+    }
     setSaving(true);
     try {
       const res = await fetch(`/api/space/${slug}/customers`, {
@@ -138,7 +143,7 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: name.trim(),
-          phone: phone.trim() || null,
+          phone: phone ? normalizePhone(phone) : null,
           email: email.trim() || null,
           status: 'Active',
         }),
@@ -316,9 +321,9 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
           />
           <input
-            type="tel"
+            {...PHONE_INPUT_PROPS}
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
             placeholder={getText('Teléfono', 'Phone')}
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
           />

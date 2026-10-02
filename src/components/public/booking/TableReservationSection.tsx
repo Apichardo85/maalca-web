@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPhoneInput, isValidPhone, normalizePhone, PHONE_INPUT_PROPS } from '@/lib/phone';
 import { useEffect, useState } from 'react';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
@@ -162,7 +163,7 @@ export function TableReservationSection({ slug, language, accent, horario, timez
           time,
           partySize,
           customerName,
-          customerPhone,
+          customerPhone: normalizePhone(customerPhone),
           customerEmail: customerEmail || null,
           notes: notes || null,
         }),
@@ -382,12 +383,16 @@ export function TableReservationSection({ slug, language, accent, horario, timez
                         {getText('Teléfono', 'Phone')}
                       </label>
                       <input
-                        type="tel"
+                        {...PHONE_INPUT_PROPS}
                         required
+                        placeholder="(809) 555-1234"
                         value={customerPhone}
-                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        onChange={(e) => setCustomerPhone(formatPhoneInput(e.target.value))}
                         className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none"
                       />
+                      {customerPhone.length > 0 && !isValidPhone(customerPhone) && (
+                        <p className="mt-1 text-xs text-red-600">{getText('Escribe 10 dígitos (o +código de país).', 'Enter 10 digits (or +country code).')}</p>
+                      )}
                     </div>
 
                     <div>
@@ -424,7 +429,7 @@ export function TableReservationSection({ slug, language, accent, horario, timez
                   )}
                   <button
                     type="submit"
-                    disabled={status === 'submitting' || !date || !time}
+                    disabled={status === 'submitting' || !date || !time || !isValidPhone(customerPhone)}
                     className="w-full rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-md transition-transform hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100"
                     style={{ background: `linear-gradient(135deg, ${color}, ${colorDark})` }}
                   >

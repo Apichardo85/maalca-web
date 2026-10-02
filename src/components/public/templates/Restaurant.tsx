@@ -26,6 +26,7 @@ import { trackCanalClick } from '@/lib/public-events';
 import { AboutSection } from '@/components/public/AboutSection';
 import { sanitizeRichText } from '@/lib/sanitize-html';
 import { ClampedDescription } from '@/components/public/ClampedDescription';
+import { ItemDetailSheet } from '@/components/public/ItemDetailSheet';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox';
@@ -1379,6 +1380,21 @@ function MenuCard({
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
   const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const FLAG_LABELS: Record<string, [string, string]> = {
+    vegetarian: ['Vegetariano', 'Vegetarian'],
+    spicy: ['Picante', 'Spicy'],
+    glutenFree: ['Sin gluten', 'Gluten-free'],
+  };
+  const detailTags = [
+    ...(item.featured ? [`⭐ ${getText('Destacado', 'Featured')}`] : []),
+    ...(item.popular ? [`🔥 ${getText('Popular', 'Popular')}`] : []),
+    ...((item.flags ?? []).map((f) => `${FLAG_ICONS[f] ?? ''} ${FLAG_LABELS[f] ? getText(FLAG_LABELS[f][0], FLAG_LABELS[f][1]) : f}`.trim())),
+  ];
+  const dayList = (item.weekDays ?? []).map((d) => (language === 'en' ? WEEK_DAY_LABELS_EN[d] : WEEK_DAY_LABELS_ES[d]));
+  const periodList = (item.periods ?? []).filter((p) => p !== 'all_day').map((p) => (language === 'en' ? MEAL_PERIOD_LABELS_EN[p] : MEAL_PERIOD_LABELS[p]));
+  const availabilityText = [periodList.join(', '), dayList.length ? dayList.join(', ') : ''].filter(Boolean).join(' · ') || null;
+  const stop = (e: React.MouseEvent) => e.stopPropagation();
 
   // Etiquetas Destacado/Popular: sobre la foto si hay foto; en línea sobre el nombre si no la hay
   // (sin foto no se reserva un cuadro vacío — la tarjeta es solo texto, como en las apps de delivery).
@@ -1402,8 +1418,14 @@ function MenuCard({
   ) : null;
 
   return (
+    <>
     <div
+      role="button"
+      tabIndex={0}
+      onClick={() => setDetailOpen(true)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailOpen(true); } }}
       style={{
+        cursor: 'pointer',
         backgroundColor: '#ffffff',
         border: '0.5px solid var(--rt-border-soft, #ece2d3)',
         borderRadius: '16px',
@@ -1482,18 +1504,21 @@ function MenuCard({
             )}
           </div>
           {description && (
-            <ClampedDescription
-              text={description}
-              language={language}
-              textStyle={{ margin: '4px 0 0', fontSize: '12px', color: MUTED, lineHeight: 1.5 }}
-              buttonColor={accent}
-              buttonStyle={{ fontSize: '12px' }}
-            />
+            <div onClick={stop}>
+              <ClampedDescription
+                text={description}
+                language={language}
+                textStyle={{ margin: '4px 0 0', fontSize: '12px', color: MUTED, lineHeight: 1.5 }}
+                buttonColor={accent}
+                buttonStyle={{ fontSize: '12px' }}
+              />
+            </div>
           )}
         </div>
 
         {/* Price + cart controls */}
         <div
+          onClick={stop}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -1598,6 +1623,27 @@ function MenuCard({
         </div>
       </div>
     </div>
+    <ItemDetailSheet
+      open={detailOpen}
+      onClose={() => setDetailOpen(false)}
+      name={displayName}
+      description={description}
+      priceLabel={item.price != null ? formatPrice(item.price, currency) : null}
+      imageUrl={imageUrl}
+      category={item.category}
+      tags={detailTags}
+      unavailableLabel={unavailableLabel}
+      availabilityLabel={availabilityText}
+      qty={cartQty}
+      onAdd={onAdd}
+      onRemove={onRemove}
+      accent={accent}
+      onAccent="var(--rt-on-accent, #ffffff)"
+      textColor={CAFE}
+      mutedColor={MUTED}
+      language={language}
+    />
+    </>
   );
 }
 

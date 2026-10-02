@@ -4,6 +4,7 @@ import { useState, type ChangeEvent } from 'react';
 import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
+import { CustomerPicker } from '@/components/ui/CustomerPicker';
 import { Toast } from '@/components/ui/Toast';
 import { buildInvoiceLink } from '@/lib/invoice-link';
 import { downloadBrandedPdf } from '@/lib/pdf/document';
@@ -279,16 +280,15 @@ export function ProposalsContent({ slug, currency, initialProposals, customers, 
                 <label className="text-xs text-gray-500 dark:text-neutral-400">
                   {getText('Cliente', 'Customer')}
                 </label>
-                <select
-                  value={selectedCustomerId}
-                  onChange={(e) => selectCustomer(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
-                >
-                  <option value={NEW_CUSTOMER}>{getText('— Cliente nuevo —', '— New customer —')}</option>
-                  {customers.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                <CustomerPicker
+                  className="mt-1"
+                  customers={customers}
+                  selectedId={selectedCustomerId === NEW_CUSTOMER ? null : selectedCustomerId}
+                  onSelect={(c) => selectCustomer(c ? c.id : NEW_CUSTOMER)}
+                  placeholder={getText('Buscar por nombre, teléfono o correo…', 'Search by name, phone or email…')}
+                  newLabel={getText('+ Cliente nuevo', '+ New customer')}
+                  noResultsLabel={getText('Sin resultados', 'No results')}
+                />
               </div>
             )}
             <div>

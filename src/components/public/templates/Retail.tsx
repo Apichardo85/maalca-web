@@ -18,6 +18,7 @@ import { trackCanalClick } from '@/lib/public-events';
 import { AboutSection } from '@/components/public/AboutSection';
 import { sanitizeRichText } from '@/lib/sanitize-html';
 import { ClampedDescription } from '@/components/public/ClampedDescription';
+import { ItemDetailSheet } from '@/components/public/ItemDetailSheet';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox';
@@ -439,10 +440,19 @@ function ProductCard({
   const imageUrl = item.imageUrl ?? item.image_url;
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
   const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
+  const [detailOpen, setDetailOpen] = useState(false);
+  const stop = (e: React.MouseEvent) => e.stopPropagation();
+  const addThis = () => addToCart({ id: item.id, name: displayName, price: item.price ?? 0, image: imageUrl ?? undefined });
 
   return (
+    <>
     <div
+      role="button"
+      tabIndex={0}
+      onClick={() => setDetailOpen(true)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailOpen(true); } }}
       style={{
+        cursor: 'pointer',
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
@@ -470,13 +480,15 @@ function ProductCard({
           {displayName}
         </p>
         {description && (
-          <ClampedDescription
-            text={description}
-            language={language}
-            textStyle={{ margin: '4px 0 0', fontSize: '11px', color: MUTED, lineHeight: 1.4 }}
-            buttonColor={accent}
-            buttonStyle={{ fontSize: '11px' }}
-          />
+          <div onClick={stop}>
+            <ClampedDescription
+              text={description}
+              language={language}
+              textStyle={{ margin: '4px 0 0', fontSize: '11px', color: MUTED, lineHeight: 1.4 }}
+              buttonColor={accent}
+              buttonStyle={{ fontSize: '11px' }}
+            />
+          </div>
         )}
         {item.price != null && (
           <p style={{ margin: '6px 0 0', fontSize: '14px', fontWeight: 700, color: INK }}>
@@ -484,22 +496,18 @@ function ProductCard({
           </p>
         )}
 
+        <div onClick={stop} style={{ marginTop: 'auto' }}>
         {cartQty === 0 ? (
           <button
-            onClick={() => addToCart({
-              id: item.id,
-              name: displayName,
-              price: item.price ?? 0,
-              image: imageUrl ?? undefined,
-            })}
+            onClick={addThis}
             aria-label={`${getText('Agregar', 'Add')} ${displayName}`}
             className="block w-full rounded-full py-1.5 text-center text-xs font-semibold text-white transition hover:opacity-90"
-            style={{ backgroundColor: accent, marginTop: 'auto' }}
+            style={{ backgroundColor: accent }}
           >
             + {getText('Agregar', 'Add')}
           </button>
         ) : (
-          <div className="flex items-center justify-between gap-1" style={{ marginTop: 'auto' }}>
+          <div className="flex items-center justify-between gap-1">
             <button
               onClick={() => removeFromCart(item.id)}
               aria-label={`${getText('Quitar', 'Remove')} ${displayName}`}
@@ -526,8 +534,26 @@ function ProductCard({
             </button>
           </div>
         )}
+        </div>
       </div>
     </div>
+    <ItemDetailSheet
+      open={detailOpen}
+      onClose={() => setDetailOpen(false)}
+      name={displayName}
+      description={description}
+      priceLabel={item.price != null ? formatPrice(item.price, currency) : null}
+      imageUrl={imageUrl}
+      category={item.category}
+      qty={cartQty}
+      onAdd={addThis}
+      onRemove={() => removeFromCart(item.id)}
+      accent={accent}
+      textColor={INK}
+      mutedColor={MUTED}
+      language={language}
+    />
+    </>
   );
 }
 
