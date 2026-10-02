@@ -79,6 +79,15 @@ interface CustomerHistory {
   orders?: HistoryOrder[];
 }
 
+// Los estados llegan del backend en inglés (Paid, NoShow…); en la ficha se muestran traducidos.
+const STATUS_ES: Record<string, string> = {
+  Pending: 'Pendiente', Paid: 'Pagada', Overdue: 'Vencida', Cancelled: 'Cancelada', Canceled: 'Cancelada',
+  Requested: 'Solicitada', Confirmed: 'Confirmada', Seated: 'Sentados', Completed: 'Completada', NoShow: 'No llegó',
+  Scheduled: 'Agendada', Preparing: 'En preparación', Ready: 'Lista', Fulfilled: 'Entregado', Draft: 'Borrador',
+  Sent: 'Enviada', Accepted: 'Aceptada', Rejected: 'Rechazada', Waiting: 'En espera', Served: 'Atendido',
+  Active: 'Activo', Inactive: 'Inactivo',
+};
+
 interface Props {
   slug: string;
   initialCustomers: CustomerRow[];
@@ -197,8 +206,18 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
     }
   }
 
-  const dateFmt = (d: string) =>
-    new Date(d).toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+  const st = (v: string) => (language === 'es' ? STATUS_ES[v] ?? v : v);
+  // Fechas sin hora (citas, reservas) se leen con el calendario local: `new Date('2026-10-02')` es UTC
+  // y en América se mostraría el día anterior.
+  const dateFmt = (d: string) => {
+    const dateOnly = /^\d{4}-\d{2}-\d{2}(T00:00:00(\.0+)?Z?)?$/.test(d);
+    const [y, m, day] = d.slice(0, 10).split('-').map(Number);
+    return (dateOnly ? new Date(y, m - 1, day) : new Date(d)).toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 md:px-6 md:py-8">
@@ -355,11 +374,34 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
                   📞 {selected.phone}
                 </a>
               )}
-              {selected.email && <span>✉️ {selected.email}</span>}
+              {selected.email && (
+                <a href={`mailto:${selected.email}`} className="break-all hover:text-brand-primary">
+                  ✉️ {selected.email}
+                </a>
+              )}
+              {selected.phone && selected.phone.replace(/\D/g, '').length >= 7 && (
+                <a
+                  href={`https://wa.me/${(() => {
+                    const d = selected.phone!.replace(/\D/g, '');
+                    return d.length === 10 ? `1${d}` : d;
+                  })()}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-brand-primary"
+                >
+                  💬 WhatsApp
+                </a>
+              )}
               <span>
                 {getText('Total de visitas', 'Total visits')}: <strong className="text-gray-900 dark:text-white">{selected.totalVisits}</strong>
               </span>
             </div>
+
+            {selected.notes && (
+              <p className="mb-4 whitespace-pre-wrap break-words rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-600 dark:bg-neutral-800/60 dark:text-neutral-300">
+                {selected.notes}
+              </p>
+            )}
 
             {loadingHistory && (
               <p className="py-8 text-center text-sm text-gray-400">{getText('Cargando historial...', 'Loading history...')}</p>
@@ -367,6 +409,11 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
 
             {!loadingHistory && history && (
               <div className="space-y-5">
+                {[history.orders ?? [], history.appointments, history.invoices, history.reservations, history.queueVisits, history.proposals].every((l) => l.length === 0) && (
+                  <p className="py-6 text-center text-sm text-gray-400 dark:text-neutral-500">
+                    {getText('Este cliente todavía no tiene historial.', 'This customer has no history yet.')}
+                  </p>
+                )}
                 {(history.orders?.length ?? 0) > 0 && (
                   <p className="text-sm text-gray-600 dark:text-neutral-400">
                     {getText('Pedidos', 'Orders')}: <strong className="text-gray-900 dark:text-white">{history.orders!.length}</strong>
@@ -385,38 +432,38 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
                   empty={getText('Sin pedidos.', 'No orders.')}
                   items={history.orders ?? []}
                   render={(o) =>
-                    `${dateFmt(o.createdAt)} — $${o.total.toFixed(2)}${o.tableNumber ? ` · ${getText('Mesa', 'Table')} ${o.tableNumber}` : ''} · ${o.status}`
+                    `${dateFmt(o.createdAt)} — $${o.total.toFixed(2)}${o.tableNumber ? ` · ${getText('Mesa', 'Table')} ${o.tableNumber}` : ''} · ${st(o.status)}`
                   }
                 />
                 <HistorySection
                   title={getText('Citas', 'Appointments')}
                   empty={getText('Sin citas.', 'No appointments.')}
                   items={history.appointments}
-                  render={(a) => `${dateFmt(a.date)} · ${a.time} — ${a.serviceName ?? ''}${a.staffName ? ` (${a.staffName})` : ''} · ${a.status}`}
+                  render={(a) => `${dateFmt(a.date)} · ${a.time} — ${a.serviceName ?? ''}${a.staffName ? ` (${a.staffName})` : ''} · ${st(a.status)}`}
                 />
                 <HistorySection
                   title={getText('Facturas', 'Invoices')}
                   empty={getText('Sin facturas.', 'No invoices.')}
                   items={history.invoices}
-                  render={(i) => `${i.invoiceNumber} — $${i.total.toFixed(2)} · ${i.status}`}
+                  render={(i) => `${i.invoiceNumber} — $${i.total.toFixed(2)} · ${st(i.status)}`}
                 />
                 <HistorySection
                   title={getText('Reservas', 'Reservations')}
                   empty={getText('Sin reservas.', 'No reservations.')}
                   items={history.reservations}
-                  render={(r) => `${dateFmt(r.date)} · ${r.time} — ${r.partySize} ${getText('personas', 'guests')} · ${r.status}`}
+                  render={(r) => `${dateFmt(r.date)} · ${r.time} — ${r.partySize} ${getText('personas', 'guests')} · ${st(r.status)}`}
                 />
                 <HistorySection
                   title={getText('Fila de espera', 'Waiting queue')}
                   empty={getText('Sin visitas a la fila.', 'No queue visits.')}
                   items={history.queueVisits}
-                  render={(q) => `${dateFmt(q.createdAt)} — ${q.channel} · ${q.status}`}
+                  render={(q) => `${dateFmt(q.createdAt)} — ${q.channel} · ${st(q.status)}`}
                 />
                 <HistorySection
                   title={getText('Propuestas', 'Proposals')}
                   empty={getText('Sin propuestas.', 'No proposals.')}
                   items={history.proposals}
-                  render={(p) => `${p.title} — ${p.currency} ${p.amount.toFixed(2)} · ${p.status}`}
+                  render={(p) => `${p.title} — ${p.currency} ${p.amount.toFixed(2)} · ${st(p.status)}`}
                 />
               </div>
             )}
@@ -448,21 +495,20 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
 
 function HistorySection<T extends { id: string }>({
   title,
-  empty,
   items,
   render,
 }: {
   title: string;
-  empty: string;
+  empty?: string;
   items: T[];
   render: (item: T) => string;
 }) {
+  // Una sección sin datos no aporta: se oculta (el aviso "sin historial" lo da la ficha si TODAS están vacías).
+  if (items.length === 0) return null;
   return (
     <div>
       <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-neutral-500">{title}</h3>
-      {items.length === 0 ? (
-        <p className="text-sm text-gray-400 dark:text-neutral-600">{empty}</p>
-      ) : (
+      {items.length === 0 ? null : (
         <ul className="space-y-1">
           {items.map((item) => (
             <li key={item.id} className="text-sm text-gray-700 dark:text-neutral-300">
