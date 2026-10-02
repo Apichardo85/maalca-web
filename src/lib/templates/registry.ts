@@ -134,6 +134,10 @@ export interface PublicTemplateProps {
       /** Foto opcional (backlog 2026-09-26) -- igual patron que CommunityProgram.imageUrl:
        *  null/undefined = sin foto, el card publico se ve bien en ambos casos. */
       imageUrl?: string | null;
+      /** Cupo del evento (personas). null/undefined = sin límite. */
+      capacity?: number | null;
+      /** Lugares que quedan (cupo − inscritos). null/undefined = sin límite. Puede ir hasta 1 min atrasado. */
+      spotsLeft?: number | null;
     }> | null;
     /** Solo Community con Stripe Connect activo (backlog 2026-09-26, DonationService) — total
      *  real recaudado (Status=Paid) este mes calendario, calculado en el backend a partir de

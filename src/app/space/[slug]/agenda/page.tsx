@@ -11,6 +11,7 @@ interface SpaceResponse {
     plan: 'free' | 'entrepreneur';
     horario?: { dia: string; abre: string; cierra: string; cerrado: boolean }[] | null;
     modulosActivos: string[];
+    zoomLink?: string | null;
   };
   role: string;
   isImpersonation?: boolean;
@@ -59,6 +60,7 @@ export default async function AgendaPage({
       personal={personal.filter((p) => p.isActive)}
       horario={space.business.horario}
       canHardDelete={space.isImpersonation === true}
+      zoomLink={space.business.zoomLink ?? null}
     />
   );
 }

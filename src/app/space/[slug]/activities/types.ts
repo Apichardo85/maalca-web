@@ -9,4 +9,6 @@ export interface Activity {
   startsAt: string;
   endsAt?: string | null;
   isActive: boolean;
+  /** Cupo en personas; null/ausente = sin límite. Las inscripciones públicas lo respetan. */
+  capacity?: number | null;
 }

@@ -98,6 +98,12 @@ export function SpaceSidebar({
     ...(businessType === 'community'
       ? [{ label: getText('Eventos', 'Events'), icon: '📅', href: `/space/${slug}/activities` }]
       : []),
+    // Inscripciones (voluntarios + registros a eventos) -- entidad CommunitySignup, solo Community.
+    // Sin token: parte fija del businessType, igual que Programas y Eventos. El badge sale del
+    // aviso "signup" (ver NOTIFICATION_MODULE_ROUTES).
+    ...(businessType === 'community'
+      ? [{ label: getText('Inscripciones', 'Sign-ups'), icon: '🙋', href: `/space/${slug}/inscripciones` }]
+      : []),
     { label: getText('Pedidos', 'Orders'),                    icon: '🧾', href: `/space/${slug}/orders`, token: 'orders' },
     // Cocina/Fila/Facturas/Propuestas: antes filtrados acá por businessType, duplicando (y
     // desincronizados con) el gate real de la página, que ya es por módulo activo (ver

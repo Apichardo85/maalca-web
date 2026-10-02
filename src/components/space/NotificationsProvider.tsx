@@ -24,6 +24,7 @@ export const NOTIFICATION_MODULE_ROUTES: Record<string, string> = {
   agenda: 'appointment',
   invoices: 'invoice_paid',
   proposals: 'proposal_accepted',
+  inscripciones: 'signup',
 };
 
 type PushState = 'unsupported' | 'blocked' | 'off' | 'on';

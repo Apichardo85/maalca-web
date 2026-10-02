@@ -63,6 +63,8 @@ interface Props {
   // Solo true en modo soporte de plataforma (ver isImpersonation en layout.tsx) — el gate real
   // vive en el backend, esto solo decide si se muestra el botón de borrar.
   canHardDelete?: boolean;
+  /** Link de la sala virtual del negocio (Ajustes → Reuniones virtuales). */
+  zoomLink?: string | null;
 }
 
 const STATUS_OPTIONS = ['Scheduled', 'Confirmed', 'InProgress', 'Completed', 'Cancelled', 'NoShow'];
@@ -133,7 +135,7 @@ function formatApptDate(dateStr: string, locale: string): string {
   return new Date(y, m - 1, d).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
-export function AgendaContent({ slug, canManage, initialAppointments, services, personal, horario, canHardDelete }: Props) {
+export function AgendaContent({ slug, canManage, initialAppointments, services, personal, horario, canHardDelete, zoomLink }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -681,6 +683,17 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
                     title={getText('Llamar al cliente', 'Call customer')}
                   >
                     📞 {a.customer.phone}
+                  </a>
+                )}
+                {a.isVirtual && zoomLink && ['Scheduled', 'Confirmed', 'InProgress'].includes(a.status) && (
+                  <a
+                    href={zoomLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 rounded-full bg-brand-primary px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90"
+                    title={getText('Abrir la sala de la reunión', 'Open the meeting room')}
+                  >
+                    💻 {getText('Entrar a la reunión', 'Join meeting')}
                   </a>
                 )}
                 {canManage ? (

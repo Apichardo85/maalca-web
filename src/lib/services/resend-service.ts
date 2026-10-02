@@ -482,7 +482,7 @@ export async function sendAppointmentConfirmationEmail(params: {
           <strong>${params.serviceName}</strong><br/>
           ${dateFmt} · ${params.time}${staffLine}
         </p>
-        ${params.zoomLink ? `<div style="text-align: center; margin: 16px 0;"><a href="${params.zoomLink}" style="display: inline-block; background: #1a1a1a; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">💻 Unirme a la reunión (Zoom)</a></div>` : ''}
+        ${params.zoomLink ? `<div style="text-align: center; margin: 16px 0;"><a href="${params.zoomLink}" style="display: inline-block; background: #1a1a1a; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">💻 Unirme a la reunión</a></div>` : ''}
         ${footer}
       `, params.brand),
     });
@@ -507,6 +507,9 @@ export async function sendAppointmentReminderEmail(params: {
   // Tarea #247 — mismo link que la confirmación, para que el recordatorio también deje
   // reagendar/cancelar sin tener que llamar al negocio.
   manageUrl?: string | null;
+  // Cita virtual: el recordatorio es el correo que mas se abre antes de la hora, asi que lleva el
+  // boton para entrar a la reunion (antes solo lo traia la confirmacion).
+  meetingUrl?: string | null;
   brand?: EmailBrand;
 }): Promise<boolean> {
   if (!resend) {
@@ -521,6 +524,9 @@ export async function sendAppointmentReminderEmail(params: {
     month: 'long',
   });
   const staffLine = params.staffName ? `<br/>Con: ${params.staffName}` : '';
+  const meeting = params.meetingUrl
+    ? `<div style="text-align: center; margin: 16px 0;"><a href="${params.meetingUrl}" style="display: inline-block; background: #1a1a1a; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">💻 Unirme a la reunión</a></div>`
+    : '';
   const footer = params.manageUrl
     ? `
         <div style="text-align: center; margin: 20px 0;">
@@ -542,6 +548,7 @@ export async function sendAppointmentReminderEmail(params: {
           <strong>${params.serviceName}</strong><br/>
           ${dateFmt} · ${params.time}${staffLine}
         </p>
+        ${meeting}
         ${footer}
       `, params.brand),
     });
@@ -1262,7 +1269,7 @@ export async function sendAppointmentStatusEmail(params: {
     ? `<div style="text-align: center; margin: 20px 0;"><a href="${params.manageUrl}" style="display: inline-block; background: ${color}; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">${confirmed ? 'Gestiona tu cita' : 'Ver detalle'}</a></div>`
     : ''
   const zoom = confirmed && params.zoomLink
-    ? `<div style="text-align: center; margin: 16px 0;"><a href="${params.zoomLink}" style="display: inline-block; background: #1a1a1a; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">💻 Unirme a la reunión (Zoom)</a></div>`
+    ? `<div style="text-align: center; margin: 16px 0;"><a href="${params.zoomLink}" style="display: inline-block; background: #1a1a1a; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">💻 Unirme a la reunión</a></div>`
     : ''
 
   try {
@@ -1289,4 +1296,225 @@ export async function sendAppointmentStatusEmail(params: {
     console.error('[Resend] Appointment status email failed:', err instanceof Error ? err.message : String(err))
     return false
   }
+}
+
+/**
+ * Inscripciones de Comunidad (voluntarios y eventos con cupo, ver CommunitySignup.cs en maalca-api).
+ * Dos correos independientes y best-effort: (1) aviso al negocio con los datos y botón al panel de
+ * Inscripciones, (2) a la persona, en el idioma en que se inscribió: acuse de solicitud (voluntario)
+ * o confirmación del lugar (evento). Todo texto que viene de la persona se escapa.
+ */
+interface CommunitySignupEmailParams {
+  signupKind: 'volunteer' | 'event'
+  language: 'es' | 'en'
+  businessName: string
+  businessEmail?: string | null
+  businessPhone?: string | null
+  slug?: string | null
+  brand?: EmailBrand
+  name: string
+  phone?: string | null
+  email?: string | null
+  partySize: number
+  notes?: string | null
+  targetTitle: string
+  eventStartsAt?: string | null
+  eventEndsAt?: string | null
+  eventLocation?: string | null
+  timezone?: string | null
+}
+
+function communityEventWhen(p: CommunitySignupEmailParams): string {
+  if (!p.eventStartsAt) return ''
+  const start = new Date(p.eventStartsAt)
+  if (Number.isNaN(start.getTime())) return ''
+  const locale = p.language === 'es' ? 'es-DO' : 'en-US'
+  const tz = p.timezone || 'UTC'
+  const fmt = (d: Date, opts: Intl.DateTimeFormatOptions) => {
+    try {
+      return d.toLocaleString(locale, { ...opts, timeZone: tz })
+    } catch {
+      return d.toLocaleString(locale, { ...opts, timeZone: 'UTC' })
+    }
+  }
+  const day = fmt(start, { weekday: 'long', day: 'numeric', month: 'long' })
+  const startTime = fmt(start, { hour: 'numeric', minute: '2-digit' })
+  const end = p.eventEndsAt ? new Date(p.eventEndsAt) : null
+  const endTime = end && !Number.isNaN(end.getTime()) ? fmt(end, { hour: 'numeric', minute: '2-digit' }) : ''
+  return `${day} · ${startTime}${endTime ? ` – ${endTime}` : ''}`
+}
+
+const communityRow = (label: string, value: string) => `
+    <tr>
+      <td style="padding: 6px 8px 6px 0; font-size: 14px; color: #5a5a5a; vertical-align: top; white-space: nowrap;">${label}</td>
+      <td style="padding: 6px 0; font-size: 14px; color: #1a1a1a; font-weight: 600; text-align: right; vertical-align: top; word-break: break-word;">${value}</td>
+    </tr>
+  `
+
+export async function sendCommunitySignupEmail(
+  params: CommunitySignupEmailParams,
+): Promise<{ businessSent: boolean; personSent: boolean }> {
+  const result = { businessSent: false, personSent: false }
+  if (!resend) {
+    console.log('[Resend] Skipped community signup emails — RESEND_API_KEY not set')
+    return result
+  }
+
+  const t = (es: string, en: string) => (params.language === 'es' ? es : en)
+  const origin = (process.env.NEXT_PUBLIC_SITE_URL || 'https://maalca.com').replace(/\/$/, '')
+  const panelUrl = params.slug ? `${origin}/space/${params.slug}/inscripciones` : origin
+  const isEvent = params.signupKind === 'event'
+  const when = isEvent ? communityEventWhen(params) : ''
+  const name = escapeHtml(params.name)
+  const business = escapeHtml(params.businessName)
+  const target = escapeHtml(params.targetTitle)
+
+  if (params.businessEmail) {
+    // El aviso al negocio va en español (el panel y el dueño lo usan así); el idioma de la persona
+    // solo cambia el correo que recibe ella.
+    const bodyHtml = `
+      <h2 style="font-size: 18px; margin: 0 0 4px 0;">${isEvent ? 'Nueva inscripción a un evento' : 'Nuevo voluntario'}</h2>
+      <p style="font-size: 13px; color: #a3a3a3; margin: 0 0 20px 0;">Entró desde tu página pública. La ves y la gestionas en Inscripciones.</p>
+      <table style="width: 100%; border-collapse: collapse;">
+        ${communityRow(isEvent ? 'Evento' : 'Quiere ayudar en', target)}
+        ${isEvent && when ? communityRow('Cuándo', escapeHtml(communityEventWhen({ ...params, language: 'es' }))) : ''}
+        ${isEvent ? communityRow('Personas', String(params.partySize)) : ''}
+        ${communityRow('Nombre', name)}
+        ${params.phone ? communityRow('Teléfono', escapeHtml(params.phone)) : ''}
+        ${params.email ? communityRow('Correo', escapeHtml(params.email)) : ''}
+      </table>
+      ${params.notes ? `<p style="font-size: 14px; line-height: 1.6; color: #5a5a5a; margin: 16px 0 0 0;"><strong>Mensaje:</strong> ${escapeHtml(params.notes)}</p>` : ''}
+      ${emailCtaButton('Ver inscripciones →', panelUrl, safeBrandColor(params.brand?.color))}
+    `
+    try {
+      await resend.emails.send({
+        from: fromFor(params.brand),
+        replyTo: params.email || undefined,
+        to: params.businessEmail,
+        subject: isEvent
+          ? `Nueva inscripción: ${params.name} · ${params.targetTitle}`
+          : `Nuevo voluntario: ${params.name} · ${params.targetTitle}`,
+        html: renderCardEmail({
+          bodyHtml,
+          brand: params.brand,
+          footerText: 'Recibes este aviso porque tu página acepta inscripciones.',
+        }),
+      })
+      result.businessSent = true
+    } catch (err: unknown) {
+      console.error('[Resend] Community signup business email failed:', err instanceof Error ? err.message : String(err))
+    }
+  }
+
+  if (params.email) {
+    const contactLine = params.businessPhone ? ` · ${escapeHtml(params.businessPhone)}` : ''
+    const bodyHtml = isEvent
+      ? `
+      <h2 style="font-size: 18px; margin: 0 0 4px 0;">${t('¡Tu lugar está confirmado! ✅', "You're confirmed! ✅")}</h2>
+      <p style="font-size: 14px; line-height: 1.6; color: #5a5a5a; margin: 0 0 20px 0;">
+        ${t(`Hola ${name}, te anotamos en el evento de ${business}. ¡Te esperamos!`, `Hi ${name}, you're signed up for the ${business} event. See you there!`)}
+      </p>
+      <table style="width: 100%; border-collapse: collapse;">
+        ${communityRow(t('Evento', 'Event'), target)}
+        ${when ? communityRow(t('Cuándo', 'When'), escapeHtml(when)) : ''}
+        ${params.eventLocation ? communityRow(t('Dónde', 'Where'), escapeHtml(params.eventLocation)) : ''}
+        ${communityRow(t('Personas', 'People'), String(params.partySize))}
+      </table>
+      <p style="font-size: 13px; color: #737373; margin: 16px 0 0 0;">
+        ${t('Si no puedes asistir, avísanos respondiendo a este correo' + contactLine + ' para liberar tu lugar.', "If you can't make it, reply to this email" + contactLine + ' so we can free your spot.')}
+      </p>
+    `
+      : `
+      <h2 style="font-size: 18px; margin: 0 0 4px 0;">${t('¡Gracias por querer ayudar! 💙', 'Thank you for wanting to help! 💙')}</h2>
+      <p style="font-size: 14px; line-height: 1.6; color: #5a5a5a; margin: 0 0 20px 0;">
+        ${t(`Hola ${name}, ${business} recibió tu solicitud de voluntariado. El equipo te contactará pronto para coordinar.`, `Hi ${name}, ${business} received your volunteer request. The team will reach out soon to coordinate.`)}
+      </p>
+      <table style="width: 100%; border-collapse: collapse;">
+        ${communityRow(t('Quieres ayudar en', "You'd like to help with"), target)}
+      </table>
+    `
+    try {
+      await resend.emails.send({
+        from: fromFor(params.brand),
+        replyTo: params.businessEmail || undefined,
+        to: params.email,
+        subject: isEvent
+          ? t(`Lugar confirmado: ${params.targetTitle}`, `Spot confirmed: ${params.targetTitle}`)
+          : t(`Recibimos tu solicitud de voluntariado en ${params.businessName}`, `We got your volunteer request at ${params.businessName}`),
+        html: renderCardEmail({
+          bodyHtml,
+          brand: params.brand,
+          footerText: t(`Enviado porque te inscribiste en ${business}.`, `Sent because you signed up with ${business}.`),
+        }),
+      })
+      result.personSent = true
+    } catch (err: unknown) {
+      console.error('[Resend] Community signup person email failed:', err instanceof Error ? err.message : String(err))
+    }
+  }
+
+  return result
+}
+
+/** El negocio confirmó (voluntario) o canceló una inscripción: aviso a la persona, en su idioma. */
+export async function sendCommunitySignupStatusEmail(
+  params: CommunitySignupEmailParams & { kind: 'confirmed' | 'cancelled' },
+): Promise<{ personSent: boolean }> {
+  const result = { personSent: false }
+  if (!params.email) return result
+  if (!resend) {
+    console.log('[Resend] Skipped community signup status email — RESEND_API_KEY not set')
+    return result
+  }
+
+  const t = (es: string, en: string) => (params.language === 'es' ? es : en)
+  const isEvent = params.signupKind === 'event'
+  const confirmed = params.kind === 'confirmed'
+  const name = escapeHtml(params.name)
+  const business = escapeHtml(params.businessName)
+  const target = escapeHtml(params.targetTitle)
+  const when = isEvent ? communityEventWhen(params) : ''
+
+  const title = confirmed
+    ? t('¡Tu participación está coordinada! ✅', "You're all set! ✅")
+    : isEvent
+      ? t('Tu lugar fue cancelado', 'Your spot was cancelled')
+      : t('Actualización de tu solicitud', 'Update on your request')
+  const intro = confirmed
+    ? t(`Hola ${name}, ${business} confirmó tu participación como voluntario/a. ¡Gracias por ayudar!`, `Hi ${name}, ${business} confirmed your volunteer participation. Thank you for helping!`)
+    : isEvent
+      ? t(`Hola ${name}, ${business} canceló tu inscripción al evento. Si fue un error, respóndenos a este correo.`, `Hi ${name}, ${business} cancelled your event registration. If this was a mistake, reply to this email.`)
+      : t(`Hola ${name}, ${business} no pudo continuar con tu solicitud de voluntariado por ahora. Gracias por tu interés.`, `Hi ${name}, ${business} couldn't move forward with your volunteer request for now. Thank you for your interest.`)
+
+  const bodyHtml = `
+    <h2 style="font-size: 18px; margin: 0 0 4px 0;">${title}</h2>
+    <p style="font-size: 14px; line-height: 1.6; color: #5a5a5a; margin: 0 0 20px 0;">${intro}</p>
+    <table style="width: 100%; border-collapse: collapse;">
+      ${communityRow(isEvent ? t('Evento', 'Event') : t('Causa', 'Cause'), target)}
+      ${when ? communityRow(t('Cuándo', 'When'), escapeHtml(when)) : ''}
+    </table>
+  `
+
+  try {
+    await resend.emails.send({
+      from: fromFor(params.brand),
+      replyTo: params.businessEmail || undefined,
+      to: params.email,
+      subject: confirmed
+        ? t(`Voluntariado confirmado en ${params.businessName}`, `Volunteering confirmed at ${params.businessName}`)
+        : isEvent
+          ? t(`Lugar cancelado: ${params.targetTitle}`, `Spot cancelled: ${params.targetTitle}`)
+          : t(`Tu solicitud en ${params.businessName}`, `Your request at ${params.businessName}`),
+      html: renderCardEmail({
+        bodyHtml,
+        brand: params.brand,
+        footerText: t(`Enviado porque te inscribiste en ${business}.`, `Sent because you signed up with ${business}.`),
+      }),
+    })
+    result.personSent = true
+  } catch (err: unknown) {
+    console.error('[Resend] Community signup status email failed:', err instanceof Error ? err.message : String(err))
+  }
+
+  return result
 }

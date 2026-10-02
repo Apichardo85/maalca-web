@@ -16,6 +16,9 @@ interface DueReminder {
   token: string;
   logoUrl?: string | null;
   brandColor?: string | null;
+  /** Cita virtual: el link de la sala del negocio (null si es presencial). */
+  isVirtual?: boolean;
+  zoomLink?: string | null;
 }
 
 /**
@@ -70,6 +73,7 @@ export async function GET(request: NextRequest) {
         time: appt.time,
         staffName: appt.staffName ?? null,
         manageUrl: appt.token ? `${origin}/cita/${appt.token}` : null,
+        meetingUrl: appt.isVirtual ? appt.zoomLink ?? null : null,
         brand: { name: appt.affiliateName, logoUrl: appt.logoUrl ?? null, color: appt.brandColor ?? null },
       });
       if (ok) {

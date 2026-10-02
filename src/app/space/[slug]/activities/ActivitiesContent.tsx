@@ -5,6 +5,7 @@
 // para vitrina publica (Community.tsx renderiza los proximos via /community-events, ver
 // registry.ts para el porque de la separacion transversal en el backend).
 import { useState } from 'react';
+import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
@@ -56,7 +57,7 @@ function fromDatetimeLocal(value: string): string | null {
   return d.toISOString();
 }
 
-const emptyForm = { title: '', titleEn: '', description: '', descriptionEn: '', location: '', startsAt: '', endsAt: '' };
+const emptyForm = { title: '', titleEn: '', description: '', descriptionEn: '', location: '', startsAt: '', endsAt: '', capacity: '' };
 
 export function ActivitiesContent({ slug, initialActivities }: Props) {
   const { language } = useSimpleLanguage();
@@ -88,6 +89,7 @@ export function ActivitiesContent({ slug, initialActivities }: Props) {
       location: a.location ?? '',
       startsAt: toDatetimeLocal(a.startsAt),
       endsAt: toDatetimeLocal(a.endsAt),
+      capacity: a.capacity != null ? String(a.capacity) : '',
     });
     setShowForm(true);
   }
@@ -120,6 +122,11 @@ export function ActivitiesContent({ slug, initialActivities }: Props) {
       startsAt: startsAtIso,
       endsAt: fromDatetimeLocal(form.endsAt),
       isActive: true,
+      // Vacío = sin límite de cupo.
+      capacity: (() => {
+        const n = parseInt(form.capacity, 10);
+        return Number.isFinite(n) && n > 0 ? n : null;
+      })(),
     };
 
     const res = editingId
@@ -305,6 +312,27 @@ export function ActivitiesContent({ slug, initialActivities }: Props) {
             </div>
           </div>
 
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-neutral-400">
+              {getText('Cupo (personas, opcional)', 'Capacity (people, optional)')}
+            </label>
+            <input
+              type="number"
+              min={1}
+              inputMode="numeric"
+              className={`${inputClass} sm:max-w-[200px]`}
+              value={form.capacity}
+              onChange={(e) => setForm((f) => ({ ...f, capacity: e.target.value }))}
+              placeholder={getText('Sin límite', 'No limit')}
+            />
+            <p className="mt-1 text-[11px] text-gray-400 dark:text-neutral-500">
+              {getText(
+                'Quien se anote desde tu página queda confirmado hasta llenar el cupo; después aparece "Cupo lleno".',
+                'People who sign up from your page are confirmed until the capacity is reached; then it shows "Full".',
+              )}
+            </p>
+          </div>
+
           <div className="flex justify-end gap-2 pt-1">
             <button type="button" onClick={cancelForm} className={secondaryBtn}>
               {getText('Cancelar', 'Cancel')}
@@ -396,6 +424,15 @@ export function ActivitiesContent({ slug, initialActivities }: Props) {
                 {a.description && (
                   <p className="mt-1 text-xs text-gray-600 dark:text-neutral-300">{a.description}</p>
                 )}
+                <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
+                  {a.capacity != null
+                    ? getText(`Cupo: ${a.capacity} personas`, `Capacity: ${a.capacity} people`)
+                    : getText('Sin límite de cupo', 'No capacity limit')}
+                  {' · '}
+                  <Link href={`/space/${slug}/inscripciones`} className="underline">
+                    {getText('Ver inscritos', 'View sign-ups')}
+                  </Link>
+                </p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <button type="button" onClick={() => startEdit(a)} className={`${secondaryBtn} min-h-11`}>

@@ -34,6 +34,7 @@ import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 import { formatPrice } from '@/lib/currency';
 import { googleMapsUrl } from '@/lib/maps';
 import PublicThemeToggle from '@/components/public/PublicThemeToggle';
+import { CommunitySignupForm } from '@/components/public/community/CommunitySignupForm';
 import { deriveDarkBrandPalette, themeVarsCss } from '@/lib/brand-palette';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
@@ -173,24 +174,6 @@ function whatsappDonateLink(
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
 
-// Correo directo al negocio para causas de tipo "tiempo" (voluntariado) -- todavia no hay
-// un canal de inscripcion propio (ver comentario junto a expandedCausaId mas arriba), asi
-// que el mailto lleva un asunto/cuerpo pre-armado que menciona la causa especifica, para que
-// el afiliado sepa de inmediato a que se refiere el interesado.
-function volunteerMailtoLink(
-  email: string,
-  businessName: string,
-  getText: (es: string, en: string) => string,
-  causaTitle: string,
-): string {
-  const subject = getText(`Voluntariado: ${causaTitle}`, `Volunteering: ${causaTitle}`);
-  const body = getText(
-    `Hola, quiero ser voluntario/a en ${businessName} para: ${causaTitle}. ¿Como puedo ayudar?`,
-    `Hi, I'd like to volunteer with ${businessName} for: ${causaTitle}. How can I help?`,
-  );
-  return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-}
-
 export function CommunityTemplate({ business, capabilities }: PublicTemplateProps) {
   // `items` (catalogo generico) ya no aplica a Community -- "Programas" tiene su propia
   // entidad (business.programs, ver CommunityProgram.cs / registry.ts), por eso no se
@@ -234,6 +217,10 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
   // WhatsApp que Dinero, pero SIN generar un link de donacion: aqui es solo informativo
   // hasta que se decida un canal real de voluntariado).
   const [expandedCausaId, setExpandedCausaId] = useState<string | null>(null);
+  // Inscripción a eventos: cuál evento tiene el formulario abierto y cuántos lugares se tomaron en
+  // esta visita (el cupo del servidor puede tener hasta un minuto de caché, esto lo mantiene al día).
+  const [openActivityId, setOpenActivityId] = useState<string | null>(null);
+  const [spotsTaken, setSpotsTaken] = useState<Record<string, number>>({});
 
   // Módulos — no todo trial comunitario acepta donaciones en dinero ni publicó causas/punto de
   // entrega todavía. Clave ausente = visible, mismo default que el resto de sectionVisibility.
@@ -570,8 +557,8 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
               //   - money: WhatsApp del negocio, mismo numero que el boton general de
               //     donar, pero con el texto del mensaje mencionando esta causa.
               //   - in_kind: salta a la seccion "Entrega en persona" (misma pagina).
-              //   - time: todavia no hay canal de inscripcion para voluntariado, asi que
-              //     solo se expande la tarjeta para mostrar el contacto del negocio.
+              //   - time: se expande la tarjeta con el formulario de voluntariado (inscripcion
+              //     real, llega al panel en Inscripciones y avisa al negocio).
               const causaDonateLink =
                 causa.type === 'money' ? whatsappDonateLink(business.whatsapp, business.name, getText, causa.title) : null;
 
@@ -600,28 +587,35 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
                       </p>
                     </>
                   )}
+                  {causa.type === 'time' && !isExpanded && (
+                    <p className="mt-2 text-xs font-semibold" style={{ color: accentText }}>
+                      🙋 {getText('Quiero ayudar →', 'I want to help →')}
+                    </p>
+                  )}
                   {causa.type === 'time' && isExpanded && (
-                    <div className="mt-2.5 border-t pt-2.5 text-xs" style={{ borderColor: BORDER, color: MUTED }}>
-                      <p>
-                        {getText(
-                          'Aun no hay un canal de inscripcion para voluntariado — escribe directo al negocio:',
-                          "There's no volunteer sign-up channel yet — reach out to the business directly:",
-                        )}
-                      </p>
-                      {business.contactEmail && (
-                        <a
-                          href={volunteerMailtoLink(business.contactEmail, business.name, getText, causa.title)}
-                          onClick={(e) => e.stopPropagation()}
-                          className="mt-1 block font-medium underline"
-                          style={{ color: INK }}
-                        >
-                        {business.contactEmail}
-                        </a>
-                      )}
-                      {business.whatsapp && <p className="mt-0.5 font-medium" style={{ color: INK }}>{business.whatsapp}</p>}
-                      {!business.whatsapp && !business.contactEmail && (
-                        <p className="mt-1">{getText('Contacto no disponible todavia.', 'Contact info not available yet.')}</p>
-                      )}
+                    // El formulario vive dentro de una tarjeta que se abre/cierra al hacer clic o con
+                    // Enter/Espacio: se frena la propagación para poder escribir sin cerrarla.
+                    <div
+                      className="mt-2.5 border-t pt-3"
+                      style={{ borderColor: BORDER, cursor: 'default' }}
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      role="presentation"
+                    >
+                      <CommunitySignupForm
+                        slug={business.slug}
+                        kind="volunteer"
+                        targetId={causa.id}
+                        language={language}
+                        accentFill={accentFill}
+                        onAccent={onAccent}
+                        fallbackContact={
+                          business.whatsapp || business.contactEmail
+                            ? getText('¿Prefieres escribir directo? ', 'Prefer to reach out directly? ') +
+                              [business.whatsapp, business.contactEmail].filter(Boolean).join(' · ')
+                            : null
+                        }
+                      />
                     </div>
                   )}
                 </>
@@ -729,6 +723,62 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
                       {activity.location && (
                         <p className="mt-1 text-xs" style={{ color: MUTED }}>📍 {activity.location}</p>
                       )}
+                      {(() => {
+                        const left =
+                          activity.spotsLeft == null ? null : Math.max(0, activity.spotsLeft - (spotsTaken[activity.id] ?? 0));
+                        const full = left !== null && left <= 0;
+                        const open = openActivityId === activity.id;
+                        return (
+                          <div className="mt-2.5">
+                            <div className="flex flex-wrap items-center gap-2">
+                              {left !== null && (
+                                <span
+                                  className="rounded px-1.5 py-0.5 text-[10px] font-semibold"
+                                  style={full ? { color: AMBER, backgroundColor: AMBER_BG } : { color: GREEN, backgroundColor: GREEN_BG }}
+                                >
+                                  {full
+                                    ? getText('Cupo lleno', 'Full')
+                                    : getText(`Quedan ${left} lugares`, `${left} spots left`)}
+                                </span>
+                              )}
+                              {!full && !open && (
+                                <button
+                                  type="button"
+                                  onClick={() => setOpenActivityId(activity.id)}
+                                  className="rounded-full px-3 py-1 text-xs font-bold"
+                                  style={{ backgroundColor: accentFill, color: onAccent }}
+                                >
+                                  {getText('Anotarme', 'Sign me up')}
+                                </button>
+                              )}
+                              {open && (
+                                <button
+                                  type="button"
+                                  onClick={() => setOpenActivityId(null)}
+                                  className="text-xs font-semibold underline"
+                                  style={{ color: MUTED }}
+                                >
+                                  {getText('Cerrar', 'Close')}
+                                </button>
+                              )}
+                            </div>
+                            {open && !full && (
+                              <div className="mt-3 border-t pt-3" style={{ borderColor: BORDER }}>
+                                <CommunitySignupForm
+                                  slug={business.slug}
+                                  kind="event"
+                                  targetId={activity.id}
+                                  language={language}
+                                  accentFill={accentFill}
+                                  onAccent={onAccent}
+                                  spotsLeft={left}
+                                  onDone={(n) => setSpotsTaken((m) => ({ ...m, [activity.id]: (m[activity.id] ?? 0) + n }))}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
