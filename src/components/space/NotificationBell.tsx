@@ -28,19 +28,20 @@ function timeAgo(iso: string, language: 'es' | 'en'): string {
 export function NotificationBell({ slug }: { slug: string }) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
-  const { unread, items, markRead, push, enablePush, disablePush } = useNotifications();
+  const { unread, items, markRead, refresh, push, enablePush, disablePush } = useNotifications();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
+    refresh(); // al abrir, trae lo último sin esperar al sondeo de 30 s
     const onDown = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener('mousedown', onDown);
     return () => document.removeEventListener('mousedown', onDown);
-  }, [open]);
+  }, [open, refresh]);
 
   const togglePush = async () => {
     setBusy(true);

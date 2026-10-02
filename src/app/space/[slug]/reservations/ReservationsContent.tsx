@@ -1,6 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNotifications } from '@/components/space/NotificationsProvider';
 import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
@@ -117,6 +118,19 @@ export function ReservationsContent({ slug, initialReservations, customers }: Pr
       // Deja la lista como estaba — no rompemos la pantalla por un refetch fallido.
     }
   }
+
+  // Si llega un aviso de reserva nueva (sondeo o campana), recarga la lista sin que haya que refrescar.
+  const { items: notifItems } = useNotifications();
+  const reservationKey = notifItems.filter((n) => n.type === 'reservation').map((n) => n.id).join(',');
+  const firstKey = useRef(true);
+  useEffect(() => {
+    if (firstKey.current) {
+      firstKey.current = false;
+      return;
+    }
+    refetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reservationKey]);
 
   async function handleAdd() {
     if (!name.trim() || !isValidPhone(phone) || !date || !time || saving) return;
