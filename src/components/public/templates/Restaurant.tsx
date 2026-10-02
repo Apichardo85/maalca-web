@@ -27,6 +27,7 @@ import { AboutSection } from '@/components/public/AboutSection';
 import { sanitizeRichText } from '@/lib/sanitize-html';
 import { ClampedDescription } from '@/components/public/ClampedDescription';
 import { ItemDetailSheet } from '@/components/public/ItemDetailSheet';
+import { ScrollStrip } from '@/components/public/ScrollStrip';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox';
@@ -556,18 +557,7 @@ export function RestaurantTemplate({
           >
             {getText('Destacados', 'Highlights')}
           </h2>
-          <div
-            style={{
-              display: 'flex',
-              gap: '12px',
-              overflowX: 'auto',
-              scrollSnapType: 'x proximity',
-              WebkitOverflowScrolling: 'touch',
-              scrollbarWidth: 'none',
-              margin: '0 -24px',
-              padding: '2px 24px 6px',
-            }}
-          >
+          <ScrollStrip language={language}>
             {destacados.map((item) => {
               const imageUrl = item.imageUrl ?? item.image_url;
               const isPopular = item.popular;
@@ -693,7 +683,7 @@ export function RestaurantTemplate({
                 </div>
               );
             })}
-          </div>
+          </ScrollStrip>
           {(() => {
             const hl = hlOpenId ? destacados.find((d) => d.id === hlOpenId) : undefined;
             if (!hl) return null;
