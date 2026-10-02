@@ -6,7 +6,7 @@ import { parseApiError } from '@/lib/api-errors';
 import { TrialExpiredNotice } from '@/components/space/TrialExpiredNotice';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import { stripRichTextToPlain } from '@/lib/sanitize-html';
-import type { ProcessStepDto, FaqEntryDto, HorarioDayDto, SectionVisibilityDto, CausaDto, CommunityImpactDto, MealPeriodHoursDto, MealPeriodKey } from './types';
+import type { ProcessStepDto, FaqEntryDto, HorarioDayDto, SectionVisibilityDto, CausaDto, CommunityImpactDto, MealPeriodHoursDto, MealPeriodKey, CategoryTranslationsDto } from './types';
 import type { BusinessType } from '@/lib/templates/registry';
 
 const MAX_GALLERY_IMAGES = 12;
@@ -51,6 +51,9 @@ interface Props {
   onHorarioChange: (horario: HorarioDayDto[]) => void;
   mealPeriodHours: MealPeriodHoursDto;
   onMealPeriodHoursChange: (v: MealPeriodHoursDto) => void;
+  categoryTranslations: CategoryTranslationsDto;
+  onCategoryTranslationsChange: (v: CategoryTranslationsDto) => void;
+  categoryNames: string[];
   sectionVisibility: SectionVisibilityDto;
   onSectionVisibilityChange: (v: SectionVisibilityDto) => void;
   galleryImages: string[];
@@ -74,6 +77,9 @@ export function ContenidoTab({
   onHorarioChange: setHorario,
   mealPeriodHours,
   onMealPeriodHoursChange: setMealPeriodHours,
+  categoryTranslations,
+  onCategoryTranslationsChange: setCategoryTranslations,
+  categoryNames,
   sectionVisibility,
   onSectionVisibilityChange: setSectionVisibility,
   galleryImages,
@@ -107,6 +113,8 @@ export function ContenidoTab({
           horario,
           // {} = volver a los cortes por defecto (la API borra el campo).
           ...(businessType === 'restaurant' ? { mealPeriodHours } : {}),
+          // {} = quitar todas las traducciones (la API borra el campo). Solo si hay categorías que traducir.
+          ...(categoryNames.length > 0 ? { categoryTranslations } : {}),
           sectionVisibility,
           galleryImages,
           // causas ya NO va en este PATCH (backlog 2026-09-25) -- CausasSection la guarda
@@ -152,6 +160,15 @@ export function ContenidoTab({
 
       {businessType === 'restaurant' && (
         <MealPeriodsSection value={mealPeriodHours} onChange={setMealPeriodHours} getText={getText} />
+      )}
+
+      {categoryNames.length > 0 && (
+        <CategoryTranslationsSection
+          names={categoryNames}
+          value={categoryTranslations}
+          onChange={setCategoryTranslations}
+          getText={getText}
+        />
       )}
 
       <ListSection<ProcessStepDto>
@@ -374,6 +391,89 @@ function MealPeriodsSection({
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+function CategoryTranslationsSection({
+  names,
+  value,
+  onChange,
+  getText,
+}: {
+  names: string[];
+  value: CategoryTranslationsDto;
+  onChange: (v: CategoryTranslationsDto) => void;
+  getText: (es: string, en: string) => string;
+}) {
+  const setField = (name: string, lang: 'es' | 'en', text: string) => {
+    const cur = { ...(value[name] ?? {}), [lang]: text };
+    const next: CategoryTranslationsDto = { ...value };
+    // Fila sin ningún texto = sin traducción (no se guarda la clave vacía).
+    if (!(cur.es ?? '').trim() && !(cur.en ?? '').trim()) delete next[name];
+    else next[name] = cur;
+    onChange(next);
+  };
+  const customized = Object.keys(value).length > 0;
+  const inputCls =
+    'w-full rounded-md border border-gray-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 px-2 py-1 text-sm text-gray-900 dark:text-white';
+
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
+          {getText('Nombres de categorías', 'Category names')}
+        </h2>
+        {customized && (
+          <button
+            type="button"
+            onClick={() => onChange({})}
+            className="text-xs text-gray-500 underline hover:text-gray-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+          >
+            {getText('Restablecer', 'Reset')}
+          </button>
+        )}
+      </div>
+      <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
+        {getText(
+          'Cómo se ve cada categoría en español y en inglés. Si dejas un idioma vacío se muestra el nombre tal cual lo escribiste en el catálogo.',
+          'How each category reads in Spanish and English. If you leave a language empty, the name as written in your catalog is shown.',
+        )}
+      </p>
+      <div className="mt-3 space-y-1.5">
+        {names.map((name) => (
+          <div
+            key={name}
+            className="rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2"
+          >
+            <p className="mb-1.5 truncate text-xs font-medium text-gray-500 dark:text-neutral-400" title={name}>{name}</p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-0.5 block text-[11px] uppercase tracking-wide text-gray-400 dark:text-neutral-500">ES</span>
+                <input
+                  type="text"
+                  maxLength={80}
+                  value={value[name]?.es ?? ''}
+                  placeholder={name}
+                  onChange={(e) => setField(name, 'es', e.target.value)}
+                  className={inputCls}
+                />
+              </label>
+              <label className="block">
+                <span className="mb-0.5 block text-[11px] uppercase tracking-wide text-gray-400 dark:text-neutral-500">EN</span>
+                <input
+                  type="text"
+                  maxLength={80}
+                  value={value[name]?.en ?? ''}
+                  placeholder={name}
+                  onChange={(e) => setField(name, 'en', e.target.value)}
+                  className={inputCls}
+                />
+              </label>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

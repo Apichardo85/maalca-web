@@ -25,6 +25,7 @@ import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 import { formatPrice } from '@/lib/currency';
+import { categoryLabel } from '@/lib/category-label';
 
 // Scoped to this template only — a slab serif reads as "catalog/hardware
 // store signage", distinct from Service's editorial Fraunces and Barber's
@@ -236,7 +237,7 @@ export function RetailTemplate({
             {categoryNames.map((name, i) => (
               <ChipTab
                 key={name}
-                label={name}
+                label={categoryLabel(name, language, business.categoryTranslations)}
                 active={activeTab === name}
                 color={SWATCHES[i % SWATCHES.length].hex}
                 onClick={() => setActiveTab(name)}
@@ -286,6 +287,7 @@ export function RetailTemplate({
                 addToCart={addToCart}
                 removeFromCart={removeFromCart}
                 currency={business.currency}
+                categoryTranslations={business.categoryTranslations}
               />
             ))}
           </div>
@@ -426,6 +428,7 @@ function ProductCard({
   addToCart,
   removeFromCart,
   currency,
+  categoryTranslations,
 }: {
   item: PublicTemplateProps['items'][number];
   chipColor: string;
@@ -436,6 +439,7 @@ function ProductCard({
   addToCart: (item: { id: string; name: string; price: number; image?: string }) => void;
   removeFromCart: (itemId: string) => void;
   currency?: 'USD' | 'DOP';
+  categoryTranslations?: PublicTemplateProps['business']['categoryTranslations'];
 }) {
   const imageUrl = item.imageUrl ?? item.image_url;
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
@@ -545,7 +549,7 @@ function ProductCard({
       description={description}
       priceLabel={item.price != null ? formatPrice(item.price, currency) : null}
       imageUrl={imageUrl}
-      category={item.category}
+      category={categoryLabel(item.category, language, categoryTranslations)}
       qty={cartQty}
       onAdd={addThis}
       onRemove={() => removeFromCart(item.id)}

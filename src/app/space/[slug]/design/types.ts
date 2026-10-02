@@ -56,6 +56,9 @@ export interface HorarioDayDto {
 export type MealPeriodKey = 'breakfast' | 'lunch' | 'dinner' | 'late_night';
 export type MealPeriodHoursDto = Partial<Record<MealPeriodKey, { start: string; end: string }>>;
 
+/** Traducción de nombres de categoría: clave = nombre guardado en los items. */
+export type CategoryTranslationsDto = Record<string, { es?: string | null; en?: string | null }>;
+
 /** Clave ausente = visible (default true) — apagador explícito por sección, independiente
  *  de si tiene contenido. Hoy: "processSteps", "gallery", y (solo Community) "causas",
  *  "puntoDeEntrega", "monetaryDonations". */

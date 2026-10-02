@@ -24,6 +24,7 @@ import { formatPrice } from '@/lib/currency';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 import { deriveBrandPalette, brandPaletteVars } from '@/lib/brand-palette';
 import { getOpenStatus, formatHour, type OpenStatus } from '@/lib/business-hours';
+import { categoryLabel } from '@/lib/category-label';
 
 // Scoped to this template only — condensed uppercase display for headers,
 // duration and price (no separate mono role; the condensed weight already
@@ -364,7 +365,7 @@ export function BarberTemplate({
             >
               {[
                 { key: ALL_TAB, label: getText('Todos', 'All') },
-                ...categoryNames.map((n) => ({ key: n, label: n })),
+                ...categoryNames.map((n) => ({ key: n, label: categoryLabel(n, language, business.categoryTranslations) })),
               ].map(({ key, label }) => (
                 <button
                   key={key}
@@ -415,7 +416,7 @@ export function BarberTemplate({
         ) : activeTab === ALL_TAB ? (
           groupedForAll.map(({ categoryName, groupItems }) => (
             <div key={categoryName || '__ungrouped__'} style={{ marginBottom: '32px' }}>
-              {categoryName && <SectLabel label={categoryName} />}
+              {categoryName && <SectLabel label={categoryLabel(categoryName, language, business.categoryTranslations)} />}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {groupItems.map((item) => (
                   <ServiceCard key={item.id} item={item} onReserve={handleReserve} accent={accent} displayClassName={oswald.className} language={language} currency={business.currency} getText={getText} />

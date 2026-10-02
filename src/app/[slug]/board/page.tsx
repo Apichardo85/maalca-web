@@ -87,6 +87,7 @@ export function renderBoard(slug: string, data: BoardCatalogResponse) {
         logoUrl: data.affiliate.logoUrl ?? null,
         primaryColor: data.affiliate.primaryColor ?? '#045AFE',
         currency: data.affiliate.currency === 'DOP' ? 'DOP' : 'USD',
+        categoryTranslations: data.affiliate.categoryTranslations ?? null,
       }}
       initialItems={mappedItems}
       initialCategories={data.categories ?? []}
@@ -127,6 +128,7 @@ interface BoardCatalogResponse {
     logoUrl?: string | null;
     primaryColor?: string | null;
     currency?: string | null;
+    categoryTranslations?: Record<string, { es?: string | null; en?: string | null }> | null;
   };
   categories?: PublicTemplateProps['categories'];
   items: PublicTemplateProps['items'];
