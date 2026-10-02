@@ -13,6 +13,14 @@ interface CatalogItem {
   isDemo: boolean;
   active: boolean;
   imageUrl?: string | null;
+  price?: number | null;
+  nameEn?: string | null;
+  descriptionEn?: string | null;
+  periods?: string[];
+  weekDays?: string[];
+  flags?: string[];
+  featured?: boolean;
+  popular?: boolean;
 }
 
 interface RawCatalogItem extends CatalogItem {
@@ -54,6 +62,14 @@ export default async function CatalogPage({
     isDemo:      item.isDemo,
     active:      item.active,
     imageUrl:    item.imageUrl ?? item.image_url ?? null,
+    price:       item.price ?? null,
+    nameEn:      item.nameEn ?? null,
+    descriptionEn: item.descriptionEn ?? null,
+    periods:     item.periods ?? [],
+    weekDays:    item.weekDays ?? [],
+    flags:       item.flags ?? [],
+    featured:    item.featured ?? false,
+    popular:     item.popular ?? false,
   }));
 
   return (

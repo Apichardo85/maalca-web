@@ -638,31 +638,17 @@ function ServiceCard({
         overflow: 'hidden',
       }}
     >
-      {imageUrl ? (
+      {imageUrl && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={imageUrl}
           alt={displayName}
           style={{ display: 'block', width: '100%', height: '110px', objectFit: 'cover' }}
         />
-      ) : (
-        <div
-          style={{
-            width: '100%',
-            height: '110px',
-            backgroundColor: ACERO_LIGHT,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '28px',
-          }}
-        >
-          ✂️
-        </div>
       )}
 
       {/* ticket-stub perforation — the signature detail separating photo from price */}
-      <div style={{ borderTop: `2px dashed ${LINE}`, margin: '0 10px' }} />
+      {imageUrl && <div style={{ borderTop: `2px dashed ${LINE}`, margin: '0 10px' }} />}
 
       <div style={{ padding: '10px' }}>
         <p

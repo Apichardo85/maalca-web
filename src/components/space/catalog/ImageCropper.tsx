@@ -67,7 +67,7 @@ async function getCroppedBlob(
 
 export function ImageCropper({
   src,
-  aspect = 4 / 3,
+  aspect: aspectProp = 1,
   onCancel,
   onCropped,
   busy,
@@ -78,6 +78,8 @@ export function ImageCropper({
   const [zoom, setZoom] = useState(1);
   const [area, setArea] = useState<Area | null>(null);
   const [working, setWorking] = useState(false);
+  const [aspect, setAspect] = useState(aspectProp);
+  const [error, setError] = useState<string | null>(null);
 
   const onCropComplete = useCallback((_c: Area, pixels: Area) => {
     setArea(pixels);
@@ -90,19 +92,45 @@ export function ImageCropper({
       const blob = await getCroppedBlob(src, area, getText);
       onCropped(blob);
     } catch (err) {
-      alert(`${getText('Error al recortar', 'Crop error')}: ${err instanceof Error ? err.message : String(err)}`);
+      setError(`${getText('Error al recortar', 'Crop error')}: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setWorking(false);
     }
   };
 
   const disabled = busy || working;
+  const ratios: Array<{ label: string; value: number }> = [
+    { label: '1:1', value: 1 },
+    { label: '4:3', value: 4 / 3 },
+    { label: '16:9', value: 16 / 9 },
+  ];
 
   return (
     <div className="space-y-3">
-      <div className="relative w-full aspect-[4/3] bg-black rounded-xl overflow-hidden">
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+          {getText('Formato', 'Shape')}
+        </span>
+        {ratios.map((r) => (
+          <button
+            key={r.label}
+            type="button"
+            onClick={() => { setAspect(r.value); setCrop({ x: 0, y: 0 }); setZoom(1); }}
+            className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+              Math.abs(aspect - r.value) < 0.001
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
+            }`}
+          >
+            {r.label}
+          </button>
+        ))}
+      </div>
+      <div className="relative w-full aspect-square sm:aspect-[4/3] bg-black rounded-xl overflow-hidden touch-none">
         <Cropper
           image={src}
+          minZoom={1}
+          maxZoom={4}
           crop={crop}
           zoom={zoom}
           aspect={aspect}
@@ -119,8 +147,8 @@ export function ImageCropper({
         </label>
         <input
           type="range"
-          min={0.5}
-          max={3}
+          min={1}
+          max={4}
           step={0.01}
           value={zoom}
           onChange={(e) => setZoom(parseFloat(e.target.value))}
@@ -129,10 +157,11 @@ export function ImageCropper({
       </div>
       <p className="text-[11px] text-gray-400 leading-relaxed">
         {getText(
-          'Arrastra la imagen para moverla, usa el zoom o pellizca en el móvil. El área visible es la que se guardará.',
-          'Drag the image to move it, use zoom or pinch on mobile. The visible area is what gets saved.',
+          'Arrastra para mover, pellizca o usa el zoom. Lo que ves dentro del marco es lo que se guarda. 1:1 es el formato de las tarjetas del menú.',
+          'Drag to move, pinch or use the zoom. What is inside the frame is what gets saved. 1:1 matches the menu cards.',
         )}
       </p>
+      {error && <p className="text-xs text-red-600">{error}</p>}
       <div className="flex justify-end gap-2">
         <Button variant="ghost" size="sm" onClick={onCancel} disabled={disabled}>
           {getText('Cancelar', 'Cancel')}

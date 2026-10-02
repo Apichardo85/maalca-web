@@ -191,7 +191,7 @@ export function ImageGalleryEditor({ slug, itemId, images, onChange, onError, ma
         <Modal isOpen onClose={() => setCropSrc(null)} title={getText('Ajustar foto', 'Adjust photo')}>
           <ImageCropper
             src={cropSrc}
-            aspect={16 / 9}
+            aspect={1}
             onCancel={() => setCropSrc(null)}
             onCropped={handleCropDone}
             busy={uploading}

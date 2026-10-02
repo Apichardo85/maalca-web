@@ -26,6 +26,7 @@ import { trackCanalClick } from '@/lib/public-events';
 import { AboutSection } from '@/components/public/AboutSection';
 import { sanitizeRichText } from '@/lib/sanitize-html';
 import { ClampedDescription } from '@/components/public/ClampedDescription';
+import { ItemDetailSheet } from '@/components/public/ItemDetailSheet';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox';
@@ -517,30 +518,44 @@ export function RestaurantTemplate({
                     overflow: 'hidden',
                   }}
                 >
-                  <div style={{ position: 'relative', height: '110px', backgroundColor: 'var(--rt-placeholder, #f2e9db)' }}>
-                    {imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
+                  {imageUrl && (
+                    <div style={{ position: 'relative', height: '110px', backgroundColor: 'var(--rt-placeholder, #f2e9db)' }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={imageUrl} alt={destacadoName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-2xl">🍽️</div>
-                    )}
-                    <span
-                      style={{
-                        position: 'absolute',
-                        top: '6px',
-                        left: '6px',
-                        fontSize: '10px',
-                        fontWeight: 700,
-                        padding: '2px 6px',
-                        borderRadius: '9999px',
-                        backgroundColor: isPopular ? ACCENT : CAFE,
-                        color: isPopular ? 'var(--rt-on-accent, #ffffff)' : '#ffffff',
-                      }}
-                    >
-                      {isPopular ? `🔥 ${getText('Popular', 'Popular')}` : `⭐ ${getText('Destacado', 'Featured')}`}
-                    </span>
-                  </div>
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: '6px',
+                          left: '6px',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          padding: '2px 6px',
+                          borderRadius: '9999px',
+                          backgroundColor: isPopular ? ACCENT : CAFE,
+                          color: isPopular ? 'var(--rt-on-accent, #ffffff)' : '#ffffff',
+                        }}
+                      >
+                        {isPopular ? `🔥 ${getText('Popular', 'Popular')}` : `⭐ ${getText('Destacado', 'Featured')}`}
+                      </span>
+                    </div>
+                  )}
                   <div style={{ padding: '8px 10px' }}>
+                    {!imageUrl && (
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          marginBottom: '6px',
+                          fontSize: '10px',
+                          fontWeight: 700,
+                          padding: '2px 6px',
+                          borderRadius: '9999px',
+                          backgroundColor: isPopular ? ACCENT : CAFE,
+                          color: isPopular ? 'var(--rt-on-accent, #ffffff)' : '#ffffff',
+                        }}
+                      >
+                        {isPopular ? `🔥 ${getText('Popular', 'Popular')}` : `⭐ ${getText('Destacado', 'Featured')}`}
+                      </span>
+                    )}
                     <p className={inter.className} style={{ margin: 0, fontSize: '13px', fontWeight: 800, letterSpacing: '-0.01em', color: CAFE, lineHeight: 1.3 }}>
                       {destacadoName}
                     </p>
@@ -1365,24 +1380,68 @@ function MenuCard({
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
   const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const FLAG_LABELS: Record<string, [string, string]> = {
+    vegetarian: ['Vegetariano', 'Vegetarian'],
+    spicy: ['Picante', 'Spicy'],
+    glutenFree: ['Sin gluten', 'Gluten-free'],
+  };
+  const detailTags = [
+    ...(item.featured ? [`⭐ ${getText('Destacado', 'Featured')}`] : []),
+    ...(item.popular ? [`🔥 ${getText('Popular', 'Popular')}`] : []),
+    ...((item.flags ?? []).map((f) => `${FLAG_ICONS[f] ?? ''} ${FLAG_LABELS[f] ? getText(FLAG_LABELS[f][0], FLAG_LABELS[f][1]) : f}`.trim())),
+  ];
+  const dayList = (item.weekDays ?? []).map((d) => (language === 'en' ? WEEK_DAY_LABELS_EN[d] : WEEK_DAY_LABELS_ES[d]));
+  const periodList = (item.periods ?? []).filter((p) => p !== 'all_day').map((p) => (language === 'en' ? MEAL_PERIOD_LABELS_EN[p] : MEAL_PERIOD_LABELS[p]));
+  const availabilityText = [periodList.join(', '), dayList.length ? dayList.join(', ') : ''].filter(Boolean).join(' · ') || null;
+  const stop = (e: React.MouseEvent) => e.stopPropagation();
+  // Sin foto, descripción, etiquetas ni horario, el detalle repetiría lo que ya se ve en la tarjeta.
+  const hasDetail = Boolean(imageUrl || description || detailTags.length > 0 || availabilityText);
+
+  // Etiquetas Destacado/Popular: sobre la foto si hay foto; en línea sobre el nombre si no la hay
+  // (sin foto no se reserva un cuadro vacío — la tarjeta es solo texto, como en las apps de delivery).
+  const badgeEls = (
+    <>
+      {item.featured && (
+        <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '9999px', backgroundColor: CAFE, color: '#ffffff' }}>
+          ⭐ {getText('Destacado', 'Featured')}
+        </span>
+      )}
+      {item.popular && (
+        <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '9999px', backgroundColor: ACCENT, color: 'var(--rt-on-accent, #ffffff)' }}>
+          🔥 {getText('Popular', 'Popular')}
+        </span>
+      )}
+    </>
+  );
+  const hasBadges = Boolean(item.featured || item.popular);
+  const badgesOverlay = hasBadges ? (
+    <div style={{ position: 'absolute', top: '4px', left: '4px', display: 'flex', gap: '4px' }}>{badgeEls}</div>
+  ) : null;
 
   return (
+    <>
     <div
+      role={hasDetail ? 'button' : undefined}
+      tabIndex={hasDetail ? 0 : undefined}
+      onClick={hasDetail ? () => setDetailOpen(true) : undefined}
+      onKeyDown={hasDetail ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailOpen(true); } } : undefined}
       style={{
+        cursor: hasDetail ? 'pointer' : 'default',
         backgroundColor: '#ffffff',
         border: '0.5px solid var(--rt-border-soft, #ece2d3)',
         borderRadius: '16px',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'row',
-        minHeight: '120px',
+        minHeight: imageUrl ? '120px' : '84px',
         opacity: unavailableLabel ? 0.55 : 1,
         filter: unavailableLabel ? 'grayscale(0.6)' : undefined,
       }}
     >
-      <div style={{ position: 'relative', flexShrink: 0, margin: '8px 0 8px 8px' }}>
-        {imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
+      {imageUrl && (
+        <div style={{ position: 'relative', flexShrink: 0, margin: '8px 0 8px 8px' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={imageUrl}
             alt={displayName}
@@ -1394,55 +1453,9 @@ function MenuCard({
               borderRadius: '12px',
             }}
           />
-        ) : (
-          <div
-            style={{
-              width: '120px',
-              height: '120px',
-              backgroundColor: 'var(--rt-placeholder, #f2e9db)',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '28px',
-            }}
-          >
-            🍽️
-          </div>
-        )}
-        {(item.featured || item.popular) && (
-          <div style={{ position: 'absolute', top: '4px', left: '4px', display: 'flex', gap: '4px' }}>
-            {item.featured && (
-              <span
-                style={{
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  padding: '2px 6px',
-                  borderRadius: '9999px',
-                  backgroundColor: CAFE,
-                  color: '#ffffff',
-                }}
-              >
-                ⭐ {getText('Destacado', 'Featured')}
-              </span>
-            )}
-            {item.popular && (
-              <span
-                style={{
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  padding: '2px 6px',
-                  borderRadius: '9999px',
-                  backgroundColor: ACCENT,
-                  color: 'var(--rt-on-accent, #ffffff)',
-                }}
-              >
-                🔥 {getText('Popular', 'Popular')}
-              </span>
-            )}
-          </div>
-        )}
-      </div>
+          {badgesOverlay}
+        </div>
+      )}
 
       <div
         style={{
@@ -1456,6 +1469,9 @@ function MenuCard({
       >
         {/* Name + description */}
         <div>
+          {!imageUrl && hasBadges && (
+            <div style={{ display: 'flex', gap: '4px', marginBottom: '6px' }}>{badgeEls}</div>
+          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <p
               className={inter.className}
@@ -1490,18 +1506,21 @@ function MenuCard({
             )}
           </div>
           {description && (
-            <ClampedDescription
-              text={description}
-              language={language}
-              textStyle={{ margin: '4px 0 0', fontSize: '12px', color: MUTED, lineHeight: 1.5 }}
-              buttonColor={accent}
-              buttonStyle={{ fontSize: '12px' }}
-            />
+            <div onClick={stop}>
+              <ClampedDescription
+                text={description}
+                language={language}
+                textStyle={{ margin: '4px 0 0', fontSize: '12px', color: MUTED, lineHeight: 1.5 }}
+                buttonColor={accent}
+                buttonStyle={{ fontSize: '12px' }}
+              />
+            </div>
           )}
         </div>
 
         {/* Price + cart controls */}
         <div
+          onClick={stop}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -1606,6 +1625,27 @@ function MenuCard({
         </div>
       </div>
     </div>
+    <ItemDetailSheet
+      open={detailOpen}
+      onClose={() => setDetailOpen(false)}
+      name={displayName}
+      description={description}
+      priceLabel={item.price != null ? formatPrice(item.price, currency) : null}
+      imageUrl={imageUrl}
+      category={item.category}
+      tags={detailTags}
+      unavailableLabel={unavailableLabel}
+      availabilityLabel={availabilityText}
+      qty={cartQty}
+      onAdd={onAdd}
+      onRemove={onRemove}
+      accent={accent}
+      onAccent="var(--rt-on-accent, #ffffff)"
+      textColor={CAFE}
+      mutedColor={MUTED}
+      language={language}
+    />
+    </>
   );
 }
 
