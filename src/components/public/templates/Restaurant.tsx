@@ -224,6 +224,21 @@ function resolveNowInTimezone(
   }
 }
 
+/** "5:00–11:00 a. m." / "5:00–11:00 am" — rango de un momento de comida en la hora del negocio. */
+function formatPeriodRange(range: { start: number; end: number }, language: 'es' | 'en'): string {
+  const part = (m: number) => {
+    const h24 = Math.floor(m / 60) % 24;
+    const mm = String(m % 60).padStart(2, '0');
+    return { text: `${h24 % 12 === 0 ? 12 : h24 % 12}:${mm}`, pm: h24 >= 12 };
+  };
+  const a = part(range.start);
+  const b = part(range.end);
+  const suffix = (pm: boolean) => (language === 'es' ? (pm ? 'p. m.' : 'a. m.') : pm ? 'pm' : 'am');
+  return a.pm === b.pm
+    ? `${a.text}–${b.text} ${suffix(b.pm)}`
+    : `${a.text} ${suffix(a.pm)}–${b.text} ${suffix(b.pm)}`;
+}
+
 /** Momento de comida que corresponde a una hora del día (minutos desde medianoche). */
 function periodAtMinutes(totalMin: number, ranges: PeriodRanges): Exclude<MealPeriod, 'all_day'> {
   for (const [p, range] of Object.entries(ranges) as Array<[Exclude<MealPeriod, 'all_day'>, { start: number; end: number }]>) {
@@ -356,6 +371,11 @@ export function RestaurantTemplate({
     setPeriodPick(ALL_PERIODS);
   }
 
+  function showMenuNow() {
+    setVistaHoyActive(true);
+    setPeriodPick(null);
+  }
+
   function matchesWeekday(item: (typeof items)[number]): boolean {
     if (!vistaHoyActive || !effWeekday) return true;
     if (!item.weekDays || item.weekDays.length === 0) return true;
@@ -381,20 +401,36 @@ export function RestaurantTemplate({
     items.filter((i) => i.featured || i.popular).filter(servesNow),
   ).slice(0, MAX_DESTACADOS);
 
-  // Menú completo (Vista Hoy apagada): un plato que hoy no se hace sigue visible pero en gris y sin
-  // botón de agregar, con la etiqueta de qué días sí. El servidor igual rechaza el pedido.
+  // Menú completo: un plato que NO se sirve en el momento de pedir sigue visible pero atenuado y sin
+  // botón de agregar, con la etiqueta de cuándo sí (momento + horario, o días). Aplica aunque el
+  // cliente haya elegido a mano el chip de otro momento: ver el desayuno a las 6 pm no lo hace pedible.
+  // "Momento de pedir" = el de ahora, o el de la próxima apertura si el negocio está cerrado (el
+  // pedido se programa). Los platos sin momento (o "todo el día") nunca se marcan. Decisión de
+  // producto provisional hasta definir con el negocio qué hacer con lo fuera de horario; el servidor
+  // todavía no lo hace cumplir (solo valida el día de la semana).
+  const orderPeriod: Exclude<MealPeriod, 'all_day'> | null = effPeriod ?? periodNow;
   function unavailableLabel(item: (typeof items)[number]): string | null {
+    const labels: string[] = [];
+    const itemPeriods = (item.periods ?? []).filter((p): p is Exclude<MealPeriod, 'all_day'> => p !== 'all_day');
+    const allDay = (item.periods ?? []).includes('all_day');
+    if (orderPeriod && itemPeriods.length > 0 && !allDay && !itemPeriods.includes(orderPeriod)) {
+      const names = itemPeriods.map((p) => periodLabel(p));
+      const joined = names.length > 1 ? `${names.slice(0, -1).join(', ')} ${language === 'en' ? 'and' : 'y'} ${names[names.length - 1]}` : names[0];
+      const range = itemPeriods.length === 1 ? ` · ${formatPeriodRange(periodRanges[itemPeriods[0]], language)}` : '';
+      labels.push(language === 'en' ? `${joined} only${range}` : `Solo ${joined.toLowerCase()}${range}`);
+    }
     const day = effWeekday ?? weekdayNow;
-    if (vistaHoyActive || !day) return null;
-    if (!item.weekDays || item.weekDays.length === 0 || item.weekDays.includes(day)) return null;
-    const names = item.weekDays.map((d) => (language === 'en' ? WEEK_DAY_LABELS_EN[d] : WEEK_DAY_LABELS_ES[d]));
-    const list = names.length > 1 ? `${names.slice(0, -1).join(', ')} ${language === 'en' ? 'and' : 'y'} ${names[names.length - 1]}` : names[0];
-    return language === 'en' ? `Only ${list}` : `Solo ${list.toLowerCase()}`;
+    if (!vistaHoyActive && day && item.weekDays && item.weekDays.length > 0 && !item.weekDays.includes(day)) {
+      const names = item.weekDays.map((d) => (language === 'en' ? WEEK_DAY_LABELS_EN[d] : WEEK_DAY_LABELS_ES[d]));
+      const list = names.length > 1 ? `${names.slice(0, -1).join(', ')} ${language === 'en' ? 'and' : 'y'} ${names[names.length - 1]}` : names[0];
+      labels.push(language === 'en' ? `Only ${list}` : `Solo ${list.toLowerCase()}`);
+    }
+    return labels.length > 0 ? labels.join(' · ') : null;
   }
 
   function matchesPeriod(item: (typeof items)[number]): boolean {
     if (activePeriod === ALL_PERIODS) return true;
-    if (!item.periods || item.periods.length === 0) return true;
+    if (!item.periods || item.periods.length === 0 || item.periods.includes('all_day')) return true;
     return item.periods.includes(activePeriod as MealPeriod);
   }
 
@@ -959,52 +995,61 @@ export function RestaurantTemplate({
         </div>
       )}
 
-      {/* ── VISTA HOY BANNER — visible, not tucked away, per the brief ── */}
-      {vistaHoyActive && nowInfo && (
-        <div className="mx-auto max-w-public-content" style={{ padding: '16px 24px 0' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: '10px',
-              backgroundColor: 'var(--rt-accent-soft, rgba(193,82,42,0.08))',
-              border: `1px solid ${TERRACOTA}`,
-              borderRadius: '12px',
-              padding: '10px 16px',
-            }}
-          >
-            <span style={{ fontSize: '13px', color: CAFE, fontWeight: 500 }}>
-              {schedule && effPeriod && effWeekday
-                ? getText(
-                    `Cerrado ahora · mostrando el menú de ${schedule.daysAhead === 0 ? 'hoy' : schedule.daysAhead === 1 ? 'mañana' : 'la próxima apertura'}: ${periodLabel(effPeriod)} · ${WEEK_DAY_LABELS_ES[effWeekday]}`,
-                    `Closed now · showing the ${schedule.daysAhead === 0 ? "today's" : schedule.daysAhead === 1 ? "tomorrow's" : 'next opening'} menu: ${periodLabel(effPeriod)} · ${WEEK_DAY_LABELS_EN[effWeekday]}`,
-                  )
-                : getText(
-                    `Mostrando el menú de ahora: ${periodLabel(nowInfo.period)} · ${WEEK_DAY_LABELS_ES[nowInfo.weekday]}`,
-                    `Showing today's menu: ${periodLabel(nowInfo.period)} · ${WEEK_DAY_LABELS_EN[nowInfo.weekday]}`,
-                  )}
-            </span>
-            <button
-              onClick={clearVistaHoy}
+      {/* ── VISTA HOY BANNER — siempre visible: dice si se ve el menú de ahora o el completo ── */}
+      {vistaHoyAvailable && nowInfo && (() => {
+        const autoMode = vistaHoyActive && periodPick === null;
+        const linkStyle = {
+          flexShrink: 0,
+          background: 'none',
+          border: 'none',
+          color: TERRACOTA,
+          fontSize: '13px',
+          fontWeight: 700,
+          cursor: 'pointer',
+          textDecoration: 'underline',
+          padding: 0,
+        } as const;
+        return (
+          <div className="mx-auto max-w-public-content" style={{ padding: '16px 24px 0' }}>
+            <div
               style={{
-                flexShrink: 0,
-                background: 'none',
-                border: 'none',
-                color: TERRACOTA,
-                fontSize: '13px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                textDecoration: 'underline',
-                padding: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '10px',
+                backgroundColor: autoMode ? 'var(--rt-accent-soft, rgba(193,82,42,0.08))' : SURFACE,
+                border: autoMode ? `1px solid ${TERRACOTA}` : '1px solid var(--rt-border, #e8ddc9)',
+                borderRadius: '12px',
+                padding: '10px 16px',
               }}
             >
-              {getText('Ver menú completo →', 'See full menu →')}
-            </button>
+              <span style={{ fontSize: '13px', color: CAFE, fontWeight: 500 }}>
+                {autoMode
+                  ? schedule && effPeriod && effWeekday
+                    ? getText(
+                        `Cerrado ahora · mostrando el menú de ${schedule.daysAhead === 0 ? 'hoy' : schedule.daysAhead === 1 ? 'mañana' : 'la próxima apertura'}: ${periodLabel(effPeriod)} · ${WEEK_DAY_LABELS_ES[effWeekday]}`,
+                        `Closed now · showing the ${schedule.daysAhead === 0 ? "today's" : schedule.daysAhead === 1 ? "tomorrow's" : 'next opening'} menu: ${periodLabel(effPeriod)} · ${WEEK_DAY_LABELS_EN[effWeekday]}`,
+                      )
+                    : getText(
+                        `Mostrando el menú de ahora: ${periodLabel(nowInfo.period)} · ${WEEK_DAY_LABELS_ES[nowInfo.weekday]}`,
+                        `Showing today's menu: ${periodLabel(nowInfo.period)} · ${WEEK_DAY_LABELS_EN[nowInfo.weekday]}`,
+                      )
+                  : getText(
+                      'Menú completo · lo que no se sirve ahora aparece atenuado con su horario y no se puede pedir.',
+                      "Full menu · dishes not served right now appear dimmed with their hours and can't be ordered.",
+                    )}
+              </span>
+              <button
+                onClick={autoMode ? clearVistaHoy : showMenuNow}
+                style={linkStyle}
+              >
+                {autoMode ? getText('Ver menú completo →', 'See full menu →') : getText('Ver el menú de ahora →', "See today's menu →")}
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ── CONTENT ── */}
       <main id="menu" className="mx-auto max-w-public-content" style={{ padding: '32px 24px', scrollMarginTop: '48px' }}>
