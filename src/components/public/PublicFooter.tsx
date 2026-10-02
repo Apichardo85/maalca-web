@@ -45,7 +45,11 @@ export function PublicFooter({ business, capabilities, language = 'es' }: Props)
   const todayEntry = today ? horario.find((h) => h.dia === today) : null;
 
   return (
-    <footer style={{ borderTop: '1px solid #e5e3de', backgroundColor: '#f8f6f1' }}>
+    <footer className="pf-root" style={{ borderTop: '1px solid var(--pf-border, #e5e3de)', backgroundColor: 'var(--pf-bg, #f8f6f1)' }}>
+      {/* Tokens neutros del footer: la luz es el valor por defecto (fallback de cada var()); en
+          modo oscuro se redefinen aquí porque este componente es compartido y no conoce el prefijo
+          de variables (--rt-, --bb-, …) de cada plantilla. */}
+      <style>{`[data-theme="dark"] .pf-root{--pf-border:#35322c;--pf-bg:transparent;--pf-chip-bg:#2a2723;--pf-chip-border:#3a362f;--pf-chip-ink:#d6d1c6;--pf-ink:#ece8e0;--pf-muted:#a29b8d;--pf-faint:#8a8477}`}</style>
       <div style={{ maxWidth: '960px', margin: '0 auto', padding: '40px 24px 32px', textAlign: 'center' }}>
         {social.length > 0 && (
           <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', marginBottom: '28px' }}>
@@ -60,9 +64,9 @@ export function PublicFooter({ business, capabilities, language = 'es' }: Props)
                   title={s.tipo}
                   onClick={() => trackCanalClick(business.slug, s.tipo, s.canalId)}
                   style={{
-                    color: '#4a4a4a',
-                    backgroundColor: '#ffffff',
-                    border: '0.5px solid #ece9e2',
+                    color: 'var(--pf-chip-ink, #4a4a4a)',
+                    backgroundColor: 'var(--pf-chip-bg, #ffffff)',
+                    border: '0.5px solid var(--pf-chip-border, #ece9e2)',
                     borderRadius: '9999px',
                     width: '48px',
                     height: '48px',
@@ -80,7 +84,7 @@ export function PublicFooter({ business, capabilities, language = 'es' }: Props)
           </div>
         )}
 
-        <p style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#1a1a1a' }}>
+        <p style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--pf-ink, #1a1a1a)' }}>
           {business.name}
         </p>
 
@@ -90,7 +94,7 @@ export function PublicFooter({ business, capabilities, language = 'es' }: Props)
               href={googleMapsUrl(business.address)}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: '#888', textDecoration: 'none' }}
+              style={{ color: 'var(--pf-muted, #888)', textDecoration: 'none' }}
             >
               📍 {business.address}
             </a>
@@ -98,7 +102,7 @@ export function PublicFooter({ business, capabilities, language = 'es' }: Props)
         )}
 
         {horario.length > 0 && (
-          <div style={{ marginTop: '14px', fontSize: '13px', color: '#888' }}>
+          <div style={{ marginTop: '14px', fontSize: '13px', color: 'var(--pf-muted, #888)' }}>
             {todayEntry && (
               <p style={{ margin: 0 }}>
                 🕒{' '}
@@ -108,7 +112,7 @@ export function PublicFooter({ business, capabilities, language = 'es' }: Props)
               </p>
             )}
             <details style={{ marginTop: todayEntry ? '6px' : 0, display: 'inline-block', textAlign: 'left' }}>
-              <summary style={{ cursor: 'pointer', color: '#aaa', fontSize: '12px' }}>
+              <summary style={{ cursor: 'pointer', color: 'var(--pf-faint, #aaa)', fontSize: '12px' }}>
                 {getText('Ver horario completo', 'View full hours')}
               </summary>
               <div style={{ marginTop: '8px' }}>
@@ -136,13 +140,13 @@ export function PublicFooter({ business, capabilities, language = 'es' }: Props)
               gap: '5px',
               marginTop: '20px',
               fontSize: '12px',
-              color: '#aaa',
+              color: 'var(--pf-faint, #aaa)',
               textDecoration: 'none',
             }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo-icon.svg" alt="" width={14} height={14} style={{ display: 'block' }} />
-            Powered by <span style={{ fontWeight: 600, color: '#888' }}>MaalCa</span>
+            Powered by <span style={{ fontWeight: 600, color: 'var(--pf-muted, #888)' }}>MaalCa</span>
           </Link>
         )}
       </div>

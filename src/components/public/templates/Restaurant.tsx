@@ -17,7 +17,7 @@
 // business without that data configured never sees a confusing empty view.
 import { useEffect, useMemo, useState } from 'react';
 import { Inter } from 'next/font/google';
-import { deriveBrandPalette, brandPaletteVars } from '@/lib/brand-palette';
+import { deriveBrandPalette, deriveDarkBrandPalette, brandPaletteCss } from '@/lib/brand-palette';
 import type { ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
 import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
@@ -31,10 +31,11 @@ import { ScrollStrip } from '@/components/public/ScrollStrip';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox';
-import { TableReservationSection } from '@/components/public/booking/TableReservationSection';
+import { TableReservationSection, OPEN_TABLE_RESERVATION_EVENT } from '@/components/public/booking/TableReservationSection';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { formatPrice } from '@/lib/currency';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
+import PublicThemeToggle from '@/components/public/PublicThemeToggle';
 import { MEAL_PERIOD_LABELS, MEAL_PERIOD_ORDER } from '@/lib/menu-availability';
 import { matchesCatalogQuery } from '@/lib/catalog-search';
 // Los días del Horario del negocio son claves en español (lunes…domingo), distintas de los
@@ -67,9 +68,37 @@ const MAX_DESTACADOS = 8;
 const ACCENT = 'var(--rt-accent, #C1522A)';
 const TERRACOTA = 'var(--rt-accent-text, #C1522A)'; // acento como TEXTO sobre fondo claro (contraste garantizado)
 const CREMA = 'var(--rt-bg, #FBF3E7)';
-const PALMA = '#3A5A40';
 const CAFE = 'var(--rt-ink, #2B1D14)';
 const MUTED = 'var(--rt-muted, #8A7B6E)';
+// Superficies y bordes que cambian con el tema (claro/oscuro).
+const SURFACE = 'var(--rt-surface, #ffffff)';
+const PLACEHOLDER = 'var(--rt-placeholder, #f2e9db)';
+const BORDER = 'var(--rt-border, #e8ddc9)';
+const BORDER_SOFT = 'var(--rt-border-soft, #ece2d3)';
+// CAFE es la TINTA (casi blanca en oscuro): como FONDO bajo texto blanco usa esta.
+const INK_SURFACE = 'var(--rt-ink-surface, #2B1D14)';
+// Colores semánticos (abierto/pronto/cerrado, etiquetas) con variante oscura. Las variables las define
+// SEMANTIC_CSS; el respaldo de cada var() es el valor claro de siempre.
+const OK_DOT = 'var(--rt-ok-dot, #3A5A40)';
+const OK_BG = 'var(--rt-ok-bg, #E8F0E6)';
+const OK_BORDER = 'var(--rt-ok-border, #cfe0cc)';
+const OK_FG = 'var(--rt-ok-fg, #2E4A34)';
+const WARN_DOT = 'var(--rt-warn-dot, #B7791F)';
+const WARN_BG = 'var(--rt-warn-bg, #FBF0DC)';
+const WARN_BORDER = 'var(--rt-warn-border, #f0dfba)';
+const WARN_FG = 'var(--rt-warn-fg, #6B4A12)';
+const CLOSED_BG = 'var(--rt-closed-bg, #F1E9DD)';
+const FLAG_BG = 'var(--rt-flag-bg, rgba(58,90,64,0.12))';
+const FLAG_FG = 'var(--rt-flag-fg, #3A5A40)';
+
+const SEMANTIC_CSS =
+  '.rt-scope{--rt-ok-dot:#3A5A40;--rt-ok-bg:#E8F0E6;--rt-ok-border:#cfe0cc;--rt-ok-fg:#2E4A34;' +
+  '--rt-warn-dot:#B7791F;--rt-warn-bg:#FBF0DC;--rt-warn-border:#f0dfba;--rt-warn-fg:#6B4A12;' +
+  '--rt-closed-bg:#F1E9DD;--rt-flag-bg:rgba(58,90,64,0.12);--rt-flag-fg:#3A5A40}' +
+  '[data-theme="dark"] .rt-scope{color-scheme:dark;--rt-ok-dot:#6fbf86;--rt-ok-bg:#15281b;--rt-ok-border:#24402e;--rt-ok-fg:#a9dcb8;' +
+  '--rt-warn-dot:#e0a73a;--rt-warn-bg:#2b2210;--rt-warn-border:#4a3a18;--rt-warn-fg:#f0cf8a;' +
+  '--rt-closed-bg:var(--rt-ink-surface);--rt-flag-bg:rgba(111,191,134,0.18);--rt-flag-fg:#8fd2a3}' +
+  '.rt-scope input::placeholder{color:var(--rt-muted,#8A7B6E);opacity:.85}';
 
 const FLAG_ICONS: Record<string, string> = {
   vegetarian: '🌱',
@@ -212,8 +241,20 @@ export function RestaurantTemplate({
   categories: categoriesProp,
   capabilities,
 }: PublicTemplateProps) {
-  const accent = business.primary_color ?? '#045AFE';
-  const paletteVars = brandPaletteVars(deriveBrandPalette(business.primary_color, business.secondary_color, business.accent_color), 'rt');
+  // Color de marca crudo: solo para lo que le concatena alfa (el aro de la galería). El resto usa el
+  // acento del tema (var), que en oscuro se aclara lo necesario y va emparejado con --rt-on-accent.
+  const rawAccent = business.primary_color ?? '#045AFE';
+  const accent = `var(--rt-accent, ${rawAccent})`;
+  const themeCss = useMemo(
+    () =>
+      brandPaletteCss(
+        'rt-scope',
+        'rt',
+        deriveBrandPalette(business.primary_color, business.secondary_color, business.accent_color),
+        deriveDarkBrandPalette(business.primary_color, business.secondary_color, business.accent_color),
+      ) + SEMANTIC_CSS,
+    [business.primary_color, business.secondary_color, business.accent_color],
+  );
   const waRaw = resolveWhatsAppDigits(business);
   const deliveryLinks = resolveDeliveryLinks(business);
 
@@ -386,7 +427,8 @@ export function RestaurantTemplate({
   const visibleItems = itemsFor(activeTab);
 
   return (
-    <div id="top" className={inter.variable} style={{ minHeight: '100vh', backgroundColor: CREMA, fontFamily: inter.style.fontFamily, ...paletteVars } as React.CSSProperties}>
+    <div id="top" className={`${inter.variable} rt-scope`} style={{ minHeight: '100vh', backgroundColor: CREMA, fontFamily: inter.style.fontFamily } as React.CSSProperties}>
+      <style dangerouslySetInnerHTML={{ __html: themeCss }} />
       {/* ── ESTADO (abierto/cerrado) — pegada arriba mientras se hace scroll ── */}
       <OpenStatusBar status={openStatus} language={language} getText={getText} />
 
@@ -395,7 +437,7 @@ export function RestaurantTemplate({
         style={{
           position: 'relative',
           height: '380px',
-          backgroundColor: accent,
+          backgroundColor: 'var(--rt-brand, ' + business.primary_color + ')',
           overflow: 'hidden',
         }}
       >
@@ -427,7 +469,8 @@ export function RestaurantTemplate({
 
         {/* language toggle — top-right corner, clear of the bottom-anchored
             content below and never covered by it at any viewport */}
-        <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 2 }}>
+        <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 2, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <PublicThemeToggle variant="dark" />
           <SimpleLanguageToggle variant="dark" />
         </div>
 
@@ -527,7 +570,7 @@ export function RestaurantTemplate({
               href="#reservar"
               onClick={(e) => {
                 e.preventDefault();
-                document.getElementById('reservar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                window.dispatchEvent(new Event(OPEN_TABLE_RESERVATION_EVENT));
               }}
               style={{
                 display: 'inline-flex',
@@ -633,14 +676,14 @@ export function RestaurantTemplate({
                     flex: '0 0 auto',
                     width: '170px',
                     scrollSnapAlign: 'start',
-                    backgroundColor: '#ffffff',
-                    border: '0.5px solid var(--rt-border-soft, #ece2d3)',
+                    backgroundColor: SURFACE,
+                    border: `0.5px solid ${BORDER_SOFT}`,
                     borderRadius: '14px',
                     overflow: 'hidden',
                   }}
                 >
                   {imageUrl && (
-                    <div style={{ position: 'relative', height: '110px', backgroundColor: 'var(--rt-placeholder, #f2e9db)' }}>
+                    <div style={{ position: 'relative', height: '110px', backgroundColor: PLACEHOLDER }}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={imageUrl} alt={destacadoName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       <span
@@ -652,7 +695,7 @@ export function RestaurantTemplate({
                           fontWeight: 700,
                           padding: '2px 6px',
                           borderRadius: '9999px',
-                          backgroundColor: isPopular ? ACCENT : CAFE,
+                          backgroundColor: isPopular ? ACCENT : INK_SURFACE,
                           color: isPopular ? 'var(--rt-on-accent, #ffffff)' : '#ffffff',
                         }}
                       >
@@ -670,7 +713,7 @@ export function RestaurantTemplate({
                           fontWeight: 700,
                           padding: '2px 6px',
                           borderRadius: '9999px',
-                          backgroundColor: isPopular ? ACCENT : CAFE,
+                          backgroundColor: isPopular ? ACCENT : INK_SURFACE,
                           color: isPopular ? 'var(--rt-on-accent, #ffffff)' : '#ffffff',
                         }}
                       >
@@ -715,7 +758,7 @@ export function RestaurantTemplate({
                             type="button"
                             onClick={() => removeFromCart(item.id)}
                             aria-label={`${getText('Quitar', 'Remove')} ${destacadoName}`}
-                            style={{ width: '28px', height: '28px', borderRadius: '9999px', border: 'none', backgroundColor: 'var(--rt-placeholder, #f2e9db)', color: CAFE, fontSize: '16px', fontWeight: 700, cursor: 'pointer' }}
+                            style={{ width: '28px', height: '28px', borderRadius: '9999px', border: 'none', backgroundColor: PLACEHOLDER, color: CAFE, fontSize: '16px', fontWeight: 700, cursor: 'pointer' }}
                           >
                             −
                           </button>
@@ -759,6 +802,7 @@ export function RestaurantTemplate({
                 onAccent="var(--rt-on-accent, #ffffff)"
                 textColor={CAFE}
                 mutedColor={MUTED}
+                surfaceColor={SURFACE}
                 language={language}
               />
             );
@@ -772,7 +816,7 @@ export function RestaurantTemplate({
       <ProcessSection steps={business.processSteps} visible={business.sectionVisibility?.processSteps !== false} accent={accent} getText={getText} />
 
       {/* ── GALERÍA ── */}
-      <GallerySection images={business.galleryImages} visible={business.sectionVisibility?.gallery !== false} accent={accent} getText={getText} />
+      <GallerySection images={business.galleryImages} visible={business.sectionVisibility?.gallery !== false} accent={rawAccent} getText={getText} />
 
       {/* ── SEARCH — independent of category tabs so it's still there for a
           business with no categories set up yet ── */}
@@ -803,7 +847,7 @@ export function RestaurantTemplate({
                 fontSize: '14px',
                 borderRadius: '12px',
                 border: '1px solid var(--rt-border, #e8ddc9)',
-                backgroundColor: '#ffffff',
+                backgroundColor: SURFACE,
                 color: CAFE,
                 outline: 'none',
               }}
@@ -902,7 +946,7 @@ export function RestaurantTemplate({
                   fontWeight: 600,
                   borderRadius: '9999px',
                   border: activePeriod === key ? `1px solid ${ACCENT}` : '1px solid var(--rt-border, #e8ddc9)',
-                  backgroundColor: activePeriod === key ? ACCENT : '#ffffff',
+                  backgroundColor: activePeriod === key ? ACCENT : SURFACE,
                   color: activePeriod === key ? 'var(--rt-on-accent, #ffffff)' : MUTED,
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
@@ -1119,10 +1163,10 @@ function OpenStatusBar({
   const dayLabel = (day: string) =>
     (language === 'en' ? HORARIO_LABELS_EN[day] : HORARIO_LABELS_ES[day]) ?? day;
 
-  let dot = PALMA;
-  let bg = '#E8F0E6';
-  let border = '#cfe0cc';
-  let color = '#2E4A34';
+  let dot = OK_DOT;
+  let bg = OK_BG;
+  let border = OK_BORDER;
+  let color = OK_FG;
   let strong: string;
   let rest = '';
 
@@ -1130,16 +1174,16 @@ function OpenStatusBar({
     strong = getText('Abierto ahora', 'Open now');
     rest = getText(`Cierra a las ${formatHour(status.closesAt)}`, `Closes at ${formatHour(status.closesAt)}`);
   } else if (status.state === 'opening_soon') {
-    dot = '#B7791F';
-    bg = '#FBF0DC';
-    border = '#f0dfba';
-    color = '#6B4A12';
+    dot = WARN_DOT;
+    bg = WARN_BG;
+    border = WARN_BORDER;
+    color = WARN_FG;
     strong = getText('Abre pronto', 'Opening soon');
     rest = getText(`Abre a las ${formatHour(status.opensAt)}`, `Opens at ${formatHour(status.opensAt)}`);
   } else {
     dot = MUTED;
-    bg = '#F1E9DD';
-    border = 'var(--rt-border, #e8ddc9)';
+    bg = CLOSED_BG;
+    border = BORDER;
     color = CAFE;
     strong = getText('Cerrado ahora', 'Closed now');
     const n = status.next;
@@ -1202,7 +1246,7 @@ function HoursSection({
       <h2 className={inter.className} style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 800, letterSpacing: '-0.01em', color: TERRACOTA }}>
         {getText('Horario', 'Hours')}
       </h2>
-      <div style={{ backgroundColor: '#ffffff', border: '0.5px solid var(--rt-border-soft, #ece2d3)', borderRadius: '12px', padding: '4px 16px' }}>
+      <div style={{ backgroundColor: SURFACE, border: `0.5px solid ${BORDER_SOFT}`, borderRadius: '12px', padding: '4px 16px' }}>
         {rows.map(({ day, entry }, i) => {
           const isToday = day === todayKey;
           const label = language === 'en' ? HORARIO_LABELS_EN[day] : HORARIO_LABELS_ES[day];
@@ -1272,7 +1316,7 @@ function CartBar({
         padding: '0 18px',
         border: 'none',
         borderRadius: '14px',
-        backgroundColor: CAFE,
+        backgroundColor: INK_SURFACE,
         color: '#ffffff',
         fontFamily: 'inherit',
         fontWeight: 600,
@@ -1350,7 +1394,7 @@ function BottomNav({
     <nav
       aria-label={getText('Navegación principal', 'Main navigation')}
       className="sm:hidden fixed bottom-0 left-0 right-0"
-      style={{ zIndex: 80, backgroundColor: '#ffffff', borderTop: '1px solid var(--rt-border, #e8ddc9)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      style={{ zIndex: 80, backgroundColor: SURFACE, borderTop: '1px solid var(--rt-border, #e8ddc9)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div style={{ height: '64px', display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
         <a href="#top" onClick={go('top')} style={itemStyle}>
@@ -1419,8 +1463,8 @@ function ProcessSection({
           <li
             key={`${i}-${step.title}`}
             style={{
-              backgroundColor: '#ffffff',
-              border: '0.5px solid var(--rt-border-soft, #ece2d3)',
+              backgroundColor: SURFACE,
+              border: `0.5px solid ${BORDER_SOFT}`,
               borderRadius: '14px',
               padding: '16px',
             }}
@@ -1496,7 +1540,7 @@ function SectLabel({ label }: { label: string }) {
       >
         {label}
       </span>
-      <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--rt-border, #e8ddc9)' }} />
+      <div style={{ flex: 1, height: '1px', backgroundColor: BORDER }} />
     </div>
   );
 }
@@ -1608,7 +1652,7 @@ function MenuCard({
   const badgeEls = (
     <>
       {item.featured && (
-        <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '9999px', backgroundColor: CAFE, color: '#ffffff' }}>
+        <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '9999px', backgroundColor: INK_SURFACE, color: '#ffffff' }}>
           ⭐ {getText('Destacado', 'Featured')}
         </span>
       )}
@@ -1633,8 +1677,8 @@ function MenuCard({
       onKeyDown={hasDetail ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailOpen(true); } } : undefined}
       style={{
         cursor: hasDetail ? 'pointer' : 'default',
-        backgroundColor: '#ffffff',
-        border: '0.5px solid var(--rt-border-soft, #ece2d3)',
+        backgroundColor: SURFACE,
+        border: `0.5px solid ${BORDER_SOFT}`,
         borderRadius: '16px',
         overflow: 'hidden',
         display: 'flex',
@@ -1700,8 +1744,8 @@ function MenuCard({
                       fontSize: '10px',
                       padding: '1px 5px',
                       borderRadius: '9999px',
-                      backgroundColor: 'rgba(58,90,64,0.12)',
-                      color: PALMA,
+                      backgroundColor: FLAG_BG,
+                      color: FLAG_FG,
                     }}
                   >
                     {FLAG_ICONS[f] ?? f}
@@ -1782,7 +1826,7 @@ function MenuCard({
                   height: '28px',
                   borderRadius: '6px',
                   border: 'none',
-                  backgroundColor: 'var(--rt-placeholder, #f2e9db)',
+                  backgroundColor: PLACEHOLDER,
                   cursor: 'pointer',
                   fontWeight: 700,
                   fontSize: '14px',
@@ -1848,6 +1892,7 @@ function MenuCard({
       onAccent="var(--rt-on-accent, #ffffff)"
       textColor={CAFE}
       mutedColor={MUTED}
+      surfaceColor={SURFACE}
       language={language}
     />
     </>
@@ -1911,8 +1956,8 @@ function ContactSection({
               rel="noopener noreferrer"
               onClick={() => trackCanalClick(business.slug, c.tipo, c.canalId)}
               style={{
-                backgroundColor: '#ffffff',
-                border: '0.5px solid var(--rt-border-soft, #ece2d3)',
+                backgroundColor: SURFACE,
+                border: `0.5px solid ${BORDER_SOFT}`,
                 borderRadius: '12px',
                 padding: '16px',
                 display: 'flex',

@@ -32,11 +32,11 @@ export function AboutSection({
   // los <p>/<br> ya generan sus propios saltos.
   return (
     <section className={`mx-auto px-4 pt-10 ${maxWidthClassName}`}>
-      <h2 className="text-lg font-semibold text-neutral-900">
+      <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
         {language === 'en' ? 'About us' : 'Sobre nosotros'}
       </h2>
       <div
-        className="prose-sm mt-2 max-w-none whitespace-pre-line text-sm leading-relaxed text-neutral-600 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-neutral-900 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:text-neutral-900 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:underline"
+        className="prose-sm mt-2 max-w-none whitespace-pre-line text-sm leading-relaxed text-neutral-600 dark:text-neutral-300 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-neutral-900 dark:[&_h2]:text-neutral-100 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:text-neutral-900 dark:[&_h3]:text-neutral-100 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:underline"
         dangerouslySetInnerHTML={{ __html: html }}
       />
     </section>

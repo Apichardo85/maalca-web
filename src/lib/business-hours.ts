@@ -223,3 +223,21 @@ export function getScheduleTarget(
 export function hhmmToMinutes(hhmm: string): number | null {
   return toMinutes(hhmm);
 }
+
+/** Forma que espera el carrito (CartDrawer) para pedidos programados cuando el negocio está cerrado. */
+export function cartScheduleFrom(schedule: ScheduleTarget | null): {
+  dateIso: string;
+  whenEs: string;
+  whenEn: string;
+  opensAtLabel: string;
+} | null {
+  if (!schedule) return null;
+  const dayEs = (WEEK_DAY_LABELS_ES[schedule.dayKey] ?? schedule.dayKey).toLowerCase();
+  const dayEn = WEEK_DAY_LABELS_EN[schedule.dayKey] ?? schedule.dayKey;
+  return {
+    dateIso: schedule.dateIso,
+    whenEs: schedule.daysAhead === 0 ? 'hoy' : schedule.daysAhead === 1 ? 'mañana' : `el ${dayEs}`,
+    whenEn: schedule.daysAhead === 0 ? 'today' : schedule.daysAhead === 1 ? 'tomorrow' : dayEn,
+    opensAtLabel: formatHour(schedule.opensAt),
+  };
+}

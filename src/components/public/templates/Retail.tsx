@@ -8,7 +8,9 @@
 // and finishes) becomes the page's own graphic device instead of a generic
 // icon-and-card grid — deliberately distinct from Service's mono rate-card
 // index and Barber's ticket-stub cards.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { OpenStatusBar } from '@/components/public/OpenStatusBar';
+import { getOpenStatus, getScheduleTarget, cartScheduleFrom, type OpenStatus } from '@/lib/business-hours';
 import { Roboto_Slab } from 'next/font/google';
 import type { ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
@@ -26,6 +28,8 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 import { formatPrice } from '@/lib/currency';
 import { categoryLabel } from '@/lib/category-label';
+import PublicThemeToggle from '@/components/public/PublicThemeToggle';
+import { deriveDarkBrandPalette, themeVarsCss } from '@/lib/brand-palette';
 
 // Scoped to this template only — a slab serif reads as "catalog/hardware
 // store signage", distinct from Service's editorial Fraunces and Barber's
@@ -34,9 +38,38 @@ const robotoSlab = Roboto_Slab({ subsets: ['latin'], weight: ['500', '700'], var
 
 const ALL_TAB = '__all__';
 
-const PIEDRA = '#E6E2D8';
-const INK = '#2B2820';
-const MUTED = '#7A7468';
+// Neutrals are CSS variables (scope `.rl-scope`) with the light hex as fallback; the dark values
+// live under html[data-theme="dark"] via themeVarsCss, so the theme resolves in CSS (no flash).
+const PIEDRA = 'var(--rl-bg, #E6E2D8)';
+const INK = 'var(--rl-ink, #2B2820)';
+const MUTED = 'var(--rl-muted, #7A7468)';
+const SURFACE = 'var(--rl-surface, #ffffff)';
+const BORDER = 'var(--rl-border, #d9d4c8)';
+const SOFT = 'var(--rl-soft, #f0ede4)';
+const IMG_BG = 'var(--rl-img-bg, #f1efe9)';
+// INK as a BACKGROUND under white text (active "Todos" chip): ink turns near-white in dark mode.
+const INK_SURFACE = 'var(--rl-ink-surface, #2B2820)';
+
+const LIGHT_VARS: Record<string, string> = {
+  'rl-bg': '#E6E2D8',
+  'rl-ink': '#2B2820',
+  'rl-muted': '#7A7468',
+  'rl-surface': '#ffffff',
+  'rl-border': '#d9d4c8',
+  'rl-soft': '#f0ede4',
+  'rl-img-bg': '#f1efe9',
+  'rl-ink-surface': '#2B2820',
+};
+const DARK_VARS: Record<string, string> = {
+  'rl-bg': '#16140F',
+  'rl-ink': '#EFEBE1',
+  'rl-muted': '#A39C8E',
+  'rl-surface': '#1F1C16',
+  'rl-border': '#34302A',
+  'rl-soft': '#2A2620',
+  'rl-img-bg': '#26231C',
+  'rl-ink-surface': '#3B362D',
+};
 
 const SWATCHES = [
   { name: 'Ladrillo', hex: '#A6452B' },
@@ -52,6 +85,17 @@ export function RetailTemplate({
   capabilities,
 }: PublicTemplateProps) {
   const accent = business.primary_color ?? SWATCHES[0].hex;
+  // Brand color adjusted for dark backgrounds (buttons, "Ver más" links). Light values stay as-is:
+  // accent for fills/text, white on accent. The hero banner keeps the raw brand color (white text).
+  const darkBrand = deriveDarkBrandPalette(accent, business.secondary_color, business.accent_color);
+  const themeCss = themeVarsCss(
+    'rl-scope',
+    { ...LIGHT_VARS, 'rl-accent': accent, 'rl-accent-text': accent, 'rl-on-accent': '#ffffff' },
+    { ...DARK_VARS, 'rl-accent': darkBrand.accent, 'rl-accent-text': darkBrand.accentText, 'rl-on-accent': darkBrand.onAccent },
+  );
+  const accentFill = `var(--rl-accent, ${accent})`;
+  const accentText = `var(--rl-accent-text, ${accent})`;
+  const onAccent = 'var(--rl-on-accent, #ffffff)';
   const waRaw = resolveWhatsAppDigits(business);
   // Resolved canal (with canalId) for click tracking — waRaw above is digits-only, used for
   // the href; the canalId is what lets maalca-api attribute this click to a specific canal row
@@ -60,6 +104,18 @@ export function RetailTemplate({
   const { cart, addToCart, removeFromCart, cartTotal, cartCount } = useCart();
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
+
+  // Abierto/cerrado depende del reloj: solo en cliente (la página es ISR) y se refresca cada minuto.
+  // Cerrado => el pedido se programa para la próxima apertura; el API lo exige igual (ResolveSchedule)
+  // y sin esto un pedido fuera de horario era rechazado.
+  const [openStatus, setOpenStatus] = useState<OpenStatus | null>(null);
+  useEffect(() => {
+    const update = () => setOpenStatus(getOpenStatus(business.horario, business.timezone));
+    update();
+    const id = setInterval(update, 60_000);
+    return () => clearInterval(id);
+  }, [business.horario, business.timezone]);
+  const cartSchedule = cartScheduleFrom(getScheduleTarget(openStatus, business.timezone));
 
   const categoryNames: string[] =
     categoriesProp.length > 0
@@ -79,7 +135,9 @@ export function RetailTemplate({
   const visibleItems = itemsFor(activeTab);
 
   return (
-    <div className={robotoSlab.variable} style={{ minHeight: '100vh', backgroundColor: PIEDRA }}>
+    <div className={`${robotoSlab.variable} rl-scope`} style={{ minHeight: '100vh', backgroundColor: PIEDRA }}>
+      <style dangerouslySetInnerHTML={{ __html: themeCss }} />
+      <OpenStatusBar status={openStatus} language={language} sticky />
       {/* ── HERO ── */}
       <section
         style={{
@@ -115,8 +173,9 @@ export function RetailTemplate({
 
         {/* language toggle — top-right corner, clear of the bottom-anchored
             content below and never covered by it at any viewport */}
-        <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 2 }}>
+        <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 2, display: 'flex', gap: '8px' }}>
           <SimpleLanguageToggle variant="dark" />
+          <PublicThemeToggle variant="dark" />
         </div>
 
         <div
@@ -231,7 +290,7 @@ export function RetailTemplate({
             <ChipTab
               label={getText('Todos', 'All')}
               active={activeTab === ALL_TAB}
-              color={INK}
+              color={INK_SURFACE}
               onClick={() => setActiveTab(ALL_TAB)}
             />
             {categoryNames.map((name, i) => (
@@ -281,7 +340,9 @@ export function RetailTemplate({
                 item={item}
                 chipColor={SWATCHES[i % SWATCHES.length].hex}
                 cartQty={cart.find((e) => e.item.id === item.id)?.qty ?? 0}
-                accent={accent}
+                accent={accentFill}
+                accentText={accentText}
+                onAccent={onAccent}
                 language={language}
                 getText={getText}
                 addToCart={addToCart}
@@ -313,6 +374,7 @@ export function RetailTemplate({
           businessName={business.name}
           slug={business.slug}
           onlinePayments={capabilities.onlinePayments}
+          schedule={cartSchedule}
           getText={getText}
         />
       )}
@@ -345,8 +407,8 @@ function ProcessSection({
           <div
             key={`${i}-${step.title}`}
             style={{
-              backgroundColor: '#ffffff',
-              border: '1px solid #d9d4c8',
+              backgroundColor: SURFACE,
+              border: `1px solid ${BORDER}`,
               borderRadius: '10px',
               padding: '14px',
             }}
@@ -423,6 +485,8 @@ function ProductCard({
   chipColor,
   cartQty,
   accent,
+  accentText,
+  onAccent,
   language,
   getText,
   addToCart,
@@ -434,6 +498,8 @@ function ProductCard({
   chipColor: string;
   cartQty: number;
   accent: string;
+  accentText: string;
+  onAccent: string;
   language: 'es' | 'en';
   getText: (es: string, en: string) => string;
   addToCart: (item: { id: string; name: string; price: number; image?: string }) => void;
@@ -461,8 +527,8 @@ function ProductCard({
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        backgroundColor: '#ffffff',
-        border: '1px solid #d9d4c8',
+        backgroundColor: SURFACE,
+        border: `1px solid ${BORDER}`,
         borderRadius: '10px',
         overflow: 'hidden',
       }}
@@ -471,7 +537,7 @@ function ProductCard({
       <div style={{ height: '5px', backgroundColor: chipColor, flexShrink: 0 }} />
 
       {imageUrl && (
-        <div className="aspect-square" style={{ backgroundColor: '#f1efe9', flexShrink: 0 }}>
+        <div className="aspect-square" style={{ backgroundColor: IMG_BG, flexShrink: 0 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={imageUrl} alt={displayName} className="h-full w-full object-cover" />
         </div>
@@ -490,7 +556,7 @@ function ProductCard({
               text={description}
               language={language}
               textStyle={{ margin: '4px 0 0', fontSize: '11px', color: MUTED, lineHeight: 1.4 }}
-              buttonColor={accent}
+              buttonColor={accentText}
               buttonStyle={{ fontSize: '11px' }}
             />
           </div>
@@ -506,8 +572,8 @@ function ProductCard({
           <button
             onClick={addThis}
             aria-label={`${getText('Agregar', 'Add')} ${displayName}`}
-            className="block w-full rounded-full py-1.5 text-center text-xs font-semibold text-white transition hover:opacity-90"
-            style={{ backgroundColor: accent }}
+            className="block w-full rounded-full py-1.5 text-center text-xs font-semibold transition hover:opacity-90"
+            style={{ backgroundColor: accent, color: onAccent }}
           >
             + {getText('Agregar', 'Add')}
           </button>
@@ -517,7 +583,7 @@ function ProductCard({
               onClick={() => removeFromCart(item.id)}
               aria-label={`${getText('Quitar', 'Remove')} ${displayName}`}
               className="flex h-7 w-7 items-center justify-center rounded-md text-sm font-bold"
-              style={{ backgroundColor: '#f0ede4', color: INK }}
+              style={{ backgroundColor: SOFT, color: INK }}
             >
               −
             </button>
@@ -532,8 +598,8 @@ function ProductCard({
                 image: imageUrl ?? undefined,
               })}
               aria-label={`${getText('Agregar', 'Add')} ${displayName}`}
-              className="flex h-7 w-7 items-center justify-center rounded-md text-sm font-bold text-white"
-              style={{ backgroundColor: accent }}
+              className="flex h-7 w-7 items-center justify-center rounded-md text-sm font-bold"
+              style={{ backgroundColor: accent, color: onAccent }}
             >
               +
             </button>
@@ -554,8 +620,10 @@ function ProductCard({
       onAdd={addThis}
       onRemove={() => removeFromCart(item.id)}
       accent={accent}
+      onAccent={onAccent}
       textColor={INK}
       mutedColor={MUTED}
+      surfaceColor={SURFACE}
       language={language}
     />
     </>
@@ -584,13 +652,13 @@ function ChipTab({
         padding: '8px 14px 8px 10px',
         borderRadius: '8px 8px 2px 2px',
         border: 'none',
-        backgroundColor: active ? color : '#ffffff',
+        backgroundColor: active ? color : SURFACE,
         color: active ? '#ffffff' : INK,
         fontSize: '13px',
         fontWeight: 600,
         cursor: 'pointer',
         whiteSpace: 'nowrap',
-        boxShadow: active ? 'none' : 'inset 0 0 0 1px #d9d4c8',
+        boxShadow: active ? 'none' : `inset 0 0 0 1px ${BORDER}`,
       }}
     >
       <span
@@ -621,9 +689,9 @@ function FaqSection({
       <h2 className={robotoSlab.className} style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 700, color: INK }}>
         {getText('Preguntas frecuentes', 'FAQ')}
       </h2>
-      <div style={{ borderTop: '1px solid #d9d4c8' }}>
+      <div style={{ borderTop: `1px solid ${BORDER}` }}>
         {faq.map((entry, i) => (
-          <details key={`${i}-${entry.question}`} style={{ borderBottom: '1px solid #d9d4c8', padding: '14px 0' }}>
+          <details key={`${i}-${entry.question}`} style={{ borderBottom: `1px solid ${BORDER}`, padding: '14px 0' }}>
             <summary style={{ cursor: 'pointer', listStyle: 'none', fontWeight: 600, color: INK, fontSize: '14px' }}>
               {entry.question}
             </summary>
@@ -651,7 +719,7 @@ function ContactSection({
   if (contacts.length === 0) return null;
 
   return (
-    <section style={{ borderTop: '1px solid #d9d4c8' }}>
+    <section style={{ borderTop: `1px solid ${BORDER}` }}>
       <div className="mx-auto max-w-public-content" style={{ padding: '28px 24px' }}>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {contacts.map((c) => {
@@ -664,8 +732,8 @@ function ContactSection({
               rel="noopener noreferrer"
               onClick={() => trackCanalClick(business.slug, c.tipo, c.canalId)}
               style={{
-                backgroundColor: '#ffffff',
-                border: '1px solid #d9d4c8',
+                backgroundColor: SURFACE,
+                border: `1px solid ${BORDER}`,
                 borderRadius: '10px',
                 padding: '16px',
                 display: 'flex',

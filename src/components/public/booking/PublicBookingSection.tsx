@@ -125,8 +125,9 @@ type Status = 'idle' | 'loading' | 'ready' | 'submitting' | 'success' | 'error';
 const ANYONE = '__anyone__';
 
 function darken(hex: string, amount: number): string {
+  // El acento puede llegar como var(--…) o color-mix(…): solo se oscurece un #rrggbb real.
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return hex;
   const clean = hex.replace('#', '');
-  if (clean.length !== 6) return hex;
   const num = parseInt(clean, 16);
   const r = Math.max(0, (num >> 16) - amount);
   const g = Math.max(0, ((num >> 8) & 0x00ff) - amount);
@@ -185,20 +186,20 @@ function CustomSelect({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between gap-2 rounded-xl border border-gray-300 px-3 py-3 text-left text-sm focus:border-gray-500 focus:outline-none"
+        className="flex w-full items-center justify-between gap-2 rounded-xl border border-gray-300 px-3 py-3 text-left text-sm focus:border-gray-500 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:focus:border-neutral-400"
       >
-        <span className={`truncate ${selected ? 'text-gray-900' : 'text-gray-400'}`}>
+        <span className={`truncate ${selected ? 'text-gray-900 dark:text-neutral-100' : 'text-gray-400 dark:text-neutral-500'}`}>
           {selected ? selected.label : placeholder}
         </span>
         <span
-          className="shrink-0 text-gray-400 transition-transform"
+          className="shrink-0 text-gray-400 transition-transform dark:text-neutral-500"
           style={{ transform: open ? 'rotate(180deg)' : undefined }}
         >
           ▾
         </span>
       </button>
       {open && (
-        <div className="absolute left-0 right-0 z-20 mt-1.5 max-h-56 overflow-y-auto overflow-x-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg">
+        <div className="absolute left-0 right-0 z-20 mt-1.5 max-h-56 overflow-y-auto overflow-x-hidden rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg dark:border-neutral-700 dark:bg-neutral-800">
           {options.map((o) => {
             const active = o.value === value;
             return (
@@ -209,8 +210,8 @@ function CustomSelect({
                   onChange(o.value);
                   setOpen(false);
                 }}
-                className="block w-full truncate rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors hover:bg-gray-50"
-                style={active ? { backgroundColor: `${color}1a`, color } : { color: '#374151' }}
+                className={`block w-full truncate rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors hover:bg-gray-50 dark:hover:bg-neutral-700 ${active ? '' : 'text-[#374151] dark:text-neutral-200'}`}
+                style={active ? { backgroundColor: `color-mix(in srgb, ${color} 10.2%, transparent)`, color } : undefined}
               >
                 {o.label}
               </button>
@@ -502,14 +503,14 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
       <div className="mx-auto mb-10 max-w-xl text-center">
         <span
           className="mb-3 inline-block rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider"
-          style={{ backgroundColor: `${color}1a`, color }}
+          style={{ backgroundColor: `color-mix(in srgb, ${color} 10.2%, transparent)`, color }}
         >
           {getText('Reservas online', 'Online booking')}
         </span>
-        <h2 className="text-3xl font-black text-gray-900 md:text-4xl">
+        <h2 className="text-3xl font-black text-gray-900 dark:text-neutral-100 md:text-4xl">
           {getText('Reserva tu cita', 'Book your appointment')}
         </h2>
-        <p className="mt-2 text-gray-500">
+        <p className="mt-2 text-gray-500 dark:text-neutral-400">
           {getText('Elige con quién quieres tu cita y a qué hora.', 'Pick who you want your appointment with and when.')}
         </p>
         {enableWalkIn && (
@@ -541,7 +542,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
               key={member.id}
               type="button"
               onClick={() => openBooking(member)}
-              className="group flex flex-col items-center gap-3 rounded-2xl border border-gray-200 bg-white p-5 text-center shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
+              className="group flex flex-col items-center gap-3 rounded-2xl border border-gray-200 bg-white p-5 text-center shadow-sm dark:border-neutral-700 dark:bg-neutral-900 transition-all hover:-translate-y-1 hover:shadow-lg"
             >
               {member.photoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -559,8 +560,8 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                 </div>
               )}
               <div>
-                <p className="text-sm font-bold text-gray-900">{member.name}</p>
-                <p className="text-xs text-gray-500">{member.role}</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-neutral-100">{member.name}</p>
+                <p className="text-xs text-gray-500 dark:text-neutral-400">{member.role}</p>
               </div>
               <span
                 className="mt-1 rounded-full px-3 py-1 text-xs font-semibold opacity-0 transition-opacity group-hover:opacity-100"
@@ -576,14 +577,14 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
             <button
               type="button"
               onClick={() => openBooking(null)}
-              className="group flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-gray-300 bg-white/50 p-5 text-center transition-all hover:-translate-y-1 hover:border-gray-400 hover:shadow-lg"
+              className="group flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-gray-300 bg-white/50 p-5 text-center transition-all hover:-translate-y-1 hover:border-gray-400 hover:shadow-lg dark:border-neutral-600 dark:bg-neutral-900/50 dark:hover:border-neutral-500"
             >
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-2xl text-gray-400">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 text-2xl text-gray-400 dark:bg-neutral-800 dark:text-neutral-500">
                 🕐
               </div>
               <div>
-                <p className="text-sm font-bold text-gray-700">{getText('Cualquiera', 'Anyone')}</p>
-                <p className="text-xs text-gray-500">{getText('Sin preferencia', 'No preference')}</p>
+                <p className="text-sm font-bold text-gray-700 dark:text-neutral-200">{getText('Cualquiera', 'Anyone')}</p>
+                <p className="text-xs text-gray-500 dark:text-neutral-400">{getText('Sin preferencia', 'No preference')}</p>
               </div>
             </button>
           )}
@@ -610,14 +611,14 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
           />
           {/* Mobile: bottom sheet a pantalla completa (rounded solo arriba, sin margen lateral).
               Desktop (sm+): modal centrado clásico, como antes. */}
-          <div className="relative z-10 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:max-h-[90vh] sm:max-w-md sm:rounded-3xl">
+          <div className="relative z-10 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-3xl bg-white dark:bg-neutral-900 shadow-2xl sm:max-h-[90vh] sm:max-w-md sm:rounded-3xl">
             {/* handle visual de bottom-sheet — solo mobile */}
-            <div className="mx-auto mt-2 h-1.5 w-10 shrink-0 rounded-full bg-gray-300 sm:hidden" />
+            <div className="mx-auto mt-2 h-1.5 w-10 shrink-0 rounded-full bg-gray-300 dark:bg-neutral-600 sm:hidden" />
 
             <button
               type="button"
               onClick={closeModal}
-              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200"
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700"
               aria-label={getText('Cerrar', 'Close')}
             >
               ✕
@@ -625,11 +626,11 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
 
             {status === 'success' ? (
               <div className="flex-1 overflow-y-auto overflow-x-hidden p-5 py-8 text-center sm:p-6">
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-2xl">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-2xl dark:bg-green-900/40 dark:text-green-300">
                   ✓
                 </div>
-                <p className="text-lg font-bold text-gray-900">{getText('¡Reserva enviada!', 'Booking sent!')}</p>
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="text-lg font-bold text-gray-900 dark:text-neutral-100">{getText('¡Reserva enviada!', 'Booking sent!')}</p>
+                <p className="mt-2 text-sm text-gray-500 dark:text-neutral-400">
                   {getText(
                     'Quedó agendada para revisión del negocio. Te contactarán al número que dejaste.',
                     "It's been scheduled for the business to review. They'll reach out at the number you left.",
@@ -640,7 +641,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                     href={confirmedZoomLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-4 block break-all rounded-xl bg-gray-50 px-4 py-3 text-sm font-semibold"
+                    className="mt-4 block break-all rounded-xl bg-gray-50 px-4 py-3 text-sm font-semibold dark:bg-neutral-800"
                     style={{ color }}
                   >
                     💻 {getText('Link de la reunión', 'Meeting link')}: {confirmedZoomLink}
@@ -679,10 +680,10 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                       </div>
                     )}
                     <div>
-                      <p className="text-base font-black text-gray-900">
+                      <p className="text-base font-black text-gray-900 dark:text-neutral-100">
                         {selectedMember ? selectedMember.name : getText('Cualquiera disponible', 'Anyone available')}
                       </p>
-                      {selectedMember && <p className="text-xs text-gray-500">{selectedMember.role}</p>}
+                      {selectedMember && <p className="text-xs text-gray-500 dark:text-neutral-400">{selectedMember.role}</p>}
                     </div>
                   </div>
 
@@ -691,7 +692,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                       un solo miembro no hay nada que elegir (el encabezado ya lo muestra). */}
                   {team.length > 1 && (
                     <div className="mb-5">
-                      <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                      <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-neutral-400">
                         {getText('Con quién', 'With')}
                       </label>
                       <div className="flex flex-wrap gap-1.5">
@@ -705,12 +706,8 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                                 setSelectedMember(member);
                                 setTime('');
                               }}
-                              className="rounded-full border px-3.5 py-2 text-xs font-semibold transition-colors"
-                              style={
-                                active
-                                  ? { backgroundColor: color, borderColor: color, color: '#fff' }
-                                  : { borderColor: '#e5e7eb', color: '#374151', backgroundColor: '#fff' }
-                              }
+                              className={`rounded-full border px-3.5 py-2 text-xs font-semibold transition-colors ${active ? '' : 'border-[#e5e7eb] text-[#374151] dark:border-neutral-700 dark:text-neutral-200 bg-white dark:bg-neutral-900'}`}
+                              style={active ? { backgroundColor: color, borderColor: color, color: '#fff' } : undefined}
                             >
                               {member ? member.name : getText('Cualquiera', 'Anyone')}
                             </button>
@@ -722,7 +719,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
 
                   <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3.5">
                     <div>
-                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-neutral-400">
                         {getText('Servicio', 'Service')}
                       </label>
                       <CustomSelect
@@ -733,12 +730,12 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                         options={services.map((s) => ({ value: s.id, label: `${s.name} — ${s.durationMinutes}min` }))}
                       />
                       {selectedService?.price ? (
-                        <p className="mt-1 text-xs text-gray-400">
+                        <p className="mt-1 text-xs text-gray-400 dark:text-neutral-500">
                           {getText('Precio estimado', 'Estimated price')}: ${selectedService.price.toFixed(2)}
                         </p>
                       ) : null}
                       {selectedService?.modality === 'Virtual' && (
-                        <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-gray-500">
+                        <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400">
                           💻 {getText('Esta cita será por Zoom.', "This appointment will be over Zoom.")}
                         </p>
                       )}
@@ -747,24 +744,16 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                           <button
                             type="button"
                             onClick={() => setWantsVirtual(false)}
-                            className="flex-1 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors"
-                            style={
-                              !wantsVirtual
-                                ? { backgroundColor: color, borderColor: color, color: '#fff' }
-                                : { borderColor: '#e5e7eb', color: '#374151' }
-                            }
+                            className={`flex-1 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${!wantsVirtual ? '' : 'border-[#e5e7eb] text-[#374151] dark:border-neutral-700 dark:text-neutral-200'}`}
+                            style={!wantsVirtual ? { backgroundColor: color, borderColor: color, color: '#fff' } : undefined}
                           >
                             📍 {getText('Presencial', 'In person')}
                           </button>
                           <button
                             type="button"
                             onClick={() => setWantsVirtual(true)}
-                            className="flex-1 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors"
-                            style={
-                              wantsVirtual
-                                ? { backgroundColor: color, borderColor: color, color: '#fff' }
-                                : { borderColor: '#e5e7eb', color: '#374151' }
-                            }
+                            className={`flex-1 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${wantsVirtual ? '' : 'border-[#e5e7eb] text-[#374151] dark:border-neutral-700 dark:text-neutral-200'}`}
+                            style={wantsVirtual ? { backgroundColor: color, borderColor: color, color: '#fff' } : undefined}
                           >
                             💻 {getText('Por Zoom', 'By Zoom')}
                           </button>
@@ -773,7 +762,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                     </div>
 
                     <div>
-                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-neutral-400">
                         {getText('Día', 'Day')}
                       </label>
                       <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
@@ -788,12 +777,8 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                                 setDate(dateStr);
                                 setTime('');
                               }}
-                              className="flex min-h-[52px] shrink-0 flex-col items-center justify-center rounded-xl border px-3.5 py-2 text-xs font-semibold transition-colors"
-                              style={
-                                active
-                                  ? { backgroundColor: color, borderColor: color, color: '#fff' }
-                                  : { borderColor: '#e5e7eb', color: closed ? '#c1c5cc' : '#374151' }
-                              }
+                              className={`flex min-h-[52px] shrink-0 flex-col items-center justify-center rounded-xl border px-3.5 py-2 text-xs font-semibold transition-colors ${active ? '' : closed ? 'border-[#e5e7eb] text-[#c1c5cc] dark:border-neutral-700 dark:text-neutral-600' : 'border-[#e5e7eb] text-[#374151] dark:border-neutral-700 dark:text-neutral-200'}`}
+                              style={active ? { backgroundColor: color, borderColor: color, color: '#fff' } : undefined}
                             >
                               <span className="uppercase tracking-wide">
                                 {d.toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { weekday: 'short', timeZone: 'UTC' })}
@@ -807,15 +792,15 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
 
                     {date && (
                       <div>
-                        <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                        <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-neutral-400">
                           {getText('Hora', 'Time')}
                         </label>
                         {selectedDayHours?.cerrado ? (
-                          <p className="rounded-xl bg-gray-50 px-3 py-2.5 text-sm text-gray-500">
+                          <p className="rounded-xl bg-gray-50 px-3 py-2.5 text-sm text-gray-500 dark:bg-neutral-800 dark:text-neutral-400">
                             {getText('Cerrado ese día — elige otra fecha.', "Closed that day — pick another date.")}
                           </p>
                         ) : timeSlots.length === 0 ? (
-                          <p className="rounded-xl bg-gray-50 px-3 py-2.5 text-sm text-gray-500">
+                          <p className="rounded-xl bg-gray-50 px-3 py-2.5 text-sm text-gray-500 dark:bg-neutral-800 dark:text-neutral-400">
                             {getText('No quedan horarios disponibles ese día.', 'No time slots left that day.')}
                           </p>
                         ) : (
@@ -827,12 +812,8 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                                   key={slot}
                                   type="button"
                                   onClick={() => setTime(slot)}
-                                  className="min-h-[40px] rounded-lg border px-2 py-1.5 text-xs font-semibold transition-colors"
-                                  style={
-                                    active
-                                      ? { backgroundColor: color, borderColor: color, color: '#fff' }
-                                      : { borderColor: '#e5e7eb', color: '#374151' }
-                                  }
+                                  className={`min-h-[40px] rounded-lg border px-2 py-1.5 text-xs font-semibold transition-colors ${active ? '' : 'border-[#e5e7eb] text-[#374151] dark:border-neutral-700 dark:text-neutral-200'}`}
+                                  style={active ? { backgroundColor: color, borderColor: color, color: '#fff' } : undefined}
                                 >
                                   {slot}
                                 </button>
@@ -844,7 +825,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                     )}
 
                     <div>
-                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-neutral-400">
                         {getText('Tu nombre', 'Your name')}
                       </label>
                       <input
@@ -853,12 +834,12 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                         maxLength={80}
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
-                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none"
+                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder:text-neutral-500 dark:focus:border-neutral-400"
                       />
                     </div>
 
                     <div>
-                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-neutral-400">
                         {getText('Teléfono', 'Phone')}
                       </label>
                       <input
@@ -868,12 +849,12 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                         maxLength={17}
                         value={customerPhone}
                         onChange={(e) => setCustomerPhone(formatPhoneInput(e.target.value))}
-                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none"
+                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder:text-neutral-500 dark:focus:border-neutral-400"
                       />
                     </div>
 
                     <div>
-                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-neutral-400">
                         {getText('Email (opcional)', 'Email (optional)')}
                       </label>
                       <input
@@ -882,11 +863,11 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                         value={customerEmail}
                         onChange={(e) => setCustomerEmail(e.target.value)}
                         placeholder={getText('Para recibir tu confirmación', 'To receive your confirmation')}
-                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none"
+                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder:text-neutral-500 dark:focus:border-neutral-400"
                       />
                     </div>
 
-                    <details className="text-sm text-gray-500">
+                    <details className="text-sm text-gray-500 dark:text-neutral-400">
                       <summary className="cursor-pointer select-none py-1 font-medium">
                         {getText('Agregar una nota (opcional)', 'Add a note (optional)')}
                       </summary>
@@ -895,7 +876,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                         onChange={(e) => setNotes(e.target.value)}
                         rows={2}
                         maxLength={300}
-                        className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none"
+                        className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder:text-neutral-500 dark:focus:border-neutral-400"
                       />
                     </details>
                   </div>
@@ -903,9 +884,9 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
 
                 {/* Footer sticky — el submit siempre queda a la vista sin tener que
                     scrollear el formulario entero en pantallas chicas. */}
-                <div className="shrink-0 border-t border-gray-100 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-5">
+                <div className="shrink-0 border-t border-gray-100 p-4 dark:border-neutral-800 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-5">
                   {errorMsg && (
-                    <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{errorMsg}</p>
+                    <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">{errorMsg}</p>
                   )}
                   <button
                     type="submit"
@@ -933,12 +914,12 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
             onClick={closeWalkIn}
             aria-hidden="true"
           />
-          <div className="relative z-10 flex w-full flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:max-w-sm sm:rounded-3xl">
-            <div className="mx-auto mt-2 h-1.5 w-10 shrink-0 rounded-full bg-gray-300 sm:hidden" />
+          <div className="relative z-10 flex w-full flex-col overflow-hidden rounded-t-3xl bg-white dark:bg-neutral-900 shadow-2xl sm:max-w-sm sm:rounded-3xl">
+            <div className="mx-auto mt-2 h-1.5 w-10 shrink-0 rounded-full bg-gray-300 dark:bg-neutral-600 sm:hidden" />
             <button
               type="button"
               onClick={closeWalkIn}
-              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200"
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700"
               aria-label={getText('Cerrar', 'Close')}
             >
               ✕
@@ -946,11 +927,11 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
 
             {walkInStatus === 'success' ? (
               <div className="p-5 py-8 text-center sm:p-6">
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-2xl">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-2xl dark:bg-green-900/40 dark:text-green-300">
                   ✓
                 </div>
-                <p className="text-lg font-bold text-gray-900">{getText('¡Listo!', "You're in!")}</p>
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="text-lg font-bold text-gray-900 dark:text-neutral-100">{getText('¡Listo!', "You're in!")}</p>
+                <p className="mt-2 text-sm text-gray-500 dark:text-neutral-400">
                   {walkInPosition
                     ? getText(
                         `Estás en la fila — posición #${walkInPosition}. Te atenderán en el orden de llegada.`,
@@ -970,12 +951,12 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
             ) : (
               <form onSubmit={submitWalkIn} className="flex flex-col">
                 <div className="p-5 pt-4 sm:p-6">
-                  <p className="mb-4 pr-8 text-base font-black text-gray-900">
+                  <p className="mb-4 pr-8 text-base font-black text-gray-900 dark:text-neutral-100">
                     {getText('Únete a la fila', 'Join the queue')}
                   </p>
                   <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3.5">
                     <div>
-                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-neutral-400">
                         {getText('Servicio (opcional)', 'Service (optional)')}
                       </label>
                       <CustomSelect
@@ -987,7 +968,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-neutral-400">
                         {getText('Tu nombre', 'Your name')}
                       </label>
                       <input
@@ -996,11 +977,11 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                         maxLength={80}
                         value={walkInName}
                         onChange={(e) => setWalkInName(e.target.value)}
-                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none"
+                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder:text-neutral-500 dark:focus:border-neutral-400"
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500">
+                      <label className="mb-1 block text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-neutral-400">
                         {getText('Teléfono (opcional)', 'Phone (optional)')}
                       </label>
                       <input
@@ -1009,15 +990,15 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                         maxLength={17}
                         value={walkInPhone}
                         onChange={(e) => setWalkInPhone(formatPhoneInput(e.target.value))}
-                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none"
+                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder:text-neutral-500 dark:focus:border-neutral-400"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="shrink-0 border-t border-gray-100 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-5">
+                <div className="shrink-0 border-t border-gray-100 p-4 dark:border-neutral-800 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-5">
                   {walkInError && (
-                    <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{walkInError}</p>
+                    <p className="mb-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">{walkInError}</p>
                   )}
                   <button
                     type="submit"

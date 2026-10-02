@@ -95,7 +95,7 @@ export function PublicGalleryLightbox({
             src={images[openIndex]}
             alt=""
             className="max-h-[85vh] max-w-full rounded-lg object-contain"
-            style={{ boxShadow: `0 0 0 1px ${accent}33` }}
+            style={{ boxShadow: `0 0 0 1px color-mix(in srgb, ${accent} 20%, transparent)` }}
             onClick={(e) => e.stopPropagation()}
           />
 
