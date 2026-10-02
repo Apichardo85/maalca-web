@@ -118,47 +118,46 @@ export function ImageGalleryEditor({ slug, itemId, images, onChange, onError, ma
               </span>
             )}
 
-            <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-gradient-to-t from-black/70 to-transparent px-1 py-1 opacity-0 group-hover:opacity-100 transition">
-              <div className="flex gap-0.5">
+            {/* Quitar: siempre visible (en celular no existe "hover") */}
+            <button
+              type="button"
+              onClick={() => removeAt(idx)}
+              aria-label={getText('Quitar foto', 'Remove photo')}
+              className="absolute top-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-black/70 text-sm text-white shadow"
+            >
+              ✕
+            </button>
+
+            {/* Mover / portada: siempre visibles en pantallas táctiles, al pasar el mouse en escritorio */}
+            <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 bg-gradient-to-t from-black/70 to-transparent px-1 pb-1 pt-4 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition">
+              <button
+                type="button"
+                onClick={() => move(idx, -1)}
+                disabled={idx === 0}
+                aria-label={getText('Mover a la izquierda', 'Move left')}
+                className="flex h-8 w-8 items-center justify-center rounded-md bg-black/60 text-sm text-white disabled:opacity-30"
+              >
+                ←
+              </button>
+              {idx !== 0 && (
                 <button
                   type="button"
-                  onClick={() => move(idx, -1)}
-                  disabled={idx === 0}
-                  title={getText('Mover a la izquierda', 'Move left')}
-                  className="rounded bg-black/60 px-1.5 py-0.5 text-[11px] text-white disabled:opacity-30"
+                  onClick={() => makeCover(idx)}
+                  aria-label={getText('Hacer portada', 'Set as cover')}
+                  className="flex h-8 w-8 items-center justify-center rounded-md bg-black/60 text-sm text-white"
                 >
-                  ←
+                  ⭐
                 </button>
-                <button
-                  type="button"
-                  onClick={() => move(idx, 1)}
-                  disabled={idx === images.length - 1}
-                  title={getText('Mover a la derecha', 'Move right')}
-                  className="rounded bg-black/60 px-1.5 py-0.5 text-[11px] text-white disabled:opacity-30"
-                >
-                  →
-                </button>
-              </div>
-              <div className="flex gap-0.5">
-                {idx !== 0 && (
-                  <button
-                    type="button"
-                    onClick={() => makeCover(idx)}
-                    title={getText('Hacer portada', 'Set as cover')}
-                    className="rounded bg-black/60 px-1.5 py-0.5 text-[11px] text-white"
-                  >
-                    ⭐
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => removeAt(idx)}
-                  title={getText('Eliminar', 'Remove')}
-                  className="rounded bg-black/60 px-1.5 py-0.5 text-[11px] text-white"
-                >
-                  ✕
-                </button>
-              </div>
+              )}
+              <button
+                type="button"
+                onClick={() => move(idx, 1)}
+                disabled={idx === images.length - 1}
+                aria-label={getText('Mover a la derecha', 'Move right')}
+                className="flex h-8 w-8 items-center justify-center rounded-md bg-black/60 text-sm text-white disabled:opacity-30"
+              >
+                →
+              </button>
             </div>
           </div>
         ))}
@@ -182,8 +181,8 @@ export function ImageGalleryEditor({ slug, itemId, images, onChange, onError, ma
 
       <p className="mt-2 text-xs text-neutral-400 dark:text-neutral-600">
         {getText(
-          'La primera foto (Portada) es la que se usa en el catálogo y el Menu Board. JPEG, PNG, WebP · máx. 5 MB c/u.',
-          'The first photo (Cover) is the one used in the catalog and the Menu Board. JPEG, PNG, WebP · max. 5 MB each.',
+          'La primera foto (Portada) es la que se usa en el catálogo y el Menu Board. Usa ✕ para quitar, ← → para ordenar y ⭐ para hacerla portada. JPEG, PNG, WebP · máx. 5 MB c/u.',
+          'The first photo (Cover) is the one used in the catalog and the Menu Board. Use ✕ to remove, ← → to reorder and ⭐ to make it the cover. JPEG, PNG, WebP · max. 5 MB each.',
         )}
       </p>
 
