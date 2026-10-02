@@ -106,6 +106,9 @@ type Status = 'ready' | 'submitting' | 'success' | 'error';
  * reutilizaba PublicBookingSection, forzando al comensal por el flujo de barbería. Ver
  * docs/audits/business-type-flows-audit.md y TableReservation.cs en maalca-api.
  */
+/** Evento que abre el formulario de reserva desde cualquier parte de la página. */
+export const OPEN_TABLE_RESERVATION_EVENT = 'maalca:open-table-reservation';
+
 export function TableReservationSection({ slug, language, accent, horario, timezone }: Props) {
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const color = accent || '#045AFE';
@@ -135,6 +138,18 @@ export function TableReservationSection({ slug, language, accent, horario, timez
     setErrorMsg(null);
     setModalOpen(true);
   }
+
+  // Los botones "Reservar" de arriba (hero) abren el formulario directo en vez de mandar al
+  // visitante a bajar hasta esta sección y volver a pulsar.
+  useEffect(() => {
+    const onOpen = () => {
+      setStatus('ready');
+      setErrorMsg(null);
+      setModalOpen(true);
+    };
+    window.addEventListener(OPEN_TABLE_RESERVATION_EVENT, onOpen);
+    return () => window.removeEventListener(OPEN_TABLE_RESERVATION_EVENT, onOpen);
+  }, []);
 
   function closeModal() {
     setModalOpen(false);

@@ -31,7 +31,7 @@ import { ScrollStrip } from '@/components/public/ScrollStrip';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox';
-import { TableReservationSection } from '@/components/public/booking/TableReservationSection';
+import { TableReservationSection, OPEN_TABLE_RESERVATION_EVENT } from '@/components/public/booking/TableReservationSection';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { formatPrice } from '@/lib/currency';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
@@ -527,7 +527,7 @@ export function RestaurantTemplate({
               href="#reservar"
               onClick={(e) => {
                 e.preventDefault();
-                document.getElementById('reservar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                window.dispatchEvent(new Event(OPEN_TABLE_RESERVATION_EVENT));
               }}
               style={{
                 display: 'inline-flex',
