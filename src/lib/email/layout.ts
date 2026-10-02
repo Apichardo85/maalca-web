@@ -21,6 +21,17 @@
 
 export const MAALCA_BRAND_COLOR = '#045AFE';
 
+/**
+ * Logo de MaalCa para los correos propios de la plataforma (invitaciones, bienvenida…). Los correos
+ * de un negocio llevan el logo del negocio; los de MaalCa llevan este. URL absoluta y https: los
+ * clientes de correo no resuelven rutas relativas. Versión "light" = texto oscuro, para fondo claro.
+ */
+export const MAALCA_LOGO_URL = 'https://maalca.com/logo/maalca-full-light.png';
+
+function maalcaLogoImg(height: number): string {
+  return `<img src="${MAALCA_LOGO_URL}" alt="MaalCa" height="${height}" style="height: ${height}px; width: auto; max-width: 220px; display: block; margin: 0 auto;" />`;
+}
+
 /** Botón CTA reutilizable -- mismo markup que ya usaban las tarjetas ilustradas. */
 export function emailCtaButton(label: string, url: string, color: string = MAALCA_BRAND_COLOR): string {
   return `
@@ -59,7 +70,7 @@ export function renderCardEmail(opts: { bodyHtml: string; footerText: string; br
     : '';
   const header = opts.brand
     ? `${logo}<h1 style="color: ${color}; font-size: 22px; margin: 0;">${escHtml(opts.brand.name)}</h1>`
-    : `<h1 style="color: ${color}; font-size: 24px; margin: 0;">MaalCa</h1>`;
+    : maalcaLogoImg(40);
   const poweredBy = opts.brand
     ? `<p style="text-align: center; color: #a3a3a3; font-size: 11px; margin: 16px 0 0;">Enviado con MaalCa</p>`
     : '';
@@ -89,7 +100,7 @@ export function renderPlainEmail(bodyHtml: string, brand?: EmailBrand): string {
     : '';
   const header = brand
     ? `<div style="text-align: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid ${color};">${logo}<div style="color: ${color}; font-size: 18px; font-weight: 700;">${escHtml(brand.name)}</div></div>`
-    : '';
+    : `<div style="text-align: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid ${MAALCA_BRAND_COLOR};">${maalcaLogoImg(36)}</div>`;
   const footer = brand ? `<p style="text-align: center; color: #a3a3a3; font-size: 11px; margin: 24px 0 0;">Enviado con MaalCa</p>` : '';
   return `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1a1a1a; word-break: break-word; overflow-wrap: anywhere;">
