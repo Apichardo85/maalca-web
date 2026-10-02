@@ -121,6 +121,8 @@ export default async function DesignPage({
       name={biz.name ?? ''}
       whatsapp={biz.whatsapp ?? ''}
       primaryColor={biz.primaryColor ?? '#045AFE'}
+      secondaryColor={biz.secondaryColor ?? ''}
+      accentColor={biz.accentColor ?? ''}
       profileLoaded={publicProfile !== null}
       description={publicProfile?.description ?? ''}
       descriptionEn={publicProfile?.descriptionEn ?? ''}

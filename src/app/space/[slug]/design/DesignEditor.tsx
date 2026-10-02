@@ -33,6 +33,8 @@ interface Props {
   name: string;
   whatsapp: string;
   primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
   profileLoaded: boolean;
   description: string;
   descriptionEn: string;
@@ -63,6 +65,8 @@ export function DesignEditor({
   name,
   whatsapp,
   primaryColor,
+  secondaryColor,
+  accentColor,
   profileLoaded,
   description,
   descriptionEn,
@@ -92,7 +96,7 @@ export function DesignEditor({
   );
 
   const initialForm: ProfileFormState = {
-    name, description, descriptionEn, whatsapp, contactEmail, address, website, primaryColor, logoUrl, coverImageUrl,
+    name, description, descriptionEn, whatsapp, contactEmail, address, website, primaryColor, secondaryColor, accentColor, logoUrl, coverImageUrl,
   };
 
   // liveForm updates on every keystroke/click/upload. previewSnapshot only updates for the
@@ -174,6 +178,9 @@ export function DesignEditor({
       name: liveForm.name,
       whatsapp: sanitizeContactValue(liveForm.whatsapp),
       primaryColor: liveForm.primaryColor,
+      // '' borra el color (vuelve al cálculo automático); el API lo trata como "limpiar".
+      secondaryColor: liveForm.secondaryColor,
+      accentColor: liveForm.accentColor,
     };
     // The public-profile fetch can fail (see page.tsx) — only send gated fields we know are
     // real (successfully loaded) or that the user explicitly edited this session. Never send
@@ -231,6 +238,8 @@ export function DesignEditor({
     logo_url: liveForm.logoUrl,
     cover_image_url: liveForm.coverImageUrl,
     primary_color: liveForm.primaryColor,
+    secondary_color: liveForm.secondaryColor || null,
+    accent_color: liveForm.accentColor || null,
     whatsapp: previewSnapshot.whatsapp || null,
     address: previewSnapshot.address || null,
     contactEmail: previewSnapshot.contactEmail || null,

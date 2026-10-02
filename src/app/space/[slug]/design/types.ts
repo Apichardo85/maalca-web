@@ -19,6 +19,9 @@ export interface ProfileFormState {
   address: string;
   website: string;
   primaryColor: string;
+  /** '' = automático (la plantilla lo calcula desde el primario). */
+  secondaryColor: string;
+  accentColor: string;
   logoUrl: string | null;
   coverImageUrl: string | null;
 }

@@ -44,6 +44,10 @@ export interface PublicTemplateProps {
     logo_url?: string | null;
     cover_image_url?: string | null;
     primary_color?: string | null;
+    /** Superficies oscuras / hero / texto fuerte. null = se calcula desde el primario. */
+    secondary_color?: string | null;
+    /** Detalles: franja, resaltados. null = se calcula. */
+    accent_color?: string | null;
     whatsapp?: string | null;
     address?: string | null;
     contactEmail?: string | null;

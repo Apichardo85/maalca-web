@@ -45,7 +45,7 @@ const LINE = 'var(--bb-border, #dcdfe3)';
 // Franja de poste de barbero: acento / blanco / tinta, en diagonal. Es el motivo gráfico que
 // identifica la plantilla como barbería (hero y barra de acciones), con los colores de CADA negocio.
 const POLE_STRIPE =
-  'repeating-linear-gradient(-45deg, var(--bb-accent, #045AFE) 0 10px, #ffffff 10px 20px, var(--bb-ink, #151312) 20px 30px, #ffffff 30px 40px)';
+  'repeating-linear-gradient(-45deg, var(--bb-accent, #045AFE) 0 10px, #ffffff 10px 20px, var(--bb-stripe, var(--bb-ink, #151312)) 20px 30px, #ffffff 30px 40px)';
 
 function formatDuration(mins: number): string {
   if (mins < 60) return `${mins} min`;
@@ -61,7 +61,7 @@ export function BarberTemplate({
   capabilities,
 }: PublicTemplateProps) {
   const accent = business.primary_color ?? '#045AFE';
-  const paletteVars = brandPaletteVars(deriveBrandPalette(business.primary_color), 'bb');
+  const paletteVars = brandPaletteVars(deriveBrandPalette(business.primary_color, business.secondary_color, business.accent_color), 'bb');
   const waRaw = resolveWhatsAppDigits(business);
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -231,7 +231,7 @@ export function BarberTemplate({
           )}
 
           {/* "the blade" — single bold accent rule, the recurring graphic motif */}
-          <div style={{ height: '4px', width: '64px', backgroundColor: ACCENT, marginTop: '14px', marginBottom: '16px' }} />
+          <div style={{ height: '4px', width: '64px', backgroundColor: 'var(--bb-detail, #045AFE)', marginTop: '14px', marginBottom: '16px' }} />
 
           {openStatus && <BarberOpenPill status={openStatus} getText={getText} />}
 

@@ -152,7 +152,7 @@ export function RestaurantTemplate({
   capabilities,
 }: PublicTemplateProps) {
   const accent = business.primary_color ?? '#045AFE';
-  const paletteVars = brandPaletteVars(deriveBrandPalette(business.primary_color), 'rt');
+  const paletteVars = brandPaletteVars(deriveBrandPalette(business.primary_color, business.secondary_color, business.accent_color), 'rt');
   const waRaw = resolveWhatsAppDigits(business);
   const deliveryLinks = resolveDeliveryLinks(business);
 
@@ -304,6 +304,9 @@ export function RestaurantTemplate({
             />
           </>
         )}
+
+        {/* filo de acento al pie del hero: el color de detalle de la marca */}
+        <div aria-hidden style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '4px', zIndex: 2, backgroundColor: 'var(--rt-detail, var(--rt-accent, #C1522A))' }} />
 
         {/* language toggle — top-right corner, clear of the bottom-anchored
             content below and never covered by it at any viewport */}

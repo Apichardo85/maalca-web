@@ -22,6 +22,109 @@ const PALETTE = [
   { name: 'Índigo', hex: '#4338CA' },
 ];
 
+// Secundario = superficies oscuras (hero, barras, texto fuerte). Se sugieren tonos profundos.
+const SECONDARY_PALETTE = [
+  { name: 'Negro', hex: '#111111' },
+  { name: 'Carbón', hex: '#1F2937' },
+  { name: 'Azul noche', hex: '#0F172A' },
+  { name: 'Azul marino', hex: '#1E3A8A' },
+  { name: 'Vino', hex: '#4C0519' },
+  { name: 'Verde bosque', hex: '#064E3B' },
+  { name: 'Café oscuro', hex: '#3B1D0A' },
+  { name: 'Morado oscuro', hex: '#3B0764' },
+];
+
+// Acento = detalles (franjas, resaltados). Tonos vivos que contrastan con el primario.
+const ACCENT_PALETTE = [
+  { name: 'Dorado', hex: '#D4A017' },
+  { name: 'Blanco', hex: '#FFFFFF' },
+  { name: 'Crema', hex: '#F5E6C8' },
+  { name: 'Plata', hex: '#C0C0C0' },
+  { name: 'Rojo', hex: '#C8102E' },
+  { name: 'Azul', hex: '#045AFE' },
+  { name: 'Verde', hex: '#10B981' },
+  { name: 'Naranja', hex: '#F97316' },
+];
+
+interface ColorPickerRowProps {
+  label: string;
+  hint: string;
+  value: string;
+  options: { name: string; hex: string }[];
+  autoLabel: string;
+  customLabel: string;
+  onPick: (hex: string) => void;
+}
+
+/** Fila de colores: "Automático" (vacío) + swatches sugeridos + selector libre. */
+function ColorPickerRow({ label, hint, value, options, autoLabel, customLabel, onPick }: ColorPickerRowProps) {
+  const isAuto = value === '';
+  const isCustom = !isAuto && !options.some((o) => o.hex.toLowerCase() === value.toLowerCase());
+  return (
+    <div className="mt-5">
+      <div className="mb-1 flex items-center gap-2">
+        <label className="text-sm font-medium text-gray-700 dark:text-neutral-300">{label}</label>
+        {!isAuto && (
+          <span className="inline-block h-5 w-5 rounded-full border border-black/10" style={{ backgroundColor: value }} />
+        )}
+      </div>
+      <p className="mb-2 text-xs text-gray-500 dark:text-neutral-400">{hint}</p>
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => onPick('')}
+          className={`h-11 rounded-full border-2 px-3 text-xs font-medium transition focus:outline-none ${
+            isAuto
+              ? 'border-gray-900 bg-gray-900 text-white dark:border-white dark:bg-white dark:text-gray-900'
+              : 'border-gray-300 text-gray-600 hover:border-gray-400 dark:border-neutral-600 dark:text-neutral-300'
+          }`}
+        >
+          {autoLabel}
+        </button>
+        {options.map(({ name, hex }) => {
+          const selected = value.toLowerCase() === hex.toLowerCase();
+          return (
+            <button
+              key={hex}
+              type="button"
+              title={name}
+              onClick={() => onPick(hex)}
+              className="relative h-11 w-11 rounded-full border-2 transition focus:outline-none"
+              style={{
+                backgroundColor: hex,
+                borderColor: selected ? '#ffffff' : 'rgba(0,0,0,0.12)',
+                boxShadow: selected ? `0 0 0 2px ${hex}` : undefined,
+              }}
+            >
+              {selected && (
+                <svg className="absolute inset-0 m-auto h-5 w-5 drop-shadow" viewBox="0 0 24 24" fill="none" stroke={hex.toLowerCase() === '#ffffff' || hex.toLowerCase() === '#f5e6c8' || hex.toLowerCase() === '#c0c0c0' ? '#111111' : '#ffffff'} strokeWidth="3">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              )}
+            </button>
+          );
+        })}
+        <label
+          title={customLabel}
+          className={`relative flex h-11 w-11 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed text-lg transition ${
+            isCustom ? 'border-gray-900 dark:border-white' : 'border-gray-300 dark:border-neutral-600'
+          }`}
+          style={isCustom ? { backgroundColor: value } : undefined}
+        >
+          {!isCustom && <span className="text-gray-500 dark:text-neutral-400">+</span>}
+          <input
+            type="color"
+            value={isAuto ? '#888888' : value}
+            onChange={(e) => onPick(e.target.value.toUpperCase())}
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+            aria-label={customLabel}
+          />
+        </label>
+      </div>
+    </div>
+  );
+}
+
 interface Props {
   slug: string;
   form: ProfileFormState;
@@ -205,6 +308,28 @@ export function ConfigTab({ slug, form, businessType, onChange, onCommit, onComm
               </button>
             ))}
           </div>
+          <p className="mt-2 text-xs text-gray-500 dark:text-neutral-400">
+            {getText('Botones y acciones principales (Pedir, Reservar, Agendar).', 'Main buttons and actions (Order, Reserve, Book).')}
+          </p>
+
+          <ColorPickerRow
+            label={getText('Color secundario', 'Secondary color')}
+            hint={getText('Fondos oscuros: portada, barras y texto fuerte. Automático = se calcula del principal.', 'Dark surfaces: hero, bars and strong text. Auto = derived from the primary.')}
+            value={form.secondaryColor}
+            options={SECONDARY_PALETTE}
+            autoLabel={getText('Automático', 'Auto')}
+            customLabel={getText('Elegir otro color', 'Pick another color')}
+            onPick={(hex) => onChange('secondaryColor', hex)}
+          />
+          <ColorPickerRow
+            label={getText('Color de acento', 'Accent color')}
+            hint={getText('Detalles: franja de la barbería, resaltados y etiquetas. Automático = se calcula.', 'Details: barber stripe, highlights and tags. Auto = derived.')}
+            value={form.accentColor}
+            options={ACCENT_PALETTE}
+            autoLabel={getText('Automático', 'Auto')}
+            customLabel={getText('Elegir otro color', 'Pick another color')}
+            onPick={(hex) => onChange('accentColor', hex)}
+          />
         </div>
       </div>
 

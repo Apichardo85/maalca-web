@@ -75,11 +75,33 @@ export interface BrandPalette {
   placeholder: string;
   muted: string;
   heroOverlay: string;
+  /** Detalle decorativo (barra bajo el título del hero): el acento elegido, o el primario. */
+  detail: string;
+  /** 3er color de la franja de poste: el acento si se ve sobre blanco, si no la tinta. */
+  stripe: string;
 }
 
-export function deriveBrandPalette(primary: string | null | undefined, fallback = '#045AFE'): BrandPalette {
+/**
+ * Tres roles de color:
+ *  - primary   → acciones (botones, badges).
+ *  - secondary → superficies oscuras, hero y texto fuerte (tinta). Vacío = se calcula del primario.
+ *  - accent    → detalles (franja, resaltados). Vacío = se calcula.
+ * Con secondary, también los neutros (fondo, bordes, texto secundario) toman su matiz.
+ */
+export function deriveBrandPalette(
+  primary: string | null | undefined,
+  secondary?: string | null,
+  accentOverride?: string | null,
+  fallback = '#045AFE',
+): BrandPalette {
   const rgb = parseHex(primary ?? '') ?? parseHex(fallback)!;
-  const { h, s } = rgbToHsl(rgb);
+  const primaryHsl = rgbToHsl(rgb);
+  const secRgb = parseHex(secondary ?? '');
+  // Un secundario gris/negro puro no aporta matiz: los neutros siguen al primario salvo que el secundario sea cromático.
+  const secHsl = secRgb ? rgbToHsl(secRgb) : null;
+  const useSec = !!secHsl && secHsl.s >= 0.15;
+  const { h } = useSec ? secHsl! : primaryHsl;
+  const s = useSec ? secHsl!.s : primaryHsl.s;
   const accent = toHex(rgb);
   // Un primario casi gris (negro, plata) no tiene matiz real: neutros casi sin tinte.
   const tint = (amount: number) => clamp(s * amount, 0.04, 0.3);
@@ -99,8 +121,21 @@ export function deriveBrandPalette(primary: string | null | undefined, fallback 
   const dark = hslToRgb({ h, s: tint(0.5), l: 0.09 });
   const onAccent = contrast(rgb, white) >= contrast(rgb, dark) ? '#ffffff' : toHex(dark);
 
-  const inkRgb = hslToRgb({ h, s: tint(0.7), l: 0.08 });
+  // Tinta: el secundario elegido (oscurecido hasta que el texto blanco encima se lea ≥ 4.5:1) o la derivada.
+  let inkRgb = hslToRgb({ h, s: tint(0.7), l: 0.08 });
+  if (secRgb && secHsl) {
+    let il = secHsl.l;
+    inkRgb = secRgb;
+    for (let i = 0; i < 25 && contrast(inkRgb, white) < 4.5; i++) {
+      il = Math.max(0, il - 0.03);
+      inkRgb = hslToRgb({ h: secHsl.h, s: secHsl.s, l: il });
+    }
+  }
   const ink = toHex(inkRgb);
+  const accRgb = parseHex(accentOverride ?? '');
+  const detail = accRgb ? toHex(accRgb) : accent;
+  // Un acento casi blanco no se distingue de las bandas blancas de la franja: usa la tinta.
+  const stripe = accRgb && luminance(accRgb) < 0.8 ? toHex(accRgb) : ink;
   const inkRgba = (a: number) => `rgba(${inkRgb[0]},${inkRgb[1]},${inkRgb[2]},${a})`;
 
   return {
@@ -116,6 +151,8 @@ export function deriveBrandPalette(primary: string | null | undefined, fallback 
     placeholder: hsl(h, tint(0.45), 0.93),
     muted: hsl(h, clamp(s * 0.25, 0.04, 0.14), 0.4),
     heroOverlay: `linear-gradient(to top, ${inkRgba(0.92)} 0%, ${inkRgba(0.6)} 55%, ${inkRgba(0.4)} 100%)`,
+    detail,
+    stripe,
   };
 }
 
@@ -134,5 +171,7 @@ export function brandPaletteVars(p: BrandPalette, prefix: string): Record<string
     [`--${prefix}-placeholder`]: p.placeholder,
     [`--${prefix}-muted`]: p.muted,
     [`--${prefix}-hero-overlay`]: p.heroOverlay,
+    [`--${prefix}-detail`]: p.detail,
+    [`--${prefix}-stripe`]: p.stripe,
   };
 }

@@ -246,6 +246,8 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
           logo_url: affiliate.logoUrl,
           cover_image_url: affiliate.coverImageUrl ?? null,
           primary_color: affiliate.primaryColor,
+          secondary_color: affiliate.secondaryColor ?? null,
+          accent_color: affiliate.accentColor ?? null,
           whatsapp: whatsappValue,
           address: affiliate.address ?? null,
           contactEmail: affiliate.contactEmail ?? null,
@@ -286,6 +288,8 @@ interface PublicCatalogResponse {
     logoUrl?: string | null;
     coverImageUrl?: string | null;
     primaryColor?: string | null;
+    secondaryColor?: string | null;
+    accentColor?: string | null;
     whatsapp?: string | null;
     address?: string | null;
     contactEmail?: string | null;
