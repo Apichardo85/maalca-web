@@ -193,10 +193,10 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
       >
         {business.logo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={business.logo_url} alt={business.name} className="h-11 w-11 shrink-0 rounded-xl object-cover" />
+          <img src={business.logo_url} alt={business.name} className="h-14 w-14 shrink-0 rounded-xl object-cover" />
         ) : (
           <div
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-base font-semibold"
+            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-base font-semibold"
             style={{ backgroundColor: accent, color: ON_ACCENT }}
           >
             {business.name.charAt(0).toUpperCase()}
@@ -254,10 +254,10 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
             <div className="flex items-start justify-between gap-3">
               {business.logo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={business.logo_url} alt={business.name} className="h-16 w-16 rounded-2xl object-cover" />
+                <img src={business.logo_url} alt={business.name} className="h-20 w-20 rounded-2xl object-cover" />
               ) : (
                 <div
-                  className="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-semibold"
+                  className="flex h-20 w-20 items-center justify-center rounded-2xl text-2xl font-semibold"
                   style={{ backgroundColor: accent, color: ON_ACCENT }}
                 >
                   {business.name.charAt(0).toUpperCase()}

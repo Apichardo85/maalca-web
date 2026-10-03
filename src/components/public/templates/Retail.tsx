@@ -197,9 +197,9 @@ export function RetailTemplate({
               alt={business.name}
               style={{
                 display: 'block',
-                width: '60px',
-                height: '60px',
-                borderRadius: '8px',
+                width: '78px',
+                height: '78px',
+                borderRadius: '11px',
                 objectFit: 'cover',
                 border: '2px solid rgba(255,255,255,0.3)',
                 marginBottom: '14px',
@@ -208,9 +208,9 @@ export function RetailTemplate({
           ) : (
             <div
               style={{
-                width: '60px',
-                height: '60px',
-                borderRadius: '8px',
+                width: '78px',
+                height: '78px',
+                borderRadius: '11px',
                 backgroundColor: 'rgba(255,255,255,0.15)',
                 border: '2px solid rgba(255,255,255,0.3)',
                 display: 'flex',
@@ -220,7 +220,7 @@ export function RetailTemplate({
                 marginBottom: '14px',
               }}
             >
-              <NoImageIcon size={26} />
+              <NoImageIcon size={30} />
             </div>
           )}
 

@@ -207,9 +207,9 @@ export function BarberTemplate({
               alt={business.name}
               style={{
                 display: 'block',
-                width: '60px',
-                height: '60px',
-                borderRadius: '8px',
+                width: '78px',
+                height: '78px',
+                borderRadius: '11px',
                 objectFit: 'cover',
                 border: '2px solid rgba(255,255,255,0.25)',
                 marginBottom: '14px',
@@ -218,15 +218,15 @@ export function BarberTemplate({
           ) : (
             <div
               style={{
-                width: '60px',
-                height: '60px',
-                borderRadius: '8px',
+                width: '78px',
+                height: '78px',
+                borderRadius: '11px',
                 backgroundColor: 'rgba(255,255,255,0.1)',
                 border: '2px solid rgba(255,255,255,0.25)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '26px',
+                fontSize: '30px',
                 marginBottom: '14px',
               }}
             >

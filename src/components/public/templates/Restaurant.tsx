@@ -530,9 +530,9 @@ export function RestaurantTemplate({
               alt={business.name}
               style={{
                 display: 'block',
-                width: '64px',
-                height: '64px',
-                borderRadius: '12px',
+                width: '84px',
+                height: '84px',
+                borderRadius: '16px',
                 objectFit: 'cover',
                 border: '2px solid rgba(255,255,255,0.2)',
                 marginBottom: '12px',
@@ -541,15 +541,15 @@ export function RestaurantTemplate({
           ) : (
             <div
               style={{
-                width: '64px',
-                height: '64px',
-                borderRadius: '12px',
+                width: '84px',
+                height: '84px',
+                borderRadius: '16px',
                 backgroundColor: 'rgba(255,255,255,0.15)',
                 border: '2px solid rgba(255,255,255,0.2)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '28px',
+                fontSize: '32px',
                 marginBottom: '12px',
               }}
             >
