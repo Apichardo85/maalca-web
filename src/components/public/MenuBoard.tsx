@@ -1,9 +1,24 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { categoryLabel } from '@/lib/category-label';
 import { formatPrice as formatCurrencyPrice } from '@/lib/currency';
+
+// Screen Wake Lock API — tipos propios (con nombre distinto a los de lib.dom, por si el
+// TS target ya los trae) para no depender de qué tan reciente sea la lib del proyecto.
+// Soportado en Chrome/Edge/Android desde hace años; ausente en algunos navegadores/iOS
+// Safari viejos — por eso todo el request va en try/catch y degrada a "no-op" sin romper nada.
+interface BoardWakeLockSentinel {
+  released: boolean;
+  release: () => Promise<void>;
+  addEventListener: (type: 'release', listener: () => void) => void;
+}
+interface NavigatorWithWakeLock extends Navigator {
+  wakeLock?: {
+    request: (type: 'screen') => Promise<BoardWakeLockSentinel>;
+  };
+}
 
 type BoardItem = PublicTemplateProps['items'][number];
 type BoardCategory = PublicTemplateProps['categories'][number];
@@ -72,6 +87,14 @@ const REFRESH_INTERVAL_MS = 3 * 60 * 1000;
 /** How long each slide (one category, up to ITEMS_PER_SLIDE items) stays on screen. */
 const SLIDE_INTERVAL_MS = 9000;
 const ITEMS_PER_SLIDE = 6;
+
+/** Watchdog: cada cuánto se revisa si el polling sigue vivo. */
+const WATCHDOG_CHECK_INTERVAL_MS = 60 * 1000;
+/** Si pasa este tiempo sin un refresh exitoso (3 ciclos de polling, ~9 min), algo se
+ *  colgó — tab congelada, catálogo caído, lo que sea — y se fuerza un reload completo de
+ *  la página en vez de seguir mostrando contenido potencialmente viejo para siempre. Un
+ *  reload es gratis aquí: no hay estado del visitante que perder, es una pantalla pasiva. */
+const STALE_RELOAD_THRESHOLD_MS = REFRESH_INTERVAL_MS * 3;
 
 interface CatalogPayload {
   items: BoardItem[];
@@ -208,6 +231,49 @@ export function MenuBoard({
   });
   const [slideIndex, setSlideIndex] = useState(0);
 
+  // Último refresh exitoso del catálogo — lo usa el watchdog de abajo para decidir si la
+  // pantalla se "colgó". En un ref (no state) porque no debe disparar un re-render.
+  const lastSuccessRef = useRef(Date.now());
+
+  // Screen Wake Lock — evita que el sistema apague la pantalla mientras esta pestaña está
+  // activa (sin esto, el board depende por completo de la política de ahorro de energía del
+  // dispositivo/TV, que normalmente NO sabe que esta pestaña debe quedarse siempre visible).
+  // El lock se libera solo cuando la pestaña pierde visibilidad (p. ej. si alguien minimiza
+  // o cambia de ventana en la TV) — por eso se re-pide en 'visibilitychange'.
+  useEffect(() => {
+    let wakeLock: BoardWakeLockSentinel | null = null;
+    let cancelled = false;
+
+    async function requestWakeLock() {
+      try {
+        const nav = navigator as NavigatorWithWakeLock;
+        if (!nav.wakeLock) return;
+        const lock = await nav.wakeLock.request('screen');
+        if (cancelled) {
+          await lock.release().catch(() => {});
+          return;
+        }
+        wakeLock = lock;
+      } catch {
+        // No soportado, o el navegador lo negó (batería baja, política del sistema, etc.) —
+        // la pantalla sigue funcionando igual, solo sin esta protección extra.
+      }
+    }
+
+    requestWakeLock();
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'visible') requestWakeLock();
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      wakeLock?.release().catch(() => {});
+    };
+  }, []);
+
   // Poll for catalog changes made from the dashboard — this is the whole point of the
   // board being "remote-updatable": the TV never needs to be touched. Now also picks up
   // comerciales nuevos/pausados y cambios de frecuencia sin reabrir la pestaña.
@@ -223,12 +289,27 @@ export function MenuBoard({
           screenAds: data.screenAds ?? [],
           adFrequency: data.adFrequency ?? null,
         });
+        lastSuccessRef.current = Date.now();
       } catch {
         // Transient network hiccup — keep showing the last good catalog, try again next tick.
       }
     }, REFRESH_INTERVAL_MS);
     return () => clearInterval(poll);
   }, [slug]);
+
+  // Watchdog — si pasan varios ciclos de polling sin un refresh exitoso (tab congelada, red
+  // caída, lo que sea), fuerza un reload completo en vez de quedarse mostrando contenido
+  // potencialmente viejo indefinidamente. No depende de que el fetch "falle" explícitamente:
+  // una pestaña verdaderamente congelada tampoco corre el setInterval del poll, pero sí este
+  // otro interval (están desacoplados), así que esta revisión sola detecta ambos casos.
+  useEffect(() => {
+    const watchdog = setInterval(() => {
+      if (Date.now() - lastSuccessRef.current > STALE_RELOAD_THRESHOLD_MS) {
+        window.location.reload();
+      }
+    }, WATCHDOG_CHECK_INTERVAL_MS);
+    return () => clearInterval(watchdog);
+  }, []);
 
   const slides = useMemo(() => {
     const menuSlides = buildMenuSlides(catalog.items, catalog.categories ?? []);
