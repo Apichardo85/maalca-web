@@ -68,6 +68,57 @@ const STATUS_LABELS: Record<string, { es: string; en: string }> = {
   Canceled: { es: 'Cancelado', en: 'Canceled' },
 };
 
+const esc = (v: string) => v.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
+
+/** Ticket de cocina (80 mm / térmica): abre el diálogo de impresión del navegador con un layout monocromo y grande. */
+function printTicket(order: OrderRow, slug: string, language: 'es' | 'en') {
+  const t = (es: string, en: string) => (language === 'es' ? es : en);
+  const money = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: order.currency || 'USD' }).format(n);
+  const kind = order.tableNumber
+    ? `${t('MESA', 'TABLE')} ${order.tableNumber}`
+    : order.paymentMethod === 'PayAtPickup' ? t('PARA RECOGER', 'PICKUP') : t('PEDIDO ONLINE', 'ONLINE ORDER');
+  const payLater = order.paymentMethod === 'PayAtPickup' || order.paymentMethod === 'PayAtTable';
+  const unpaid = payLater && order.status !== 'Fulfilled';
+  const when = new Date(order.createdAt).toLocaleString(language === 'es' ? 'es-DO' : 'en-US');
+  const items = order.items.map((i) =>
+    `<div class="it"><b>${i.qty}x</b> ${esc(i.name)}</div>${i.notes ? `<div class="nt">&gt;&gt; ${esc(i.notes)}</div>` : ''}`).join('');
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Ticket</title><style>
+    @page { size: 80mm auto; margin: 3mm; }
+    body { font-family: 'Courier New', monospace; width: 74mm; margin: 0; color: #000; font-size: 13px; }
+    h1 { font-size: 20px; text-align: center; margin: 0 0 4px; } .c { text-align: center; }
+    .big { font-size: 18px; font-weight: 700; text-align: center; border: 2px solid #000; padding: 4px; margin: 6px 0; }
+    hr { border: 0; border-top: 1px dashed #000; margin: 6px 0; }
+    .it { font-size: 16px; margin-top: 5px; } .nt { font-size: 14px; font-weight: 700; margin-left: 14px; }
+    .row { display: flex; justify-content: space-between; } .tot { font-size: 16px; font-weight: 700; }
+  </style></head><body>
+    <h1>${esc(slug)}</h1>
+    <div class="big">${esc(kind)}</div>
+    ${order.scheduledFor ? `<div class="c"><b>${t('PROGRAMADO', 'SCHEDULED')}: ${esc(formatScheduledFor(order.scheduledFor, language))}</b></div>` : ''}
+    <div>${esc(when)}</div>
+    <div>#${esc(order.id.slice(0, 8).toUpperCase())}</div>
+    ${order.customerName ? `<div><b>${esc(order.customerName)}</b></div>` : ''}
+    ${order.customerPhone ? `<div>${esc(order.customerPhone)}</div>` : ''}
+    <hr>${items}<hr>
+    ${order.notes ? `<div><b>${t('Notas', 'Notes')}:</b> ${esc(order.notes)}</div><hr>` : ''}
+    <div class="row"><span>Subtotal</span><span>${money(order.subtotal)}</span></div>
+    ${order.tax ? `<div class="row"><span>Tax</span><span>${money(order.tax)}</span></div>` : ''}
+    ${order.tip ? `<div class="row"><span>${t('Propina', 'Tip')}</span><span>${money(order.tip)}</span></div>` : ''}
+    <div class="row tot"><span>TOTAL</span><span>${money(order.total)}</span></div>
+    ${unpaid ? `<div class="big">${t('COBRAR AL ENTREGAR', 'COLLECT PAYMENT')}</div>` : `<div class="c">${t('Pagado', 'Paid')}</div>`}
+  </body></html>`;
+  const frame = document.createElement('iframe');
+  frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+  document.body.appendChild(frame);
+  const doc = frame.contentWindow?.document;
+  if (!doc || !frame.contentWindow) { frame.remove(); return; }
+  doc.open(); doc.write(html); doc.close();
+  setTimeout(() => {
+    frame.contentWindow?.focus();
+    frame.contentWindow?.print();
+    setTimeout(() => frame.remove(), 2000);
+  }, 250);
+}
+
 export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -242,9 +293,15 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
                       {new Date(order.createdAt).toLocaleString(language === 'es' ? 'es-DO' : 'en-US')}
                     </p>
                   </div>
-                  <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_STYLES[order.status]}`}>
-                    {STATUS_LABELS[order.status]?.[language] ?? order.status}
-                  </span>
+                  {(() => {
+                    // Pedido que se paga al recoger / al mesero: "Paid" internamente significa ACEPTADO, no cobrado.
+                    const payLater = (order.paymentMethod === 'PayAtPickup' || order.paymentMethod === 'PayAtTable') && order.status === 'Paid';
+                    return (
+                      <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${payLater ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' : STATUS_STYLES[order.status]}`}>
+                        {payLater ? getText('Aceptado', 'Accepted') : (STATUS_LABELS[order.status]?.[language] ?? order.status)}
+                      </span>
+                    );
+                  })()}
                 </div>
 
                 <ul className="mt-3 space-y-1">
@@ -260,6 +317,14 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
                     </li>
                   ))}
                 </ul>
+
+                <button
+                  type="button"
+                  onClick={() => printTicket(order, slug, language)}
+                  className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-full border border-gray-200 px-3 text-xs font-medium text-gray-600 hover:border-brand-primary hover:text-brand-primary dark:border-neutral-700 dark:text-neutral-300"
+                >
+                  🖨️ {getText('Imprimir ticket', 'Print ticket')}
+                </button>
 
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 dark:border-neutral-800 pt-3">
                   <span className="text-sm font-bold">
