@@ -34,6 +34,11 @@ export interface OrderRow {
   paymentMethod?: string | null;
   // Pedido programado: "yyyy-MM-dd" de la apertura para la que se pidió (el negocio estaba cerrado).
   scheduledFor?: string | null;
+  // Cobro en el local (pagar al recoger / mesero): null = por cobrar. method: Cash | Card | Other.
+  collectedAt?: string | null;
+  collectedMethod?: string | null;
+  // Hora estimada de entrega (ISO) que se fija al aceptar; el cliente la ve en /t/{token}.
+  estimatedReadyAt?: string | null;
 }
 
 /** "2026-10-03" -> "mié, 3 oct". Se arma con partes numéricas para no correrse de día por zona horaria. */
@@ -78,7 +83,7 @@ function printTicket(order: OrderRow, slug: string, language: 'es' | 'en') {
     ? `${t('MESA', 'TABLE')} ${order.tableNumber}`
     : order.paymentMethod === 'PayAtPickup' ? t('PARA RECOGER', 'PICKUP') : t('PEDIDO ONLINE', 'ONLINE ORDER');
   const payLater = order.paymentMethod === 'PayAtPickup' || order.paymentMethod === 'PayAtTable';
-  const unpaid = payLater && order.status !== 'Fulfilled';
+  const unpaid = payLater && !order.collectedAt;
   const when = new Date(order.createdAt).toLocaleString(language === 'es' ? 'es-DO' : 'en-US');
   const items = order.items.map((i) =>
     `<div class="it"><b>${i.qty}x</b> ${esc(i.name)}</div>${i.notes ? `<div class="nt">&gt;&gt; ${esc(i.notes)}</div>` : ''}`).join('');
@@ -104,7 +109,7 @@ function printTicket(order: OrderRow, slug: string, language: 'es' | 'en') {
     ${order.tax ? `<div class="row"><span>Tax</span><span>${money(order.tax)}</span></div>` : ''}
     ${order.tip ? `<div class="row"><span>${t('Propina', 'Tip')}</span><span>${money(order.tip)}</span></div>` : ''}
     <div class="row tot"><span>TOTAL</span><span>${money(order.total)}</span></div>
-    ${unpaid ? `<div class="big">${t('COBRAR AL ENTREGAR', 'COLLECT PAYMENT')}</div>` : `<div class="c">${t('Pagado', 'Paid')}</div>`}
+    ${unpaid ? `<div class="big">${t('COBRAR AL ENTREGAR', 'COLLECT PAYMENT')}</div>` : `<div class="c">${t('Pagado', 'Paid')}${order.collectedMethod ? ` (${order.collectedMethod})` : ''}</div>`}
   </body></html>`;
   const frame = document.createElement('iframe');
   frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
@@ -124,6 +129,9 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const [orders, setOrders] = useState(initialOrders);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [collectingId, setCollectingId] = useState<string | null>(null);
+  // Minutos estimados que se envían al aceptar un pedido (el cliente los ve en su enlace de seguimiento).
+  const [acceptEta, setAcceptEta] = useState(15);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const toast = useToast();
   const [query, setQuery] = useState('');
@@ -145,23 +153,68 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
   const visibleOrders = statusFilter === 'all' ? searched : searched.filter((o) => o.status === statusFilter);
   const filtering = !!q || statusFilter !== 'all';
 
-  async function updateStatus(orderId: string, status: string) {
+  async function updateStatus(orderId: string, status: string, estimatedMinutes?: number) {
     setUpdatingId(orderId);
     try {
       const res = await fetch(`/api/space/${slug}/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, estimatedMinutes }),
       });
       if (res.ok) {
         const updated = await res.json();
-        setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: updated.status } : o)));
+        setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: updated.status, estimatedReadyAt: updated.estimatedReadyAt ?? o.estimatedReadyAt } : o)));
         toast.success(getText('Pedido actualizado.', 'Order updated.'));
       } else {
         toast.error(getText('No se pudo actualizar. Intenta de nuevo.', "Couldn't update. Try again."));
       }
     } catch {
       toast.error(getText('No se pudo actualizar. Intenta de nuevo.', "Couldn't update. Try again."));
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
+  async function setEta(orderId: string, minutes: number) {
+    setUpdatingId(orderId);
+    try {
+      const res = await fetch(`/api/space/${slug}/orders/${orderId}/eta`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ minutes }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, estimatedReadyAt: updated.estimatedReadyAt } : o)));
+        toast.success(getText('Tiempo estimado actualizado.', 'Estimated time updated.'));
+      } else {
+        toast.error(getText('No se pudo actualizar el tiempo.', "Couldn't update the time."));
+      }
+    } catch {
+      toast.error(getText('No se pudo actualizar el tiempo.', "Couldn't update the time."));
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
+  async function collectPayment(orderId: string, method: 'Cash' | 'Card' | 'Other') {
+    setUpdatingId(orderId);
+    try {
+      const res = await fetch(`/api/space/${slug}/orders/${orderId}/collect`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ method }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, collectedAt: updated.collectedAt, collectedMethod: updated.collectedMethod } : o)));
+        setCollectingId(null);
+        toast.success(getText('Cobro registrado.', 'Payment recorded.'));
+      } else {
+        toast.error(getText('No se pudo registrar el cobro.', "Couldn't record the payment."));
+      }
+    } catch {
+      toast.error(getText('No se pudo registrar el cobro.', "Couldn't record the payment."));
     } finally {
       setUpdatingId(null);
     }
@@ -289,6 +342,17 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
                         📅 {getText('Programado para', 'Scheduled for')} {formatScheduledFor(order.scheduledFor, language)}
                       </p>
                     )}
+                    {(order.paymentMethod === 'PayAtPickup' || order.paymentMethod === 'PayAtTable') && ['Paid', 'Preparing', 'Fulfilled'].includes(order.status) && (
+                      order.collectedAt ? (
+                        <p className="mt-1 inline-block rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                          💵 {getText('Cobrado', 'Collected')} · {order.collectedMethod === 'Cash' ? getText('Efectivo', 'Cash') : order.collectedMethod === 'Card' ? getText('Tarjeta', 'Card') : order.collectedMethod === 'Online' ? getText('Tarjeta (online)', 'Card (online)') : getText('Otro', 'Other')}
+                        </p>
+                      ) : (
+                        <p className="mt-1 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                          ⏳ {getText('Por cobrar', 'To collect')}
+                        </p>
+                      )
+                    )}
                     <p className="mt-1 text-xs text-gray-400 dark:text-neutral-500">
                       {new Date(order.createdAt).toLocaleString(language === 'es' ? 'es-DO' : 'en-US')}
                     </p>
@@ -318,6 +382,20 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
                   ))}
                 </ul>
 
+                {(order.status === 'Paid' || order.status === 'Preparing') && order.estimatedReadyAt && (
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-600 dark:text-neutral-300">
+                    <span>⏱️ {getText('Listo aprox.', 'Ready about')} <strong>{new Date(order.estimatedReadyAt).toLocaleTimeString(language === 'es' ? 'es' : 'en-US', { hour: 'numeric', minute: '2-digit' })}</strong></span>
+                    <button
+                      type="button"
+                      disabled={updatingId === order.id}
+                      onClick={() => setEta(order.id, Math.max(1, Math.ceil((new Date(order.estimatedReadyAt!).getTime() - Date.now()) / 60000)) + 5)}
+                      className="rounded-full border border-gray-300 px-2.5 py-1 font-medium hover:border-brand-primary hover:text-brand-primary disabled:opacity-50 dark:border-neutral-700"
+                    >
+                      +5 min
+                    </button>
+                  </div>
+                )}
+
                 <button
                   type="button"
                   onClick={() => printTicket(order, slug, language)}
@@ -325,6 +403,40 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
                 >
                   🖨️ {getText('Imprimir ticket', 'Print ticket')}
                 </button>
+
+                {(order.paymentMethod === 'PayAtPickup' || order.paymentMethod === 'PayAtTable') && ['Paid', 'Preparing', 'Fulfilled'].includes(order.status) && !order.collectedAt && (
+                  collectingId === order.id ? (
+                    <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-900/50 dark:bg-amber-950/20">
+                      <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">
+                        {getText(`¿Cómo cobraste ${fmt(order.total, order.currency)}?`, `How did you collect ${fmt(order.total, order.currency)}?`)}
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {([['Cash', '💵', 'Efectivo', 'Cash'], ['Card', '💳', 'Tarjeta', 'Card'], ['Other', '🧾', 'Otro', 'Other']] as const).map(([m, icon, es, en]) => (
+                          <button
+                            key={m}
+                            type="button"
+                            disabled={updatingId === order.id}
+                            onClick={() => collectPayment(order.id, m)}
+                            className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-full border border-gray-300 bg-white px-4 text-sm font-medium hover:border-brand-primary hover:text-brand-primary disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900"
+                          >
+                            {icon} {getText(es, en)}
+                          </button>
+                        ))}
+                        <button type="button" onClick={() => setCollectingId(null)} className="px-2 text-xs text-gray-500 underline">
+                          {getText('Cancelar', 'Cancel')}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setCollectingId(order.id)}
+                      className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-brand-primary px-4 text-sm font-semibold text-white hover:opacity-90"
+                    >
+                      💵 {getText(`Cobrar ${fmt(order.total, order.currency)}`, `Collect ${fmt(order.total, order.currency)}`)}
+                    </button>
+                  )
+                )}
 
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 dark:border-neutral-800 pt-3">
                   <span className="text-sm font-bold">
@@ -355,7 +467,20 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
                     </button>
                   )}
                   {order.status === 'Pending' && (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex w-full flex-wrap items-center justify-end gap-2">
+                      <div className="mr-auto flex items-center gap-1.5 text-xs text-gray-500 dark:text-neutral-400">
+                        <span>⏱️ {getText('Listo en', 'Ready in')}</span>
+                        {[10, 15, 20, 30].map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => setAcceptEta(m)}
+                            className={`min-h-9 rounded-full border px-3 text-xs font-medium ${acceptEta === m ? 'border-brand-primary bg-brand-primary text-white' : 'border-gray-300 dark:border-neutral-700'}`}
+                          >
+                            {m}′
+                          </button>
+                        ))}
+                      </div>
                       <button
                         onClick={() => updateStatus(order.id, 'Canceled')}
                         disabled={updatingId === order.id}
@@ -364,7 +489,7 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
                         {getText('Cancelar', 'Cancel')}
                       </button>
                       <button
-                        onClick={() => updateStatus(order.id, 'Paid')}
+                        onClick={() => updateStatus(order.id, 'Paid', acceptEta)}
                         disabled={updatingId === order.id}
                         className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-4 text-xs font-medium hover:border-brand-primary hover:text-brand-primary disabled:opacity-50"
                       >

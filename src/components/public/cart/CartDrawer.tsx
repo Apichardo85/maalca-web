@@ -109,6 +109,8 @@ export function CartDrawer({
   // Pedido para recoger pagando en el local: se envía al panel del restaurante, sin WhatsApp ni tarjeta.
   const [pickupPlaced, setPickupPlaced] = useState(false)
   const [pickupError, setPickupError] = useState('')
+  // Token de seguimiento (/t/{token}) del pedido recién enviado — un solo enlace en lugar de correos por cada cambio.
+  const [trackingToken, setTrackingToken] = useState<string | null>(null)
   // null = sin propina, number = porcentaje del preset elegido (ej. 0.15), 'custom' = usa customTip.
   const [tipMode, setTipMode] = useState<number | 'custom' | null>(null)
   const [customTip, setCustomTip] = useState('')
@@ -229,6 +231,15 @@ export function CartDrawer({
         setPickupError(data?.error?.message ?? getText('No pudimos enviar el pedido. Inténtalo de nuevo.', 'We could not send the order. Please try again.'))
         setCheckoutState('error')
         return
+      }
+      const placed = await res.json().catch(() => null)
+      const tk: string | null = placed?.trackingToken ?? null
+      setTrackingToken(tk)
+      if (tk) {
+        try {
+          const prev = JSON.parse(localStorage.getItem('maalca_orders') ?? '[]')
+          localStorage.setItem('maalca_orders', JSON.stringify([{ slug, token: tk, at: Date.now() }, ...prev].slice(0, 10)))
+        } catch { /* sin storage: el enlace igual se muestra en pantalla */ }
       }
       setPickupPlaced(true)
       setCheckoutState('placed')
@@ -796,6 +807,29 @@ export function CartDrawer({
               {getText(
                 '¡Pedido enviado! El restaurante lo confirmará en un momento y pagas al recogerlo.',
                 'Order sent! The restaurant will confirm it shortly and you pay when you pick it up.',
+              )}
+            </p>
+          )}
+          {pickupPlaced && trackingToken && (
+            <a
+              href={`/t/${trackingToken}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%',
+                backgroundColor: '#1a1a1a', color: '#ffffff', borderRadius: '9999px', padding: '14px',
+                fontWeight: 600, fontSize: '14px', textDecoration: 'none', minHeight: '48px',
+                boxSizing: 'border-box', marginBottom: '10px',
+              }}
+            >
+              {getText('Seguir mi pedido →', 'Track my order →')}
+            </a>
+          )}
+          {pickupPlaced && trackingToken && (
+            <p style={{ margin: '0 0 10px', fontSize: '12px', color: '#777', textAlign: 'center' }}>
+              {getText(
+                'Guarda este enlace: ahí ves el estado y la hora estimada sin que te escribamos.',
+                'Save this link: you can see the status and estimated time there, no extra messages.',
               )}
             </p>
           )}

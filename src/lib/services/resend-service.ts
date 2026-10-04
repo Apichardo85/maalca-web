@@ -324,6 +324,10 @@ export async function sendOrderConfirmationEmail(params: {
   total: number;
   currency: string;
   brand?: EmailBrand;
+  /** Enlace de seguimiento /t/{token}: el único correo del pedido lo lleva. */
+  trackUrl?: string | null;
+  /** 'received' = pedido para pagar en el local (aún no confirmado por el negocio). */
+  kind?: 'confirmed' | 'received';
 }): Promise<boolean> {
   if (!resend) {
     console.log('[Resend] Skipped order confirmation — RESEND_API_KEY not set');
@@ -334,8 +338,8 @@ export async function sendOrderConfirmationEmail(params: {
     await resend.emails.send({
       from: fromFor(params.brand),
       to: params.customerEmail,
-      subject: `Pedido confirmado — ${params.businessName}`,
-      html: buildOrderStatusEmail({ ...params, kind: 'confirmed' }),
+      subject: params.kind === 'received' ? `Recibimos tu pedido — ${params.businessName}` : `Pedido confirmado — ${params.businessName}`,
+      html: buildOrderStatusEmail({ ...params, kind: params.kind ?? 'confirmed' }),
     });
     return true;
   } catch (err: unknown) {
@@ -379,7 +383,8 @@ export async function sendOrderFulfilledEmail(params: {
 }
 
 function buildOrderStatusEmail(params: {
-  kind: 'confirmed' | 'fulfilled';
+  kind: 'confirmed' | 'fulfilled' | 'received';
+  trackUrl?: string | null;
   customerName: string | null;
   businessName: string;
   orderId: string;
@@ -392,11 +397,19 @@ function buildOrderStatusEmail(params: {
   const title =
     params.kind === 'confirmed'
       ? `Tu pedido en ${params.businessName} fue confirmado ✅`
-      : `Tu pedido en ${params.businessName} está listo 🎉`;
+      : params.kind === 'received'
+        ? `Recibimos tu pedido en ${params.businessName} 🛍️`
+        : `Tu pedido en ${params.businessName} está listo 🎉`;
   const body =
     params.kind === 'confirmed'
-      ? 'Recibimos tu pago y tu pedido ya está en proceso. Te avisaremos cuando esté listo.'
-      : 'Tu pedido ya está listo. Si tienes dudas, responde a este correo o contacta directamente al negocio.';
+      ? 'Recibimos tu pago y tu pedido ya está en proceso.'
+      : params.kind === 'received'
+        ? 'Tu pedido ya está en el restaurante. Pagas al recogerlo.'
+        : 'Tu pedido ya está listo. Si tienes dudas, responde a este correo o contacta directamente al negocio.';
+  const trackBlock = params.trackUrl
+    ? `${emailCtaButton('Seguir mi pedido →', params.trackUrl)}
+      <p style="color: #737373; font-size: 13px; line-height: 1.5;">Desde ese enlace ves en qué paso va y la hora estimada — no te enviaremos más correos por este pedido.</p>`
+    : '';
 
   const itemRows = params.items
     .map(
@@ -413,6 +426,7 @@ function buildOrderStatusEmail(params: {
     bodyHtml: `
       <h2 style="color: #1a1a1a; font-size: 20px; margin-top: 0;">${title}</h2>
       <p style="color: #525252; line-height: 1.6; font-size: 15px;">${greeting} ${body}</p>
+      ${trackBlock}
       <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border-top: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5;">
         ${itemRows}
         <tr>

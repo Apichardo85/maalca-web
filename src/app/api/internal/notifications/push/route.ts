@@ -19,6 +19,8 @@ interface PushBody {
     bodyEn?: string | null;
     slug?: string | null;
     url?: string | null;
+    /** Ruta absoluta que abre el clic (p. ej. /t/{token} para el cliente); si falta se arma /space/{slug}/{url}. */
+    path?: string | null;
   };
 }
 
@@ -52,7 +54,9 @@ export async function POST(request: NextRequest) {
   webpush.setVapidDetails(subject, publicKey, privateKey);
 
   const { message } = body;
-  const path = message.url ? `/space/${message.slug}/${message.url}` : `/space/${message.slug}`;
+  const path = message.path
+    ? message.path
+    : message.url ? `/space/${message.slug}/${message.url}` : `/space/${message.slug}`;
 
   let sent = 0;
   const expired: string[] = [];

@@ -9,7 +9,8 @@ import { sendOrderConfirmationEmail, sendOrderFulfilledEmail, type OrderEmailIte
  * porque el "proveedor" acá es nuestro propio backend, no un tercero con firma HMAC.
  */
 interface OrderNotificationBody {
-  kind: 'confirmed' | 'fulfilled';
+  kind: 'confirmed' | 'fulfilled' | 'received';
+  trackUrl?: string | null;
   orderId: string;
   businessName: string;
   slug: string;
@@ -54,10 +55,13 @@ export async function POST(request: NextRequest) {
     items: body.items || [],
     total: body.total,
     currency: body.currency || 'USD',
+    trackUrl: body.trackUrl ?? null,
   };
 
   const sent =
-    body.kind === 'fulfilled' ? await sendOrderFulfilledEmail(params) : await sendOrderConfirmationEmail(params);
+    body.kind === 'fulfilled'
+      ? await sendOrderFulfilledEmail(params)
+      : await sendOrderConfirmationEmail({ ...params, kind: body.kind === 'received' ? 'received' : 'confirmed' });
 
   return NextResponse.json({ sent });
 }
