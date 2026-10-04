@@ -71,6 +71,7 @@ const THEME_CLASSES = {
     mediaFallback: 'bg-neutral-800',
     dotInactive: 'rgba(255,255,255,0.25)',
     unavailableText: 'text-white/60',
+    muted: 'text-white/65',
   },
   Light: {
     root: 'bg-white text-neutral-900',
@@ -78,6 +79,7 @@ const THEME_CLASSES = {
     mediaFallback: 'bg-neutral-200',
     dotInactive: 'rgba(0,0,0,0.15)',
     unavailableText: 'text-neutral-500',
+    muted: 'text-neutral-600',
   },
 };
 
@@ -427,6 +429,8 @@ export function MenuBoard({
             {slide.items.map((item) => {
               const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
               const hasMedia = Boolean(item.video_url || item.image_url);
+              // Descripción del plato (en inglés si la pantalla está en inglés y hay traducción).
+              const displayDescription = (language === 'en' && item.descriptionEn ? item.descriptionEn : item.description)?.trim() || null;
               return (
               <div
                 key={item.id}
@@ -461,7 +465,21 @@ export function MenuBoard({
                       : 'flex flex-1 flex-col items-center justify-center gap-3 px-6 py-6 text-center'
                   }
                 >
-                  <span className={`${hasMedia ? 'text-2xl' : 'text-3xl'} font-bold leading-tight`}>{displayName}</span>
+                  {hasMedia ? (
+                    <div className="min-w-0">
+                      <span className="block text-2xl font-bold leading-tight">{displayName}</span>
+                      {displayDescription && (
+                        <span className={`mt-1 block text-lg leading-snug line-clamp-2 ${c.muted}`}>{displayDescription}</span>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <span className="text-3xl font-bold leading-tight">{displayName}</span>
+                      {displayDescription && (
+                        <span className={`text-xl leading-snug line-clamp-3 ${c.muted}`}>{displayDescription}</span>
+                      )}
+                    </>
+                  )}
                   <span className={`${hasMedia ? 'text-2xl' : 'text-3xl'} font-extrabold whitespace-nowrap`} style={{ color: business.primaryColor }}>
                     {formatPrice(item.price, business.currency)}
                   </span>
