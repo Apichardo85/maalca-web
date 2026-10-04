@@ -66,6 +66,8 @@ export interface PublicTemplateProps {
     /** "USD" | "DOP" — cómo el negocio muestra sus precios. Default "USD" para negocios que
      *  todavía no la configuraron en Settings (ver SettingsContent.tsx). */
     currency?: 'USD' | 'DOP';
+    /** ISO-2 de la bandera que acompaña "ES" en el toggle de idioma (ej. "MX"). Null/ausente = RD. */
+    spanishFlag?: string | null;
     /** Apagador explícito por sección opcional (Pasos, Galería) — clave ausente =
      *  visible. Independiente de si la sección tiene contenido.
      *

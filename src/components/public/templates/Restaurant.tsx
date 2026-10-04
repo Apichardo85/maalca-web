@@ -507,7 +507,7 @@ export function RestaurantTemplate({
             content below and never covered by it at any viewport */}
         <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 2, display: 'flex', alignItems: 'center', gap: '8px' }}>
           <PublicThemeToggle variant="dark" />
-          <SimpleLanguageToggle variant="dark" />
+          <SimpleLanguageToggle variant="dark" spanishFlag={business.spanishFlag} />
         </div>
 
         {/* content anchored bottom-left */}

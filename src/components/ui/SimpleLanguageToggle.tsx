@@ -2,8 +2,16 @@
 import { useSimpleLanguage } from "@/hooks/useSimpleLanguage";
 interface SimpleLanguageToggleProps {
   variant?: 'light' | 'dark';
+  /** ISO-2 de la bandera junto a "ES" (ej. "MX"). Sin valor = RD, como siempre. */
+  spanishFlag?: string | null;
 }
-export default function SimpleLanguageToggle({ variant = 'light' }: SimpleLanguageToggleProps) {
+// Emoji de bandera desde ISO-2 (indicadores regionales). Valida A-Z; cae a RD si no es valido.
+function flagEmoji(code?: string | null): string {
+  const c = (code ?? '').trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(c)) return '🇩🇴';
+  return String.fromCodePoint(...[...c].map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65));
+}
+export default function SimpleLanguageToggle({ variant = 'light', spanishFlag }: SimpleLanguageToggleProps) {
   const { language, setLanguage } = useSimpleLanguage();
   const toggleLanguage = () => {
     setLanguage(language === 'es' ? 'en' : 'es');
@@ -24,7 +32,7 @@ export default function SimpleLanguageToggle({ variant = 'light' }: SimpleLangua
       aria-label={language === 'es' ? 'Switch to English' : 'Cambiar a Español'}
     >
       <span className={styles.text}>
-        {language === 'es' ? '🇺🇸 EN' : '🇩🇴 ES'}
+        {language === 'es' ? '🇺🇸 EN' : `${flagEmoji(spanishFlag)} ES`}
       </span>
     </button>
   );

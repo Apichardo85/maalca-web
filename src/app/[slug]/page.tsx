@@ -252,6 +252,15 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
           horario={affiliate.horario}
         />
       )}
+      {affiliate.defaultTheme && (
+        // Tema inicial del negocio: solo aplica si el visitante aun no eligio uno con el sol/luna
+        // (localStorage 'theme' vacio). Bloqueante, corre antes de pintar el contenido que sigue.
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{if(localStorage.getItem('theme'))return;var e=document.documentElement;if('${affiliate.defaultTheme}'==='dark'){e.setAttribute('data-theme','dark');}else{e.removeAttribute('data-theme');}}catch(x){}})();`,
+          }}
+        />
+      )}
       <PageViewTracker slug={affiliate.slug} />
       <Template
         business={{
@@ -285,6 +294,7 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
           communityImpact: affiliate.communityImpact ?? null,
           activities,
           programs,
+          spanishFlag: affiliate.spanishFlag ?? null,
           donationsRaisedThisMonth: donationsSummary?.raisedThisMonth ?? null,
         }}
         items={mappedItems}
@@ -324,6 +334,10 @@ interface PublicCatalogResponse {
     sectionVisibility?: PublicTemplateProps['business']['sectionVisibility'];
     galleryImages?: PublicTemplateProps['business']['galleryImages'];
     communityImpact?: PublicTemplateProps['business']['communityImpact'];
+    // 'dark' | 'light' | null — tema inicial del negocio (Affiliate.Settings.defaultTheme).
+    defaultTheme?: 'dark' | 'light' | null;
+    // ISO-2 de la bandera junto a "ES" en el toggle de idioma (Settings.spanishFlag). null = RD.
+    spanishFlag?: string | null;
   };
   categories?: PublicTemplateProps['categories'];
   items: PublicTemplateProps['items'];

@@ -174,7 +174,7 @@ export function RetailTemplate({
         {/* language toggle — top-right corner, clear of the bottom-anchored
             content below and never covered by it at any viewport */}
         <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 2, display: 'flex', gap: '8px' }}>
-          <SimpleLanguageToggle variant="dark" />
+          <SimpleLanguageToggle variant="dark" spanishFlag={business.spanishFlag} />
           <PublicThemeToggle variant="dark" />
         </div>
 

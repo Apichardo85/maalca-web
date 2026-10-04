@@ -304,7 +304,7 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
           />
         )}
         <div className="absolute right-4 top-4 z-20 flex items-center gap-2">
-          <SimpleLanguageToggle variant="dark" />
+          <SimpleLanguageToggle variant="dark" spanishFlag={business.spanishFlag} />
           <PublicThemeToggle variant="dark" />
         </div>
         <div className="relative z-10 mx-auto max-w-[860px] px-4 pb-12 pt-14 text-center text-white sm:pt-16">

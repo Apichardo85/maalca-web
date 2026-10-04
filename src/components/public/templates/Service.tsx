@@ -206,7 +206,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
           {business.name}
         </p>
         <div className="flex shrink-0 items-center gap-2">
-          <SimpleLanguageToggle variant="light" />
+          <SimpleLanguageToggle variant="light" spanishFlag={business.spanishFlag} />
           <PublicThemeToggle variant="light" />
         </div>
         {waHeroLink && (
@@ -264,7 +264,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
                 </div>
               )}
               <div className="flex items-center gap-2">
-                <SimpleLanguageToggle variant="light" />
+                <SimpleLanguageToggle variant="light" spanishFlag={business.spanishFlag} />
                 <PublicThemeToggle variant="light" />
               </div>
             </div>
