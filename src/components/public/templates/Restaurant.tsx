@@ -463,7 +463,7 @@ export function RestaurantTemplate({
   const visibleItems = itemsFor(activeTab);
 
   return (
-    <div id="top" className={`${inter.variable} rt-scope`} style={{ minHeight: '100vh', backgroundColor: CREMA, fontFamily: inter.style.fontFamily } as React.CSSProperties}>
+    <div id="top" className={`${inter.variable} rt-scope`} style={{ minHeight: '100vh', backgroundColor: CREMA, fontFamily: inter.style.fontFamily, containerType: 'inline-size' } as React.CSSProperties}>
       <style dangerouslySetInnerHTML={{ __html: themeCss }} />
       {/* ── ESTADO (abierto/cerrado) — pegada arriba mientras se hace scroll ── */}
       <OpenStatusBar status={openStatus} language={language} getText={getText} />
@@ -926,8 +926,8 @@ export function RestaurantTemplate({
         >
           <div className="mx-auto max-w-public-content" style={{ padding: '0 24px' }}>
             <div
-              className="[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-              style={{ display: 'flex', overflowX: 'auto' }}
+              className="[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden overflow-x-auto md:overflow-x-visible md:flex-wrap"
+              style={{ display: 'flex' }}
             >
               {[
                 { key: ALL_TAB, label: getText('Todos', 'All') },
@@ -1076,7 +1076,7 @@ export function RestaurantTemplate({
             groupedForAll.map(({ categoryName, groupItems }) => (
               <div key={categoryName || '__ungrouped__'} style={{ marginBottom: '32px' }}>
                 {categoryName && <SectLabel label={categoryLabel(categoryName, language, business.categoryTranslations)} />}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 @public-sm:grid-cols-2 gap-3">
                   {groupItems.map((item) => {
                     const cartQty = cart.find(e => e.item.id === item.id)?.qty ?? 0;
                     return (
@@ -1106,7 +1106,7 @@ export function RestaurantTemplate({
         ) : visibleItems.length === 0 ? (
           <EmptyFilterState getText={getText} vistaHoyActive={vistaHoyActive} onClearVistaHoy={clearVistaHoy} searchActive={searchActive} onClearSearch={clearSearch} />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 @public-sm:grid-cols-2 gap-3">
             {visibleItems.map((item) => {
               const cartQty = cart.find(e => e.item.id === item.id)?.qty ?? 0;
               return (
@@ -1187,7 +1187,7 @@ export function RestaurantTemplate({
       {/* Barra de pedido + navegación inferior (móvil): reemplazan al botón flotante genérico. */}
       <CartBar count={cartCount} total={cartTotal} currency={business.currency} accent={accent} hidden={cartOpen} onOpen={() => setCartOpen(true)} getText={getText} />
       <BottomNav cartCount={cartCount} accent={accent} onOpenCart={() => setCartOpen(true)} getText={getText} />
-      <div className="sm:hidden" aria-hidden style={{ height: 'calc(64px + env(safe-area-inset-bottom, 0px))' }} />
+      <div className="@public-sm:hidden" aria-hidden style={{ height: 'calc(64px + env(safe-area-inset-bottom, 0px))' }} />
     </div>
   );
 }
@@ -1351,7 +1351,7 @@ function CartBar({
       type="button"
       onClick={onOpen}
       aria-label={getText(`Ver pedido: ${count} ${count === 1 ? 'artículo' : 'artículos'}`, `View order: ${count} ${count === 1 ? 'item' : 'items'}`)}
-      className="fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom,0px)+76px)] sm:left-auto sm:right-6 sm:bottom-6 sm:w-[380px]"
+      className="fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom,0px)+76px)] @public-sm:left-auto @public-sm:right-6 @public-sm:bottom-6 @public-sm:w-[380px]"
       style={{
         zIndex: 90,
         display: 'flex',
@@ -1438,7 +1438,7 @@ function BottomNav({
   return (
     <nav
       aria-label={getText('Navegación principal', 'Main navigation')}
-      className="sm:hidden fixed bottom-0 left-0 right-0"
+      className="@public-sm:hidden fixed bottom-0 left-0 right-0"
       style={{ zIndex: 80, backgroundColor: SURFACE, borderTop: '1px solid var(--rt-border, #e8ddc9)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div style={{ height: '64px', display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
@@ -1503,7 +1503,7 @@ function ProcessSection({
       <h2 className={inter.className} style={{ margin: '0 0 16px', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.01em', color: TERRACOTA }}>
         {getText('Cómo trabajamos', 'How we work')}
       </h2>
-      <ol className="grid gap-4 sm:grid-cols-3">
+      <ol className="grid gap-4 @public-sm:grid-cols-3">
         {steps.map((step, i) => (
           <li
             key={`${i}-${step.title}`}
@@ -1990,7 +1990,7 @@ function ContactSection({
   return (
     <section style={{ borderTop: '1px solid var(--rt-border, #e8ddc9)' }}>
       <div className="mx-auto max-w-public-content" style={{ padding: '32px 24px' }}>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 @public-sm:grid-cols-3 gap-3">
           {contacts.map((c) => {
             const Icon = CONTACT_ICON_BY_TIPO[c.tipo];
             return (

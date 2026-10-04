@@ -44,7 +44,7 @@ export default async function DesignPage({
   const spaceData = await spaceRes.json();
   const biz = spaceData.business;
 
-  // The only GET that returns description/coverImageUrl/contactEmail/address/website/logoUrl
+  // The only GET that returns description/coverImageUrl/contactEmail/address/logoUrl
   // is the PUBLIC, unauthenticated, published-only endpoint — there's no authenticated owner
   // profile GET today. This is a real backend gap: every onboarded affiliate is Published=true
   // by design (no draft workflow exists), so in practice this always succeeds — but we guard
@@ -55,7 +55,6 @@ export default async function DesignPage({
     coverImageUrl: string | null;
     contactEmail: string | null;
     address: string | null;
-    website: string | null;
     logoUrl: string | null;
   } | null = null;
   let processSteps: ProcessStepDto[] = [];
@@ -79,7 +78,6 @@ export default async function DesignPage({
         coverImageUrl: p.coverImageUrl ?? null,
         contactEmail: p.contactEmail ?? null,
         address: p.address ?? null,
-        website: p.website ?? null,
         logoUrl: p.logoUrl ?? null,
       };
       processSteps = p.processSteps ?? [];
@@ -152,7 +150,6 @@ export default async function DesignPage({
       coverImageUrl={publicProfile?.coverImageUrl ?? null}
       contactEmail={publicProfile?.contactEmail ?? ''}
       address={publicProfile?.address ?? ''}
-      website={publicProfile?.website ?? ''}
       logoUrl={publicProfile?.logoUrl ?? null}
       canales={(biz.canales ?? []) as CanalDto[]}
       processSteps={processSteps}

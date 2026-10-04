@@ -384,8 +384,8 @@ export function BarberTemplate({
         >
           <div className="mx-auto max-w-public-content" style={{ padding: '0 24px' }}>
             <div
-              className={`${oswald.className} [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden`}
-              style={{ display: 'flex', overflowX: 'auto' }}
+              className={`${oswald.className} [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden overflow-x-auto md:overflow-x-visible md:flex-wrap`}
+              style={{ display: 'flex' }}
             >
               {[
                 { key: ALL_TAB, label: getText('Todos', 'All') },

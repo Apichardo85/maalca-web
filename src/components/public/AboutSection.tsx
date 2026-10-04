@@ -35,8 +35,13 @@ export function AboutSection({
       <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
         {language === 'en' ? 'About us' : 'Sobre nosotros'}
       </h2>
+      {/* text-justify alone (sin hyphens) deja "ríos" de espacio feos en una columna de este
+          ancho, sobre todo en español por las palabras largas — [hyphens:auto] + lang es lo
+          que evita eso partiendo palabras donde corresponde. lang={language} usa el diccionario
+          de guiones correcto ('es' vs 'en'); sin él el navegador no sabe dónde partir. */}
       <div
-        className="prose-sm mt-2 max-w-none whitespace-pre-line text-sm leading-relaxed text-neutral-600 dark:text-neutral-300 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-neutral-900 dark:[&_h2]:text-neutral-100 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:text-neutral-900 dark:[&_h3]:text-neutral-100 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:underline"
+        lang={language}
+        className="prose-sm mt-2 max-w-none whitespace-pre-line text-sm leading-relaxed text-justify [hyphens:auto] text-neutral-600 dark:text-neutral-300 [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-neutral-900 dark:[&_h2]:text-neutral-100 [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:text-neutral-900 dark:[&_h3]:text-neutral-100 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:underline"
         dangerouslySetInnerHTML={{ __html: html }}
       />
     </section>

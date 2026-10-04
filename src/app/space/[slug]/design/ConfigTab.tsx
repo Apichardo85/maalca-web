@@ -406,7 +406,6 @@ export function ConfigTab({ slug, form, businessType, onChange, onCommit, onComm
           : undefined,
       })}
       {textField('address', getText('Dirección', 'Address'), { maxLength: 150 })}
-      {textField('website', getText('Sitio web', 'Website'), { type: 'url', placeholder: 'https://...', maxLength: 150 })}
 
       {onGoToContenido && (
         <button

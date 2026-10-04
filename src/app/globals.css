@@ -81,6 +81,18 @@
      not in theme.extend.maxWidth — to actually generate max-w-* utilities. */
   --max-width-public-content: 960px;
   --max-width-public-content-wide: 1180px;
+
+  /* Container-query breakpoint for public-template "mobile chrome" (bottom nav, cart
+     bar, responsive grids) — same 640px as Tailwind's default `sm` screen breakpoint,
+     kept as its OWN named value (not an override of `--container-sm`, which Tailwind
+     already defines at 24rem/384px) so it reads as what it is: parity with `sm`, not
+     a redefinition of the container scale. Templates use `@public-sm:` instead of
+     `sm:` so the breakpoint reacts to the template's own rendered width (its root
+     wrapper sets `container-type: inline-size`) rather than the real browser viewport
+     — this is what lets /space/[slug]/design's PreviewFrame genuinely simulate mobile
+     vs. desktop by scaling that width, instead of always matching the editor's real
+     (desktop) window. See PreviewFrame.tsx and Restaurant.tsx's root div. */
+  --container-public-sm: 640px;
 }
 
 /* Ensure smooth theme transitions */

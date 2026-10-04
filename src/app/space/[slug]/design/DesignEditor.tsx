@@ -43,7 +43,6 @@ interface Props {
   coverImageUrl: string | null;
   contactEmail: string;
   address: string;
-  website: string;
   logoUrl: string | null;
   canales: CanalDto[];
   processSteps: ProcessStepDto[];
@@ -78,7 +77,6 @@ export function DesignEditor({
   coverImageUrl,
   contactEmail,
   address,
-  website,
   logoUrl,
   canales: initialCanales,
   processSteps: initialProcessSteps,
@@ -104,7 +102,7 @@ export function DesignEditor({
   );
 
   const initialForm: ProfileFormState = {
-    name, description, descriptionEn, whatsapp, contactEmail, address, website, primaryColor, secondaryColor, accentColor, logoUrl, coverImageUrl,
+    name, description, descriptionEn, whatsapp, contactEmail, address, primaryColor, secondaryColor, accentColor, logoUrl, coverImageUrl,
   };
 
   // liveForm updates on every keystroke/click/upload. previewSnapshot only updates for the

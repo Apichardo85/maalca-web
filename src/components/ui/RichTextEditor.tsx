@@ -30,7 +30,11 @@ export function RichTextEditor({ value, onChange, onBlur, placeholder, maxLength
     extensions: [
       StarterKit.configure({ heading: { levels: [2, 3] } }),
       Underline,
-      TextAlign.configure({ types: ['heading', 'paragraph'], alignments: ['left', 'center', 'right'] }),
+      // 'justify' es el default — el dueño no tiene que tocar nada para que su
+      // descripción salga pareja en ambos bordes en la página pública (ver
+      // AboutSection.tsx, que además aplica hyphens:auto). Los otros 3 botones
+      // quedan por si alguien quiere un párrafo centrado o a la izquierda a propósito.
+      TextAlign.configure({ types: ['heading', 'paragraph'], alignments: ['left', 'center', 'right', 'justify'], defaultAlignment: 'justify' }),
       Placeholder.configure({ placeholder: placeholder ?? '' }),
     ],
     content: value || '',
@@ -100,6 +104,9 @@ export function RichTextEditor({ value, onChange, onBlur, placeholder, maxLength
         </button>
         <button type="button" onClick={() => editor.chain().focus().setTextAlign('right').run()} className={btn(editor.isActive({ textAlign: 'right' }))} title={getText('Alinear derecha', 'Align right')}>
           →≡
+        </button>
+        <button type="button" onClick={() => editor.chain().focus().setTextAlign('justify').run()} className={btn(editor.isActive({ textAlign: 'justify' }))} title={getText('Justificar', 'Justify')}>
+          ≡≡
         </button>
       </div>
       <EditorContent editor={editor} />

@@ -284,8 +284,8 @@ export function RetailTemplate({
       {categoryNames.length > 0 && (
         <div className="mx-auto max-w-public-content" style={{ padding: '20px 24px 0' }}>
           <div
-            className="[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-            style={{ display: 'flex', gap: '10px', overflowX: 'auto' }}
+            className="[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden overflow-x-auto md:overflow-x-visible md:flex-wrap"
+            style={{ display: 'flex', gap: '10px' }}
           >
             <ChipTab
               label={getText('Todos', 'All')}
