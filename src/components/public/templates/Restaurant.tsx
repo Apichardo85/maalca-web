@@ -1286,18 +1286,38 @@ function HoursSection({
   );
   if (rows.length === 0) return null;
 
+  // Días consecutivos con el mismo horario se muestran como una sola fila ("Lunes – Viernes",
+  // o "Todos los días" si los 7 coinciden) en vez de repetir la misma línea siete veces.
+  const sameHours = (a: (typeof rows)[number]['entry'], b: (typeof rows)[number]['entry']) =>
+    Boolean(a.cerrado) === Boolean(b.cerrado) && (a.cerrado || (a.abre === b.abre && a.cierra === b.cierra));
+  const groups: Array<{ days: string[]; entry: (typeof rows)[number]['entry'] }> = [];
+  for (const r of rows) {
+    const last = groups[groups.length - 1];
+    if (last && sameHours(last.entry, r.entry)) last.days.push(r.day);
+    else groups.push({ days: [r.day], entry: r.entry });
+  }
+  const dayLabel = (d: string) => (language === 'en' ? HORARIO_LABELS_EN[d] : HORARIO_LABELS_ES[d]);
+  const groupLabel = (days: string[]) =>
+    days.length === HORARIO_DAY_ORDER.length
+      ? getText('Todos los días', 'Every day')
+      : days.length === 1
+        ? dayLabel(days[0])
+        : days.length === 2
+          ? `${dayLabel(days[0])} y ${dayLabel(days[1])}`.replace(' y ', language === 'en' ? ' & ' : ' y ')
+          : `${dayLabel(days[0])} – ${dayLabel(days[days.length - 1])}`;
+
   return (
     <section className="mx-auto max-w-public-content" style={{ padding: '0 24px 32px' }}>
       <h2 className={inter.className} style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 800, letterSpacing: '-0.01em', color: TERRACOTA }}>
         {getText('Horario', 'Hours')}
       </h2>
       <div style={{ backgroundColor: SURFACE, border: `0.5px solid ${BORDER_SOFT}`, borderRadius: '12px', padding: '4px 16px' }}>
-        {rows.map(({ day, entry }, i) => {
-          const isToday = day === todayKey;
-          const label = language === 'en' ? HORARIO_LABELS_EN[day] : HORARIO_LABELS_ES[day];
+        {groups.map(({ days, entry }, i) => {
+          const isToday = todayKey !== null && days.includes(todayKey);
+          const label = groupLabel(days);
           return (
             <div
-              key={day}
+              key={days.join('-')}
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',

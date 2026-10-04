@@ -416,16 +416,31 @@ function CategoryTranslationsSection({
     onChange(next);
   };
   const customized = Object.keys(value).length > 0;
+  // Colapsado por defecto: con muchas categorías (ej. 19) la lista empujaba todo lo demás fuera de vista.
+  const [open, setOpen] = useState(false);
+  const customCount = Object.keys(value).length;
   const inputCls =
     'w-full rounded-md border border-gray-200 dark:border-neutral-600 bg-white dark:bg-neutral-700 px-2 py-1 text-sm text-gray-900 dark:text-white';
 
   return (
     <div>
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
-          {getText('Nombres de categorías', 'Category names')}
-        </h2>
-        {customized && (
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          className="flex min-w-0 items-center gap-2 text-left"
+        >
+          <span aria-hidden className={`inline-block text-xs text-gray-500 transition-transform dark:text-neutral-400 ${open ? 'rotate-90' : ''}`}>▶</span>
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
+            {getText('Nombres de categorías', 'Category names')}
+          </h2>
+          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600 dark:bg-neutral-700 dark:text-neutral-300">
+            {names.length}
+            {customCount > 0 ? ` · ${customCount} ${getText('personalizadas', 'customized')}` : ''}
+          </span>
+        </button>
+        {customized && open && (
           <button
             type="button"
             onClick={() => onChange({})}
@@ -435,13 +450,15 @@ function CategoryTranslationsSection({
           </button>
         )}
       </div>
+      {open && (
+      <>
       <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
         {getText(
           'Cómo se ve cada categoría en español y en inglés. Si dejas un idioma vacío se muestra el nombre tal cual lo escribiste en el catálogo.',
           'How each category reads in Spanish and English. If you leave a language empty, the name as written in your catalog is shown.',
         )}
       </p>
-      <div className="mt-3 space-y-1.5">
+      <div className="mt-3 max-h-96 space-y-1.5 overflow-y-auto pr-1">
         {names.map((name) => (
           <div
             key={name}
@@ -475,6 +492,8 @@ function CategoryTranslationsSection({
           </div>
         ))}
       </div>
+      </>
+      )}
     </div>
   );
 }
