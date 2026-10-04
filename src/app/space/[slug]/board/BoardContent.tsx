@@ -642,22 +642,31 @@ export function BoardContent({
                         <div className="col-span-2 sm:col-span-3 flex flex-col gap-1.5 text-xs font-medium text-gray-500 dark:text-neutral-400">
                           {getText('Comerciales en esta pantalla (vacío = ninguno)', 'Ads on this screen (empty = none)')}
                           <div className="flex flex-wrap gap-2">
-                            {ads.map((ad) => {
+                            {ads.map((ad, adIdx) => {
                               const selected = (screen.adIds ?? ads.map((a) => a.id)).includes(ad.id);
-                              const label = `${ad.mediaType === 'Video' ? getText('Video', 'Video') : getText('Imagen', 'Image')} · ${ad.durationSeconds}s`;
+                              // Número + miniatura: con varios comerciales "Video · 8s" no distinguía cuál era cuál.
+                              const label = `#${adIdx + 1} · ${ad.mediaType === 'Video' ? getText('Video', 'Video') : getText('Imagen', 'Image')}`;
                               return (
                                 <button
                                   key={ad.id}
                                   type="button"
                                   disabled={screenBusyId === screen.id}
                                   onClick={() => toggleScreenAd(screen, ad.id)}
-                                  className={`rounded-full border px-3 py-1 text-xs font-medium transition disabled:opacity-50 ${
+                                  className={`flex items-center gap-2 rounded-xl border py-1 pl-1 pr-3 text-xs font-medium transition disabled:opacity-50 ${
                                     selected
                                       ? 'border-brand-primary bg-brand-primary/10 text-brand-primary'
                                       : 'border-gray-300 dark:border-neutral-700 text-gray-600 dark:text-neutral-300 hover:border-brand-primary'
                                   }`}
                                 >
-                                  {label}
+                                  <span className="h-9 w-9 shrink-0 overflow-hidden rounded-md bg-gray-100 dark:bg-neutral-800">
+                                    {ad.mediaType === 'Video' ? (
+                                      <video src={ad.mediaUrl} preload="metadata" muted className="h-full w-full object-cover" />
+                                    ) : (
+                                      // eslint-disable-next-line @next/next/no-img-element
+                                      <img src={ad.mediaUrl} alt="" className="h-full w-full object-cover" />
+                                    )}
+                                  </span>
+                                  {selected ? '✓ ' : ''}{label}
                                 </button>
                               );
                             })}
@@ -702,7 +711,7 @@ export function BoardContent({
           </div>
         ) : (
           <div className="mt-6 space-y-3">
-            {ads.map((ad) => (
+            {ads.map((ad, adIdx) => (
               <div
                 key={ad.id}
                 className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4"
@@ -717,7 +726,10 @@ export function BoardContent({
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium">
-                    {ad.mediaType === 'Video' ? getText('Video', 'Video') : getText('Imagen', 'Image')} · {ad.durationSeconds}s
+                    #{adIdx + 1} · {ad.mediaType === 'Video' ? getText('Video', 'Video') : getText('Imagen', 'Image')} ·{' '}
+                    {ad.mediaType === 'Video'
+                      ? getText('se reproduce completo (máx. 60 s)', 'plays in full (max 60 s)')
+                      : `${ad.durationSeconds}s`}
                   </p>
                   <span
                     className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${
