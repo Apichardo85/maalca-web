@@ -475,12 +475,25 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
             {canHardDelete && (
               <DangerZoneDelete
                 title={getText('Zona de peligro', 'Danger zone')}
-                description={getText(
-                  'Borra este cliente y todo lo que cuelga de él (citas, fila, propuestas, reservas, facturas) para siempre. No se puede deshacer — es solo para limpiar datos de prueba, nunca para un cliente real.',
-                  'Permanently deletes this customer and everything linked to it (appointments, queue visits, proposals, reservations, invoices). This cannot be undone — only for cleaning up test data, never a real customer.',
-                )}
+                description={(() => {
+                  const n = (l?: unknown[]) => l?.length ?? 0;
+                  const parts: [number, string, string][] = history ? [
+                    [n(history.appointments), 'cita(s)', 'appointment(s)'],
+                    [n(history.reservations), 'reserva(s) de mesa', 'table reservation(s)'],
+                    [n(history.invoices), 'factura(s) con sus líneas', 'invoice(s) with their lines'],
+                    [n(history.proposals), 'propuesta(s)', 'proposal(s)'],
+                    [n(history.queueVisits), 'visita(s) a la fila', 'queue visit(s)'],
+                  ] : [];
+                  const lost = parts.filter(([c]) => c > 0).map(([c, es, en]) => `${c} ${getText(es, en)}`);
+                  const orders = n(history?.orders);
+                  const contact = [selected.phone, selected.email].filter(Boolean).join(' · ');
+                  return getText(
+                    `Se borrará para siempre el cliente "${selected.name.trim()}"${contact ? ` (${contact})` : ''} junto con: ${lost.length ? lost.join(', ') : 'nada más (no tiene historial)'}. ${orders > 0 ? `Sus ${orders} pedido(s) NO se borran: quedan en Pedidos pero sin cliente enlazado. ` : ''}Se pierden también sus notas y su historial de visitas. No se puede deshacer — solo para limpiar datos de prueba, nunca un cliente real.`,
+                    `This permanently deletes customer "${selected.name.trim()}"${contact ? ` (${contact})` : ''} together with: ${lost.length ? lost.join(', ') : 'nothing else (no history)'}. ${orders > 0 ? `Their ${orders} order(s) are NOT deleted: they stay in Orders, unlinked from the customer. ` : ''}Notes and visit history are lost too. This cannot be undone — only for test data, never a real customer.`,
+                  );
+                })()}
                 confirmWith={selected.name}
-                confirmPlaceholder={getText(`Escribe "${selected.name}" para confirmar`, `Type "${selected.name}" to confirm`)}
+                confirmPlaceholder={getText(`Escribe "${selected.name.trim()}" para confirmar`, `Type "${selected.name.trim()}" to confirm`)}
                 buttonLabel={getText('Borrar cliente permanentemente', 'Permanently delete customer')}
                 busyLabel={getText('Borrando…', 'Deleting…')}
                 onConfirm={() => hardDeleteCustomer(selected)}
