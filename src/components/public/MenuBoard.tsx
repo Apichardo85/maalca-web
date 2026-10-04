@@ -37,6 +37,8 @@ type TransitionEffect = 'Fade' | 'Slide' | 'Zoom' | 'None';
 
 interface Props {
   slug: string;
+  /** Pantalla extra (/{slug}/board/{screenId}); el poll debe pedir el mismo recorte. */
+  screenId?: string;
   business: {
     name: string;
     logoUrl: string | null;
@@ -86,6 +88,10 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080'
 const REFRESH_INTERVAL_MS = 3 * 60 * 1000;
 /** How long each slide (one category, up to ITEMS_PER_SLIDE items) stays on screen. */
 const SLIDE_INTERVAL_MS = 9000;
+
+/** Tope por comercial en video: el video se reproduce completo y avanza al terminar, pero nunca
+ *  más de esto (un video larguísimo o trabado no se queda con la pantalla). */
+const MAX_VIDEO_AD_MS = 60 * 1000;
 const ITEMS_PER_SLIDE = 6;
 
 /** Watchdog: cada cuánto se revisa si el polling sigue vivo. */
@@ -216,7 +222,7 @@ function TransitionSlide({
 }
 
 export function MenuBoard({
-  slug, business, initialItems, initialCategories,
+  slug, screenId, business, initialItems, initialCategories,
   initialScreenAds = [], initialAdFrequency = null,
   language = 'es', theme = 'Dark', transitionEffect = 'Fade',
 }: Props) {
@@ -280,11 +286,20 @@ export function MenuBoard({
   useEffect(() => {
     const poll = setInterval(async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/public/affiliates/${slug}/catalog`, { cache: 'no-store' });
+        // Mismo screenId que el render inicial: sin él, el backend devuelve el catálogo BASE
+        // (todo el menú + todos los comerciales) y la pantalla extra pierde su filtro a los 3 min.
+        const qs = screenId ? `?screenId=${encodeURIComponent(screenId)}` : '';
+        const res = await fetch(`${API_BASE}/api/public/affiliates/${slug}/catalog${qs}`, { cache: 'no-store' });
         if (!res.ok) return;
         const data = await res.json();
+        // Mismo mapeo que renderBoard (camelCase de la API → image_url/video_url del board).
+        const polledItems = (data.items ?? []).map((item: Record<string, unknown>) => ({
+          ...item,
+          image_url: item.image_url ?? item.imageUrl ?? null,
+          video_url: item.video_url ?? item.videoUrl ?? null,
+        }));
         setCatalog({
-          items: data.items ?? [],
+          items: polledItems,
           categories: data.categories ?? [],
           screenAds: data.screenAds ?? [],
           adFrequency: data.adFrequency ?? null,
@@ -295,7 +310,7 @@ export function MenuBoard({
       }
     }, REFRESH_INTERVAL_MS);
     return () => clearInterval(poll);
-  }, [slug]);
+  }, [slug, screenId]);
 
   // Watchdog — si pasan varios ciclos de polling sin un refresh exitoso (tab congelada, red
   // caída, lo que sea), fuerza un reload completo en vez de quedarse mostrando contenido
@@ -335,7 +350,11 @@ export function MenuBoard({
   // el slide activo en vez de un solo interval fijo para toda la rotación.
   useEffect(() => {
     if (slides.length <= 1) return;
-    const durationMs = slide?.kind === 'ad' ? slide.ad.durationSeconds * 1000 : SLIDE_INTERVAL_MS;
+    // Comercial en video: avanza por onEnded (dura lo que dure el video); este timer es solo el
+    // tope de seguridad (video colgado, sin red, o más largo que MAX_VIDEO_AD_MS).
+    const durationMs = slide?.kind === 'ad'
+      ? (slide.ad.mediaType === 'Video' ? MAX_VIDEO_AD_MS : slide.ad.durationSeconds * 1000)
+      : SLIDE_INTERVAL_MS;
     const timer = setTimeout(() => {
       setSlideIndex((i) => (i + 1) % slides.length);
     }, durationMs);
@@ -389,7 +408,9 @@ export function MenuBoard({
                 className={`absolute inset-0 h-full w-full ${slide.ad.fit === 'Cover' ? 'object-cover' : 'object-contain'}`}
                 autoPlay
                 muted
-                loop
+                // Con una sola slide no hay a dónde avanzar: loop. Con varias, avanza al terminar.
+                loop={slides.length <= 1}
+                onEnded={() => setSlideIndex((i) => (i + 1) % slides.length)}
                 playsInline
               />
             ) : (

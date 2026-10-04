@@ -24,5 +24,5 @@ export default async function ScreenBoardPage({ params }: PageProps) {
   const data = await getCatalog(slug, screenId);
   if (!data) notFound();
 
-  return renderBoard(slug, data);
+  return renderBoard(slug, data, screenId);
 }

@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 /** Exportado para que /{slug}/board/{screenId}/page.tsx (Fase 9 Etapa B) renderice
  *  exactamente lo mismo — la única diferencia entre pantallas es qué `data` les llegó
  *  (según los overrides que resolvió el backend), no el markup. */
-export function renderBoard(slug: string, data: BoardCatalogResponse) {
+export function renderBoard(slug: string, data: BoardCatalogResponse, screenId?: string) {
   // Gated by plan (see PublicCatalogService.BuildCapabilities in maalca-api — that's the
   // real enforcement point; this just renders a diagnosable message instead of a bare 404
   // so whoever set up the TV knows *why* nothing's showing, not just that it's broken).
@@ -82,6 +82,7 @@ export function renderBoard(slug: string, data: BoardCatalogResponse) {
   return (
     <MenuBoard
       slug={slug}
+      screenId={screenId}
       business={{
         name: data.affiliate.name,
         logoUrl: data.affiliate.logoUrl ?? null,
