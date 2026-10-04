@@ -5,7 +5,7 @@ import { EquipoContent, type PersonalMember, type Collaborator } from './EquipoC
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 interface SpaceResponse {
-  business: { id: string; businessType: string; plan: 'free' | 'entrepreneur'; modulosActivos: string[] };
+  business: { id: string; businessType: string; plan: 'free' | 'entrepreneur' | 'enterprise'; modulosActivos: string[] };
   role: string;
 }
 

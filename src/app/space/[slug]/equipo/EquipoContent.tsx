@@ -5,6 +5,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { getRoleSuggestions } from '@/lib/personal-roles';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
+import { isPaidPlan } from '@/lib/plan-limits';
 
 export interface PersonalMember {
   id: string;
@@ -67,7 +68,7 @@ export interface Collaborator {
 interface Props {
   slug: string;
   businessType: string;
-  plan: 'free' | 'entrepreneur';
+  plan: 'free' | 'entrepreneur' | 'enterprise';
   role: string; // rol del usuario actual en ESTE negocio
   initialPersonal: PersonalMember[];
   initialCollaborators: Collaborator[];
@@ -113,7 +114,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
   // mismo criterio que tenía la vieja página /team.
   const canManagePersonal = role !== 'Staff';
   const canManageAccess = role === 'Owner';
-  const isEntrepreneur = plan === 'entrepreneur';
+  const isEntrepreneur = isPaidPlan(plan);
   // Horas/nómina son datos sensibles — el backend ya las bloquea para Staff (403), acá solo
   // evitamos mostrar pestañas que fallarían igual.
   const canManagePayroll = role !== 'Staff';

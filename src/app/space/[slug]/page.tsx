@@ -16,7 +16,7 @@ interface SpaceResponse {
     slug: string;
     name: string;
     businessType: string;
-    plan: 'free' | 'entrepreneur';
+    plan: 'free' | 'entrepreneur' | 'enterprise';
     whatsapp: string | null;
     primaryColor: string | null;
     modulosActivos: string[];

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { getMaalcaApiToken } from '@/lib/api-auth';
 import { canAddBusiness, type Plan } from '@/lib/plan-limits';
 import { SpaceSwitcherBar } from '@/components/space/SpaceSwitcherBar';
+import { isPaidPlan } from '@/lib/plan-limits';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -28,7 +29,7 @@ export default async function SpaceLayout({ children }: { children: React.ReactN
   const affiliates: Affiliate[] = await res.json().catch(() => []);
   if (affiliates.length === 0) redirect('/onboarding');
 
-  const highestPlan = affiliates.some((a) => a.plan === 'entrepreneur') ? 'entrepreneur' : 'free';
+  const highestPlan = affiliates.some((a) => isPaidPlan(a.plan)) ? 'entrepreneur' : 'free';
   const canCreate = canAddBusiness(highestPlan, affiliates.length);
 
   return (

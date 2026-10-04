@@ -12,6 +12,7 @@ import { useNotifications } from '@/components/space/NotificationsProvider';
 import { cn } from '@/lib/utils';
 import type { Plan } from '@/lib/plan-limits';
 import { CATALOG_NAV_LABELS, type BusinessType } from '@/lib/templates/registry';
+import { isPaidPlan } from '@/lib/plan-limits';
 
 interface Business {
   id: string;
@@ -24,7 +25,7 @@ interface Props {
   slug: string;
   businessName: string;
   businessType: BusinessType;
-  plan: 'free' | 'entrepreneur';
+  plan: 'free' | 'entrepreneur' | 'enterprise';
   primaryColor?: string | null;
   userFullName?: string | null;
   userAvatarUrl?: string | null;
@@ -191,13 +192,13 @@ export function SpaceMobileNav({
               )}
               <span
                 className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                  plan === 'entrepreneur'
+                  isPaidPlan(plan)
                     ? 'bg-brand-primary/10 text-brand-primary'
                     : 'bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-neutral-400'
                 }`}
               >
-                {plan === 'entrepreneur'
-                  ? getText('Emprendedor', 'Entrepreneur')
+                {isPaidPlan(plan)
+                  ? (String(plan).toLowerCase() === 'enterprise' ? getText('Enterprise', 'Enterprise') : getText('Emprendedor', 'Entrepreneur'))
                   : getText('Plan Gratis', 'Free Plan')}
               </span>
               <UserBadge fullName={userFullName} avatarUrl={userAvatarUrl} email={userEmail} role={userRole} />

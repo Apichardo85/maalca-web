@@ -5,10 +5,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
+import { isPaidPlan } from '@/lib/plan-limits';
 
 interface Props {
   slug: string;
-  plan: 'free' | 'entrepreneur';
+  plan: 'free' | 'entrepreneur' | 'enterprise';
   planStatus: string;
   trialDaysRemaining: number | null;
   currency: 'USD' | 'DOP';
@@ -86,7 +87,7 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
   const [countryChoice, setCountryChoice] = useState('US');
 
   useEffect(() => {
-    if (plan !== 'entrepreneur') return;
+    if (!isPaidPlan(plan)) return;
     let cancelled = false;
     fetch(`/api/space/${slug}/connect/status`)
       .then((res) => res.json())
@@ -163,7 +164,7 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
   // data (via router.refresh) until the plan updates, capped so it doesn't spin forever
   // if the webhook is misconfigured.
   useEffect(() => {
-    if (!upgraded || plan !== 'free') return;
+    if (!upgraded || isPaidPlan(plan)) return;
     if (pollCount.current >= 8) return;
 
     const timer = setTimeout(() => {
@@ -203,7 +204,7 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
     }
   }
 
-  const trialExpired = plan === 'free' && trialDaysRemaining !== null && trialDaysRemaining <= 0;
+  const trialExpired = !isPaidPlan(plan) && trialDaysRemaining !== null && trialDaysRemaining <= 0;
 
   // Link fijo de Zoom (o Meet/similar) para reuniones virtuales — solo aplica a Servicios,
   // que es el único businessType con Modality en sus items de catálogo (ver Service.Modality).
@@ -275,7 +276,7 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
         {upgraded && (
           <div className="mt-6 max-w-3xl rounded-lg border border-green-200 dark:border-green-900/40 bg-green-50 dark:bg-green-900/20 px-4 py-3">
             <p className="text-sm text-green-700 dark:text-green-400">
-              {plan === 'entrepreneur'
+              {isPaidPlan(plan)
                 ? getText('¡Listo! Ya estás en el plan Emprendedor. 🎉', "You're all set on the Emprendedor plan. 🎉")
                 : getText(
                     'Pago recibido — estamos activando tu plan Emprendedor, puede tardar unos segundos.',
@@ -323,17 +324,17 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
                   {getText('Plan actual', 'Current plan')}
                 </p>
                 <p className="mt-1 text-lg font-bold">
-                  {plan === 'entrepreneur' ? getText('Emprendedor', 'Entrepreneur') : getText('Plan Gratis', 'Free plan')}
+                  {isPaidPlan(plan) ? (String(plan).toLowerCase() === 'enterprise' ? getText('Enterprise', 'Enterprise') : getText('Emprendedor', 'Entrepreneur')) : getText('Plan Gratis', 'Free plan')}
                 </p>
               </div>
-              {plan === 'entrepreneur' && (
+              {isPaidPlan(plan) && (
                 <span className="rounded-full bg-brand-primary/10 px-3 py-1 text-xs font-medium text-brand-primary">
                   $38/{getText('mes', 'mo')}
                 </span>
               )}
             </div>
 
-            {plan === 'free' && (
+            {!isPaidPlan(plan) && (
               <p className={`mt-3 text-sm ${trialExpired ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-neutral-400'}`}>
                 {trialExpired
                   ? getText('Tu período gratuito de 30 días terminó.', 'Your 30-day free trial has ended.')
@@ -346,7 +347,7 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
               </p>
             )}
 
-            {plan === 'entrepreneur' && (
+            {isPaidPlan(plan) && (
               <>
                 <button
                   onClick={handleManageBilling}
@@ -423,7 +424,7 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
           )}
 
           {/* Stripe Connect — recibir pagos de tus propios clientes */}
-          {plan === 'entrepreneur' && (
+          {isPaidPlan(plan) && (
             <div className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6">
               <p className="text-xs uppercase tracking-wider text-gray-400 dark:text-neutral-500">
                 {getText('Recibir pagos', 'Accept payments')}
@@ -491,7 +492,7 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
           )}
 
           {/* Feature comparison */}
-          {plan === 'free' && (
+          {!isPaidPlan(plan) && (
             <div className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6">
               <p className="text-sm font-semibold">{getText('Qué desbloqueas con Emprendedor', 'What Entrepreneur unlocks')}</p>
               <ul className="mt-3 space-y-2">

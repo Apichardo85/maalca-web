@@ -6,6 +6,7 @@ import { SpaceSidebar } from '@/components/space/SpaceSidebar';
 import { SpaceMobileNav } from '@/components/space/SpaceMobileNav';
 import { SupportModeBanner } from '@/components/space/SupportModeBanner';
 import { NotificationsProvider } from '@/components/space/NotificationsProvider';
+import { isPaidPlan } from '@/lib/plan-limits';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -48,7 +49,7 @@ export default async function SpaceSlugLayout({
     cache: 'no-store',
   });
   const affiliates: Affiliate[] = affiliatesRes.ok ? await affiliatesRes.json().catch(() => []) : [];
-  const highestPlan = affiliates.some((a) => a.plan === 'entrepreneur') ? 'entrepreneur' : 'free';
+  const highestPlan = affiliates.some((a) => isPaidPlan(a.plan)) ? 'entrepreneur' : 'free';
   const canCreateMore = canAddBusiness(highestPlan, affiliates.length);
 
   return (

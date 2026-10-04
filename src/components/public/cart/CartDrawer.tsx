@@ -105,6 +105,10 @@ export function CartDrawer({
   // Datos de contacto opcionales (restaurante): si los dejan, el pedido crea/enlaza el cliente.
   const [guestName, setGuestName] = useState('')
   const [guestPhone, setGuestPhone] = useState('')
+  const [guestEmail, setGuestEmail] = useState('')
+  // Pedido para recoger pagando en el local: se envía al panel del restaurante, sin WhatsApp ni tarjeta.
+  const [pickupPlaced, setPickupPlaced] = useState(false)
+  const [pickupError, setPickupError] = useState('')
   // null = sin propina, number = porcentaje del preset elegido (ej. 0.15), 'custom' = usa customTip.
   const [tipMode, setTipMode] = useState<number | 'custom' | null>(null)
   const [customTip, setCustomTip] = useState('')
@@ -159,6 +163,7 @@ export function CartDrawer({
           currency,
           customerName: guestName.trim() || undefined,
           customerPhone: guestPhone && isValidPhone(guestPhone) ? normalizePhone(guestPhone) : undefined,
+          customerEmail: guestEmail.trim() || undefined,
           successUrl: `${origin}${window.location.pathname}?paid=true${tableNumber ? `&mesa=${encodeURIComponent(tableNumber)}` : ''}`,
           cancelUrl: `${origin}${window.location.pathname}?paid=false${tableNumber ? `&mesa=${encodeURIComponent(tableNumber)}` : ''}`,
           tableNumber: tableNumber || undefined,
@@ -181,6 +186,55 @@ export function CartDrawer({
       window.location.href = data.checkoutUrl
     } catch {
       setCheckoutState('unavailable')
+    }
+  }
+
+  // Pedido para recoger pagando en el local: sin Stripe ni WhatsApp. Le llega al restaurante (panel + push)
+  // y al cliente le llega correo cuando lo aceptan y cuando está listo.
+  async function handlePayAtPickup() {
+    if (!slug || tableNumber || closedBlocked) return
+    const name = guestName.trim()
+    const phoneOk = !!guestPhone && isValidPhone(guestPhone)
+    const email = guestEmail.trim()
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    if (!name || (!phoneOk && !emailOk)) {
+      setPickupError(getText(
+        'Escribe tu nombre y un teléfono o correo para avisarte cuando esté listo.',
+        'Enter your name and a phone or email so we can let you know when it is ready.',
+      ))
+      return
+    }
+    setPickupError('')
+    setCheckoutState('loading')
+    try {
+      const res = await fetch(`${API_BASE}/api/public/affiliates/${slug}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: cart.map(e => ({ itemId: e.item.id, name: e.item.name, price: e.item.price, qty: e.qty, notes: e.notes?.trim() || undefined })),
+          subtotal: cartTotal,
+          tax,
+          tip,
+          total,
+          currency,
+          customerName: name,
+          customerPhone: phoneOk ? normalizePhone(guestPhone) : undefined,
+          customerEmail: emailOk ? email : undefined,
+          scheduledFor,
+          payAtPickup: true,
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        setPickupError(data?.error?.message ?? getText('No pudimos enviar el pedido. Inténtalo de nuevo.', 'We could not send the order. Please try again.'))
+        setCheckoutState('error')
+        return
+      }
+      setPickupPlaced(true)
+      setCheckoutState('placed')
+    } catch {
+      setPickupError(getText('No pudimos enviar el pedido. Inténtalo de nuevo.', 'We could not send the order. Please try again.'))
+      setCheckoutState('error')
     }
   }
 
@@ -208,6 +262,7 @@ export function CartDrawer({
           currency,
           customerName: guestName.trim() || undefined,
           customerPhone: guestPhone && isValidPhone(guestPhone) ? normalizePhone(guestPhone) : undefined,
+          customerEmail: guestEmail.trim() || undefined,
           tableNumber,
           payAtTable: true,
         }),
@@ -510,17 +565,28 @@ export function CartDrawer({
                 onChange={e => setGuestName(e.target.value)}
                 maxLength={80}
                 autoComplete="name"
-                placeholder={getText('Tu nombre (opcional)', 'Your name (optional)')}
+                placeholder={getText('Tu nombre', 'Your name')}
                 style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e3de', fontSize: '13px' }}
               />
               <input
                 {...PHONE_INPUT_PROPS}
                 value={guestPhone}
                 onChange={e => setGuestPhone(formatPhoneInput(e.target.value))}
-                placeholder={getText('Teléfono (opcional)', 'Phone (optional)')}
+                placeholder={getText('Teléfono', 'Phone')}
                 style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e3de', fontSize: '13px' }}
               />
             </div>
+          )}
+          {restaurantMode && slug && !tableNumber && checkoutState !== 'placed' && (
+            <input
+              type="email"
+              value={guestEmail}
+              onChange={e => setGuestEmail(e.target.value)}
+              maxLength={120}
+              autoComplete="email"
+              placeholder={getText('Correo (te avisamos cuando esté listo)', 'Email (we notify you when it is ready)')}
+              style={{ width: '100%', marginBottom: '14px', boxSizing: 'border-box', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e3de', fontSize: '13px' }}
+            />
           )}
           <div
             style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}
@@ -722,7 +788,45 @@ export function CartDrawer({
             </>
           )}
 
-          {!tableNumber && (<a
+          {pickupPlaced && (
+            <p
+              role="status"
+              style={{ margin: '0 0 10px', padding: '14px', borderRadius: '12px', backgroundColor: '#e8f5e9', color: '#1b5e20', fontSize: '14px', fontWeight: 600, textAlign: 'center' }}
+            >
+              {getText(
+                '¡Pedido enviado! El restaurante lo confirmará en un momento y pagas al recogerlo.',
+                'Order sent! The restaurant will confirm it shortly and you pay when you pick it up.',
+              )}
+            </p>
+          )}
+
+          {restaurantMode && slug && !tableNumber && !pickupPlaced && (
+            <>
+              <button
+                onClick={handlePayAtPickup}
+                disabled={checkoutState === 'loading' || closedBlocked}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%',
+                  backgroundColor: onlinePayments ? '#ffffff' : '#1a1a1a',
+                  color: onlinePayments ? '#1a1a1a' : '#ffffff',
+                  border: onlinePayments ? '1px solid #1a1a1a' : 'none',
+                  borderRadius: '9999px', padding: '14px', fontWeight: 600, fontSize: '14px', minHeight: '48px',
+                  boxSizing: 'border-box', marginBottom: '10px',
+                  cursor: checkoutState === 'loading' || closedBlocked ? 'default' : 'pointer',
+                  opacity: checkoutState === 'loading' ? 0.7 : closedBlocked ? 0.45 : 1,
+                }}
+              >
+                {checkoutState === 'loading'
+                  ? getText('Enviando...', 'Sending...')
+                  : getText('Pedir y pagar al recoger', 'Order and pay at pickup')}
+              </button>
+              {pickupError && (
+                <p style={{ margin: '0 0 10px', fontSize: '12px', color: '#b91c1c', textAlign: 'center' }}>{pickupError}</p>
+              )}
+            </>
+          )}
+
+          {!tableNumber && !pickupPlaced && (<a
             href={closedBlocked ? undefined : waUrl}
             target="_blank"
             rel="noopener noreferrer"

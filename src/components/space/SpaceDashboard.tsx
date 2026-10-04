@@ -14,6 +14,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { CreatingSpaceAnimation } from './CreatingSpaceAnimation';
 import { UpgradeModal } from './UpgradeModal';
 import { KpiTile, type SpaceKpis } from './KpiTile';
+import { isPaidPlan } from '@/lib/plan-limits';
 
 interface Business {
   id: string;
@@ -79,7 +80,7 @@ export function SpaceDashboard({
   const limits = getPlanLimits(business.plan);
   const remaining = remainingItems(business.plan, productCount);
   const showWarning = isNearItemLimit(business.plan, productCount);
-  const atLimit = business.plan === 'free' && productCount >= limits.itemsPerBusiness;
+  const atLimit = !isPaidPlan(business.plan) && productCount >= limits.itemsPerBusiness;
 
   // trial_days_remaining is null for paid plans — never shown there. 0 means the trial already
   // expired (editing is blocked API-side); this banner is only the ~7-day-out countdown warning.
@@ -446,7 +447,7 @@ export function SpaceDashboard({
           <KpiTile
             label={getText('Items publicados', 'Published items')}
             value={kpis.itemsPublicados.disponible ? String(kpis.itemsPublicados.valor) : null}
-            suffix={business.plan === 'free' ? ' / 10' : undefined}
+            suffix={!isPaidPlan(business.plan) ? ' / 10' : undefined}
           />
           <KpiTile
             label={getText('Escaneos de QR', 'QR scans')}

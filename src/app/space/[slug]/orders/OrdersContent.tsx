@@ -5,6 +5,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { DangerZoneDelete } from '@/components/space/DangerZoneDelete';
+import { isPaidPlan } from '@/lib/plan-limits';
 
 interface OrderItem {
   itemId: string;
@@ -44,7 +45,7 @@ export function formatScheduledFor(iso: string, language: 'es' | 'en'): string {
 
 interface Props {
   slug: string;
-  plan: 'free' | 'entrepreneur';
+  plan: 'free' | 'entrepreneur' | 'enterprise';
   initialOrders: OrderRow[];
   // Solo true en modo soporte de plataforma (ver isImpersonation en layout.tsx) — el gate real
   // vive en el backend, esto solo decide si se muestra el botón de borrar.
@@ -144,7 +145,7 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
         </p>
         <h1 className="mt-1 text-2xl font-bold">{getText('Pedidos', 'Orders')}</h1>
 
-        {plan === 'free' && (
+        {!isPaidPlan(plan) && (
           <p className="mt-3 max-w-3xl text-sm text-gray-500 dark:text-neutral-400">
             {getText(
               'Los pedidos online con cobro por tarjeta son parte del plan Emprendedor. Con el plan gratis, tus clientes siguen pidiendo por WhatsApp.',
@@ -210,6 +211,17 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
                     </p>
                     {order.customerPhone && (
                       <p className="truncate text-xs text-gray-500 dark:text-neutral-400">{order.customerPhone}</p>
+                    )}
+                    {order.customerEmail && (
+                      <p className="truncate text-xs text-gray-500 dark:text-neutral-400">{order.customerEmail}</p>
+                    )}
+                    {order.paymentMethod === 'PayAtPickup' && (
+                      <p className="mt-1 text-xs font-semibold text-brand-primary">
+                        🛍️ {getText('Para recoger', 'Pickup')}
+                        <span className="ml-1 font-normal text-gray-500 dark:text-neutral-400">
+                          · {getText('paga al recoger', 'pays at pickup')}
+                        </span>
+                      </p>
                     )}
                     {order.tableNumber && (
                       <p className="mt-1 text-xs font-semibold text-brand-primary">
@@ -291,7 +303,7 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
                         disabled={updatingId === order.id}
                         className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-4 text-xs font-medium hover:border-brand-primary hover:text-brand-primary disabled:opacity-50"
                       >
-                        {order.paymentMethod === 'PayAtTable'
+                        {order.paymentMethod === 'PayAtTable' || order.paymentMethod === 'PayAtPickup'
                           ? getText('Aceptar pedido', 'Accept order')
                           : getText('Marcar pagado', 'Mark paid')}
                       </button>

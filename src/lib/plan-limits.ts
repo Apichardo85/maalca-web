@@ -99,3 +99,9 @@ export function remainingItems(plan: Plan, currentRealCount: number): number {
 }
 
 export const ENTREPRENEUR_PRICE_USD = 38;
+
+/** True for Entrepreneur and Enterprise (case-insensitive: API returns 'Enterprise', space endpoint 'enterprise'). */
+export function isPaidPlan(plan?: string | null): boolean {
+  const p = (plan ?? '').toLowerCase();
+  return p === 'entrepreneur' || p === 'enterprise';
+}

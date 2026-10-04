@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
+import { isPaidPlan } from '@/lib/plan-limits';
 
 export interface ScreenAdRow {
   id: string;
@@ -39,7 +40,7 @@ export interface ScreenRow {
 
 interface Props {
   slug: string;
-  plan: 'free' | 'entrepreneur';
+  plan: 'free' | 'entrepreneur' | 'enterprise';
   initialAds: ScreenAdRow[];
   initialAdFrequency: number | null;
   initialLanguage: 'es' | 'en';
@@ -354,7 +355,7 @@ export function BoardContent({
           </button>
         </p>
 
-        {plan === 'free' && (
+        {!isPaidPlan(plan) && (
           <p className="mt-3 text-sm text-gray-500 dark:text-neutral-400">
             {getText(
               'El Menu Board es parte del plan Emprendedor. Con el plan gratis, esta pantalla queda configurada pero no se activa públicamente.',

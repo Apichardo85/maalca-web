@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { getPlanLimits, type Plan } from '@/lib/plan-limits';
 import { matchesCatalogQuery } from '@/lib/catalog-search';
+import { isPaidPlan } from '@/lib/plan-limits';
 
 const ALL_TAB = '__all__';
 
@@ -99,7 +100,7 @@ export function CatalogView({ slug, plan, items: initialItems, productCount }: P
             </h1>
             <p className="mt-1 text-sm text-gray-500 dark:text-neutral-400">
               {productCount}
-              {plan === 'free' ? ` / ${limits.itemsPerBusiness}` : ''}{' '}
+              {!isPaidPlan(plan) ? ` / ${limits.itemsPerBusiness}` : ''}{' '}
               {getText('items reales', 'real items')}
             </p>
           </div>
@@ -226,7 +227,7 @@ export function CatalogView({ slug, plan, items: initialItems, productCount }: P
         )}
 
         {/* Plan limit bar — free only */}
-        {plan === 'free' && items.length > 0 && (
+        {!isPaidPlan(plan) && items.length > 0 && (
           <div className="mt-8 rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 shadow-sm dark:shadow-none">
             <div className="mb-2 flex items-center justify-between text-sm">
               <span className="text-gray-500 dark:text-neutral-400">

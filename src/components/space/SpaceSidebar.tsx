@@ -7,6 +7,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { CATALOG_NAV_LABELS, type BusinessType } from '@/lib/templates/registry';
 import { UserBadge } from './UserBadge';
 import { useNotifications } from './NotificationsProvider';
+import { isPaidPlan } from '@/lib/plan-limits';
 
 // Ancho real del sidebar cuando está abierto (coincide con w-60 = 15rem) — se expone como CSS
 // var en :root para que el wrapper de contenido en layout.tsx (server component, no puede leer
@@ -19,7 +20,7 @@ interface Props {
   slug: string;
   businessName: string;
   businessType: BusinessType;
-  plan: 'free' | 'entrepreneur';
+  plan: 'free' | 'entrepreneur' | 'enterprise';
   primaryColor?: string | null;
   userFullName?: string | null;
   userAvatarUrl?: string | null;
@@ -195,13 +196,13 @@ export function SpaceSidebar({
           </p>
           <span
             className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-              plan === 'entrepreneur'
+              isPaidPlan(plan)
                 ? 'bg-brand-primary/10 text-brand-primary'
                 : 'bg-gray-100 dark:bg-neutral-800 text-gray-600 dark:text-neutral-400'
             }`}
           >
-            {plan === 'entrepreneur'
-              ? getText('Emprendedor', 'Entrepreneur')
+            {isPaidPlan(plan)
+              ? (String(plan).toLowerCase() === 'enterprise' ? getText('Enterprise', 'Enterprise') : getText('Emprendedor', 'Entrepreneur'))
               : getText('Plan Gratis', 'Free Plan')}
           </span>
           <UserBadge fullName={userFullName} avatarUrl={userAvatarUrl} email={userEmail} role={userRole} />

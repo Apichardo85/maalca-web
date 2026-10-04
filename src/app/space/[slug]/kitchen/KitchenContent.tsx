@@ -6,10 +6,11 @@ import { useOrdersRealtime } from '@/hooks/useOrdersRealtime';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { formatScheduledFor, type OrderRow } from '../orders/OrdersContent';
+import { isPaidPlan } from '@/lib/plan-limits';
 
 interface Props {
   slug: string;
-  plan: 'free' | 'entrepreneur';
+  plan: 'free' | 'entrepreneur' | 'enterprise';
   affiliateId: string;
   initialOrders: OrderRow[];
 }
@@ -162,7 +163,7 @@ export function KitchenContent({ slug, plan, affiliateId, initialOrders }: Props
     return map;
   }, [orders]);
 
-  if (plan === 'free') {
+  if (!isPaidPlan(plan)) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
         <div className="px-6 py-12">

@@ -8,7 +8,7 @@ interface SpaceResponse {
   business: {
     id: string;
     businessType: string;
-    plan: 'free' | 'entrepreneur';
+    plan: 'free' | 'entrepreneur' | 'enterprise';
     horario?: { dia: string; abre: string; cierra: string; cerrado: boolean }[] | null;
     modulosActivos: string[];
     zoomLink?: string | null;

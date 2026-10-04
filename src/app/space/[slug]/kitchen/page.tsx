@@ -6,7 +6,7 @@ import type { OrderRow } from '../orders/OrdersContent';
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 interface SpaceResponse {
-  business: { id: string; plan: 'free' | 'entrepreneur'; businessType: string; modulosActivos: string[] };
+  business: { id: string; plan: 'free' | 'entrepreneur' | 'enterprise'; businessType: string; modulosActivos: string[] };
 }
 
 // Misma carga que orders/page.tsx (mismo endpoint, mismo shape de OrderRow) — el Kitchen

@@ -5,7 +5,7 @@ import { BoardContent, type ScreenAdRow, type ScreenRow } from './BoardContent';
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 interface SpaceResponse {
-  business: { id: string; plan: 'free' | 'entrepreneur' };
+  business: { id: string; plan: 'free' | 'entrepreneur' | 'enterprise' };
 }
 
 export default async function BoardPage({

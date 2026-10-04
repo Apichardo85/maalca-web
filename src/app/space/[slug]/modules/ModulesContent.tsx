@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { UpgradeModal } from '@/components/space/UpgradeModal';
 import { MODULE_CATALOG as ALL_MODULES, isModuleRelevant as isRelevant, type ModuleDef } from '@/lib/module-catalog';
+import { isPaidPlan } from '@/lib/plan-limits';
 
 interface Props {
   slug: string;
@@ -13,7 +14,7 @@ interface Props {
   /** Tokens reales de Affiliate.ModulosActivos (ya filtrados por whitelist en el backend). */
   activeTokens: string[];
   businessType: string;
-  plan: 'free' | 'entrepreneur';
+  plan: 'free' | 'entrepreneur' | 'enterprise';
 }
 
 // Progresión natural sugerida por tipo de negocio — no es una regla del backend, es solo el
@@ -114,7 +115,7 @@ export function ModulesContent({ slug, businessId, activeTokens, businessType, p
           )}
         </p>
 
-        {(nextStepModule || plan === 'free') && (
+        {(nextStepModule || !isPaidPlan(plan)) && (
           <section className="mt-8">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-neutral-400">
               {getText('Tu próximo paso', 'Your next step')}
@@ -152,7 +153,7 @@ export function ModulesContent({ slug, businessId, activeTokens, businessType, p
                   </button>
                 </div>
               )}
-              {plan === 'free' && (
+              {!isPaidPlan(plan) && (
                 <div className="rounded-2xl border border-dashed border-gray-300 dark:border-neutral-700 bg-white/60 dark:bg-neutral-900/60 p-5">
                   <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-neutral-800 px-2 py-0.5 text-[10px] font-semibold text-gray-600 dark:text-neutral-300">
                     ⭐ {getText('Cambio de plan', 'Plan upgrade')}

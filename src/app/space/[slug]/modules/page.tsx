@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getMaalcaApiToken } from '@/lib/api-auth';
 import { ModulesContent } from './ModulesContent';
+import { isPaidPlan } from '@/lib/plan-limits';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -23,7 +24,7 @@ export default async function ModulesPage({
   if (!res.ok) throw new Error(`Failed to load space: ${res.status}`);
 
   const data: {
-    business: { id?: string; modulosActivos?: string[]; businessType?: string; plan?: 'free' | 'entrepreneur' };
+    business: { id?: string; modulosActivos?: string[]; businessType?: string; plan?: 'free' | 'entrepreneur' | 'enterprise' };
   } = await res.json();
 
   return (
@@ -32,7 +33,7 @@ export default async function ModulesPage({
       businessId={data.business.id ?? ''}
       activeTokens={data.business.modulosActivos ?? []}
       businessType={(data.business.businessType ?? '').toLowerCase()}
-      plan={data.business.plan === 'entrepreneur' || (data.business.plan as string) === 'enterprise' ? 'entrepreneur' : 'free'}
+      plan={isPaidPlan(data.business.plan) || (data.business.plan as string) === 'enterprise' ? 'entrepreneur' : 'free'}
     />
   );
 }

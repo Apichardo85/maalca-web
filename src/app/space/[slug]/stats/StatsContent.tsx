@@ -23,6 +23,7 @@ import { KpiTile, type SpaceKpis } from '@/components/space/KpiTile';
 import type { Plan } from '@/lib/plan-limits';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { SOCIAL_ICON_BY_TIPO } from '@/components/public/SocialIcons';
+import { isPaidPlan } from '@/lib/plan-limits';
 
 // Same shape as maalca-api's BusinessReportsResponse (ReportsDtos.cs) — reportes ampliados
 // (ventas por día/canal/método de pago, top productos, clientes, facturas, equipo) que
@@ -226,7 +227,7 @@ export function StatsContent({ slug, kpis, plan, detailed: initialDetailed, repo
           <KpiTile
             label={getText('Items publicados', 'Published items')}
             value={kpis.itemsPublicados.disponible ? String(kpis.itemsPublicados.valor) : null}
-            suffix={plan === 'free' ? ' / 10' : undefined}
+            suffix={!isPaidPlan(plan) ? ' / 10' : undefined}
           />
           <KpiTile
             label={getText('Escaneos de QR', 'QR scans')}
