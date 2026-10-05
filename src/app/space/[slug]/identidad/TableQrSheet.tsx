@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { generateBrandedQrDataUrl } from '@/lib/qr';
 
@@ -13,6 +13,60 @@ interface Props {
 
 const MAX_TABLES = 60;
 
+// Al imprimir solo debe salir esta hoja. Antes window.print() imprimía TODA la página de
+// Identidad (panel del QR, banner de modo soporte, tarjeta de negocio...) y la tarjeta se partía
+// entre dos hojas antes de llegar a los QR de las mesas. Se marcan como ocultos los hermanos de
+// cada ancestro de la hoja (así el resto de la página no ocupa espacio ni genera hojas en blanco)
+// y se neutraliza el layout de la cadena (padding del sidebar, min-height, sticky) solo mientras
+// se imprime; todo se revierte en afterprint.
+const PRINT_CSS = `
+@media print {
+  @page { margin: 10mm; }
+  [data-print-hide] { display: none !important; }
+  [data-print-chain] {
+    display: block !important;
+    position: static !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    transform: none !important;
+    background: #fff !important;
+  }
+}
+`;
+
+function printOnly(el: HTMLElement | null) {
+  if (!el) {
+    window.print();
+    return;
+  }
+  const hidden: HTMLElement[] = [];
+  const chain: HTMLElement[] = [];
+  let node: HTMLElement | null = el;
+  while (node && node !== document.body) {
+    chain.push(node);
+    const parent: HTMLElement | null = node.parentElement;
+    if (parent) {
+      for (const sib of Array.from(parent.children)) {
+        if (sib !== node && sib instanceof HTMLElement) hidden.push(sib);
+      }
+    }
+    node = parent;
+  }
+  hidden.forEach((h) => h.setAttribute('data-print-hide', ''));
+  // La propia hoja conserva su padding/layout; solo se neutraliza lo que la envuelve.
+  chain.slice(1).forEach((c) => c.setAttribute('data-print-chain', ''));
+  const cleanup = () => {
+    hidden.forEach((h) => h.removeAttribute('data-print-hide'));
+    chain.forEach((c) => c.removeAttribute('data-print-chain'));
+    window.removeEventListener('afterprint', cleanup);
+  };
+  window.addEventListener('afterprint', cleanup);
+  window.print();
+}
+
 // Hoja de QR por mesa (solo Restaurante): cada QR apunta a /{slug}?mesa=N, así el pedido llega
 // con la mesa ya identificada. Se genera en el cliente y se imprime con el diálogo del navegador
 // (o se guarda como PDF) — sin servicio extra.
@@ -21,6 +75,7 @@ export function TableQrSheet({ publicUrl, businessName, logoUrl, primaryColor }:
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const [count, setCount] = useState(10);
   const [qrs, setQrs] = useState<{ table: number; src: string }[]>([]);
+  const sheetRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -45,7 +100,8 @@ export function TableQrSheet({ publicUrl, businessName, logoUrl, primaryColor }:
   }, [count, publicUrl, businessName, logoUrl, primaryColor, language]);
 
   return (
-    <section className="mx-auto mt-2 w-full max-w-5xl p-6 pt-0 print:max-w-none print:p-0">
+    <section ref={sheetRef} className="mx-auto mt-2 w-full max-w-5xl p-6 pt-0 print:max-w-none print:p-0">
+      <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
       <div className="print:hidden">
         <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
           {getText('QR por mesa', 'Table QR codes')}
@@ -69,7 +125,7 @@ export function TableQrSheet({ publicUrl, businessName, logoUrl, primaryColor }:
             />
           </label>
           <button
-            onClick={() => window.print()}
+            onClick={() => printOnly(sheetRef.current)}
             className="rounded-full bg-gray-900 dark:bg-white px-4 py-2 text-sm font-medium text-white dark:text-gray-900"
           >
             {getText('Imprimir / guardar PDF', 'Print / save as PDF')}
