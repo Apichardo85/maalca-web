@@ -8,7 +8,7 @@ import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { resolveSocialLinks } from '@/lib/public-contact';
 import { trackCanalClick } from '@/lib/public-events';
 import { SOCIAL_ICON_BY_TIPO } from '@/components/public/SocialIcons';
-import { WEEK_DAY_ORDER, WEEK_DAY_LABELS_ES, WEEK_DAY_LABELS_EN } from '@/lib/business-hours';
+import { WEEK_DAY_ORDER, WEEK_DAY_LABELS_ES, WEEK_DAY_LABELS_EN, formatHour } from '@/lib/business-hours';
 import { googleMapsUrl } from '@/lib/maps';
 
 interface Props {
@@ -108,7 +108,7 @@ export function PublicFooter({ business, capabilities, language = 'es' }: Props)
                 🕒{' '}
                 {todayEntry.cerrado
                   ? getText('Cerrado hoy', 'Closed today')
-                  : `${getText('Hoy', 'Today')}: ${todayEntry.abre} – ${todayEntry.cierra}`}
+                  : `${getText('Hoy', 'Today')}: ${formatHour(todayEntry.abre)} – ${formatHour(todayEntry.cierra)}`}
               </p>
             )}
             <details style={{ marginTop: todayEntry ? '6px' : 0, display: 'inline-block', textAlign: 'left' }}>
@@ -122,7 +122,7 @@ export function PublicFooter({ business, capabilities, language = 'es' }: Props)
                   const label = language === 'en' ? WEEK_DAY_LABELS_EN[day] : WEEK_DAY_LABELS_ES[day];
                   return (
                     <p key={day} style={{ margin: '2px 0', fontSize: '12px', fontWeight: day === today ? 700 : 400 }}>
-                      {label}: {entry.cerrado ? getText('Cerrado', 'Closed') : `${entry.abre} – ${entry.cierra}`}
+                      {label}: {entry.cerrado ? getText('Cerrado', 'Closed') : `${formatHour(entry.abre)} – ${formatHour(entry.cierra)}`}
                     </p>
                   );
                 })}

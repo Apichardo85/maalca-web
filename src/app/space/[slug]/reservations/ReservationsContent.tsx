@@ -9,6 +9,7 @@ import { CustomerPicker } from '@/components/ui/CustomerPicker';
 import { Toast } from '@/components/ui/Toast';
 import { buildInvoiceLink } from '@/lib/invoice-link';
 import { formatPhoneInput, isValidPhone, normalizePhone, PHONE_INPUT_PROPS } from '@/lib/phone';
+import { formatHour } from '@/lib/business-hours';
 
 export interface ReservationRow {
   id: string;
@@ -496,7 +497,7 @@ function ReservationCard({
               </span>
             )}
             <span className="text-sm font-semibold">
-              {fmtDate(r.date)} · {r.time}
+              {fmtDate(r.date)} · {formatHour(r.time)}
             </span>
             <span className="text-xs text-gray-500 dark:text-neutral-400">
               · {getText(`${r.partySize} personas`, `party of ${r.partySize}`)}
