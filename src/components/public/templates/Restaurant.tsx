@@ -1160,7 +1160,7 @@ export function RestaurantTemplate({
         businessName={business.name}
         taxRate={0}
         slug={business.slug}
-        onlinePayments={capabilities.onlinePayments}
+        onlinePayments={capabilities.onlinePayments && capabilities.stripeReady !== false}
         updateNotes={updateNotes}
         restaurantMode
         schedule={

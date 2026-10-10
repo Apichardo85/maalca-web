@@ -373,7 +373,7 @@ export function RetailTemplate({
           whatsappNumber={waRaw}
           businessName={business.name}
           slug={business.slug}
-          onlinePayments={capabilities.onlinePayments}
+          onlinePayments={capabilities.onlinePayments && capabilities.stripeReady !== false}
           schedule={cartSchedule}
           getText={getText}
         />

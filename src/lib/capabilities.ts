@@ -2,6 +2,8 @@ import { getPlanLimits, type Plan } from '@/lib/plan-limits';
 
 export interface PlanCapabilities {
   onlinePayments: boolean;
+  /** El afiliado ya conectó Stripe (lo informa el API). Sin esto no se ofrece pago con tarjeta. */
+  stripeReady?: boolean;
   bookingCalendar: boolean;
   realtimeStock: boolean;
   menuModifiers: boolean;

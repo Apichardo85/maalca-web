@@ -1,6 +1,6 @@
 'use client'
 import { formatPhoneInput, isValidPhone, normalizePhone, PHONE_INPUT_PROPS } from '@/lib/phone';
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { CartEntry, CartItem } from './useCart'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080'
@@ -117,7 +117,19 @@ export function CartDrawer({
   // Cerrado: el cliente confirma que entiende que el pedido es para la próxima apertura.
   const [scheduleAck, setScheduleAck] = useState(false)
 
+  // Con el carrito abierto la página de atrás no debe moverse: el scroll es solo del panel.
+  useEffect(() => {
+    if (!isOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [isOpen])
+
   if (!isOpen) return null
+
+  // Canales realmente disponibles: sin número de WhatsApp no se ofrece WhatsApp; sin Stripe conectado
+  // (el padre pasa onlinePayments ya filtrado) no se ofrece tarjeta. Queda "recoger y pagar en el local".
+  const hasWhatsApp = whatsappNumber.replace(/\D/g, '').length >= 7
 
   const scheduleWhen = schedule ? getText(schedule.whenEs, schedule.whenEn) : ''
   const scheduleNote = schedule
@@ -313,6 +325,8 @@ export function CartDrawer({
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
+          height: '100dvh',
+          maxHeight: '100dvh',
         }}
         onClick={e => e.stopPropagation()}
       >
@@ -365,7 +379,7 @@ export function CartDrawer({
         </div>
 
         {/* ── Items ── */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 24px' }}>
+        <div style={{ flex: '1 1 auto', minHeight: '110px', overflowY: 'auto', overscrollBehavior: 'contain', padding: '16px 24px' }}>
           {cart.map(entry => (
             <div
               key={entry.item.id}
@@ -501,6 +515,10 @@ export function CartDrawer({
             padding: '20px 24px calc(20px + env(safe-area-inset-bottom, 0px))',
             borderTop: '1px solid #e5e3de',
             backgroundColor: '#f8f6f1',
+            flex: '0 1 auto',
+            maxHeight: '58%',
+            overflowY: 'auto',
+            overscrollBehavior: 'contain',
           }}
         >
           {restaurantMode && (
@@ -752,8 +770,12 @@ export function CartDrawer({
               {checkoutState === 'unavailable' && (
                 <p style={{ margin: '0 0 10px', fontSize: '12px', color: '#b91c1c', textAlign: 'center' }}>
                   {getText(
-                    'Los pagos en línea no están disponibles ahora mismo — confirma por WhatsApp.',
-                    'Online payments are not available right now — confirm via WhatsApp.',
+                    hasWhatsApp
+                      ? 'Los pagos en línea no están disponibles ahora mismo — confirma por WhatsApp.'
+                      : 'Los pagos en línea no están disponibles ahora mismo — usa "Pedir y pagar al recoger".',
+                    hasWhatsApp
+                      ? 'Online payments are not available right now — confirm via WhatsApp.'
+                      : 'Online payments are not available right now — use "Order and pay at pickup".',
                   )}
                 </p>
               )}
@@ -860,7 +882,7 @@ export function CartDrawer({
             </>
           )}
 
-          {!tableNumber && !pickupPlaced && (<a
+          {!tableNumber && !pickupPlaced && hasWhatsApp && (<a
             href={closedBlocked ? undefined : waUrl}
             target="_blank"
             rel="noopener noreferrer"
