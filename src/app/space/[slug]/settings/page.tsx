@@ -34,6 +34,7 @@ export default async function SettingsPage({
       planStatus={business.planStatus ?? 'Active'}
       trialDaysRemaining={business.trialDaysRemaining ?? null}
       currency={business.currency ?? 'USD'}
+      businessLanguage={business.language === 'en' ? 'en' : 'es'}
       businessType={business.businessType ?? null}
       zoomLink={business.zoomLink ?? null}
     />

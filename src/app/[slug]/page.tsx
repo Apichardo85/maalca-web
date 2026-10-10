@@ -252,6 +252,15 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
           horario={affiliate.horario}
         />
       )}
+      {(affiliate.language === 'en' || affiliate.language === 'es') && (
+        // Idioma principal del negocio: solo es el valor inicial; si el visitante ya eligio uno
+        // (localStorage 'maalca-language') useSimpleLanguage lo respeta.
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.__MAALCA_DEFAULT_LANG__='${affiliate.language}';`,
+          }}
+        />
+      )}
       {affiliate.defaultTheme && (
         // Tema inicial del negocio: solo aplica si el visitante aun no eligio uno con el sol/luna
         // (localStorage 'theme' vacio). Bloqueante, corre antes de pintar el contenido que sigue.
@@ -338,6 +347,8 @@ interface PublicCatalogResponse {
     defaultTheme?: 'dark' | 'light' | null;
     // ISO-2 de la bandera junto a "ES" en el toggle de idioma (Settings.spanishFlag). null = RD.
     spanishFlag?: string | null;
+    // Idioma principal del negocio ('es' | 'en') — Affiliate.Language.
+    language?: string | null;
   };
   categories?: PublicTemplateProps['categories'];
   items: PublicTemplateProps['items'];

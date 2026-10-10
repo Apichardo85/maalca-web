@@ -50,6 +50,8 @@ export function formatScheduledFor(iso: string, language: 'es' | 'en'): string {
 
 interface Props {
   slug: string;
+  businessName?: string;
+  timezone?: string;
   plan: 'free' | 'entrepreneur' | 'enterprise';
   initialOrders: OrderRow[];
   // Solo true en modo soporte de plataforma (ver isImpersonation en layout.tsx) — el gate real
@@ -76,7 +78,7 @@ const STATUS_LABELS: Record<string, { es: string; en: string }> = {
 const esc = (v: string) => v.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string));
 
 /** Ticket de cocina (80 mm / térmica): abre el diálogo de impresión del navegador con un layout monocromo y grande. */
-function printTicket(order: OrderRow, slug: string, language: 'es' | 'en') {
+function printTicket(order: OrderRow, title: string, language: 'es' | 'en', timeZone?: string) {
   const t = (es: string, en: string) => (language === 'es' ? es : en);
   const money = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: order.currency || 'USD' }).format(n);
   const kind = order.tableNumber
@@ -84,7 +86,7 @@ function printTicket(order: OrderRow, slug: string, language: 'es' | 'en') {
     : order.paymentMethod === 'PayAtPickup' ? t('PARA RECOGER', 'PICKUP') : t('PEDIDO ONLINE', 'ONLINE ORDER');
   const payLater = order.paymentMethod === 'PayAtPickup' || order.paymentMethod === 'PayAtTable';
   const unpaid = payLater && !order.collectedAt;
-  const when = new Date(order.createdAt).toLocaleString(language === 'es' ? 'es-DO' : 'en-US');
+  const when = new Date(order.createdAt).toLocaleString(language === 'es' ? 'es' : 'en-US', timeZone ? { timeZone } : undefined);
   const items = order.items.map((i) =>
     `<div class="it"><b>${i.qty}x</b> ${esc(i.name)}</div>${i.notes ? `<div class="nt">&gt;&gt; ${esc(i.notes)}</div>` : ''}`).join('');
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>Ticket</title><style>
@@ -96,7 +98,7 @@ function printTicket(order: OrderRow, slug: string, language: 'es' | 'en') {
     .it { font-size: 16px; margin-top: 5px; } .nt { font-size: 14px; font-weight: 700; margin-left: 14px; }
     .row { display: flex; justify-content: space-between; } .tot { font-size: 16px; font-weight: 700; }
   </style></head><body>
-    <h1>${esc(slug)}</h1>
+    <h1>${esc(title)}</h1>
     <div class="big">${esc(kind)}</div>
     ${order.scheduledFor ? `<div class="c"><b>${t('PROGRAMADO', 'SCHEDULED')}: ${esc(formatScheduledFor(order.scheduledFor, language))}</b></div>` : ''}
     <div>${esc(when)}</div>
@@ -124,7 +126,7 @@ function printTicket(order: OrderRow, slug: string, language: 'es' | 'en') {
   }, 250);
 }
 
-export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Props) {
+export function OrdersContent({ slug, businessName, timezone, plan, initialOrders, canHardDelete }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const [orders, setOrders] = useState(initialOrders);
@@ -398,7 +400,7 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
 
                 <button
                   type="button"
-                  onClick={() => printTicket(order, slug, language)}
+                  onClick={() => printTicket(order, businessName || slug, language, timezone)}
                   className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-full border border-gray-200 px-3 text-xs font-medium text-gray-600 hover:border-brand-primary hover:text-brand-primary dark:border-neutral-700 dark:text-neutral-300"
                 >
                   🖨️ {getText('Imprimir ticket', 'Print ticket')}

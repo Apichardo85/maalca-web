@@ -10,7 +10,7 @@ import ThemeToggle from '@/components/ui/ThemeToggle';
  *  marketing Header (which used to provide these) is deliberately hidden on
  *  /space routes, so each page's own bar needs this instead of duplicating
  *  the signOut/toggle wiring per file. */
-export function SpaceTopBarControls() {
+export function SpaceTopBarControls({ spanishFlag }: { spanishFlag?: string | null } = {}) {
   const router = useRouter();
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -26,7 +26,7 @@ export function SpaceTopBarControls() {
 
   return (
     <div className="flex flex-shrink-0 items-center gap-3">
-      <SimpleLanguageToggle variant="light" />
+      <SimpleLanguageToggle variant="light" spanishFlag={spanishFlag} />
       <ThemeToggle />
       <button
         onClick={signOut}

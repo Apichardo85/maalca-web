@@ -5,7 +5,7 @@ import { OrdersContent, type OrderRow } from './OrdersContent';
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 interface SpaceResponse {
-  business: { id: string; plan: 'free' | 'entrepreneur' | 'enterprise' };
+  business: { id: string; plan: 'free' | 'entrepreneur' | 'enterprise'; name?: string; timezone?: string | null };
   isImpersonation?: boolean;
 }
 
@@ -40,5 +40,5 @@ export default async function OrdersPage({
     // orders stays [] — OrdersContent renders the empty state rather than crashing the page.
   }
 
-  return <OrdersContent slug={slug} plan={space.business.plan} initialOrders={orders} canHardDelete={space.isImpersonation === true} />;
+  return <OrdersContent slug={slug} businessName={space.business.name} timezone={space.business.timezone ?? undefined} plan={space.business.plan} initialOrders={orders} canHardDelete={space.isImpersonation === true} />;
 }

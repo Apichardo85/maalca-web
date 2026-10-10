@@ -21,6 +21,8 @@ interface OrderNotificationBody {
   items: OrderEmailItem[];
   total: number;
   currency: string;
+  /** Idioma del negocio ('es' | 'en'); default 'es'. */
+  language?: string | null;
 }
 
 export async function POST(request: NextRequest) {
@@ -56,6 +58,7 @@ export async function POST(request: NextRequest) {
     total: body.total,
     currency: body.currency || 'USD',
     trackUrl: body.trackUrl ?? null,
+    language: (body.language === 'en' ? 'en' : 'es') as 'es' | 'en',
   };
 
   const sent =

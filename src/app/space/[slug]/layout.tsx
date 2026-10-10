@@ -87,6 +87,7 @@ export default async function SpaceSlugLayout({
           userRole={role}
           businesses={affiliates}
           canCreateMore={canCreateMore}
+          spanishFlag={business.spanishFlag ?? null}
           activeModules={business.modulosActivos}
         />
         {children}

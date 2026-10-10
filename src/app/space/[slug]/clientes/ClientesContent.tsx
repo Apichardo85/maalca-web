@@ -279,7 +279,7 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-medium text-gray-900 dark:text-white">{c.name}</p>
                   <span className="shrink-0 text-sm font-medium text-gray-900 dark:text-white">
-                    {c.totalVisits} {getText('visitas', 'visits')}
+                    {c.totalVisits} {c.totalVisits === 1 ? getText('visita', 'visit') : getText('visitas', 'visits')}
                   </span>
                 </div>
                 <p className="text-xs text-gray-500 dark:text-neutral-400">

@@ -110,6 +110,16 @@ type Status = 'ready' | 'submitting' | 'success' | 'error';
 /** Evento que abre el formulario de reserva desde cualquier parte de la página. */
 export const OPEN_TABLE_RESERVATION_EVENT = 'maalca:open-table-reservation';
 
+/** 24h "HH:mm" → "9:30 AM" en inglés (negocios en EE. UU.); en español se deja en 24 h. */
+function formatSlotLabel(slot: string, language: 'es' | 'en'): string {
+  if (language !== 'en') return slot;
+  const [h, m] = slot.split(':').map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) return slot;
+  const suffix = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${String(m).padStart(2, '0')} ${suffix}`;
+}
+
 export function TableReservationSection({ slug, language, accent, horario, timezone }: Props) {
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const color = accent || '#045AFE';
@@ -336,7 +346,7 @@ export function TableReservationSection({ slug, language, accent, horario, timez
                               style={active ? { backgroundColor: color, borderColor: color, color: '#fff' } : undefined}
                             >
                               <span className="uppercase tracking-wide">
-                                {d.toLocaleDateString(language === 'es' ? 'es-DO' : 'en-US', { weekday: 'short', timeZone: 'UTC' })}
+                                {d.toLocaleDateString(language === 'es' ? 'es' : 'en-US', { weekday: 'short', timeZone: 'UTC' })}
                               </span>
                               <span className="mt-0.5 text-sm">{d.getUTCDate()}</span>
                             </button>
@@ -372,7 +382,7 @@ export function TableReservationSection({ slug, language, accent, horario, timez
                                   }`}
                                   style={active ? { backgroundColor: color, borderColor: color, color: '#fff' } : undefined}
                                 >
-                                  {slot}
+                                  {formatSlotLabel(slot, language)}
                                 </button>
                               );
                             })}
@@ -401,7 +411,7 @@ export function TableReservationSection({ slug, language, accent, horario, timez
                       <input
                         {...PHONE_INPUT_PROPS}
                         required
-                        placeholder="(809) 555-1234"
+                        placeholder="(555) 555-1234"
                         value={customerPhone}
                         onChange={(e) => setCustomerPhone(formatPhoneInput(e.target.value))}
                         className="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100 dark:placeholder:text-neutral-500 dark:focus:border-neutral-400"
