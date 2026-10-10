@@ -6,6 +6,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { isPaidPlan } from '@/lib/plan-limits';
+import { PRICE_ENTREPRENEUR, PRICE_PROFESSIONAL } from '@/config/pricing';
 
 interface Props {
   slug: string;
@@ -329,7 +330,7 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
               </div>
               {isPaidPlan(plan) && (
                 <span className="rounded-full bg-brand-primary/10 px-3 py-1 text-xs font-medium text-brand-primary">
-                  $38/{getText('mes', 'mo')}
+                  ${String(plan).toLowerCase() === 'enterprise' ? PRICE_PROFESSIONAL : PRICE_ENTREPRENEUR}/{getText('mes', 'mo')}
                 </span>
               )}
             </div>
