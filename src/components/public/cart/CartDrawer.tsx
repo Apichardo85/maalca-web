@@ -72,6 +72,8 @@ interface CartDrawerProps {
   /** Negocio cerrado: el pedido solo se acepta programado para la próxima apertura. Null/ausente =
    *  abierto (o sin horario configurado): sin restricción. La web lo bloquea al instante; el API repite la regla. */
   schedule?: { dateIso: string; whenEs: string; whenEn: string; opensAtLabel: string } | null
+  /** Se llama al cerrar el panel después de enviar un pedido: el padre vacía el carrito para no reenviarlo. */
+  onOrderComplete?: () => void
 }
 
 const TIP_PRESETS = [0.1, 0.15, 0.2] as const
@@ -95,6 +97,7 @@ export function CartDrawer({
   getText = (es) => es,
   tableNumber,
   schedule = null,
+  onOrderComplete,
 }: CartDrawerProps) {
   const fmt = useMemo(
     () => new Intl.NumberFormat('en-US', { style: 'currency', currency }),
@@ -130,6 +133,18 @@ export function CartDrawer({
   // Canales realmente disponibles: sin número de WhatsApp no se ofrece WhatsApp; sin Stripe conectado
   // (el padre pasa onlinePayments ya filtrado) no se ofrece tarjeta. Queda "recoger y pagar en el local".
   const hasWhatsApp = whatsappNumber.replace(/\D/g, '').length >= 7
+
+  // Pedido ya enviado: al cerrar se vacía el carrito y el panel vuelve a su estado inicial.
+  const orderSent = pickupPlaced || (!!tableNumber && checkoutState === 'placed')
+  function handleClose() {
+    if (orderSent) {
+      onOrderComplete?.()
+      setPickupPlaced(false)
+      setTrackingToken(null)
+      setCheckoutState('idle')
+    }
+    onClose()
+  }
 
   const scheduleWhen = schedule ? getText(schedule.whenEs, schedule.whenEn) : ''
   const scheduleNote = schedule
@@ -311,7 +326,7 @@ export function CartDrawer({
         backgroundColor: 'rgba(0,0,0,.4)',
         backdropFilter: 'blur(4px)',
       }}
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
         style={{
@@ -358,7 +373,7 @@ export function CartDrawer({
             </p>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             aria-label={getText('Cerrar carrito', 'Close cart')}
             style={{
               width: '40px',
@@ -521,7 +536,7 @@ export function CartDrawer({
             overscrollBehavior: 'contain',
           }}
         >
-          {restaurantMode && (
+          {restaurantMode && !orderSent && (
             <div style={{ marginBottom: '14px' }}>
               <p style={{ margin: '0 0 6px', fontSize: '12px', fontWeight: 600, color: '#888' }}>
                 {getText('Propina', 'Tip')}
@@ -733,7 +748,7 @@ export function CartDrawer({
             </div>
           )}
 
-          {onlinePayments && slug && !(tableNumber && checkoutState === 'placed') && (
+          {onlinePayments && slug && !orderSent && (
             <>
               <button
                 onClick={handleCardCheckout}

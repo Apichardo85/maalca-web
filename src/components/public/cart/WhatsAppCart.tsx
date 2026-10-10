@@ -32,6 +32,8 @@ export interface WhatsAppCartProps {
   onOpenChange?: (open: boolean) => void
   /** Oculta el botón flotante "Ver orden" cuando el template ya trae su propia barra de carrito. */
   hideFab?: boolean
+  /** Vacía el carrito — se usa al cerrar el panel tras enviar un pedido. */
+  clearCart?: () => void
   /** Px extra sobre el borde inferior para el aviso "Agregado al carrito" (ej. si hay una barra fija). */
   bottomInset?: number
 }
@@ -55,6 +57,7 @@ export function WhatsAppCart({
   isOpen: isOpenProp,
   onOpenChange,
   hideFab = false,
+  clearCart,
   bottomInset = 0,
 }: WhatsAppCartProps) {
   const [isOpenInternal, setIsOpenInternal] = useState(false)
@@ -124,6 +127,7 @@ export function WhatsAppCart({
         getText={getText}
         tableNumber={tableNumber}
         schedule={schedule}
+        onOrderComplete={clearCart}
       />
     </>
   )

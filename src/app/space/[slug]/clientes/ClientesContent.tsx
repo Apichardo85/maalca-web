@@ -67,6 +67,8 @@ interface HistoryOrder {
   createdAt: string;
   tableNumber?: string | null;
   channel: string;
+  paymentMethod?: string | null;
+  collectedAt?: string | null;
 }
 
 interface CustomerHistory {
@@ -421,7 +423,9 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
                     {getText('Gastado', 'Spent')}:{' '}
                     <strong className="text-gray-900 dark:text-white">
                       ${history.orders!
-                        .filter((o) => o.status === 'Paid' || o.status === 'Preparing' || o.status === 'Fulfilled')
+                        .filter((o) => (o.status === 'Paid' || o.status === 'Preparing' || o.status === 'Fulfilled')
+                          // Pago en el local: solo cuenta como gastado cuando ya se cobró.
+                          && !((o.paymentMethod === 'PayAtPickup' || o.paymentMethod === 'PayAtTable') && !o.collectedAt))
                         .reduce((sum, o) => sum + o.total, 0)
                         .toFixed(2)}
                     </strong>

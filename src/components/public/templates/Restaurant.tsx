@@ -273,7 +273,7 @@ export function RestaurantTemplate({
   const waRaw = resolveWhatsAppDigits(business);
   const deliveryLinks = resolveDeliveryLinks(business);
 
-  const { cart, addToCart, removeFromCart, cartTotal, cartCount, updateNotes } = useCart();
+  const { cart, addToCart, removeFromCart, clearCart, cartTotal, cartCount, updateNotes } = useCart();
   const [cartOpen, setCartOpen] = useState(false);
 
   // "Abierto ahora" depende del reloj: se calcula solo en el cliente (así la página cacheada por
@@ -1162,6 +1162,7 @@ export function RestaurantTemplate({
         slug={business.slug}
         onlinePayments={capabilities.onlinePayments && capabilities.stripeReady !== false}
         updateNotes={updateNotes}
+        clearCart={clearCart}
         restaurantMode
         schedule={
           schedule

@@ -280,7 +280,7 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
               </FilterChip>
               {(['Pending', 'Paid', 'Preparing', 'Fulfilled', 'Canceled'] as const).map((st) => (
                 <FilterChip key={st} active={statusFilter === st} onClick={() => setStatusFilter(st)}>
-                  {STATUS_LABELS[st][language]} ({statusCount(st)})
+                  {st === 'Paid' ? getText('Aceptado / pagado', 'Accepted / paid') : STATUS_LABELS[st][language]} ({statusCount(st)})
                 </FilterChip>
               ))}
             </div>
@@ -456,6 +456,11 @@ export function OrdersContent({ slug, plan, initialOrders, canHardDelete }: Prop
                     >
                       {getText('Marcar en preparación', 'Mark preparing')}
                     </button>
+                  )}
+                  {order.status === 'Preparing' && (order.paymentMethod === 'PayAtPickup' || order.paymentMethod === 'PayAtTable') && !order.collectedAt && (
+                    <span className="w-full text-xs text-amber-600 dark:text-amber-400">
+                      {getText('Falta cobrar antes de entregar.', 'Collect payment before handing over.')}
+                    </span>
                   )}
                   {order.status === 'Preparing' && (
                     <button
