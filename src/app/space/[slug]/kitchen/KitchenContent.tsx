@@ -40,6 +40,8 @@ const WARNING_MINUTES = 5;
 const URGENT_MINUTES = 10;
 
 const SOUND_MUTED_KEY = 'kitchen-sound-muted';
+/** Cada cuántos ms se repite la alarma mientras haya pedidos nuevos sin tomar. */
+const ALARM_INTERVAL_MS = 7000;
 
 /** Timbre de dos tonos generado con Web Audio API — sin depender de un archivo de audio
  *  (ni de conexión) para algo que tiene que sonar de inmediato en un dispositivo que se
@@ -55,7 +57,7 @@ function chime(ctx: AudioContext) {
     const t = ctx.currentTime + delay;
     osc.frequency.setValueAtTime(freq, t);
     gain.gain.setValueAtTime(0.0001, t);
-    gain.gain.exponentialRampToValueAtTime(0.35, t + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.6, t + 0.02);
     gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
     osc.start(t);
     osc.stop(t + 0.4);
@@ -115,15 +117,30 @@ export function KitchenContent({ slug, plan, affiliateId, initialOrders }: Props
     return () => clearInterval(id);
   }, []);
 
+  // Alarma: mientras haya pedidos NUEVOS sin tomar (columna "Nuevo"), la cocina sigue sonando cada
+  // pocos segundos hasta que alguien toque "Empezar". Un pedido programado para otro día no suena.
+  const waitingCount = useMemo(() => {
+    const todayIso = new Date().toLocaleDateString('en-CA');
+    return orders.filter((o) => o.status === 'Paid' && !(o.scheduledFor && o.scheduledFor > todayIso)).length;
+  }, [orders]);
+  useEffect(() => {
+    if (!soundUnlocked || muted || waitingCount === 0) return;
+    const ring = () => {
+      const ctx = audioCtxRef.current;
+      if (!ctx) return;
+      chime(ctx);
+      setTimeout(() => chime(ctx), 450);
+    };
+    ring();
+    const id = setInterval(ring, ALARM_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [soundUnlocked, muted, waitingCount > 0]);
+
   useOrdersRealtime(affiliateId, (raw) => {
     const updated = raw as OrderRow;
     if (!updated?.id) return;
     setOrders((prev) => {
       const exists = prev.some((o) => o.id === updated.id);
-      if (!exists && updated.status === 'Paid' && soundUnlocked && !muted) {
-        const ctx = audioCtxRef.current;
-        if (ctx) chime(ctx);
-      }
       return exists ? prev.map((o) => (o.id === updated.id ? updated : o)) : [updated, ...prev];
     });
   });

@@ -33,16 +33,18 @@ export interface OrderTracking {
   currency: string;
   expired: boolean;
   canPayOnline?: boolean;
+  /** Idioma principal del negocio (Affiliate.Language). */
+  language?: 'es' | 'en';
 }
 
 const POLL_MS = 15_000;
 
 // Pasos que ve el cliente. "Paid" internamente significa aceptado (o pagado online): para el cliente es "Aceptado".
 const STEPS = [
-  { key: 'received', es: 'Recibido', icon: '📨' },
-  { key: 'accepted', es: 'Aceptado', icon: '✅' },
-  { key: 'preparing', es: 'Preparando', icon: '👨‍🍳' },
-  { key: 'ready', es: 'Listo', icon: '🛍️' },
+  { key: 'received', es: 'Recibido', en: 'Received', icon: '📨' },
+  { key: 'accepted', es: 'Aceptado', en: 'Accepted', icon: '✅' },
+  { key: 'preparing', es: 'Preparando', en: 'Preparing', icon: '👨‍🍳' },
+  { key: 'ready', es: 'Listo', en: 'Ready', icon: '🛍️' },
 ] as const;
 
 function stepIndex(status: OrderTracking['status']): number {
@@ -76,6 +78,8 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
   const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
   const [now, setNow] = useState(() => Date.now());
   const color = safeColor(t.brandColor);
+  const lang = t.language === 'en' ? 'en' : 'es';
+  const tx = (es: string, en: string) => (lang === 'en' ? en : es);
   const money = useMemo(() => new Intl.NumberFormat('en-US', { style: 'currency', currency: t.currency || 'USD' }), [t.currency]);
 
   const refresh = useCallback(async () => {
@@ -144,7 +148,7 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
       const res = await fetch(`${apiBase}/api/public/track/${encodeURIComponent(token)}/push`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ endpoint: json.endpoint, p256dh: json.keys?.p256dh, auth: json.keys?.auth, lang: 'es' }),
+        body: JSON.stringify({ endpoint: json.endpoint, p256dh: json.keys?.p256dh, auth: json.keys?.auth, lang }),
       });
       if (!res.ok) throw new Error('subscribe failed');
       localStorage.setItem(`maalca_push_${token}`, '1');
@@ -169,13 +173,13 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.checkoutUrl) {
-        setPayError(data?.error?.message || 'No pudimos abrir el pago. Inténtalo de nuevo o paga en el local.');
+        setPayError(data?.error?.message || tx('No pudimos abrir el pago. Inténtalo de nuevo o paga en el local.', "We couldn't open the payment page. Try again or pay at the venue."));
         setPayBusy(false);
         return;
       }
       window.location.href = data.checkoutUrl;
     } catch {
-      setPayError('No pudimos abrir el pago. Inténtalo de nuevo o paga en el local.');
+      setPayError(tx('No pudimos abrir el pago. Inténtalo de nuevo o paga en el local.', "We couldn't open the payment page. Try again or pay at the venue."));
       setPayBusy(false);
     }
   }
@@ -191,17 +195,17 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
   const isReady = t.status === 'Ready' || t.status === 'Fulfilled';
   const eta = t.estimatedReadyAt ? new Date(t.estimatedReadyAt) : null;
   const minsLeft = eta ? Math.round((eta.getTime() - now) / 60000) : null;
-  const etaClock = eta?.toLocaleTimeString('es', { hour: 'numeric', minute: '2-digit' });
+  const etaClock = eta?.toLocaleTimeString(lang === 'en' ? 'en-US' : 'es', { hour: 'numeric', minute: '2-digit' });
 
   const headline = canceled
-    ? 'Pedido cancelado'
+    ? tx('Pedido cancelado', 'Order canceled')
     : isReady
-      ? '¡Tu pedido está listo!'
+      ? tx('¡Tu pedido está listo!', 'Your order is ready!')
       : t.status === 'Pending'
-        ? 'Esperando que el restaurante lo acepte'
+        ? tx('Esperando que el restaurante lo acepte', 'Waiting for the restaurant to accept it')
         : t.status === 'Paid'
-          ? 'Pedido aceptado'
-          : 'Preparando tu pedido';
+          ? tx('Pedido aceptado', 'Order accepted')
+          : tx('Preparando tu pedido', 'Preparing your order');
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-8 dark:bg-neutral-950">
@@ -212,7 +216,7 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
             <img src={t.logoUrl} alt="" className="h-10 w-10 rounded-full object-cover" />
           )}
           <div>
-            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-neutral-400">Tu pedido en</p>
+            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-neutral-400">{tx('Tu pedido en', 'Your order at')}</p>
             <h1 className="text-lg font-bold text-gray-900 dark:text-white">{t.businessName}</h1>
           </div>
         </div>
@@ -223,15 +227,15 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
           {!canceled && !t.expired && !isReady && eta && (
             <p className="mt-1 text-sm text-gray-600 dark:text-neutral-300">
               {minsLeft !== null && minsLeft > 0
-                ? <>Listo en aprox. <strong>{minsLeft} min</strong> · {etaClock}</>
-                : <>Debería estar listo en cualquier momento · {etaClock}</>}
+                ? <>{tx('Listo en aprox.', 'Ready in about')} <strong>{minsLeft} min</strong> · {etaClock}</>
+                : <>{tx('Debería estar listo en cualquier momento', 'It should be ready any moment now')} · {etaClock}</>}
             </p>
           )}
           {isReady && t.payAtVenue && !t.collected && (
-            <p className="mt-1 text-sm text-gray-600 dark:text-neutral-300">Pagas al recogerlo: <strong>{money.format(t.total)}</strong></p>
+            <p className="mt-1 text-sm text-gray-600 dark:text-neutral-300">{tx('Pagas al recogerlo:', 'You pay when you pick it up:')} <strong>{money.format(t.total)}</strong></p>
           )}
           {t.scheduledFor && !finished && (
-            <p className="mt-1 text-sm text-amber-700 dark:text-amber-400">📅 Pedido programado para {new Date(`${t.scheduledFor}T00:00:00`).toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+            <p className="mt-1 text-sm text-amber-700 dark:text-amber-400">📅 {tx('Pedido programado para', 'Scheduled for')} {new Date(`${t.scheduledFor}T00:00:00`).toLocaleDateString(lang === 'en' ? 'en-US' : 'es', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
           )}
 
           {!canceled && !t.expired && (
@@ -254,7 +258,7 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
                       {done ? '✓' : s.icon}
                     </span>
                     <div className="pt-1">
-                      <p className={`text-sm font-semibold ${done || current ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-neutral-500'}`}>{s.es}</p>
+                      <p className={`text-sm font-semibold ${done || current ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-neutral-500'}`}>{lang === 'en' ? s.en : s.es}</p>
                     </div>
                   </li>
                 );
@@ -263,7 +267,7 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
           )}
 
           {t.expired ? (
-            <p className="mt-4 text-sm text-gray-500 dark:text-neutral-400">Este pedido ya finalizó y el detalle dejó de estar disponible.</p>
+            <p className="mt-4 text-sm text-gray-500 dark:text-neutral-400">{tx('Este pedido ya finalizó y el detalle dejó de estar disponible.', 'This order is complete and the details are no longer available.')}</p>
           ) : (
             <div className="mt-5 border-t border-gray-100 pt-4 dark:border-neutral-800">
               <ul className="space-y-1.5">
@@ -278,12 +282,12 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
                 ))}
               </ul>
               {t.tip > 0 && (
-                <div className="mt-2 flex justify-between text-xs text-gray-500 dark:text-neutral-400"><span>Propina</span><span>{money.format(t.tip)}</span></div>
+                <div className="mt-2 flex justify-between text-xs text-gray-500 dark:text-neutral-400"><span>{tx('Propina', 'Tip')}</span><span>{money.format(t.tip)}</span></div>
               )}
               <div className="mt-2 flex justify-between text-sm font-bold text-gray-900 dark:text-white"><span>Total</span><span>{money.format(t.total)}</span></div>
               {t.payAtVenue && !t.collected && !canceled && (
                 <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
-                  💵 Pagas en el local al {t.tableNumber ? 'terminar' : 'recoger'}.
+                  💵 {lang === 'en' ? `You pay at the venue when you ${t.tableNumber ? 'finish' : 'pick up'}.` : `Pagas en el local al ${t.tableNumber ? 'terminar' : 'recoger'}.`}
                 </p>
               )}
               {t.canPayOnline && !t.collected && !canceled && t.status !== 'Fulfilled' && (
@@ -295,13 +299,13 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
                     className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold text-white disabled:opacity-60"
                     style={{ backgroundColor: color }}
                   >
-                    💳 {payBusy ? 'Abriendo pago…' : `Pagar ahora con tarjeta · ${money.format(t.total)}`}
+                    💳 {payBusy ? tx('Abriendo pago…', 'Opening payment…') : `${tx('Pagar ahora con tarjeta', 'Pay now by card')} · ${money.format(t.total)}`}
                   </button>
                   {payError && <p className="mt-2 text-center text-xs text-red-600">{payError}</p>}
                 </div>
               )}
               {t.payAtVenue && t.collected && (
-                <p className="mt-3 rounded-lg bg-green-50 px-3 py-2 text-xs text-green-700 dark:bg-green-900/20 dark:text-green-400">✅ Pago recibido. ¡Gracias!</p>
+                <p className="mt-3 rounded-lg bg-green-50 px-3 py-2 text-xs text-green-700 dark:bg-green-900/20 dark:text-green-400">✅ {tx('Pago recibido. ¡Gracias!', 'Payment received. Thank you!')}</p>
               )}
             </div>
           )}
@@ -309,9 +313,9 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
           {!finished && !t.expired && pushState !== 'unsupported' && (
             <div className="mt-4 border-t border-gray-100 pt-4 dark:border-neutral-800">
               {pushState === 'on' ? (
-                <p className="text-xs text-green-700 dark:text-green-400">🔔 Te avisaremos aquí cuando cambie lo importante (aceptado, listo).</p>
+                <p className="text-xs text-green-700 dark:text-green-400">🔔 {tx('Te avisaremos aquí cuando cambie lo importante (aceptado, listo).', "We'll notify you here when something important changes (accepted, ready).")}</p>
               ) : pushState === 'denied' ? (
-                <p className="text-xs text-gray-500 dark:text-neutral-400">Las notificaciones están bloqueadas en este navegador. Mantén esta página abierta o vuelve a entrar con tu enlace.</p>
+                <p className="text-xs text-gray-500 dark:text-neutral-400">{tx('Las notificaciones están bloqueadas en este navegador. Mantén esta página abierta o vuelve a entrar con tu enlace.', 'Notifications are blocked in this browser. Keep this page open or come back using your link.')}</p>
               ) : (
                 <button
                   type="button"
@@ -319,7 +323,7 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
                   disabled={pushState === 'busy'}
                   className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-gray-300 px-4 text-sm font-medium hover:border-gray-400 disabled:opacity-60 dark:border-neutral-700 dark:text-white"
                 >
-                  🔔 Avísame cuando esté listo
+                  🔔 {tx('Avísame cuando esté listo', 'Notify me when it is ready')}
                 </button>
               )}
             </div>
@@ -333,7 +337,7 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
         </div>
 
         <p className="mt-4 text-center text-xs text-gray-400 dark:text-neutral-500">
-          Esta página se actualiza sola · Pedido #{token.slice(0, 6).toUpperCase()}
+          {tx('Esta página se actualiza sola', 'This page updates automatically')} · {tx('Pedido', 'Order')} #{token.slice(0, 6).toUpperCase()}
         </p>
       </div>
     </div>
