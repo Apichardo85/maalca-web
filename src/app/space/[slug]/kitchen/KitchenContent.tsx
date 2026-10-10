@@ -32,7 +32,7 @@ const COLUMNS: {
 }[] = [
   { status: 'Paid', es: 'Nuevo', en: 'New', accent: 'border-l-red-500', badge: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
   { status: 'Preparing', es: 'Preparando', en: 'Preparing', accent: 'border-l-amber-500', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
-  { status: 'Fulfilled', es: 'Listo', en: 'Ready', accent: 'border-l-emerald-500', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
+  { status: 'Ready', es: 'Listo', en: 'Ready', accent: 'border-l-emerald-500', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
 ];
 
 // Umbrales de urgencia por tiempo de espera (minutos) — solo aplica a Nuevo/Preparando.
@@ -150,7 +150,7 @@ export function KitchenContent({ slug, plan, affiliateId, initialOrders }: Props
   }
 
   const byColumn = useMemo(() => {
-    const map: Record<string, OrderRow[]> = { Paid: [], Preparing: [], Fulfilled: [] };
+    const map: Record<string, OrderRow[]> = { Paid: [], Preparing: [], Ready: [] };
     for (const order of orders) {
       if (order.status in map) map[order.status].push(order);
     }
@@ -158,8 +158,8 @@ export function KitchenContent({ slug, plan, affiliateId, initialOrders }: Props
     map.Paid.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
     map.Preparing.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
     // Listo: el más reciente primero, para ubicar rápido el que se acaba de terminar.
-    map.Fulfilled.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    map.Fulfilled = map.Fulfilled.slice(0, 12);
+    map.Ready.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    map.Ready = map.Ready.slice(0, 12);
     return map;
   }, [orders]);
 
@@ -232,15 +232,15 @@ export function KitchenContent({ slug, plan, affiliateId, initialOrders }: Props
                   // Un pedido programado para otro día no está "esperando": sin urgencia hasta ese día.
                   const todayIso = new Date(now).toLocaleDateString('en-CA');
                   const isFuture = !!order.scheduledFor && order.scheduledFor > todayIso;
-                  const isUrgent = col.status !== 'Fulfilled' && !isFuture && waitMinutes >= URGENT_MINUTES;
-                  const isWarning = col.status !== 'Fulfilled' && !isFuture && waitMinutes >= WARNING_MINUTES;
+                  const isUrgent = col.status !== 'Ready' && !isFuture && waitMinutes >= URGENT_MINUTES;
+                  const isWarning = col.status !== 'Ready' && !isFuture && waitMinutes >= WARNING_MINUTES;
                   return (
                     <div
                       key={order.id}
                       className={`rounded-xl border border-l-4 p-4 ${col.accent} ${
                         isUrgent
                           ? 'border-red-400 dark:border-red-900/60 bg-red-50 dark:bg-red-950/30 animate-pulse'
-                          : col.status === 'Fulfilled'
+                          : col.status === 'Ready'
                             ? 'border-gray-200/70 dark:border-neutral-800 opacity-70'
                             : 'border-gray-300 dark:border-neutral-700'
                       }`}
@@ -263,7 +263,7 @@ export function KitchenContent({ slug, plan, affiliateId, initialOrders }: Props
                               minute: '2-digit',
                             })}
                           </span>
-                          {col.status !== 'Fulfilled' && (
+                          {col.status !== 'Ready' && (
                             <span
                               className={`text-xs font-semibold ${
                                 isUrgent
@@ -309,11 +309,20 @@ export function KitchenContent({ slug, plan, affiliateId, initialOrders }: Props
                       )}
                       {col.status === 'Preparing' && (
                         <button
-                          onClick={() => advance(order.id, 'Fulfilled')}
+                          onClick={() => advance(order.id, 'Ready')}
                           disabled={busyId === order.id}
                           className="mt-3 min-h-11 w-full rounded-full bg-brand-primary py-2 text-sm font-semibold text-white disabled:opacity-50"
                         >
                           {getText('Listo', 'Ready')}
+                        </button>
+                      )}
+                      {col.status === 'Ready' && (
+                        <button
+                          onClick={() => advance(order.id, 'Fulfilled')}
+                          disabled={busyId === order.id}
+                          className="mt-3 min-h-11 w-full rounded-full bg-brand-primary py-2 text-sm font-semibold text-white disabled:opacity-50"
+                        >
+                          {getText('Entregado', 'Handed over')}
                         </button>
                       )}
                     </div>

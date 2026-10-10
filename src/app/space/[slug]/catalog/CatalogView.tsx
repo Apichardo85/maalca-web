@@ -6,6 +6,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { getPlanLimits, type Plan } from '@/lib/plan-limits';
 import { matchesCatalogQuery } from '@/lib/catalog-search';
 import { isPaidPlan } from '@/lib/plan-limits';
+import { normalizeBaseLanguage, translationTag, type BaseLanguage } from '@/lib/catalog-language';
 
 const ALL_TAB = '__all__';
 
@@ -39,9 +40,11 @@ interface Props {
   plan: Plan;
   items: CatalogItem[];
   productCount: number;
+  /** Idioma principal del negocio: define en qué idioma está la traducción (EN o ES). */
+  businessLanguage?: string | null;
 }
 
-export function CatalogView({ slug, plan, items: initialItems, productCount }: Props) {
+export function CatalogView({ slug, plan, items: initialItems, productCount, businessLanguage }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => language === 'es' ? es : en;
 
@@ -142,6 +145,7 @@ export function CatalogView({ slug, plan, items: initialItems, productCount }: P
             <div className="space-y-2">
               {demoItems.map((item) => (
                 <ItemRow
+                  baseLanguage={normalizeBaseLanguage(businessLanguage)}
                   key={item.id}
                   item={item}
                   slug={slug}
@@ -213,6 +217,7 @@ export function CatalogView({ slug, plan, items: initialItems, productCount }: P
               <div className="space-y-2">
                 {filteredRealItems.map((item) => (
                   <ItemRow
+                    baseLanguage={normalizeBaseLanguage(businessLanguage)}
                     key={item.id}
                     item={item}
                     slug={slug}
@@ -262,9 +267,11 @@ function ItemRow({
   getText,
   onToggleActive,
   toggling,
+  baseLanguage,
 }: {
   item: CatalogItem;
   slug: string;
+  baseLanguage: BaseLanguage;
   getText: (es: string, en: string) => string;
   onToggleActive: (item: CatalogItem) => void;
   toggling: boolean;
@@ -276,6 +283,8 @@ function ItemRow({
   const flags = (item.flags ?? []).map((f) => (es ? FLAG_ES[f] : FLAG_EN[f]) ?? f);
   const price = item.price != null ? `$${Number(item.price).toFixed(2)}` : null;
   const hasEn = Boolean(item.nameEn || item.descriptionEn);
+  const tag = translationTag(baseLanguage);
+  const otherLang = baseLanguage === 'en' ? getText('español', 'Spanish') : getText('inglés', 'English');
 
   return (
     <div
@@ -328,11 +337,11 @@ function ItemRow({
       {open && (
         <div className="space-y-2 border-t border-gray-100 dark:border-neutral-800 px-4 py-3 text-xs text-gray-600 dark:text-neutral-300">
           <p>
-            <span className="font-semibold">{getText('Nombre (EN): ', 'Name (EN): ')}</span>
+            <span className="font-semibold">{getText(`Nombre (${tag}): `, `Name (${tag}): `)}</span>
             {item.nameEn || <span className="italic text-gray-400">{getText('sin traducir', 'not translated')}</span>}
           </p>
           <p className="break-words">
-            <span className="font-semibold">{getText('Descripción (EN): ', 'Description (EN): ')}</span>
+            <span className="font-semibold">{getText(`Descripción (${tag}): `, `Description (${tag}): `)}</span>
             {item.descriptionEn || <span className="italic text-gray-400">{getText('sin traducir', 'not translated')}</span>}
           </p>
           {periods.length > 0 && (
@@ -344,7 +353,7 @@ function ItemRow({
           {flags.length > 0 && <p>{flags.join(' · ')}</p>}
           {!hasEn && (
             <p className="text-amber-600 dark:text-amber-400">
-              {getText('Sin traducción al inglés: los visitantes en inglés verán el nombre y la descripción principales.', 'No English translation: English visitors will see the main name and description.')}
+              {getText(`Sin traducción al ${otherLang}: los visitantes en ${otherLang} verán el nombre y la descripción principales.`, `No ${otherLang} translation: ${otherLang} visitors will see the main name and description.`)}
             </p>
           )}
         </div>

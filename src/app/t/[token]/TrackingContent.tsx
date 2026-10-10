@@ -17,7 +17,7 @@ export interface OrderTracking {
   brandColor: string | null;
   address: string | null;
   whatsApp: string | null;
-  status: 'Pending' | 'Paid' | 'Preparing' | 'Fulfilled' | 'Canceled';
+  status: 'Pending' | 'Paid' | 'Preparing' | 'Ready' | 'Fulfilled' | 'Canceled';
   payAtVenue: boolean;
   collected: boolean;
   tableNumber: string | null;
@@ -50,6 +50,7 @@ function stepIndex(status: OrderTracking['status']): number {
     case 'Pending': return 0;
     case 'Paid': return 1;
     case 'Preparing': return 2;
+    case 'Ready': return 3;
     case 'Fulfilled': return 3;
     default: return 0;
   }
@@ -186,13 +187,15 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
 
   const canceled = t.status === 'Canceled';
   const idx = stepIndex(t.status);
+  // "Listo" (Ready) y "Entregado" (Fulfilled) muestran el último paso completo para el cliente.
+  const isReady = t.status === 'Ready' || t.status === 'Fulfilled';
   const eta = t.estimatedReadyAt ? new Date(t.estimatedReadyAt) : null;
   const minsLeft = eta ? Math.round((eta.getTime() - now) / 60000) : null;
   const etaClock = eta?.toLocaleTimeString('es', { hour: 'numeric', minute: '2-digit' });
 
   const headline = canceled
     ? 'Pedido cancelado'
-    : t.status === 'Fulfilled'
+    : isReady
       ? '¡Tu pedido está listo!'
       : t.status === 'Pending'
         ? 'Esperando que el restaurante lo acepte'
@@ -217,14 +220,14 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">{headline}</h2>
 
-          {!canceled && !t.expired && t.status !== 'Fulfilled' && eta && (
+          {!canceled && !t.expired && !isReady && eta && (
             <p className="mt-1 text-sm text-gray-600 dark:text-neutral-300">
               {minsLeft !== null && minsLeft > 0
                 ? <>Listo en aprox. <strong>{minsLeft} min</strong> · {etaClock}</>
                 : <>Debería estar listo en cualquier momento · {etaClock}</>}
             </p>
           )}
-          {t.status === 'Fulfilled' && t.payAtVenue && !t.collected && (
+          {isReady && t.payAtVenue && !t.collected && (
             <p className="mt-1 text-sm text-gray-600 dark:text-neutral-300">Pagas al recogerlo: <strong>{money.format(t.total)}</strong></p>
           )}
           {t.scheduledFor && !finished && (
@@ -234,8 +237,8 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
           {!canceled && !t.expired && (
             <ol className="mt-5 space-y-0">
               {STEPS.map((s, i) => {
-                const done = i < idx || (i === idx && t.status === 'Fulfilled');
-                const current = i === idx && t.status !== 'Fulfilled';
+                const done = i < idx || (i === idx && isReady);
+                const current = i === idx && !isReady;
                 return (
                   <li key={s.key} className="relative flex gap-3 pb-5 last:pb-0">
                     {i < STEPS.length - 1 && (

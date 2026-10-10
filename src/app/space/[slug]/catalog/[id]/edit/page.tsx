@@ -25,6 +25,7 @@ export default async function EditCatalogItemPage({ params, searchParams }: Page
   });
   const spaceData = spaceRes.ok ? await spaceRes.json() : null;
   const businessType: string | null = spaceData?.business?.businessType ?? null;
+  const businessLanguage: string | null = spaceData?.business?.language ?? null;
 
   const res = await fetch(
     `${API}/api/affiliates/${affiliate.id}/catalog-items/${id}`,
@@ -119,6 +120,7 @@ export default async function EditCatalogItemPage({ params, searchParams }: Page
       slug={slug}
       item={item}
       businessType={businessType}
+      businessLanguage={businessLanguage}
       from={from}
       inventoryItems={inventoryItems}
       initialRecipe={recipe}

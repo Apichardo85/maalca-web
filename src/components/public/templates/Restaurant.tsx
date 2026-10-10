@@ -939,6 +939,7 @@ export function RestaurantTemplate({
                   style={{
                     flexShrink: 0,
                     padding: '12px 16px',
+                    minHeight: '44px',
                     fontSize: '14px',
                     fontWeight: activeTab === key ? 600 : 400,
                     color: activeTab === key ? CAFE : MUTED,
@@ -977,7 +978,8 @@ export function RestaurantTemplate({
                 onClick={() => setActivePeriod(key)}
                 style={{
                   flexShrink: 0,
-                  padding: '6px 14px',
+                  padding: '0 16px',
+                  minHeight: '44px',
                   fontSize: '13px',
                   fontWeight: 600,
                   borderRadius: '9999px',
@@ -1865,8 +1867,11 @@ function MenuCard({
                 color: 'var(--rt-on-accent, #ffffff)',
                 border: 'none',
                 borderRadius: '8px',
-                padding: '6px 12px',
-                fontSize: '12px',
+                padding: '0 16px',
+                minHeight: '44px', // objetivo táctil mínimo en móvil
+                display: 'inline-flex',
+                alignItems: 'center',
+                fontSize: '13px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
@@ -1888,9 +1893,9 @@ function MenuCard({
                 onClick={onRemove}
                 aria-label={`${getText('Quitar', 'Remove')} ${displayName}`}
                 style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '6px',
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '8px',
                   border: 'none',
                   backgroundColor: PLACEHOLDER,
                   cursor: 'pointer',
@@ -1919,9 +1924,9 @@ function MenuCard({
                 onClick={onAdd}
                 aria-label={`${getText('Agregar', 'Add')} ${displayName}`}
                 style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '6px',
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '8px',
                   border: 'none',
                   backgroundColor: accent,
                   cursor: 'pointer',

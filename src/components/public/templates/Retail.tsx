@@ -572,7 +572,7 @@ function ProductCard({
           <button
             onClick={addThis}
             aria-label={`${getText('Agregar', 'Add')} ${displayName}`}
-            className="block w-full rounded-full py-1.5 text-center text-xs font-semibold transition hover:opacity-90"
+            className="block min-h-11 w-full rounded-full py-2.5 text-center text-xs font-semibold transition hover:opacity-90"
             style={{ backgroundColor: accent, color: onAccent }}
           >
             + {getText('Agregar', 'Add')}
@@ -582,7 +582,7 @@ function ProductCard({
             <button
               onClick={() => removeFromCart(item.id)}
               aria-label={`${getText('Quitar', 'Remove')} ${displayName}`}
-              className="flex h-7 w-7 items-center justify-center rounded-md text-sm font-bold"
+              className="flex h-11 w-11 items-center justify-center rounded-md text-sm font-bold"
               style={{ backgroundColor: SOFT, color: INK }}
             >
               −
@@ -598,7 +598,7 @@ function ProductCard({
                 image: imageUrl ?? undefined,
               })}
               aria-label={`${getText('Agregar', 'Add')} ${displayName}`}
-              className="flex h-7 w-7 items-center justify-center rounded-md text-sm font-bold"
+              className="flex h-11 w-11 items-center justify-center rounded-md text-sm font-bold"
               style={{ backgroundColor: accent, color: onAccent }}
             >
               +

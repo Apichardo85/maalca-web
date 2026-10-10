@@ -52,3 +52,14 @@ Viewport 440×956, DPR 3 (modo iPhone Pro de DevTools). Cuenta de pruebas: "QA �
 - Catálogo: aviso de "sin traducción" ya no afirma que el texto base está en español.
 - Decisión pendiente: el modelo del catálogo asume texto base en español + traducción EN. Para negocios cuyo texto base es inglés (La Catrina) los campos "EN" quedan semánticamente invertidos; arreglarlo bien requiere definir si el texto base sigue el idioma del negocio.
 - Después del deploy: poner La Catrina en "English" en Settings y volver a probar un pedido con correo.
+
+## Verificación en producción (main b96e01f) — idioma del negocio = English
+
+- Página pública abre en inglés por defecto; "Powered by MaalCa" visible en el pie; Settings muestra Enterprise $95/mo y la tarjeta "Business language".
+- Reserva: franjas en 12h ("9:00 AM … 5:30 PM"), teléfono `(555) 555-1234`.
+- Correos en inglés verificados: "We got your order", "Reservation request at…", "Reservation canceled at…".
+- Reservas probadas: Confirm, Cancel y No-show OK (Seat → Complete ya probado antes).
+- Pedido: Accept → Mark preparing → Mark fulfilled OK. No se envía correo al aceptar ni al entregar: es por diseño (un solo correo por pedido; el enlace de seguimiento muestra el estado).
+- Corregido en `develop` (7523216): horas en 12h en el pie público ("Today: 9:00 AM – 6:00 PM") y en el panel de reservas ("Oct 12 · 1:00 PM"). Pendiente de deploy a main.
+- El botón "🇲🇽 ES" del panel es el toggle de idioma de la interfaz (muestra el idioma destino y la bandera del negocio), no un error.
+- Datos QA a borrar a mano: 4 pedidos, 3 reservas (1 completada, 1 cancelada, 1 no-show), cliente "QA – ignorar".

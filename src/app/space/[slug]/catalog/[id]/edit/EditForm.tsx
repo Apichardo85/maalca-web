@@ -14,6 +14,7 @@ import { parseApiError } from '@/lib/api-errors';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { normalizeBaseLanguage, translationTag } from '@/lib/catalog-language';
 
 interface Item {
   id: string;
@@ -41,6 +42,8 @@ interface Props {
   item: Item;
   /** Gates the Restaurant-only fields (periods/weekDays/flags/featured/popular). */
   businessType: string | null;
+  /** Idioma principal del negocio (Affiliate.Language): define en qué idioma está la traducción. */
+  businessLanguage?: string | null;
   /** Where "Volver" should go back to — set via ?from= by the link that got us here. */
   from?: string;
   /** Inventory items available to link as ingredients — only populated for Restaurant. */
@@ -75,6 +78,7 @@ export default function EditForm({
   slug,
   item,
   businessType,
+  businessLanguage,
   from,
   inventoryItems = [],
   initialRecipe = [],
@@ -83,6 +87,7 @@ export default function EditForm({
 }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
+  const baseLanguage = normalizeBaseLanguage(businessLanguage);
   const router = useRouter();
   const isRestaurant = businessType === 'Restaurant';
   const isBarberOrService = businessType === 'Barber' || businessType === 'Service';
@@ -283,14 +288,14 @@ export default function EditForm({
 
           <div>
             <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-              Name <span className="text-neutral-400">(EN)</span>
+              {getText('Nombre', 'Name')} <span className="text-neutral-400">({translationTag(baseLanguage)})</span>
             </label>
             <input
               type="text"
               value={form.nameEn}
               onChange={set('nameEn')}
               maxLength={80}
-              placeholder="Optional — shown to visitors with English selected"
+              placeholder={baseLanguage === 'en' ? getText('Opcional — lo ven los visitantes con español seleccionado', 'Optional — shown to visitors with Spanish selected') : getText('Opcional — lo ven los visitantes con inglés seleccionado', 'Optional — shown to visitors with English selected')}
               className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-neutral-500 focus:border-neutral-400 dark:focus:border-neutral-500 focus:outline-none"
             />
           </div>
@@ -308,14 +313,14 @@ export default function EditForm({
 
           <div>
             <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-              Description <span className="text-neutral-400">(EN)</span>
+              {getText('Descripción', 'Description')} <span className="text-neutral-400">({translationTag(baseLanguage)})</span>
             </label>
             <textarea
               value={form.descriptionEn}
               onChange={set('descriptionEn')}
               rows={3}
               maxLength={200}
-              placeholder="Optional — shown to visitors with English selected"
+              placeholder={baseLanguage === 'en' ? getText('Opcional — lo ven los visitantes con español seleccionado', 'Optional — shown to visitors with Spanish selected') : getText('Opcional — lo ven los visitantes con inglés seleccionado', 'Optional — shown to visitors with English selected')}
               className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-neutral-500 focus:border-neutral-400 dark:focus:border-neutral-500 focus:outline-none resize-none"
             />
           </div>
