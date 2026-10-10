@@ -131,7 +131,8 @@ export function PublicFooter({ business, capabilities, language = 'es' }: Props)
           </div>
         )}
 
-        {!capabilities.hidePoweredBy && (
+        {/* Visibilidad de plataforma: el crédito se muestra en TODOS los planes (decisión de producto). */}
+        {(
           <Link
             href="/servicios"
             style={{
