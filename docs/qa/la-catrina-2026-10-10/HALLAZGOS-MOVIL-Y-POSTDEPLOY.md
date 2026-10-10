@@ -42,3 +42,13 @@ Viewport 440×956, DPR 3 (modo iPhone Pro de DevTools). Cuenta de pruebas: "QA �
 - Cancel y No-show de reservas (requiere otra reserva QA).
 - Borrar datos QA (pedidos, reserva, cliente) desde el panel.
 - Resend: activar Open/Click tracking, crear webhook y aplicar migración (código listo, ver commits).
+
+## Idioma del negocio (implementado 13:50, pendiente de deploy)
+- Campo existente `Affiliate.Language` ("es"|"en") pasa a ser el idioma principal del negocio. Editable en Settings → "Idioma del negocio" (solo acepta es/en).
+- Página pública: idioma inicial = idioma del negocio si el visitante no ha elegido uno (localStorage `maalca-language` gana).
+- Correos al cliente (pedido recibido/confirmado/listo y reservas solicitada/confirmada/cancelada, más el aviso al negocio) salen en el idioma del negocio.
+- Reserva pública: placeholder de teléfono neutro, horas en 12 h cuando el idioma es inglés, fechas sin locale `es-DO`.
+- Panel: la bandera junto a "ES" usa `Settings.spanishFlag` del negocio (antes siempre 🇩🇴).
+- Catálogo: aviso de "sin traducción" ya no afirma que el texto base está en español.
+- Decisión pendiente: el modelo del catálogo asume texto base en español + traducción EN. Para negocios cuyo texto base es inglés (La Catrina) los campos "EN" quedan semánticamente invertidos; arreglarlo bien requiere definir si el texto base sigue el idioma del negocio.
+- Después del deploy: poner La Catrina en "English" en Settings y volver a probar un pedido con correo.

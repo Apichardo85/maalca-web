@@ -33,6 +33,8 @@ interface Props {
   userRole?: string | null;
   businesses: Business[];
   canCreateMore: boolean;
+  /** ISO-2 de la bandera junto a "ES" (Settings.spanishFlag del negocio). */
+  spanishFlag?: string | null;
   /** Ver mismo comentario en SpaceSidebar.tsx — control de módulos por afiliado desde /ops. */
   activeModules?: string[];
 }
@@ -58,6 +60,7 @@ export function SpaceMobileNav({
   userRole = null,
   businesses,
   canCreateMore,
+  spanishFlag,
   activeModules,
 }: Props) {
   const [isOpen, setIsOpen] = useState(false);
@@ -164,7 +167,7 @@ export function SpaceMobileNav({
         </div>
         <div className="flex flex-shrink-0 items-center gap-2">
           <NotificationBell slug={slug} />
-          <SpaceTopBarControls />
+          <SpaceTopBarControls spanishFlag={spanishFlag} />
         </div>
       </div>
 

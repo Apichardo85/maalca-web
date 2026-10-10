@@ -13,6 +13,7 @@ interface ReservationRequestedBody {
   slug?: string | null;
   logoUrl?: string | null;
   brandColor?: string | null;
+  language?: string | null;
   customerName: string;
   customerPhone: string;
   customerEmail?: string | null;
@@ -59,6 +60,7 @@ export async function POST(request: NextRequest) {
     time: body.time,
     partySize: body.partySize,
     notes: body.notes ?? null,
+    language: (body.language === 'en' ? 'en' : 'es') as 'es' | 'en',
   });
 
   return NextResponse.json(sent);

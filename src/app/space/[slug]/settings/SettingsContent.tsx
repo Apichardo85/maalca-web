@@ -13,6 +13,7 @@ interface Props {
   planStatus: string;
   trialDaysRemaining: number | null;
   currency: 'USD' | 'DOP';
+  businessLanguage?: 'es' | 'en';
   businessType?: string | null;
   zoomLink?: string | null;
 }
@@ -26,7 +27,7 @@ const FEATURES: { es: string; en: string; free: boolean; entrepreneur: boolean }
   { es: 'Código QR + contacto directo', en: 'QR code + direct contact', free: true, entrepreneur: true },
 ];
 
-export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, currency: initialCurrency, businessType, zoomLink: initialZoomLink }: Props) {
+export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, currency: initialCurrency, businessLanguage: initialBizLanguage = 'es', businessType, zoomLink: initialZoomLink }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -235,6 +236,28 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
   // Moneda en la que el negocio muestra sus precios — no depende de plan ni de Stripe Connect
   // (ese es Country, que es para dónde llega el dinero). Cualquier dueño la puede cambiar.
   const [currency, setCurrency] = useState<'USD' | 'DOP'>(initialCurrency);
+  const [bizLanguage, setBizLanguage] = useState<'es' | 'en'>(initialBizLanguage);
+  const [bizLanguageSaving, setBizLanguageSaving] = useState(false);
+
+  async function handleBizLanguageChange(next: 'es' | 'en') {
+    const prev = bizLanguage;
+    setBizLanguage(next);
+    setBizLanguageSaving(true);
+    try {
+      const res = await fetch(`/api/space/${slug}/settings`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ language: next }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success(getText('Idioma del negocio actualizado.', 'Business language updated.'));
+    } catch {
+      setBizLanguage(prev);
+      toast.error(getText('No pudimos guardar el idioma.', "Couldn't save the language."));
+    } finally {
+      setBizLanguageSaving(false);
+    }
+  }
   const [currencySaving, setCurrencySaving] = useState(false);
   const [currencyError, setCurrencyError] = useState<string | null>(null);
 
@@ -366,6 +389,28 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
                 </p>
               </>
             )}
+          </div>
+
+          {/* Idioma del negocio — idioma inicial de la página pública y de los correos a tus clientes */}
+          <div className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6">
+            <p className="text-xs uppercase tracking-wider text-gray-400 dark:text-neutral-500">
+              {getText('Idioma del negocio', 'Business language')}
+            </p>
+            <p className="mt-1 text-sm text-gray-600 dark:text-neutral-300">
+              {getText(
+                'Idioma principal de tu página pública (los visitantes pueden cambiarlo) y de los correos que reciben tus clientes.',
+                'Main language of your public page (visitors can switch it) and of the emails your customers receive.',
+              )}
+            </p>
+            <select
+              value={bizLanguage}
+              disabled={bizLanguageSaving}
+              onChange={(e) => handleBizLanguageChange(e.target.value as 'es' | 'en')}
+              className="mt-4 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm disabled:opacity-60"
+            >
+              <option value="es">Español</option>
+              <option value="en">English</option>
+            </select>
           </div>
 
           {/* Moneda — visible en todos los planes, independiente de Stripe Connect */}

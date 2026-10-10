@@ -328,6 +328,8 @@ export async function sendOrderConfirmationEmail(params: {
   trackUrl?: string | null;
   /** 'received' = pedido para pagar en el local (aún no confirmado por el negocio). */
   kind?: 'confirmed' | 'received';
+  /** Idioma del negocio (Affiliate.Language); default 'es'. */
+  language?: 'es' | 'en';
 }): Promise<boolean> {
   if (!resend) {
     console.log('[Resend] Skipped order confirmation — RESEND_API_KEY not set');
@@ -338,7 +340,9 @@ export async function sendOrderConfirmationEmail(params: {
     await resend.emails.send({
       from: fromFor(params.brand),
       to: params.customerEmail,
-      subject: params.kind === 'received' ? `Recibimos tu pedido — ${params.businessName}` : `Pedido confirmado — ${params.businessName}`,
+      subject: params.language === 'en'
+        ? (params.kind === 'received' ? `We got your order — ${params.businessName}` : `Order confirmed — ${params.businessName}`)
+        : (params.kind === 'received' ? `Recibimos tu pedido — ${params.businessName}` : `Pedido confirmado — ${params.businessName}`),
       html: buildOrderStatusEmail({ ...params, kind: params.kind ?? 'confirmed' }),
     });
     return true;
@@ -362,6 +366,7 @@ export async function sendOrderFulfilledEmail(params: {
   total: number;
   currency: string;
   brand?: EmailBrand;
+  language?: 'es' | 'en';
 }): Promise<boolean> {
   if (!resend) {
     console.log('[Resend] Skipped order fulfilled notice — RESEND_API_KEY not set');
@@ -372,7 +377,7 @@ export async function sendOrderFulfilledEmail(params: {
     await resend.emails.send({
       from: fromFor(params.brand),
       to: params.customerEmail,
-      subject: `Tu pedido está listo — ${params.businessName}`,
+      subject: params.language === 'en' ? `Your order is ready — ${params.businessName}` : `Tu pedido está listo — ${params.businessName}`,
       html: buildOrderStatusEmail({ ...params, kind: 'fulfilled' }),
     });
     return true;
@@ -384,6 +389,7 @@ export async function sendOrderFulfilledEmail(params: {
 
 function buildOrderStatusEmail(params: {
   kind: 'confirmed' | 'fulfilled' | 'received';
+  language?: 'es' | 'en';
   trackUrl?: string | null;
   customerName: string | null;
   businessName: string;
@@ -393,22 +399,25 @@ function buildOrderStatusEmail(params: {
   currency: string;
   brand?: EmailBrand;
 }): string {
-  const greeting = params.customerName ? `¡Hola, ${params.customerName}!` : '¡Hola!';
+  const en = params.language === 'en';
+  const greeting = params.customerName
+    ? (en ? `Hi, ${params.customerName}!` : `¡Hola, ${params.customerName}!`)
+    : (en ? 'Hi!' : '¡Hola!');
   const title =
     params.kind === 'confirmed'
-      ? `Tu pedido en ${params.businessName} fue confirmado ✅`
+      ? (en ? `Your order at ${params.businessName} is confirmed ✅` : `Tu pedido en ${params.businessName} fue confirmado ✅`)
       : params.kind === 'received'
-        ? `Recibimos tu pedido en ${params.businessName} 🛍️`
-        : `Tu pedido en ${params.businessName} está listo 🎉`;
+        ? (en ? `We got your order at ${params.businessName} 🛍️` : `Recibimos tu pedido en ${params.businessName} 🛍️`)
+        : (en ? `Your order at ${params.businessName} is ready 🎉` : `Tu pedido en ${params.businessName} está listo 🎉`);
   const body =
     params.kind === 'confirmed'
-      ? 'Recibimos tu pago y tu pedido ya está en proceso.'
+      ? (en ? 'We received your payment and your order is being prepared.' : 'Recibimos tu pago y tu pedido ya está en proceso.')
       : params.kind === 'received'
-        ? 'Tu pedido ya está en el restaurante. Pagas al recogerlo.'
-        : 'Tu pedido ya está listo. Si tienes dudas, responde a este correo o contacta directamente al negocio.';
+        ? (en ? 'Your order is at the restaurant. You pay when you pick it up.' : 'Tu pedido ya está en el restaurante. Pagas al recogerlo.')
+        : (en ? 'Your order is ready. If you have any questions, reply to this email or contact the business directly.' : 'Tu pedido ya está listo. Si tienes dudas, responde a este correo o contacta directamente al negocio.');
   const trackBlock = params.trackUrl
-    ? `${emailCtaButton('Seguir mi pedido →', params.trackUrl)}
-      <p style="color: #737373; font-size: 13px; line-height: 1.5;">Desde ese enlace ves en qué paso va y la hora estimada — no te enviaremos más correos por este pedido.</p>`
+    ? `${emailCtaButton(en ? 'Track my order →' : 'Seguir mi pedido →', params.trackUrl)}
+      <p style="color: #737373; font-size: 13px; line-height: 1.5;">${en ? 'Use that link to see your order status and estimated time — we will not send more emails about this order.' : 'Desde ese enlace ves en qué paso va y la hora estimada — no te enviaremos más correos por este pedido.'}</p>`
     : '';
 
   const itemRows = params.items
@@ -434,11 +443,11 @@ function buildOrderStatusEmail(params: {
           <td style="padding: 12px 0 0; font-weight: 600; color: #1a1a1a; font-size: 15px; text-align: right;">${params.currency} ${params.total.toFixed(2)}</td>
         </tr>
       </table>
-      <p style="color: #a3a3a3; font-size: 12px; margin: 0;">Pedido #${params.orderId.slice(0, 8)}</p>
+      <p style="color: #a3a3a3; font-size: 12px; margin: 0;">${en ? 'Order' : 'Pedido'} #${params.orderId.slice(0, 8)}</p>
     `,
     footerText: params.brand
-      ? `Recibes este correo porque hiciste un pedido en ${params.businessName}.`
-      : `Recibes este correo porque hiciste un pedido a través de <a href="https://maalca.com" style="color: ${MAALCA_BRAND_COLOR};">maalca.com</a>.`,
+      ? (en ? `You are receiving this email because you placed an order at ${params.businessName}.` : `Recibes este correo porque hiciste un pedido en ${params.businessName}.`)
+      : (en ? `You are receiving this email because you placed an order through <a href="https://maalca.com" style="color: ${MAALCA_BRAND_COLOR};">maalca.com</a>.` : `Recibes este correo porque hiciste un pedido a través de <a href="https://maalca.com" style="color: ${MAALCA_BRAND_COLOR};">maalca.com</a>.`),
   });
 }
 
@@ -1075,6 +1084,7 @@ export async function sendReservationRequestedEmail(params: {
   partySize: number
   notes?: string | null
   brand?: EmailBrand
+  language?: 'es' | 'en'
 }): Promise<{ businessSent: boolean; customerSent: boolean }> {
   const result = { businessSent: false, customerSent: false }
   if (!resend) {
@@ -1085,10 +1095,11 @@ export async function sendReservationRequestedEmail(params: {
   const origin = (process.env.NEXT_PUBLIC_SITE_URL || 'https://maalca.com').replace(/\/$/, '')
   const reservationsUrl = params.slug ? `${origin}/space/${params.slug}/reservations` : origin
 
+  const en = params.language === 'en'
   const when = (() => {
     const d = new Date(`${params.date}T00:00:00Z`)
     if (Number.isNaN(d.getTime())) return params.date
-    const label = d.toLocaleDateString('es-DO', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
+    const label = d.toLocaleDateString(en ? 'en-US' : 'es', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
     return `${label} · ${params.time}`
   })()
 
@@ -1104,27 +1115,27 @@ export async function sendReservationRequestedEmail(params: {
 
   if (params.businessEmail) {
     const bodyHtml = `
-      <h2 style="font-size: 18px; margin: 0 0 4px 0;">Nueva reserva pendiente</h2>
-      <p style="font-size: 13px; color: #a3a3a3; margin: 0 0 20px 0;">Entró desde tu página pública. Confírmala o cancélala desde tu panel.</p>
+      <h2 style="font-size: 18px; margin: 0 0 4px 0;">${en ? 'New pending reservation' : 'Nueva reserva pendiente'}</h2>
+      <p style="font-size: 13px; color: #a3a3a3; margin: 0 0 20px 0;">${en ? 'It came in from your public page. Confirm or cancel it from your dashboard.' : 'Entró desde tu página pública. Confírmala o cancélala desde tu panel.'}</p>
       <table style="width: 100%; border-collapse: collapse;">
-        ${row('Cuándo', escapeHtml(when))}
-        ${row('Personas', String(params.partySize))}
-        ${row('Nombre', name)}
-        ${row('Teléfono', escapeHtml(params.customerPhone))}
-        ${params.customerEmail ? row('Correo', escapeHtml(params.customerEmail)) : ''}
+        ${row(en ? 'When' : 'Cuándo', escapeHtml(when))}
+        ${row(en ? 'Guests' : 'Personas', String(params.partySize))}
+        ${row(en ? 'Name' : 'Nombre', name)}
+        ${row(en ? 'Phone' : 'Teléfono', escapeHtml(params.customerPhone))}
+        ${params.customerEmail ? row(en ? 'Email' : 'Correo', escapeHtml(params.customerEmail)) : ''}
       </table>
-      ${params.notes ? `<p style="font-size: 14px; line-height: 1.6; color: #5a5a5a; margin: 16px 0 0 0;"><strong>Nota:</strong> ${escapeHtml(params.notes)}</p>` : ''}
-      ${emailCtaButton('Ver reservas →', reservationsUrl, safeBrandColor(params.brand?.color))}
+      ${params.notes ? `<p style="font-size: 14px; line-height: 1.6; color: #5a5a5a; margin: 16px 0 0 0;"><strong>${en ? 'Note' : 'Nota'}:</strong> ${escapeHtml(params.notes)}</p>` : ''}
+      ${emailCtaButton(en ? 'View reservations →' : 'Ver reservas →', reservationsUrl, safeBrandColor(params.brand?.color))}
     `
     try {
       await resend.emails.send({
         from: fromFor(params.brand),
         to: params.businessEmail,
-        subject: `Nueva reserva: ${params.customerName} · ${params.partySize} personas · ${when}`,
+        subject: en ? `New reservation: ${params.customerName} · party of ${params.partySize} · ${when}` : `Nueva reserva: ${params.customerName} · ${params.partySize} personas · ${when}`,
         html: renderCardEmail({
           bodyHtml,
           brand: params.brand,
-          footerText: 'Recibes este aviso porque tienes reservas en línea activas en tu página.',
+          footerText: en ? 'You receive this notice because online reservations are active on your page.' : 'Recibes este aviso porque tienes reservas en línea activas en tu página.',
         }),
       })
       result.businessSent = true
@@ -1135,14 +1146,14 @@ export async function sendReservationRequestedEmail(params: {
 
   if (params.customerEmail) {
     const bodyHtml = `
-      <h2 style="font-size: 18px; margin: 0 0 4px 0;">Recibimos tu solicitud de reserva</h2>
+      <h2 style="font-size: 18px; margin: 0 0 4px 0;">${en ? 'We received your reservation request' : 'Recibimos tu solicitud de reserva'}</h2>
       <p style="font-size: 14px; line-height: 1.6; color: #5a5a5a; margin: 0 0 20px 0;">
-        Hola ${name}, ${business} recibió tu solicitud. <strong>Todavía no está confirmada</strong>: el restaurante te contactará al teléfono que dejaste para confirmarla.
+        ${en ? `Hi ${name}, ${business} received your request. <strong>It is not confirmed yet</strong>: the restaurant will contact you at the phone number you left to confirm it.` : `Hola ${name}, ${business} recibió tu solicitud. <strong>Todavía no está confirmada</strong>: el restaurante te contactará al teléfono que dejaste para confirmarla.`}
       </p>
       <table style="width: 100%; border-collapse: collapse;">
-        ${row('Cuándo', escapeHtml(when))}
-        ${row('Personas', String(params.partySize))}
-        ${row('Restaurante', business)}
+        ${row(en ? 'When' : 'Cuándo', escapeHtml(when))}
+        ${row(en ? 'Guests' : 'Personas', String(params.partySize))}
+        ${row(en ? 'Restaurant' : 'Restaurante', business)}
       </table>
     `
     try {
@@ -1150,11 +1161,11 @@ export async function sendReservationRequestedEmail(params: {
         from: fromFor(params.brand),
         replyTo: params.businessEmail || undefined,
         to: params.customerEmail,
-        subject: `Solicitud de reserva en ${params.businessName}`,
+        subject: en ? `Reservation request at ${params.businessName}` : `Solicitud de reserva en ${params.businessName}`,
         html: renderCardEmail({
           bodyHtml,
           brand: params.brand,
-          footerText: `Enviado porque pediste una reserva en ${business}.`,
+          footerText: en ? `Sent because you requested a reservation at ${business}.` : `Enviado porque pediste una reserva en ${business}.`,
         }),
       })
       result.customerSent = true
@@ -1183,6 +1194,7 @@ export async function sendReservationStatusEmail(params: {
   partySize: number
   notes?: string | null
   brand?: EmailBrand
+  language?: 'es' | 'en'
 }): Promise<{ customerSent: boolean }> {
   const result = { customerSent: false }
   if (!params.customerEmail) return result
@@ -1191,10 +1203,11 @@ export async function sendReservationStatusEmail(params: {
     return result
   }
 
+  const en = params.language === 'en'
   const when = (() => {
     const d = new Date(`${params.date}T00:00:00Z`)
     if (Number.isNaN(d.getTime())) return params.date
-    const label = d.toLocaleDateString('es-DO', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
+    const label = d.toLocaleDateString(en ? 'en-US' : 'es', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' })
     return `${label} · ${params.time}`
   })()
 
@@ -1209,18 +1222,22 @@ export async function sendReservationStatusEmail(params: {
   const business = escapeHtml(params.businessName)
   const confirmed = params.kind === 'confirmed'
 
-  const title = confirmed ? '¡Tu reserva está confirmada! ✅' : 'Tu reserva fue cancelada'
+  const title = confirmed
+    ? (en ? 'Your reservation is confirmed! ✅' : '¡Tu reserva está confirmada! ✅')
+    : (en ? 'Your reservation was canceled' : 'Tu reserva fue cancelada')
   const intro = confirmed
-    ? `Hola ${name}, ${business} confirmó tu reserva. ¡Te esperamos!`
-    : `Hola ${name}, lamentamos avisarte que ${business} no pudo mantener tu reserva. Si quieres reprogramarla, contáctanos${params.businessEmail ? ` respondiendo a este correo` : ''}.`
+    ? (en ? `Hi ${name}, ${business} confirmed your reservation. We look forward to seeing you!` : `Hola ${name}, ${business} confirmó tu reserva. ¡Te esperamos!`)
+    : (en
+      ? `Hi ${name}, we're sorry to let you know that ${business} could not keep your reservation. If you'd like to reschedule, contact us${params.businessEmail ? ' by replying to this email' : ''}.`
+      : `Hola ${name}, lamentamos avisarte que ${business} no pudo mantener tu reserva. Si quieres reprogramarla, contáctanos${params.businessEmail ? ` respondiendo a este correo` : ''}.`)
 
   const bodyHtml = `
     <h2 style="font-size: 18px; margin: 0 0 4px 0;">${title}</h2>
     <p style="font-size: 14px; line-height: 1.6; color: #5a5a5a; margin: 0 0 20px 0;">${intro}</p>
     <table style="width: 100%; border-collapse: collapse;">
-      ${row('Cuándo', escapeHtml(when))}
-      ${row('Personas', String(params.partySize))}
-      ${row('Restaurante', business)}
+      ${row(en ? 'When' : 'Cuándo', escapeHtml(when))}
+      ${row(en ? 'Guests' : 'Personas', String(params.partySize))}
+      ${row(en ? 'Restaurant' : 'Restaurante', business)}
     </table>
   `
 
@@ -1230,12 +1247,12 @@ export async function sendReservationStatusEmail(params: {
       replyTo: params.businessEmail || undefined,
       to: params.customerEmail,
       subject: confirmed
-        ? `Reserva confirmada en ${params.businessName}`
-        : `Reserva cancelada en ${params.businessName}`,
+        ? (en ? `Reservation confirmed at ${params.businessName}` : `Reserva confirmada en ${params.businessName}`)
+        : (en ? `Reservation canceled at ${params.businessName}` : `Reserva cancelada en ${params.businessName}`),
       html: renderCardEmail({
         bodyHtml,
         brand: params.brand,
-        footerText: `Enviado porque pediste una reserva en ${business}.`,
+        footerText: en ? `Sent because you requested a reservation at ${business}.` : `Enviado porque pediste una reserva en ${business}.`,
       }),
     })
     result.customerSent = true

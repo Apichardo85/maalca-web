@@ -3101,6 +3101,9 @@ function setGlobalLanguage(lang: Language) {
 }
 function detectBrowserLanguage(): Language {
   if (typeof navigator === 'undefined') return 'es';
+  // Vitrina de un negocio: su idioma principal gana sobre el del navegador (ver [slug]/page.tsx).
+  const bizLang = (typeof window !== 'undefined' ? (window as unknown as { __MAALCA_DEFAULT_LANG__?: string }).__MAALCA_DEFAULT_LANG__ : undefined);
+  if (bizLang === 'en' || bizLang === 'es') return bizLang;
   const candidates = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language];
   for (const raw of candidates) {
     const lang = raw?.toLowerCase() ?? '';

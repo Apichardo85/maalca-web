@@ -344,7 +344,7 @@ function ItemRow({
           {flags.length > 0 && <p>{flags.join(' · ')}</p>}
           {!hasEn && (
             <p className="text-amber-600 dark:text-amber-400">
-              {getText('Los visitantes en inglés verán el nombre y la descripción en español.', 'English visitors will see the Spanish name and description.')}
+              {getText('Sin traducción al inglés: los visitantes en inglés verán el nombre y la descripción principales.', 'No English translation: English visitors will see the main name and description.')}
             </p>
           )}
         </div>
