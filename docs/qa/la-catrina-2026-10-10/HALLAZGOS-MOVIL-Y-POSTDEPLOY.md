@@ -63,3 +63,13 @@ Viewport 440×956, DPR 3 (modo iPhone Pro de DevTools). Cuenta de pruebas: "QA �
 - Corregido en `develop` (7523216): horas en 12h en el pie público ("Today: 9:00 AM – 6:00 PM") y en el panel de reservas ("Oct 12 · 1:00 PM"). Pendiente de deploy a main.
 - El botón "🇲🇽 ES" del panel es el toggle de idioma de la interfaz (muestra el idioma destino y la bandera del negocio), no un error.
 - Datos QA a borrar a mano: 4 pedidos, 3 reservas (1 completada, 1 cancelada, 1 no-show), cliente "QA – ignorar".
+
+## Verificación en producción — segunda ronda (web 3f9da56, API ec1ee8d)
+
+- Catálogo en negocio de inglés: etiquetas "(ES)" y aviso "No Spanish translation: Spanish visitors will see the main name and description." OK.
+- Botones "+ Add" y "Show more" miden 44px en móvil. OK.
+- Pedido Pending → Accepted → Preparing → **Ready** → Fulfilled: contadores y filtros del panel OK.
+- Seguimiento del cliente (`/t/...`) en inglés: "Waiting for the restaurant to accept it", "Your order is ready!", pasos Received/Accepted/Preparing/Ready, "You pay at the venue when you pick up." OK.
+- Cocina: alarma repetida cada 7 s mientras haya pedidos en "Nuevo" (requiere "Activar sonido" una vez).
+- Pendiente menor: con el pedido ya listo, el seguimiento aún muestra "Notify me when it is ready".
+- Datos QA a borrar a mano: ahora 6 pedidos "QA – ignorar" (1 sigue Pending), 3 reservas, cliente "QA – ignorar".
