@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { MenuBoard } from '@/components/public/MenuBoard';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
+import { alignCatalogToTemplates, normalizeBaseLanguage } from '@/lib/catalog-language';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -73,11 +74,14 @@ export function renderBoard(slug: string, data: BoardCatalogResponse, screenId?:
     );
   }
 
-  const mappedItems = data.items.map((item) => ({
-    ...item,
-    image_url: item.image_url ?? (item as typeof item & { imageUrl?: string | null }).imageUrl ?? null,
-    video_url: (item as typeof item & { videoUrl?: string | null }).videoUrl ?? null,
-  }));
+  const mappedItems = alignCatalogToTemplates(
+    data.items.map((item) => ({
+      ...item,
+      image_url: item.image_url ?? (item as typeof item & { imageUrl?: string | null }).imageUrl ?? null,
+      video_url: (item as typeof item & { videoUrl?: string | null }).videoUrl ?? null,
+    })),
+    normalizeBaseLanguage(data.affiliate.language),
+  );
 
   return (
     <MenuBoard
@@ -129,6 +133,7 @@ interface BoardCatalogResponse {
     logoUrl?: string | null;
     primaryColor?: string | null;
     currency?: string | null;
+    language?: string | null;
     categoryTranslations?: Record<string, { es?: string | null; en?: string | null }> | null;
   };
   categories?: PublicTemplateProps['categories'];

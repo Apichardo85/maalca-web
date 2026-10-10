@@ -48,6 +48,9 @@ export function ClampedDescription({
           style={{
             marginTop: '2px',
             padding: 0,
+            minHeight: '44px',
+            display: 'inline-flex',
+            alignItems: 'center',
             border: 'none',
             background: 'none',
             fontWeight: 600,

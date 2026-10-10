@@ -58,15 +58,26 @@ function nowInZone(timezone?: string | null): { y: number; m: number; d: number;
   }
 }
 
+/** La última mesa se ofrece 60 min antes del cierre (si el horario del día lo permite). */
+const LAST_SEATING_BUFFER_MIN = 60;
+const SLOT_STEP_MIN = 30;
+
 function generateTimeSlots(abre: string, cierra: string, nowMinutes: number | null): string[] {
   const [openH, openM] = abre.split(':').map(Number);
   const [closeH, closeM] = cierra.split(':').map(Number);
   if ([openH, openM, closeH, closeM].some((n) => Number.isNaN(n))) return [];
 
+  const start = openH * 60 + openM;
+  let end = closeH * 60 + closeM;
+  // Cierre pasada la medianoche (ej. 18:00 – 02:00): el horario cruza al día siguiente.
+  if (end <= start) end += 24 * 60;
+  // Ventanas cortas (< 2 h) conservan el comportamiento anterior: última franja 30 min antes del cierre.
+  const lastStart = end - start >= 120 ? end - LAST_SEATING_BUFFER_MIN : end - SLOT_STEP_MIN;
+
   const slots: string[] = [];
-  for (let mins = openH * 60 + openM; mins < closeH * 60 + closeM; mins += 30) {
+  for (let mins = start; mins <= lastStart; mins += SLOT_STEP_MIN) {
     if (nowMinutes !== null && mins <= nowMinutes + 15) continue;
-    const h = Math.floor(mins / 60);
+    const h = Math.floor(mins / 60) % 24;
     const m = mins % 60;
     slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
   }

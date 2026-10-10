@@ -8,6 +8,7 @@ import type { PublicCanal } from '@/lib/public-contact';
 import { PageViewTracker } from '@/components/public/PageViewTracker';
 import { stripRichTextToPlain } from '@/lib/sanitize-html';
 import { RestaurantJsonLd } from '@/components/seo/JsonLd';
+import { alignCatalogToTemplates, normalizeBaseLanguage } from '@/lib/catalog-language';
 
 interface PublicActivity {
   id: string;
@@ -207,10 +208,13 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
 
   const { affiliate, categories = [], items, capabilities } = data;
 
-  const mappedItems = items.map((item) => ({
-    ...item,
-    image_url: item.image_url ?? (item as typeof item & { imageUrl?: string | null }).imageUrl ?? null,
-  }));
+  const mappedItems = alignCatalogToTemplates(
+    items.map((item) => ({
+      ...item,
+      image_url: item.image_url ?? (item as typeof item & { imageUrl?: string | null }).imageUrl ?? null,
+    })),
+    normalizeBaseLanguage(affiliate.language),
+  );
 
   const Template = TEMPLATES[affiliate.businessType.toLowerCase() as BusinessType];
   if (!Template) notFound();

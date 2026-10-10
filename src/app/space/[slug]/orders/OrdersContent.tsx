@@ -27,7 +27,7 @@ export interface OrderRow {
   tip?: number;
   total: number;
   currency: string;
-  status: 'Pending' | 'Paid' | 'Preparing' | 'Fulfilled' | 'Canceled';
+  status: 'Pending' | 'Paid' | 'Preparing' | 'Ready' | 'Fulfilled' | 'Canceled';
   createdAt: string;
   // Pedido desde la mesa (QR por mesa). paymentMethod === 'PayAtTable' = el cliente paga al mesero.
   tableNumber?: string | null;
@@ -63,6 +63,7 @@ const STATUS_STYLES: Record<string, string> = {
   Pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
   Paid: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   Preparing: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  Ready: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
   Fulfilled: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
   Canceled: 'bg-gray-100 text-gray-500 dark:bg-neutral-800 dark:text-neutral-400',
 };
@@ -71,6 +72,7 @@ const STATUS_LABELS: Record<string, { es: string; en: string }> = {
   Pending: { es: 'Pendiente', en: 'Pending' },
   Paid: { es: 'Pagado', en: 'Paid' },
   Preparing: { es: 'En preparación', en: 'Preparing' },
+  Ready: { es: 'Listo', en: 'Ready' },
   Fulfilled: { es: 'Entregado', en: 'Fulfilled' },
   Canceled: { es: 'Cancelado', en: 'Canceled' },
 };
@@ -280,7 +282,7 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
               <FilterChip active={statusFilter === 'all'} onClick={() => setStatusFilter('all')}>
                 {getText('Todos', 'All')} ({searched.length})
               </FilterChip>
-              {(['Pending', 'Paid', 'Preparing', 'Fulfilled', 'Canceled'] as const).map((st) => (
+              {(['Pending', 'Paid', 'Preparing', 'Ready', 'Fulfilled', 'Canceled'] as const).map((st) => (
                 <FilterChip key={st} active={statusFilter === st} onClick={() => setStatusFilter(st)}>
                   {st === 'Paid' ? getText('Aceptado / pagado', 'Accepted / paid') : STATUS_LABELS[st][language]} ({statusCount(st)})
                 </FilterChip>
@@ -344,7 +346,7 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
                         📅 {getText('Programado para', 'Scheduled for')} {formatScheduledFor(order.scheduledFor, language)}
                       </p>
                     )}
-                    {(order.paymentMethod === 'PayAtPickup' || order.paymentMethod === 'PayAtTable') && ['Paid', 'Preparing', 'Fulfilled'].includes(order.status) && (
+                    {(order.paymentMethod === 'PayAtPickup' || order.paymentMethod === 'PayAtTable') && ['Paid', 'Preparing', 'Ready', 'Fulfilled'].includes(order.status) && (
                       order.collectedAt ? (
                         <p className="mt-1 inline-block rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
                           💵 {getText('Cobrado', 'Collected')} · {order.collectedMethod === 'Cash' ? getText('Efectivo', 'Cash') : order.collectedMethod === 'Card' ? getText('Tarjeta', 'Card') : order.collectedMethod === 'Online' ? getText('Tarjeta (online)', 'Card (online)') : getText('Otro', 'Other')}
@@ -406,7 +408,7 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
                   🖨️ {getText('Imprimir ticket', 'Print ticket')}
                 </button>
 
-                {(order.paymentMethod === 'PayAtPickup' || order.paymentMethod === 'PayAtTable') && ['Paid', 'Preparing', 'Fulfilled'].includes(order.status) && !order.collectedAt && (
+                {(order.paymentMethod === 'PayAtPickup' || order.paymentMethod === 'PayAtTable') && ['Paid', 'Preparing', 'Ready', 'Fulfilled'].includes(order.status) && !order.collectedAt && (
                   collectingId === order.id ? (
                     <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 dark:border-amber-900/50 dark:bg-amber-950/20">
                       <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">
@@ -459,12 +461,21 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
                       {getText('Marcar en preparación', 'Mark preparing')}
                     </button>
                   )}
-                  {order.status === 'Preparing' && (order.paymentMethod === 'PayAtPickup' || order.paymentMethod === 'PayAtTable') && !order.collectedAt && (
+                  {(order.status === 'Preparing' || order.status === 'Ready') && (order.paymentMethod === 'PayAtPickup' || order.paymentMethod === 'PayAtTable') && !order.collectedAt && (
                     <span className="w-full text-xs text-amber-600 dark:text-amber-400">
                       {getText('Falta cobrar antes de entregar.', 'Collect payment before handing over.')}
                     </span>
                   )}
                   {order.status === 'Preparing' && (
+                    <button
+                      onClick={() => updateStatus(order.id, 'Ready')}
+                      disabled={updatingId === order.id}
+                      className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-4 text-xs font-medium hover:border-brand-primary hover:text-brand-primary disabled:opacity-50"
+                    >
+                      {getText('Marcar listo', 'Mark ready')}
+                    </button>
+                  )}
+                  {order.status === 'Ready' && (
                     <button
                       onClick={() => updateStatus(order.id, 'Fulfilled')}
                       disabled={updatingId === order.id}
