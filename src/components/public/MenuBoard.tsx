@@ -91,6 +91,13 @@ const REFRESH_INTERVAL_MS = 3 * 60 * 1000;
 /** How long each slide (one category, up to ITEMS_PER_SLIDE items) stays on screen. */
 const SLIDE_INTERVAL_MS = 9000;
 
+/** Las slides de combos destacados (McDonald's/Taco Bell-style) se quedan un poco más que una
+ *  grilla de menú normal — son la pieza de venta, no una lista a repasar rápido. */
+const COMBO_SLIDE_INTERVAL_MS = 11000;
+/** Tope de slides de combos por pantalla — el pedido fue "no es el menú entero, unas 2-3
+ *  slides bonitas al lado", no una segunda copia del catálogo. */
+const MAX_COMBO_SLIDES = 3;
+
 /** Tope por comercial en video: el video se reproduce completo y avanza al terminar, pero nunca
  *  más de esto (un video larguísimo o trabado no se queda con la pantalla). */
 const MAX_VIDEO_AD_MS = 60 * 1000;
@@ -111,9 +118,12 @@ interface CatalogPayload {
   adFrequency?: number | null;
 }
 
+type ComboVariant = 'spotlight' | 'duo' | 'trio';
+
 type Slide =
   | { kind: 'menu'; category: string; items: BoardItem[] }
-  | { kind: 'ad'; ad: ScreenAd };
+  | { kind: 'ad'; ad: ScreenAd }
+  | { kind: 'combo'; items: BoardItem[]; variant: ComboVariant };
 
 /** Groups items by category into fixed-size chunks — each chunk is one slide, so a
  *  category with more items than fit on screen spills into a second, third, etc. slide
@@ -139,6 +149,47 @@ function buildMenuSlides(items: BoardItem[], categories: BoardCategory[]): Slide
     for (let i = 0; i < catItems.length; i += ITEMS_PER_SLIDE) {
       slides.push({ kind: 'menu', category: key, items: catItems.slice(i, i + ITEMS_PER_SLIDE) });
     }
+  }
+  return slides;
+}
+
+/** McDonald's/Taco Bell-style: unas pocas slides vendiendo los combos destacados, con
+ *  variedad de layout (1/2/3 items) en vez de repetir siempre la misma grilla — eso es lo que
+ *  las hace sentir "con vida propia" en vez de una repetición de la misma tarjeta. Usa items
+ *  marcados Featured en el catálogo (el dueño ya los elige desde el dashboard); si no marcó
+ *  ninguno, cae a Popular para no dejar la pantalla sin highlight. Sin Featured ni Popular =
+ *  sin slides de combo (no hay nada que destacar todavía). */
+function buildComboSlides(items: BoardItem[], categories: BoardCategory[]): Slide[] {
+  const visible = items.filter((i) => (i.status ?? 'Active') === 'Active' && !i.is_demo);
+  let picks = visible.filter((i) => i.featured);
+  if (picks.length === 0) picks = visible.filter((i) => i.popular);
+  if (picks.length === 0) return [];
+
+  // Mismo orden que el menú (por categoría, luego por SortOrder ya resuelto en items) para que
+  // los combos no salten de un plato a otro sin relación aparente.
+  const orderedKeys = categories.length > 0 ? categories.map((c) => c.name) : [];
+  if (orderedKeys.length > 0) {
+    picks = picks.sort((a, b) => {
+      const ai = orderedKeys.indexOf(a.category ?? '');
+      const bi = orderedKeys.indexOf(b.category ?? '');
+      return (ai === -1 ? orderedKeys.length : ai) - (bi === -1 ? orderedKeys.length : bi);
+    });
+  }
+
+  const variants: ComboVariant[] = ['spotlight', 'duo', 'trio'];
+  const slides: Slide[] = [];
+  let i = 0;
+  let variantIdx = 0;
+  while (i < picks.length && slides.length < MAX_COMBO_SLIDES) {
+    const variant = variants[variantIdx % variants.length];
+    const count = variant === 'spotlight' ? 1 : variant === 'duo' ? 2 : 3;
+    const chunk = picks.slice(i, i + count);
+    if (chunk.length === 0) break;
+    // Un spotlight/duo con menos items de los que pide el variant (quedan pocos picks) sigue
+    // sirviendo — simplemente se ve con lo que hay, nunca se infla con relleno.
+    slides.push({ kind: 'combo', items: chunk, variant: chunk.length >= count ? variant : (chunk.length === 2 ? 'duo' : 'spotlight') });
+    i += chunk.length;
+    variantIdx += 1;
   }
   return slides;
 }
@@ -219,6 +270,72 @@ function TransitionSlide({
   return (
     <div className={`h-full w-full ${t.className}`} style={visible ? t.visible : t.hidden}>
       {children}
+    </div>
+  );
+}
+
+/** Slide de combo destacado — layout tipo menu board de comida rápida, no la grilla genérica
+ *  de categoría. Tres variantes (spotlight/duo/trio) según cuántos items trae, con un "Ken
+ *  Burns" lento en la foto (ver combo-kenburns más abajo) para que no se sienta como una
+ *  tarjeta estática cada vez que rota — es la pieza que el negocio quiere lucir. */
+function ComboSlideView({
+  items, variant, language, business, theme,
+}: {
+  items: BoardItem[];
+  variant: ComboVariant;
+  language: 'es' | 'en';
+  business: Props['business'];
+  theme: 'Dark' | 'Light';
+}) {
+  const isDark = theme === 'Dark';
+  const priceBg = business.primaryColor;
+
+  function Card({ item, big }: { item: BoardItem; big: boolean }) {
+    const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
+    const hasMedia = Boolean(item.image_url || item.video_url);
+    return (
+      <div className="relative flex h-full w-full flex-col overflow-hidden rounded-3xl">
+        <div className={`relative flex-1 overflow-hidden ${isDark ? 'bg-neutral-800' : 'bg-neutral-200'}`}>
+          {hasMedia ? (
+            item.video_url ? (
+              <video
+                src={item.video_url}
+                className="combo-kenburns absolute inset-0 h-full w-full object-cover"
+                autoPlay muted loop playsInline
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={item.image_url ?? undefined} alt={displayName} className="combo-kenburns absolute inset-0 h-full w-full object-cover" />
+            )
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${priceBg}33, transparent)` }} />
+          )}
+          {/* Scrim de abajo hacia arriba para que el nombre/precio siempre se lean encima de la foto. */}
+          <div className="absolute inset-x-0 bottom-0 h-2/3" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)' }} />
+          {(item.featured || item.popular) && (
+            <span className="absolute left-4 top-4 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide text-white" style={{ background: priceBg }}>
+              {language === 'en' ? 'Favorite' : 'Favorito'}
+            </span>
+          )}
+          <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-5">
+            <span className={`font-bold leading-tight text-white drop-shadow ${big ? 'text-4xl' : 'text-2xl'}`}>{displayName}</span>
+            <span
+              className={`combo-price-pulse shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 font-extrabold text-white shadow-lg ${big ? 'text-2xl' : 'text-lg'}`}
+              style={{ background: priceBg }}
+            >
+              {formatPrice(item.price, business.currency)}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`grid h-full w-full gap-6 ${variant === 'spotlight' ? 'grid-cols-1' : variant === 'duo' ? 'grid-cols-2' : 'grid-cols-3'}`}>
+      {items.map((item) => (
+        <Card key={item.id} item={item} big={variant === 'spotlight'} />
+      ))}
     </div>
   );
 }
@@ -329,7 +446,10 @@ export function MenuBoard({
   }, []);
 
   const slides = useMemo(() => {
-    const menuSlides = buildMenuSlides(catalog.items, catalog.categories ?? []);
+    // Los combos van primero: son la pieza de venta (McDonald's/Taco Bell-style), así que se
+    // ven temprano en la rotación en vez de perdidos al final de todo el menú.
+    const comboSlides = buildComboSlides(catalog.items, catalog.categories ?? []);
+    const menuSlides = [...comboSlides, ...buildMenuSlides(catalog.items, catalog.categories ?? [])];
     const ads = catalog.screenAds ?? [];
     // Pantalla "solo comerciales" (Fase 9 Etapa C) — sin items de menú, la rotación entera
     // son los comerciales, uno por slide, no solo el primero.
@@ -356,7 +476,9 @@ export function MenuBoard({
     // tope de seguridad (video colgado, sin red, o más largo que MAX_VIDEO_AD_MS).
     const durationMs = slide?.kind === 'ad'
       ? (slide.ad.mediaType === 'Video' ? MAX_VIDEO_AD_MS : slide.ad.durationSeconds * 1000)
-      : SLIDE_INTERVAL_MS;
+      : slide?.kind === 'combo'
+        ? COMBO_SLIDE_INTERVAL_MS
+        : SLIDE_INTERVAL_MS;
     const timer = setTimeout(() => {
       setSlideIndex((i) => (i + 1) % slides.length);
     }, durationMs);
@@ -368,6 +490,16 @@ export function MenuBoard({
       className={`fixed inset-0 flex flex-col overflow-hidden ${c.root}`}
       style={{ aspectRatio: '16 / 9' }}
     >
+      {/* Ken Burns lento en las fotos de combo + un pulso suave en el precio — nada de esto
+          corre en los slides de menú normales (las clases solo existen en ComboSlideView), así
+          que es gratis para el resto del board. Duración atada a COMBO_SLIDE_INTERVAL_MS para
+          que el zoom termine justo cuando el slide cambia, nunca se corta a mitad. */}
+      <style>{`
+        @keyframes comboKenBurns { from { transform: scale(1); } to { transform: scale(1.08); } }
+        .combo-kenburns { animation: comboKenBurns ${COMBO_SLIDE_INTERVAL_MS}ms ease-out forwards; }
+        @keyframes comboPricePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+        .combo-price-pulse { animation: comboPricePulse 2.2s ease-in-out infinite; }
+      `}</style>
       {/* Header band — logo + business name, always visible so the board is
           self-identifying even to someone walking up mid-rotation. */}
       <header
@@ -386,6 +518,11 @@ export function MenuBoard({
         {slide?.kind === 'menu' && (
           <span className="ml-auto text-xl font-semibold uppercase tracking-widest text-white/80">
             {categoryLabel(slide.category, language, business.categoryTranslations)}
+          </span>
+        )}
+        {slide?.kind === 'combo' && (
+          <span className="ml-auto text-xl font-semibold uppercase tracking-widest text-white/80">
+            {language === 'en' ? 'Popular picks' : 'Lo más pedido'}
           </span>
         )}
       </header>
@@ -424,6 +561,8 @@ export function MenuBoard({
               />
             )}
           </div>
+        ) : slide.kind === 'combo' ? (
+          <ComboSlideView items={slide.items} variant={slide.variant} language={language} business={business} theme={theme} />
         ) : (
           <div className="grid h-full w-full grid-cols-3 grid-rows-2 gap-6">
             {slide.items.map((item) => {
@@ -498,7 +637,7 @@ export function MenuBoard({
         <div className="flex items-center justify-center gap-2 pb-6">
           {slides.map((s, i) => (
             <span
-              key={s.kind === 'menu' ? `${s.category}-${i}` : `${s.ad.id}-${i}`}
+              key={s.kind === 'menu' ? `${s.category}-${i}` : s.kind === 'combo' ? `combo-${i}` : `${s.ad.id}-${i}`}
               className="h-2 rounded-full transition-all"
               style={{
                 width: i === slideIndex ? 24 : 8,
