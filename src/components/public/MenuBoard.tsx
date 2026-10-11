@@ -487,8 +487,12 @@ export function MenuBoard({
 
   return (
     <div
+      // Antes tenía aspectRatio:'16/9' además de fixed+inset-0 — cuando el viewport real no es
+      // exactamente 16:9 (cualquier navegador de escritorio, no solo el Smart TV), el aspect-ratio
+      // ganaba el cálculo de altura sobre el inset-0, el contenedor quedaba más alto que la
+      // pantalla y el nombre/precio de los combos (anclados abajo) caían fuera del área visible
+      // sin scroll posible (overflow-hidden). fixed+inset-0 ya ajusta exacto al viewport solo.
       className={`fixed inset-0 flex flex-col overflow-hidden ${c.root}`}
-      style={{ aspectRatio: '16 / 9' }}
     >
       {/* Ken Burns lento en las fotos de combo + un pulso suave en el precio — nada de esto
           corre en los slides de menú normales (las clases solo existen en ComboSlideView), así
