@@ -82,12 +82,23 @@ interface CustomerHistory {
 }
 
 // Los estados llegan del backend en inglés (Paid, NoShow…); en la ficha se muestran traducidos.
+// OJO: QueueEntry.Status se guarda en minúsculas y snake_case ("waiting", "in_service", "no_show",
+// "completed" — ver Maalca.Domain/Entities/AdditionalEntities.cs), a diferencia de los demás
+// estados que llegan en PascalCase. Si falta una clave aquí, st() cae de vuelta al string crudo
+// en inglés aunque el idioma del panel sea español — por eso van ambas formas.
 const STATUS_ES: Record<string, string> = {
   Pending: 'Pendiente', Paid: 'Pagada', Overdue: 'Vencida', Cancelled: 'Cancelada', Canceled: 'Cancelada',
   Requested: 'Solicitada', Confirmed: 'Confirmada', Seated: 'Sentados', Completed: 'Completada', NoShow: 'No llegó',
   Scheduled: 'Agendada', Preparing: 'En preparación', Ready: 'Lista', Fulfilled: 'Entregado', Draft: 'Borrador',
   Sent: 'Enviada', Accepted: 'Aceptada', Rejected: 'Rechazada', Waiting: 'En espera', Served: 'Atendido',
-  Active: 'Activo', Inactive: 'Inactivo',
+  Active: 'Activo', Inactive: 'Inactivo', InProgress: 'En curso',
+  // Fila de espera (QueueEntry) — valores reales, en minúsculas:
+  waiting: 'En espera', in_service: 'Atendiendo', completed: 'Completada', no_show: 'No llegó',
+};
+
+// Canal de la visita a la fila (QueueEntry.Channel): "in-person" | "phone" | "web".
+const CHANNEL_ES: Record<string, string> = {
+  'in-person': 'En persona', phone: 'Teléfono', web: 'Web',
 };
 
 interface Props {
@@ -461,7 +472,7 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
                   title={getText('Fila de espera', 'Waiting queue')}
                   empty={getText('Sin visitas a la fila.', 'No queue visits.')}
                   items={history.queueVisits}
-                  render={(q) => `${dateFmt(q.createdAt)} — ${q.channel} · ${st(q.status)}`}
+                  render={(q) => `${dateFmt(q.createdAt)} — ${language === 'es' ? CHANNEL_ES[q.channel] ?? q.channel : q.channel} · ${st(q.status)}`}
                 />
                 <HistorySection
                   title={getText('Propuestas', 'Proposals')}
