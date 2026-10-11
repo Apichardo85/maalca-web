@@ -84,6 +84,7 @@ export function SpaceMobileNav({
     // Cocina/Fila/Facturas/Propuestas: ya no se filtran por businessType acá — ver el comentario
     // completo en SpaceSidebar.tsx. El gate real es activeModules.includes(token) más abajo.
     { label: getText('Cocina', 'Kitchen'), icon: '🍳', href: `/space/${slug}/kitchen`, token: 'kitchen' },
+    { label: getText('Estación', 'Station'), icon: '🔔', href: `/space/${slug}/station`, token: 'kitchen' },
     // POS — restaurante y retail, ver mismo criterio en SpaceSidebar.tsx.
     ...(['restaurant', 'retail'].includes(businessType)
       ? [{ label: getText('Punto de venta', 'Point of sale'), icon: '🧮', href: `/space/${slug}/pos`, token: 'pos' }]
