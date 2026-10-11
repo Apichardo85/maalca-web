@@ -35,25 +35,31 @@ type NavigatorWithWakeLock = Navigator & {
   wakeLock?: { request: (type: 'screen') => Promise<StationWakeLockSentinel> };
 };
 
-/** Timbre de dos tonos (Web Audio, sin archivo de audio) — mismo patrón que Cocina, pero esta
- *  función se llama más seguido (ver ALARM_INTERVAL_MS) así que la estación suena más urgente. */
+/** Sirena de barrido (Web Audio, sin archivo de audio) — onda sawtooth (más áspera que un
+ *  timbre) subiendo y bajando de tono, como una alarma de verdad en vez de un "ding". El modo
+ *  insistente (alarma repetida, ver ALARM_INTERVAL_MS) hace dos barridos seguidos; el preview
+ *  al iniciar turno (startShift) hace solo uno, más corto. */
 function chime(ctx: AudioContext, insistent: boolean) {
-  const notes: [number, number][] = insistent
-    ? [[880, 0], [1046.5, 0.12], [880, 0.26], [1046.5, 0.38]]
-    : [[880, 0], [1046.5, 0.12]];
-  for (const [freq, delay] of notes) {
+  const sweeps = insistent ? 2 : 1;
+  const sweepMs = 280; // duración de un barrido (subida + bajada)
+  let t = ctx.currentTime;
+  for (let s = 0; s < sweeps; s++) {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
     gain.connect(ctx.destination);
-    osc.type = 'sine';
-    const t = ctx.currentTime + delay;
-    osc.frequency.setValueAtTime(freq, t);
+    osc.type = 'sawtooth';
+    const dur = sweepMs / 1000;
+    osc.frequency.setValueAtTime(650, t);
+    osc.frequency.linearRampToValueAtTime(1150, t + dur / 2);
+    osc.frequency.linearRampToValueAtTime(650, t + dur);
     gain.gain.setValueAtTime(0.0001, t);
-    gain.gain.exponentialRampToValueAtTime(0.8, t + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+    gain.gain.exponentialRampToValueAtTime(0.7, t + 0.03);
+    gain.gain.setValueAtTime(0.7, t + dur - 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     osc.start(t);
-    osc.stop(t + 0.35);
+    osc.stop(t + dur + 0.02);
+    t += dur + 0.08;
   }
 }
 
@@ -214,6 +220,8 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
   );
   const urgentCount = useMemo(() => queue.filter(isUrgentNow).length, [queue]);
   const current = queue[0];
+  // Para el destello de pantalla (ver estilo más abajo) — misma condición que activa el sonido.
+  const isRinging = shiftStarted && !muted && urgentCount > 0;
 
   // Alarma — suena mientras haya algo urgente sin atender, para de sonar en TODOS los
   // dispositivos abiertos en cuanto alguien acepta/reconoce (el estado viaja por SignalR).
@@ -299,7 +307,31 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-neutral-950 text-white">
+    <div className="relative flex min-h-screen flex-col bg-neutral-950 text-white">
+      {/* Destello de atención: brilla alrededor del borde de la pantalla al ritmo de la alarma,
+          para que se note con el rabillo del ojo sin tener que mirar la tablet directamente.
+          Vignette, no flash de pantalla completa — evita deslumbrar o sentirse una alarma de
+          incendio. Sincronizado con ALARM_INTERVAL_MS, mismo gatillo que el sonido (isRinging). */}
+      {isRinging && (
+        <div
+          aria-hidden
+          className="pointer-events-none fixed inset-0 z-0 station-ring-glow"
+        />
+      )}
+      <style>{`
+        @keyframes stationRingPulse {
+          0% { opacity: 0; }
+          8% { opacity: 1; }
+          16% { opacity: 0.2; }
+          24% { opacity: 1; }
+          40% { opacity: 0; }
+          100% { opacity: 0; }
+        }
+        .station-ring-glow {
+          background: radial-gradient(ellipse at center, transparent 55%, rgba(249,115,22,0.65) 100%);
+          animation: stationRingPulse ${ALARM_INTERVAL_MS}ms ease-out infinite;
+        }
+      `}</style>
       <Toast toasts={toast.toasts} onRemove={toast.remove} />
 
       {connection !== 'online' && (
@@ -312,7 +344,7 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
         </div>
       )}
 
-      <header className="flex items-center justify-between gap-3 px-6 py-4">
+      <header className="relative z-10 flex items-center justify-between gap-3 px-6 py-4">
         <h1 className="text-xl font-bold">{getText('Estación de pedidos', 'Order station')}</h1>
         <div className="flex items-center gap-3">
           <span className="text-sm text-white/50">
@@ -331,7 +363,7 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
         </div>
       </header>
 
-      <main className="flex flex-1 items-center justify-center px-6 pb-10">
+      <main className="relative z-10 flex flex-1 items-center justify-center px-6 pb-10">
         {!current ? (
           <div className="flex flex-col items-center gap-3 text-white/40">
             <p className="text-6xl">✅</p>
