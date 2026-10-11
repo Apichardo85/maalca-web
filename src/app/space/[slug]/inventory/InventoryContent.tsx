@@ -53,6 +53,22 @@ interface Props {
 
 const UNIT_OPTIONS = ['unidad', 'kg', 'lb', 'g', 'litro', 'ml', 'caja', 'paquete', 'docena'];
 
+// El valor guardado (UNIT_OPTIONS, en español) es el dato canónico — igual que los status del
+// resto de módulos — pero se muestra traducido cuando el panel está en inglés, en vez de dejar
+// escapar la palabra en español ("4 unidad in stock").
+const UNIT_LABELS: Record<string, { es: string; en: string }> = {
+  unidad: { es: 'unidad', en: 'unit' },
+  kg: { es: 'kg', en: 'kg' },
+  lb: { es: 'lb', en: 'lb' },
+  g: { es: 'g', en: 'g' },
+  litro: { es: 'litro', en: 'liter' },
+  ml: { es: 'ml', en: 'ml' },
+  caja: { es: 'caja', en: 'box' },
+  paquete: { es: 'paquete', en: 'pack' },
+  docena: { es: 'docena', en: 'dozen' },
+};
+const unitLabel = (unit: string, language: 'es' | 'en') => UNIT_LABELS[unit]?.[language] ?? unit;
+
 const emptyForm = { name: '', category: '', quantity: '0', minStock: '0', unitPrice: '0', unit: 'unidad', barcode: '' };
 
 export function InventoryContent({ slug, initialItems, initialTotal, initialTotalPages, initialSummary }: Props) {
@@ -356,7 +372,7 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
             </p>
             <h1 className="mt-1 text-2xl font-bold">{getText('Inventario', 'Inventory')}</h1>
             <p className="mt-1 text-sm text-gray-500 dark:text-neutral-400">
-              {getText(`${total} items`, `${total} items`)}
+              {getText(total === 1 ? '1 artículo' : `${total} artículos`, total === 1 ? '1 item' : `${total} items`)}
               {typeof totalValue === 'number' && (
                 <> · {getText('valor total', 'total value')}: ${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</>
               )}
@@ -524,7 +540,7 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
                   className="mt-1 w-full min-h-11 rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
                 >
                   {UNIT_OPTIONS.map((u) => (
-                    <option key={u} value={u}>{u}</option>
+                    <option key={u} value={u}>{unitLabel(u, language)}</option>
                   ))}
                 </select>
               </div>
@@ -604,8 +620,8 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
                       {[
                         item.category,
                         getText(
-                          `${item.quantity} ${item.unit || 'unidad'} en stock (mín. ${item.minStock})`,
-                          `${item.quantity} ${item.unit || 'unit'} in stock (min ${item.minStock})`,
+                          `${item.quantity} ${unitLabel(item.unit || 'unidad', 'es')} en stock (mín. ${item.minStock})`,
+                          `${item.quantity} ${unitLabel(item.unit || 'unidad', 'en')} in stock (min ${item.minStock})`,
                         ),
                       ]
                         .filter(Boolean)
