@@ -15,6 +15,8 @@ interface Props {
   plan: 'free' | 'entrepreneur' | 'enterprise';
   affiliateId: string;
   businessName?: string;
+  logoUrl?: string | null;
+  primaryColor?: string | null;
   timezone?: string;
   initialOrders: OrderRow[];
 }
@@ -90,7 +92,7 @@ function isUrgentNow(o: OrderRow): boolean {
 
 const ETA_OPTIONS = [10, 15, 20, 30];
 
-export function StationContent({ slug, plan, affiliateId, businessName, timezone, initialOrders }: Props) {
+export function StationContent({ slug, plan, affiliateId, businessName, logoUrl, timezone, initialOrders }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -320,8 +322,24 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
   if (!shiftStarted) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-gray-50 px-6 text-center text-gray-900 dark:bg-neutral-950 dark:text-white">
-        <p className="text-7xl">🔔</p>
-        <h1 className="text-3xl font-bold">{getText('Estación de pedidos', 'Order station')}</h1>
+        {logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={logoUrl}
+            alt={businessName || ''}
+            className="h-20 w-20 rounded-full object-cover ring-2 ring-black/5 dark:ring-white/10"
+          />
+        ) : (
+          <p className="text-7xl">🔔</p>
+        )}
+        <div>
+          {businessName && (
+            <p className="mb-1 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-white/50">
+              {businessName}
+            </p>
+          )}
+          <h1 className="text-3xl font-bold">{getText('Estación de pedidos', 'Order station')}</h1>
+        </div>
         <p className="max-w-sm text-gray-500 dark:text-white/60">
           {getText(
             'Esta pantalla va a sonar cuando llegue un pedido nuevo, hasta que alguien lo acepte.',
@@ -335,6 +353,12 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
         >
           {getText('Iniciar turno', 'Start shift')}
         </button>
+        <p className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-gray-400 dark:text-white/25">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-icon.svg" alt="" width={12} height={12} className="block" />
+          {getText('Impulsado por', 'Powered by')}{' '}
+          <span className="font-semibold text-gray-500 dark:text-white/40">MaalCa</span>
+        </p>
       </div>
     );
   }
@@ -381,7 +405,24 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
       )}
 
       <header className="relative z-10 flex items-center justify-between gap-3 px-6 py-4">
-        <h1 className="text-xl font-bold">{getText('Estación de pedidos', 'Order station')}</h1>
+        <div className="flex min-w-0 items-center gap-3">
+          {logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logoUrl}
+              alt={businessName || ''}
+              className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-black/5 dark:ring-white/10"
+            />
+          ) : null}
+          <div className="min-w-0">
+            <p className="truncate text-lg font-bold leading-tight">
+              {businessName || getText('Estación de pedidos', 'Order station')}
+            </p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-white/40">
+              {getText('Estación de pedidos', 'Order station')}
+            </p>
+          </div>
+        </div>
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-500 dark:text-white/50">
             {queue.length === 0
@@ -535,6 +576,12 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
           </div>
         </div>
       )}
+      <p className="relative z-10 flex items-center justify-center gap-1.5 py-2 text-[11px] font-medium text-gray-400 dark:text-white/20">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo-icon.svg" alt="" width={12} height={12} className="block" />
+        {getText('Impulsado por', 'Powered by')}{' '}
+        <span className="font-semibold text-gray-500 dark:text-white/35">MaalCa</span>
+      </p>
     </div>
   );
 }

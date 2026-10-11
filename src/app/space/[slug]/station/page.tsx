@@ -13,6 +13,8 @@ interface SpaceResponse {
     modulosActivos: string[];
     name: string;
     timezone?: string | null;
+    logoUrl?: string | null;
+    primaryColor?: string | null;
   };
 }
 
@@ -59,6 +61,8 @@ export default async function StationPage({
       plan={space.business.plan}
       affiliateId={space.business.id}
       businessName={space.business.name}
+      logoUrl={space.business.logoUrl ?? null}
+      primaryColor={space.business.primaryColor ?? null}
       timezone={space.business.timezone ?? undefined}
       initialOrders={orders}
     />
