@@ -35,31 +35,34 @@ type NavigatorWithWakeLock = Navigator & {
   wakeLock?: { request: (type: 'screen') => Promise<StationWakeLockSentinel> };
 };
 
-/** Sirena de barrido (Web Audio, sin archivo de audio) — onda sawtooth (más áspera que un
- *  timbre) subiendo y bajando de tono, como una alarma de verdad en vez de un "ding". El modo
- *  insistente (alarma repetida, ver ALARM_INTERVAL_MS) hace dos barridos seguidos; el preview
- *  al iniciar turno (startShift) hace solo uno, más corto. */
+/** Timbre de dos tonos alternados, agudo/grave (Web Audio, sin archivo de audio) — onda
+ *  triangular, más suave y menos áspera que el barrido sawtooth anterior (reportado como
+ *  "feo"), pero conserva la urgencia por la alternancia de tono, como una alarma clásica.
+ *  El modo insistente (alarma repetida, ver ALARM_INTERVAL_MS) repite el patrón dos veces;
+ *  el preview al iniciar turno (startShift) hace solo una ronda. */
 function chime(ctx: AudioContext, insistent: boolean) {
-  const sweeps = insistent ? 2 : 1;
-  const sweepMs = 280; // duración de un barrido (subida + bajada)
+  const rounds = insistent ? 2 : 1;
+  const notes = [880, 660]; // agudo, grave — alternando
+  const toneMs = 180;
+  const gapMs = 40;
   let t = ctx.currentTime;
-  for (let s = 0; s < sweeps; s++) {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = 'sawtooth';
-    const dur = sweepMs / 1000;
-    osc.frequency.setValueAtTime(650, t);
-    osc.frequency.linearRampToValueAtTime(1150, t + dur / 2);
-    osc.frequency.linearRampToValueAtTime(650, t + dur);
-    gain.gain.setValueAtTime(0.0001, t);
-    gain.gain.exponentialRampToValueAtTime(0.7, t + 0.03);
-    gain.gain.setValueAtTime(0.7, t + dur - 0.05);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    osc.start(t);
-    osc.stop(t + dur + 0.02);
-    t += dur + 0.08;
+  for (let r = 0; r < rounds; r++) {
+    for (const freq of notes) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, t);
+      const dur = toneMs / 1000;
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.5, t + 0.02);
+      gain.gain.setValueAtTime(0.5, t + dur - 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.start(t);
+      osc.stop(t + dur + 0.02);
+      t += dur + gapMs / 1000;
+    }
   }
 }
 
@@ -301,8 +304,8 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
 
   if (!isPaidPlan(plan)) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neutral-950 px-6 text-center text-white">
-        <p className="max-w-md text-white/70">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-6 text-center text-gray-900 dark:bg-neutral-950 dark:text-white">
+        <p className="max-w-md text-gray-500 dark:text-white/70">
           {getText(
             'La Estación de pedidos es parte del plan Emprendedor.',
             'The Order Station is part of the Entrepreneur plan.',
@@ -316,10 +319,10 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
   // del navegador) y deja clarísimo que esta pantalla va a sonar fuerte desde este momento.
   if (!shiftStarted) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-neutral-950 px-6 text-center text-white">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-gray-50 px-6 text-center text-gray-900 dark:bg-neutral-950 dark:text-white">
         <p className="text-7xl">🔔</p>
         <h1 className="text-3xl font-bold">{getText('Estación de pedidos', 'Order station')}</h1>
-        <p className="max-w-sm text-white/60">
+        <p className="max-w-sm text-gray-500 dark:text-white/60">
           {getText(
             'Esta pantalla va a sonar cuando llegue un pedido nuevo, hasta que alguien lo acepte.',
             'This screen will ring when a new order comes in, until someone accepts it.',
@@ -337,7 +340,7 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-neutral-950 text-white">
+    <div className="relative flex min-h-screen flex-col bg-gray-50 text-gray-900 dark:bg-neutral-950 dark:text-white">
       {/* Destello de atención: brilla alrededor del borde de la pantalla al ritmo de la alarma,
           para que se note con el rabillo del ojo sin tener que mirar la tablet directamente.
           Vignette, no flash de pantalla completa — evita deslumbrar o sentirse una alarma de
@@ -358,14 +361,17 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
           100% { opacity: 0; }
         }
         .station-ring-glow {
-          background: radial-gradient(ellipse at center, transparent 55%, rgba(249,115,22,0.65) 100%);
+          background: radial-gradient(ellipse at center, transparent 55%, rgba(249,115,22,0.4) 100%);
           animation: stationRingPulse ${ALARM_INTERVAL_MS}ms ease-out infinite;
+        }
+        html[data-theme='dark'] .station-ring-glow {
+          background: radial-gradient(ellipse at center, transparent 55%, rgba(249,115,22,0.65) 100%);
         }
       `}</style>
       <Toast toasts={toast.toasts} onRemove={toast.remove} />
 
       {connection !== 'online' && (
-        <div className="bg-red-600 px-4 py-2 text-center text-sm font-semibold">
+        <div className="bg-red-600 px-4 py-2 text-center text-sm font-semibold text-white">
           {connection === 'reconnecting'
             ? getText('Reconectando…', 'Reconnecting…')
             : connection === 'offline'
@@ -377,7 +383,7 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
       <header className="relative z-10 flex items-center justify-between gap-3 px-6 py-4">
         <h1 className="text-xl font-bold">{getText('Estación de pedidos', 'Order station')}</h1>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-white/50">
+          <span className="text-sm text-gray-500 dark:text-white/50">
             {queue.length === 0
               ? getText('Sin pedidos pendientes', 'No pending orders')
               : getText(`${queue.length} por atender`, `${queue.length} waiting`)}
@@ -386,7 +392,7 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
             type="button"
             onClick={toggleMuted}
             title={muted ? getText('Silenciado', 'Muted') : getText('Sonando', 'Sound on')}
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/20 text-lg"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-full border border-gray-200 text-lg dark:border-neutral-700"
           >
             {muted ? '🔕' : '🔔'}
           </button>
@@ -395,15 +401,15 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
 
       <main className="relative z-10 flex flex-1 items-center justify-center px-6 pb-10">
         {!current ? (
-          <div className="flex flex-col items-center gap-3 text-white/40">
+          <div className="flex flex-col items-center gap-3 text-gray-400 dark:text-white/40">
             <p className="text-6xl">✅</p>
             <p className="text-xl">{getText('Todo atendido.', 'All caught up.')}</p>
           </div>
         ) : (
-          <div className="flex w-full max-w-2xl flex-col gap-6 rounded-3xl bg-white/5 p-8 ring-2 ring-red-500/60">
+          <div className="flex w-full max-w-2xl flex-col gap-6 rounded-3xl border border-gray-200 bg-white p-8 ring-2 ring-red-500/60 dark:border-transparent dark:bg-white/5">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <span className="inline-block rounded-full bg-red-600 px-4 py-1 text-sm font-bold uppercase tracking-wide">
+                <span className="inline-block rounded-full bg-red-600 px-4 py-1 text-sm font-bold uppercase tracking-wide text-white">
                   {current.tableNumber
                     ? getText(`Mesa ${current.tableNumber}`, `Table ${current.tableNumber}`)
                     : current.paymentMethod === 'PayAtPickup'
@@ -411,12 +417,12 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
                       : getText('Pedido online', 'Online order')}
                 </span>
                 {current.scheduledFor && (
-                  <span className="ml-2 inline-block rounded-full bg-amber-500/20 px-3 py-1 text-xs font-semibold text-amber-300">
+                  <span className="ml-2 inline-block rounded-full bg-amber-500/20 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
                     📅 {formatScheduledFor(current.scheduledFor, language)}
                   </span>
                 )}
               </div>
-              <span className="text-sm text-white/50">
+              <span className="text-sm text-gray-500 dark:text-white/50">
                 {minutesSince(current.createdAt, now) < 1
                   ? getText('recién', 'just now')
                   : getText(`hace ${minutesSince(current.createdAt, now)} min`, `${minutesSince(current.createdAt, now)} min ago`)}
@@ -426,9 +432,9 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
             <p className="text-2xl font-bold">
               {current.customerName || getText('Cliente sin nombre', 'Unnamed customer')}
             </p>
-            {current.customerPhone && <p className="text-white/60">{current.customerPhone}</p>}
+            {current.customerPhone && <p className="text-gray-500 dark:text-white/60">{current.customerPhone}</p>}
 
-            <ul className="flex flex-col gap-1.5 border-t border-white/10 pt-4 text-lg">
+            <ul className="flex flex-col gap-1.5 border-t border-gray-200 pt-4 text-lg dark:border-white/10">
               {current.items.map((item) => (
                 <li key={item.itemId}>
                   <span className="font-bold">{item.qty}x</span> {item.name}
@@ -438,11 +444,11 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
             </ul>
 
             {current.notes && (
-              <p className="rounded-xl bg-amber-500/10 px-3 py-2 text-sm text-amber-300">{current.notes}</p>
+              <p className="rounded-xl bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300">{current.notes}</p>
             )}
 
-            <div className="flex flex-col gap-3 border-t border-white/10 pt-5">
-              <span className="text-sm text-white/50">{getText('Listo en', 'Ready in')}</span>
+            <div className="flex flex-col gap-3 border-t border-gray-200 pt-5 dark:border-white/10">
+              <span className="text-sm text-gray-500 dark:text-white/50">{getText('Listo en', 'Ready in')}</span>
               <div className="flex gap-2">
                 {ETA_OPTIONS.map((m) => (
                   <button
@@ -450,7 +456,7 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
                     type="button"
                     onClick={() => setEtaChoice(m)}
                     className={`min-h-11 flex-1 rounded-full border text-sm font-semibold ${
-                      eta === m ? 'border-brand-primary bg-brand-primary text-white' : 'border-white/20 text-white/70'
+                      eta === m ? 'border-brand-primary bg-brand-primary text-white' : 'border-gray-300 text-gray-500 dark:border-white/20 dark:text-white/70'
                     }`}
                   >
                     {m} min
@@ -461,7 +467,7 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
                 type="button"
                 disabled={busy}
                 onClick={() => accept(current)}
-                className="min-h-20 rounded-2xl bg-green-600 text-2xl font-bold disabled:opacity-50"
+                className="min-h-20 rounded-2xl bg-green-600 text-2xl font-bold text-white disabled:opacity-50"
               >
                 {busy ? getText('Aceptando…', 'Accepting…') : `✓ ${getText('Aceptar pedido', 'Accept order')}`}
               </button>
@@ -470,7 +476,7 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
         )}
 
         {queue.length > 1 && (
-          <div className="pointer-events-none fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-red-600 text-lg font-bold">
+          <div className="pointer-events-none fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-red-600 text-lg font-bold text-white">
             +{queue.length - 1}
           </div>
         )}
@@ -481,8 +487,8 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
           otro dispositivo. La fila de "aceptar pedido nuevo" de arriba y esto son cosas
           distintas a propósito: una es la alarma urgente, esto es el seguimiento sin prisa. */}
       {inProgress.length > 0 && (
-        <div className="relative z-10 border-t border-white/10 bg-black/40 px-4 py-3">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/40">
+        <div className="relative z-10 border-t border-gray-200 bg-gray-100 px-4 py-3 dark:border-white/10 dark:bg-black/40">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-white/40">
             {getText('En preparación', 'In the kitchen')}
           </p>
           <div className="flex gap-3 overflow-x-auto pb-1">
@@ -499,14 +505,14 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
                 : getText('Listo', 'Ready');
               const needsCollect = (o.paymentMethod === 'PayAtPickup' || o.paymentMethod === 'PayAtTable') && !o.collectedAt;
               return (
-                <div key={o.id} className="flex min-w-[220px] shrink-0 flex-col gap-2 rounded-2xl border border-white/10 bg-white/5 p-3">
+                <div key={o.id} className="flex min-w-[220px] shrink-0 flex-col gap-2 rounded-2xl border border-gray-200 bg-white p-3 dark:border-white/10 dark:bg-white/5">
                   <div className="flex items-center justify-between gap-2">
                     <span className="truncate text-sm font-semibold">
                       {o.tableNumber
                         ? getText(`Mesa ${o.tableNumber}`, `Table ${o.tableNumber}`)
                         : (o.customerName || getText('Sin nombre', 'No name'))}
                     </span>
-                    <span className="shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+                    <span className="shrink-0 rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide dark:bg-white/10">
                       {badge}
                     </span>
                   </div>
@@ -519,7 +525,7 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
                     type="button"
                     disabled={advancingId === o.id}
                     onClick={() => advanceStatus(o.id, next)}
-                    className="min-h-11 rounded-full bg-brand-primary px-3 text-sm font-semibold disabled:opacity-50"
+                    className="min-h-11 rounded-full bg-brand-primary px-3 text-sm font-semibold text-white disabled:opacity-50"
                   >
                     {advancingId === o.id ? getText('Actualizando…', 'Updating…') : nextLabel}
                   </button>
