@@ -223,6 +223,36 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
   // Para el destello de pantalla (ver estilo más abajo) — misma condición que activa el sonido.
   const isRinging = shiftStarted && !muted && urgentCount > 0;
 
+  // Pedidos ya aceptados pero todavía en cocina — antes había que ir a Pedidos/Cocina en OTRA
+  // pantalla para avanzarlos; ahora el mismo dispositivo del personal cubre todo el ciclo.
+  const inProgress = useMemo(
+    () => orders.filter((o) => o.status === 'Paid' || o.status === 'Preparing' || o.status === 'Ready')
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+    [orders],
+  );
+  const [advancingId, setAdvancingId] = useState<string | null>(null);
+
+  async function advanceStatus(orderId: string, status: 'Preparing' | 'Ready' | 'Fulfilled') {
+    setAdvancingId(orderId);
+    try {
+      const res = await fetch(`/api/space/${slug}/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...updated } : o)));
+      } else {
+        toast.error(getText('No se pudo actualizar. Intenta de nuevo.', "Couldn't update. Try again."));
+      }
+    } catch {
+      toast.error(getText('No se pudo actualizar. Intenta de nuevo.', "Couldn't update. Try again."));
+    } finally {
+      setAdvancingId(null);
+    }
+  }
+
   // Alarma — suena mientras haya algo urgente sin atender, para de sonar en TODOS los
   // dispositivos abiertos en cuanto alguien acepta/reconoce (el estado viaja por SignalR).
   useEffect(() => {
@@ -445,6 +475,60 @@ export function StationContent({ slug, plan, affiliateId, businessName, timezone
           </div>
         )}
       </main>
+
+      {/* Pedidos ya aceptados, en cocina — para que el personal avance el pedido (preparando →
+          listo → entregado) desde ESTA MISMA pantalla, sin tener que abrir Pedidos/Cocina en
+          otro dispositivo. La fila de "aceptar pedido nuevo" de arriba y esto son cosas
+          distintas a propósito: una es la alarma urgente, esto es el seguimiento sin prisa. */}
+      {inProgress.length > 0 && (
+        <div className="relative z-10 border-t border-white/10 bg-black/40 px-4 py-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/40">
+            {getText('En preparación', 'In the kitchen')}
+          </p>
+          <div className="flex gap-3 overflow-x-auto pb-1">
+            {inProgress.map((o) => {
+              const next: 'Preparing' | 'Ready' | 'Fulfilled' =
+                o.status === 'Paid' ? 'Preparing' : o.status === 'Preparing' ? 'Ready' : 'Fulfilled';
+              const nextLabel =
+                next === 'Preparing' ? getText('Marcar en preparación', 'Mark preparing')
+                : next === 'Ready' ? getText('Marcar listo', 'Mark ready')
+                : getText('Marcar entregado', 'Mark fulfilled');
+              const badge =
+                o.status === 'Paid' ? getText('Aceptado', 'Accepted')
+                : o.status === 'Preparing' ? getText('En preparación', 'Preparing')
+                : getText('Listo', 'Ready');
+              const needsCollect = (o.paymentMethod === 'PayAtPickup' || o.paymentMethod === 'PayAtTable') && !o.collectedAt;
+              return (
+                <div key={o.id} className="flex min-w-[220px] shrink-0 flex-col gap-2 rounded-2xl border border-white/10 bg-white/5 p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate text-sm font-semibold">
+                      {o.tableNumber
+                        ? getText(`Mesa ${o.tableNumber}`, `Table ${o.tableNumber}`)
+                        : (o.customerName || getText('Sin nombre', 'No name'))}
+                    </span>
+                    <span className="shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+                      {badge}
+                    </span>
+                  </div>
+                  {needsCollect && (
+                    <span className="text-[11px] text-amber-300">
+                      {getText('Falta cobrar — cóbralo en Pedidos.', 'Not collected yet — collect it in Orders.')}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    disabled={advancingId === o.id}
+                    onClick={() => advanceStatus(o.id, next)}
+                    className="min-h-11 rounded-full bg-brand-primary px-3 text-sm font-semibold disabled:opacity-50"
+                  >
+                    {advancingId === o.id ? getText('Actualizando…', 'Updating…') : nextLabel}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

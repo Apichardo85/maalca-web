@@ -33,6 +33,7 @@ export interface OrderRow {
   // Cobro en el local (pagar al recoger / mesero): null = por cobrar. method: Cash | Card | Other.
   collectedAt?: string | null;
   collectedMethod?: string | null;
+  collectedReference?: string | null;
   // Hora estimada de entrega (ISO) que se fija al aceptar; el cliente la ve en /t/{token}.
   estimatedReadyAt?: string | null;
   // Estación de pedidos (Fase 3): cuándo el personal reconoció este pedido. Null = la alarma de

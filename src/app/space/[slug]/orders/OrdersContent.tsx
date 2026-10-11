@@ -49,6 +49,9 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
   const [orders, setOrders] = useState(initialOrders);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [collectingId, setCollectingId] = useState<string | null>(null);
+  // Referencia libre al cobro real en el POS del negocio (ej. número de orden en Toast) — opcional,
+  // solo para poder conciliar después; MaalCa no procesa ese cobro.
+  const [collectRef, setCollectRef] = useState('');
   // Minutos estimados que se envían al aceptar un pedido (el cliente los ve en su enlace de seguimiento).
   const [acceptEta, setAcceptEta] = useState(15);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
@@ -116,18 +119,19 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
     }
   }
 
-  async function collectPayment(orderId: string, method: 'Cash' | 'Card' | 'Other') {
+  async function collectPayment(orderId: string, method: 'Cash' | 'Card' | 'Other', reference?: string) {
     setUpdatingId(orderId);
     try {
       const res = await fetch(`/api/space/${slug}/orders/${orderId}/collect`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ method }),
+        body: JSON.stringify({ method, reference: reference?.trim() || undefined }),
       });
       if (res.ok) {
         const updated = await res.json();
-        setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, collectedAt: updated.collectedAt, collectedMethod: updated.collectedMethod } : o)));
+        setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, collectedAt: updated.collectedAt, collectedMethod: updated.collectedMethod, collectedReference: updated.collectedReference } : o)));
         setCollectingId(null);
+        setCollectRef('');
         toast.success(getText('Cobro registrado.', 'Payment recorded.'));
       } else {
         toast.error(getText('No se pudo registrar el cobro.', "Couldn't record the payment."));
@@ -265,6 +269,7 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
                       order.collectedAt ? (
                         <p className="mt-1 inline-block rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
                           💵 {getText('Cobrado', 'Collected')} · {order.collectedMethod === 'Cash' ? getText('Efectivo', 'Cash') : order.collectedMethod === 'Card' ? getText('Tarjeta', 'Card') : order.collectedMethod === 'Online' ? getText('Tarjeta (online)', 'Card (online)') : getText('Otro', 'Other')}
+                          {order.collectedReference && <> · {order.collectedReference}</>}
                         </p>
                       ) : (
                         <p className="mt-1 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
@@ -329,19 +334,26 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
                       <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">
                         {getText(`¿Cómo cobraste ${fmt(order.total, order.currency)}?`, `How did you collect ${fmt(order.total, order.currency)}?`)}
                       </p>
+                      <input
+                        type="text"
+                        value={collectRef}
+                        onChange={(e) => setCollectRef(e.target.value)}
+                        placeholder={getText('Referencia opcional (ej. # de orden en Toast)', 'Optional reference (e.g. Toast order #)')}
+                        className="mt-2 w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm dark:border-amber-800 dark:bg-neutral-900"
+                      />
                       <div className="mt-2 flex flex-wrap gap-2">
                         {([['Cash', '💵', 'Efectivo', 'Cash'], ['Card', '💳', 'Tarjeta', 'Card'], ['Other', '🧾', 'Otro', 'Other']] as const).map(([m, icon, es, en]) => (
                           <button
                             key={m}
                             type="button"
                             disabled={updatingId === order.id}
-                            onClick={() => collectPayment(order.id, m)}
+                            onClick={() => collectPayment(order.id, m, collectRef)}
                             className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-full border border-gray-300 bg-white px-4 text-sm font-medium hover:border-brand-primary hover:text-brand-primary disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900"
                           >
                             {icon} {getText(es, en)}
                           </button>
                         ))}
-                        <button type="button" onClick={() => setCollectingId(null)} className="px-2 text-xs text-gray-500 underline">
+                        <button type="button" onClick={() => { setCollectingId(null); setCollectRef(''); }} className="px-2 text-xs text-gray-500 underline">
                           {getText('Cancelar', 'Cancel')}
                         </button>
                       </div>
