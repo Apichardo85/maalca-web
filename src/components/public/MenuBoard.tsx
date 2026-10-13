@@ -94,7 +94,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080'
 
 /** How often the board re-fetches the catalog. This is the "actualización remota" —
  *  a TV left open just needs to notice dashboard changes eventually, not live/websocket. */
-const REFRESH_INTERVAL_MS = 3 * 60 * 1000;
+const REFRESH_INTERVAL_MS = 60 * 1000;
 /** How long each slide (one category, up to ITEMS_PER_SLIDE items) stays on screen. */
 const SLIDE_INTERVAL_MS = 9000;
 
@@ -168,8 +168,11 @@ function buildMenuSlides(items: BoardItem[], categories: BoardCategory[]): Slide
  *  sin slides de combo (no hay nada que destacar todavía). */
 function buildComboSlides(items: BoardItem[], categories: BoardCategory[]): Slide[] {
   const visible = items.filter((i) => (i.status ?? 'Active') === 'Active' && !i.is_demo);
-  let picks = visible.filter((i) => i.featured);
-  if (picks.length === 0) picks = visible.filter((i) => i.popular);
+  // Solo platos con foto/video: una slide de combo a pantalla completa sin imagen es un degradado
+  // vacío. Cuando suban la foto del plato, aparece solo.
+  const withMedia = visible.filter((i) => Boolean(i.image_url || i.video_url));
+  let picks = withMedia.filter((i) => i.featured);
+  if (picks.length === 0) picks = withMedia.filter((i) => i.popular);
   if (picks.length === 0) return [];
 
   // Mismo orden que el menú (por categoría, luego por SortOrder ya resuelto en items) para que
@@ -348,10 +351,32 @@ function ComboSlideView({
 }
 
 export function MenuBoard({
-  slug, screenId, business, initialItems, initialCategories,
+  slug, screenId, business: initialBusiness, initialItems, initialCategories,
   initialScreenAds = [], initialAdFrequency = null,
-  language = 'es', theme = 'Dark', transitionEffect = 'Fade', layout = 'Classic',
+  language: initialLanguageProp = 'es', theme: initialThemeProp = 'Dark',
+  transitionEffect: initialEffectProp = 'Fade', layout: initialLayoutProp = 'Classic',
 }: Props) {
+  // Config visual en estado (no solo props): el poll la vuelve a leer, así un cambio de tema,
+  // diseño, idioma, efecto o colores hecho desde el dashboard llega a la TV sin recargarla.
+  const [cfg, setCfg] = useState({
+    language: initialLanguageProp,
+    theme: initialThemeProp,
+    transitionEffect: initialEffectProp,
+    layout: initialLayoutProp,
+    primaryColor: initialBusiness.primaryColor,
+    secondaryColor: initialBusiness.secondaryColor ?? null,
+    accentColor: initialBusiness.accentColor ?? null,
+  });
+  const { language, theme, transitionEffect, layout } = cfg;
+  const business = useMemo(
+    () => ({
+      ...initialBusiness,
+      primaryColor: cfg.primaryColor,
+      secondaryColor: cfg.secondaryColor,
+      accentColor: cfg.accentColor,
+    }),
+    [initialBusiness, cfg.primaryColor, cfg.secondaryColor, cfg.accentColor],
+  );
   const t = BOARD_STRINGS[language];
   const c = THEME_CLASSES[theme];
   const palette = useMemo(
@@ -429,6 +454,18 @@ export function MenuBoard({
           image_url: item.image_url ?? item.imageUrl ?? null,
           video_url: item.video_url ?? item.videoUrl ?? null,
         }));
+        setCfg((prev) => {
+          const next = {
+            language: (data.language === 'en' ? 'en' : 'es') as 'es' | 'en',
+            theme: (data.boardTheme === 'Light' ? 'Light' : 'Dark') as 'Dark' | 'Light',
+            transitionEffect: (['Slide', 'Zoom', 'None'].includes(data.transitionEffect) ? data.transitionEffect : 'Fade') as TransitionEffect,
+            layout: normalizeLayout(data.layout),
+            primaryColor: data.affiliate?.primaryColor ?? prev.primaryColor,
+            secondaryColor: data.affiliate?.secondaryColor ?? null,
+            accentColor: data.affiliate?.accentColor ?? null,
+          };
+          return JSON.stringify(next) === JSON.stringify(prev) ? prev : next;
+        });
         setCatalog({
           items: polledItems,
           categories: data.categories ?? [],
