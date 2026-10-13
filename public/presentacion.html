@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pantallas MaalCa</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400..700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;height:100%;background:#000;overflow:hidden}
+.slide *{margin:0}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0}
+.slide:not(.on){display:none !important}
+#hud{position:fixed;right:16px;bottom:10px;font:14px 'DM Sans',Arial,sans-serif;color:#fff;opacity:.45}
+</style></head><body>
+<div id="stage">
+<section class="slide" id="cover" style="width:1920px;height:1080px;position:relative;box-sizing:border-box;overflow:hidden;background:#0B1020;color:#F4F6FF;font-family:'DM Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;justify-content:space-between">
+<div style="display:flex;flex-direction:row;align-items:center;gap:40px"><img src="/logo/maalca-full-dark.png" alt="MaalCa" style="width:480px;height:106px"><p style="font-size:28px;font-weight:700;letter-spacing:6px;text-transform:uppercase;color:#045AFE">Pantallas</p></div>
+<div style="display:flex;flex-direction:column;gap:32px">
+<h1 style="font-family:'Oswald', Arial, sans-serif;font-size:152px;font-weight:700;line-height:1.02;text-transform:uppercase">Tu menú en la TV, siempre al día</h1>
+<p style="font-size:40px;line-height:1.35;color:#B9C3E6;width:1300px">Pantallas digitales que se actualizan solas desde tu panel, con los colores y el estilo de tu restaurante.</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;font-size:26px;color:#9AA4C7">Para La Catrina Mexican Restaurant y Little Dominicana</p>
+
+</section>
+<section class="slide" id="quienes" style="width:1920px;height:1080px;position:relative;box-sizing:border-box;overflow:hidden;background:#F4F6FF;color:#0B1020;font-family:'DM Sans', Arial, sans-serif;padding:120px 128px;display:flex;flex-direction:column;gap:64px">
+<img src="/logo/maalca-full-light.png" alt="MaalCa" style="width:560px;height:121px">
+<div style="display:flex;flex-direction:column;gap:28px">
+<h2 style="font-family:'Oswald', Arial, sans-serif;font-size:96px;font-weight:700;line-height:1.05;text-transform:uppercase;width:1600px">La plataforma que mantiene tu negocio al día</h2>
+<p style="font-size:36px;line-height:1.4;color:#4A5578;width:1500px">MaalCa reúne en un solo panel las herramientas digitales de tu negocio local: tu espacio en línea, tus pantallas y tu publicidad.</p>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:40px">
+<div style="background:#FFFFFF;border-radius:24px;padding:40px;border:2px solid #DCE3F7;display:flex;flex-direction:column;gap:12px"><p style="font-size:38px;font-weight:700;color:#045AFE">Tu espacio digital</p><p style="font-size:28px;line-height:1.4;color:#4A5578">Menú y presencia en línea con tu marca.</p></div>
+<div style="background:#FFFFFF;border-radius:24px;padding:40px;border:2px solid #DCE3F7;display:flex;flex-direction:column;gap:12px"><p style="font-size:38px;font-weight:700;color:#045AFE">Pantallas</p><p style="font-size:28px;line-height:1.4;color:#4A5578">Menú en la TV que se actualiza solo.</p></div>
+<div style="background:#FFFFFF;border-radius:24px;padding:40px;border:2px solid #DCE3F7;display:flex;flex-direction:column;gap:12px"><p style="font-size:38px;font-weight:700;color:#045AFE">Publicidad</p><p style="font-size:28px;line-height:1.4;color:#4A5578">Comerciales y promociones donde tus clientes miran.</p></div>
+</div>
+
+</section>
+<section class="slide" id="problema" style="width:1920px;height:1080px;position:relative;box-sizing:border-box;overflow:hidden;background:#F4F6FF;color:#0B1020;font-family:'DM Sans', Arial, sans-serif;padding:120px 128px;display:flex;flex-direction:column;gap:64px">
+<div style="display:flex;flex-direction:column;gap:20px">
+<p style="font-size:28px;font-weight:700;letter-spacing:6px;text-transform:uppercase;color:#045AFE">El problema</p>
+<h2 style="font-family:'Oswald', Arial, sans-serif;font-size:96px;font-weight:700;line-height:1.05;text-transform:uppercase;width:1500px">El menú impreso siempre llega tarde</h2>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:48px">
+<div style="background:#FFFFFF;border-radius:24px;padding:48px;display:flex;flex-direction:column;gap:20px;border:2px solid #DCE3F7">
+<p style="font-family:'Oswald', Arial, sans-serif;font-size:72px;font-weight:700;color:#045AFE">01</p>
+<p style="font-size:40px;font-weight:700;line-height:1.2">Cambia un precio</p>
+<p style="font-size:30px;line-height:1.4;color:#4A5578">Hay que reimprimir, plastificar o tachar a mano. Mientras tanto el cliente ve el dato viejo.</p>
+</div>
+<div style="background:#FFFFFF;border-radius:24px;padding:48px;display:flex;flex-direction:column;gap:20px;border:2px solid #DCE3F7">
+<p style="font-family:'Oswald', Arial, sans-serif;font-size:72px;font-weight:700;color:#045AFE">02</p>
+<p style="font-size:40px;font-weight:700;line-height:1.2">Se agota un plato</p>
+<p style="font-size:30px;line-height:1.4;color:#4A5578">Sigue anunciado en la pared. El equipo pasa el día explicando que ya no hay.</p>
+</div>
+<div style="background:#FFFFFF;border-radius:24px;padding:48px;display:flex;flex-direction:column;gap:20px;border:2px solid #DCE3F7">
+<p style="font-family:'Oswald', Arial, sans-serif;font-size:72px;font-weight:700;color:#045AFE">03</p>
+<p style="font-size:40px;font-weight:700;line-height:1.2">Llega una promoción</p>
+<p style="font-size:30px;line-height:1.4;color:#4A5578">Un cartel pegado con cinta que no combina con nada y nadie quiere quitar después.</p>
+</div>
+</div>
+<img src="/logo/maalca-full-light.png" alt="MaalCa" style="position:absolute;right:128px;bottom:48px;width:260px;height:56px">
+
+</section>
+<section class="slide" id="solucion" style="width:1920px;height:1080px;position:relative;box-sizing:border-box;overflow:hidden;background:#0B1020;color:#F4F6FF;font-family:'DM Sans', Arial, sans-serif;padding:120px 128px;display:flex;flex-direction:column;gap:64px">
+<div style="display:flex;flex-direction:column;gap:20px">
+<p style="font-size:28px;font-weight:700;letter-spacing:6px;text-transform:uppercase;color:#045AFE">La solución</p>
+<h2 style="font-family:'Oswald', Arial, sans-serif;font-size:96px;font-weight:700;line-height:1.05;text-transform:uppercase;width:1500px">Cambias en el panel, la TV se actualiza sola</h2>
+</div>
+<div style="display:flex;flex-direction:row;align-items:stretch;gap:32px">
+<div style="flex:1;background:#151C33;border-radius:24px;padding:48px;display:flex;flex-direction:column;gap:20px;border:2px solid #27325A">
+<p style="font-family:'Oswald', Arial, sans-serif;font-size:64px;font-weight:700;color:#045AFE">1</p>
+<p style="font-size:40px;font-weight:700;line-height:1.2">Editas tu menú</p>
+<p style="font-size:30px;line-height:1.4;color:#B9C3E6">Platos, precios, fotos y destacados desde el panel de MaalCa, en el teléfono o la computadora.</p>
+</div>
+<div style="flex:1;background:#151C33;border-radius:24px;padding:48px;display:flex;flex-direction:column;gap:20px;border:2px solid #27325A">
+<p style="font-family:'Oswald', Arial, sans-serif;font-size:64px;font-weight:700;color:#045AFE">2</p>
+<p style="font-size:40px;font-weight:700;line-height:1.2">La pantalla lo detecta</p>
+<p style="font-size:30px;line-height:1.4;color:#B9C3E6">Cada pantalla consulta los cambios cada minuto. No hay que reiniciar ni tocar el control remoto.</p>
+</div>
+<div style="flex:1;background:#045AFE;color:#FFFFFF;border-radius:24px;padding:48px;display:flex;flex-direction:column;gap:20px">
+<p style="font-family:'Oswald', Arial, sans-serif;font-size:64px;font-weight:700">3</p>
+<p style="font-size:40px;font-weight:700;line-height:1.2">Tus clientes lo ven</p>
+<p style="font-size:30px;line-height:1.4">El menú nuevo ya está en la TV del local, con el mismo estilo de siempre.</p>
+</div>
+</div>
+<p style="font-size:30px;line-height:1.4;color:#9AA4C7;width:1500px">Funciona con una TV inteligente o una caja Google TV, y con cualquier tamaño de pantalla.</p>
+<img src="/logo/maalca-full-dark.png" alt="MaalCa" style="position:absolute;right:128px;bottom:48px;width:260px;height:58px">
+
+</section>
+<section class="slide" id="disenos" style="width:1920px;height:1080px;position:relative;box-sizing:border-box;overflow:hidden;background:#F4F6FF;color:#0B1020;font-family:'DM Sans', Arial, sans-serif;padding:120px 128px;display:flex;flex-direction:column;gap:56px">
+<div style="display:flex;flex-direction:column;gap:20px">
+<p style="font-size:28px;font-weight:700;letter-spacing:6px;text-transform:uppercase;color:#045AFE">Diseños</p>
+<h2 style="font-family:'Oswald', Arial, sans-serif;font-size:96px;font-weight:700;line-height:1.05;text-transform:uppercase;width:1500px">Elige cómo se ve tu menú</h2>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:32px">
+<div style="background:#FFFFFF;border-radius:24px;padding:40px;display:flex;flex-direction:column;gap:24px;border:2px solid #DCE3F7">
+<div style="height:200px;border-radius:16px;background:#0B1020;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:20px">
+<div style="background:#27325A;border-radius:8px"></div><div style="background:#27325A;border-radius:8px"></div><div style="background:#27325A;border-radius:8px"></div>
+<div style="background:#27325A;border-radius:8px"></div><div style="background:#27325A;border-radius:8px"></div><div style="background:#27325A;border-radius:8px"></div>
+</div>
+<p style="font-size:38px;font-weight:700">Clásica</p>
+<p style="font-size:28px;line-height:1.4;color:#4A5578">Tarjetas en cuadrícula. Cabe mucho menú.</p>
+</div>
+<div style="background:#FFFFFF;border-radius:24px;padding:40px;display:flex;flex-direction:column;gap:24px;border:2px solid #DCE3F7">
+<div style="height:200px;border-radius:16px;background:#0B1020;display:flex;flex-direction:row;gap:12px;padding:20px">
+<div style="flex:2;background:#045AFE;border-radius:8px"></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px"><div style="flex:1;background:#27325A;border-radius:8px"></div><div style="flex:1;background:#27325A;border-radius:8px"></div></div>
+</div>
+<p style="font-size:38px;font-weight:700">Plato héroe</p>
+<p style="font-size:28px;line-height:1.4;color:#4A5578">Un plato grande protagonista y otros a su lado.</p>
+</div>
+<div style="background:#FFFFFF;border-radius:24px;padding:40px;display:flex;flex-direction:column;gap:24px;border:2px solid #DCE3F7">
+<div style="height:200px;border-radius:16px;background:#0B1020;display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:20px">
+<div style="background:#045AFE;border-radius:8px"></div><div style="background:#045AFE;border-radius:8px"></div>
+<div style="background:#27325A;border-radius:8px"></div><div style="background:#27325A;border-radius:8px"></div>
+</div>
+<p style="font-size:38px;font-weight:700">Fotos en grilla</p>
+<p style="font-size:28px;line-height:1.4;color:#4A5578">Las fotos mandan. Ideal para platos muy visuales.</p>
+</div>
+<div style="background:#FFFFFF;border-radius:24px;padding:40px;display:flex;flex-direction:column;gap:24px;border:2px solid #DCE3F7">
+<div style="height:200px;border-radius:16px;background:#0B1020;display:flex;flex-direction:row;justify-content:space-around;align-items:center;padding:20px">
+<div style="width:96px;height:96px;border-radius:48px;background:#27325A;border:6px solid #045AFE"></div>
+<div style="width:96px;height:96px;border-radius:48px;background:#27325A;border:6px solid #045AFE"></div>
+<div style="width:96px;height:96px;border-radius:48px;background:#27325A;border:6px solid #045AFE"></div>
+</div>
+<p style="font-size:38px;font-weight:700">Platos flotantes</p>
+<p style="font-size:28px;line-height:1.4;color:#4A5578">Tres platos redondos con tu color de acento.</p>
+</div>
+</div>
+<p style="font-size:30px;line-height:1.4;color:#4A5578;width:1500px">Cada pantalla puede usar un diseño distinto, y se cambia en segundos desde el panel. Vienen más diseños en camino.</p>
+<img src="/logo/maalca-full-light.png" alt="MaalCa" style="position:absolute;right:128px;bottom:48px;width:260px;height:56px">
+
+</section>
+<section class="slide" id="marca" style="width:1920px;height:1080px;position:relative;box-sizing:border-box;overflow:hidden;background:#0B1020;color:#F4F6FF;font-family:'DM Sans', Arial, sans-serif;padding:120px 128px;display:flex;flex-direction:row;gap:96px;align-items:center">
+<div style="flex:1;display:flex;flex-direction:column;gap:32px">
+<p style="font-size:28px;font-weight:700;letter-spacing:6px;text-transform:uppercase;color:#045AFE">Tu marca</p>
+<h2 style="font-family:'Oswald', Arial, sans-serif;font-size:96px;font-weight:700;line-height:1.05;text-transform:uppercase">Se ve como tu restaurante, no como una plantilla</h2>
+<p style="font-size:34px;line-height:1.4;color:#B9C3E6">La pantalla toma los colores de tu marca y arma el fondo, los textos y los precios a partir de ellos. Cada diseño viene en versión oscura y clara.</p>
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:30px;line-height:1.4;color:#F4F6FF">• Colores principal, secundario y de acento</p>
+<p style="font-size:30px;line-height:1.4;color:#F4F6FF">• Textos siempre legibles sobre cualquier color</p>
+<p style="font-size:30px;line-height:1.4;color:#F4F6FF">• Español e inglés, según la pantalla</p>
+</div>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:32px">
+<div style="background:#151C33;border-radius:24px;padding:40px;display:flex;flex-direction:column;gap:24px;border:2px solid #27325A">
+<p style="font-size:26px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:#9AA4C7">Oscuro</p>
+<div style="display:flex;flex-direction:row;gap:20px;align-items:center">
+<div style="width:120px;height:120px;border-radius:60px;background:#27325A;border:6px solid #045AFE"></div>
+<div style="display:flex;flex-direction:column;gap:8px"><p style="font-size:36px;font-weight:700;color:#F4F6FF">Nombre del plato</p><p style="font-size:32px;font-weight:700;color:#045AFE">$00.00</p></div>
+</div>
+</div>
+<div style="background:#F4F6FF;color:#0B1020;border-radius:24px;padding:40px;display:flex;flex-direction:column;gap:24px">
+<p style="font-size:26px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:#4A5578">Claro</p>
+<div style="display:flex;flex-direction:row;gap:20px;align-items:center">
+<div style="width:120px;height:120px;border-radius:60px;background:#DCE3F7;border:6px solid #045AFE"></div>
+<div style="display:flex;flex-direction:column;gap:8px"><p style="font-size:36px;font-weight:700">Nombre del plato</p><p style="font-size:32px;font-weight:700;color:#045AFE">$00.00</p></div>
+</div>
+</div>
+</div>
+<img src="/logo/maalca-full-dark.png" alt="MaalCa" style="position:absolute;right:128px;bottom:48px;width:260px;height:58px">
+
+</section>
+<section class="slide" id="zonas" style="width:1920px;height:1080px;position:relative;box-sizing:border-box;overflow:hidden;background:#F4F6FF;color:#0B1020;font-family:'DM Sans', Arial, sans-serif;padding:120px 128px;display:flex;flex-direction:column;gap:56px">
+<div style="display:flex;flex-direction:column;gap:20px">
+<p style="font-size:28px;font-weight:700;letter-spacing:6px;text-transform:uppercase;color:#045AFE">Varias pantallas</p>
+<h2 style="font-family:'Oswald', Arial, sans-serif;font-size:96px;font-weight:700;line-height:1.05;text-transform:uppercase;width:1600px">Una pantalla para cada zona del local</h2>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:40px">
+<div style="background:#FFFFFF;border-radius:24px;padding:48px;display:flex;flex-direction:column;gap:20px;border:2px solid #DCE3F7">
+<p style="font-size:40px;font-weight:700;line-height:1.2">Barra</p>
+<p style="font-size:30px;line-height:1.4;color:#4A5578">Solo bebidas y cócteles, en inglés si tu clientela lo pide.</p>
+</div>
+<div style="background:#FFFFFF;border-radius:24px;padding:48px;display:flex;flex-direction:column;gap:20px;border:2px solid #DCE3F7">
+<p style="font-size:40px;font-weight:700;line-height:1.2">Comedor</p>
+<p style="font-size:30px;line-height:1.4;color:#4A5578">El menú completo, con el diseño que más luzca tus fotos.</p>
+</div>
+<div style="background:#FFFFFF;border-radius:24px;padding:48px;display:flex;flex-direction:column;gap:20px;border:2px solid #DCE3F7">
+<p style="font-size:40px;font-weight:700;line-height:1.2">Entrada</p>
+<p style="font-size:30px;line-height:1.4;color:#4A5578">Combos y platos destacados para abrir el apetito.</p>
+</div>
+</div>
+<p style="font-size:32px;line-height:1.4;color:#4A5578;width:1600px">Cada pantalla tiene su propia dirección web y puede mostrar categorías distintas, otro idioma, otro tema y otro diseño. Lo que no cambies, lo hereda de tu negocio.</p>
+<img src="/logo/maalca-full-light.png" alt="MaalCa" style="position:absolute;right:128px;bottom:48px;width:260px;height:56px">
+
+</section>
+<section class="slide" id="comerciales" style="width:1920px;height:1080px;position:relative;box-sizing:border-box;overflow:hidden;background:#0B1020;color:#F4F6FF;font-family:'DM Sans', Arial, sans-serif;padding:120px 128px;display:flex;flex-direction:column;gap:56px">
+<div style="display:flex;flex-direction:column;gap:20px">
+<p style="font-size:28px;font-weight:700;letter-spacing:6px;text-transform:uppercase;color:#045AFE">Más que un menú</p>
+<h2 style="font-family:'Oswald', Arial, sans-serif;font-size:96px;font-weight:700;line-height:1.05;text-transform:uppercase;width:1600px">Combos y comerciales en la misma rotación</h2>
+</div>
+<div style="display:flex;flex-direction:row;gap:40px;align-items:stretch">
+<div style="flex:1;background:#151C33;border-radius:24px;padding:48px;display:flex;flex-direction:column;gap:20px;border:2px solid #27325A">
+<p style="font-size:40px;font-weight:700;line-height:1.2;color:#045AFE">Combos destacados</p>
+<p style="font-size:30px;line-height:1.4;color:#B9C3E6">Marca tus platos favoritos en el panel y la pantalla los presenta primero, con foto o video.</p>
+</div>
+<div style="flex:1;background:#151C33;border-radius:24px;padding:48px;display:flex;flex-direction:column;gap:20px;border:2px solid #27325A">
+<p style="font-size:40px;font-weight:700;line-height:1.2;color:#045AFE">Comerciales</p>
+<p style="font-size:30px;line-height:1.4;color:#B9C3E6">Sube tus anuncios y promociones, elige cada cuántas pantallas aparecen y con qué transición.</p>
+</div>
+<div style="flex:1;background:#151C33;border-radius:24px;padding:48px;display:flex;flex-direction:column;gap:20px;border:2px solid #27325A">
+<p style="font-size:40px;font-weight:700;line-height:1.2;color:#045AFE">Siempre en marcha</p>
+<p style="font-size:30px;line-height:1.4;color:#B9C3E6">La pantalla se recupera sola si se cae la conexión y mantiene la TV despierta.</p>
+</div>
+</div>
+<img src="/logo/maalca-full-dark.png" alt="MaalCa" style="position:absolute;right:128px;bottom:48px;width:260px;height:58px">
+
+</section>
+<section class="slide" id="siguiente" style="width:1920px;height:1080px;position:relative;box-sizing:border-box;overflow:hidden;background:#045AFE;color:#FFFFFF;font-family:'DM Sans', Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;justify-content:space-between">
+<div style="display:flex;flex-direction:row;align-items:center;justify-content:space-between"><p style="font-size:28px;font-weight:700;letter-spacing:6px;text-transform:uppercase">Siguiente paso</p><div style="background:#F4F6FF;border-radius:24px;padding:28px 40px"><img src="/logo/maalca-full-light.png" alt="MaalCa" style="width:380px;height:82px"></div></div>
+<div style="display:flex;flex-direction:column;gap:48px">
+<h2 style="font-family:'Oswald', Arial, sans-serif;font-size:140px;font-weight:700;line-height:1.02;text-transform:uppercase">Probémoslo en tu local</h2>
+<div style="display:flex;flex-direction:column;gap:16px">
+<p style="font-size:40px;line-height:1.35">1. Elegimos el diseño y los colores de tu marca.</p>
+<p style="font-size:40px;line-height:1.35">2. Cargamos tus mejores fotos, empezando por los destacados.</p>
+<p style="font-size:40px;line-height:1.35">3. Conectamos la TV y listo: tú solo editas desde el panel.</p>
+</div>
+</div>
+
+</section>
+</div>
+<div id="hud"></div>
+<script>
+(function(){
+var stage=document.getElementById('stage'),slides=[].slice.call(document.querySelectorAll('.slide')),hud=document.getElementById('hud'),i=0;
+function fit(){var s=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform='scale('+s+')';stage.style.left=((innerWidth-1920*s)/2)+'px';stage.style.top=((innerHeight-1080*s)/2)+'px'}
+function show(n){i=Math.max(0,Math.min(slides.length-1,n));slides.forEach(function(el,k){el.classList.toggle('on',k===i)});hud.textContent=(i+1)+' / '+slides.length;try{history.replaceState(null,'','#'+(i+1))}catch(e){}}
+addEventListener('resize',fit);
+addEventListener('keydown',function(e){var k=e.key;
+ if(k==='ArrowRight'||k==='ArrowDown'||k==='PageDown'||k===' '||k==='Enter'){show(i+1);e.preventDefault()}
+ else if(k==='ArrowLeft'||k==='ArrowUp'||k==='PageUp'||k==='Backspace'){show(i-1);e.preventDefault()}
+ else if(k==='Home')show(0);else if(k==='End')show(slides.length-1)});
+addEventListener('click',function(e){show(e.clientX<innerWidth/3?i-1:i+1)});
+fit();show((parseInt(location.hash.slice(1),10)||1)-1);
+})();
+</script></body></html>
