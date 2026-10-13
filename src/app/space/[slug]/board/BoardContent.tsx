@@ -5,6 +5,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { isPaidPlan } from '@/lib/plan-limits';
+import { IMPLEMENTED_LAYOUTS, type BoardLayoutName } from '@/lib/board-layouts';
 
 export interface ScreenAdRow {
   id: string;
@@ -34,6 +35,8 @@ export interface ScreenRow {
   adFrequency: number | null;
   categoryFilter: string | null;
   transitionEffect: string | null;
+  /** Plantilla visual; null = hereda la del negocio. */
+  layout: string | null;
   contentMode: string;
   adIds: string[] | null;
 }
@@ -46,10 +49,87 @@ interface Props {
   initialLanguage: 'es' | 'en';
   initialBoardTheme: 'Dark' | 'Light';
   initialTransitionEffect: 'Fade' | 'Slide' | 'Zoom' | 'None';
+  initialBoardLayout: BoardLayoutName;
   initialScreens: ScreenRow[];
   /** Categorías reales del catálogo (derivadas de los items) — para elegir por checkbox en vez
    *  de escribirlas a mano. */
   categories: string[];
+}
+
+const LAYOUT_LABELS: Record<BoardLayoutName, { es: string; en: string }> = {
+  Classic: { es: 'Clásica', en: 'Classic' },
+  Hero: { es: 'Plato héroe', en: 'Hero dish' },
+  Grid: { es: 'Fotos en grilla', en: 'Photo grid' },
+  Editorial: { es: 'Editorial', en: 'Editorial' },
+  Carousel: { es: 'Tarjetas', en: 'Cards' },
+  Plates: { es: 'Platos flotantes', en: 'Floating plates' },
+  Bold: { es: 'Título gigante', en: 'Bold title' },
+};
+
+/** Miniatura esquemática de cada plantilla (no es el render real, solo la silueta de la composición). */
+function LayoutThumb({ layout }: { layout: BoardLayoutName | 'inherit' }) {
+  const block = 'rounded-[3px] bg-current opacity-30';
+  const strong = 'rounded-[3px] bg-current opacity-60';
+  return (
+    <div className="flex aspect-video w-full items-stretch gap-1 rounded-md border border-current/20 p-1.5 text-gray-500 dark:text-neutral-400">
+      {layout === 'Hero' ? (
+        <>
+          <div className={`${block} flex-[1.1]`} />
+          <div className="flex flex-1 flex-col justify-center gap-1"><div className={`${strong} h-2`} /><div className={`${block} h-1.5`} /><div className={`${block} h-1.5 w-2/3`} /></div>
+        </>
+      ) : layout === 'Grid' ? (
+        <div className="flex flex-1 flex-col gap-1">
+          <div className="flex flex-[3] gap-1"><div className={`${block} flex-1`} /><div className={`${block} flex-1`} /><div className={`${block} flex-1`} /></div>
+          <div className="flex flex-1 gap-1"><div className={`${strong} flex-1`} /><div className={`${strong} flex-1`} /></div>
+        </div>
+      ) : layout === 'Plates' ? (
+        <div className="flex flex-1 items-center justify-around"><div className={`${block} aspect-square h-3/4 !rounded-full`} /><div className={`${block} aspect-square h-3/4 !rounded-full`} /><div className={`${block} aspect-square h-3/4 !rounded-full`} /></div>
+      ) : layout === 'inherit' ? (
+        <div className="flex flex-1 items-center justify-center text-[10px] font-semibold uppercase tracking-wide">=</div>
+      ) : (
+        <div className="grid flex-1 grid-cols-3 grid-rows-2 gap-1">{Array.from({ length: 6 }).map((_, i) => <div key={i} className={block} />)}</div>
+      )}
+    </div>
+  );
+}
+
+/** Selector de plantilla. `allowInherit` agrega la opción "Heredar del negocio" (pantallas extra). */
+function LayoutPicker({
+  value, onChange, allowInherit, disabled, getText,
+}: {
+  value: string | null;
+  onChange: (layout: BoardLayoutName | null) => void;
+  allowInherit?: boolean;
+  disabled?: boolean;
+  getText: (es: string, en: string) => string;
+}) {
+  const options: Array<BoardLayoutName | 'inherit'> = [...(allowInherit ? (['inherit'] as const) : []), ...IMPLEMENTED_LAYOUTS];
+  return (
+    <div>
+      <p className="mb-2 text-xs font-medium text-gray-500 dark:text-neutral-400">{getText('Diseño de pantalla', 'Screen layout')}</p>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+        {options.map((opt) => {
+          const selected = opt === 'inherit' ? value == null : value === opt;
+          return (
+            <button
+              key={opt}
+              type="button"
+              disabled={disabled}
+              onClick={() => onChange(opt === 'inherit' ? null : opt)}
+              className={`flex flex-col gap-1.5 rounded-xl border p-2 text-left text-xs font-medium transition-colors disabled:opacity-50 ${
+                selected
+                  ? 'border-brand-primary text-brand-primary'
+                  : 'border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-neutral-300 hover:border-gray-400'
+              }`}
+            >
+              <LayoutThumb layout={opt} />
+              {opt === 'inherit' ? getText('Heredar del negocio', 'Inherit from business') : LAYOUT_LABELS[opt][getText('es', 'en') as 'es' | 'en']}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 /**
@@ -60,7 +140,7 @@ interface Props {
  */
 export function BoardContent({
   slug, plan, initialAds, initialAdFrequency, initialLanguage, initialBoardTheme,
-  initialTransitionEffect, initialScreens, categories,
+  initialTransitionEffect, initialBoardLayout, initialScreens, categories,
 }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -71,6 +151,8 @@ export function BoardContent({
   const [boardLanguage, setBoardLanguage] = useState(initialLanguage);
   const [boardTheme, setBoardTheme] = useState(initialBoardTheme);
   const [transitionEffect, setTransitionEffect] = useState(initialTransitionEffect);
+  const [boardLayout, setBoardLayout] = useState<BoardLayoutName>(initialBoardLayout);
+  const [newScreenLayout, setNewScreenLayout] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -93,12 +175,13 @@ export function BoardContent({
       const res = await fetch(`/api/space/${slug}/screens`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newScreenName.trim() }),
+        body: JSON.stringify({ name: newScreenName.trim(), layout: newScreenLayout }),
       });
       const created = await res.json().catch(() => null);
       if (res.ok && created?.id) {
         setScreens((prev) => [...prev, created]);
         setNewScreenName('');
+        setNewScreenLayout(null);
         setAddingScreen(false);
         toast.success(getText('Pantalla creada.', 'Screen created.'));
       } else {
@@ -126,6 +209,7 @@ export function BoardContent({
           adFrequency: next.adFrequency,
           categoryFilter: next.categoryFilter,
           transitionEffect: next.transitionEffect,
+          layout: next.layout,
           contentMode: next.contentMode,
           adIds: next.adIds,
         }),
@@ -283,6 +367,7 @@ export function BoardContent({
     language?: 'es' | 'en';
     boardTheme?: 'Dark' | 'Light';
     transitionEffect?: 'Fade' | 'Slide' | 'Zoom' | 'None';
+    boardLayout?: BoardLayoutName;
   }) {
     setSavingPrefs(true);
     try {
@@ -454,6 +539,24 @@ export function BoardContent({
               </select>
             </label>
           </div>
+          <div className="mt-4">
+            <LayoutPicker
+              value={boardLayout}
+              disabled={savingPrefs}
+              getText={getText}
+              onChange={(layout) => {
+                if (!layout) return;
+                setBoardLayout(layout);
+                savePrefs({ boardLayout: layout });
+              }}
+            />
+            <p className="mt-2 text-xs text-gray-500 dark:text-neutral-400">
+              {getText(
+                'Los colores salen de la paleta de tu negocio y el diseño funciona en modo oscuro y claro.',
+                "Colors come from your business palette and every layout works in dark and light mode.",
+              )}
+            </p>
+          </div>
         </div>
         </div>
 
@@ -478,7 +581,8 @@ export function BoardContent({
           </div>
 
           {addingScreen && (
-            <div className="mt-3 flex items-center gap-2">
+            <div className="mt-3 flex flex-col gap-3">
+            <div className="flex items-center gap-2">
               <input
                 type="text"
                 value={newScreenName}
@@ -493,6 +597,8 @@ export function BoardContent({
               >
                 {creatingScreen ? getText('Creando…', 'Creating…') : getText('Crear', 'Create')}
               </button>
+            </div>
+            <LayoutPicker value={newScreenLayout} allowInherit getText={getText} onChange={setNewScreenLayout} />
             </div>
           )}
 
@@ -541,6 +647,15 @@ export function BoardContent({
 
                   {editingScreenId === screen.id && (
                     <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-4 border-t border-gray-100 dark:border-neutral-800 pt-3">
+                      <div className="col-span-full">
+                        <LayoutPicker
+                          value={screen.layout}
+                          allowInherit
+                          disabled={screenBusyId === screen.id}
+                          getText={getText}
+                          onChange={(layout) => updateScreen(screen, { layout })}
+                        />
+                      </div>
                       <label className="flex flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
                         {getText('Idioma', 'Language')}
                         <select

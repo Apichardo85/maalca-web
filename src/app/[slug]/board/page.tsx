@@ -5,6 +5,7 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { MenuBoard } from '@/components/public/MenuBoard';
+import { normalizeLayout } from '@/lib/board-layouts';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { alignCatalogToTemplates, normalizeBaseLanguage } from '@/lib/catalog-language';
 
@@ -91,6 +92,8 @@ export function renderBoard(slug: string, data: BoardCatalogResponse, screenId?:
         name: data.affiliate.name,
         logoUrl: data.affiliate.logoUrl ?? null,
         primaryColor: data.affiliate.primaryColor ?? '#045AFE',
+        secondaryColor: data.affiliate.secondaryColor ?? null,
+        accentColor: data.affiliate.accentColor ?? null,
         currency: data.affiliate.currency === 'DOP' ? 'DOP' : 'USD',
         categoryTranslations: data.affiliate.categoryTranslations ?? null,
       }}
@@ -100,6 +103,7 @@ export function renderBoard(slug: string, data: BoardCatalogResponse, screenId?:
       initialAdFrequency={data.adFrequency ?? null}
       language={data.language === 'en' ? 'en' : 'es'}
       theme={data.boardTheme === 'Light' ? 'Light' : 'Dark'}
+      layout={normalizeLayout(data.layout)}
       transitionEffect={
         data.transitionEffect === 'Slide' || data.transitionEffect === 'Zoom' || data.transitionEffect === 'None'
           ? data.transitionEffect
@@ -132,6 +136,8 @@ interface BoardCatalogResponse {
     name: string;
     logoUrl?: string | null;
     primaryColor?: string | null;
+    secondaryColor?: string | null;
+    accentColor?: string | null;
     currency?: string | null;
     language?: string | null;
     categoryTranslations?: Record<string, { es?: string | null; en?: string | null }> | null;
@@ -144,4 +150,5 @@ interface BoardCatalogResponse {
   language?: string | null;
   boardTheme?: string | null;
   transitionEffect?: string | null;
+  layout?: string | null;
 }

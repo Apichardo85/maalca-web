@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getMaalcaApiToken } from '@/lib/api-auth';
+import { normalizeLayout, type BoardLayoutName } from '@/lib/board-layouts';
 import { BoardContent, type ScreenAdRow, type ScreenRow } from './BoardContent';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
@@ -57,6 +58,7 @@ export default async function BoardPage({
   let language: 'es' | 'en' = 'es';
   let boardTheme: 'Dark' | 'Light' = 'Dark';
   let transitionEffect: 'Fade' | 'Slide' | 'Zoom' | 'None' = 'Fade';
+  let boardLayout: BoardLayoutName = 'Classic';
   // No hay una entidad de categorías separada todavía — se derivan de los items del catálogo
   // (item.category), igual que hace el filtro de categorías del board público.
   let categories: string[] = [];
@@ -71,6 +73,7 @@ export default async function BoardPage({
         catalog.transitionEffect === 'Slide' || catalog.transitionEffect === 'Zoom' || catalog.transitionEffect === 'None'
           ? catalog.transitionEffect
           : 'Fade';
+      boardLayout = normalizeLayout(catalog.layout);
       const items: Array<{ category?: string | null }> = Array.isArray(catalog.items) ? catalog.items : [];
       categories = [...new Set(items.map((i) => i.category).filter((c): c is string => !!c))].sort();
     }
@@ -87,6 +90,7 @@ export default async function BoardPage({
       initialLanguage={language}
       initialBoardTheme={boardTheme}
       initialTransitionEffect={transitionEffect}
+      initialBoardLayout={boardLayout}
       initialScreens={screens}
       categories={categories}
     />

@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { categoryLabel } from '@/lib/category-label';
 import { formatPrice as formatCurrencyPrice } from '@/lib/currency';
+import { MenuLayoutView, makePalette } from './MenuBoardLayouts';
+import { IMPLEMENTED_LAYOUTS, normalizeLayout, type BoardLayoutName } from '@/lib/board-layouts';
 
 // Screen Wake Lock API — tipos propios (con nombre distinto a los de lib.dom, por si el
 // TS target ya los trae) para no depender de qué tan reciente sea la lib del proyecto.
@@ -43,6 +45,9 @@ interface Props {
     name: string;
     logoUrl: string | null;
     primaryColor: string;
+    /** Paleta del negocio: secundario y acento (opcionales; si faltan se derivan del primario). */
+    secondaryColor?: string | null;
+    accentColor?: string | null;
     currency?: 'USD' | 'DOP';
     categoryTranslations?: Record<string, { es?: string | null; en?: string | null }> | null;
   };
@@ -54,6 +59,8 @@ interface Props {
   language?: 'es' | 'en';
   theme?: 'Dark' | 'Light';
   transitionEffect?: TransitionEffect;
+  /** Plantilla visual (Classic = la grilla original). */
+  layout?: BoardLayoutName;
 }
 
 // Diccionario chico a propósito — el board tiene un puñado de strings fijos, no justifica
@@ -343,10 +350,15 @@ function ComboSlideView({
 export function MenuBoard({
   slug, screenId, business, initialItems, initialCategories,
   initialScreenAds = [], initialAdFrequency = null,
-  language = 'es', theme = 'Dark', transitionEffect = 'Fade',
+  language = 'es', theme = 'Dark', transitionEffect = 'Fade', layout = 'Classic',
 }: Props) {
   const t = BOARD_STRINGS[language];
   const c = THEME_CLASSES[theme];
+  const palette = useMemo(
+    () => makePalette(business, theme),
+    [business, theme],
+  );
+  const activeLayout = normalizeLayout(layout);
 
   const [catalog, setCatalog] = useState<CatalogPayload>({
     items: initialItems,
@@ -492,7 +504,8 @@ export function MenuBoard({
       // ganaba el cálculo de altura sobre el inset-0, el contenedor quedaba más alto que la
       // pantalla y el nombre/precio de los combos (anclados abajo) caían fuera del área visible
       // sin scroll posible (overflow-hidden). fixed+inset-0 ya ajusta exacto al viewport solo.
-      className={`fixed inset-0 flex flex-col overflow-hidden ${c.root}`}
+      className="fixed inset-0 flex flex-col overflow-hidden"
+      style={{ background: palette.bg, color: palette.text }}
     >
       {/* Ken Burns lento en las fotos de combo + un pulso suave en el precio — nada de esto
           corre en los slides de menú normales (las clases solo existen en ComboSlideView), así
@@ -508,7 +521,7 @@ export function MenuBoard({
           self-identifying even to someone walking up mid-rotation. */}
       <header
         className="flex items-center gap-4 px-10 py-6"
-        style={{ background: business.primaryColor }}
+        style={{ background: palette.primary, color: palette.onPrimary }}
       >
         {business.logoUrl && (
           // eslint-disable-next-line @next/next/no-img-element
@@ -520,12 +533,12 @@ export function MenuBoard({
         )}
         <h1 className="text-3xl font-bold tracking-tight">{business.name}</h1>
         {slide?.kind === 'menu' && (
-          <span className="ml-auto text-xl font-semibold uppercase tracking-widest text-white/80">
+          <span className="ml-auto text-xl font-semibold uppercase tracking-widest opacity-80">
             {categoryLabel(slide.category, language, business.categoryTranslations)}
           </span>
         )}
         {slide?.kind === 'combo' && (
-          <span className="ml-auto text-xl font-semibold uppercase tracking-widest text-white/80">
+          <span className="ml-auto text-xl font-semibold uppercase tracking-widest opacity-80">
             {language === 'en' ? 'Popular picks' : 'Lo más pedido'}
           </span>
         )}
@@ -566,7 +579,16 @@ export function MenuBoard({
             )}
           </div>
         ) : slide.kind === 'combo' ? (
-          <ComboSlideView items={slide.items} variant={slide.variant} language={language} business={business} theme={theme} />
+          <ComboSlideView items={slide.items} variant={slide.variant} language={language} business={{ ...business, primaryColor: palette.accent }} theme={theme} />
+        ) : IMPLEMENTED_LAYOUTS.includes(activeLayout) && activeLayout !== 'Classic' && slide.kind === 'menu' ? (
+          <MenuLayoutView
+            layout={activeLayout}
+            items={slide.items}
+            categoryName={categoryLabel(slide.category, language, business.categoryTranslations)}
+            language={language}
+            palette={palette}
+            formatPrice={(price) => formatPrice(price, business.currency)}
+          />
         ) : (
           <div className="grid h-full w-full grid-cols-3 grid-rows-2 gap-6">
             {slide.items.map((item) => {
@@ -623,7 +645,7 @@ export function MenuBoard({
                       )}
                     </>
                   )}
-                  <span className={`${hasMedia ? 'text-2xl' : 'text-3xl'} font-extrabold whitespace-nowrap`} style={{ color: business.primaryColor }}>
+                  <span className={`${hasMedia ? 'text-2xl' : 'text-3xl'} font-extrabold whitespace-nowrap`} style={{ color: palette.price }}>
                     {formatPrice(item.price, business.currency)}
                   </span>
                 </div>
@@ -645,7 +667,7 @@ export function MenuBoard({
               className="h-2 rounded-full transition-all"
               style={{
                 width: i === slideIndex ? 24 : 8,
-                background: i === slideIndex ? business.primaryColor : c.dotInactive,
+                background: i === slideIndex ? palette.price : c.dotInactive,
               }}
             />
           ))}
