@@ -350,6 +350,31 @@ function ComboSlideView({
   );
 }
 
+/** Lienzo de diseño del board. Todo el layout (tipografías, grillas) está pensado para 1920x1080;
+ *  en vez de depender de los píxeles CSS que reporte cada TV/navegador (una TV 4K en modo Android
+ *  suele reportar 960x540 y todo se ve al doble de grande y se corta), se dibuja siempre sobre
+ *  este lienzo y se escala para llenar la pantalla real. */
+const STAGE_W = 1920;
+const STAGE_H = 1080;
+
+function useStage() {
+  const [stage, setStage] = useState({ scale: 1, w: STAGE_W, h: STAGE_H, ready: false });
+  useEffect(() => {
+    function measure() {
+      const vw = window.innerWidth || STAGE_W;
+      const vh = window.innerHeight || STAGE_H;
+      const scale = Math.min(vw / STAGE_W, vh / STAGE_H);
+      // El lienzo se estira al ratio real de la pantalla (nunca menos de 1920x1080 lógicos), así
+      // llena todo sin franjas y el contenido flexible aprovecha el espacio extra.
+      setStage({ scale, w: vw / scale, h: vh / scale, ready: true });
+    }
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
+  return stage;
+}
+
 export function MenuBoard({
   slug, screenId, business: initialBusiness, initialItems, initialCategories,
   initialScreenAds = [], initialAdFrequency = null,
@@ -392,6 +417,7 @@ export function MenuBoard({
     adFrequency: initialAdFrequency,
   });
   const [slideIndex, setSlideIndex] = useState(0);
+  const stage = useStage();
 
   // Último refresh exitoso del catálogo — lo usa el watchdog de abajo para decidir si la
   // pantalla se "colgó". En un ref (no state) porque no debe disparar un re-render.
@@ -541,9 +567,13 @@ export function MenuBoard({
       // ganaba el cálculo de altura sobre el inset-0, el contenedor quedaba más alto que la
       // pantalla y el nombre/precio de los combos (anclados abajo) caían fuera del área visible
       // sin scroll posible (overflow-hidden). fixed+inset-0 ya ajusta exacto al viewport solo.
-      className="fixed inset-0 flex flex-col overflow-hidden"
-      style={{ background: palette.bg, color: palette.text }}
+      className="fixed inset-0 overflow-hidden"
+      style={{ background: palette.bg, color: palette.text, visibility: stage.ready ? 'visible' : 'hidden' }}
     >
+     <div
+      className="flex flex-col"
+      style={{ width: stage.w, height: stage.h, transform: `scale(${stage.scale})`, transformOrigin: 'top left' }}
+     >
       {/* Ken Burns lento en las fotos de combo + un pulso suave en el precio — nada de esto
           corre en los slides de menú normales (las clases solo existen en ComboSlideView), así
           que es gratis para el resto del board. Duración atada a COMBO_SLIDE_INTERVAL_MS para
@@ -710,6 +740,7 @@ export function MenuBoard({
           ))}
         </div>
       )}
+     </div>
     </div>
   );
 }
