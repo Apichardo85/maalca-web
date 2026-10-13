@@ -61,6 +61,8 @@ interface CartDrawerProps {
   /** capabilities.onlinePayments del plan — gatea el botón de pago con tarjeta, no garantiza
    *  que el afiliado ya conectó Stripe (eso lo confirma el backend al crear el pedido). */
   onlinePayments?: boolean
+  /** Pedidos en línea pausados (módulo apagado): se muestra un aviso y solo queda el canal directo. */
+  ordersPaused?: boolean
   /** Edita las notas de personalización de una línea — solo se usa si restaurantMode. */
   updateNotes?: (itemId: string, notes: string) => void
   /** Restaurante: habilita notas de personalización por línea + selector de propina. */
@@ -92,6 +94,7 @@ export function CartDrawer({
   currency = 'USD',
   slug,
   onlinePayments = false,
+  ordersPaused = false,
   updateNotes,
   restaurantMode = false,
   getText = (es) => es,
@@ -536,6 +539,31 @@ export function CartDrawer({
             overscrollBehavior: 'contain',
           }}
         >
+          {ordersPaused && (
+            <div
+              role="status"
+              style={{
+                marginBottom: '14px',
+                padding: '12px 14px',
+                borderRadius: '12px',
+                backgroundColor: '#fff7ed',
+                border: '1px solid #fed7aa',
+                color: '#9a3412',
+                fontSize: '13px',
+                lineHeight: 1.45,
+              }}
+            >
+              {getText(
+                hasWhatsApp
+                  ? 'Por ahora no estamos recibiendo pedidos en línea. Envíanos tu pedido por WhatsApp y te confirmamos.'
+                  : 'Por ahora no estamos recibiendo pedidos en línea. Contáctanos directamente para pedir.',
+                hasWhatsApp
+                  ? "We're not taking online orders right now. Send your order by WhatsApp and we'll confirm it."
+                  : "We're not taking online orders right now. Please contact us directly to order.",
+              )}
+            </div>
+          )}
+
           {restaurantMode && !orderSent && (
             <div style={{ marginBottom: '14px' }}>
               <p style={{ margin: '0 0 6px', fontSize: '12px', fontWeight: 600, color: '#888' }}>

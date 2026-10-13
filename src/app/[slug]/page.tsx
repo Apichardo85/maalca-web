@@ -308,6 +308,7 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
           activities,
           programs,
           spanishFlag: affiliate.spanishFlag ?? null,
+          ordersEnabled: affiliate.ordersEnabled !== false,
           donationsRaisedThisMonth: donationsSummary?.raisedThisMonth ?? null,
         }}
         items={mappedItems}
@@ -351,6 +352,8 @@ interface PublicCatalogResponse {
     defaultTheme?: 'dark' | 'light' | null;
     // ISO-2 de la bandera junto a "ES" en el toggle de idioma (Settings.spanishFlag). null = RD.
     spanishFlag?: string | null;
+    // false = módulo "Pedidos" apagado (API: AffiliatePublicDto.OrdersEnabled). Ausente = activo.
+    ordersEnabled?: boolean;
     // Idioma principal del negocio ('es' | 'en') — Affiliate.Language.
     language?: string | null;
   };

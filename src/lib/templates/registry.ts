@@ -68,6 +68,8 @@ export interface PublicTemplateProps {
     currency?: 'USD' | 'DOP';
     /** ISO-2 de la bandera que acompaña "ES" en el toggle de idioma (ej. "MX"). Null/ausente = RD. */
     spanishFlag?: string | null;
+    /** false = el módulo "Pedidos" está apagado: no se ofrece pedir por la plataforma (solo canal directo). */
+    ordersEnabled?: boolean;
     /** Apagador explícito por sección opcional (Pasos, Galería) — clave ausente =
      *  visible. Independiente de si la sección tiene contenido.
      *

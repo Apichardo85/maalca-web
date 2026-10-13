@@ -18,6 +18,9 @@ export interface WhatsAppCartProps {
   currency?: string
   slug?: string
   onlinePayments?: boolean
+  /** Módulo "Pedidos" apagado: nadie atiende pedidos en línea. No se ofrece recoger/pagar/mesa por la
+   *  plataforma (el API también los rechaza); queda solo el canal directo (WhatsApp) con un aviso. */
+  ordersPaused?: boolean
   /** Edita las notas de personalización de una línea — solo se usa si restaurantMode. */
   updateNotes?: (itemId: string, notes: string) => void
   /** Restaurante: habilita notas de personalización por línea + selector de propina. */
@@ -50,6 +53,7 @@ export function WhatsAppCart({
   currency = 'USD',
   slug,
   onlinePayments = false,
+  ordersPaused = false,
   updateNotes,
   restaurantMode = false,
   schedule = null,
@@ -120,12 +124,13 @@ export function WhatsAppCart({
         currency={currency}
         whatsappNumber={whatsappNumber}
         businessName={businessName}
-        slug={slug}
-        onlinePayments={onlinePayments}
+        slug={ordersPaused ? undefined : slug}
+        onlinePayments={onlinePayments && !ordersPaused}
+        ordersPaused={ordersPaused}
         updateNotes={updateNotes}
         restaurantMode={restaurantMode}
         getText={getText}
-        tableNumber={tableNumber}
+        tableNumber={ordersPaused ? undefined : tableNumber}
         schedule={schedule}
         onOrderComplete={clearCart}
       />

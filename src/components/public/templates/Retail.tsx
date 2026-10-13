@@ -374,6 +374,7 @@ export function RetailTemplate({
           businessName={business.name}
           slug={business.slug}
           onlinePayments={capabilities.onlinePayments && capabilities.stripeReady !== false}
+          ordersPaused={business.ordersEnabled === false}
           schedule={cartSchedule}
           getText={getText}
         />
