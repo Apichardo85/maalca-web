@@ -858,6 +858,23 @@ export function BoardContent({
                                 </button>
                               );
                             })}
+                            {/* Categorías guardadas que ya no existen en el catálogo (renombradas o borradas):
+                                siguen filtrando pero eran invisibles. Se muestran en rojo para poder quitarlas. */}
+                            {(screen.categoryFilter ?? '')
+                              .split(',').map((c) => c.trim()).filter(Boolean)
+                              .filter((c) => !categories.some((k) => k.toLowerCase() === c.toLowerCase()))
+                              .map((stale) => (
+                                <button
+                                  key={`stale-${stale}`}
+                                  type="button"
+                                  disabled={screenBusyId === screen.id}
+                                  onClick={() => toggleScreenCategory(screen, stale)}
+                                  title={getText('Esta categoría ya no existe en tu menú. Toca para quitarla.', 'This category no longer exists in your menu. Tap to remove it.')}
+                                  className="rounded-full border border-red-300 bg-red-50 px-3 py-1 text-xs font-medium text-red-600 disabled:opacity-50 dark:border-red-800 dark:bg-red-950 dark:text-red-300"
+                                >
+                                  ⚠ {stale} ✕
+                                </button>
+                              ))}
                           </div>
                         </div>
                       )}
