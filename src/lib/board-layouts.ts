@@ -3,7 +3,7 @@
 export type BoardLayoutName = 'Classic' | 'Hero' | 'Grid' | 'Editorial' | 'Carousel' | 'Plates' | 'Bold';
 
 /** Plantillas con vista propia ya implementada (las demás caen a Classic). Es lo que ofrece el selector. */
-export const IMPLEMENTED_LAYOUTS: BoardLayoutName[] = ['Classic', 'Hero', 'Grid', 'Plates'];
+export const IMPLEMENTED_LAYOUTS: BoardLayoutName[] = ['Classic', 'Hero', 'Grid', 'Editorial', 'Carousel', 'Plates', 'Bold'];
 
 const ALL_LAYOUTS: BoardLayoutName[] = ['Classic', 'Hero', 'Grid', 'Editorial', 'Carousel', 'Plates', 'Bold'];
 

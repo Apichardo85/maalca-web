@@ -61,7 +61,7 @@ const LAYOUT_LABELS: Record<BoardLayoutName, { es: string; en: string }> = {
   Hero: { es: 'Plato héroe', en: 'Hero dish' },
   Grid: { es: 'Fotos en grilla', en: 'Photo grid' },
   Editorial: { es: 'Editorial', en: 'Editorial' },
-  Carousel: { es: 'Tarjetas', en: 'Cards' },
+  Carousel: { es: 'Carrusel', en: 'Carousel' },
   Plates: { es: 'Platos flotantes', en: 'Floating plates' },
   Bold: { es: 'Título gigante', en: 'Bold title' },
 };
@@ -84,6 +84,17 @@ function LayoutThumb({ layout }: { layout: BoardLayoutName | 'inherit' }) {
         </div>
       ) : layout === 'Plates' ? (
         <div className="flex flex-1 items-center justify-around"><div className={`${block} aspect-square h-3/4 !rounded-full`} /><div className={`${block} aspect-square h-3/4 !rounded-full`} /><div className={`${block} aspect-square h-3/4 !rounded-full`} /></div>
+      ) : layout === 'Editorial' ? (
+        <>
+          <div className="flex flex-[1.4] flex-col justify-center gap-1"><div className={`${strong} h-2 w-2/3`} /><div className={`${block} h-1.5`} /><div className={`${block} h-1.5`} /><div className={`${block} h-1.5`} /></div>
+          <div className={`${block} flex-[0.6] !rounded-xl`} />
+        </>
+      ) : layout === 'Carousel' ? (
+        <div className="flex flex-1 items-center justify-center gap-1">
+          <div className={`${block} h-1/2 flex-1`} /><div className={`${block} h-3/4 flex-1`} /><div className={`${strong} h-full flex-[1.6]`} /><div className={`${block} h-3/4 flex-1`} /><div className={`${block} h-1/2 flex-1`} />
+        </div>
+      ) : layout === 'Bold' ? (
+        <div className={`${strong} flex flex-1 flex-col justify-center gap-1 p-1`}><div className="h-1.5 rounded-sm bg-white/70" /><div className="h-1.5 rounded-sm bg-white/70" /><div className="h-1.5 rounded-sm bg-white/70" /></div>
       ) : layout === 'inherit' ? (
         <div className="flex flex-1 items-center justify-center text-[10px] font-semibold uppercase tracking-wide">=</div>
       ) : (
@@ -107,7 +118,7 @@ function LayoutPicker({
   return (
     <div>
       <p className="mb-2 text-xs font-medium text-gray-500 dark:text-neutral-400">{getText('Diseño de pantalla', 'Screen layout')}</p>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {options.map((opt) => {
           const selected = opt === 'inherit' ? value == null : value === opt;
           return (

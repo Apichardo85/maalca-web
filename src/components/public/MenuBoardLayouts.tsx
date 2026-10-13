@@ -1,10 +1,9 @@
 'use client';
 
-// Plantillas visuales del Menu Board (Hero / Grid / Plates). Todas se tiñen con la paleta del
-// negocio (primary / secondary / accent) y respetan el tema Dark/Light del board. Los colores
-// vienen de `makePalette`, nunca hardcodeados por plantilla. Classic (la grilla original) sigue
-// viviendo dentro de MenuBoard.tsx. Editorial / Carousel / Bold llegan en una segunda fase y,
-// mientras tanto, caen a Classic.
+// Plantillas visuales del Menu Board (Hero / Grid / Plates / Editorial / Carousel / Bold). Todas se
+// tiñen con la paleta del negocio (primary / secondary / accent) y respetan el tema Dark/Light del
+// board. Los colores vienen de `makePalette`, nunca hardcodeados por plantilla. Classic (la grilla
+// original) sigue viviendo dentro de MenuBoard.tsx.
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import type { BoardLayoutName } from '@/lib/board-layouts';
 
@@ -105,7 +104,7 @@ export function makePalette(
     secondary,
     accent,
     onAccent: readableOn(accent),
-    price: ensureContrast(accent, bg),
+    price: ensureContrast(accent, bg, 4.5),
   };
 }
 
@@ -315,13 +314,143 @@ function PlatesView(v: LayoutViewProps) {
   );
 }
 
-/** Vista de una slide de menú según la plantilla. Devuelve null para Classic y para las
- *  plantillas aún sin vista propia: el llamador (MenuBoard) dibuja entonces la grilla original. */
+/* ───────────────────────── Editorial (revista) ───────────────────────── */
+
+function EditorialView(v: LayoutViewProps) {
+  const { items, language, palette: p, categoryName } = v;
+  const featured = items.find(hasMedia) ?? items[0];
+  if (!featured) return null;
+  const featName = nameOf(featured, language);
+  const list = items.slice(0, 6);
+  return (
+    <div className="grid h-full w-full gap-12" style={{ gridTemplateColumns: '1.4fr 0.6fr' }}>
+      <div className="flex min-h-0 flex-col justify-center gap-6">
+        <div className="flex items-end gap-6">
+          <h2 className="text-7xl font-black uppercase leading-none tracking-tight">{categoryName}</h2>
+          <span className="mb-3 h-1.5 flex-1 rounded-full" style={{ background: p.accent }} />
+        </div>
+        <ul className="flex min-h-0 flex-col gap-5">
+          {list.map((item) => {
+            const d = descOf(item, language);
+            return (
+              <li key={item.id} className="flex flex-col gap-1">
+                <div className="flex items-baseline gap-4">
+                  <span className="min-w-0 truncate text-4xl font-extrabold uppercase tracking-tight">{nameOf(item, language)}</span>
+                  <span className="min-w-8 flex-1 translate-y-[-0.3em] border-b-2 border-dotted" style={{ borderColor: p.muted }} />
+                  <span className="text-4xl font-black" style={{ color: p.price }}>{v.formatPrice(item.price)}</span>
+                </div>
+                {d && <p className="line-clamp-1 text-xl" style={{ color: p.muted }}>{d}</p>}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+      <div className="relative overflow-hidden rounded-[3rem] shadow-2xl" style={{ background: p.surface }}>
+        {hasMedia(featured) ? <Media item={featured} alt={featName} className="combo-kenburns" /> : <PhotoFallback name={featName} p={p} />}
+        <div className="absolute inset-x-0 bottom-0 h-1/2" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)' }} />
+        <Badge item={featured} language={language} p={p} />
+        <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-8 text-white">
+          <span className="text-4xl font-black uppercase leading-tight">{featName}</span>
+          <div className="self-start"><PricePill text={v.formatPrice(featured.price)} p={p} /></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ───────────────────────── Carrusel (cine) ───────────────────────── */
+
+function CarouselView(v: LayoutViewProps) {
+  const { language, palette: p } = v;
+  const items = v.items.slice(0, 5);
+  if (items.length === 0) return null;
+  const centerIdx = Math.max(0, items.findIndex(hasMedia));
+  const center = items[centerIdx];
+  const others = items.filter((_, i) => i !== centerIdx);
+  const left = others.filter((_, i) => i % 2 === 0).reverse();
+  const right = others.filter((_, i) => i % 2 === 1);
+  const ordered = [...left, center, ...right];
+  const centerPos = left.length;
+  return (
+    <div className="relative flex h-full w-full items-center justify-center gap-6">
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{ background: `radial-gradient(ellipse at 50% 50%, ${p.primary}${p.isDark ? '55' : '2b'}, transparent 65%)` }}
+      />
+      {ordered.map((item, i) => {
+        const dist = Math.abs(i - centerPos);
+        const name = nameOf(item, language);
+        const isCenter = dist === 0;
+        return (
+          <div
+            key={item.id}
+            className="relative min-w-0 overflow-hidden rounded-[2rem] shadow-2xl"
+            style={{
+              flex: isCenter ? 1.7 : dist === 1 ? 1 : 0.8,
+              height: isCenter ? '100%' : dist === 1 ? '86%' : '74%',
+              opacity: isCenter ? 1 : dist === 1 ? 0.9 : 0.75,
+              background: p.surface,
+              boxShadow: isCenter ? `0 30px 70px rgba(0,0,0,0.5), 0 0 0 6px ${p.accent}` : undefined,
+            }}
+          >
+            {hasMedia(item) ? <Media item={item} alt={name} className={isCenter ? 'combo-kenburns' : ''} /> : <PhotoFallback name={name} p={p} />}
+            <div className="absolute inset-x-0 bottom-0 h-3/5" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.88), transparent)' }} />
+            {isCenter && <Badge item={item} language={language} p={p} />}
+            <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 p-6 text-white">
+              <span className={`font-black uppercase leading-tight ${isCenter ? 'text-5xl' : 'text-2xl'}`}>{name}</span>
+              <div className="self-start"><PricePill text={v.formatPrice(item.price)} p={p} size={isCenter ? 'md' : 'md'} /></div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ───────────────────────── Bold (cartel) ───────────────────────── */
+
+function BoldView(v: LayoutViewProps) {
+  const { items, language, palette: p, categoryName } = v;
+  const rows = items.slice(0, 6);
+  return (
+    <div className="relative flex h-full w-full overflow-hidden rounded-[2.5rem] px-14 py-10" style={{ background: p.primary, color: p.onPrimary }}>
+      <span
+        className="pointer-events-none absolute -bottom-10 -right-6 select-none whitespace-nowrap text-[20rem] font-black uppercase leading-none"
+        style={{ opacity: 0.1 }}
+      >
+        {categoryName}
+      </span>
+      <div className="relative flex min-w-0 flex-1 flex-col gap-4">
+        <span className="text-3xl font-black uppercase tracking-[0.35em]" style={{ opacity: 0.85 }}>{categoryName}</span>
+        <ul className="flex min-h-0 flex-1 flex-col justify-between gap-3">
+          {rows.map((item) => {
+            const name = nameOf(item, language);
+            return (
+              <li key={item.id} className="flex items-center gap-6">
+                <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full" style={{ background: p.secondary, boxShadow: `0 0 0 5px ${p.accent}` }}>
+                  {hasMedia(item) ? <Media item={item} alt={name} /> : <PhotoFallback name={name} p={p} />}
+                </div>
+                <span className="min-w-0 flex-1 truncate text-5xl font-black uppercase leading-none tracking-tight">{name}</span>
+                <PricePill text={v.formatPrice(item.price)} p={p} />
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+/** Vista de una slide de menú según la plantilla. Devuelve null para Classic: el llamador
+ *  (MenuBoard) dibuja entonces la grilla original. */
 export function MenuLayoutView(props: LayoutViewProps) {
   switch (props.layout) {
     case 'Hero': return <HeroView {...props} />;
     case 'Grid': return <GridView {...props} />;
     case 'Plates': return <PlatesView {...props} />;
+    case 'Editorial': return <EditorialView {...props} />;
+    case 'Carousel': return <CarouselView {...props} />;
+    case 'Bold': return <BoldView {...props} />;
     default: return null;
   }
 }

@@ -652,6 +652,17 @@ export function MenuBoard({
               />
             )}
           </div>
+        ) : slide.kind === 'combo' && activeLayout !== 'Classic' && IMPLEMENTED_LAYOUTS.includes(activeLayout) ? (
+          // Con una plantilla elegida, los destacados usan ESA plantilla (misma identidad visual que el
+          // resto de la rotación); solo Classic conserva el look cinematográfico propio de los combos.
+          <MenuLayoutView
+            layout={activeLayout}
+            items={slide.items}
+            categoryName={language === 'en' ? 'House favorites' : 'Favoritos de la casa'}
+            language={language}
+            palette={palette}
+            formatPrice={(price) => formatPrice(price, business.currency)}
+          />
         ) : slide.kind === 'combo' ? (
           <ComboSlideView items={slide.items} variant={slide.variant} language={language} business={{ ...business, primaryColor: palette.accent }} theme={theme} />
         ) : IMPLEMENTED_LAYOUTS.includes(activeLayout) && activeLayout !== 'Classic' && slide.kind === 'menu' ? (
