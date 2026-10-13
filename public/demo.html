@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>MaalCa · Demo de Pantallas</title>
+<style>
+  :root { --blue:#045AFE; --bg:#0B1020; --card:#151C33; --text:#F4F6FF; --muted:#9AA4C7; }
+  * { box-sizing:border-box; }
+  html,body { height:100%; margin:0; }
+  body { background:radial-gradient(1200px 700px at 20% -10%, #14307a55, transparent), var(--bg);
+         color:var(--text); font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+         display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5vh; padding:4vh 5vw; }
+  img.logo { width:min(520px,45vw); height:auto; }
+  h1 { margin:0; font-size:clamp(28px,3.4vw,56px); font-weight:700; letter-spacing:-.02em; text-align:center; }
+  p.sub { margin:0; color:var(--muted); font-size:clamp(18px,1.8vw,28px); text-align:center; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:2.2vw; width:min(1500px,100%); }
+  a.btn { display:flex; flex-direction:column; gap:12px; background:var(--card); border:3px solid transparent;
+          border-radius:28px; padding:36px 40px; color:var(--text); text-decoration:none; min-height:190px;
+          justify-content:center; transition:transform .15s, border-color .15s, background .15s; }
+  a.btn b { font-size:clamp(26px,2.6vw,42px); }
+  a.btn span { color:var(--muted); font-size:clamp(17px,1.5vw,24px); line-height:1.35; }
+  /* Foco visible para el control remoto (D-pad) */
+  a.btn:focus, a.btn:hover { outline:none; border-color:var(--blue); background:#1B2547; transform:scale(1.04); }
+  a.btn.off { opacity:.45; pointer-events:none; }
+  .hint { color:var(--muted); font-size:clamp(15px,1.2vw,20px); text-align:center; }
+</style>
+</head>
+<body>
+  <img class="logo" src="/logo/maalca-full-dark.png" alt="MaalCa">
+  <div>
+    <h1>Pantallas MaalCa</h1>
+    <p class="sub">Elige qué quieres mostrar</p>
+  </div>
+  <nav class="grid" id="links"></nav>
+  <p class="hint">Usa las flechas del control para moverte y OK para abrir · Atrás para volver a este menú</p>
+
+<script>
+/* ──────────────────────────────────────────────────────────────
+   CONFIGURACIÓN — edita solo esta lista.
+   url vacío ("") = botón deshabilitado (aún no configurado).
+   Para la presentación pega el enlace público de Google Slides:
+   Archivo → Compartir → Publicar en la Web → enlace.
+   ────────────────────────────────────────────────────────────── */
+var LINKS = [
+  { title:"Menú en vivo · La Catrina", desc:"Pantalla real, diseño Platos flotantes", url:"/la-catrina-elmira/board" },
+  { title:"Presentación", desc:"Qué son las Pantallas MaalCa", url:"" },
+  { title:"Panel de MaalCa", desc:"Cómo se edita el menú", url:"/space/la-catrina-elmira/board" }
+];
+var nav = document.getElementById('links');
+LINKS.forEach(function (l, i) {
+  var a = document.createElement('a');
+  a.className = 'btn' + (l.url ? '' : ' off');
+  if (l.url) a.href = l.url;
+  a.setAttribute('tabindex', l.url ? '0' : '-1');
+  a.innerHTML = '<b></b><span></span>';
+  a.querySelector('b').textContent = l.title;
+  a.querySelector('span').textContent = l.url ? l.desc : l.desc + ' (pendiente de configurar)';
+  nav.appendChild(a);
+  if (i === 0) setTimeout(function () { a.focus(); }, 50);
+});
+</script>
+</body>
+</html>
