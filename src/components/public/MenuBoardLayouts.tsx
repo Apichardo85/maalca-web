@@ -422,7 +422,7 @@ function BoldView(v: LayoutViewProps) {
       </span>
       <div className="relative flex min-w-0 flex-1 flex-col gap-4">
         <span className="text-3xl font-black uppercase tracking-[0.35em]" style={{ opacity: 0.85 }}>{categoryName}</span>
-        <ul className="flex min-h-0 flex-1 flex-col justify-between gap-3">
+        <ul className={`flex min-h-0 flex-1 flex-col gap-3 ${rows.length <= 3 ? "justify-center gap-10" : "justify-between"}`}>
           {rows.map((item) => {
             const name = nameOf(item, language);
             return (
