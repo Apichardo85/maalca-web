@@ -376,6 +376,27 @@ function useStage() {
   return stage;
 }
 
+/** Diagnóstico para TVs: se activa con ?debug=1 en la URL del board. Muestra lo que el dispositivo
+ *  realmente ve (tamaño de vista, densidad, modo de color del sistema) y la config que recibió. */
+function DebugBadge({ info }: { info: string }) {
+  const [on, setOn] = useState(false);
+  const [dev, setDev] = useState('');
+  useEffect(() => {
+    try {
+      if (!new URLSearchParams(window.location.search).has('debug')) return;
+      const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setDev(`vista ${window.innerWidth}x${window.innerHeight} · dpr ${window.devicePixelRatio} · sistema ${dark ? 'OSCURO' : 'claro'}`);
+      setOn(true);
+    } catch { /* sin diagnóstico */ }
+  }, []);
+  if (!on) return null;
+  return (
+    <div style={{ position: 'absolute', left: 12, bottom: 12, zIndex: 99999, background: 'rgba(0,0,0,.8)', color: '#0f0', font: '20px monospace', padding: '8px 12px', borderRadius: 8 }}>
+      {dev}<br />{info}
+    </div>
+  );
+}
+
 export function MenuBoard({
   slug, screenId, business: initialBusiness, initialItems, initialCategories,
   initialScreenAds = [], initialAdFrequency = null,
@@ -577,6 +598,7 @@ export function MenuBoard({
       className="fixed inset-0 overflow-hidden"
       style={{ background: palette.bg, color: palette.text, visibility: stage.ready ? 'visible' : 'hidden' }}
     >
+      <DebugBadge info={`tema ${theme} · diseño ${activeLayout} · idioma ${language}`} />
      <div
       className="flex flex-col"
       style={{ width: stage.w, height: stage.h, transform: `scale(${stage.scale})`, transformOrigin: 'top left' }}

@@ -1,9 +1,11 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="color-scheme" content="only light">
 <title>Pantallas MaalCa</title>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400..700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+html{color-scheme:only light}
 html,body{margin:0;height:100%;background:#000;overflow:hidden}
 .slide *{margin:0}
 #stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0}
@@ -124,7 +126,7 @@ html,body{margin:0;height:100%;background:#000;overflow:hidden}
 <p style="font-size:28px;line-height:1.4;color:#4A5578">Tres platos redondos con tu color de acento.</p>
 </div>
 </div>
-<p style="font-size:30px;line-height:1.4;color:#4A5578;width:1500px">Cada pantalla puede usar un diseño distinto, y se cambia en segundos desde el panel. Vienen más diseños en camino.</p>
+<p style="font-size:30px;line-height:1.4;color:#4A5578;width:1500px">Estos son cuatro de los siete diseños disponibles. Cada pantalla puede usar uno distinto, y se cambia en segundos desde el panel.</p>
 <img src="/logo/maalca-full-light.png" alt="MaalCa" style="position:absolute;right:128px;bottom:48px;width:260px;height:56px">
 
 </section>
@@ -228,6 +230,7 @@ addEventListener('keydown',function(e){var k=e.key;
  else if(k==='ArrowLeft'||k==='ArrowUp'||k==='PageUp'||k==='Backspace'){show(i-1);e.preventDefault()}
  else if(k==='Home')show(0);else if(k==='End')show(slides.length-1)});
 addEventListener('click',function(e){show(e.clientX<innerWidth/3?i-1:i+1)});
+if(/[?&]debug/.test(location.search)){hud.style.cssText+=';opacity:1;color:#0f0;font:20px monospace;background:rgba(0,0,0,.8);padding:8px 12px;left:12px;right:auto;z-index:9';var dk=matchMedia('(prefers-color-scheme: dark)').matches;var upd=function(){hud.setAttribute('data-d','vista '+innerWidth+'x'+innerHeight+' dpr '+devicePixelRatio+' sistema '+(dk?'OSCURO':'claro'))};upd();addEventListener('resize',upd);var o=show;show=function(n){o(n);hud.textContent=hud.textContent+' | '+hud.getAttribute('data-d')}}
 fit();show((parseInt(location.hash.slice(1),10)||1)-1);
 })();
 </script></body></html>
