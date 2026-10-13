@@ -105,6 +105,28 @@ function LayoutThumb({ layout }: { layout: BoardLayoutName | 'inherit' }) {
 }
 
 /** Selector de plantilla. `allowInherit` agrega la opción "Heredar del negocio" (pantallas extra). */
+/** Vista previa en vivo: la misma página que verá la TV, escalada a una miniatura 16:9.
+ *  `version` cambia tras cada guardado para recargar el iframe con lo ya persistido. */
+function ScreenPreview({ src, version, getText }: { src: string; version: number; getText: (es: string, en: string) => string }) {
+  const SCALE = 0.25;
+  return (
+    <div>
+      <p className="mb-2 text-xs font-medium text-gray-500 dark:text-neutral-400">{getText('Vista previa', 'Preview')}</p>
+      <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-neutral-800 bg-black" style={{ width: 1920 * SCALE, height: 1080 * SCALE, maxWidth: '100%' }}>
+        <iframe
+          key={version}
+          src={src}
+          title={getText('Vista previa de la pantalla', 'Screen preview')}
+          loading="lazy"
+          tabIndex={-1}
+          style={{ width: 1920, height: 1080, border: 0, transform: `scale(${SCALE})`, transformOrigin: 'top left', pointerEvents: 'none' }}
+        />
+      </div>
+      <p className="mt-1 text-[11px] text-gray-400 dark:text-neutral-500">{getText('Se actualiza al guardar.', 'Updates when you save.')}</p>
+    </div>
+  );
+}
+
 function LayoutPicker({
   value, onChange, allowInherit, disabled, getText,
 }: {
@@ -173,6 +195,7 @@ export function BoardContent({
 
   // Fase 9 Etapa B — pantallas adicionales
   const [screens, setScreens] = useState(initialScreens);
+  const [previewVersion, setPreviewVersion] = useState(0);
   const [addingScreen, setAddingScreen] = useState(false);
   const [newScreenName, setNewScreenName] = useState('');
   const [creatingScreen, setCreatingScreen] = useState(false);
@@ -228,6 +251,7 @@ export function BoardContent({
       const updated = await res.json().catch(() => null);
       if (res.ok && updated?.id) {
         setScreens((prev) => prev.map((s) => (s.id === screen.id ? updated : s)));
+        setPreviewVersion((v) => v + 1);
         toast.success(getText('Guardado.', 'Saved.'));
       } else {
         toast.error(getText('No se pudo guardar el cambio.', "Couldn't save the change."));
@@ -728,6 +752,9 @@ export function BoardContent({
                           className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white"
                         />
                       </label>
+                      <div className="col-span-full">
+                        <ScreenPreview src={`/${slug}/board/${screen.id}`} version={previewVersion} getText={getText} />
+                      </div>
                       <div className="col-span-full">
                         <LayoutPicker
                           value={screen.layout}
