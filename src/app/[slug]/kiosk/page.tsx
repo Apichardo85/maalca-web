@@ -23,6 +23,8 @@ interface PublicCatalogResponse {
     logoUrl?: string | null;
     primaryColor?: string | null;
     currency?: string | null;
+    /** false cuando el negocio apagó el módulo de pedidos (API: AffiliatePublicDto.OrdersEnabled). */
+    ordersEnabled?: boolean;
   };
   items: Array<{
     id: string;
@@ -73,6 +75,17 @@ export default async function KioskPage({ params }: PageProps) {
   const { slug } = await params;
   const data = await getCatalog(slug);
   if (!data) notFound();
+
+  // Módulo de pedidos apagado: el kiosko no debe tomar pedidos que nadie va a atender.
+  if (data.affiliate.ordersEnabled === false) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-gray-50 px-6 text-center text-gray-900 dark:bg-neutral-950 dark:text-white">
+        <h1 className="text-3xl font-bold">{data.affiliate.name}</h1>
+        <p className="text-xl">Autopedido no disponible por ahora. Pide en caja, por favor.</p>
+        <p className="text-lg text-gray-500 dark:text-neutral-400">Self-order is unavailable right now. Please order at the counter.</p>
+      </main>
+    );
+  }
 
   // Mismo alcance que el POS: restaurantes y retail — ambos venden items con precio fijo que
   // un cliente puede autoseleccionar sin necesitar personal (a diferencia de Servicios/Barbería,
