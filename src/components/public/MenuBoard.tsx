@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { categoryLabel } from '@/lib/category-label';
+import { alignCatalogToTemplates, normalizeBaseLanguage } from '@/lib/catalog-language';
 import { formatPrice as formatCurrencyPrice } from '@/lib/currency';
 import { MenuLayoutView, makePalette } from './MenuBoardLayouts';
 import { IMPLEMENTED_LAYOUTS, normalizeLayout, type BoardLayoutName } from '@/lib/board-layouts';
@@ -475,11 +476,17 @@ export function MenuBoard({
         if (!res.ok) return;
         const data = await res.json();
         // Mismo mapeo que renderBoard (camelCase de la API → image_url/video_url del board).
-        const polledItems = (data.items ?? []).map((item: Record<string, unknown>) => ({
-          ...item,
-          image_url: item.image_url ?? item.imageUrl ?? null,
-          video_url: item.video_url ?? item.videoUrl ?? null,
-        }));
+        // Misma alineación de idioma que el render inicial (renderBoard): sin ella, en negocios
+        // cuyo idioma base es inglés el poll dejaba `nameEn` = traducción al español y la TV
+        // pasaba a mostrar los platos en español aunque la pantalla estuviera en inglés.
+        const polledItems = alignCatalogToTemplates(
+          (data.items ?? []).map((item: Record<string, unknown>) => ({
+            ...item,
+            image_url: item.image_url ?? item.imageUrl ?? null,
+            video_url: item.video_url ?? item.videoUrl ?? null,
+          })) as unknown as BoardItem[],
+          normalizeBaseLanguage(data.affiliate?.language),
+        );
         setCfg((prev) => {
           const next = {
             language: (data.language === 'en' ? 'en' : 'es') as 'es' | 'en',
