@@ -239,6 +239,45 @@ export function BoardContent({
     }
   }
 
+  // Reordena una pantalla: intercambia posiciones con la vecina y persiste sortOrder = índice de
+  // ambas (así también se normalizan listas viejas con sortOrder repetidos).
+  async function moveScreen(index: number, dir: -1 | 1) {
+    const target = index + dir;
+    if (target < 0 || target >= screens.length) return;
+    const next = [...screens];
+    [next[index], next[target]] = [next[target], next[index]];
+    const reindexed = next.map((sc, i) => ({ ...sc, sortOrder: i }));
+    const previous = screens;
+    setScreens(reindexed);
+    const changed = [reindexed[index], reindexed[target]];
+    try {
+      const results = await Promise.all(
+        changed.map((sc) =>
+          fetch(`/api/space/${slug}/screens/${sc.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: sc.name,
+              sortOrder: sc.sortOrder,
+              language: sc.language,
+              boardTheme: sc.boardTheme,
+              adFrequency: sc.adFrequency,
+              categoryFilter: sc.categoryFilter,
+              transitionEffect: sc.transitionEffect,
+              layout: sc.layout,
+              contentMode: sc.contentMode,
+              adIds: sc.adIds,
+            }),
+          }),
+        ),
+      );
+      if (results.some((r) => !r.ok)) throw new Error('save');
+    } catch {
+      setScreens(previous);
+      toast.error(getText('No se pudo reordenar.', "Couldn't reorder."));
+    }
+  }
+
   // adIds null = hereda todos los comerciales del negocio (todos "marcados" visualmente).
   // Al desmarcar/marcar, si el resultado termina siendo el set completo se vuelve a guardar
   // como null (misma semántica, más limpio que guardar una lista igual a "todos").
@@ -619,7 +658,7 @@ export function BoardContent({
             </p>
           ) : (
             <div className="mt-4 space-y-2">
-              {screens.map((screen) => (
+              {screens.map((screen, screenIndex) => (
                 <div key={screen.id} className="rounded-xl border border-gray-200/70 dark:border-neutral-800 p-3">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="min-w-0">
@@ -634,6 +673,22 @@ export function BoardContent({
                       </a>
                     </div>
                     <div className="flex shrink-0 flex-wrap gap-2">
+                      <button
+                        onClick={() => moveScreen(screenIndex, -1)}
+                        disabled={screenIndex === 0}
+                        aria-label={getText('Subir', 'Move up')}
+                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-2.5 py-1.5 text-xs font-medium hover:border-brand-primary hover:text-brand-primary disabled:opacity-30"
+                      >
+                        ↑
+                      </button>
+                      <button
+                        onClick={() => moveScreen(screenIndex, 1)}
+                        disabled={screenIndex === screens.length - 1}
+                        aria-label={getText('Bajar', 'Move down')}
+                        className="rounded-full border border-gray-300 dark:border-neutral-700 px-2.5 py-1.5 text-xs font-medium hover:border-brand-primary hover:text-brand-primary disabled:opacity-30"
+                      >
+                        ↓
+                      </button>
                       <button
                         onClick={() => copyLink(`/${slug}/board/${screen.id}`)}
                         className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium hover:border-brand-primary hover:text-brand-primary"
@@ -658,6 +713,21 @@ export function BoardContent({
 
                   {editingScreenId === screen.id && (
                     <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-4 border-t border-gray-100 dark:border-neutral-800 pt-3">
+                      <label className="col-span-full flex flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
+                        {getText('Nombre de la pantalla', 'Screen name')}
+                        <input
+                          key={`${screen.id}-${screen.name}`}
+                          defaultValue={screen.name}
+                          maxLength={60}
+                          disabled={screenBusyId === screen.id}
+                          onBlur={(e) => {
+                            const v = e.target.value.trim();
+                            if (v && v !== screen.name) updateScreen(screen, { name: v });
+                            else e.target.value = screen.name;
+                          }}
+                          className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white"
+                        />
+                      </label>
                       <div className="col-span-full">
                         <LayoutPicker
                           value={screen.layout}
