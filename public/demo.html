@@ -40,13 +40,13 @@
 /* ──────────────────────────────────────────────────────────────
    CONFIGURACIÓN — edita solo esta lista.
    url vacío ("") = botón deshabilitado (aún no configurado).
-   Para la presentación pega el enlace público de Google Slides:
-   Archivo → Compartir → Publicar en la Web → enlace.
+   La presentación abre en modo presentar (/present); el archivo debe estar
+   compartido como "cualquiera con el enlace".
    ────────────────────────────────────────────────────────────── */
 var LINKS = [
   { title:"Menú en vivo · La Catrina", desc:"Pantalla real, diseño Platos flotantes", url:"/la-catrina-elmira/board" },
-  { title:"Presentación", desc:"Qué son las Pantallas MaalCa", url:"" },
-  { title:"Panel de MaalCa", desc:"Cómo se edita el menú", url:"/space/la-catrina-elmira/board" }
+  { title:"Presentación", desc:"Qué son las Pantallas MaalCa", url:"https://docs.google.com/presentation/d/1uKbKx7M5ltKt5xDLMFf2TjQNPBLexRCmSn7r1lS0Hac/present" },
+  { title:"Cómo se edita el menú", desc:"El panel donde el dueño cambia platos y precios", url:"/space/la-catrina-elmira/catalog" }
 ];
 var nav = document.getElementById('links');
 LINKS.forEach(function (l, i) {
