@@ -432,6 +432,30 @@ export function MenuBoard({
   );
   const activeLayout = normalizeLayout(layout);
 
+  // Evita que el navegador de la TV (Android WebView con el sistema en modo oscuro) aplique su
+  // "force dark" por encima del tema que eligió el negocio: el board declara explícitamente su
+  // esquema de color. Sin esto, una pantalla en tema Light se veía oscura en el Fully Kiosk.
+  useEffect(() => {
+    const scheme = theme === 'Light' ? 'only light' : 'only dark';
+    const root = document.documentElement;
+    const prev = root.style.colorScheme;
+    root.style.colorScheme = scheme;
+    let meta = document.querySelector('meta[name="color-scheme"]') as HTMLMetaElement | null;
+    const created = !meta;
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.name = 'color-scheme';
+      document.head.appendChild(meta);
+    }
+    const prevContent = meta.content;
+    meta.content = scheme;
+    return () => {
+      root.style.colorScheme = prev;
+      if (created) meta?.remove();
+      else if (meta) meta.content = prevContent;
+    };
+  }, [theme]);
+
   const [catalog, setCatalog] = useState<CatalogPayload>({
     items: initialItems,
     categories: initialCategories,
