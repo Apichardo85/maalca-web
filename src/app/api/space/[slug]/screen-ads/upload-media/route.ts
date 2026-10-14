@@ -55,7 +55,7 @@ export async function POST(
 
   const { error: uploadError } = await supabase.storage
     .from('affiliate-media')
-    .upload(path, buffer, { contentType: file.type, upsert: true });
+    .upload(path, buffer, { contentType: file.type, upsert: true, cacheControl: '31536000' });
 
   if (uploadError) {
     return NextResponse.json({ error: uploadError.message }, { status: 500 });

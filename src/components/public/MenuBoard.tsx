@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { categoryLabel } from '@/lib/category-label';
 import { alignCatalogToTemplates, normalizeBaseLanguage } from '@/lib/catalog-language';
@@ -132,6 +132,18 @@ type Slide =
   | { kind: 'menu'; category: string; items: BoardItem[] }
   | { kind: 'ad'; ad: ScreenAd }
   | { kind: 'combo'; items: BoardItem[]; variant: ComboVariant };
+
+/** Imágenes que una slide necesita para verse completa. Los videos se cargan solos y quedan
+ *  fuera; un plato con video no muestra su foto. */
+function slideImageUrls(slide: Slide | undefined): string[] {
+  if (!slide) return [];
+  if (slide.kind === 'ad') return slide.ad.mediaType === 'Image' && slide.ad.mediaUrl ? [slide.ad.mediaUrl] : [];
+  return slide.items.filter((i) => !i.video_url && i.image_url).map((i) => i.image_url as string);
+}
+
+/** Cuánto espera como máximo la rotación a que la próxima slide termine de cargar antes de
+ *  mostrarla de todos modos (red caída o foto rota: la pantalla nunca se queda congelada). */
+const PRELOAD_MAX_WAIT_MS = 4000;
 
 /** Groups items by category into fixed-size chunks — each chunk is one slide, so a
  *  category with more items than fit on screen spills into a second, third, etc. slide
@@ -594,6 +606,40 @@ export function MenuBoard({
 
   const slide = slides[slideIndex];
 
+  // Precarga: las fotos de la slide actual y las 2 siguientes se descargan y decodifican de
+  // antemano (new Image + decode), así que al rotar ya están listas y no se ven "cargando".
+  // Se guardan en un Map para que el navegador no las suelte; las que quedan atrás se descartan
+  // para no gastar memoria en TVs con poca RAM.
+  const imageCacheRef = useRef(new Map<string, HTMLImageElement>());
+  const preloadSlide = useCallback((s: Slide | undefined): Promise<void> => {
+    const cache = imageCacheRef.current;
+    return Promise.all(
+      slideImageUrls(s).map((url) => {
+        let img = cache.get(url);
+        if (!img) {
+          img = new Image();
+          img.decoding = 'async';
+          img.src = url;
+          cache.set(url, img);
+        }
+        return img.decode().catch(() => undefined);
+      }),
+    ).then(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    if (slides.length === 0) return;
+    const keep = new Set<string>();
+    for (let k = 0; k <= 2; k += 1) {
+      const s = slides[(slideIndex + k) % slides.length];
+      slideImageUrls(s).forEach((u) => keep.add(u));
+      void preloadSlide(s);
+    }
+    for (const url of Array.from(imageCacheRef.current.keys())) {
+      if (!keep.has(url)) imageCacheRef.current.delete(url);
+    }
+  }, [slides, slideIndex, preloadSlide]);
+
   // Duración variable por slide — un comercial puede durar distinto que un slide de menú
   // (ad.durationSeconds vs SLIDE_INTERVAL_MS fijo). Se re-arma el timer cada vez que cambia
   // el slide activo en vez de un solo interval fijo para toda la rotación.
@@ -606,11 +652,22 @@ export function MenuBoard({
       : slide?.kind === 'combo'
         ? COMBO_SLIDE_INTERVAL_MS
         : SLIDE_INTERVAL_MS;
+    let cancelled = false;
     const timer = setTimeout(() => {
-      setSlideIndex((i) => (i + 1) % slides.length);
+      // No se cambia de slide hasta que la siguiente tenga sus fotos listas (o pase el tope).
+      const nextIndex = (slideIndex + 1) % slides.length;
+      void Promise.race([
+        preloadSlide(slides[nextIndex]),
+        new Promise<void>((resolve) => setTimeout(resolve, PRELOAD_MAX_WAIT_MS)),
+      ]).then(() => {
+        if (!cancelled) setSlideIndex(nextIndex);
+      });
     }, durationMs);
-    return () => clearTimeout(timer);
-  }, [slideIndex, slides, slide]);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [slideIndex, slides, slide, preloadSlide]);
 
   return (
     <div
