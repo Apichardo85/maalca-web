@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getMaalcaApiToken, resolveAffiliateIdBySlug } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { optimizeImage } from '@/lib/optimize-image';
 
 // Mismo bucket que el upload de imágenes de catálogo (catalog/upload-image/route.ts) — solo se
 // amplía el set de tipos permitidos y el límite de tamaño, porque un comercial puede ser video.
@@ -47,15 +48,19 @@ export async function POST(
     );
   }
 
-  const ext = file.type.split('/')[1] === 'jpeg' ? 'jpg' : file.type.split('/')[1];
-  const path = `${affiliate.id}/ads/${Date.now()}.${ext}`;
+  // Imágenes: versión liviana a Full HD (1920 px, WebP) — ver lib/optimize-image.ts. El video pasa tal cual.
+  const raw = Buffer.from(await file.arrayBuffer());
+  const optimized = isImage
+    ? await optimizeImage(raw, file.type, 1920)
+    : { buffer: raw, contentType: file.type, ext: file.type.split('/')[1] };
+  const path = `${affiliate.id}/ads/${Date.now()}.${optimized.ext}`;
 
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const buffer = optimized.buffer;
   const supabase = supabaseAdmin();
 
   const { error: uploadError } = await supabase.storage
     .from('affiliate-media')
-    .upload(path, buffer, { contentType: file.type, upsert: true, cacheControl: '31536000' });
+    .upload(path, buffer, { contentType: optimized.contentType, upsert: true, cacheControl: '31536000' });
 
   if (uploadError) {
     return NextResponse.json({ error: uploadError.message }, { status: 500 });

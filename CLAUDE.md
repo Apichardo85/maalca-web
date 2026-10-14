@@ -169,3 +169,5 @@ Ver `.claude/skills/README.md` para documentación completa.
 - `src/data/index.ts` - Central data exports
 - `src/components/ui/buttons.tsx` - Button component reference
 - `.claude/skills/` - Skills para automatización
+## Principio: ligero y veloz (evitar el elefante blanco)
+Antes de añadir dependencias, servicios o infraestructura (Redis, colas, etc.), resolver con lo que ya hay en el stack. Planificar el costo de peso/mantenimiento de cada cambio. Optimizaciones de medios deben fallar abierto (nunca bloquear al usuario). Ver `docs/performance/board-media.md`.

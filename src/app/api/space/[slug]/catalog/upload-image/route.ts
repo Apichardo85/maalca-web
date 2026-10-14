@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getMaalcaApiToken, resolveAffiliateIdBySlug } from '@/lib/api-auth';
 import { supabaseAdmin } from '@/lib/supabase/admin';
+import { optimizeImage } from '@/lib/optimize-image';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_SIZE = 5 * 1024 * 1024;
@@ -34,15 +35,16 @@ export async function POST(
     return NextResponse.json({ error: 'La imagen no puede superar 5MB.' }, { status: 400 });
   }
 
-  const ext = file.type === 'image/jpeg' ? 'jpg' : file.type.split('/')[1];
-  const path = `${affiliate.id}/${itemId}-${Date.now()}.${ext}`;
+  // Se guarda una versión liviana (máx 1600 px, WebP) — ver lib/optimize-image.ts.
+  const optimized = await optimizeImage(Buffer.from(await file.arrayBuffer()), file.type);
+  const path = `${affiliate.id}/${itemId}-${Date.now()}.${optimized.ext}`;
 
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const buffer = optimized.buffer;
   const supabase = supabaseAdmin();
 
   const { error: uploadError } = await supabase.storage
     .from('affiliate-media')
-    .upload(path, buffer, { contentType: file.type, upsert: true, cacheControl: '31536000' });
+    .upload(path, buffer, { contentType: optimized.contentType, upsert: true, cacheControl: '31536000' });
 
   if (uploadError) {
     return NextResponse.json({ error: uploadError.message }, { status: 500 });
