@@ -831,6 +831,7 @@ export function RestaurantTemplate({
                 description={language === 'en' && hl.descriptionEn ? hl.descriptionEn : hl.description}
                 priceLabel={hl.price != null ? formatPrice(hl.price, business.currency) : null}
                 imageUrl={hl.imageUrl ?? hl.image_url}
+                images={hl.images}
                 category={categoryLabel(hl.category, language, business.categoryTranslations)}
                 tags={txt.tags}
                 availabilityLabel={txt.availability}
@@ -1678,6 +1679,7 @@ function MenuCard({
       description={description}
       priceLabel={item.price != null ? formatPrice(item.price, currency) : null}
       imageUrl={imageUrl}
+      images={item.images}
       category={categoryLabel(item.category, language, categoryTranslations)}
       tags={detailTags}
       unavailableLabel={unavailableLabel}
