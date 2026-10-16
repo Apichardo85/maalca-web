@@ -4,7 +4,7 @@
 // completa, etiquetas, disponibilidad y control de cantidad. Hoja inferior en móvil, tarjeta
 // centrada en pantallas grandes. Compartido por Restaurant y Retail.
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 interface Props {
   open: boolean;
@@ -13,6 +13,11 @@ interface Props {
   description?: string | null;
   priceLabel?: string | null;
   imageUrl?: string | null;
+  /** Galería completa (Images[0] == imageUrl). Con 2+ fotos se muestra un carrusel deslizable con
+   *  puntos; con 0–1 se usa imageUrl como siempre. */
+  images?: string[] | null;
+  /** Precio "antes" ya formateado (oferta): se muestra tachado junto al precio actual. */
+  compareAtLabel?: string | null;
   category?: string | null;
   /** Etiquetas ya listas para mostrar (⭐ Destacado, 🌱 Vegetariano…). */
   tags?: string[];
@@ -40,6 +45,8 @@ export function ItemDetailSheet({
   description,
   priceLabel,
   imageUrl,
+  images,
+  compareAtLabel,
   category,
   tags = [],
   unavailableLabel,
@@ -55,6 +62,8 @@ export function ItemDetailSheet({
   language,
 }: Props) {
   const t = (es: string, en: string) => (language === 'es' ? es : en);
+  const gallery = images && images.length > 1 ? images : null;
+  const [slide, setSlide] = useState(0);
 
   useEffect(() => {
     if (!open) return;
@@ -133,7 +142,35 @@ export function ItemDetailSheet({
           ✕
         </button>
 
-        {imageUrl && (
+        {gallery && (
+          <div style={{ position: 'relative' }}>
+            <div
+              onScroll={(e) => {
+                const el = e.currentTarget;
+                setSlide(Math.round(el.scrollLeft / Math.max(el.clientWidth, 1)));
+              }}
+              style={{ display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', scrollbarWidth: 'none' }}
+              aria-label={t('Fotos del producto', 'Product photos')}
+            >
+              {gallery.map((src, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={src + i}
+                  src={src}
+                  alt={`${name} ${i + 1}/${gallery.length}`}
+                  className="ids-img"
+                  style={{ flex: '0 0 100%', scrollSnapAlign: 'center', width: '100%', maxHeight: '45vh', objectFit: 'cover' }}
+                />
+              ))}
+            </div>
+            <div style={{ position: 'absolute', bottom: 8, left: 0, right: 0, display: 'flex', justifyContent: 'center', gap: 6, pointerEvents: 'none' }}>
+              {gallery.map((_, i) => (
+                <span key={i} style={{ width: 7, height: 7, borderRadius: 9999, background: i === slide ? '#ffffff' : 'rgba(255,255,255,0.5)', boxShadow: '0 0 2px rgba(0,0,0,0.5)' }} />
+              ))}
+            </div>
+          </div>
+        )}
+        {!gallery && imageUrl && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={imageUrl}
@@ -178,7 +215,12 @@ export function ItemDetailSheet({
             padding: '12px 20px 4px',
           }}
         >
-          <span style={{ fontSize: 20, fontWeight: 800, color: textColor }}>{priceLabel ?? ''}</span>
+          <span style={{ fontSize: 20, fontWeight: 800, color: textColor }}>
+            {compareAtLabel && (
+              <s style={{ fontSize: 14, fontWeight: 500, color: mutedColor, marginRight: 8 }}>{compareAtLabel}</s>
+            )}
+            {priceLabel ?? ''}
+          </span>
           {unavailableLabel ? (
             <span style={{ fontSize: 13, fontWeight: 600, color: mutedColor, textAlign: 'right' }}>{unavailableLabel}</span>
           ) : qty === 0 ? (

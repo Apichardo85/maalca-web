@@ -183,6 +183,10 @@ export interface PublicTemplateProps {
     imageUrl?: string | null;
     /** Menu Board only (Fase 9 Etapa A) — clip corto de video en vez de foto. Product-only en el backend. */
     video_url?: string | null;
+    /** Galería completa (Images[0] == imageUrl). Product/Service/InventoryItem. */
+    images?: string[] | null;
+    /** Retail (InventoryItem) — precio "antes" tachado; solo es oferta si es mayor que `price`. */
+    compareAtPrice?: number | null;
     durationMinutes?: number | null;
     status?: string | null;
     is_demo?: boolean;

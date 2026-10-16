@@ -24,6 +24,7 @@ interface Item {
   descriptionEn: string | null;
   category: string | null;
   price: number | null;
+  compareAtPrice?: number | null;
   is_demo: boolean;
   active: boolean;
   imageUrl?: string | null;
@@ -92,6 +93,7 @@ export default function EditForm({
   const isRestaurant = businessType === 'Restaurant';
   const isBarberOrService = businessType === 'Barber' || businessType === 'Service';
   const isCommunity = businessType === 'Community';
+  const isRetail = businessType === 'Retail';
   const isService = businessType === 'Service';
   const namePlaceholderPair = (businessType && NAME_PLACEHOLDERS[businessType]) || DEFAULT_NAME_PLACEHOLDER;
   const namePlaceholder = getText(namePlaceholderPair.es, namePlaceholderPair.en);
@@ -116,6 +118,7 @@ export default function EditForm({
     price:         item.price != null ? String(item.price) : '',
   });
 
+  const [compareAtPrice, setCompareAtPrice] = useState(item.compareAtPrice != null ? String(item.compareAtPrice) : '');
   const [periods, setPeriods] = useState<MealPeriod[]>(item.periods);
   const [weekDays, setWeekDays] = useState<WeekDay[]>(item.weekDays);
   const [flags, setFlags] = useState({
@@ -153,6 +156,8 @@ export default function EditForm({
         price: form.price === '' ? null : Number(form.price),
         images,
       };
+      // 0 = quitar la oferta (el API trata null como "no tocar").
+      if (isRetail) body.compareAtPrice = compareAtPrice === '' ? 0 : Number(compareAtPrice);
       if (isRestaurant) {
         body.periods = periods;
         body.weekDays = weekDays;
@@ -350,6 +355,29 @@ export default function EditForm({
               />
             </div>
           </div>
+
+          {isRetail && (
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                {getText('Precio anterior (opcional)', 'Previous price (optional)')}
+              </label>
+              <input
+                type="number"
+                value={compareAtPrice}
+                onChange={(e) => setCompareAtPrice(e.target.value)}
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-neutral-500 focus:border-neutral-400 dark:focus:border-neutral-500 focus:outline-none"
+              />
+              <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                {getText(
+                  'Si es mayor que el precio, tu tienda lo muestra tachado como oferta. Déjalo vacío para quitar la oferta.',
+                  'If higher than the price, your store shows it crossed out as a deal. Leave empty to remove the deal.',
+                )}
+              </p>
+            </div>
+          )}
 
           {isBarberOrService && (
             <div>

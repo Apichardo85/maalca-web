@@ -43,6 +43,18 @@ const robotoSlab = Roboto_Slab({ subsets: ['latin'], weight: ['500', '700'], var
 
 const ALL_TAB = '__all__';
 
+type SortKey = 'default' | 'price-asc' | 'price-desc' | 'name';
+
+/** Oferta = hay precio "antes" y es mayor que el actual (el dueño puede dejar un valor viejo sin sentido). */
+function isOnSale(item: { price?: number | null; compareAtPrice?: number | null }): boolean {
+  return item.price != null && item.compareAtPrice != null && item.compareAtPrice > item.price;
+}
+
+function percentOff(item: { price?: number | null; compareAtPrice?: number | null }): number {
+  if (!isOnSale(item)) return 0;
+  return Math.round((1 - (item.price as number) / (item.compareAtPrice as number)) * 100);
+}
+
 // Neutrals are CSS variables (scope `.rl-scope`) with the light hex as fallback; the dark values
 // live under html[data-theme="dark"] via themeVarsCss, so the theme resolves in CSS (no flash).
 const PIEDRA = 'var(--rl-bg, #E6E2D8)';
@@ -134,7 +146,10 @@ export function RetailTemplate({
 
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
   const [query, setQuery] = useState('');
+  const [sort, setSort] = useState<SortKey>('default');
+  const [onlyOffers, setOnlyOffers] = useState(false);
   const searchActive = query.trim().length > 0;
+  const hasOffers = items.some(isOnSale);
 
   function itemsFor(tab: string): typeof items {
     if (tab === ALL_TAB) return items;
@@ -146,7 +161,20 @@ export function RetailTemplate({
 
   // Con búsqueda activa se filtra sobre la pestaña vigente; al escribir se vuelve a "Todos" para no
   // buscar solo dentro de una categoría sin que se note.
-  const visibleItems = itemsFor(activeTab).filter((i) => matchesCatalogQuery(query, [i.name, i.nameEn, i.category]));
+  const filteredItems = itemsFor(activeTab)
+    .filter((i) => matchesCatalogQuery(query, [i.name, i.nameEn, i.category]))
+    .filter((i) => !onlyOffers || isOnSale(i));
+  // Orden estable: el "default" respeta el orden que definió el dueño (SortOrder del API).
+  const visibleItems =
+    sort === 'default'
+      ? filteredItems
+      : [...filteredItems].sort((a, b) =>
+          sort === 'name'
+            ? a.name.localeCompare(b.name, language)
+            : sort === 'price-asc'
+              ? (a.price ?? 0) - (b.price ?? 0)
+              : (b.price ?? 0) - (a.price ?? 0),
+        );
 
   return (
     <div id="top" className={`${robotoSlab.variable} rl-scope`} style={{ minHeight: '100vh', backgroundColor: PIEDRA, containerType: 'inline-size' } as React.CSSProperties}>
@@ -339,8 +367,43 @@ export function RetailTemplate({
         </div>
       )}
 
+      {/* ── ORDENAR / OFERTAS ── */}
+      {items.length > 1 && (
+        <div className="mx-auto max-w-public-content" style={{ padding: '14px 24px 0', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          {hasOffers && (
+            <button
+              type="button"
+              onClick={() => setOnlyOffers((v) => !v)}
+              aria-pressed={onlyOffers}
+              className="min-h-11 rounded-full px-4 text-xs font-semibold"
+              style={{
+                backgroundColor: onlyOffers ? accentFill : SURFACE,
+                color: onlyOffers ? onAccent : INK,
+                border: `1px solid ${onlyOffers ? accentFill : BORDER}`,
+              }}
+            >
+              🏷 {getText('Ofertas', 'Deals')}
+            </button>
+          )}
+          <label className="ml-auto flex items-center gap-2 text-xs" style={{ color: MUTED }}>
+            {getText('Ordenar', 'Sort')}
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as SortKey)}
+              className="min-h-11 rounded-full px-3 text-xs font-semibold"
+              style={{ backgroundColor: SURFACE, color: INK, border: `1px solid ${BORDER}` }}
+            >
+              <option value="default">{getText('Relevancia', 'Recommended')}</option>
+              <option value="price-asc">{getText('Precio: menor a mayor', 'Price: low to high')}</option>
+              <option value="price-desc">{getText('Precio: mayor a menor', 'Price: high to low')}</option>
+              <option value="name">{getText('Nombre A–Z', 'Name A–Z')}</option>
+            </select>
+          </label>
+        </div>
+      )}
+
       {/* ── CONTENT ── */}
-      <main className="mx-auto max-w-public-content" style={{ padding: '28px 24px 40px' }}>
+      <main className="mx-auto max-w-public-content" style={{ padding: '20px 24px 40px' }}>
         {items.length === 0 ? (
           <div
             style={{
@@ -603,6 +666,8 @@ function ProductCard({
   const imageUrl = item.imageUrl ?? item.image_url;
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
   const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
+  const onSale = isOnSale(item);
+  const off = percentOff(item);
   const [detailOpen, setDetailOpen] = useState(false);
   const stop = (e: React.MouseEvent) => e.stopPropagation();
   const hasDetail = Boolean(imageUrl || description);
@@ -630,9 +695,16 @@ function ProductCard({
       <div style={{ height: '5px', backgroundColor: chipColor, flexShrink: 0 }} />
 
       {imageUrl && (
-        <div className="aspect-square" style={{ backgroundColor: IMG_BG, flexShrink: 0 }}>
+        <div className="aspect-square" style={{ backgroundColor: IMG_BG, flexShrink: 0, position: 'relative' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={imageUrl} alt={displayName} className="h-full w-full object-cover" />
+          {onSale && off > 0 && (
+            <span
+              style={{ position: 'absolute', top: 8, left: 8, backgroundColor: '#b91c1c', color: '#ffffff', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 9999 }}
+            >
+              −{off}%
+            </span>
+          )}
         </div>
       )}
 
@@ -655,8 +727,13 @@ function ProductCard({
           </div>
         )}
         {item.price != null && (
-          <p style={{ margin: '6px 0 0', fontSize: '14px', fontWeight: 700, color: INK }}>
+          <p style={{ margin: '6px 0 0', fontSize: '14px', fontWeight: 700, color: onSale ? '#b91c1c' : INK }}>
             {formatPrice(item.price, currency)}
+            {onSale && (
+              <s style={{ marginLeft: 6, fontSize: 12, fontWeight: 500, color: MUTED }}>
+                {formatPrice(item.compareAtPrice as number, currency)}
+              </s>
+            )}
           </p>
         )}
 
@@ -708,6 +785,8 @@ function ProductCard({
       description={description}
       priceLabel={item.price != null ? formatPrice(item.price, currency) : null}
       imageUrl={imageUrl}
+      images={item.images}
+      compareAtLabel={onSale ? formatPrice(item.compareAtPrice as number, currency) : null}
       category={categoryLabel(item.category, language, categoryTranslations)}
       qty={cartQty}
       onAdd={addThis}
