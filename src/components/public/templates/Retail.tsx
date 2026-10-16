@@ -55,6 +55,11 @@ function stockLeft(item: { trackStock?: boolean | null; stock?: number | null })
   return item.trackStock ? Math.max(0, item.stock ?? 0) : null;
 }
 
+/** Orden "Relevancia": destacados primero, luego populares, luego el orden del dueño (sort estable). */
+function featuredRank(item: { featured?: boolean; popular?: boolean }): number {
+  return (item.featured ? 2 : 0) + (item.popular ? 1 : 0);
+}
+
 function percentOff(item: { price?: number | null; compareAtPrice?: number | null }): number {
   if (!isOnSale(item)) return 0;
   return Math.round((1 - (item.price as number) / (item.compareAtPrice as number)) * 100);
@@ -182,7 +187,7 @@ export function RetailTemplate({
   // Orden estable: el "default" respeta el orden que definió el dueño (SortOrder del API).
   const visibleItems =
     sort === 'default'
-      ? filteredItems
+      ? [...filteredItems].sort((a, b) => featuredRank(b) - featuredRank(a))
       : [...filteredItems].sort((a, b) =>
           sort === 'name'
             ? a.name.localeCompare(b.name, language)
@@ -724,6 +729,13 @@ function ProductCard({
               {getText('Agotado', 'Sold out')}
             </span>
           )}
+          {(item.featured || item.popular) && (
+            <span
+              style={{ position: 'absolute', bottom: 8, left: 8, backgroundColor: 'rgba(255,255,255,0.92)', color: '#2B2820', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 9999 }}
+            >
+              {item.featured ? `⭐ ${getText('Destacado', 'Featured')}` : `🔥 ${getText('Popular', 'Popular')}`}
+            </span>
+          )}
           {onSale && off > 0 && (
             <span
               style={{ position: 'absolute', top: 8, left: 8, backgroundColor: '#b91c1c', color: '#ffffff', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 9999 }}
@@ -822,6 +834,10 @@ function ProductCard({
       priceLabel={item.price != null ? formatPrice(item.price, currency) : null}
       imageUrl={imageUrl}
       images={item.images}
+      tags={[
+        ...(item.featured ? [`⭐ ${getText('Destacado', 'Featured')}`] : []),
+        ...(item.popular ? [`🔥 ${getText('Popular', 'Popular')}`] : []),
+      ]}
       compareAtLabel={onSale ? formatPrice(item.compareAtPrice as number, currency) : null}
       category={categoryLabel(item.category, language, categoryTranslations)}
       qty={cartQty}

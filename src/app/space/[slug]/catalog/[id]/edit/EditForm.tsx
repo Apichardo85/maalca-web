@@ -164,6 +164,8 @@ export default function EditForm({
       if (isRetail) {
         body.compareAtPrice = compareAtPrice === '' ? 0 : Number(compareAtPrice);
         body.trackStock = trackStock;
+        body.featured = featured;
+        body.popular = popular;
         if (trackStock) body.stock = stock === '' ? 0 : Math.max(0, Math.floor(Number(stock)));
       }
       if (isRestaurant) {
@@ -389,6 +391,16 @@ export default function EditForm({
 
           {isRetail && (
             <div className="space-y-2">
+              <div className="flex flex-wrap gap-4">
+                <label className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
+                  <input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} />
+                  ⭐ {getText('Destacado (sale primero)', 'Featured (shown first)')}
+                </label>
+                <label className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
+                  <input type="checkbox" checked={popular} onChange={(e) => setPopular(e.target.checked)} />
+                  🔥 {getText('Popular', 'Popular')}
+                </label>
+              </div>
               <label className="flex items-center gap-2 text-sm font-medium text-neutral-700 dark:text-neutral-300">
                 <input type="checkbox" checked={trackStock} onChange={(e) => setTrackStock(e.target.checked)} />
                 {getText('Controlar inventario de este producto', 'Track inventory for this product')}
