@@ -340,14 +340,16 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
       const result = await res.json();
       const created = result?.created ?? 0;
       const errorCount = result?.errorCount ?? 0;
+      // El API devuelve el detalle por fila ("Fila 4: falta el nombre…"); se muestra el primero para que el dueño sepa qué corregir.
+      const firstError = Array.isArray(result?.errors) && result.errors.length > 0 ? ` ${String(result.errors[0])}` : '';
       if (created > 0) {
         toast.success(
           errorCount > 0
-            ? getText(`${created} items importados, ${errorCount} con error.`, `${created} items imported, ${errorCount} with errors.`)
+            ? getText(`${created} items importados, ${errorCount} con error.${firstError}`, `${created} items imported, ${errorCount} with errors.${firstError}`)
             : getText(`${created} items importados.`, `${created} items imported.`),
         );
       } else {
-        toast.error(getText('No se importó ningún item. Revisa el formato del CSV.', "No items were imported. Check the CSV format."));
+        toast.error(getText(`No se importó ningún item. Revisa el formato del CSV.${firstError}`, `No items were imported. Check the CSV format.${firstError}`));
       }
       await refetch(1);
     } catch {
