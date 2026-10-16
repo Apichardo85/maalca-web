@@ -10,7 +10,7 @@
 // index and Barber's ticket-stub cards.
 import { useEffect, useState } from 'react';
 import { OpenStatusBar } from '@/components/public/OpenStatusBar';
-import { getOpenStatus, getScheduleTarget, cartScheduleFrom, type OpenStatus } from '@/lib/business-hours';
+import { getOpenStatus, getScheduleTarget, cartScheduleFrom, todayKeyInTimezone, type OpenStatus } from '@/lib/business-hours';
 import { Roboto_Slab } from 'next/font/google';
 import type { ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
@@ -23,6 +23,11 @@ import { ClampedDescription } from '@/components/public/ClampedDescription';
 import { ItemDetailSheet } from '@/components/public/ItemDetailSheet';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
+import { PublicCartBar } from '@/components/public/PublicCartBar';
+import { PublicBottomNav } from '@/components/public/PublicBottomNav';
+import { PublicHoursSection } from '@/components/public/PublicHoursSection';
+import { CatalogSearchInput } from '@/components/public/CatalogSearchInput';
+import { matchesCatalogQuery } from '@/lib/catalog-search';
 import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
@@ -109,8 +114,13 @@ export function RetailTemplate({
   // Cerrado => el pedido se programa para la próxima apertura; el API lo exige igual (ResolveSchedule)
   // y sin esto un pedido fuera de horario era rechazado.
   const [openStatus, setOpenStatus] = useState<OpenStatus | null>(null);
+  const [todayKey, setTodayKey] = useState<string | null>(null);
+  const [cartOpen, setCartOpen] = useState(false);
   useEffect(() => {
-    const update = () => setOpenStatus(getOpenStatus(business.horario, business.timezone));
+    const update = () => {
+      setOpenStatus(getOpenStatus(business.horario, business.timezone));
+      setTodayKey(todayKeyInTimezone(business.timezone));
+    };
     update();
     const id = setInterval(update, 60_000);
     return () => clearInterval(id);
@@ -123,6 +133,8 @@ export function RetailTemplate({
       : Array.from(new Set(items.map((i) => i.category).filter((c): c is string => !!c)));
 
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
+  const [query, setQuery] = useState('');
+  const searchActive = query.trim().length > 0;
 
   function itemsFor(tab: string): typeof items {
     if (tab === ALL_TAB) return items;
@@ -132,10 +144,12 @@ export function RetailTemplate({
     );
   }
 
-  const visibleItems = itemsFor(activeTab);
+  // Con búsqueda activa se filtra sobre la pestaña vigente; al escribir se vuelve a "Todos" para no
+  // buscar solo dentro de una categoría sin que se note.
+  const visibleItems = itemsFor(activeTab).filter((i) => matchesCatalogQuery(query, [i.name, i.nameEn, i.category]));
 
   return (
-    <div className={`${robotoSlab.variable} rl-scope`} style={{ minHeight: '100vh', backgroundColor: PIEDRA }}>
+    <div id="top" className={`${robotoSlab.variable} rl-scope`} style={{ minHeight: '100vh', backgroundColor: PIEDRA }}>
       <style dangerouslySetInnerHTML={{ __html: themeCss }} />
       <OpenStatusBar status={openStatus} language={language} sticky />
       {/* ── HERO ── */}
@@ -280,6 +294,25 @@ export function RetailTemplate({
       {/* ── GALERÍA ── */}
       <GallerySection images={business.galleryImages} visible={business.sectionVisibility?.gallery !== false} accent={accent} getText={getText} />
 
+      {/* ── SEARCH — independiente de las pestañas; ancla #catalog de la barra inferior ── */}
+      <div id="catalog" style={{ scrollMarginTop: '56px' }} />
+      {items.length > 0 && (
+        <CatalogSearchInput
+          value={query}
+          onChange={(next) => {
+            setQuery(next);
+            if (next.trim()) setActiveTab(ALL_TAB);
+          }}
+          onClear={() => setQuery('')}
+          placeholder={getText('Buscar en el catálogo...', 'Search the catalog...')}
+          clearLabel={getText('Borrar búsqueda', 'Clear search')}
+          surface={SURFACE}
+          border={BORDER}
+          muted={MUTED}
+          ink={INK}
+        />
+      )}
+
       {/* ── CATEGORY TABS — rendered as paint chips, cycling the swatch palette ── */}
       {categoryNames.length > 0 && (
         <div className="mx-auto max-w-public-content" style={{ padding: '20px 24px 0' }}>
@@ -329,8 +362,19 @@ export function RetailTemplate({
         ) : visibleItems.length === 0 ? (
           <div style={{ padding: '48px 0', textAlign: 'center' }}>
             <p style={{ fontSize: '14px', color: MUTED }}>
-              {getText('No hay productos en esta categoría.', 'No products in this category.')}
+              {searchActive
+                ? getText('No hay productos que coincidan con tu búsqueda.', 'No products match your search.')
+                : getText('No hay productos en esta categoría.', 'No products in this category.')}
             </p>
+            {searchActive && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                style={{ marginTop: '10px', background: 'none', border: 'none', color: accentText, fontSize: '13px', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+              >
+                {getText('Borrar búsqueda', 'Clear search')}
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -358,27 +402,75 @@ export function RetailTemplate({
       {/* ── FAQ ── */}
       <FaqSection faq={business.faq} getText={getText} />
 
-      {/* ── CONTACTO ── */}
-      <ContactSection business={business} language={language} />
+      {/* ── HORARIO + CONTACTO — destino del botón "Info" de la barra inferior ── */}
+      <div id="info" style={{ scrollMarginTop: '48px' }}>
+        <PublicHoursSection
+          horario={business.horario}
+          todayKey={todayKey}
+          language={language}
+          getText={getText}
+          headingClassName={robotoSlab.className}
+          headingColor={accentText}
+          ink={INK}
+          muted={MUTED}
+          surface={SURFACE}
+          border={BORDER}
+          rowBorder={BORDER}
+        />
+        <ContactSection business={business} language={language} />
+      </div>
 
       <PublicFooter business={business} capabilities={capabilities} language={language} />
 
-      {waRaw && (
-        <WhatsAppCart
-          cart={cart}
-          addToCart={addToCart}
-          removeFromCart={removeFromCart}
-          cartTotal={cartTotal}
-          cartCount={cartCount}
-          whatsappNumber={waRaw}
-          businessName={business.name}
-          slug={business.slug}
-          onlinePayments={capabilities.onlinePayments && capabilities.stripeReady !== false}
-          ordersPaused={business.ordersEnabled === false}
-          schedule={cartSchedule}
-          getText={getText}
-        />
-      )}
+      {/* Carrito siempre disponible: sin WhatsApp el cliente igual puede pedir y pagar al recoger (o con
+          tarjeta si hay Stripe); el carrito oculta las opciones que el negocio no tiene. */}
+      <WhatsAppCart
+        cart={cart}
+        addToCart={addToCart}
+        removeFromCart={removeFromCart}
+        cartTotal={cartTotal}
+        cartCount={cartCount}
+        whatsappNumber={waRaw ?? ''}
+        businessName={business.name}
+        slug={business.slug}
+        onlinePayments={capabilities.onlinePayments && capabilities.stripeReady !== false}
+        ordersPaused={business.ordersEnabled === false}
+        pickupOrders
+        schedule={cartSchedule}
+        getText={getText}
+        isOpen={cartOpen}
+        onOpenChange={setCartOpen}
+        hideFab
+        bottomInset={64}
+      />
+
+      {/* Barra de pedido + navegación inferior (móvil): reemplazan al botón flotante genérico. */}
+      <PublicCartBar
+        count={cartCount}
+        total={cartTotal}
+        currency={business.currency}
+        accent={accentFill}
+        onAccent={onAccent}
+        inkSurface={INK_SURFACE}
+        hidden={cartOpen}
+        onOpen={() => setCartOpen(true)}
+        getText={getText}
+      />
+      <PublicBottomNav
+        cartCount={cartCount}
+        accent={accentFill}
+        onAccent={onAccent}
+        surface={SURFACE}
+        border={BORDER}
+        muted={MUTED}
+        ink={INK}
+        onOpenCart={() => setCartOpen(true)}
+        getText={getText}
+        catalogLabel={{ es: 'Catálogo', en: 'Catalog' }}
+        cartLabel={{ es: 'Carrito', en: 'Cart' }}
+        catalogAnchorId="catalog"
+      />
+      <div className="@public-sm:hidden" aria-hidden style={{ height: 'calc(64px + env(safe-area-inset-bottom, 0px))' }} />
     </div>
   );
 }

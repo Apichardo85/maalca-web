@@ -67,6 +67,9 @@ interface CartDrawerProps {
   updateNotes?: (itemId: string, notes: string) => void
   /** Restaurante: habilita notas de personalización por línea + selector de propina. */
   restaurantMode?: boolean
+  /** Habilita el flujo de pedido para recoger (datos de contacto + "pagar al recoger") sin el resto del modo
+   *  restaurante (propina, notas por línea). Lo usa Retail. Restaurant ya lo tiene vía restaurantMode. */
+  pickupOrders?: boolean
   /** Idioma seleccionado por el visitante — con fallback a español si el template no lo pasa aún. */
   getText?: (es: string, en: string) => string
   /** Pedido desde la mesa (QR `?mesa=7`). Con valor: sin WhatsApp, y se ofrece "Pagar al mesero". */
@@ -97,6 +100,7 @@ export function CartDrawer({
   ordersPaused = false,
   updateNotes,
   restaurantMode = false,
+  pickupOrders = false,
   getText = (es) => es,
   tableNumber,
   schedule = null,
@@ -136,6 +140,8 @@ export function CartDrawer({
   // Canales realmente disponibles: sin número de WhatsApp no se ofrece WhatsApp; sin Stripe conectado
   // (el padre pasa onlinePayments ya filtrado) no se ofrece tarjeta. Queda "recoger y pagar en el local".
   const hasWhatsApp = whatsappNumber.replace(/\D/g, '').length >= 7
+  // Datos de contacto del cliente + "pagar al recoger": restaurantes y negocios que lo piden (pickupOrders).
+  const guestCheckout = restaurantMode || pickupOrders
 
   // Pedido ya enviado: al cerrar se vacía el carrito y el panel vuelve a su estado inicial.
   const orderSent = pickupPlaced || (!!tableNumber && checkoutState === 'placed')
@@ -629,7 +635,7 @@ export function CartDrawer({
               )}
             </div>
           )}
-          {restaurantMode && slug && checkoutState !== 'placed' && (
+          {guestCheckout && slug && checkoutState !== 'placed' && (
             <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
               <input
                 type="text"
@@ -649,7 +655,7 @@ export function CartDrawer({
               />
             </div>
           )}
-          {restaurantMode && slug && !tableNumber && checkoutState !== 'placed' && (
+          {guestCheckout && slug && !tableNumber && checkoutState !== 'placed' && (
             <input
               type="email"
               value={guestEmail}
@@ -870,8 +876,8 @@ export function CartDrawer({
               style={{ margin: '0 0 10px', padding: '14px', borderRadius: '12px', backgroundColor: '#e8f5e9', color: '#1b5e20', fontSize: '14px', fontWeight: 600, textAlign: 'center' }}
             >
               {getText(
-                '¡Pedido enviado! El restaurante lo confirmará en un momento y pagas al recogerlo.',
-                'Order sent! The restaurant will confirm it shortly and you pay when you pick it up.',
+                `¡Pedido enviado! ${restaurantMode ? 'El restaurante' : 'El negocio'} lo confirmará en un momento y pagas al recogerlo.`,
+                `Order sent! ${restaurantMode ? 'The restaurant' : 'The business'} will confirm it shortly and you pay when you pick it up.`,
               )}
             </p>
           )}
@@ -899,7 +905,7 @@ export function CartDrawer({
             </p>
           )}
 
-          {restaurantMode && slug && !tableNumber && !pickupPlaced && (
+          {guestCheckout && slug && !tableNumber && !pickupPlaced && (
             <>
               <button
                 onClick={handlePayAtPickup}
