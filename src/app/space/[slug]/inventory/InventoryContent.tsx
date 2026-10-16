@@ -42,6 +42,24 @@ interface InventorySummary {
   lowStockItems: LowStockItem[];
 }
 
+interface ImportDuplicate {
+  row: number;
+  name: string;
+  currentPrice: number;
+  newPrice?: number | null;
+}
+
+interface ImportResult {
+  created?: number;
+  updated?: number;
+  skipped?: number;
+  errorCount?: number;
+  errors?: string[];
+  duplicates?: ImportDuplicate[];
+}
+
+type ImportMode = 'preview' | 'skip' | 'update';
+
 interface Props {
   slug: string;
   affiliateId: string;
@@ -96,6 +114,8 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
   const [historyRows, setHistoryRows] = useState<InventoryMovementRow[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [importing, setImporting] = useState(false);
+  // CSV con productos que ya existen: espera la decisión del dueño (actualizar u omitir) en el modal.
+  const [importPending, setImportPending] = useState<{ csvContent: string; preview: ImportResult } | null>(null);
 
   // Filtros — antes no había forma de buscar un item específico sin ir pasando de página en
   // página, ni de aislar solo lo que está en stock bajo. `search`/`onlyLowStock` viajan al
@@ -324,6 +344,18 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
     fileInputRef.current?.click();
   }
 
+  async function postImport(csvContent: string, mode: ImportMode): Promise<ImportResult> {
+    const res = await fetch(`/api/space/${slug}/inventory/import`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ csvContent, mode }),
+    });
+    if (!res.ok) throw new Error('import failed');
+    return (await res.json()) as ImportResult;
+  }
+
+  // Paso 1: vista previa (no escribe nada). Sin duplicados se importa directo; con duplicados se avisa
+  // y se pregunta si se actualizan los existentes.
   async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = '';
@@ -331,27 +363,55 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
     setImporting(true);
     try {
       const csvContent = await file.text();
-      const res = await fetch(`/api/space/${slug}/inventory/import`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ csvContent }),
-      });
-      if (!res.ok) throw new Error('import failed');
-      const result = await res.json();
-      const created = result?.created ?? 0;
-      const errorCount = result?.errorCount ?? 0;
-      // El API devuelve el detalle por fila ("Fila 4: falta el nombre…"); se muestra el primero para que el dueño sepa qué corregir.
-      const firstError = Array.isArray(result?.errors) && result.errors.length > 0 ? ` ${String(result.errors[0])}` : '';
-      if (created > 0) {
-        toast.success(
-          errorCount > 0
-            ? getText(`${created} items importados, ${errorCount} con error.${firstError}`, `${created} items imported, ${errorCount} with errors.${firstError}`)
-            : getText(`${created} items importados.`, `${created} items imported.`),
-        );
-      } else {
-        toast.error(getText(`No se importó ningún item. Revisa el formato del CSV.${firstError}`, `No items were imported. Check the CSV format.${firstError}`));
+      const preview = await postImport(csvContent, 'preview');
+      if ((preview.duplicates?.length ?? 0) > 0) {
+        setImportPending({ csvContent, preview });
+        return;
       }
-      await refetch(1);
+      await finishImport(csvContent, 'skip');
+    } catch {
+      toast.error(getText('No se pudo importar el archivo.', "Couldn't import the file."));
+    } finally {
+      setImporting(false);
+    }
+  }
+
+  // Paso 2: aplica la importación con la decisión tomada (skip = solo nuevos, update = nuevos + actualizar).
+  async function finishImport(csvContent: string, mode: 'skip' | 'update') {
+    const result = await postImport(csvContent, mode);
+    const created = result.created ?? 0;
+    const updated = result.updated ?? 0;
+    const skipped = result.skipped ?? 0;
+    const errorCount = result.errorCount ?? 0;
+    // El API devuelve el detalle por fila ("Fila 4: falta el nombre…"); se muestra el primero para que el dueño sepa qué corregir.
+    const firstError = Array.isArray(result.errors) && result.errors.length > 0 ? ` ${String(result.errors[0])}` : '';
+    const partsEs = [
+      created > 0 ? `${created} nuevos` : null,
+      updated > 0 ? `${updated} actualizados` : null,
+      skipped > 0 ? `${skipped} ya existían (sin cambios)` : null,
+    ].filter(Boolean);
+    const partsEn = [
+      created > 0 ? `${created} new` : null,
+      updated > 0 ? `${updated} updated` : null,
+      skipped > 0 ? `${skipped} already existed (unchanged)` : null,
+    ].filter(Boolean);
+    if (created > 0 || updated > 0 || skipped > 0) {
+      const errEs = errorCount > 0 ? ` ${errorCount} con error.${firstError}` : '';
+      const errEn = errorCount > 0 ? ` ${errorCount} with errors.${firstError}` : '';
+      toast.success(getText(`Importación lista: ${partsEs.join(', ')}.${errEs}`, `Import done: ${partsEn.join(', ')}.${errEn}`));
+    } else {
+      toast.error(getText(`No se importó ningún item. Revisa el formato del CSV.${firstError}`, `No items were imported. Check the CSV format.${firstError}`));
+    }
+    await refetch(1);
+  }
+
+  async function confirmImport(mode: 'skip' | 'update') {
+    if (!importPending) return;
+    const { csvContent } = importPending;
+    setImporting(true);
+    try {
+      await finishImport(csvContent, mode);
+      setImportPending(null);
     } catch {
       toast.error(getText('No se pudo importar el archivo.', "Couldn't import the file."));
     } finally {
@@ -705,6 +765,75 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
           </div>
         )}
       </div>
+
+      {importPending && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => !importing && setImportPending(null)}>
+          <div
+            className="max-h-[90vh] w-full max-w-md space-y-3 overflow-y-auto rounded-2xl bg-white dark:bg-neutral-900 p-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-base font-semibold">
+              {getText('Algunos productos ya existen', 'Some products already exist')}
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-neutral-300">
+              {getText(
+                `${importPending.preview.duplicates?.length ?? 0} del archivo ya están en tu inventario (mismo nombre). ¿Quieres actualizarlos con los datos del archivo?`,
+                `${importPending.preview.duplicates?.length ?? 0} in the file are already in your inventory (same name). Update them with the data from the file?`,
+              )}
+            </p>
+            <ul className="space-y-1 rounded-lg border border-gray-200/70 dark:border-neutral-800 p-3 text-xs">
+              {(importPending.preview.duplicates ?? []).slice(0, 8).map((d) => (
+                <li key={`${d.row}-${d.name}`} className="flex items-center justify-between gap-3">
+                  <span className="min-w-0 truncate font-medium">{d.name}</span>
+                  <span className="shrink-0 text-gray-500 dark:text-neutral-400">
+                    {d.newPrice != null && d.newPrice !== d.currentPrice
+                      ? `$${d.currentPrice.toFixed(2)} → $${d.newPrice.toFixed(2)}`
+                      : `$${d.currentPrice.toFixed(2)}`}
+                  </span>
+                </li>
+              ))}
+              {(importPending.preview.duplicates?.length ?? 0) > 8 && (
+                <li className="text-gray-400 dark:text-neutral-500">
+                  {getText(`y ${(importPending.preview.duplicates?.length ?? 0) - 8} más…`, `and ${(importPending.preview.duplicates?.length ?? 0) - 8} more…`)}
+                </li>
+              )}
+            </ul>
+            <p className="text-xs text-gray-500 dark:text-neutral-400">
+              {getText(
+                `Se crearán ${importPending.preview.created ?? 0} productos nuevos en cualquier caso. Al actualizar, las celdas vacías del archivo no borran lo que ya tienes.`,
+                `${importPending.preview.created ?? 0} new products will be created either way. When updating, empty cells in the file won't erase existing values.`,
+              )}
+            </p>
+            <div className="flex flex-col gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => confirmImport('update')}
+                disabled={importing}
+                className="rounded-full px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
+                style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
+              >
+                {importing ? getText('Importando…', 'Importing…') : getText('Actualizar existentes', 'Update existing')}
+              </button>
+              <button
+                type="button"
+                onClick={() => confirmImport('skip')}
+                disabled={importing}
+                className="rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-2.5 text-sm font-semibold disabled:opacity-40"
+              >
+                {getText('Omitir duplicados', 'Skip duplicates')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setImportPending(null)}
+                disabled={importing}
+                className="rounded-full px-4 py-2 text-sm font-semibold text-gray-500 dark:text-neutral-400 disabled:opacity-40"
+              >
+                {getText('Cancelar importación', 'Cancel import')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {movementFor && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => setMovementFor(null)}>
