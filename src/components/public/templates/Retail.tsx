@@ -149,7 +149,7 @@ export function RetailTemplate({
   const visibleItems = itemsFor(activeTab).filter((i) => matchesCatalogQuery(query, [i.name, i.nameEn, i.category]));
 
   return (
-    <div id="top" className={`${robotoSlab.variable} rl-scope`} style={{ minHeight: '100vh', backgroundColor: PIEDRA }}>
+    <div id="top" className={`${robotoSlab.variable} rl-scope`} style={{ minHeight: '100vh', backgroundColor: PIEDRA, containerType: 'inline-size' } as React.CSSProperties}>
       <style dangerouslySetInnerHTML={{ __html: themeCss }} />
       <OpenStatusBar status={openStatus} language={language} sticky />
       {/* ── HERO ── */}

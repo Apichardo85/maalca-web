@@ -378,7 +378,7 @@ export function CartDrawer({
               {getText('Tu orden', 'Your order')}
             </p>
             <p style={{ margin: '2px 0 0', fontSize: '18px', fontWeight: 700, color: '#1a1a1a' }}>
-              {cartCount} {getText(cartCount === 1 ? 'plato' : 'platos', cartCount === 1 ? 'item' : 'items')}
+              {cartCount} {getText(restaurantMode ? (cartCount === 1 ? 'plato' : 'platos') : (cartCount === 1 ? 'artículo' : 'artículos'), cartCount === 1 ? 'item' : 'items')}
             </p>
           </div>
           <button
