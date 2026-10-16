@@ -2,7 +2,8 @@
 
 // Detalle de un plato/producto al tocarlo en la página pública: foto grande, nombre, descripción
 // completa, etiquetas, disponibilidad y control de cantidad. Hoja inferior en móvil, tarjeta
-// centrada en pantallas grandes. Compartido por Restaurant y Retail.
+// centrada en pantallas grandes. Compartido por Restaurant, Retail y Barber (este último sin carrito:
+// usa ctaLabel/onCta en vez del control de cantidad).
 
 import { useEffect, useState } from 'react';
 
@@ -25,9 +26,13 @@ interface Props {
   unavailableLabel?: string | null;
   /** Horario/periodos en texto (p. ej. "Desayuno · lun–sáb"). */
   availabilityLabel?: string | null;
-  qty: number;
-  onAdd: () => void;
-  onRemove: () => void;
+  /** Carrito (Restaurant/Retail). Se omiten en plantillas sin carrito, que usan onCta. */
+  qty?: number;
+  onAdd?: () => void;
+  onRemove?: () => void;
+  /** Acción única en vez del control de cantidad (p. ej. "Reservar" en Barber). */
+  ctaLabel?: string;
+  onCta?: () => void;
   accent: string;
   onAccent?: string;
   textColor?: string;
@@ -51,9 +56,11 @@ export function ItemDetailSheet({
   tags = [],
   unavailableLabel,
   availabilityLabel,
-  qty,
-  onAdd,
-  onRemove,
+  qty = 0,
+  onAdd = () => {},
+  onRemove = () => {},
+  ctaLabel,
+  onCta,
   accent,
   onAccent = '#ffffff',
   textColor = 'var(--pub-ink, #1f1a14)',
@@ -223,6 +230,14 @@ export function ItemDetailSheet({
           </span>
           {unavailableLabel ? (
             <span style={{ fontSize: 13, fontWeight: 600, color: mutedColor, textAlign: 'right' }}>{unavailableLabel}</span>
+          ) : onCta ? (
+            <button
+              type="button"
+              onClick={onCta}
+              style={{ background: accent, color: onAccent, border: 'none', borderRadius: 12, padding: '12px 22px', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}
+            >
+              {ctaLabel ?? t('Reservar', 'Book')}
+            </button>
           ) : qty === 0 ? (
             <button
               type="button"

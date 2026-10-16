@@ -10,7 +10,7 @@
 // so the two numbering systems never read as the same thing.
 import { useEffect, useState } from 'react';
 import { OpenStatusBar } from '@/components/public/OpenStatusBar';
-import { getOpenStatus, type OpenStatus } from '@/lib/business-hours';
+import { getOpenStatus, todayKeyInTimezone, type OpenStatus } from '@/lib/business-hours';
 import type { CSSProperties } from 'react';
 import { Fraunces, IBM_Plex_Mono } from 'next/font/google';
 import type { FaqEntry, ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
@@ -20,45 +20,31 @@ import { PublicFooter } from '@/components/public/PublicFooter';
 import { sanitizeRichText } from '@/lib/sanitize-html';
 import { PublicBookingSection } from '@/components/public/booking/PublicBookingSection';
 import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox';
+import { PublicHoursSection } from '@/components/public/PublicHoursSection';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { formatPrice } from '@/lib/currency';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 import PublicThemeToggle from '@/components/public/PublicThemeToggle';
-import { deriveBrandPalette, deriveDarkBrandPalette, themeVarsCss } from '@/lib/brand-palette';
+import { deriveBrandPalette, deriveDarkBrandPalette, brandPaletteCss } from '@/lib/brand-palette';
 
 // Scoped to this template only — Fraunces gives the pull-quote/headers real
 // character; Plex Mono is the "spec sheet" voice for numbers, prices, labels.
 const fraunces = Fraunces({ subsets: ['latin'], weight: ['500', '600'], variable: '--font-service-display' });
 const plexMono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['500'], variable: '--font-service-mono' });
 
-// Neutrals are CSS vars (scope .sv-scope, dark values under html[data-theme="dark"]) with the
-// original light hex as fallback, so light mode renders exactly as before.
+// Todo el juego de neutros sale de la paleta de la marca (brandPaletteCss, scope .sv-scope): fondo, líneas,
+// tinta y texto secundario toman el matiz del color primario, en claro y en oscuro (html[data-theme="dark"]).
+// Antes eran crema/piedra fijos y no seguían a la marca. Los hex son solo respaldo.
 const PAPER = 'var(--sv-bg, #FAF8F4)';
-// MIST is only ever used as a hairline border color; in dark it is the border tone.
-const MIST = 'var(--sv-mist, #F0EEE9)';
+// MIST solo se usa como línea fina (bordes entre filas); DOT, como los puntos guía del precio.
+const MIST = 'var(--sv-border-soft, #F0EEE9)';
 const INK = 'var(--sv-ink, #1C1B1F)';
-const STONE = 'var(--sv-stone, #8A8578)';
-const DOT = 'var(--sv-dot, #c9c5ba)';
-const INK_SOFT = 'var(--sv-ink-soft, #4a4740)';
-// Text on the brand-colored buttons/badges (white in light; contrast-picked in dark).
+const STONE = 'var(--sv-muted, #6b665c)';
+const DOT = 'var(--sv-border, #c9c5ba)';
+const INK_SOFT = 'color-mix(in srgb, var(--sv-ink, #1C1B1F) 80%, var(--sv-bg, #FAF8F4))';
+// Texto sobre los botones/insignias del color de marca: blanco u oscuro según contraste (un primario
+// amarillo con texto blanco no se lee).
 const ON_ACCENT = 'var(--sv-on-accent, #fff)';
-
-const SV_LIGHT = {
-  'sv-bg': '#FAF8F4',
-  'sv-mist': '#F0EEE9',
-  'sv-ink': '#1C1B1F',
-  'sv-stone': '#8A8578',
-  'sv-dot': '#c9c5ba',
-  'sv-ink-soft': '#4a4740',
-};
-const SV_DARK = {
-  'sv-bg': '#141311',
-  'sv-mist': '#34302A',
-  'sv-ink': '#EFECE6',
-  'sv-stone': '#A29B8D',
-  'sv-dot': '#4A453D',
-  'sv-ink-soft': '#C9C4B8',
-};
 
 function PinIcon({ className }: { className?: string }) {
   return (
@@ -128,19 +114,19 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
   const accent = `var(--sv-accent, ${accentHex})`;
   const lightPal = deriveBrandPalette(business.primary_color, business.secondary_color, business.accent_color);
   const darkPal = deriveDarkBrandPalette(business.primary_color, business.secondary_color, business.accent_color);
-  const themeCss = themeVarsCss(
-    'sv-scope',
-    { ...SV_LIGHT, 'sv-accent': lightPal.accent, 'sv-on-accent': '#fff' },
-    { ...SV_DARK, 'sv-accent': darkPal.accent, 'sv-on-accent': darkPal.onAccent },
-  );
+  const themeCss = brandPaletteCss('sv-scope', 'sv', lightPal, darkPal);
   const waRaw = resolveWhatsAppDigits(business);
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const [openItems, setOpenItems] = useState<Set<string>>(new Set());
   // Solo cliente (la página es ISR); se refresca cada minuto. Sin horario no se muestra.
   const [openStatus, setOpenStatus] = useState<OpenStatus | null>(null);
+  const [todayKey, setTodayKey] = useState<string | null>(null);
   useEffect(() => {
-    const update = () => setOpenStatus(getOpenStatus(business.horario, business.timezone));
+    const update = () => {
+      setOpenStatus(getOpenStatus(business.horario, business.timezone));
+      setTodayKey(todayKeyInTimezone(business.timezone));
+    };
     update();
     const id = setInterval(update, 60_000);
     return () => clearInterval(id);
@@ -434,6 +420,23 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
 
           <FaqSection faq={business.faq} displayClassName={fraunces.className} getText={getText} />
         </main>
+      </div>
+
+      {/* Horario completo (antes solo había el aviso "Abierto ahora") */}
+      <div style={{ paddingTop: '8px' }}>
+        <PublicHoursSection
+          horario={business.horario}
+          todayKey={todayKey}
+          language={language}
+          getText={getText}
+          headingClassName={fraunces.className}
+          headingColor={`var(--sv-accent-text, ${accentHex})`}
+          ink={INK}
+          muted={STONE}
+          surface="var(--sv-surface, #ffffff)"
+          border={DOT}
+          rowBorder={MIST}
+        />
       </div>
 
       <PublicBookingSection slug={business.slug} language={language} accent={business.primary_color} horario={business.horario} timezone={business.timezone} />

@@ -19,12 +19,14 @@ import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { PublicBookingSection, type PublicBookingSectionHandle } from '@/components/public/booking/PublicBookingSection';
 import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox';
+import { PublicHoursSection } from '@/components/public/PublicHoursSection';
+import { ItemDetailSheet } from '@/components/public/ItemDetailSheet';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { formatPrice } from '@/lib/currency';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 import PublicThemeToggle from '@/components/public/PublicThemeToggle';
 import { deriveBrandPalette, deriveDarkBrandPalette, brandPaletteCss } from '@/lib/brand-palette';
-import { getOpenStatus, formatHour, type OpenStatus } from '@/lib/business-hours';
+import { getOpenStatus, formatHour, todayKeyInTimezone, type OpenStatus } from '@/lib/business-hours';
 import { categoryLabel } from '@/lib/category-label';
 
 // Scoped to this template only — condensed uppercase display for headers,
@@ -106,8 +108,12 @@ export function BarberTemplate({
   // "Abierto ahora" depende del reloj: solo en el cliente (ISR cacheada no se congela ni desajusta la
   // hidratación) y se refresca cada minuto. Sin horario/zona horaria queda en null y no se muestra.
   const [openStatus, setOpenStatus] = useState<OpenStatus | null>(null);
+  const [todayKey, setTodayKey] = useState<string | null>(null);
   useEffect(() => {
-    const update = () => setOpenStatus(getOpenStatus(business.horario, business.timezone));
+    const update = () => {
+      setOpenStatus(getOpenStatus(business.horario, business.timezone));
+      setTodayKey(todayKeyInTimezone(business.timezone));
+    };
     update();
     const id = setInterval(update, 60_000);
     return () => clearInterval(id);
@@ -443,7 +449,7 @@ export function BarberTemplate({
               {categoryName && <SectLabel label={categoryLabel(categoryName, language, business.categoryTranslations)} />}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {groupItems.map((item) => (
-                  <ServiceCard key={item.id} item={item} onReserve={handleReserve} accent={accent} displayClassName={oswald.className} language={language} currency={business.currency} getText={getText} />
+                  <ServiceCard key={item.id} item={item} onReserve={handleReserve} accent={accent} displayClassName={oswald.className} language={language} currency={business.currency} getText={getText} categoryTranslations={business.categoryTranslations} />
                 ))}
               </div>
             </div>
@@ -451,7 +457,7 @@ export function BarberTemplate({
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {visibleItems.map((item) => (
-              <ServiceCard key={item.id} item={item} onReserve={handleReserve} accent={accent} displayClassName={oswald.className} language={language} currency={business.currency} getText={getText} />
+              <ServiceCard key={item.id} item={item} onReserve={handleReserve} accent={accent} displayClassName={oswald.className} language={language} currency={business.currency} getText={getText} categoryTranslations={business.categoryTranslations} />
             ))}
           </div>
         )}
@@ -462,6 +468,23 @@ export function BarberTemplate({
 
       {/* ── RESERVA (Agenda pública) ── */}
       <PublicBookingSection ref={bookingRef} slug={business.slug} language={language} accent={business.primary_color} horario={business.horario} timezone={business.timezone} enableWalkIn />
+
+      {/* ── HORARIO — la tabla completa (antes solo había el aviso "Abierto ahora") ── */}
+      <div id="info" style={{ paddingTop: '8px' }}>
+        <PublicHoursSection
+          horario={business.horario}
+          todayKey={todayKey}
+          language={language}
+          getText={getText}
+          headingClassName={oswald.className}
+          headingColor="var(--bb-accent-text, #045AFE)"
+          ink={TINTA}
+          muted={ACERO}
+          surface={SURFACE}
+          border={LINE}
+          rowBorder={LINE}
+        />
+      </div>
 
       {/* ── CONTACTO ── */}
       <ContactSection business={business} language={language} />
@@ -641,6 +664,7 @@ function ServiceCard({
   language,
   currency,
   getText,
+  categoryTranslations,
 }: {
   item: PublicTemplateProps['items'][number];
   onReserve: (serviceId: string) => void;
@@ -649,18 +673,29 @@ function ServiceCard({
   language: 'es' | 'en';
   currency?: 'USD' | 'DOP';
   getText: (es: string, en: string) => string;
+  categoryTranslations?: PublicTemplateProps['business']['categoryTranslations'];
 }) {
   const imageUrl = item.imageUrl ?? item.image_url;
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
   const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
+  const [detailOpen, setDetailOpen] = useState(false);
+  const stop = (e: React.MouseEvent) => e.stopPropagation();
+  // Con foto o descripción la tarjeta abre el detalle (foto grande, texto completo, duración y "Reservar").
+  const hasDetail = Boolean(imageUrl || description);
 
   return (
+    <>
     <div
+      role={hasDetail ? 'button' : undefined}
+      tabIndex={hasDetail ? 0 : undefined}
+      onClick={hasDetail ? () => setDetailOpen(true) : undefined}
+      onKeyDown={hasDetail ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailOpen(true); } } : undefined}
       style={{
         backgroundColor: SURFACE,
         border: `1px solid ${LINE}`,
         borderRadius: '10px',
         overflow: 'hidden',
+        cursor: hasDetail ? 'pointer' : 'default',
       }}
     >
       {imageUrl && (
@@ -691,13 +726,15 @@ function ServiceCard({
         </p>
 
         {description && (
-          <ClampedDescription
-            text={description}
-            language={language}
-            textStyle={{ margin: '4px 0 0', fontSize: '11px', color: ACERO, lineHeight: 1.4 }}
-            buttonColor={ACCENT}
-            buttonStyle={{ fontSize: '11px' }}
-          />
+          <div onClick={stop}>
+            <ClampedDescription
+              text={description}
+              language={language}
+              textStyle={{ margin: '4px 0 0', fontSize: '11px', color: ACERO, lineHeight: 1.4 }}
+              buttonColor={ACCENT}
+              buttonStyle={{ fontSize: '11px' }}
+            />
+          </div>
         )}
 
         {item.durationMinutes != null && (
@@ -732,30 +769,64 @@ function ServiceCard({
             <span />
           )}
 
+          {/* Área táctil de 44 px (antes 28): el cuadro visual sigue siendo pequeño dentro del botón. */}
           <button
             type="button"
-            onClick={() => onReserve(item.id)}
+            onClick={(e) => { e.stopPropagation(); onReserve(item.id); }}
             aria-label={`${getText('Reservar', 'Book')} — ${displayName}`}
             title={getText('Reservar', 'Book')}
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: '28px',
-              height: '28px',
-              borderRadius: '6px',
-              backgroundColor: ACCENT,
-              color: ON_ACCENT,
-              flexShrink: 0,
+              width: '44px',
+              height: '44px',
+              margin: '-8px -8px -8px 0',
+              background: 'none',
               border: 'none',
+              padding: 0,
               cursor: 'pointer',
+              flexShrink: 0,
             }}
           >
-            <CalendarIcon className="w-[14px] h-[14px]" />
+            <span
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '30px',
+                height: '30px',
+                borderRadius: '6px',
+                backgroundColor: ACCENT,
+                color: ON_ACCENT,
+              }}
+            >
+              <CalendarIcon className="w-[15px] h-[15px]" />
+            </span>
           </button>
         </div>
       </div>
     </div>
+    <ItemDetailSheet
+      open={detailOpen}
+      onClose={() => setDetailOpen(false)}
+      name={displayName}
+      description={description}
+      priceLabel={item.price != null ? formatPrice(item.price, currency) : null}
+      imageUrl={imageUrl}
+      images={item.images}
+      category={categoryLabel(item.category, language, categoryTranslations)}
+      availabilityLabel={item.durationMinutes != null ? formatDuration(item.durationMinutes) : null}
+      ctaLabel={getText('Reservar', 'Book')}
+      onCta={() => { setDetailOpen(false); onReserve(item.id); }}
+      accent={ACCENT}
+      onAccent={ON_ACCENT}
+      textColor={TINTA}
+      mutedColor={ACERO}
+      surfaceColor={SURFACE}
+      language={language}
+    />
+    </>
   );
 }
 
