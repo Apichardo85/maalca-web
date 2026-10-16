@@ -34,7 +34,7 @@ import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 import { formatPrice } from '@/lib/currency';
 import { categoryLabel } from '@/lib/category-label';
 import PublicThemeToggle from '@/components/public/PublicThemeToggle';
-import { deriveDarkBrandPalette, themeVarsCss } from '@/lib/brand-palette';
+import { deriveBrandPalette, deriveDarkBrandPalette, themeVarsCss } from '@/lib/brand-palette';
 
 // Scoped to this template only — a slab serif reads as "catalog/hardware
 // store signage", distinct from Service's editorial Fraunces and Barber's
@@ -107,14 +107,24 @@ export function RetailTemplate({
   capabilities,
 }: PublicTemplateProps) {
   const accent = business.primary_color ?? SWATCHES[0].hex;
-  // Brand color adjusted for dark backgrounds (buttons, "Ver más" links). Light values stay as-is:
-  // accent for fills/text, white on accent. The hero banner keeps the raw brand color (white text).
+  // Brand color adjusted for contrast in both themes (buttons, "Ver más" links). The hero banner keeps
+  // the raw brand color (white text).
+  const lightBrand = deriveBrandPalette(accent, business.secondary_color, business.accent_color);
   const darkBrand = deriveDarkBrandPalette(accent, business.secondary_color, business.accent_color);
   const themeCss = themeVarsCss(
     'rl-scope',
-    { ...LIGHT_VARS, 'rl-accent': accent, 'rl-accent-text': accent, 'rl-on-accent': '#ffffff' },
+    // Fondos de botón = marca tal cual; texto en color de marca y texto sobre el botón se ajustan por
+    // contraste (un primario amarillo/claro dejaba "Ver más" ilegible y el "+ Agregar" blanco sobre amarillo).
+    { ...LIGHT_VARS, 'rl-accent': accent, 'rl-accent-text': lightBrand.accentText, 'rl-on-accent': lightBrand.onAccent },
     { ...DARK_VARS, 'rl-accent': darkBrand.accent, 'rl-accent-text': darkBrand.accentText, 'rl-on-accent': darkBrand.onAccent },
   );
+  // Sin portada, el hero es el color de marca liso: con un primario claro (amarillo) el texto blanco no se
+  // lee, así que usa el color de texto que elige la paleta por contraste. Con portada hay degradado oscuro.
+  const heroDark = !business.cover_image_url && lightBrand.onAccent !== '#ffffff';
+  const heroFg = heroDark ? lightBrand.onAccent : '#ffffff';
+  const heroSoft = heroDark ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)';
+  const heroLine = heroDark ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.3)';
+  const heroMuted = heroDark ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.75)';
   const accentFill = `var(--rl-accent, ${accent})`;
   const accentText = `var(--rl-accent-text, ${accent})`;
   const onAccent = 'var(--rl-on-accent, #ffffff)';
@@ -221,8 +231,8 @@ export function RetailTemplate({
         {/* language toggle — top-right corner, clear of the bottom-anchored
             content below and never covered by it at any viewport */}
         <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 2, display: 'flex', gap: '8px' }}>
-          <SimpleLanguageToggle variant="dark" spanishFlag={business.spanishFlag} />
-          <PublicThemeToggle variant="dark" />
+          <SimpleLanguageToggle variant={heroDark ? 'light' : 'dark'} spanishFlag={business.spanishFlag} />
+          <PublicThemeToggle variant={heroDark ? 'light' : 'dark'} />
         </div>
 
         <div
@@ -234,7 +244,7 @@ export function RetailTemplate({
             right: 0,
             zIndex: 1,
             padding: '0 32px 32px',
-            color: '#fff',
+            color: heroFg,
           }}
         >
           {business.logo_url ? (
@@ -248,7 +258,7 @@ export function RetailTemplate({
                 height: '78px',
                 borderRadius: '11px',
                 objectFit: 'cover',
-                border: '2px solid rgba(255,255,255,0.3)',
+                border: `2px solid ${heroLine}`,
                 marginBottom: '14px',
               }}
             />
@@ -258,12 +268,12 @@ export function RetailTemplate({
                 width: '78px',
                 height: '78px',
                 borderRadius: '11px',
-                backgroundColor: 'rgba(255,255,255,0.15)',
-                border: '2px solid rgba(255,255,255,0.3)',
+                backgroundColor: heroSoft,
+                border: `2px solid ${heroLine}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#ffffff',
+                color: heroFg,
                 marginBottom: '14px',
               }}
             >
@@ -273,13 +283,13 @@ export function RetailTemplate({
 
           <h1
             className={robotoSlab.className}
-            style={{ margin: 0, fontSize: '32px', fontWeight: 700, color: '#ffffff', lineHeight: 1.1 }}
+            style={{ margin: 0, fontSize: '32px', fontWeight: 700, color: heroFg, lineHeight: 1.1 }}
           >
             {business.name}
           </h1>
 
           {business.address && (
-            <p style={{ margin: '6px 0 0', fontSize: '13px', color: 'rgba(255,255,255,0.75)' }}>
+            <p style={{ margin: '6px 0 0', fontSize: '13px', color: heroMuted }}>
               📍 {business.address}
             </p>
           )}
@@ -295,9 +305,9 @@ export function RetailTemplate({
                 alignItems: 'center',
                 gap: '8px',
                 marginTop: '16px',
-                backgroundColor: 'rgba(255,255,255,0.2)',
+                backgroundColor: heroSoft,
                 backdropFilter: 'blur(4px)',
-                color: '#ffffff',
+                color: heroFg,
                 padding: '9px 18px',
                 borderRadius: '9999px',
                 fontSize: '13px',
