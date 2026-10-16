@@ -38,10 +38,13 @@ import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 import PublicThemeToggle from '@/components/public/PublicThemeToggle';
 import { MEAL_PERIOD_LABELS, MEAL_PERIOD_ORDER } from '@/lib/menu-availability';
 import { matchesCatalogQuery } from '@/lib/catalog-search';
+import { PublicHoursSection } from '@/components/public/PublicHoursSection';
+import { PublicCartBar } from '@/components/public/PublicCartBar';
+import { PublicBottomNav } from '@/components/public/PublicBottomNav';
+import { CatalogSearchInput } from '@/components/public/CatalogSearchInput';
 // Los días del Horario del negocio son claves en español (lunes…domingo), distintas de los
 // WeekDay en inglés que usa el menú más abajo — de ahí los alias.
 import {
-  WEEK_DAY_ORDER as HORARIO_DAY_ORDER,
   WEEK_DAY_LABELS_ES as HORARIO_LABELS_ES,
   WEEK_DAY_LABELS_EN as HORARIO_LABELS_EN,
   getOpenStatus,
@@ -857,60 +860,17 @@ export function RestaurantTemplate({
       {/* ── SEARCH — independent of category tabs so it's still there for a
           business with no categories set up yet ── */}
       {items.length > 0 && (
-        <div className="mx-auto max-w-public-content" style={{ padding: '20px 24px 0' }}>
-          <div style={{ position: 'relative' }}>
-            <span
-              style={{
-                position: 'absolute',
-                left: '14px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                fontSize: '15px',
-                color: MUTED,
-                pointerEvents: 'none',
-              }}
-            >
-              🔍
-            </span>
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={getText('Buscar en el menú...', 'Search the menu...')}
-              style={{
-                width: '100%',
-                padding: '10px 14px 10px 38px',
-                fontSize: '14px',
-                borderRadius: '12px',
-                border: '1px solid var(--rt-border, #e8ddc9)',
-                backgroundColor: SURFACE,
-                color: CAFE,
-                outline: 'none',
-              }}
-            />
-            {searchActive && (
-              <button
-                type="button"
-                onClick={clearSearch}
-                aria-label={getText('Borrar búsqueda', 'Clear search')}
-                style={{
-                  position: 'absolute',
-                  right: '10px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  color: MUTED,
-                  fontSize: '16px',
-                  cursor: 'pointer',
-                  padding: '4px',
-                }}
-              >
-                ✕
-              </button>
-            )}
-          </div>
-        </div>
+        <CatalogSearchInput
+          value={query}
+          onChange={setQuery}
+          onClear={clearSearch}
+          placeholder={getText('Buscar en el menú...', 'Search the menu...')}
+          clearLabel={getText('Borrar búsqueda', 'Clear search')}
+          surface={SURFACE}
+          border="var(--rt-border, #e8ddc9)"
+          muted={MUTED}
+          ink={CAFE}
+        />
       )}
 
       {/* ── NAV TABS ── */}
@@ -1144,7 +1104,7 @@ export function RestaurantTemplate({
 
       {/* ── HORARIO + CONTACTO — destino del botón "Info" de la barra inferior ── */}
       <div id="info" style={{ scrollMarginTop: '48px' }}>
-        <HoursSection horario={business.horario} todayKey={todayKey} language={language} getText={getText} />
+        <PublicHoursSection horario={business.horario} todayKey={todayKey} language={language} getText={getText} headingClassName={inter.className} headingColor={TERRACOTA} ink={CAFE} muted={MUTED} surface={SURFACE} border={BORDER_SOFT} rowBorder="var(--rt-border-soft, #f0e8da)" />
         <ContactSection business={business} language={language} />
       </div>
 
@@ -1189,8 +1149,8 @@ export function RestaurantTemplate({
       />
 
       {/* Barra de pedido + navegación inferior (móvil): reemplazan al botón flotante genérico. */}
-      <CartBar count={cartCount} total={cartTotal} currency={business.currency} accent={accent} hidden={cartOpen} onOpen={() => setCartOpen(true)} getText={getText} />
-      <BottomNav cartCount={cartCount} accent={accent} onOpenCart={() => setCartOpen(true)} getText={getText} />
+      <PublicCartBar count={cartCount} total={cartTotal} currency={business.currency} accent={accent} onAccent="var(--rt-on-accent, #ffffff)" inkSurface={INK_SURFACE} hidden={cartOpen} onOpen={() => setCartOpen(true)} getText={getText} />
+      <PublicBottomNav cartCount={cartCount} accent={accent} onAccent="var(--rt-on-accent, #ffffff)" surface={SURFACE} border="var(--rt-border, #e8ddc9)" muted={MUTED} ink={CAFE} onOpenCart={() => setCartOpen(true)} getText={getText} />
       <div className="@public-sm:hidden" aria-hidden style={{ height: 'calc(64px + env(safe-area-inset-bottom, 0px))' }} />
     </div>
   );
@@ -1271,241 +1231,6 @@ function OpenStatusBar({
       <span style={{ fontWeight: 600 }}>{strong}</span>
       {rest && <span>· {rest}</span>}
     </div>
-  );
-}
-
-function HoursSection({
-  horario,
-  todayKey,
-  language,
-  getText,
-}: {
-  horario: PublicTemplateProps['business']['horario'];
-  todayKey: string | null;
-  language: 'es' | 'en';
-  getText: (es: string, en: string) => string;
-}) {
-  const rows = HORARIO_DAY_ORDER.map((day) => ({ day, entry: horario?.find((h) => h.dia === day) })).filter(
-    (r): r is { day: string; entry: NonNullable<typeof r.entry> } => Boolean(r.entry),
-  );
-  if (rows.length === 0) return null;
-
-  // Días consecutivos con el mismo horario se muestran como una sola fila ("Lunes – Viernes",
-  // o "Todos los días" si los 7 coinciden) en vez de repetir la misma línea siete veces.
-  const sameHours = (a: (typeof rows)[number]['entry'], b: (typeof rows)[number]['entry']) =>
-    Boolean(a.cerrado) === Boolean(b.cerrado) && (a.cerrado || (a.abre === b.abre && a.cierra === b.cierra));
-  const groups: Array<{ days: string[]; entry: (typeof rows)[number]['entry'] }> = [];
-  for (const r of rows) {
-    const last = groups[groups.length - 1];
-    if (last && sameHours(last.entry, r.entry)) last.days.push(r.day);
-    else groups.push({ days: [r.day], entry: r.entry });
-  }
-  const dayLabel = (d: string) => (language === 'en' ? HORARIO_LABELS_EN[d] : HORARIO_LABELS_ES[d]);
-  const groupLabel = (days: string[]) =>
-    days.length === HORARIO_DAY_ORDER.length
-      ? getText('Todos los días', 'Every day')
-      : days.length === 1
-        ? dayLabel(days[0])
-        : days.length === 2
-          ? `${dayLabel(days[0])} y ${dayLabel(days[1])}`.replace(' y ', language === 'en' ? ' & ' : ' y ')
-          : `${dayLabel(days[0])} – ${dayLabel(days[days.length - 1])}`;
-
-  return (
-    <section className="mx-auto max-w-public-content" style={{ padding: '0 24px 32px' }}>
-      <h2 className={inter.className} style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 800, letterSpacing: '-0.01em', color: TERRACOTA }}>
-        {getText('Horario', 'Hours')}
-      </h2>
-      <div style={{ backgroundColor: SURFACE, border: `0.5px solid ${BORDER_SOFT}`, borderRadius: '12px', padding: '4px 16px' }}>
-        {groups.map(({ days, entry }, i) => {
-          const isToday = todayKey !== null && days.includes(todayKey);
-          const label = groupLabel(days);
-          return (
-            <div
-              key={days.join('-')}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                gap: '12px',
-                padding: '11px 0',
-                borderTop: i === 0 ? 'none' : '1px solid var(--rt-border-soft, #f0e8da)',
-                fontSize: '14px',
-                color: CAFE,
-                fontWeight: isToday ? 600 : 400,
-              }}
-            >
-              <span>
-                {label}
-                {isToday && (
-                  <span style={{ marginLeft: '8px', fontSize: '11px', color: TERRACOTA, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    {getText('Hoy', 'Today')}
-                  </span>
-                )}
-              </span>
-              <span style={{ color: entry.cerrado ? MUTED : CAFE }}>
-                {entry.cerrado ? getText('Cerrado', 'Closed') : `${formatHour(entry.abre)} – ${formatHour(entry.cierra)}`}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-function CartBar({
-  count,
-  total,
-  currency,
-  accent,
-  hidden,
-  onOpen,
-  getText,
-}: {
-  count: number;
-  total: number;
-  currency: PublicTemplateProps['business']['currency'];
-  accent: string;
-  hidden: boolean;
-  onOpen: () => void;
-  getText: (es: string, en: string) => string;
-}) {
-  if (count === 0 || hidden) return null;
-  return (
-    <button
-      type="button"
-      onClick={onOpen}
-      aria-label={getText(`Ver pedido: ${count} ${count === 1 ? 'artículo' : 'artículos'}`, `View order: ${count} ${count === 1 ? 'item' : 'items'}`)}
-      className="fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom,0px)+76px)] @public-sm:left-auto @public-sm:right-6 @public-sm:bottom-6 @public-sm:w-[380px]"
-      style={{
-        zIndex: 90,
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-        minHeight: '56px',
-        padding: '0 18px',
-        border: 'none',
-        borderRadius: '14px',
-        backgroundColor: INK_SURFACE,
-        color: '#ffffff',
-        fontFamily: 'inherit',
-        fontWeight: 600,
-        fontSize: '15px',
-        cursor: 'pointer',
-        boxShadow: '0 8px 32px rgba(0,0,0,.25)',
-      }}
-    >
-      <span
-        style={{
-          minWidth: '26px',
-          height: '26px',
-          padding: '0 6px',
-          borderRadius: '9999px',
-          backgroundColor: accent,
-          color: 'var(--rt-on-accent, #ffffff)',
-          fontSize: '13px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        {count}
-      </span>
-      <span style={{ flex: 1, textAlign: 'left' }}>{getText('Ver pedido', 'View order')}</span>
-      <span>{formatPrice(total, currency)}</span>
-    </button>
-  );
-}
-
-function BottomNav({
-  cartCount,
-  accent,
-  onOpenCart,
-  getText,
-}: {
-  cartCount: number;
-  accent: string;
-  onOpenCart: () => void;
-  getText: (es: string, en: string) => string;
-}) {
-  const go = (id: string) => (e: { preventDefault: () => void }) => {
-    e.preventDefault();
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-  const itemStyle = {
-    display: 'flex',
-    flexDirection: 'column' as const,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '3px',
-    minHeight: '44px',
-    border: 'none',
-    background: 'transparent',
-    fontFamily: 'inherit',
-    fontSize: '11px',
-    fontWeight: 500,
-    color: MUTED,
-    textDecoration: 'none',
-    cursor: 'pointer',
-  };
-  const icon = {
-    width: 22,
-    height: 22,
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
-    strokeWidth: 1.8,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
-    'aria-hidden': true,
-  };
-
-  return (
-    <nav
-      aria-label={getText('Navegación principal', 'Main navigation')}
-      className="@public-sm:hidden fixed bottom-0 left-0 right-0"
-      style={{ zIndex: 80, backgroundColor: SURFACE, borderTop: '1px solid var(--rt-border, #e8ddc9)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
-    >
-      <div style={{ height: '64px', display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
-        <a href="#top" onClick={go('top')} style={itemStyle}>
-          <svg {...icon}><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4z" /></svg>
-          {getText('Inicio', 'Home')}
-        </a>
-        <a href="#menu" onClick={go('menu')} style={itemStyle}>
-          <svg {...icon}><path d="M6 5h12M6 10h12M6 15h12M6 20h8" /></svg>
-          {getText('Menú', 'Menu')}
-        </a>
-        <button type="button" onClick={onOpenCart} style={{ ...itemStyle, position: 'relative', color: cartCount > 0 ? CAFE : MUTED }}>
-          <svg {...icon}><path d="M6 7h12l-1 13H7L6 7z" /><path d="M9 7a3 3 0 0 1 6 0" /></svg>
-          {getText('Pedido', 'Order')}
-          {cartCount > 0 && (
-            <span
-              style={{
-                position: 'absolute',
-                top: '4px',
-                left: 'calc(50% + 6px)',
-                minWidth: '18px',
-                height: '18px',
-                padding: '0 5px',
-                borderRadius: '9999px',
-                backgroundColor: accent,
-                color: 'var(--rt-on-accent, #ffffff)',
-                fontSize: '11px',
-                fontWeight: 600,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {cartCount}
-            </span>
-          )}
-        </button>
-        <a href="#info" onClick={go('info')} style={itemStyle}>
-          <svg {...icon}><path d="M12 21s-6.5-5.6-6.5-11A6.5 6.5 0 0 1 12 3.5 6.5 6.5 0 0 1 18.5 10c0 5.4-6.5 11-6.5 11Z" /><circle cx="12" cy="10" r="2.3" /></svg>
-          {getText('Info', 'Info')}
-        </a>
-      </div>
-    </nav>
   );
 }
 
