@@ -187,6 +187,10 @@ export interface PublicTemplateProps {
     images?: string[] | null;
     /** Retail (InventoryItem) — precio "antes" tachado; solo es oferta si es mayor que `price`. */
     compareAtPrice?: number | null;
+    /** Retail (InventoryItem) — unidades disponibles; solo es real si `trackStock` es true. */
+    stock?: number | null;
+    /** Retail — true = mostrar Agotado/Quedan N y limitar la cantidad al stock. */
+    trackStock?: boolean | null;
     durationMinutes?: number | null;
     status?: string | null;
     is_demo?: boolean;

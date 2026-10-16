@@ -50,6 +50,11 @@ function isOnSale(item: { price?: number | null; compareAtPrice?: number | null 
   return item.price != null && item.compareAtPrice != null && item.compareAtPrice > item.price;
 }
 
+/** Con control de stock activo: unidades disponibles (>= 0); null = sin control. */
+function stockLeft(item: { trackStock?: boolean | null; stock?: number | null }): number | null {
+  return item.trackStock ? Math.max(0, item.stock ?? 0) : null;
+}
+
 function percentOff(item: { price?: number | null; compareAtPrice?: number | null }): number {
   if (!isOnSale(item)) return 0;
   return Math.round((1 - (item.price as number) / (item.compareAtPrice as number)) * 100);
@@ -668,6 +673,10 @@ function ProductCard({
   const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
   const onSale = isOnSale(item);
   const off = percentOff(item);
+  const left = stockLeft(item);
+  const soldOut = left === 0;
+  const atMax = left !== null && cartQty >= left;
+  const lowStock = left !== null && left > 0 && left <= 5;
   const [detailOpen, setDetailOpen] = useState(false);
   const stop = (e: React.MouseEvent) => e.stopPropagation();
   const hasDetail = Boolean(imageUrl || description);
@@ -698,6 +707,13 @@ function ProductCard({
         <div className="aspect-square" style={{ backgroundColor: IMG_BG, flexShrink: 0, position: 'relative' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={imageUrl} alt={displayName} className="h-full w-full object-cover" />
+          {soldOut && (
+            <span
+              style={{ position: 'absolute', top: 8, right: 8, backgroundColor: '#1f2937', color: '#ffffff', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 9999 }}
+            >
+              {getText('Agotado', 'Sold out')}
+            </span>
+          )}
           {onSale && off > 0 && (
             <span
               style={{ position: 'absolute', top: 8, left: 8, backgroundColor: '#b91c1c', color: '#ffffff', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 9999 }}
@@ -738,7 +754,16 @@ function ProductCard({
         )}
 
         <div onClick={stop} style={{ marginTop: 'auto' }}>
-        {cartQty === 0 ? (
+        {lowStock && (
+          <p style={{ margin: '0 0 6px', fontSize: '11px', fontWeight: 600, color: '#b45309' }}>
+            {getText(`Quedan ${left}`, `${left} left`)}
+          </p>
+        )}
+        {soldOut ? (
+          <p className="min-h-11 flex items-center justify-center text-xs font-semibold" style={{ color: MUTED }}>
+            {getText('Agotado', 'Sold out')}
+          </p>
+        ) : cartQty === 0 ? (
           <button
             onClick={addThis}
             aria-label={`${getText('Agregar', 'Add')} ${displayName}`}
@@ -767,8 +792,9 @@ function ProductCard({
                 price: item.price ?? 0,
                 image: imageUrl ?? undefined,
               })}
+              disabled={atMax}
               aria-label={`${getText('Agregar', 'Add')} ${displayName}`}
-              className="flex h-11 w-11 items-center justify-center rounded-md text-sm font-bold"
+              className="flex h-11 w-11 items-center justify-center rounded-md text-sm font-bold disabled:opacity-40"
               style={{ backgroundColor: accent, color: onAccent }}
             >
               +
@@ -789,7 +815,8 @@ function ProductCard({
       compareAtLabel={onSale ? formatPrice(item.compareAtPrice as number, currency) : null}
       category={categoryLabel(item.category, language, categoryTranslations)}
       qty={cartQty}
-      onAdd={addThis}
+      onAdd={atMax ? () => {} : addThis}
+      unavailableLabel={soldOut ? getText('Agotado', 'Sold out') : null}
       onRemove={() => removeFromCart(item.id)}
       accent={accent}
       onAccent={onAccent}

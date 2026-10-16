@@ -25,6 +25,8 @@ interface Item {
   category: string | null;
   price: number | null;
   compareAtPrice?: number | null;
+  trackStock?: boolean;
+  stock?: number | null;
   is_demo: boolean;
   active: boolean;
   imageUrl?: string | null;
@@ -119,6 +121,8 @@ export default function EditForm({
   });
 
   const [compareAtPrice, setCompareAtPrice] = useState(item.compareAtPrice != null ? String(item.compareAtPrice) : '');
+  const [trackStock, setTrackStock] = useState(item.trackStock ?? false);
+  const [stock, setStock] = useState(item.stock != null ? String(item.stock) : '');
   const [periods, setPeriods] = useState<MealPeriod[]>(item.periods);
   const [weekDays, setWeekDays] = useState<WeekDay[]>(item.weekDays);
   const [flags, setFlags] = useState({
@@ -157,7 +161,11 @@ export default function EditForm({
         images,
       };
       // 0 = quitar la oferta (el API trata null como "no tocar").
-      if (isRetail) body.compareAtPrice = compareAtPrice === '' ? 0 : Number(compareAtPrice);
+      if (isRetail) {
+        body.compareAtPrice = compareAtPrice === '' ? 0 : Number(compareAtPrice);
+        body.trackStock = trackStock;
+        if (trackStock) body.stock = stock === '' ? 0 : Math.max(0, Math.floor(Number(stock)));
+      }
       if (isRestaurant) {
         body.periods = periods;
         body.weekDays = weekDays;
@@ -376,6 +384,37 @@ export default function EditForm({
                   'If higher than the price, your store shows it crossed out as a deal. Leave empty to remove the deal.',
                 )}
               </p>
+            </div>
+          )}
+
+          {isRetail && (
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                <input type="checkbox" checked={trackStock} onChange={(e) => setTrackStock(e.target.checked)} />
+                {getText('Controlar inventario de este producto', 'Track inventory for this product')}
+              </label>
+              {trackStock && (
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                    {getText('Cantidad disponible', 'Quantity available')}
+                  </label>
+                  <input
+                    type="number"
+                    value={stock}
+                    onChange={(e) => setStock(e.target.value)}
+                    min="0"
+                    step="1"
+                    placeholder="0"
+                    className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-neutral-500 focus:border-neutral-400 dark:focus:border-neutral-500 focus:outline-none"
+                  />
+                  <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                    {getText(
+                      'Tu tienda mostrará "Agotado" en 0 y no dejará pedir más de lo disponible.',
+                      'Your store shows "Sold out" at 0 and will not accept more than is available.',
+                    )}
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
