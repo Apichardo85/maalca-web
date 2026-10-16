@@ -1,17 +1,15 @@
 'use client';
 // src/components/public/templates/Retail.tsx
 //
-// "Grain & Pigment" — a materials/texture-driven template for hardware,
-// paint, and craft-goods retailers. The signature element is a literal
-// paint-chip swatch strip (Ladrillo/Ocre Mostaza/Salvia/Azul Óxido) reused
-// as the category-tab treatment, so the store's own product category (paint
-// and finishes) becomes the page's own graphic device instead of a generic
-// icon-and-card grid — deliberately distinct from Service's mono rate-card
-// index and Barber's ticket-stub cards.
+// "Boutique" — plantilla de tienda dirigida por la MARCA del negocio: toda la paleta (fondo, superficies,
+// bordes, texto) se deriva del color primario (y secundario si es cromático) con deriveBrandPalette /
+// deriveDarkBrandPalette, así una tienda de jabones rosa, una ferretería roja o una joyería verde se ven
+// cada una como suyas. Foto primero: grilla de fotos 4:5 con el "+" de pedido sobre la imagen, hero
+// centrado y calmado, chips en píldora y un serif editorial solo para títulos y nombre.
 import { useEffect, useState } from 'react';
 import { OpenStatusBar } from '@/components/public/OpenStatusBar';
 import { getOpenStatus, getScheduleTarget, cartScheduleFrom, todayKeyInTimezone, type OpenStatus } from '@/lib/business-hours';
-import { Roboto_Slab } from 'next/font/google';
+import { Playfair_Display } from 'next/font/google';
 import type { ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
 import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
@@ -34,14 +32,14 @@ import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 import { formatPrice } from '@/lib/currency';
 import { categoryLabel } from '@/lib/category-label';
 import PublicThemeToggle from '@/components/public/PublicThemeToggle';
-import { deriveBrandPalette, deriveDarkBrandPalette, themeVarsCss } from '@/lib/brand-palette';
+import { brandPaletteCss, deriveBrandPalette, deriveDarkBrandPalette } from '@/lib/brand-palette';
 
-// Scoped to this template only — a slab serif reads as "catalog/hardware
-// store signage", distinct from Service's editorial Fraunces and Barber's
-// condensed Oswald.
-const robotoSlab = Roboto_Slab({ subsets: ['latin'], weight: ['500', '700'], variable: '--font-retail-display' });
+// Serif editorial solo para títulos (hero, secciones, nombre del producto en el detalle). El resto va en la
+// sans del sitio para que precios y descripciones se lean limpios en móvil.
+const display = Playfair_Display({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-retail-display' });
 
 const ALL_TAB = '__all__';
+const DEFAULT_BRAND = '#A6452B';
 
 type SortKey = 'default' | 'price-asc' | 'price-desc' | 'name';
 
@@ -65,45 +63,18 @@ function percentOff(item: { price?: number | null; compareAtPrice?: number | nul
   return Math.round((1 - (item.price as number) / (item.compareAtPrice as number)) * 100);
 }
 
-// Neutrals are CSS variables (scope `.rl-scope`) with the light hex as fallback; the dark values
-// live under html[data-theme="dark"] via themeVarsCss, so the theme resolves in CSS (no flash).
-const PIEDRA = 'var(--rl-bg, #E6E2D8)';
+// Todo son variables CSS (scope `.rl-scope`) definidas por brandPaletteCss: claro por defecto y oscuro bajo
+// html[data-theme="dark"], así el tema se resuelve en CSS (sin parpadeo). Los hex son solo respaldo.
+const BG = 'var(--rl-bg, #f7f3f0)';
 const INK = 'var(--rl-ink, #2B2820)';
-const MUTED = 'var(--rl-muted, #7A7468)';
+const MUTED = 'var(--rl-muted, #6b655c)';
 const SURFACE = 'var(--rl-surface, #ffffff)';
-const BORDER = 'var(--rl-border, #d9d4c8)';
-const SOFT = 'var(--rl-soft, #f0ede4)';
-const IMG_BG = 'var(--rl-img-bg, #f1efe9)';
-// INK as a BACKGROUND under white text (active "Todos" chip): ink turns near-white in dark mode.
+const BORDER = 'var(--rl-border, #e5dfd6)';
+const BORDER_SOFT = 'var(--rl-border-soft, #efeae2)';
+const PLACEHOLDER = 'var(--rl-placeholder, #f1ece4)';
+const ACCENT_SOFT = 'var(--rl-accent-soft, rgba(166,69,43,0.1))';
+// INK como FONDO bajo texto blanco (barra del carrito): la tinta se vuelve casi blanca en oscuro.
 const INK_SURFACE = 'var(--rl-ink-surface, #2B2820)';
-
-const LIGHT_VARS: Record<string, string> = {
-  'rl-bg': '#E6E2D8',
-  'rl-ink': '#2B2820',
-  'rl-muted': '#7A7468',
-  'rl-surface': '#ffffff',
-  'rl-border': '#d9d4c8',
-  'rl-soft': '#f0ede4',
-  'rl-img-bg': '#f1efe9',
-  'rl-ink-surface': '#2B2820',
-};
-const DARK_VARS: Record<string, string> = {
-  'rl-bg': '#16140F',
-  'rl-ink': '#EFEBE1',
-  'rl-muted': '#A39C8E',
-  'rl-surface': '#1F1C16',
-  'rl-border': '#34302A',
-  'rl-soft': '#2A2620',
-  'rl-img-bg': '#26231C',
-  'rl-ink-surface': '#3B362D',
-};
-
-const SWATCHES = [
-  { name: 'Ladrillo', hex: '#A6452B' },
-  { name: 'Ocre Mostaza', hex: '#C98A2B' },
-  { name: 'Salvia', hex: '#7A8B6F' },
-  { name: 'Azul Óxido', hex: '#46647A' },
-];
 
 export function RetailTemplate({
   business,
@@ -111,25 +82,22 @@ export function RetailTemplate({
   categories: categoriesProp,
   capabilities,
 }: PublicTemplateProps) {
-  const accent = business.primary_color ?? SWATCHES[0].hex;
-  // Brand color adjusted for contrast in both themes (buttons, "Ver más" links). The hero banner keeps
-  // the raw brand color (white text).
+  const accent = business.primary_color ?? DEFAULT_BRAND;
+  // Paleta completa por tema: neutros con el matiz de la marca + acento ajustado por contraste (botones,
+  // texto en color de marca y texto sobre el botón). El hero usa el color de marca tal cual.
   const lightBrand = deriveBrandPalette(accent, business.secondary_color, business.accent_color);
   const darkBrand = deriveDarkBrandPalette(accent, business.secondary_color, business.accent_color);
-  const themeCss = themeVarsCss(
-    'rl-scope',
-    // Fondos de botón = marca tal cual; texto en color de marca y texto sobre el botón se ajustan por
-    // contraste (un primario amarillo/claro dejaba "Ver más" ilegible y el "+ Agregar" blanco sobre amarillo).
-    { ...LIGHT_VARS, 'rl-accent': accent, 'rl-accent-text': lightBrand.accentText, 'rl-on-accent': lightBrand.onAccent },
-    { ...DARK_VARS, 'rl-accent': darkBrand.accent, 'rl-accent-text': darkBrand.accentText, 'rl-on-accent': darkBrand.onAccent },
-  );
-  // Sin portada, el hero es el color de marca liso: con un primario claro (amarillo) el texto blanco no se
-  // lee, así que usa el color de texto que elige la paleta por contraste. Con portada hay degradado oscuro.
+  const themeCss = brandPaletteCss('rl-scope', 'rl', lightBrand, darkBrand);
+  // Sin portada, el hero es el color de marca: con un primario claro (amarillo) el texto blanco no se lee,
+  // así que usa el color de texto que elige la paleta por contraste. Con portada hay degradado oscuro.
   const heroDark = !business.cover_image_url && lightBrand.onAccent !== '#ffffff';
   const heroFg = heroDark ? lightBrand.onAccent : '#ffffff';
-  const heroSoft = heroDark ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)';
-  const heroLine = heroDark ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.3)';
-  const heroMuted = heroDark ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.75)';
+  const heroSoft = heroDark ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.18)';
+  const heroLine = heroDark ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.4)';
+  const heroMuted = heroDark ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.82)';
+  const heroBg = heroDark
+    ? 'linear-gradient(160deg, var(--rl-brand), color-mix(in srgb, var(--rl-brand) 78%, #ffffff))'
+    : 'linear-gradient(160deg, var(--rl-brand), color-mix(in srgb, var(--rl-brand) 70%, #000000))';
   const accentFill = `var(--rl-accent, ${accent})`;
   const accentText = `var(--rl-accent-text, ${accent})`;
   const onAccent = 'var(--rl-on-accent, #ffffff)';
@@ -197,44 +165,38 @@ export function RetailTemplate({
         );
 
   return (
-    <div id="top" className={`${robotoSlab.variable} rl-scope`} style={{ minHeight: '100vh', backgroundColor: PIEDRA, containerType: 'inline-size' } as React.CSSProperties}>
+    <div id="top" className={`${display.variable} rl-scope`} style={{ minHeight: '100vh', backgroundColor: BG, containerType: 'inline-size' } as React.CSSProperties}>
       <style dangerouslySetInnerHTML={{ __html: themeCss }} />
       <OpenStatusBar status={openStatus} language={language} sticky />
-      {/* ── HERO ── */}
+      {/* ── HERO — centrado y calmado: marca, nombre y dos acciones ── */}
       <section
         style={{
           position: 'relative',
-          height: '320px',
-          backgroundColor: accent,
           overflow: 'hidden',
+          background: heroBg,
+          borderRadius: '0 0 32px 32px',
+          color: heroFg,
         }}
       >
-        {business.cover_image_url && (
+        {business.cover_image_url ? (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={business.cover_image_url}
               alt=""
-              style={{
-                position: 'absolute',
-                top: 0, left: 0, right: 0, bottom: 0,
-                width: '100%', height: '100%',
-                objectFit: 'cover',
-                filter: 'saturate(0.85) contrast(1.05)',
-              }}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
             />
-            <div
-              style={{
-                position: 'absolute',
-                top: 0, left: 0, right: 0, bottom: 0,
-                background: `linear-gradient(180deg, rgba(43,40,32,0.25), rgba(43,40,32,0.7))`,
-              }}
-            />
+            <div style={{ position: 'absolute', inset: 0, background: 'var(--rl-hero-overlay)' }} />
+          </>
+        ) : (
+          <>
+            {/* Dos halos suaves: dan profundidad sin imagen y sin un motivo ajeno a la marca. */}
+            <div aria-hidden style={{ position: 'absolute', top: '-90px', right: '-70px', width: '280px', height: '280px', borderRadius: '50%', background: `radial-gradient(circle, ${heroDark ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.18)'}, transparent 70%)` }} />
+            <div aria-hidden style={{ position: 'absolute', bottom: '-110px', left: '-80px', width: '300px', height: '300px', borderRadius: '50%', background: `radial-gradient(circle, ${heroDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.16)'}, transparent 70%)` }} />
           </>
         )}
 
-        {/* language toggle — top-right corner, clear of the bottom-anchored
-            content below and never covered by it at any viewport */}
+        {/* language/theme toggles — esquina superior derecha, fuera del contenido centrado */}
         <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 2, display: 'flex', gap: '8px' }}>
           <SimpleLanguageToggle variant={heroDark ? 'light' : 'dark'} spanishFlag={business.spanishFlag} />
           <PublicThemeToggle variant={heroDark ? 'light' : 'dark'} />
@@ -243,13 +205,13 @@ export function RetailTemplate({
         <div
           className="mx-auto max-w-public-content"
           style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
+            position: 'relative',
             zIndex: 1,
-            padding: '0 32px 32px',
-            color: heroFg,
+            padding: '76px 24px 40px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
           }}
         >
           {business.logo_url ? (
@@ -259,85 +221,104 @@ export function RetailTemplate({
               alt={business.name}
               style={{
                 display: 'block',
-                width: '78px',
-                height: '78px',
-                borderRadius: '11px',
+                width: '96px',
+                height: '96px',
+                borderRadius: '50%',
                 objectFit: 'cover',
-                border: `2px solid ${heroLine}`,
-                marginBottom: '14px',
+                border: `3px solid ${heroLine}`,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
+                backgroundColor: '#ffffff',
               }}
             />
           ) : (
             <div
+              className={display.className}
               style={{
-                width: '78px',
-                height: '78px',
-                borderRadius: '11px',
+                width: '96px',
+                height: '96px',
+                borderRadius: '50%',
                 backgroundColor: heroSoft,
-                border: `2px solid ${heroLine}`,
+                border: `3px solid ${heroLine}`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: heroFg,
-                marginBottom: '14px',
+                fontSize: '40px',
+                fontWeight: 600,
               }}
             >
-              <NoImageIcon size={30} />
+              {business.name.trim().charAt(0).toUpperCase()}
             </div>
           )}
 
           <h1
-            className={robotoSlab.className}
-            style={{ margin: 0, fontSize: '32px', fontWeight: 700, color: heroFg, lineHeight: 1.1 }}
+            className={display.className}
+            style={{ margin: '18px 0 0', fontSize: 'clamp(30px, 8vw, 42px)', fontWeight: 600, lineHeight: 1.1, letterSpacing: '-0.01em' }}
           >
             {business.name}
           </h1>
 
           {business.address && (
-            <p style={{ margin: '6px 0 0', fontSize: '13px', color: heroMuted }}>
-              📍 {business.address}
+            <p style={{ margin: '10px 0 0', fontSize: '13px', color: heroMuted, display: 'flex', alignItems: 'center', gap: '5px', justifyContent: 'center' }}>
+              <PinIcon size={14} />
+              {business.address}
             </p>
           )}
 
-          {waRaw && (
-            <a
-              href={`https://wa.me/${waRaw}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => trackCanalClick(business.slug, 'WhatsApp', whatsappEntry?.canalId)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                marginTop: '16px',
-                backgroundColor: heroSoft,
-                backdropFilter: 'blur(4px)',
-                color: heroFg,
-                padding: '9px 18px',
-                borderRadius: '9999px',
-                fontSize: '13px',
-                fontWeight: 600,
-                textDecoration: 'none',
-              }}
-            >
-              💬 WhatsApp
-            </a>
-          )}
+          <div style={{ marginTop: '22px', display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' }}>
+            {items.length > 0 && (
+              <a
+                href="#catalog"
+                className="min-h-11"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  backgroundColor: '#ffffff',
+                  color: lightBrand.accentText,
+                  padding: '0 22px',
+                  borderRadius: '9999px',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                  boxShadow: '0 6px 18px rgba(0,0,0,0.16)',
+                }}
+              >
+                {getText('Ver catálogo', 'Shop now')}
+              </a>
+            )}
+            {waRaw && (
+              <a
+                href={`https://wa.me/${waRaw}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackCanalClick(business.slug, 'WhatsApp', whatsappEntry?.canalId)}
+                className="min-h-11"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  backgroundColor: heroSoft,
+                  border: `1px solid ${heroLine}`,
+                  backdropFilter: 'blur(6px)',
+                  color: heroFg,
+                  padding: '0 20px',
+                  borderRadius: '9999px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                }}
+              >
+                <WhatsAppGlyph size={16} />
+                WhatsApp
+              </a>
+            )}
+          </div>
         </div>
       </section>
-
-      {/* ── SWATCH STRIP — the signature element: a literal paint-chip fan,
-          reused below as the category-tab treatment ── */}
-      <div style={{ display: 'flex', height: '10px' }}>
-        {SWATCHES.map((s) => (
-          <div key={s.hex} style={{ flex: 1, backgroundColor: s.hex }} title={s.name} />
-        ))}
-      </div>
 
       <AboutSection description={business.description} descriptionEn={business.descriptionEn} maxWidthClassName="max-w-public-content" language={language} />
 
       {/* ── PASOS ── */}
-      <ProcessSection steps={business.processSteps} visible={business.sectionVisibility?.processSteps !== false} accent={accent} getText={getText} />
+      <ProcessSection steps={business.processSteps} visible={business.sectionVisibility?.processSteps !== false} getText={getText} />
 
       {/* ── GALERÍA ── */}
       <GallerySection images={business.galleryImages} visible={business.sectionVisibility?.gallery !== false} accent={accent} getText={getText} />
@@ -361,25 +342,27 @@ export function RetailTemplate({
         />
       )}
 
-      {/* ── CATEGORY TABS — rendered as paint chips, cycling the swatch palette ── */}
+      {/* ── CATEGORÍAS — píldoras; la activa toma el color de marca ── */}
       {categoryNames.length > 0 && (
-        <div className="mx-auto max-w-public-content" style={{ padding: '20px 24px 0' }}>
+        <div className="mx-auto max-w-public-content" style={{ padding: '18px 24px 0' }}>
           <div
             className="[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden overflow-x-auto md:overflow-x-visible md:flex-wrap"
-            style={{ display: 'flex', gap: '10px' }}
+            style={{ display: 'flex', gap: '8px' }}
           >
             <ChipTab
               label={getText('Todos', 'All')}
               active={activeTab === ALL_TAB}
-              color={INK_SURFACE}
+              accent={accentFill}
+              onAccent={onAccent}
               onClick={() => setActiveTab(ALL_TAB)}
             />
-            {categoryNames.map((name, i) => (
+            {categoryNames.map((name) => (
               <ChipTab
                 key={name}
                 label={categoryLabel(name, language, business.categoryTranslations)}
                 active={activeTab === name}
-                color={SWATCHES[i % SWATCHES.length].hex}
+                accent={accentFill}
+                onAccent={onAccent}
                 onClick={() => setActiveTab(name)}
               />
             ))}
@@ -387,15 +370,18 @@ export function RetailTemplate({
         </div>
       )}
 
-      {/* ── ORDENAR / OFERTAS ── */}
+      {/* ── CONTEO / OFERTAS / ORDENAR ── */}
       {items.length > 1 && (
-        <div className="mx-auto max-w-public-content" style={{ padding: '14px 24px 0', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div className="mx-auto max-w-public-content" style={{ padding: '14px 24px 0', display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <p style={{ margin: 0, fontSize: '13px', color: MUTED, flex: '1 0 auto', whiteSpace: 'nowrap' }}>
+            {visibleItems.length} {getText(visibleItems.length === 1 ? 'producto' : 'productos', visibleItems.length === 1 ? 'product' : 'products')}
+          </p>
           {hasOffers && (
             <button
               type="button"
               onClick={() => setOnlyOffers((v) => !v)}
               aria-pressed={onlyOffers}
-              className="min-h-11 rounded-full px-4 text-xs font-semibold"
+              className="min-h-11 shrink-0 whitespace-nowrap rounded-full px-4 text-xs font-semibold"
               style={{
                 backgroundColor: onlyOffers ? accentFill : SURFACE,
                 color: onlyOffers ? onAccent : INK,
@@ -405,25 +391,23 @@ export function RetailTemplate({
               🏷 {getText('Ofertas', 'Deals')}
             </button>
           )}
-          <label className="ml-auto flex items-center gap-2 text-xs" style={{ color: MUTED }}>
-            {getText('Ordenar', 'Sort')}
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value as SortKey)}
-              className="min-h-11 rounded-full px-3 text-xs font-semibold"
-              style={{ backgroundColor: SURFACE, color: INK, border: `1px solid ${BORDER}` }}
-            >
-              <option value="default">{getText('Relevancia', 'Recommended')}</option>
-              <option value="price-asc">{getText('Precio: menor a mayor', 'Price: low to high')}</option>
-              <option value="price-desc">{getText('Precio: mayor a menor', 'Price: high to low')}</option>
-              <option value="name">{getText('Nombre A–Z', 'Name A–Z')}</option>
-            </select>
-          </label>
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as SortKey)}
+            aria-label={getText('Ordenar', 'Sort')}
+            className="min-h-11 rounded-full px-3 text-xs font-semibold"
+            style={{ backgroundColor: SURFACE, color: INK, border: `1px solid ${BORDER}`, flex: '0 1 auto', minWidth: 0 }}
+          >
+            <option value="default">{getText('Relevancia', 'Recommended')}</option>
+            <option value="price-asc">{getText('Precio: menor a mayor', 'Price: low to high')}</option>
+            <option value="price-desc">{getText('Precio: mayor a menor', 'Price: high to low')}</option>
+            <option value="name">{getText('Nombre A–Z', 'Name A–Z')}</option>
+          </select>
         </div>
       )}
 
       {/* ── CONTENT ── */}
-      <main className="mx-auto max-w-public-content" style={{ padding: '20px 24px 40px' }}>
+      <main className="mx-auto max-w-public-content" style={{ padding: '16px 24px 40px' }}>
         {items.length === 0 ? (
           <div
             style={{
@@ -460,12 +444,11 @@ export function RetailTemplate({
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {visibleItems.map((item, i) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-7">
+            {visibleItems.map((item) => (
               <ProductCard
                 key={item.id}
                 item={item}
-                chipColor={SWATCHES[i % SWATCHES.length].hex}
                 cartQty={cart.find((e) => e.item.id === item.id)?.qty ?? 0}
                 accent={accentFill}
                 accentText={accentText}
@@ -492,7 +475,7 @@ export function RetailTemplate({
           todayKey={todayKey}
           language={language}
           getText={getText}
-          headingClassName={robotoSlab.className}
+          headingClassName={display.className}
           headingColor={accentText}
           ink={INK}
           muted={MUTED}
@@ -560,33 +543,37 @@ export function RetailTemplate({
 
 // ── SUB-COMPONENTS ──────────────────────────────────────────────────────────
 
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className={display.className} style={{ margin: '0 0 14px', fontSize: '22px', fontWeight: 600, color: INK, letterSpacing: '-0.01em' }}>
+      {children}
+    </h2>
+  );
+}
+
 function ProcessSection({
   steps,
   visible,
-  accent,
   getText,
 }: {
   steps?: ProcessStep[] | null;
   visible: boolean;
-  accent: string;
   getText: (es: string, en: string) => string;
 }) {
   if (!visible || !steps || steps.length === 0) return null;
 
   return (
-    <div className="mx-auto max-w-public-content" style={{ padding: '20px 24px 0' }}>
-      <h2 className={robotoSlab.className} style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 700, color: INK }}>
-        {getText('Cómo trabajamos', 'How we work')}
-      </h2>
+    <div className="mx-auto max-w-public-content" style={{ padding: '28px 24px 0' }}>
+      <SectionTitle>{getText('Cómo trabajamos', 'How we work')}</SectionTitle>
       <div className="grid gap-3 sm:grid-cols-3">
         {steps.map((step, i) => (
           <div
             key={`${i}-${step.title}`}
             style={{
               backgroundColor: SURFACE,
-              border: `1px solid ${BORDER}`,
-              borderRadius: '10px',
-              padding: '14px',
+              border: `1px solid ${BORDER_SOFT}`,
+              borderRadius: '18px',
+              padding: '16px',
             }}
           >
             <span
@@ -594,24 +581,24 @@ function ProcessSection({
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '26px',
-                height: '26px',
-                borderRadius: '2px',
-                backgroundColor: SWATCHES[i % SWATCHES.length].hex,
-                color: '#ffffff',
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--rl-accent)',
+                color: 'var(--rl-on-accent)',
                 fontSize: '12px',
                 fontWeight: 700,
               }}
             >
               {i + 1}
             </span>
-            <p className={robotoSlab.className} style={{ margin: '10px 0 0', fontSize: '13px', fontWeight: 700, color: INK }}>
+            <p style={{ margin: '12px 0 0', fontSize: '14px', fontWeight: 700, color: INK }}>
               {step.title}
             </p>
             {step.description && (
               <div
                 className="prose-sm whitespace-pre-line [&_h2]:text-[13px] [&_h2]:font-semibold [&_h3]:text-[12px] [&_h3]:font-semibold [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_a]:underline"
-                style={{ margin: '6px 0 0', fontSize: '12px', lineHeight: 1.5, color: MUTED }}
+                style={{ margin: '6px 0 0', fontSize: '13px', lineHeight: 1.55, color: MUTED }}
                 dangerouslySetInnerHTML={{ __html: sanitizeRichText(step.description) }}
               />
             )}
@@ -636,17 +623,15 @@ function GallerySection({
   if (!visible || !images || images.length === 0) return null;
 
   return (
-    <div className="mx-auto max-w-public-content" style={{ padding: '20px 24px 0' }}>
-      <h2 className={robotoSlab.className} style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 700, color: INK }}>
-        {getText('Galería', 'Gallery')}
-      </h2>
+    <div className="mx-auto max-w-public-content" style={{ padding: '28px 24px 0' }}>
+      <SectionTitle>{getText('Galería', 'Gallery')}</SectionTitle>
       <PublicGalleryLightbox images={images} accent={accent} getText={getText} />
     </div>
   );
 }
 
 // Same outline used for the "no image" state in the dashboard's catalog
-// ItemRow (CatalogView.tsx) — reused here instead of the 🖌️ emoji placeholder.
+// ItemRow (CatalogView.tsx).
 function NoImageIcon({ size }: { size: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -656,9 +641,25 @@ function NoImageIcon({ size }: { size: number }) {
   );
 }
 
+function PinIcon({ size }: { size: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>
+      <path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  );
+}
+
+function WhatsAppGlyph({ size }: { size: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20.5l1.7-5.4A8.4 8.4 0 1 1 21 11.5z" />
+    </svg>
+  );
+}
+
 function ProductCard({
   item,
-  chipColor,
   cartQty,
   accent,
   accentText,
@@ -671,7 +672,6 @@ function ProductCard({
   categoryTranslations,
 }: {
   item: PublicTemplateProps['items'][number];
-  chipColor: string;
   cartQty: number;
   accent: string;
   accentText: string;
@@ -696,6 +696,7 @@ function ProductCard({
   const stop = (e: React.MouseEvent) => e.stopPropagation();
   const hasDetail = Boolean(imageUrl || description);
   const addThis = () => addToCart({ id: item.id, name: displayName, price: item.price ?? 0, image: imageUrl ?? undefined });
+  const badge: React.CSSProperties = { fontSize: 11, fontWeight: 700, padding: '4px 9px', borderRadius: 9999, lineHeight: 1.2, whiteSpace: 'nowrap' };
 
   return (
     <>
@@ -704,53 +705,98 @@ function ProductCard({
       tabIndex={hasDetail ? 0 : undefined}
       onClick={hasDetail ? () => setDetailOpen(true) : undefined}
       onKeyDown={hasDetail ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailOpen(true); } } : undefined}
-      style={{
-        cursor: hasDetail ? 'pointer' : 'default',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        backgroundColor: SURFACE,
-        border: `1px solid ${BORDER}`,
-        borderRadius: '10px',
-        overflow: 'hidden',
-      }}
+      className="group"
+      style={{ cursor: hasDetail ? 'pointer' : 'default', display: 'flex', flexDirection: 'column', height: '100%' }}
     >
-      {/* swatch tab — every card carries a corner of the strip above */}
-      <div style={{ height: '5px', backgroundColor: chipColor, flexShrink: 0 }} />
+      {/* Foto 4:5. Sin foto: bloque tintado con la inicial, para que la grilla no pierda ritmo. */}
+      <div
+        style={{
+          position: 'relative',
+          aspectRatio: '4 / 5',
+          borderRadius: '18px',
+          overflow: 'hidden',
+          backgroundColor: PLACEHOLDER,
+          backgroundImage: `linear-gradient(${ACCENT_SOFT}, ${ACCENT_SOFT})`,
+          flexShrink: 0,
+        }}
+      >
+        {imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={imageUrl}
+            alt={displayName}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+            style={soldOut ? { opacity: 0.55, filter: 'grayscale(0.5)' } : undefined}
+          />
+        ) : (
+          <div
+            className={display.className}
+            style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '56px', fontWeight: 600, color: accentText, opacity: 0.55 }}
+          >
+            {displayName.trim().charAt(0).toUpperCase()}
+          </div>
+        )}
 
-      {imageUrl && (
-        <div className="aspect-square" style={{ backgroundColor: IMG_BG, flexShrink: 0, position: 'relative' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={imageUrl} alt={displayName} className="h-full w-full object-cover" />
+        {/* Insignias: discretas, arriba a la izquierda */}
+        <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
           {soldOut && (
-            <span
-              style={{ position: 'absolute', top: 8, right: 8, backgroundColor: '#1f2937', color: '#ffffff', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 9999 }}
-            >
-              {getText('Agotado', 'Sold out')}
-            </span>
+            <span style={{ ...badge, backgroundColor: '#1f2937', color: '#ffffff' }}>{getText('Agotado', 'Sold out')}</span>
           )}
-          {(item.featured || item.popular) && (
-            <span
-              style={{ position: 'absolute', bottom: 8, left: 8, backgroundColor: 'rgba(255,255,255,0.92)', color: '#2B2820', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 9999 }}
-            >
+          {onSale && off > 0 && !soldOut && (
+            <span style={{ ...badge, backgroundColor: accent, color: onAccent }}>−{off}%</span>
+          )}
+          {(item.featured || item.popular) && !soldOut && (
+            <span style={{ ...badge, backgroundColor: 'rgba(255,255,255,0.92)', color: '#2B2820' }}>
               {item.featured ? `⭐ ${getText('Destacado', 'Featured')}` : `🔥 ${getText('Popular', 'Popular')}`}
             </span>
           )}
-          {onSale && off > 0 && (
-            <span
-              style={{ position: 'absolute', top: 8, left: 8, backgroundColor: '#b91c1c', color: '#ffffff', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 9999 }}
-            >
-              −{off}%
-            </span>
-          )}
         </div>
-      )}
 
-      <div style={{ padding: '10px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-        <p
-          className={robotoSlab.className}
-          style={{ margin: 0, fontWeight: 700, fontSize: '13px', color: INK, lineHeight: 1.3 }}
-        >
+        {/* Pedido rápido sobre la foto: "+" redondo; con unidades en el carrito pasa a −/N/+ */}
+        {!soldOut && (
+          <div onClick={stop} style={{ position: 'absolute', right: 8, bottom: 8 }}>
+            {cartQty === 0 ? (
+              <button
+                onClick={addThis}
+                aria-label={`${getText('Agregar', 'Add')} ${displayName}`}
+                className="flex h-11 w-11 items-center justify-center rounded-full text-xl font-semibold transition active:scale-95"
+                style={{ backgroundColor: accent, color: onAccent, boxShadow: '0 4px 14px rgba(0,0,0,0.25)' }}
+              >
+                +
+              </button>
+            ) : (
+              <div
+                className="flex h-11 items-center rounded-full"
+                style={{ backgroundColor: SURFACE, boxShadow: '0 4px 14px rgba(0,0,0,0.25)' }}
+              >
+                <button
+                  onClick={() => removeFromCart(item.id)}
+                  aria-label={`${getText('Quitar', 'Remove')} ${displayName}`}
+                  className="flex h-11 w-10 items-center justify-center text-lg font-semibold"
+                  style={{ color: INK }}
+                >
+                  −
+                </button>
+                <span className="min-w-4 text-center text-sm font-bold" style={{ color: INK }}>
+                  {cartQty}
+                </span>
+                <button
+                  onClick={addThis}
+                  disabled={atMax}
+                  aria-label={`${getText('Agregar', 'Add')} ${displayName}`}
+                  className="flex h-11 w-11 items-center justify-center rounded-full text-lg font-semibold disabled:opacity-40"
+                  style={{ backgroundColor: accent, color: onAccent }}
+                >
+                  +
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div style={{ padding: '10px 2px 0', display: 'flex', flexDirection: 'column', flex: 1 }}>
+        <p style={{ margin: 0, fontWeight: 600, fontSize: '14px', color: INK, lineHeight: 1.3 }}>
           {displayName}
         </p>
         {description && (
@@ -758,14 +804,14 @@ function ProductCard({
             <ClampedDescription
               text={description}
               language={language}
-              textStyle={{ margin: '4px 0 0', fontSize: '11px', color: MUTED, lineHeight: 1.4 }}
+              textStyle={{ margin: '3px 0 0', fontSize: '12px', color: MUTED, lineHeight: 1.45 }}
               buttonColor={accentText}
-              buttonStyle={{ fontSize: '11px' }}
+              buttonStyle={{ fontSize: '12px' }}
             />
           </div>
         )}
         {item.price != null && (
-          <p style={{ margin: '6px 0 0', fontSize: '14px', fontWeight: 700, color: onSale ? '#b91c1c' : INK }}>
+          <p style={{ margin: '6px 0 0', fontSize: '15px', fontWeight: 700, color: onSale ? accentText : INK }}>
             {formatPrice(item.price, currency)}
             {onSale && (
               <s style={{ marginLeft: 6, fontSize: 12, fontWeight: 500, color: MUTED }}>
@@ -774,56 +820,11 @@ function ProductCard({
             )}
           </p>
         )}
-
-        <div onClick={stop} style={{ marginTop: 'auto' }}>
         {lowStock && (
-          <p style={{ margin: '0 0 6px', fontSize: '11px', fontWeight: 600, color: '#b45309' }}>
+          <p style={{ margin: '3px 0 0', fontSize: '11px', fontWeight: 600, color: accentText }}>
             {getText(`Quedan ${left}`, `${left} left`)}
           </p>
         )}
-        {soldOut ? (
-          <p className="min-h-11 flex items-center justify-center text-xs font-semibold" style={{ color: MUTED }}>
-            {getText('Agotado', 'Sold out')}
-          </p>
-        ) : cartQty === 0 ? (
-          <button
-            onClick={addThis}
-            aria-label={`${getText('Agregar', 'Add')} ${displayName}`}
-            className="block min-h-11 w-full rounded-full py-2.5 text-center text-xs font-semibold transition hover:opacity-90"
-            style={{ backgroundColor: accent, color: onAccent }}
-          >
-            + {getText('Agregar', 'Add')}
-          </button>
-        ) : (
-          <div className="flex items-center justify-between gap-1">
-            <button
-              onClick={() => removeFromCart(item.id)}
-              aria-label={`${getText('Quitar', 'Remove')} ${displayName}`}
-              className="flex h-11 w-11 items-center justify-center rounded-md text-sm font-bold"
-              style={{ backgroundColor: SOFT, color: INK }}
-            >
-              −
-            </button>
-            <span className="text-sm font-bold" style={{ color: INK }}>
-              {cartQty}
-            </span>
-            <button
-              onClick={() => addToCart({
-                id: item.id,
-                name: displayName,
-                price: item.price ?? 0,
-                image: imageUrl ?? undefined,
-              })}
-              disabled={atMax}
-              aria-label={`${getText('Agregar', 'Add')} ${displayName}`}
-              className="flex h-11 w-11 items-center justify-center rounded-md text-sm font-bold disabled:opacity-40"
-              style={{ backgroundColor: accent, color: onAccent }}
-            >
-              +
-            </button>
-          </div>
-        )}
-        </div>
       </div>
     </div>
     <ItemDetailSheet
@@ -858,43 +859,36 @@ function ProductCard({
 function ChipTab({
   label,
   active,
-  color,
+  accent,
+  onAccent,
   onClick,
 }: {
   label: string;
   active: boolean;
-  color: string;
+  accent: string;
+  onAccent: string;
   onClick: () => void;
 }) {
   return (
     <button
       onClick={onClick}
+      aria-pressed={active}
+      className="min-h-10"
       style={{
         flexShrink: 0,
-        display: 'flex',
-        alignItems: 'center',
-        gap: '6px',
-        padding: '8px 14px 8px 10px',
-        borderRadius: '8px 8px 2px 2px',
+        padding: '0 18px',
+        borderRadius: '9999px',
         border: 'none',
-        backgroundColor: active ? color : SURFACE,
-        color: active ? '#ffffff' : INK,
+        backgroundColor: active ? accent : SURFACE,
+        color: active ? onAccent : INK,
         fontSize: '13px',
         fontWeight: 600,
         cursor: 'pointer',
         whiteSpace: 'nowrap',
         boxShadow: active ? 'none' : `inset 0 0 0 1px ${BORDER}`,
+        transition: 'background-color .15s, color .15s',
       }}
     >
-      <span
-        style={{
-          width: '9px',
-          height: '9px',
-          borderRadius: '2px',
-          backgroundColor: active ? 'rgba(255,255,255,0.8)' : color,
-          flexShrink: 0,
-        }}
-      />
       {label}
     </button>
   );
@@ -911,7 +905,7 @@ function FaqSection({
 
   return (
     <section className="mx-auto max-w-public-content" style={{ padding: '0 24px 28px' }}>
-      <h2 className={robotoSlab.className} style={{ margin: '0 0 12px', fontSize: '18px', fontWeight: 700, color: INK }}>
+      <h2 className={display.className} style={{ margin: '0 0 14px', fontSize: '22px', fontWeight: 600, color: INK, letterSpacing: '-0.01em' }}>
         {getText('Preguntas frecuentes', 'FAQ')}
       </h2>
       <div style={{ borderTop: `1px solid ${BORDER}` }}>
@@ -958,8 +952,8 @@ function ContactSection({
               onClick={() => trackCanalClick(business.slug, c.tipo, c.canalId)}
               style={{
                 backgroundColor: SURFACE,
-                border: `1px solid ${BORDER}`,
-                borderRadius: '10px',
+                border: `1px solid ${BORDER_SOFT}`,
+                borderRadius: '18px',
                 padding: '16px',
                 display: 'flex',
                 flexDirection: 'column',
