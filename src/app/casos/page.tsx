@@ -39,8 +39,7 @@ const cases = [
     id: "la-catrina",
     nameKey: "cases.lc.title",
     locationKey: "cases.lc.location",
-    // Sin logo en /public todavía: CaseLogo muestra las iniciales.
-    logo: null as string | null,
+    logo: "/images/affiliates/lacatrina-logo.png" as string | null,
     // Fotograma real del interior del local (no es un mockup ni una imagen generada).
     screenshot: "/demos/caso-lacatrina.webp",
     fallback: "LC",
