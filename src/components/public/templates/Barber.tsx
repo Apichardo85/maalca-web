@@ -21,6 +21,7 @@ import { PublicBookingSection, type PublicBookingSectionHandle } from '@/compone
 import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox';
 import { PublicHoursSection } from '@/components/public/PublicHoursSection';
 import { ItemDetailSheet } from '@/components/public/ItemDetailSheet';
+import { CardOpenButton } from '@/components/public/CardOpenButton';
 import { useDeepLinkedItemId } from '@/lib/use-deep-linked-item';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { formatPrice } from '@/lib/currency';
@@ -696,10 +697,7 @@ function ServiceCard({
   return (
     <>
     <div
-      role={hasDetail ? 'button' : undefined}
-      tabIndex={hasDetail ? 0 : undefined}
       onClick={hasDetail ? () => setDetailOpen(true) : undefined}
-      onKeyDown={hasDetail ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailOpen(true); } } : undefined}
       style={{
         backgroundColor: SURFACE,
         border: `1px solid ${LINE}`,
@@ -732,7 +730,7 @@ function ServiceCard({
             textTransform: 'uppercase',
           }}
         >
-          {displayName}
+          {hasDetail ? <CardOpenButton onOpen={() => setDetailOpen(true)}>{displayName}</CardOpenButton> : displayName}
         </p>
 
         {description && (

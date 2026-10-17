@@ -27,6 +27,7 @@ import { AboutSection } from '@/components/public/AboutSection';
 import { sanitizeRichText } from '@/lib/sanitize-html';
 import { ClampedDescription } from '@/components/public/ClampedDescription';
 import { ItemDetailSheet } from '@/components/public/ItemDetailSheet';
+import { CardOpenButton } from '@/components/public/CardOpenButton';
 import { useDeepLinkedItemId } from '@/lib/use-deep-linked-item';
 import { ScrollStrip } from '@/components/public/ScrollStrip';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
@@ -709,10 +710,7 @@ export function RestaurantTemplate({
               return (
                 <div
                   key={item.id}
-                  role="button"
-                  tabIndex={0}
                   onClick={() => setHlOpenId(item.id)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setHlOpenId(item.id); } }}
                   style={{
                     cursor: 'pointer',
                     flex: '0 0 auto',
@@ -763,7 +761,7 @@ export function RestaurantTemplate({
                       </span>
                     )}
                     <p className={inter.className} style={{ margin: 0, fontSize: '13px', fontWeight: 800, letterSpacing: '-0.01em', color: CAFE, lineHeight: 1.3 }}>
-                      {destacadoName}
+                      <CardOpenButton onOpen={() => setHlOpenId(item.id)}>{destacadoName}</CardOpenButton>
                     </p>
                     <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginTop: '4px' }}>
                       {item.price != null ? (
@@ -1503,10 +1501,7 @@ function MenuCard({
   return (
     <>
     <div
-      role={hasDetail ? 'button' : undefined}
-      tabIndex={hasDetail ? 0 : undefined}
       onClick={hasDetail ? () => setDetailOpen(true) : undefined}
-      onKeyDown={hasDetail ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailOpen(true); } } : undefined}
       style={{
         cursor: hasDetail ? 'pointer' : 'default',
         backgroundColor: SURFACE,
@@ -1565,7 +1560,7 @@ function MenuCard({
                 lineHeight: 1.3,
               }}
             >
-              {displayName}
+              {hasDetail ? <CardOpenButton onOpen={() => setDetailOpen(true)}>{displayName}</CardOpenButton> : displayName}
             </p>
             {item.flags && item.flags.length > 0 && (
               <div style={{ display: 'flex', gap: '3px' }} title={item.flags.join(', ')}>

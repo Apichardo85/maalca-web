@@ -19,6 +19,7 @@ import { AboutSection } from '@/components/public/AboutSection';
 import { sanitizeRichText } from '@/lib/sanitize-html';
 import { ClampedDescription } from '@/components/public/ClampedDescription';
 import { ItemDetailSheet } from '@/components/public/ItemDetailSheet';
+import { CardOpenButton } from '@/components/public/CardOpenButton';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
 import { PublicCartBar } from '@/components/public/PublicCartBar';
@@ -713,10 +714,7 @@ function ProductCard({
   return (
     <>
     <div
-      role={hasDetail ? 'button' : undefined}
-      tabIndex={hasDetail ? 0 : undefined}
       onClick={hasDetail ? () => setDetailOpen(true) : undefined}
-      onKeyDown={hasDetail ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDetailOpen(true); } } : undefined}
       className="group"
       style={{ cursor: hasDetail ? 'pointer' : 'default', display: 'flex', flexDirection: 'column', height: '100%' }}
     >
@@ -809,7 +807,7 @@ function ProductCard({
 
       <div style={{ padding: '10px 2px 0', display: 'flex', flexDirection: 'column', flex: 1 }}>
         <p style={{ margin: 0, fontWeight: 600, fontSize: '14px', color: INK, lineHeight: 1.3 }}>
-          {displayName}
+          {hasDetail ? <CardOpenButton onOpen={() => setDetailOpen(true)}>{displayName}</CardOpenButton> : displayName}
         </p>
         {description && (
           <div onClick={stop}>
