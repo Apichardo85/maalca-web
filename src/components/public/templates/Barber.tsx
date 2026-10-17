@@ -21,6 +21,7 @@ import { PublicBookingSection, type PublicBookingSectionHandle } from '@/compone
 import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox';
 import { PublicHoursSection } from '@/components/public/PublicHoursSection';
 import { ItemDetailSheet } from '@/components/public/ItemDetailSheet';
+import { useDeepLinkedItemId } from '@/lib/use-deep-linked-item';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { formatPrice } from '@/lib/currency';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
@@ -104,6 +105,8 @@ export function BarberTemplate({
       : Array.from(new Set(items.map((i) => i.category).filter((c): c is string => !!c)));
 
   const [activeTab, setActiveTab] = useState<string>(ALL_TAB);
+  // Enlace compartido (/{slug}/p/{id}): abre el detalle de ese servicio al cargar.
+  const deepLinkedId = useDeepLinkedItemId();
   const bookingRef = useRef<PublicBookingSectionHandle>(null);
   // "Abierto ahora" depende del reloj: solo en el cliente (ISR cacheada no se congela ni desajusta la
   // hidratación) y se refresca cada minuto. Sin horario/zona horaria queda en null y no se muestra.
@@ -449,7 +452,7 @@ export function BarberTemplate({
               {categoryName && <SectLabel label={categoryLabel(categoryName, language, business.categoryTranslations)} />}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {groupItems.map((item) => (
-                  <ServiceCard key={item.id} item={item} onReserve={handleReserve} accent={accent} displayClassName={oswald.className} language={language} currency={business.currency} getText={getText} categoryTranslations={business.categoryTranslations} />
+                  <ServiceCard key={item.id} item={item} onReserve={handleReserve} accent={accent} displayClassName={oswald.className} language={language} currency={business.currency} getText={getText} categoryTranslations={business.categoryTranslations} shareUrl={`https://maalca.com/${business.slug}/p/${item.id}`} autoOpen={deepLinkedId === item.id} />
                 ))}
               </div>
             </div>
@@ -457,7 +460,7 @@ export function BarberTemplate({
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {visibleItems.map((item) => (
-              <ServiceCard key={item.id} item={item} onReserve={handleReserve} accent={accent} displayClassName={oswald.className} language={language} currency={business.currency} getText={getText} categoryTranslations={business.categoryTranslations} />
+              <ServiceCard key={item.id} item={item} onReserve={handleReserve} accent={accent} displayClassName={oswald.className} language={language} currency={business.currency} getText={getText} categoryTranslations={business.categoryTranslations} shareUrl={`https://maalca.com/${business.slug}/p/${item.id}`} autoOpen={deepLinkedId === item.id} />
             ))}
           </div>
         )}
@@ -665,6 +668,8 @@ function ServiceCard({
   currency,
   getText,
   categoryTranslations,
+  shareUrl,
+  autoOpen,
 }: {
   item: PublicTemplateProps['items'][number];
   onReserve: (serviceId: string) => void;
@@ -674,11 +679,16 @@ function ServiceCard({
   currency?: 'USD' | 'DOP';
   getText: (es: string, en: string) => string;
   categoryTranslations?: PublicTemplateProps['business']['categoryTranslations'];
+  shareUrl: string;
+  autoOpen: boolean;
 }) {
   const imageUrl = item.imageUrl ?? item.image_url;
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
   const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
   const [detailOpen, setDetailOpen] = useState(false);
+  useEffect(() => {
+    if (autoOpen) setDetailOpen(true);
+  }, [autoOpen]);
   const stop = (e: React.MouseEvent) => e.stopPropagation();
   // Con foto o descripción la tarjeta abre el detalle (foto grande, texto completo, duración y "Reservar").
   const hasDetail = Boolean(imageUrl || description);
@@ -815,6 +825,7 @@ function ServiceCard({
       priceLabel={item.price != null ? formatPrice(item.price, currency) : null}
       imageUrl={imageUrl}
       images={item.images}
+      shareUrl={shareUrl}
       category={categoryLabel(item.category, language, categoryTranslations)}
       availabilityLabel={item.durationMinutes != null ? formatDuration(item.durationMinutes) : null}
       ctaLabel={getText('Reservar', 'Book')}

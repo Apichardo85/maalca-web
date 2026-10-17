@@ -27,6 +27,7 @@ import { AboutSection } from '@/components/public/AboutSection';
 import { sanitizeRichText } from '@/lib/sanitize-html';
 import { ClampedDescription } from '@/components/public/ClampedDescription';
 import { ItemDetailSheet } from '@/components/public/ItemDetailSheet';
+import { useDeepLinkedItemId } from '@/lib/use-deep-linked-item';
 import { ScrollStrip } from '@/components/public/ScrollStrip';
 import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { PublicFooter } from '@/components/public/PublicFooter';
@@ -291,6 +292,8 @@ export function RestaurantTemplate({
   // Momento de comida actual (desayuno/almuerzo/cena…). Solo-cliente por la misma razón: se usa para
   // ORDENAR (lo del momento primero), no para ocultar nada.
   const [hlOpenId, setHlOpenId] = useState<string | null>(null);
+  // Enlace compartido (/{slug}/p/{id}): abre el detalle de ese plato al cargar.
+  const deepLinkedId = useDeepLinkedItemId();
   const [periodNow, setPeriodNow] = useState<Exclude<MealPeriod, 'all_day'> | null>(null);
   const periodRanges = useMemo(() => resolvePeriodRanges(business.mealPeriodHours), [business.mealPeriodHours]);
   useEffect(() => {
@@ -1046,6 +1049,8 @@ export function RestaurantTemplate({
                       <MenuCard
                         key={item.id}
                         categoryTranslations={business.categoryTranslations}
+                        shareUrl={`https://maalca.com/${business.slug}/p/${item.id}`}
+                        autoOpen={deepLinkedId === item.id}
                         item={item}
                         language={language}
                         accent={accent}
@@ -1076,6 +1081,8 @@ export function RestaurantTemplate({
                 <MenuCard
                   key={item.id}
                   categoryTranslations={business.categoryTranslations}
+                  shareUrl={`https://maalca.com/${business.slug}/p/${item.id}`}
+                  autoOpen={deepLinkedId === item.id}
                   item={item}
                   language={language}
                   accent={accent}
@@ -1421,7 +1428,11 @@ function MenuCard({
   currency,
   unavailableLabel,
   categoryTranslations,
+  shareUrl,
+  autoOpen,
 }: {
+  shareUrl: string;
+  autoOpen: boolean;
   unavailableLabel?: string | null;
   categoryTranslations?: PublicTemplateProps['business']['categoryTranslations'];
   item: PublicTemplateProps['items'][number];
@@ -1437,6 +1448,9 @@ function MenuCard({
   const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const [detailOpen, setDetailOpen] = useState(false);
+  useEffect(() => {
+    if (autoOpen) setDetailOpen(true);
+  }, [autoOpen]);
   const { tags: detailTags, availability: availabilityText } = itemDetailText(item, language);
   const stop = (e: React.MouseEvent) => e.stopPropagation();
   // Sin foto, descripción, etiquetas ni horario, el detalle repetiría lo que ya se ve en la tarjeta.
@@ -1680,6 +1694,7 @@ function MenuCard({
       priceLabel={item.price != null ? formatPrice(item.price, currency) : null}
       imageUrl={imageUrl}
       images={item.images}
+      shareUrl={shareUrl}
       category={categoryLabel(item.category, language, categoryTranslations)}
       tags={detailTags}
       unavailableLabel={unavailableLabel}

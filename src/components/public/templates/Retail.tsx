@@ -33,6 +33,7 @@ import { formatPrice } from '@/lib/currency';
 import { categoryLabel } from '@/lib/category-label';
 import PublicThemeToggle from '@/components/public/PublicThemeToggle';
 import { brandPaletteCss, deriveBrandPalette, deriveDarkBrandPalette } from '@/lib/brand-palette';
+import { useDeepLinkedItemId } from '@/lib/use-deep-linked-item';
 
 // Serif editorial solo para títulos (hero, secciones, nombre del producto en el detalle). El resto va en la
 // sans del sitio para que precios y descripciones se lean limpios en móvil.
@@ -136,6 +137,8 @@ export function RetailTemplate({
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<SortKey>('default');
   const [onlyOffers, setOnlyOffers] = useState(false);
+  // Enlace compartido (/{slug}/p/{id}): abre el detalle de ese producto al cargar.
+  const deepLinkedId = useDeepLinkedItemId();
   const searchActive = query.trim().length > 0;
   const hasOffers = items.some(isOnSale);
 
@@ -459,6 +462,8 @@ export function RetailTemplate({
                 removeFromCart={removeFromCart}
                 currency={business.currency}
                 categoryTranslations={business.categoryTranslations}
+                shareUrl={`https://maalca.com/${business.slug}/p/${item.id}`}
+                autoOpen={deepLinkedId === item.id}
               />
             ))}
           </div>
@@ -670,6 +675,8 @@ function ProductCard({
   removeFromCart,
   currency,
   categoryTranslations,
+  shareUrl,
+  autoOpen,
 }: {
   item: PublicTemplateProps['items'][number];
   cartQty: number;
@@ -682,6 +689,8 @@ function ProductCard({
   removeFromCart: (itemId: string) => void;
   currency?: 'USD' | 'DOP';
   categoryTranslations?: PublicTemplateProps['business']['categoryTranslations'];
+  shareUrl: string;
+  autoOpen: boolean;
 }) {
   const imageUrl = item.imageUrl ?? item.image_url;
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
@@ -693,6 +702,9 @@ function ProductCard({
   const atMax = left !== null && cartQty >= left;
   const lowStock = left !== null && left > 0 && left <= 5;
   const [detailOpen, setDetailOpen] = useState(false);
+  useEffect(() => {
+    if (autoOpen) setDetailOpen(true);
+  }, [autoOpen]);
   const stop = (e: React.MouseEvent) => e.stopPropagation();
   const hasDetail = Boolean(imageUrl || description);
   const addThis = () => addToCart({ id: item.id, name: displayName, price: item.price ?? 0, image: imageUrl ?? undefined });
@@ -835,6 +847,7 @@ function ProductCard({
       priceLabel={item.price != null ? formatPrice(item.price, currency) : null}
       imageUrl={imageUrl}
       images={item.images}
+      shareUrl={shareUrl}
       tags={[
         ...(item.featured ? [`⭐ ${getText('Destacado', 'Featured')}`] : []),
         ...(item.popular ? [`🔥 ${getText('Popular', 'Popular')}`] : []),

@@ -20,6 +20,8 @@ interface Props {
   /** Precio "antes" ya formateado (oferta): se muestra tachado junto al precio actual. */
   compareAtLabel?: string | null;
   category?: string | null;
+  /** Enlace absoluto del item para compartir (WhatsApp, etc.). Con él aparece el botón "Compartir". */
+  shareUrl?: string;
   /** Etiquetas ya listas para mostrar (⭐ Destacado, 🌱 Vegetariano…). */
   tags?: string[];
   /** Si el item no está disponible hoy: texto ("Solo martes") y se oculta el botón de agregar. */
@@ -53,6 +55,7 @@ export function ItemDetailSheet({
   images,
   compareAtLabel,
   category,
+  shareUrl,
   tags = [],
   unavailableLabel,
   availabilityLabel,
@@ -71,6 +74,7 @@ export function ItemDetailSheet({
   const t = (es: string, en: string) => (language === 'es' ? es : en);
   const gallery = images && images.length > 1 ? images : null;
   const [slide, setSlide] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -85,6 +89,26 @@ export function ItemDetailSheet({
   }, [open, onClose]);
 
   if (!open) return null;
+
+  // Menú nativo de compartir (celular, y varios navegadores de escritorio); si no existe, copia el enlace.
+  const share = async () => {
+    if (!shareUrl) return;
+    try {
+      if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+        await navigator.share({ title: name, text: name, url: shareUrl });
+        return;
+      }
+    } catch (e) {
+      if ((e as { name?: string } | null)?.name === 'AbortError') return;
+    }
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* sin portapapeles: no hay nada más que hacer */
+    }
+  };
 
   const btn = (label: string, onClick: () => void, filled: boolean) => (
     <button
@@ -210,6 +234,16 @@ export function ItemDetailSheet({
           ) : null}
           {availabilityLabel && (
             <p style={{ margin: '12px 0 0', fontSize: 12, color: mutedColor }}>🕒 {availabilityLabel}</p>
+          )}
+          {shareUrl && (
+            <button
+              type="button"
+              onClick={share}
+              className="min-h-11"
+              style={{ marginTop: 6, marginLeft: -4, padding: '0 4px', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: mutedColor, textDecoration: 'underline' }}
+            >
+              {copied ? `✓ ${t('Enlace copiado', 'Link copied')}` : `🔗 ${t('Compartir', 'Share')}`}
+            </button>
           )}
         </div>
 
