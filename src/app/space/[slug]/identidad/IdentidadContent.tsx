@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { generateBrandedQrDataUrl, generateQrDataUrl, generateQrSvgDataUrl } from '@/lib/qr';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
+import { deriveBrandPalette } from '@/lib/brand-palette';
 import { QrCopyButton } from './QrCopyButton';
 import { BusinessCard } from './BusinessCard';
 import { TableQrSheet } from './TableQrSheet';
@@ -19,11 +20,13 @@ interface Props {
 export function IdentidadContent({ slug, publicUrl, qrTargetUrl, qrDataUrl, business }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
-  const primaryColor = business.primary_color || '#045AFE';
+  // QR en el tono oscuro de la marca (tinta del secundario, derivada si está en Auto): el primario suele ser
+  // un color vivo que escanea peor y pesa demasiado en la tarjeta. La paleta garantiza contraste sobre blanco.
+  const qrColor = deriveBrandPalette(business.primary_color, business.secondary_color, business.accent_color).ink;
 
   // qrDataUrl (server prop) is the plain black fallback shown on first paint — generation
   // is async, so it can't run synchronously during render. Re-generated here in the
-  // business's primaryColor once mounted.
+  // business's QR color once mounted.
   //
   // Two variants on purpose: `dataUrl` is the plain QR, used inside BusinessCard — that
   // card already surrounds the QR with the logo and business name, so branding the QR
@@ -36,25 +39,25 @@ export function IdentidadContent({ slug, publicUrl, qrTargetUrl, qrDataUrl, busi
 
   useEffect(() => {
     let cancelled = false;
-    generateQrDataUrl(qrTargetUrl, { darkColor: primaryColor }).then((url) => {
+    generateQrDataUrl(qrTargetUrl, { darkColor: qrColor }).then((url) => {
       if (!cancelled) setDataUrl(url);
     });
     // errorCorrectionLevel defaults to "H" (30% tolerance), specifically so the centered
     // logo stays scannable.
     generateBrandedQrDataUrl(qrTargetUrl, {
-      darkColor: primaryColor,
+      darkColor: qrColor,
       logoUrl: business.logo_url,
       caption: business.name,
     }).then((url) => {
       if (!cancelled) setBrandedDataUrl(url);
     });
-    generateQrSvgDataUrl(qrTargetUrl, { darkColor: primaryColor }).then((url) => {
+    generateQrSvgDataUrl(qrTargetUrl, { darkColor: qrColor }).then((url) => {
       if (!cancelled) setSvgDataUrl(url);
     });
     return () => {
       cancelled = true;
     };
-  }, [qrTargetUrl, primaryColor, business.logo_url, business.name]);
+  }, [qrTargetUrl, qrColor, business.logo_url, business.name]);
 
   return (
     <>
@@ -138,7 +141,7 @@ export function IdentidadContent({ slug, publicUrl, qrTargetUrl, qrDataUrl, busi
         publicUrl={publicUrl}
         businessName={business.name}
         logoUrl={business.logo_url}
-        primaryColor={primaryColor}
+        primaryColor={qrColor}
       />
     )}
     </>

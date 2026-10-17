@@ -41,7 +41,10 @@ export function sanitizeRichText(html: string | null | undefined): string {
  */
 export function stripRichTextToPlain(html: string | null | undefined): string {
   if (!html) return '';
-  return sanitizeHtmlLib(html, { allowedTags: [], allowedAttributes: {} })
+  // Sin esto, los bloques quedan pegados ("<h2>Nosotros</h2><p>En Aromé…" → "NosotrosEn Aromé…"):
+  // al quitar las etiquetas se pierde el límite entre párrafos, títulos, <br> y ítems de lista.
+  const spaced = html.replace(/<br\s*\/?>|<\/(?:p|h[1-6]|li|div|ul|ol)>/gi, '$& ');
+  return sanitizeHtmlLib(spaced, { allowedTags: [], allowedAttributes: {} })
     .replace(/\s+/g, ' ')
     .trim();
 }

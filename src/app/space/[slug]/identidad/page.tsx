@@ -67,6 +67,9 @@ export default async function IdentidadPage({
     descriptionEn: publicProfile?.descriptionEn ?? null,
     logo_url: publicProfile?.logoUrl ?? null,
     primary_color: biz.primaryColor ?? '#045AFE',
+    // Los 3 roles de color (mismo origen que design/page.tsx). null = se deriva del primario.
+    secondary_color: biz.secondaryColor || null,
+    accent_color: biz.accentColor || null,
     whatsapp: biz.whatsapp ?? null,
     address: publicProfile?.address ?? null,
     contactEmail: publicProfile?.contactEmail ?? null,

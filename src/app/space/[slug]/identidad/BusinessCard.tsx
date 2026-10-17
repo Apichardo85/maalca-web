@@ -7,6 +7,7 @@ import { CONTACT_ICON_BY_TIPO } from '@/components/public/ContactIcons';
 import { SOCIAL_ICON_BY_TIPO } from '@/components/public/SocialIcons';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { stripRichTextToPlain } from '@/lib/sanitize-html';
+import { deriveBrandPalette } from '@/lib/brand-palette';
 
 interface Props {
   business: PublicTemplateProps['business'];
@@ -37,12 +38,16 @@ export function BusinessCard({ business, qrDataUrl }: Props) {
 
   // Tarjeta de presentación es texto plano (imagen descargable) — el RichTextEditor de
   // Diseño guarda HTML, así que hay que despojarlo acá igual que en el vCard/meta tags.
-  const description = stripRichTextToPlain(
-    language === 'en' ? business.descriptionEn ?? business.description : business.description,
-  );
+  // Se omiten los encabezados (p. ej. "💫 Nosotros"): en 2 renglones de tarjeta aportan menos que el texto.
+  const rawDescription = language === 'en' ? business.descriptionEn ?? business.description : business.description;
+  const description =
+    stripRichTextToPlain(rawDescription?.replace(/<h[1-6][^>]*>[\s\S]*?<\/h[1-6]>/gi, '')) ||
+    stripRichTextToPlain(rawDescription);
   const contacts = resolveContactItems(business, language);
   const social = resolveSocialLinks(business);
-  const primaryColor = business.primary_color || '#045AFE';
+  // Tarjeta descargable = imagen fija en claro (no depende del tema del panel). Mismos 3 roles que las
+  // plantillas públicas: secundario → cabecera, acento → franja/detalles, primario → botón y texto de marca.
+  const pal = deriveBrandPalette(business.primary_color, business.secondary_color, business.accent_color);
 
   const download = async () => {
     if (!cardRef.current) return;
@@ -63,13 +68,13 @@ export function BusinessCard({ business, qrDataUrl }: Props) {
     <div className="flex flex-col items-center">
       <div
         ref={cardRef}
-        className="flex w-full max-w-xs flex-col overflow-hidden rounded-2xl border border-gray-200 shadow-sm dark:border-neutral-800"
-        style={{ aspectRatio: '9 / 16' }}
+        className="flex w-full max-w-xs flex-col overflow-hidden rounded-2xl shadow-sm"
+        style={{ aspectRatio: '9 / 16', border: `1px solid ${pal.border}` }}
       >
-        {/* Zone 1 — brand color: logo + name + description */}
+        {/* Zone 1 — secondary (ink): logo + name + description, con franja del color de acento */}
         <div
           className="flex flex-col items-center gap-1 px-6 pt-6 pb-5 text-center"
-          style={{ background: primaryColor }}
+          style={{ background: pal.ink, borderBottom: `4px solid ${pal.detail}` }}
         >
           {business.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -79,7 +84,7 @@ export function BusinessCard({ business, qrDataUrl }: Props) {
               width={64}
               height={64}
               className="rounded-full object-cover"
-              style={{ width: 64, height: 64 }}
+              style={{ width: 64, height: 64, boxShadow: `0 0 0 2px ${pal.detail}` }}
             />
           ) : (
             <div
@@ -99,14 +104,17 @@ export function BusinessCard({ business, qrDataUrl }: Props) {
           )}
         </div>
 
-        {/* Zone 2 — light content: contacts, social handles, QR as the focal element */}
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 bg-white px-6 py-4 text-center">
+        {/* Zone 2 — neutro con el matiz de la marca: contacts, social handles, QR as the focal element */}
+        <div
+          className="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-4 text-center"
+          style={{ background: pal.bg }}
+        >
           {contacts.length > 0 && (
             <div className="flex flex-col items-center gap-1">
               {contacts.map((c) => {
                 const Icon = CONTACT_ICON_BY_TIPO[c.tipo];
                 return (
-                  <div key={c.tipo} className="flex items-center gap-1.5 text-xs text-gray-600">
+                  <div key={c.tipo} className="flex items-center gap-1.5 text-xs" style={{ color: pal.muted }}>
                     {Icon && <Icon size={12} />}
                     <span>{c.value}</span>
                   </div>
@@ -120,7 +128,7 @@ export function BusinessCard({ business, qrDataUrl }: Props) {
               {social.map((s) => {
                 const Icon = SOCIAL_ICON_BY_TIPO[s.tipo];
                 return (
-                  <div key={s.tipo} className="flex items-center gap-1.5 text-xs text-gray-600">
+                  <div key={s.tipo} className="flex items-center gap-1.5 text-xs" style={{ color: pal.muted }}>
                     {Icon && <Icon size={12} />}
                     <span>{socialHandle(s)}</span>
                   </div>
@@ -136,18 +144,19 @@ export function BusinessCard({ business, qrDataUrl }: Props) {
               alt={getText('Código QR', 'QR code')}
               width={128}
               height={128}
-              className="rounded-lg border border-gray-100"
+              className="rounded-lg"
+              style={{ background: '#ffffff', border: `1px solid ${pal.borderSoft}` }}
             />
           )}
-          <span className="text-[10px] text-gray-400">maalca.com/{business.slug}</span>
+          <span className="text-[10px]" style={{ color: pal.accentText }}>maalca.com/{business.slug}</span>
         </div>
       </div>
 
       <button
         onClick={download}
         disabled={downloading}
-        style={{ backgroundColor: primaryColor }}
-        className="mt-4 w-full max-w-xs rounded-full px-5 py-2.5 text-sm font-medium text-white transition hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-50"
+        style={{ backgroundColor: pal.accent, color: pal.onAccent }}
+        className="mt-4 w-full max-w-xs rounded-full px-5 py-2.5 text-sm font-medium transition hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {downloading ? getText('Generando...', 'Generating...') : getText('Descargar tarjeta', 'Download card')}
       </button>
