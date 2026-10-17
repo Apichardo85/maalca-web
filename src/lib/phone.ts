@@ -49,3 +49,16 @@ export const PHONE_INPUT_PROPS = {
   autoComplete: 'tel',
   maxLength: 17,
 } as const;
+
+/**
+ * Para mostrar (no para guardar): "16074420037" → "+1 607 442 0037". Solo reformatea valores que son
+ * puros dígitos NANP (10 dígitos, o 11 con 1 al inicio); cualquier otra cosa se devuelve tal cual.
+ */
+export function formatPhoneDisplay(value: string): string {
+  const v = value.trim();
+  if (!/^\+?\d+$/.test(v)) return value;
+  const d = phoneDigits(v);
+  const n = d.length === 11 && d.startsWith('1') ? d.slice(1) : d.length === 10 ? d : null;
+  if (!n) return value;
+  return `+1 ${n.slice(0, 3)} ${n.slice(3, 6)} ${n.slice(6)}`;
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { formatPhoneDisplay } from "@/lib/phone";
 
 interface WhatsAppIntegrationProps {
   phoneNumber: string;
@@ -217,7 +218,7 @@ export default function WhatsAppIntegration({
               </div>
 
               <div className="px-4 pb-4 text-center text-xs text-gray-400">
-                {phoneNumber}
+                {formatPhoneDisplay(phoneNumber)}
               </div>
             </div>
           </div>

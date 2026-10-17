@@ -1,3 +1,4 @@
+import { formatPhoneDisplay } from '@/lib/phone';
 export interface PublicCanal {
   id: string;
   tipo: string;
@@ -74,14 +75,14 @@ export function resolveContactItems(
 
   const waCanal = canales.find((c) => c.tipo === 'WhatsApp');
   if (waCanal) {
-    items.push({ label: 'WhatsApp', value: waCanal.nombreVisible ?? waCanal.valorCrudo, href: waCanal.enlaceGenerado, tipo: 'WhatsApp', canalId: waCanal.id });
+    items.push({ label: 'WhatsApp', value: formatPhoneDisplay(waCanal.nombreVisible ?? waCanal.valorCrudo), href: waCanal.enlaceGenerado, tipo: 'WhatsApp', canalId: waCanal.id });
   } else if (business.whatsapp) {
-    items.push({ label: 'WhatsApp', value: business.whatsapp, href: `https://wa.me/${business.whatsapp.replace(/\D/g, '')}`, tipo: 'WhatsApp', canalId: null });
+    items.push({ label: 'WhatsApp', value: formatPhoneDisplay(business.whatsapp), href: `https://wa.me/${business.whatsapp.replace(/\D/g, '')}`, tipo: 'WhatsApp', canalId: null });
   }
 
   const phoneCanal = canales.find((c) => c.tipo === 'Telefono');
   if (phoneCanal) {
-    items.push({ label: phoneLabel, value: phoneCanal.nombreVisible ?? phoneCanal.valorCrudo, href: phoneCanal.enlaceGenerado, tipo: 'Telefono', canalId: phoneCanal.id });
+    items.push({ label: phoneLabel, value: formatPhoneDisplay(phoneCanal.nombreVisible ?? phoneCanal.valorCrudo), href: phoneCanal.enlaceGenerado, tipo: 'Telefono', canalId: phoneCanal.id });
   }
 
   if (business.address) {

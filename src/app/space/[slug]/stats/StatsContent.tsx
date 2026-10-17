@@ -413,7 +413,7 @@ export function StatsContent({ slug, kpis, plan, detailed: initialDetailed, repo
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center justify-between gap-2">
                               <span className="truncate text-xs font-medium text-gray-700 dark:text-neutral-300">
-                                {c.nombreVisible || c.tipo}
+                                {c.nombreVisible || (c.tipo === 'Telefono' ? getText('Teléfono', 'Phone') : c.tipo)}
                               </span>
                               <span className="shrink-0 text-xs font-bold tabular-nums text-gray-900 dark:text-white">
                                 {c.clicks}
