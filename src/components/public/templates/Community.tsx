@@ -35,7 +35,7 @@ import { formatPrice } from '@/lib/currency';
 import { googleMapsUrl } from '@/lib/maps';
 import PublicThemeToggle from '@/components/public/PublicThemeToggle';
 import { CommunitySignupForm } from '@/components/public/community/CommunitySignupForm';
-import { deriveDarkBrandPalette, themeVarsCss } from '@/lib/brand-palette';
+import { deriveBrandPalette, deriveDarkBrandPalette, themeVarsCss } from '@/lib/brand-palette';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 const MAALCA_BLUE = '#045AFE';
@@ -183,15 +183,32 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
   // (texto ≥4.5:1, botones/barras ≥3:1) y el texto sobre el botón se recalcula. En claro todo
   // sigue siendo el acento original, tal cual. El hero conserva el acento crudo con texto blanco.
   const darkPalette = deriveDarkBrandPalette(business.primary_color, business.secondary_color, business.accent_color, MAALCA_BLUE);
+  // Neutros (fondo, superficie, bordes, tinta, texto secundario) con el matiz de la marca, igual que las demás
+  // plantillas; los tintes semánticos (verde/ámbar/azul de estados y métricas) siguen fijos a propósito.
+  const lightPalette = deriveBrandPalette(business.primary_color, business.secondary_color, business.accent_color, MAALCA_BLUE);
   const lightAccentHex = /^#[0-9a-fA-F]{3,8}$/.test(accent.trim()) ? accent.trim() : MAALCA_BLUE;
   const themeCss = themeVarsCss(
     'cm-scope',
-    { ...LIGHT_VARS, 'cm-accent': lightAccentHex, 'cm-accent-text': lightAccentHex, 'cm-on-accent': '#ffffff' },
-    { ...DARK_VARS, 'cm-accent': darkPalette.accent, 'cm-accent-text': darkPalette.accentText, 'cm-on-accent': darkPalette.onAccent },
+    {
+      ...LIGHT_VARS,
+      'cm-bg': lightPalette.bg, 'cm-surface': lightPalette.surface, 'cm-border': lightPalette.border,
+      'cm-track': lightPalette.bg, 'cm-ink': lightPalette.ink, 'cm-muted': lightPalette.muted,
+      'cm-accent': lightAccentHex, 'cm-accent-text': lightPalette.accentText, 'cm-on-accent': lightPalette.onAccent,
+    },
+    {
+      ...DARK_VARS,
+      'cm-bg': darkPalette.bg, 'cm-surface': darkPalette.surface, 'cm-border': darkPalette.border,
+      'cm-track': darkPalette.border, 'cm-ink': darkPalette.ink, 'cm-muted': darkPalette.muted,
+      'cm-accent': darkPalette.accent, 'cm-accent-text': darkPalette.accentText, 'cm-on-accent': darkPalette.onAccent,
+    },
   );
-  const accentText = `var(--cm-accent-text, ${lightAccentHex})`;
+  const accentText = `var(--cm-accent-text, ${lightPalette.accentText})`;
+  // El hero va sobre el acento crudo (en claro y en oscuro): su texto es blanco o casi negro según el contraste
+  // con ese color (una marca amarilla con texto blanco no se lee).
+  const heroInk = lightPalette.onAccent;
+  const heroOnDark = heroInk.toLowerCase() === '#ffffff';
   const accentFill = `var(--cm-accent, ${lightAccentHex})`;
-  const onAccent = 'var(--cm-on-accent, #ffffff)';
+  const onAccent = `var(--cm-on-accent, ${lightPalette.onAccent})`;
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const currency = business.currency ?? 'USD';
@@ -304,10 +321,10 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
           />
         )}
         <div className="absolute right-4 top-4 z-20 flex items-center gap-2">
-          <SimpleLanguageToggle variant="dark" spanishFlag={business.spanishFlag} />
-          <PublicThemeToggle variant="dark" />
+          <SimpleLanguageToggle variant={heroOnDark ? 'dark' : 'light'} spanishFlag={business.spanishFlag} />
+          <PublicThemeToggle variant={heroOnDark ? 'dark' : 'light'} />
         </div>
-        <div className="relative z-10 mx-auto max-w-[860px] px-4 pb-12 pt-14 text-center text-white sm:pt-16">
+        <div className="relative z-10 mx-auto max-w-[860px] px-4 pb-12 pt-14 text-center sm:pt-16" style={{ color: heroInk }}>
           {business.logo_url && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -316,17 +333,17 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
               className="mx-auto mb-5 h-20 w-20 rounded-2xl border-2 border-white/40 bg-white object-contain p-2 shadow-lg"
             />
           )}
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white/90">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-current/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
             🤝 {getText('Espacio comunitario', 'Community space')}
           </span>
           <h1 className="mt-3 text-3xl font-bold sm:text-4xl">{business.name}</h1>
           {business.address && (
-            <p className="mt-2 text-sm text-white/80">
+            <p className="mt-2 text-sm opacity-80">
               <a
                 href={googleMapsUrl(business.address)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline decoration-white/40 underline-offset-2 hover:decoration-white"
+                className="underline decoration-current/40 underline-offset-2 hover:decoration-current"
               >
                 📍 {business.address}
               </a>
@@ -592,34 +609,29 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
                       🙋 {getText('Quiero ayudar →', 'I want to help →')}
                     </p>
                   )}
-                  {causa.type === 'time' && isExpanded && (
-                    // El formulario vive dentro de una tarjeta que se abre/cierra al hacer clic o con
-                    // Enter/Espacio: se frena la propagación para poder escribir sin cerrarla.
-                    <div
-                      className="mt-2.5 border-t pt-3"
-                      style={{ borderColor: BORDER, cursor: 'default' }}
-                      onClick={(e) => e.stopPropagation()}
-                      onKeyDown={(e) => e.stopPropagation()}
-                      role="presentation"
-                    >
-                      <CommunitySignupForm
-                        slug={business.slug}
-                        kind="volunteer"
-                        targetId={causa.id}
-                        language={language}
-                        accentFill={accentFill}
-                        onAccent={onAccent}
-                        fallbackContact={
-                          business.whatsapp || business.contactEmail
-                            ? getText('¿Prefieres escribir directo? ', 'Prefer to reach out directly? ') +
-                              [business.whatsapp, business.contactEmail].filter(Boolean).join(' · ')
-                            : null
-                        }
-                      />
-                    </div>
-                  )}
                 </>
               );
+
+              // Formulario de voluntariado (solo causas 'time' expandidas). Va FUERA del botón que abre/cierra la
+              // tarjeta: un control interactivo dentro de un botón no es accesible (teclado ni lector de pantalla).
+              const formBody = causa.type === 'time' && isExpanded ? (
+                <div className="mt-2.5 border-t pt-3" style={{ borderColor: BORDER }}>
+                  <CommunitySignupForm
+                    slug={business.slug}
+                    kind="volunteer"
+                    targetId={causa.id}
+                    language={language}
+                    accentFill={accentFill}
+                    onAccent={onAccent}
+                    fallbackContact={
+                      business.whatsapp || business.contactEmail
+                        ? getText('¿Prefieres escribir directo? ', 'Prefer to reach out directly? ') +
+                          [business.whatsapp, business.contactEmail].filter(Boolean).join(' · ')
+                        : null
+                    }
+                  />
+                </div>
+              ) : null;
 
               const cardClassName = 'rounded-xl border p-4 text-left w-full';
               const cardStyle = { borderColor: BORDER, backgroundColor: SURFACE } as const;
@@ -642,21 +654,17 @@ export function CommunityTemplate({ business, capabilities }: PublicTemplateProp
 
               if (causa.type === 'time') {
                 return (
-                  <div
-                    key={causa.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setExpandedCausaId((id) => (id === causa.id ? null : causa.id))}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setExpandedCausaId((id) => (id === causa.id ? null : causa.id));
-                      }
-                    }}
-                    className={cardClassName}
-                    style={cardStyle}
-                  >
-                    {cardBody}
+                  <div key={causa.id} className={cardClassName} style={cardStyle}>
+                    <button
+                      type="button"
+                      aria-expanded={isExpanded}
+                      onClick={() => setExpandedCausaId((id) => (id === causa.id ? null : causa.id))}
+                      className="block w-full text-left"
+                      style={{ background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'inherit', cursor: 'pointer' }}
+                    >
+                      {cardBody}
+                    </button>
+                    {formBody}
                   </div>
                 );
               }
