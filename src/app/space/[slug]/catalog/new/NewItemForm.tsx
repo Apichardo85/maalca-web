@@ -95,7 +95,7 @@ export default function NewItemForm({ slug, businessType, businessLanguage, from
         price: form.price === '' ? 0 : Number(form.price),
         ...(images.length > 0 ? { images } : {}),
       };
-      if (isRetail && compareAtPrice !== '' && Number(compareAtPrice) > 0) body.compareAtPrice = Number(compareAtPrice);
+      if ((isRetail || isRestaurant) && compareAtPrice !== '' && Number(compareAtPrice) > 0) body.compareAtPrice = Number(compareAtPrice);
       if (isRetail) {
         body.featured = featured;
         body.popular = popular;
@@ -254,7 +254,7 @@ export default function NewItemForm({ slug, businessType, businessLanguage, from
             </div>
           </div>
 
-          {isRetail && (
+          {(isRetail || isRestaurant) && (
             <div>
               <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
                 {getText('Precio anterior (opcional)', 'Previous price (optional)')}
@@ -270,8 +270,12 @@ export default function NewItemForm({ slug, businessType, businessLanguage, from
               />
               <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
                 {getText(
-                  'Si es mayor que el precio, tu tienda lo muestra tachado como oferta. Déjalo vacío para quitar la oferta.',
-                  'If higher than the price, your store shows it crossed out as a deal. Leave empty to remove the deal.',
+                  isRestaurant
+                    ? 'Si es mayor que el precio, tu menú lo muestra tachado como oferta. Déjalo vacío para quitar la oferta.'
+                    : 'Si es mayor que el precio, tu tienda lo muestra tachado como oferta. Déjalo vacío para quitar la oferta.',
+                  isRestaurant
+                    ? 'If higher than the price, your menu shows it crossed out as a deal. Leave empty to remove the deal.'
+                    : 'If higher than the price, your store shows it crossed out as a deal. Leave empty to remove the deal.',
                 )}
               </p>
             </div>

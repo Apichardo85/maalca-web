@@ -767,7 +767,12 @@ export function RestaurantTemplate({
                     </p>
                     <div onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginTop: '4px' }}>
                       {item.price != null ? (
-                        <p style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: CAFE }}>
+                        <p style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: isOnSale(item) ? TERRACOTA : CAFE }}>
+                          {isOnSale(item) && (
+                            <s style={{ fontSize: '11px', fontWeight: 500, color: MUTED, marginRight: '5px' }}>
+                              {formatPrice(item.compareAtPrice as number, business.currency)}
+                            </s>
+                          )}
                           {formatPrice(item.price, business.currency)}
                         </p>
                       ) : (
@@ -833,6 +838,7 @@ export function RestaurantTemplate({
                 name={hlName}
                 description={language === 'en' && hl.descriptionEn ? hl.descriptionEn : hl.description}
                 priceLabel={hl.price != null ? formatPrice(hl.price, business.currency) : null}
+                compareAtLabel={isOnSale(hl) ? formatPrice(hl.compareAtPrice as number, business.currency) : null}
                 imageUrl={hl.imageUrl ?? hl.image_url}
                 images={hl.images}
                 category={categoryLabel(hl.category, language, business.categoryTranslations)}
@@ -1418,6 +1424,16 @@ function EmptyFilterState({
   );
 }
 
+/** Oferta = hay precio "antes" y es mayor que el actual (el dueño puede dejar un valor viejo sin sentido). */
+function isOnSale(item: { price?: number | null; compareAtPrice?: number | null }): boolean {
+  return item.price != null && item.compareAtPrice != null && item.compareAtPrice > item.price;
+}
+
+function percentOff(item: { price?: number | null; compareAtPrice?: number | null }): number {
+  if (!isOnSale(item)) return 0;
+  return Math.round((1 - (item.price as number) / (item.compareAtPrice as number)) * 100);
+}
+
 function MenuCard({
   item,
   language,
@@ -1455,26 +1471,33 @@ function MenuCard({
   const stop = (e: React.MouseEvent) => e.stopPropagation();
   // Sin foto, descripción, etiquetas ni horario, el detalle repetiría lo que ya se ve en la tarjeta.
   const hasDetail = Boolean(imageUrl || description || detailTags.length > 0 || availabilityText);
+  const onSale = isOnSale(item);
+  const off = percentOff(item);
 
   // Etiquetas Destacado/Popular: sobre la foto si hay foto; en línea sobre el nombre si no la hay
   // (sin foto no se reserva un cuadro vacío — la tarjeta es solo texto, como en las apps de delivery).
   const badgeEls = (
     <>
       {item.featured && (
-        <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '9999px', backgroundColor: INK_SURFACE, color: '#ffffff' }}>
+        <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '9999px', whiteSpace: 'nowrap', backgroundColor: INK_SURFACE, color: '#ffffff' }}>
           ⭐ {getText('Destacado', 'Featured')}
         </span>
       )}
+      {onSale && off > 0 && (
+        <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '9999px', whiteSpace: 'nowrap', backgroundColor: TERRACOTA, color: '#ffffff' }}>
+          −{off}%
+        </span>
+      )}
       {item.popular && (
-        <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '9999px', backgroundColor: ACCENT, color: 'var(--rt-on-accent, #ffffff)' }}>
+        <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '9999px', whiteSpace: 'nowrap', backgroundColor: ACCENT, color: 'var(--rt-on-accent, #ffffff)' }}>
           🔥 {getText('Popular', 'Popular')}
         </span>
       )}
     </>
   );
-  const hasBadges = Boolean(item.featured || item.popular);
+  const hasBadges = Boolean(item.featured || item.popular || (onSale && off > 0));
   const badgesOverlay = hasBadges ? (
-    <div style={{ position: 'absolute', top: '4px', left: '4px', display: 'flex', gap: '4px' }}>{badgeEls}</div>
+    <div style={{ position: 'absolute', top: '4px', left: '4px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>{badgeEls}</div>
   ) : null;
 
   return (
@@ -1588,7 +1611,12 @@ function MenuCard({
           }}
         >
           {item.price != null ? (
-            <p style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: CAFE }}>
+            <p style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: onSale ? TERRACOTA : CAFE, lineHeight: 1.2 }}>
+              {onSale && (
+                <s style={{ display: 'block', fontSize: '11px', fontWeight: 500, color: MUTED }}>
+                  {formatPrice(item.compareAtPrice as number, currency)}
+                </s>
+              )}
               {formatPrice(item.price, currency)}
             </p>
           ) : (
@@ -1692,6 +1720,7 @@ function MenuCard({
       name={displayName}
       description={description}
       priceLabel={item.price != null ? formatPrice(item.price, currency) : null}
+      compareAtLabel={onSale ? formatPrice(item.compareAtPrice as number, currency) : null}
       imageUrl={imageUrl}
       images={item.images}
       shareUrl={shareUrl}
