@@ -35,9 +35,26 @@ const cases = [
     moduleStatusKey: "cases.tld.moduleStatus",
     href: "/the-little-dominicana",
   },
+  {
+    id: "la-catrina",
+    nameKey: "cases.lc.title",
+    locationKey: "cases.lc.location",
+    // Sin logo en /public todavía: CaseLogo muestra las iniciales.
+    logo: null as string | null,
+    // Fotograma real del interior del local (no es un mockup ni una imagen generada).
+    screenshot: "/demos/caso-lacatrina.webp",
+    fallback: "LC",
+    statusKey: "cases.lc.status",
+    statusColor: "text-green-600 bg-green-50 border-green-200",
+    descKey: "cases.lc.desc",
+    moduleKeys: ["cases.lc.module1", "cases.lc.module2", "cases.lc.module3"],
+    moduleStatusKey: "cases.lc.moduleStatus",
+    href: "/la-catrina-elmira",
+  },
 ];
 
-function CaseLogo({ logo, fallback }: { logo: string; fallback: string }) {
+function CaseLogo({ logo, fallback }: { logo: string | null; fallback: string }) {
+  if (!logo) return null;
   return (
     <img
       src={logo}
@@ -77,8 +94,8 @@ export default function CasosPage() {
 
       {/* Cases grid */}
       <section className="py-16 md:py-24 bg-background">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {cases.map((c, index) => (
               <div
                 key={c.id}
@@ -97,7 +114,7 @@ export default function CasosPage() {
                   />
                   <div className="absolute left-4 top-4 flex h-12 w-12 items-center justify-center rounded-xl bg-white/95 p-1.5 shadow-md">
                     <CaseLogo logo={c.logo} fallback={c.fallback} />
-                    <span className="fallback-initials hidden text-xs font-bold text-text-primary">
+                    <span className={`fallback-initials ${c.logo ? "hidden" : ""} text-xs font-bold text-text-primary`}>
                       {c.fallback}
                     </span>
                   </div>

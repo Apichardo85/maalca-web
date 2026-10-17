@@ -135,7 +135,7 @@ const translations = {
     'cta.final.subtitle': 'Tu primera página, catálogo y código QR: gratis para siempre. El resto lo sumas cuando tu negocio lo pida.',
     'cta.final.btn': 'Crear mi cuenta gratis →',    'beyond.title': 'Más allá del negocio',    'beyond.subtitle': 'MaalCa también es una imprenta y una voz literaria.',    'beyond.editorial.title': 'Editorial MaalCa',    'beyond.editorial.desc': 'Publicamos libros con un precio justo, o gratis si la obra nos atraviesa.',    'beyond.editorial.cta': 'Conoce la editorial →',    'beyond.ciri.title': 'CiriWhispers',    'beyond.ciri.desc': 'El espacio literario del fundador. Narrativa, poesía y cartas. Escritura humana, sin algoritmos.',    'beyond.ciri.cta': 'Leer →',    'editorial.hero.eyebrow': 'Editorial independiente',    'editorial.hero.title': 'Publicar tu libro no debería costarte tus ahorros.',    'editorial.hero.subtitle': 'Tampoco debería depender de que alguien con poder te diga sí. En Editorial MaalCa hacemos las dos cosas: te ayudamos a publicar tu obra por un precio justo, o si nos atraviesa, la publicamos sin que pagues nada.',    'editorial.hero.cta.primary': 'Publica con nosotros',    'editorial.hero.cta.secondary': 'Ver catálogo',    'editorial.tracks.title': 'Dos formas de publicar',    'editorial.track.assisted.title': 'Track Asistido',    'editorial.track.assisted.price': '$185 USD',    'editorial.track.assisted.subtitle': 'Para quien tiene la obra lista',    'editorial.track.curated.title': 'Track Curado',    'editorial.track.curated.price': 'Gratis',    'editorial.track.curated.subtitle': 'Para obras que nos atraviesan',    'editorial.tech.title': 'Tecnología que abarata. Curaduría que importa.',    'editorial.tech.ai.title': 'Lo que automatizamos',    'editorial.tech.human.title': 'Lo que NO automatizamos',    'casos.title': 'Implementaciones reales',    'casos.subtitle': 'NEGOCIOS REALES. RESULTADOS HONESTOS.',    'casos.coming': 'PRÓXIMAMENTE',    'casos.coming.desc': 'Estamos sumando nuevos negocios. Cada cliente es una historia real de implementación.',
     // Casos page — case data
-    'cases.hero.text': 'Dos negocios de Elmira, NY que ya operan con MaalCa. Somos una startup local — nuestros primeros clientes son nuestros vecinos.',
+    'cases.hero.text': 'Tres negocios de Elmira, NY que ya operan con MaalCa. Somos una startup local — nuestros primeros clientes son nuestros vecinos.',
     'cases.cta.profile': 'Ver perfil del negocio →',
     'cases.cta.start': 'Empieza tu implementación →',
     'cases.modules.label': 'Módulos MaalCa',
@@ -159,6 +159,15 @@ const translations = {
     'cases.tld.module1': 'Catálogo digital con QR',
     'cases.tld.module2': 'Pedidos online',
     'cases.tld.module3': 'Confirmaciones automáticas',
+    'cases.lc.status': 'Activo',
+    'cases.lc.title': 'La Catrina Mexican Restaurant',
+    'cases.lc.location': '208 S Main St, Elmira, NY 14904',
+    'cases.lc.type': 'Restaurante',
+    'cases.lc.desc': 'Restaurante mexicano en Elmira, NY — opera con MaalCa.',
+    'cases.lc.moduleStatus': 'En operación',
+    'cases.lc.module1': 'Pedidos online y reservas',
+    'cases.lc.module2': 'Pantallas de menú en TV',
+    'cases.lc.module3': 'Estación de pedidos',
     // Editorial page — inline arrays
     'editorial.track.assisted.b1': 'Pack completo: formateo, ISBN, portada, distribución',
     'editorial.track.assisted.b2': 'Tu libro en Amazon KDP en menos de 30 días',
@@ -430,8 +439,8 @@ const translations = {
     'services.hero.subtitle': 'de tu negocio',
     'services.hero.description': 'Empieza gratis. Suma capacidades a tu ritmo, sin perder lo que ya construiste.',
     // Services Page - Services Section
-    'services.section.title': 'Nuestros Servicios',
-    'services.section.description': 'Soluciones integrales que combinan tecnología de punta con estrategia humanizada',
+    'services.section.title': 'Elige tu plan',
+    'services.section.description': 'Compara los planes y elige el que encaja con la etapa de tu negocio.',
     // Individual Services
     'services.editorial-kdp.title': 'Publica tu libro · Amazon KDP',
     'services.editorial-kdp.description': 'De la idea al libro publicado: escribimos, diseñamos y distribuimos tu obra en Amazon con alcance global desde el primer día.',
@@ -511,7 +520,7 @@ const translations = {
     // Results Section
     'services.results.title': 'Empezando con resultados reales',
     'services.results.description': 'Menos de 6 meses en el mercado. Así es como medimos el progreso con nuestros primeros clientes.',
-    'services.results.metric1': '2',
+    'services.results.metric1': '3',
     'services.results.metric1.label': 'Negocios operando con MaalCa',
     'services.results.metric2': '8',
     'services.results.metric2.label': 'Módulos activos en producción',
@@ -1680,7 +1689,7 @@ const translations = {
     'cta.final.title': 'Start today. No card. No commitment.',
     'cta.final.subtitle': 'Your first page, catalog and QR code: free forever. You add the rest when your business is ready for it.',
     'cta.final.btn': 'Create my free account →',    'beyond.title': 'Beyond business',    'beyond.subtitle': 'MaalCa is also a publisher and a literary voice.',    'beyond.editorial.title': 'Editorial MaalCa',    'beyond.editorial.desc': 'We publish books at a fair price, or free if the work moves us to give it away.',    'beyond.editorial.cta': 'Discover the editorial →',    'beyond.ciri.title': 'CiriWhispers',    'beyond.ciri.desc': 'The founder\'s literary space. Fiction, poetry and letters. Human writing, no algorithms.',    'beyond.ciri.cta': 'Read →',    'editorial.hero.eyebrow': 'Independent editorial',    'editorial.hero.title': 'Publishing your book shouldn\'t cost you your savings.',    'editorial.hero.subtitle': 'It also shouldn\'t depend on someone with power saying yes. At Editorial MaalCa we do both: we help you publish at a fair price, or if it moves us, we publish it without charging you.',    'editorial.hero.cta.primary': 'Publish with us',    'editorial.hero.cta.secondary': 'See catalog',    'editorial.tracks.title': 'Two ways to publish',    'editorial.track.assisted.title': 'Assisted Track',    'editorial.track.assisted.price': '$185 USD',    'editorial.track.assisted.subtitle': 'For those with a finished work',    'editorial.track.curated.title': 'Curated Track',    'editorial.track.curated.price': 'Free',    'editorial.track.curated.subtitle': 'For works that move us',    'editorial.tech.title': 'Technology that reduces cost. Curation that matters.',    'editorial.tech.ai.title': 'What we automate',    'editorial.tech.human.title': 'What we do NOT automate',    'casos.title': 'Real implementations',    'casos.subtitle': 'REAL BUSINESSES. HONEST RESULTS.',    'casos.coming': 'COMING SOON',    'casos.coming.desc': 'We are adding more businesses. Every client is a real implementation story.',
-    'cases.hero.text': "Two businesses in Elmira, NY already running on MaalCa. We're a local startup — our first clients are our neighbors.",
+    'cases.hero.text': "Three businesses in Elmira, NY already running on MaalCa. We're a local startup — our first clients are our neighbors.",
     'cases.cta.profile': 'View business profile →',
     'cases.cta.start': 'Start your implementation →',
     'cases.modules.label': 'MaalCa modules',
@@ -1704,6 +1713,15 @@ const translations = {
     'cases.tld.module1': 'Digital catalog with QR',
     'cases.tld.module2': 'Online ordering',
     'cases.tld.module3': 'Automatic confirmations',
+    'cases.lc.status': 'Active',
+    'cases.lc.title': 'La Catrina Mexican Restaurant',
+    'cases.lc.location': '208 S Main St, Elmira, NY 14904',
+    'cases.lc.type': 'Restaurant',
+    'cases.lc.desc': 'Mexican restaurant in Elmira, NY — running on MaalCa.',
+    'cases.lc.moduleStatus': 'Live',
+    'cases.lc.module1': 'Online ordering and reservations',
+    'cases.lc.module2': 'TV menu screens',
+    'cases.lc.module3': 'Order station',
     'editorial.track.assisted.b1': 'Complete pack: formatting, ISBN, cover, distribution',
     'editorial.track.assisted.b2': 'Your book on Amazon KDP in under 30 days',
     'editorial.track.assisted.b3': 'Royalties are 100% yours',
@@ -1970,8 +1988,8 @@ const translations = {
     'services.hero.subtitle': 'of your business',
     'services.hero.description': "Start free. Add capabilities at your own pace, without losing what you've already built.",
     // Services Page - Services Section
-    'services.section.title': 'Our Services',
-    'services.section.description': 'Comprehensive solutions that combine cutting-edge technology with humanized strategy',
+    'services.section.title': 'Choose your plan',
+    'services.section.description': 'Compare the plans and pick the one that fits your stage.',
     // Individual Services
     'services.editorial-kdp.title': 'Publish your book · Amazon KDP',
     'services.editorial-kdp.description': 'From idea to published book: we write, design, and distribute your work on Amazon with global reach from day one.',
@@ -2051,7 +2069,7 @@ const translations = {
     // Results Section
     'services.results.title': 'Starting with real results',
     'services.results.description': "Less than 6 months in the market. Here's how we track progress with our first clients.",
-    'services.results.metric1': '2',
+    'services.results.metric1': '3',
     'services.results.metric1.label': 'Businesses running on MaalCa',
     'services.results.metric2': '8',
     'services.results.metric2.label': 'Modules live in production',
@@ -3126,7 +3144,8 @@ export function useSimpleLanguage() {
   const [language, setLanguage] = useState<Language>('es');
   useEffect(() => {
     setLanguage(getGlobalLanguage());
-    const listener = (lang: Language) => setLanguage(lang);
+    document.documentElement.lang = getGlobalLanguage();
+    const listener = (lang: Language) => { setLanguage(lang); document.documentElement.lang = lang; };
     listeners.add(listener);
     return () => { listeners.delete(listener); };
   }, []);

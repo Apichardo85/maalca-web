@@ -1,1 +1,18 @@
-import type { Metadata } from 'next'export const metadata: Metadata = {  title: 'Servicios | MaalCa',  description: 'Servicios de desarrollo web, marketing digital, diseño y soluciones tecnológicas para tu negocio.',  openGraph: {    title: 'Servicios | MaalCa',    description: 'Desarrollo web, marketing digital, diseño y soluciones tecnológicas.',    url: 'https://maalca.com/servicios',    type: 'website',  },}export default function Layout({ children }: { children: React.ReactNode }) {  return <>{children}</>}
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Planes y precios | MaalCa',
+  description:
+    'Planes de MaalCa para el espacio digital de tu negocio: Inicial gratis 30 días, Emprendedor y Profesional, con pantallas de menú, pedidos, reservas y facturación.',
+  openGraph: {
+    title: 'Planes y precios | MaalCa',
+    description:
+      'Planes de MaalCa para el espacio digital de tu negocio: empieza gratis y crece a tu ritmo.',
+    url: 'https://maalca.com/servicios',
+    type: 'website',
+  },
+}
+
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>
+}

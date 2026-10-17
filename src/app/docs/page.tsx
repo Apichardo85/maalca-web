@@ -40,7 +40,7 @@ export default function DocsPage() {
               key={mod.key}
               className="group overflow-hidden rounded-2xl border border-border bg-surface-elevated transition-all duration-300 hover:border-brand-primary hover:-translate-y-1"
             >
-              <div className="aspect-[16/10] overflow-hidden bg-surface">
+              <div className="aspect-[1400/541] overflow-hidden bg-surface">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={mod.image}

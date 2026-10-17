@@ -75,6 +75,7 @@ const plans: Plan[] = [
       { es: "Automatizaciones básicas (confirmaciones, recordatorios)", en: "Basic automations (confirmations, reminders)" },
       { es: "Pagos con Stripe (tarjeta, Apple Pay, Google Pay)", en: "Stripe payments (card, Apple Pay, Google Pay)" },
       { es: "Analytics de conversión", en: "Conversion analytics" },
+      { es: "1 pantalla de menú para TV incluida", en: "1 TV menu screen included" },
       { es: "Soporte prioritario (24h)", en: "Priority support (24h)" },
     ],
     cta: { es: "Comienza tu prueba gratis", en: "Start your free trial" },
@@ -88,14 +89,15 @@ const plans: Plan[] = [
     id: "profesional",
     name: { es: "Profesional", en: "Professional" },
     tagline: {
-      es: "Para negocios de servicios que cotizan, facturan y agendan: todo el ciclo del cliente en un solo lugar.",
-      en: "For service businesses that quote, invoice and book: the full client cycle in one place.",
+      es: "Para negocios que cotizan, facturan, agendan o reciben pedidos: todo el ciclo del cliente en un solo lugar.",
+      en: "For businesses that quote, invoice, book or take orders: the full customer cycle in one place.",
     },
     price: PRICE_PROFESSIONAL,
     setup: { es: "Setup único $150", en: "One-time setup $150" },
     highlight: false,
     features: [
       { es: "Todo lo del plan Emprendedor", en: "Everything in Growth" },
+      { es: "Hasta 3 pantallas de menú para TV incluidas", en: "Up to 3 TV menu screens included" },
       { es: "Facturas y propuestas con firma digital del cliente", en: "Invoices and proposals with client e-signature" },
       { es: "Automatizaciones avanzadas: recordatorios y bloqueo de horario", en: "Advanced automations: reminders and schedule blocking" },
       { es: "Reportes y analíticas ampliadas", en: "Extended reports and analytics" },
@@ -114,6 +116,16 @@ const addOns: AddOn[] = [
     desc: {
       es: "8 publicaciones al mes (Instagram + Facebook) con diseño y copy.",
       en: "8 posts a month (Instagram + Facebook) with design and copy.",
+    },
+  },
+  {
+    id: "extra-screen",
+    name: { es: "Pantalla adicional", en: "Extra screen" },
+    price: 15,
+    unit: { es: "/mes", en: "/mo" },
+    desc: {
+      es: "Una pantalla de TV más para tu menú o anuncios, además de las incluidas en tu plan.",
+      en: "One more TV screen for your menu or ads, on top of those included in your plan.",
     },
   },
   {
@@ -212,6 +224,10 @@ const comparisonRows: { label: { es: string; en: string }; values: ComparisonVal
   {
     label: { es: "Facturas y propuestas con firma", en: "Invoices and proposals with e-signature" },
     values: [false, false, true],
+  },
+  {
+    label: { es: "Pantallas de TV (menú y anuncios)", en: "TV screens (menu and ads)" },
+    values: [false, "1", "3"],
   },
   {
     label: { es: "Soporte", en: "Support" },
