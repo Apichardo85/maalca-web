@@ -67,6 +67,8 @@ import { categoryLabel } from '@/lib/category-label';
 const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'], variable: '--font-restaurant-body' });
 
 const ALL_TAB = '__all__';
+// Pestaña virtual con solo los platos en oferta (precio anterior mayor al actual). Solo aparece si hay alguno.
+const OFFERS_TAB = '__offers__';
 const ALL_PERIODS = '__all_periods__';
 const MAX_DESTACADOS = 8;
 
@@ -450,6 +452,8 @@ export function RestaurantTemplate({
     const base =
       tab === ALL_TAB
         ? items
+        : tab === OFFERS_TAB
+        ? items.filter(isOnSale)
         : items.filter(
             (i) => (catId !== undefined && i.category_id === catId) || i.category === tab,
           );
@@ -468,6 +472,7 @@ export function RestaurantTemplate({
       : [{ categoryName: '', groupItems: items }];
 
   const visibleItems = itemsFor(activeTab);
+  const hasOffers = items.some(isOnSale);
 
   return (
     <div id="top" className={`${inter.variable} rt-scope`} style={{ minHeight: '100vh', backgroundColor: CREMA, fontFamily: inter.style.fontFamily, containerType: 'inline-size' } as React.CSSProperties}>
@@ -899,6 +904,7 @@ export function RestaurantTemplate({
             >
               {[
                 { key: ALL_TAB, label: getText('Todos', 'All') },
+                ...(hasOffers ? [{ key: OFFERS_TAB, label: `🏷 ${getText('Ofertas', 'Deals')}` }] : []),
                 ...categoryNames.map((n) => ({ key: n, label: categoryLabel(n, language, business.categoryTranslations) })),
               ].map(({ key, label }) => (
                 <button
