@@ -30,7 +30,8 @@ export async function middleware(request: NextRequest) {
   const isLoggedIn = !!user;
 
   const isProtected = pathname.startsWith("/onboarding") ||
-                      pathname.startsWith("/space");
+                      pathname.startsWith("/space") ||
+                      pathname.startsWith("/station");
   const isAuthRoute  = pathname === "/login";
 
   if (isProtected && !isLoggedIn) {

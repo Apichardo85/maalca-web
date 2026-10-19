@@ -112,7 +112,7 @@ export function SpaceSidebar({
     // /ops para un tipo de negocio atípico dejaba la página alcanzable pero sin link en el nav.
     // El filtro de abajo (activeModules.includes(token)) ya hace el trabajo real.
     { label: getText('Cocina', 'Kitchen'), icon: '🍳', href: `/space/${slug}/kitchen`, token: 'kitchen' },
-    { label: getText('Estación', 'Station'), icon: '🔔', href: `/space/${slug}/station`, token: 'kitchen' },
+    { label: getText('Estación', 'Station'), icon: '🔔', href: `/station/${slug}`, token: 'kitchen' },
     // POS — restaurante y retail cobran en el local con items de precio fijo. Servicios/Barbería
     // cobran al final de una cita (no aplica un mostrador de venta libre) y se suman después si
     // hace falta.
