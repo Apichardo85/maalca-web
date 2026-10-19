@@ -7,6 +7,9 @@ import { alignCatalogToTemplates, normalizeBaseLanguage } from '@/lib/catalog-la
 import { formatPrice as formatCurrencyPrice } from '@/lib/currency';
 import { MenuLayoutView, makePalette } from './MenuBoardLayouts';
 import { IMPLEMENTED_LAYOUTS, normalizeLayout, type BoardLayoutName } from '@/lib/board-layouts';
+import { useWallClock } from '@/hooks/useWallClock';
+import { buildFrames, locateFrame, parseSyncParams, slideForScreen, type SyncParams } from '@/lib/wall-sync';
+import { SpanFrame, SyncedVideo, useVideoDurations } from './BoardSync';
 
 // Screen Wake Lock API — tipos propios (con nombre distinto a los de lib.dom, por si el
 // TS target ya los trae) para no depender de qué tan reciente sea la lib del proyecto.
@@ -139,6 +142,20 @@ function slideImageUrls(slide: Slide | undefined): string[] {
   if (!slide) return [];
   if (slide.kind === 'ad') return slide.ad.mediaType === 'Image' && slide.ad.mediaUrl ? [slide.ad.mediaUrl] : [];
   return slide.items.filter((i) => !i.video_url && i.image_url).map((i) => i.image_url as string);
+}
+
+/** Duración de una slide en el timeline SINCRONIZADO (?sync / ?wall). Igual que la rotación
+ *  normal, salvo los videos: acá no se puede "avanzar al terminar" (cada TV terminaría en otro
+ *  momento), así que se usa la duración real del archivo (useVideoDurations), con tope. */
+function syncedSlideDurationMs(s: Slide, videoDurations: Record<string, number>): number {
+  if (s.kind === 'combo') return COMBO_SLIDE_INTERVAL_MS;
+  if (s.kind === 'menu') return SLIDE_INTERVAL_MS;
+  if (s.ad.mediaType === 'Video') {
+    const real = videoDurations[s.ad.mediaUrl];
+    const fallback = s.ad.durationSeconds > 0 ? s.ad.durationSeconds * 1000 : 15000;
+    return Math.min(real ?? fallback, MAX_VIDEO_AD_MS);
+  }
+  return Math.max(1000, s.ad.durationSeconds * 1000);
 }
 
 /** Cuánto espera como máximo la rotación a que la próxima slide termine de cargar antes de
@@ -477,6 +494,17 @@ export function MenuBoard({
   const [slideIndex, setSlideIndex] = useState(0);
   const stage = useStage();
 
+  // Pantallas sincronizadas (?sync=1 / ?wall=CxR&pos=c[,r]) — ver src/lib/wall-sync.ts. Se lee
+  // en el cliente (la URL la fija Fully Kiosk); sin parámetros, syncOn=false y todo lo de abajo
+  // queda apagado: ni siquiera se consulta /api/time.
+  const [syncParams, setSyncParams] = useState<SyncParams | null>(null);
+  useEffect(() => {
+    setSyncParams(parseSyncParams(window.location.search));
+  }, []);
+  const syncOn = syncParams !== null;
+  const wall = syncParams?.wall ?? null;
+  const { clock, stats: clockStats } = useWallClock(syncOn);
+
   // Último refresh exitoso del catálogo — lo usa el watchdog de abajo para decidir si la
   // pantalla se "colgó". En un ref (no state) porque no debe disparar un re-render.
   const lastSuccessRef = useRef(Date.now());
@@ -524,7 +552,7 @@ export function MenuBoard({
   // board being "remote-updatable": the TV never needs to be touched. Now also picks up
   // comerciales nuevos/pausados y cambios de frecuencia sin reabrir la pestaña.
   useEffect(() => {
-    const poll = setInterval(async () => {
+    const pollOnce = async () => {
       try {
         // Mismo screenId que el render inicial: sin él, el backend devuelve el catálogo BASE
         // (todo el menú + todos los comerciales) y la pantalla extra pierde su filtro a los 3 min.
@@ -566,9 +594,26 @@ export function MenuBoard({
       } catch {
         // Transient network hiccup — keep showing the last good catalog, try again next tick.
       }
-    }, REFRESH_INTERVAL_MS);
-    return () => clearInterval(poll);
-  }, [slug, screenId]);
+    };
+    // Sincronizado: todas las TVs consultan en el MISMO minuto del reloj del muro (+1.5 s), así un
+    // cambio hecho en el dashboard les llega a la vez y el timeline no queda desalineado hasta
+    // 60 s (una TV con el catálogo nuevo y otra con el viejo calcularían frames distintos).
+    let poll: ReturnType<typeof setInterval> | undefined;
+    let first: ReturnType<typeof setTimeout> | undefined;
+    if (syncOn && clockStats.ready) {
+      const delay = REFRESH_INTERVAL_MS - (clock.now() % REFRESH_INTERVAL_MS) + 1500;
+      first = setTimeout(() => {
+        void pollOnce();
+        poll = setInterval(pollOnce, REFRESH_INTERVAL_MS);
+      }, delay);
+    } else {
+      poll = setInterval(pollOnce, REFRESH_INTERVAL_MS);
+    }
+    return () => {
+      clearTimeout(first);
+      clearInterval(poll);
+    };
+  }, [slug, screenId, syncOn, clockStats.ready, clock]);
 
   // Watchdog — si pasan varios ciclos de polling sin un refresh exitoso (tab congelada, red
   // caída, lo que sea), fuerza un reload completo en vez de quedarse mostrando contenido
@@ -599,10 +644,53 @@ export function MenuBoard({
   }, [catalog]);
 
   // Reset to slide 0 whenever the slide set changes shape (items added/removed, comerciales
-  // agregados/quitados) so the index never points past the end.
+  // agregados/quitados) so the index never points past the end. (Sincronizado: el índice lo
+  // calcula el timeline, no hace falta resetear.)
   useEffect(() => {
+    if (syncOn) return;
     setSlideIndex(0);
-  }, [slides.length]);
+  }, [slides.length, syncOn]);
+
+  // ── Timeline sincronizado ──────────────────────────────────────────────────────────────
+  const videoAdUrls = useMemo(
+    () => [...new Set(slides.flatMap((s) => (s.kind === 'ad' && s.ad.mediaType === 'Video' ? [s.ad.mediaUrl] : [])))],
+    [slides],
+  );
+  const videoDurations = useVideoDurations(videoAdUrls, syncOn);
+  const screensInWall = wall ? wall.cols * wall.rows : 1;
+  const screenIndex = wall ? wall.row * wall.cols + wall.col : 0;
+  const frames = useMemo(
+    () => (syncOn
+      ? buildFrames(
+          // En un muro, cada comercial se estira sobre todas las TVs; las slides de menú se reparten.
+          slides.map((s) => ({ span: s.kind === 'ad', durationMs: syncedSlideDurationMs(s, videoDurations) })),
+          screensInWall,
+        )
+      : []),
+    [syncOn, slides, videoDurations, screensInWall],
+  );
+  const [syncFrame, setSyncFrame] = useState<{ frameIdx: number; frameStart: number } | null>(null);
+
+  useEffect(() => {
+    if (!syncOn || frames.length === 0 || !clockStats.ready) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const tick = () => {
+      const now = clock.now();
+      const loc = locateFrame(frames, now);
+      if (!loc) return;
+      setSyncFrame((prev) =>
+        prev && prev.frameIdx === loc.frameIdx && prev.frameStart === loc.frameStart
+          ? prev
+          : { frameIdx: loc.frameIdx, frameStart: loc.frameStart });
+      setSlideIndex(slideForScreen(frames[loc.frameIdx], screenIndex));
+      // Despierta justo en el borde del próximo frame (el cambio cae al mismo ms en todas las TVs),
+      // y nunca duerme más de 1 s por si el reloj se re-sincronizó a mitad.
+      timer = setTimeout(tick, Math.max(5, Math.min(1000, loc.frameEnd - now)));
+    };
+    tick();
+    return () => clearTimeout(timer);
+  }, [syncOn, frames, clockStats.ready, clock, screenIndex]);
+  const currentFrame = syncOn && syncFrame ? frames[syncFrame.frameIdx] : undefined;
 
   const slide = slides[slideIndex];
 
@@ -644,7 +732,7 @@ export function MenuBoard({
   // (ad.durationSeconds vs SLIDE_INTERVAL_MS fijo). Se re-arma el timer cada vez que cambia
   // el slide activo en vez de un solo interval fijo para toda la rotación.
   useEffect(() => {
-    if (slides.length <= 1) return;
+    if (syncOn || slides.length <= 1) return;
     // Comercial en video: avanza por onEnded (dura lo que dure el video); este timer es solo el
     // tope de seguridad (video colgado, sin red, o más largo que MAX_VIDEO_AD_MS).
     const durationMs = slide?.kind === 'ad'
@@ -667,7 +755,29 @@ export function MenuBoard({
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [slideIndex, slides, slide, preloadSlide]);
+  }, [slideIndex, slides, slide, preloadSlide, syncOn]);
+
+  // Muro: el comercial ocupa TODAS las TVs como una sola pantalla (sin header, sin grilla). Cada
+  // TV dibuja el muro completo y recorta su tramo (SpanFrame).
+  if (wall && currentFrame?.kind === 'span' && syncFrame && slide?.kind === 'ad') {
+    const fitCls = slide.ad.fit === 'Cover' ? 'object-cover' : 'object-contain';
+    return (
+      <SpanFrame wall={wall} background={palette.bg}>
+        {slide.ad.mediaType === 'Video' ? (
+          <SyncedVideo
+            key={`${slide.ad.id}-${syncFrame.frameStart}`}
+            src={slide.ad.mediaUrl}
+            startAt={syncFrame.frameStart}
+            clock={clock}
+            className={`absolute inset-0 h-full w-full ${fitCls}`}
+          />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={slide.ad.mediaUrl} alt="" className={`absolute inset-0 h-full w-full ${fitCls}`} />
+        )}
+      </SpanFrame>
+    );
+  }
 
   return (
     <div
@@ -679,7 +789,13 @@ export function MenuBoard({
       className="fixed inset-0 overflow-hidden"
       style={{ background: palette.bg, color: palette.text, visibility: stage.ready ? 'visible' : 'hidden' }}
     >
-      <DebugBadge info={`tema ${theme} · diseño ${activeLayout} · idioma ${language}`} />
+      <DebugBadge
+        info={`tema ${theme} · diseño ${activeLayout} · idioma ${language}${
+          syncOn
+            ? ` · sync ±${Number.isFinite(clockStats.errorMs) ? clockStats.errorMs.toFixed(0) : '?'}ms · frame ${(syncFrame?.frameIdx ?? 0) + 1}/${frames.length}${wall ? ` · TV ${screenIndex + 1}/${screensInWall}` : ''}`
+            : ''
+        }`}
+      />
      <div
       className="flex flex-col"
       style={{ width: stage.w, height: stage.h, transform: `scale(${stage.scale})`, transformOrigin: 'top left' }}
@@ -734,7 +850,15 @@ export function MenuBoard({
           // default (nunca recorta) — "Cover" es opt-in por comercial desde el dashboard para
           // quien prefiera llenar la pantalla a costa de recortar.
           <div className={`relative h-full w-full overflow-hidden rounded-2xl ${c.mediaFallback}`}>
-            {slide.ad.mediaType === 'Video' ? (
+            {slide.ad.mediaType === 'Video' && syncOn && syncFrame ? (
+              <SyncedVideo
+                key={`${slide.ad.id}-${syncFrame.frameStart}`}
+                src={slide.ad.mediaUrl}
+                startAt={syncFrame.frameStart}
+                clock={clock}
+                className={`absolute inset-0 h-full w-full ${slide.ad.fit === 'Cover' ? 'object-cover' : 'object-contain'}`}
+              />
+            ) : slide.ad.mediaType === 'Video' ? (
               <video
                 key={slide.ad.id}
                 src={slide.ad.mediaUrl}
