@@ -17,7 +17,38 @@ const clampInt = (v: string | null | undefined, min: number, max: number, fallba
   return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : fallback;
 };
 
-/** null = board normal (sin sincronizar), comportamiento previo intacto. */
+/** Config del muro tal como la manda el catálogo público (maalca-api PublicWallDto) para
+ *  ESTA TV — se configura desde el dashboard (Pantallas → Muros sincronizados). */
+export type ApiWall = {
+  mode: 'Mirror' | 'Span' | string;
+  cols: number;
+  rows: number;
+  col: number;
+  row: number;
+  bezelPx: number;
+  calibrate: boolean;
+};
+
+/** Config del dashboard → parámetros de sincronización. Espejo = todas iguales y alineadas
+ *  (sin reparto); Muro = reparto de slides + comerciales estirados. */
+export function syncParamsFromApi(w: ApiWall | null | undefined): SyncParams | null {
+  if (!w) return null;
+  if (w.mode !== 'Span' || w.cols * w.rows <= 1) return { wall: null };
+  const cols = Math.max(1, Math.min(8, w.cols));
+  const rows = Math.max(1, Math.min(4, w.rows));
+  return {
+    wall: {
+      cols,
+      rows,
+      col: Math.max(0, Math.min(cols - 1, w.col)),
+      row: Math.max(0, Math.min(rows - 1, w.row)),
+      bezel: Math.max(0, Math.min(400, w.bezelPx)),
+    },
+  };
+}
+
+/** Parámetros de URL (?sync / ?wall) — quedan solo como override de prueba; lo normal es que la
+ *  config venga del dashboard vía syncParamsFromApi. null = sin override en la URL. */
 export function parseSyncParams(search: string): SyncParams | null {
   const p = new URLSearchParams(search);
   const m = /^(\d)x(\d)$/i.exec(p.get('wall') ?? '');

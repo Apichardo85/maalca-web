@@ -13,7 +13,7 @@ const COLORS = ['#045AFE', '#E11D48', '#16A34A', '#F59E0B', '#9333EA', '#0891B2'
 const SWEEP_MS = 4000; // la barra cruza todo el muro en 4 s
 const FLASH_MS = 80;
 
-export default function SyncTestClient({ cols, col }: { cols: number; col: number }) {
+export default function SyncTestClient({ cols, col, label }: { cols: number; col: number; label?: string }) {
   const { clock, stats } = useWallClock();
   const bgRef = useRef<HTMLDivElement>(null);
   const flashRef = useRef<HTMLDivElement>(null);
@@ -82,7 +82,7 @@ export default function SyncTestClient({ cols, col }: { cols: number; col: numbe
         <div ref={secRef} style={{ fontSize: '28vh', lineHeight: 1, fontWeight: 800 }}>--</div>
         <div ref={timeRef} style={{ fontSize: '9vh', fontWeight: 700 }}>--:--:--.---</div>
         <div style={{ fontSize: '4vh', opacity: 0.85 }}>
-          Pantalla {col + 1} de {cols}
+          {label ?? `Pantalla ${col + 1} de ${cols}`}
         </div>
       </div>
 

@@ -8,6 +8,7 @@ import { MenuBoard } from '@/components/public/MenuBoard';
 import { normalizeLayout } from '@/lib/board-layouts';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { alignCatalogToTemplates, normalizeBaseLanguage } from '@/lib/catalog-language';
+import type { ApiWall } from '@/lib/wall-sync';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -101,6 +102,7 @@ export function renderBoard(slug: string, data: BoardCatalogResponse, screenId?:
       initialCategories={data.categories ?? []}
       initialScreenAds={data.screenAds ?? []}
       initialAdFrequency={data.adFrequency ?? null}
+      initialWall={data.wall ?? null}
       language={data.language === 'en' ? 'en' : 'es'}
       theme={data.boardTheme === 'Light' ? 'Light' : 'Dark'}
       layout={normalizeLayout(data.layout)}
@@ -151,4 +153,6 @@ interface BoardCatalogResponse {
   boardTheme?: string | null;
   transitionEffect?: string | null;
   layout?: string | null;
+  /** Muro sincronizado (config del dashboard) con la posición de ESTA pantalla. */
+  wall?: ApiWall | null;
 }

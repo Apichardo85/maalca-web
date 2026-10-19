@@ -50,7 +50,7 @@ export default async function StationPage({
   if (!spaceRes.ok) throw new Error(`Failed to load space: ${spaceRes.status}`);
 
   const space: SpaceResponse = await spaceRes.json();
-  if (!space.business.modulosActivos.includes('kitchen')) redirect(`/space/${slug}/orders`);
+  if (!space.business.modulosActivos.includes('kitchen')) redirect(`/space/${slug}/station`);
 
   let orders: OrderRow[] = [];
   try {

@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { isPaidPlan } from '@/lib/plan-limits';
 import { IMPLEMENTED_LAYOUTS, type BoardLayoutName } from '@/lib/board-layouts';
+import { WallsSection, type WallRow } from './WallsSection';
 
 export interface ScreenAdRow {
   id: string;
@@ -39,6 +40,10 @@ export interface ScreenRow {
   layout: string | null;
   contentMode: string;
   adIds: string[] | null;
+  /** Muro sincronizado al que pertenece (null = pantalla suelta). Se gestiona en WallsSection. */
+  wallId?: string | null;
+  wallCol?: number | null;
+  wallRow?: number | null;
 }
 
 interface Props {
@@ -51,6 +56,7 @@ interface Props {
   initialTransitionEffect: 'Fade' | 'Slide' | 'Zoom' | 'None';
   initialBoardLayout: BoardLayoutName;
   initialScreens: ScreenRow[];
+  initialWalls: WallRow[];
   /** Categorías reales del catálogo (derivadas de los items) — para elegir por checkbox en vez
    *  de escribirlas a mano. */
   categories: string[];
@@ -173,7 +179,7 @@ function LayoutPicker({
  */
 export function BoardContent({
   slug, plan, initialAds, initialAdFrequency, initialLanguage, initialBoardTheme,
-  initialTransitionEffect, initialBoardLayout, initialScreens, categories,
+  initialTransitionEffect, initialBoardLayout, initialScreens, initialWalls, categories,
 }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -201,6 +207,16 @@ export function BoardContent({
   const [creatingScreen, setCreatingScreen] = useState(false);
   const [screenBusyId, setScreenBusyId] = useState<string | null>(null);
   const [editingScreenId, setEditingScreenId] = useState<string | null>(null);
+
+  // Crear/redimensionar/eliminar un muro crea o suelta pantallas en el backend: se recarga la lista.
+  async function reloadScreens() {
+    try {
+      const res = await fetch(`/api/space/${slug}/screens`, { cache: 'no-store' });
+      if (res.ok) setScreens(await res.json());
+    } catch {
+      // se queda la lista anterior; un refresh de la página la pone al día
+    }
+  }
 
   async function createScreen() {
     if (!newScreenName.trim()) return;
@@ -686,7 +702,14 @@ export function BoardContent({
                 <div key={screen.id} className="rounded-xl border border-gray-200/70 dark:border-neutral-800 p-3">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{screen.name}</p>
+                      <p className="text-sm font-medium truncate">
+                        {screen.name}
+                        {screen.wallId && (
+                          <span className="ml-2 rounded-full bg-brand-primary/10 px-2 py-0.5 align-middle text-[10px] font-semibold text-brand-primary">
+                            {getText('En muro', 'In wall')}
+                          </span>
+                        )}
+                      </p>
                       <a
                         href={`/${slug}/board/${screen.id}`}
                         target="_blank"
@@ -727,7 +750,8 @@ export function BoardContent({
                       </button>
                       <button
                         onClick={() => deleteScreen(screen.id, screen.name)}
-                        disabled={screenBusyId === screen.id}
+                        disabled={screenBusyId === screen.id || !!screen.wallId}
+                        title={screen.wallId ? getText('Es parte de un muro: achica o elimina el muro abajo.', 'Part of a wall: shrink or delete the wall below.') : undefined}
                         className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-red-400 hover:text-red-500 disabled:opacity-50"
                       >
                         {getText('Eliminar', 'Delete')}
@@ -921,6 +945,15 @@ export function BoardContent({
             </div>
           )}
         </div>
+
+        {/* Muros de pantallas sincronizadas */}
+        <WallsSection
+          slug={slug}
+          initialWalls={initialWalls}
+          getText={getText}
+          onScreensChanged={reloadScreens}
+          toast={toast}
+        />
 
         {/* Subir comercial */}
         <div className="mt-4 rounded-2xl border border-dashed border-gray-300 dark:border-neutral-700 p-5 text-center">

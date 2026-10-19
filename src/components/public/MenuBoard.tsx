@@ -8,7 +8,8 @@ import { formatPrice as formatCurrencyPrice } from '@/lib/currency';
 import { MenuLayoutView, makePalette } from './MenuBoardLayouts';
 import { IMPLEMENTED_LAYOUTS, normalizeLayout, type BoardLayoutName } from '@/lib/board-layouts';
 import { useWallClock } from '@/hooks/useWallClock';
-import { buildFrames, locateFrame, parseSyncParams, slideForScreen, type SyncParams } from '@/lib/wall-sync';
+import { buildFrames, locateFrame, parseSyncParams, slideForScreen, syncParamsFromApi, type ApiWall, type SyncParams } from '@/lib/wall-sync';
+import SyncTestClient from '@/app/sync-test/SyncTestClient';
 import { SINGLE_SCREEN, SpanFrame, SyncedVideo, shouldSpan, useMediaInfo, type MediaInfo } from './BoardSync';
 
 // Screen Wake Lock API — tipos propios (con nombre distinto a los de lib.dom, por si el
@@ -59,6 +60,8 @@ interface Props {
   initialCategories: BoardCategory[];
   initialScreenAds?: ScreenAd[];
   initialAdFrequency?: number | null;
+  /** Muro sincronizado configurado en el dashboard (null = pantalla suelta). */
+  initialWall?: ApiWall | null;
   /** Preferencia del negocio, no del visitante — nadie interactúa con la TV para cambiarla. */
   language?: 'es' | 'en';
   theme?: 'Dark' | 'Light';
@@ -428,7 +431,7 @@ function DebugBadge({ info }: { info: string }) {
 
 export function MenuBoard({
   slug, screenId, business: initialBusiness, initialItems, initialCategories,
-  initialScreenAds = [], initialAdFrequency = null,
+  initialScreenAds = [], initialAdFrequency = null, initialWall = null,
   language: initialLanguageProp = 'es', theme: initialThemeProp = 'Dark',
   transitionEffect: initialEffectProp = 'Fade', layout: initialLayoutProp = 'Classic',
 }: Props) {
@@ -494,13 +497,17 @@ export function MenuBoard({
   const [slideIndex, setSlideIndex] = useState(0);
   const stage = useStage();
 
-  // Pantallas sincronizadas (?sync=1 / ?wall=CxR&pos=c[,r]) — ver src/lib/wall-sync.ts. Se lee
-  // en el cliente (la URL la fija Fully Kiosk); sin parámetros, syncOn=false y todo lo de abajo
-  // queda apagado: ni siquiera se consulta /api/time.
-  const [syncParams, setSyncParams] = useState<SyncParams | null>(null);
+  // Pantallas sincronizadas — ver src/lib/wall-sync.ts. La config viene del dashboard (Pantallas →
+  // Muros sincronizados) dentro del catálogo, y el poll la refresca: cambiar el muro en el
+  // dashboard le llega a la TV sin tocarla. ?sync / ?wall en la URL quedan como override de
+  // prueba. Pantalla suelta sin override: syncOn=false y nada de esto corre (ni /api/time).
+  const [apiWall, setApiWall] = useState<ApiWall | null>(initialWall);
+  const [urlSync, setUrlSync] = useState<SyncParams | null | undefined>(undefined);
   useEffect(() => {
-    setSyncParams(parseSyncParams(window.location.search));
+    setUrlSync(parseSyncParams(window.location.search));
   }, []);
+  const syncParams = useMemo(() => urlSync ?? syncParamsFromApi(apiWall), [urlSync, apiWall]);
+  const calibrating = Boolean(apiWall?.calibrate);
   const syncOn = syncParams !== null;
   const wall = syncParams?.wall ?? null;
   const { clock, stats: clockStats } = useWallClock(syncOn);
@@ -584,6 +591,8 @@ export function MenuBoard({
           };
           return JSON.stringify(next) === JSON.stringify(prev) ? prev : next;
         });
+        const nextWall: ApiWall | null = data.wall ?? null;
+        setApiWall((prev) => (JSON.stringify(prev) === JSON.stringify(nextWall) ? prev : nextWall));
         setCatalog({
           items: polledItems,
           categories: data.categories ?? [],
@@ -757,6 +766,23 @@ export function MenuBoard({
       clearTimeout(timer);
     };
   }, [slideIndex, slides, slide, preloadSlide, syncOn]);
+
+  // Calibración activada desde el dashboard: todas las TVs del muro muestran la prueba de
+  // sincronización (color por segundo, destello, barra que cruza el muro) hasta que se apague.
+  if (calibrating) {
+    const span = wall ?? null;
+    return (
+      <SyncTestClient
+        cols={span ? span.cols : 1}
+        col={span ? span.col : 0}
+        label={
+          span
+            ? `TV ${span.row * span.cols + span.col + 1} / ${span.cols * span.rows}`
+            : (language === 'en' ? 'Mirror screen' : 'Pantalla espejo')
+        }
+      />
+    );
+  }
 
   // Muro: durante un comercial todas las TVs lo muestran a la vez (sin header, sin grilla).
   // Si su proporción es la del muro, se estira sobre todas (cada TV recorta su tramo); si es un

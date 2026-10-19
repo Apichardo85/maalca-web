@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getMaalcaApiToken } from '@/lib/api-auth';
 import { normalizeLayout, type BoardLayoutName } from '@/lib/board-layouts';
 import { BoardContent, type ScreenAdRow, type ScreenRow } from './BoardContent';
+import type { WallRow } from './WallsSection';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -51,6 +52,18 @@ export default async function BoardPage({
     // screens stays [] — BoardContent renders the empty state rather than crashing the page.
   }
 
+  // Muros de pantallas sincronizadas.
+  let walls: WallRow[] = [];
+  try {
+    const wallsRes = await fetch(`${API}/api/affiliates/${space.business.id}/screen-walls`, {
+      headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': space.business.id },
+      cache: 'no-store',
+    });
+    if (wallsRes.ok) walls = await wallsRes.json();
+  } catch {
+    // walls stays [] — la sección muestra su estado vacío (p. ej. API aún sin desplegar).
+  }
+
   // AdFrequency/Language/BoardTheme no viven en el aggregator de /api/space/{slug} — se leen
   // del catálogo público (el mismo endpoint que ya consume el board en vivo), sin agregar un
   // endpoint autenticado nuevo solo para esto.
@@ -92,6 +105,7 @@ export default async function BoardPage({
       initialTransitionEffect={transitionEffect}
       initialBoardLayout={boardLayout}
       initialScreens={screens}
+      initialWalls={walls}
       categories={categories}
     />
   );
