@@ -54,7 +54,7 @@ const RESERVED = new Set([
   'settings', 'catalog', 'categories', 'upgrade',
   'masa-tina',
   'dr-pichardo', 'hablando-mierda', 'casos-estudio', 'ecosistema',
-  'affiliates', 'tarjeta',
+  'affiliates', 'tarjeta', 'sync-test',
 ]);
 
 async function getCatalog(slug: string): Promise<PublicCatalogResponse | null> {

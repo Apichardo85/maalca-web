@@ -27,7 +27,7 @@ export const RESERVED = new Set([
   'catering', 'editorial', 'properties', 'ciriwhispers', 'pegote',
   'settings', 'catalog', 'categories', 'upgrade',
   'masa-tina', 'dr-pichardo', 'hablando-mierda', 'casos-estudio', 'ecosistema',
-  'affiliates', 'tarjeta',
+  'affiliates', 'tarjeta', 'sync-test',
 ]);
 
 /** Exportado para que /{slug}/board/{screenId}/page.tsx (Fase 9 Etapa B) reuse exactamente la
