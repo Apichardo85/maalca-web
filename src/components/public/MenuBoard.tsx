@@ -9,7 +9,7 @@ import { MenuLayoutView, makePalette } from './MenuBoardLayouts';
 import { IMPLEMENTED_LAYOUTS, normalizeLayout, type BoardLayoutName } from '@/lib/board-layouts';
 import { useWallClock } from '@/hooks/useWallClock';
 import { buildFrames, locateFrame, parseSyncParams, slideForScreen, type SyncParams } from '@/lib/wall-sync';
-import { SpanFrame, SyncedVideo, useVideoDurations } from './BoardSync';
+import { SINGLE_SCREEN, SpanFrame, SyncedVideo, shouldSpan, useMediaInfo, type MediaInfo } from './BoardSync';
 
 // Screen Wake Lock API — tipos propios (con nombre distinto a los de lib.dom, por si el
 // TS target ya los trae) para no depender de qué tan reciente sea la lib del proyecto.
@@ -146,12 +146,12 @@ function slideImageUrls(slide: Slide | undefined): string[] {
 
 /** Duración de una slide en el timeline SINCRONIZADO (?sync / ?wall). Igual que la rotación
  *  normal, salvo los videos: acá no se puede "avanzar al terminar" (cada TV terminaría en otro
- *  momento), así que se usa la duración real del archivo (useVideoDurations), con tope. */
-function syncedSlideDurationMs(s: Slide, videoDurations: Record<string, number>): number {
+ *  momento), así que se usa la duración real del archivo (useMediaInfo), con tope. */
+function syncedSlideDurationMs(s: Slide, mediaInfo: Record<string, MediaInfo>): number {
   if (s.kind === 'combo') return COMBO_SLIDE_INTERVAL_MS;
   if (s.kind === 'menu') return SLIDE_INTERVAL_MS;
   if (s.ad.mediaType === 'Video') {
-    const real = videoDurations[s.ad.mediaUrl];
+    const real = mediaInfo[s.ad.mediaUrl]?.durationMs;
     const fallback = s.ad.durationSeconds > 0 ? s.ad.durationSeconds * 1000 : 15000;
     return Math.min(real ?? fallback, MAX_VIDEO_AD_MS);
   }
@@ -652,22 +652,23 @@ export function MenuBoard({
   }, [slides.length, syncOn]);
 
   // ── Timeline sincronizado ──────────────────────────────────────────────────────────────
-  const videoAdUrls = useMemo(
-    () => [...new Set(slides.flatMap((s) => (s.kind === 'ad' && s.ad.mediaType === 'Video' ? [s.ad.mediaUrl] : [])))],
-    [slides],
-  );
-  const videoDurations = useVideoDurations(videoAdUrls, syncOn);
+  const adMedia = useMemo(() => {
+    const seen = new Map<string, { url: string; type: 'Image' | 'Video' }>();
+    for (const s of slides) if (s.kind === 'ad') seen.set(s.ad.mediaUrl, { url: s.ad.mediaUrl, type: s.ad.mediaType });
+    return [...seen.values()];
+  }, [slides]);
+  const mediaInfo = useMediaInfo(adMedia, syncOn);
   const screensInWall = wall ? wall.cols * wall.rows : 1;
   const screenIndex = wall ? wall.row * wall.cols + wall.col : 0;
   const frames = useMemo(
     () => (syncOn
       ? buildFrames(
           // En un muro, cada comercial se estira sobre todas las TVs; las slides de menú se reparten.
-          slides.map((s) => ({ span: s.kind === 'ad', durationMs: syncedSlideDurationMs(s, videoDurations) })),
+          slides.map((s) => ({ span: s.kind === 'ad', durationMs: syncedSlideDurationMs(s, mediaInfo) })),
           screensInWall,
         )
       : []),
-    [syncOn, slides, videoDurations, screensInWall],
+    [syncOn, slides, mediaInfo, screensInWall],
   );
   const [syncFrame, setSyncFrame] = useState<{ frameIdx: number; frameStart: number } | null>(null);
 
@@ -757,12 +758,14 @@ export function MenuBoard({
     };
   }, [slideIndex, slides, slide, preloadSlide, syncOn]);
 
-  // Muro: el comercial ocupa TODAS las TVs como una sola pantalla (sin header, sin grilla). Cada
-  // TV dibuja el muro completo y recorta su tramo (SpanFrame).
+  // Muro: durante un comercial todas las TVs lo muestran a la vez (sin header, sin grilla).
+  // Si su proporción es la del muro, se estira sobre todas (cada TV recorta su tramo); si es un
+  // 16:9 normal, va completo en cada TV, sincronizado frame a frame.
   if (wall && currentFrame?.kind === 'span' && syncFrame && slide?.kind === 'ad') {
     const fitCls = slide.ad.fit === 'Cover' ? 'object-cover' : 'object-contain';
+    const span = shouldSpan(mediaInfo[slide.ad.mediaUrl]?.aspect, wall, stage.w / stage.h);
     return (
-      <SpanFrame wall={wall} background={palette.bg}>
+      <SpanFrame wall={span ? wall : SINGLE_SCREEN} background={palette.bg}>
         {slide.ad.mediaType === 'Video' ? (
           <SyncedVideo
             key={`${slide.ad.id}-${syncFrame.frameStart}`}

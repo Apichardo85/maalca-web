@@ -13,9 +13,12 @@ Se activa por URL en Fully Kiosk. Sin parámetros, el board funciona igual que s
 
 ## Cómo se comporta el muro
 - **Slides de menú/combos**: se reparten — cada TV muestra una distinta, todas cambian juntas.
-- **Comerciales**: ocupan TODO el muro como una sola pantalla (imagen o video recortado por TV).
-  Para que luzca, sube el comercial con la proporción del muro (2 TVs = 32:9, 3 TVs = 48:9) o
-  márcalo como "Cover". En "Contain" un video 16:9 queda centrado con franjas negras a los lados.
+- **Comerciales**: todas las TVs los muestran al mismo tiempo. El board decide solo según la
+  proporción del archivo:
+  - proporción del muro (2 TVs ≈ 32:9, 3 TVs ≈ 48:9, margen ±25 %) → se **estira** sobre todo el
+    muro (cada TV muestra su tramo);
+  - cualquier otra (16:9 normal, video vertical del celular, logo) → va **completo en cada TV**,
+    sincronizado frame a frame.
 - Todas las TVs del muro deben usar la **misma** URL base (mismo slug / mismo screenId); solo
   cambia `pos`.
 

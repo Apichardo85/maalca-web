@@ -72,33 +72,72 @@ export function SpanFrame({
   );
 }
 
-/** Duración real (ms) de los videos de comerciales. En modo sincronizado no se puede avanzar
- *  "cuando termine el video" (cada TV terminaría en un momento distinto): el timeline necesita
- *  conocer la duración de antemano, y todas las TVs leen el mismo valor del mismo archivo. */
-export function useVideoDurations(urls: string[], enabled: boolean): Record<string, number> {
-  const [durations, setDurations] = useState<Record<string, number>>({});
-  const key = urls.join('|');
+export type MediaInfo = { durationMs?: number; aspect?: number };
+
+/** Duración (videos) y proporción ancho/alto (videos e imágenes) de los comerciales.
+ *  - Duración: en modo sincronizado no se puede avanzar "cuando termine el video" (cada TV
+ *    terminaría en otro momento); el timeline necesita saberla de antemano, y todas las TVs leen
+ *    el mismo valor del mismo archivo.
+ *  - Proporción: decide si un comercial se estira sobre el muro o se repite en cada TV
+ *    (ver shouldSpan). */
+export function useMediaInfo(
+  media: Array<{ url: string; type: 'Image' | 'Video' }>,
+  enabled: boolean,
+): Record<string, MediaInfo> {
+  const [info, setInfo] = useState<Record<string, MediaInfo>>({});
+  const key = media.map((m) => `${m.type}:${m.url}`).join('|');
 
   useEffect(() => {
     if (!enabled || !key) return;
-    const probes: HTMLVideoElement[] = [];
-    for (const url of key.split('|')) {
-      const v = document.createElement('video');
-      v.preload = 'metadata';
-      v.muted = true;
-      v.onloadedmetadata = () => {
-        const ms = v.duration * 1000;
-        if (Number.isFinite(ms) && ms > 0) {
-          setDurations((prev) => (prev[url] === ms ? prev : { ...prev, [url]: ms }));
-        }
-        v.removeAttribute('src');
-        v.load();
-      };
-      v.src = url;
-      probes.push(v);
+    const save = (url: string, next: MediaInfo) =>
+      setInfo((prev) => {
+        const cur = prev[url];
+        return cur && cur.durationMs === next.durationMs && cur.aspect === next.aspect ? prev : { ...prev, [url]: next };
+      });
+    const cleanups: Array<() => void> = [];
+    for (const entry of key.split('|')) {
+      const sep = entry.indexOf(':');
+      const type = entry.slice(0, sep);
+      const url = entry.slice(sep + 1);
+      if (type === 'Video') {
+        const v = document.createElement('video');
+        v.preload = 'metadata';
+        v.muted = true;
+        v.onloadedmetadata = () => {
+          const ms = v.duration * 1000;
+          save(url, {
+            durationMs: Number.isFinite(ms) && ms > 0 ? ms : undefined,
+            aspect: v.videoWidth && v.videoHeight ? v.videoWidth / v.videoHeight : undefined,
+          });
+          v.removeAttribute('src');
+          v.load();
+        };
+        v.src = url;
+        cleanups.push(() => { v.onloadedmetadata = null; v.removeAttribute('src'); });
+      } else {
+        const img = new Image();
+        img.onload = () => {
+          if (img.naturalWidth && img.naturalHeight) save(url, { aspect: img.naturalWidth / img.naturalHeight });
+        };
+        img.src = url;
+        cleanups.push(() => { img.onload = null; });
+      }
     }
-    return () => probes.forEach((v) => { v.onloadedmetadata = null; v.removeAttribute('src'); });
+    return () => cleanups.forEach((fn) => fn());
   }, [key, enabled]);
 
-  return durations;
+  return info;
 }
+
+/** ¿El comercial se estira sobre todo el muro, o va completo (y sincronizado) en cada TV?
+ *  Solo se estira si su proporción se acerca a la del muro (ej. 32:9 en 2 TVs, 48:9 en 3).
+ *  Un 16:9 normal estirado en 3 TVs con "Contain" quedaba solo en la del medio (las de los lados
+ *  vacías), y con "Cover" se recortaría a una franja. Sin proporción conocida aún → repetir. */
+export function shouldSpan(mediaAspect: number | undefined, wall: WallLayout, screenAspect: number): boolean {
+  if (!mediaAspect) return false;
+  const wallAspect = (wall.cols * screenAspect) / wall.rows;
+  return mediaAspect >= wallAspect * 0.75 && mediaAspect <= wallAspect * 1.33;
+}
+
+/** Muro de 1 TV: el comercial ocupa la pantalla completa de cada TV (modo "repetir"). */
+export const SINGLE_SCREEN: WallLayout = { cols: 1, rows: 1, col: 0, row: 0, bezel: 0 };

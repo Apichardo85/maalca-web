@@ -2,10 +2,12 @@
 // Las TVs NO usan su propio reloj (puede estar desfasado segundos): calculan su diferencia
 // contra esta hora con un ping estilo NTP (ver src/lib/wall-clock.ts).
 //
-// Runtime Node (no edge) a propósito: una sola región (iad1) => todas las TVs miden contra el
-// mismo grupo de servidores sincronizados por NTP, y evitamos el reloj "congelado durante I/O"
-// de algunos runtimes de isolates. El cold start solo afecta la primera muestra, y el cliente
-// la descarta porque se queda con la de menor RTT.
+// Runtime Edge: responde desde el punto de Vercel más cercano a la TV. El error de la medición es
+// la mitad del tiempo de ida y vuelta (RTT/2), así que un RTT corto es directamente más precisión
+// (con Node, en una sola región, medimos ~80 ms de RTT = ±40 ms). Los relojes de los nodos de
+// Vercel están sincronizados por NTP entre sí (error de ~1 ms, despreciable frente al RTT). El
+// cold start solo afecta la primera muestra, y el cliente la descarta (se queda con el menor RTT).
+export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 export function GET() {
