@@ -950,6 +950,7 @@ export function BoardContent({
         <WallsSection
           slug={slug}
           initialWalls={initialWalls}
+          screens={screens}
           getText={getText}
           onScreensChanged={reloadScreens}
           toast={toast}

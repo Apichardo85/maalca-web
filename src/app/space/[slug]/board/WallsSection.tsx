@@ -29,6 +29,8 @@ export interface WallRow {
 interface Props {
   slug: string;
   initialWalls: WallRow[];
+  /** Contenido de cada pantalla (de "Pantallas adicionales") para mostrar qué sale en cada TV. */
+  screens: Array<{ id: string; categoryFilter: string | null; contentMode: string }>;
   getText: (es: string, en: string) => string;
   /** Crear/redimensionar un muro crea o suelta pantallas: el listado de arriba se recarga. */
   onScreensChanged: () => void;
@@ -43,7 +45,7 @@ const btn =
 const input =
   'rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white';
 
-export function WallsSection({ slug, initialWalls, getText, onScreensChanged, toast }: Props) {
+export function WallsSection({ slug, initialWalls, screens, getText, onScreensChanged, toast }: Props) {
   const [walls, setWalls] = useState(initialWalls);
   const [busy, setBusy] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -54,6 +56,20 @@ export function WallsSection({ slug, initialWalls, getText, onScreensChanged, to
   const [swapFrom, setSwapFrom] = useState<{ wallId: string; screenId: string } | null>(null);
   const [qr, setQr] = useState<{ title: string; url: string; dataUrl: string } | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
+
+  const contentLabel = (screenId: string) => {
+    const sc = screens.find((x) => x.id === screenId);
+    if (!sc) return '';
+    if (sc.contentMode === 'AdsOnly') return getText('Solo comerciales', 'Ads only');
+    if (sc.contentMode === 'FeaturedOnly') return getText('Solo destacados', 'Featured only');
+    return sc.categoryFilter?.trim() || getText('Todo el menú', 'Full menu');
+  };
+  const norm = (f: string | null | undefined) =>
+    (f ?? '').split(',').map((c) => c.trim().toLowerCase()).filter(Boolean).sort().join('|');
+  const perTv = (w: WallRow) => {
+    const list = w.slots.map((sl) => screens.find((x) => x.id === sl.screenId)).filter(Boolean) as Props['screens'];
+    return list.some((x) => norm(x.categoryFilter) !== norm(list[0]?.categoryFilter) || x.contentMode !== list[0]?.contentMode);
+  };
 
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://maalca.com';
   const tvUrl = (screenId: string) => `${origin}/${slug}/board/${screenId}`;
@@ -350,10 +366,15 @@ export function WallsSection({ slug, initialWalls, getText, onScreensChanged, to
                       >
                         <span className="text-lg font-bold">TV {i + 1}</span>
                         {s.screenId === lead?.screenId && (
-                          <span className="text-[10px] uppercase tracking-wide text-white/60">{getText('contenido', 'content')}</span>
+                          <span className="text-[10px] uppercase tracking-wide text-white/60">
+                            {isSpan ? getText('comerciales', 'ads') : getText('contenido', 'content')}
+                          </span>
                         )}
                       </button>
                       <p className="truncate text-xs font-medium" title={s.screenName}>{s.screenName}</p>
+                      <p className="truncate text-[11px] text-gray-500 dark:text-neutral-400" title={contentLabel(s.screenId)}>
+                        {isSpan ? contentLabel(s.screenId) : getText('Igual a TV 1', 'Same as TV 1')}
+                      </p>
                       <div className="flex flex-wrap gap-1">
                         <button onClick={() => copy(tvUrl(s.screenId))} className={`${btn} px-2 py-1`}>{getText('Copiar link', 'Copy link')}</button>
                         <button onClick={() => showQr(`${w.name} · TV ${i + 1}`, tvUrl(s.screenId))} className={`${btn} px-2 py-1`}>QR</button>
@@ -368,9 +389,23 @@ export function WallsSection({ slug, initialWalls, getText, onScreensChanged, to
               )}
 
               <p className="mt-3 text-xs text-gray-500 dark:text-neutral-400">
-                {getText(
-                  `El contenido (categorías, comerciales, tema y diseño) se edita en "${lead?.screenName ?? 'TV 1'}", en Pantallas adicionales; todas las TVs del muro lo comparten.`,
-                  `Content (categories, ads, theme and layout) is edited on "${lead?.screenName ?? 'TV 1'}" under Additional screens; every TV in the wall shares it.`,
+                {!isSpan
+                  ? getText(
+                      `Espejo: todas las TVs muestran el contenido de "${lead?.screenName ?? 'TV 1'}" (edítalo en Pantallas adicionales).`,
+                      `Mirror: every TV shows the content of "${lead?.screenName ?? 'TV 1'}" (edit it under Additional screens).`,
+                    )
+                  : perTv(w)
+                    ? getText(
+                        'Cada TV muestra sus propias categorías (edítalas con "Editar" en Pantallas adicionales) y cambian de slide al mismo tiempo.',
+                        'Each TV shows its own categories (edit them with "Edit" under Additional screens) and they change slides at the same time.',
+                      )
+                    : getText(
+                        'Todas tienen el mismo menú, así que las slides se reparten solas entre las TVs. Para que cada TV muestre algo distinto, ponle categorías propias en Pantallas adicionales.',
+                        'All TVs have the same menu, so slides are spread across them automatically. To give each TV its own content, set its categories under Additional screens.',
+                      )}
+                {' ' + getText(
+                  `Los comerciales son comunes a todo el muro y se configuran en "${lead?.screenName ?? 'TV 1'}".`,
+                  `Ads are shared by the whole wall and are set on "${lead?.screenName ?? 'TV 1'}".`,
                 )}
                 {isSpan && ' ' + getText(
                   `Un comercial con la proporción del muro (${w.cols * 16}:${w.rows * 9}) se estira sobre todas las TVs; cualquier otro se repite completo en cada una.`,

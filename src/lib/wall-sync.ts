@@ -9,7 +9,16 @@
 // (src/lib/wall-clock.ts), qué toca mostrar ahora: posición = hora del muro mod duración total.
 // No hay "director" que mande órdenes: si una TV se reinicia, vuelve sola al punto correcto.
 
-export type WallLayout = { cols: number; rows: number; col: number; row: number; bezel: number };
+export type WallLayout = {
+  cols: number;
+  rows: number;
+  col: number;
+  row: number;
+  bezel: number;
+  /** Cada TV muestra SU menú (categorías propias, configuradas en el dashboard); solo los cambios
+   *  de slide y los comerciales van alineados. false = todas usan el mismo menú y se reparte. */
+  perTv?: boolean;
+};
 export type SyncParams = { wall: WallLayout | null };
 
 const clampInt = (v: string | null | undefined, min: number, max: number, fallback: number) => {
@@ -27,6 +36,7 @@ export type ApiWall = {
   row: number;
   bezelPx: number;
   calibrate: boolean;
+  perTvContent?: boolean;
 };
 
 /** Config del dashboard → parámetros de sincronización. Espejo = todas iguales y alineadas
@@ -43,6 +53,7 @@ export function syncParamsFromApi(w: ApiWall | null | undefined): SyncParams | n
       col: Math.max(0, Math.min(cols - 1, w.col)),
       row: Math.max(0, Math.min(rows - 1, w.row)),
       bezel: Math.max(0, Math.min(400, w.bezelPx)),
+      perTv: Boolean(w.perTvContent),
     },
   };
 }
@@ -117,6 +128,51 @@ export function locateFrame(frames: Frame[], nowMs: number) {
   }
   const last = frames.length - 1;
   return { frameIdx: last, frameStart: t - frames[last].durationMs, frameEnd: t };
+}
+
+/** Muro con menú propio por TV: las TVs no comparten la lista de slides, así que el timeline
+ *  común no puede ser "slide i de la lista". Se arma por SLOTS de duración fija:
+ *    [F slots de menú][comercial 1][F slots de menú][comercial 2]... (F = frecuencia de comerciales)
+ *  En un slot de menú cada TV muestra SU slide número (slots de menú transcurridos mod su total);
+ *  en un comercial todas muestran el mismo (son comunes al muro). Todo anclado al epoch → mismo
+ *  instante de cambio en todas las TVs, sin coordinarse. */
+export type PerTvPosition =
+  | { kind: 'menu'; menuIdx: number; start: number; end: number }
+  | { kind: 'ad'; adIdx: number; start: number; end: number };
+
+export function locatePerTv(
+  nowMs: number,
+  menuCount: number,
+  adDurationsMs: number[],
+  frequency: number,
+  slotMs: number,
+): PerTvPosition | null {
+  const ads = adDurationsMs.length;
+  if (menuCount === 0 && ads === 0) return null;
+  const menuOnly = (idx: number, start: number) =>
+    ({ kind: 'menu' as const, menuIdx: ((idx % menuCount) + menuCount) % menuCount, start, end: start + slotMs });
+  if (ads === 0 || frequency <= 0) {
+    if (menuCount === 0) return null;
+    const idx = Math.floor(nowMs / slotMs);
+    return menuOnly(idx, idx * slotMs);
+  }
+  const F = menuCount === 0 ? 0 : frequency;
+  const cycle = adDurationsMs.reduce((s, d) => s + F * slotMs + d, 0);
+  const c = Math.floor(nowMs / cycle);
+  let base = c * cycle;
+  let t = nowMs - base;
+  for (let i = 0; i < ads; i++) {
+    if (t < F * slotMs) {
+      const j = Math.floor(t / slotMs);
+      return menuOnly((c * ads + i) * F + j, base + j * slotMs);
+    }
+    t -= F * slotMs;
+    base += F * slotMs;
+    if (t < adDurationsMs[i]) return { kind: 'ad', adIdx: i, start: base, end: base + adDurationsMs[i] };
+    t -= adDurationsMs[i];
+    base += adDurationsMs[i];
+  }
+  return { kind: 'ad', adIdx: ads - 1, start: base - adDurationsMs[ads - 1], end: base };
 }
 
 /** Slide que muestra la TV `screenIndex` dentro de un frame. Si el último grupo trae menos

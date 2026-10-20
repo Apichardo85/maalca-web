@@ -8,7 +8,7 @@ import { formatPrice as formatCurrencyPrice } from '@/lib/currency';
 import { MenuLayoutView, makePalette } from './MenuBoardLayouts';
 import { IMPLEMENTED_LAYOUTS, normalizeLayout, type BoardLayoutName } from '@/lib/board-layouts';
 import { useWallClock } from '@/hooks/useWallClock';
-import { buildFrames, locateFrame, parseSyncParams, slideForScreen, syncParamsFromApi, type ApiWall, type SyncParams } from '@/lib/wall-sync';
+import { buildFrames, locateFrame, locatePerTv, parseSyncParams, slideForScreen, syncParamsFromApi, type ApiWall, type SyncParams } from '@/lib/wall-sync';
 import SyncTestClient from '@/app/sync-test/SyncTestClient';
 import { SINGLE_SCREEN, SpanFrame, SyncedVideo, shouldSpan, useMediaInfo, type MediaInfo } from './BoardSync';
 
@@ -146,6 +146,10 @@ function slideImageUrls(slide: Slide | undefined): string[] {
   if (slide.kind === 'ad') return slide.ad.mediaType === 'Image' && slide.ad.mediaUrl ? [slide.ad.mediaUrl] : [];
   return slide.items.filter((i) => !i.video_url && i.image_url).map((i) => i.image_url as string);
 }
+
+/** Muro con menú propio por TV: duración fija de cada slot de menú (todas las TVs cambian juntas
+ *  aunque cada una tenga distinta cantidad de slides). Ver locatePerTv en lib/wall-sync. */
+const WALL_SLOT_MS = 10000;
 
 /** Duración de una slide en el timeline SINCRONIZADO (?sync / ?wall). Igual que la rotación
  *  normal, salvo los videos: acá no se puede "avanzar al terminar" (cada TV terminaría en otro
@@ -509,6 +513,7 @@ export function MenuBoard({
   const syncParams = useMemo(() => urlSync ?? syncParamsFromApi(apiWall), [urlSync, apiWall]);
   const calibrating = Boolean(apiWall?.calibrate);
   const syncOn = syncParams !== null;
+  const perTvWall = Boolean(syncParams?.wall?.perTv);
   const wall = syncParams?.wall ?? null;
   const { clock, stats: clockStats } = useWallClock(syncOn);
 
@@ -649,8 +654,11 @@ export function MenuBoard({
     if (menuSlides.length === 0 && ads.length > 0) {
       return ads.map((ad): Slide => ({ kind: 'ad', ad }));
     }
+    // Muro con menú propio por TV: menú y comerciales van separados ([menú..., comerciales...]);
+    // el orden real lo decide el timeline por slots (locatePerTv), común a todas las TVs.
+    if (perTvWall) return [...menuSlides, ...ads.map((ad): Slide => ({ kind: 'ad', ad }))];
     return interleaveAds(menuSlides, ads, catalog.adFrequency);
-  }, [catalog]);
+  }, [catalog, perTvWall]);
 
   // Reset to slide 0 whenever the slide set changes shape (items added/removed, comerciales
   // agregados/quitados) so the index never points past the end. (Sincronizado: el índice lo
@@ -670,28 +678,55 @@ export function MenuBoard({
   const screensInWall = wall ? wall.cols * wall.rows : 1;
   const screenIndex = wall ? wall.row * wall.cols + wall.col : 0;
   const frames = useMemo(
-    () => (syncOn
+    () => (syncOn && !perTvWall
       ? buildFrames(
           // En un muro, cada comercial se estira sobre todas las TVs; las slides de menú se reparten.
           slides.map((s) => ({ span: s.kind === 'ad', durationMs: syncedSlideDurationMs(s, mediaInfo) })),
           screensInWall,
         )
       : []),
-    [syncOn, slides, mediaInfo, screensInWall],
+    [syncOn, perTvWall, slides, mediaInfo, screensInWall],
   );
-  const [syncFrame, setSyncFrame] = useState<{ frameIdx: number; frameStart: number } | null>(null);
+  /** span = durante este frame el comercial ocupa todas las TVs del muro. */
+  const [syncFrame, setSyncFrame] = useState<{ frameIdx: number; frameStart: number; span: boolean } | null>(null);
+  const setFrameIfChanged = useCallback((next: { frameIdx: number; frameStart: number; span: boolean }) => {
+    setSyncFrame((prev) =>
+      prev && prev.frameIdx === next.frameIdx && prev.frameStart === next.frameStart && prev.span === next.span ? prev : next);
+  }, []);
+
+  // Muro con menú propio por TV: timeline por slots (cada TV recorre SU menú; comerciales comunes).
+  useEffect(() => {
+    if (!syncOn || !perTvWall || !clockStats.ready || slides.length === 0) return;
+    const adSlides = slides.filter((s): s is Extract<Slide, { kind: 'ad' }> => s.kind === 'ad');
+    const menuCount = slides.length - adSlides.length;
+    const adDurations = adSlides.map((s) => syncedSlideDurationMs(s, mediaInfo));
+    const freq = catalog.adFrequency ?? 0;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const tick = () => {
+      const now = clock.now();
+      const loc = locatePerTv(now, menuCount, adDurations, freq, WALL_SLOT_MS);
+      if (!loc) return;
+      if (loc.kind === 'menu') {
+        setFrameIfChanged({ frameIdx: loc.menuIdx, frameStart: loc.start, span: false });
+        setSlideIndex(loc.menuIdx);
+      } else {
+        setFrameIfChanged({ frameIdx: loc.adIdx, frameStart: loc.start, span: true });
+        setSlideIndex(menuCount + loc.adIdx);
+      }
+      timer = setTimeout(tick, Math.max(5, Math.min(1000, loc.end - now)));
+    };
+    tick();
+    return () => clearTimeout(timer);
+  }, [syncOn, perTvWall, clockStats.ready, clock, slides, mediaInfo, catalog.adFrequency, setFrameIfChanged]);
 
   useEffect(() => {
-    if (!syncOn || frames.length === 0 || !clockStats.ready) return;
+    if (!syncOn || perTvWall || frames.length === 0 || !clockStats.ready) return;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const tick = () => {
       const now = clock.now();
       const loc = locateFrame(frames, now);
       if (!loc) return;
-      setSyncFrame((prev) =>
-        prev && prev.frameIdx === loc.frameIdx && prev.frameStart === loc.frameStart
-          ? prev
-          : { frameIdx: loc.frameIdx, frameStart: loc.frameStart });
+      setFrameIfChanged({ frameIdx: loc.frameIdx, frameStart: loc.frameStart, span: frames[loc.frameIdx].kind === 'span' });
       setSlideIndex(slideForScreen(frames[loc.frameIdx], screenIndex));
       // Despierta justo en el borde del próximo frame (el cambio cae al mismo ms en todas las TVs),
       // y nunca duerme más de 1 s por si el reloj se re-sincronizó a mitad.
@@ -699,8 +734,7 @@ export function MenuBoard({
     };
     tick();
     return () => clearTimeout(timer);
-  }, [syncOn, frames, clockStats.ready, clock, screenIndex]);
-  const currentFrame = syncOn && syncFrame ? frames[syncFrame.frameIdx] : undefined;
+  }, [syncOn, perTvWall, frames, clockStats.ready, clock, screenIndex, setFrameIfChanged]);
 
   const slide = slides[slideIndex];
 
@@ -787,7 +821,7 @@ export function MenuBoard({
   // Muro: durante un comercial todas las TVs lo muestran a la vez (sin header, sin grilla).
   // Si su proporción es la del muro, se estira sobre todas (cada TV recorta su tramo); si es un
   // 16:9 normal, va completo en cada TV, sincronizado frame a frame.
-  if (wall && currentFrame?.kind === 'span' && syncFrame && slide?.kind === 'ad') {
+  if (wall && syncOn && syncFrame?.span && slide?.kind === 'ad') {
     const fitCls = slide.ad.fit === 'Cover' ? 'object-cover' : 'object-contain';
     const span = shouldSpan(mediaInfo[slide.ad.mediaUrl]?.aspect, wall, stage.w / stage.h);
     return (
@@ -821,7 +855,7 @@ export function MenuBoard({
       <DebugBadge
         info={`tema ${theme} · diseño ${activeLayout} · idioma ${language}${
           syncOn
-            ? ` · sync ±${Number.isFinite(clockStats.errorMs) ? clockStats.errorMs.toFixed(0) : '?'}ms · frame ${(syncFrame?.frameIdx ?? 0) + 1}/${frames.length}${wall ? ` · TV ${screenIndex + 1}/${screensInWall}` : ''}`
+            ? ` · sync ±${Number.isFinite(clockStats.errorMs) ? clockStats.errorMs.toFixed(0) : '?'}ms · frame ${(syncFrame?.frameIdx ?? 0) + 1}/${perTvWall ? 'slots' : frames.length}${wall ? ` · TV ${screenIndex + 1}/${screensInWall}` : ''}`
             : ''
         }`}
       />
