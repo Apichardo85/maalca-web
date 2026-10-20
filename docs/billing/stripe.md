@@ -85,8 +85,10 @@ Requisito: la verificación de identidad de la cuenta de Stripe completa (activa
 3. **Railway → maalca-api → Variables:** `STRIPE_SECRET_KEY` = `sk_live_…`,
    `STRIPE_WEBHOOK_SECRET` y `STRIPE_CONNECT_WEBHOOK_SECRET` = los `whsec_` live. Borrar
    `STRIPE_PRICE_ENTREPRENEUR`, que ya no se usa.
-4. **Billing Portal live:** Settings → Billing → Customer portal → activar actualizar tarjeta,
-   cancelar y cambiar de plan (Emprendedor ↔ Profesional, mensual ↔ anual).
+4. **Billing Portal:** no requiere pasos. Si la cuenta live no tiene configuración default, el API
+   crea una propia (metadata `maalca=1`) al abrir el portal por primera vez. Para que el
+   cliente también pueda cambiar de plan desde el portal, se configura en Settings → Billing →
+   Customer portal (opcional).
 5. Redeploy y revisar los logs: `Stripe: modo LIVE`.
 6. Prueba real con una tarjeta propia en Emprendedor mensual y reembolsarla desde el Dashboard.
 7. Los negocios que hicieron onboarding de Connect en test tienen `acct_` de test. En live deben
