@@ -202,7 +202,7 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
           <p className="mt-3 max-w-3xl text-sm text-gray-500 dark:text-neutral-400">
             {getText(
               'Los pedidos online con cobro por tarjeta son parte del plan Emprendedor. Con el plan gratis, tus clientes siguen pidiendo por WhatsApp.',
-              'Online orders with card payment are part of the Entrepreneur plan. On the free plan, customers still order via WhatsApp.',
+              'Online orders with card payment are part of the Growth plan. On the free plan, customers still order via WhatsApp.',
             )}
           </p>
         )}

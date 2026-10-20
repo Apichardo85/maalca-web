@@ -44,14 +44,14 @@ const SECTIONS: Section[] = [
     es: {
       h: "3. Planes y facturación",
       body: [
-        "MaalCa ofrece un Plan Gratis y un plan de pago (Emprendedor) con más módulos y capacidades. Los detalles y precios vigentes de cada plan están en maalca.com/servicios.",
+        "MaalCa ofrece un Plan Gratis y planes de pago (Emprendedor y Profesional) con más módulos y capacidades. Los detalles y precios vigentes de cada plan están en maalca.com/servicios.",
         "Si tu negocio procesa pagos en línea (pedidos, reservas con depósito, donaciones) a través de Stripe, esos cobros están sujetos también a los términos de servicio de Stripe. MaalCa no es responsable de disputas de pago entre tu negocio y tus propios clientes — solo provee la infraestructura para procesarlos.",
       ],
     },
     en: {
       h: "3. Plans and billing",
       body: [
-        "MaalCa offers a Free Plan and a paid plan (Entrepreneur) with more modules and capabilities. Current plan details and pricing are at maalca.com/servicios.",
+        "MaalCa offers a Free Plan and paid plans (Growth and Professional) with more modules and capabilities. Current plan details and pricing are at maalca.com/servicios.",
         "If your business processes online payments (orders, deposit bookings, donations) through Stripe, those charges are also subject to Stripe's own terms of service. MaalCa is not responsible for payment disputes between your business and your own customers — we only provide the infrastructure to process them.",
       ],
     },

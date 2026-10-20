@@ -7,6 +7,8 @@ import { Toast } from '@/components/ui/Toast';
 import { isPaidPlan } from '@/lib/plan-limits';
 import { IMPLEMENTED_LAYOUTS, type BoardLayoutName } from '@/lib/board-layouts';
 import { WallsSection, type WallRow } from './WallsSection';
+import { readApiError, useBillingSummary } from '@/lib/billing';
+import { ScreenLimitNotice, type ScreenLimitDetails } from '@/components/space/billing/ScreenLimitNotice';
 
 export interface ScreenAdRow {
   id: string;
@@ -208,11 +210,20 @@ export function BoardContent({
   const [screenBusyId, setScreenBusyId] = useState<string | null>(null);
   const [editingScreenId, setEditingScreenId] = useState<string | null>(null);
 
+  // Pantallas incluidas en el plan + extra pagadas: crear por encima del límite abre la oferta.
+  const { summary: billing, setSummary: setBilling, reload: reloadBilling } = useBillingSummary(slug);
+  const [screenLimit, setScreenLimit] = useState<ScreenLimitDetails | null>(null);
+  const showScreenLimit = (d: ScreenLimitDetails) => {
+    setScreenLimit(d);
+    void reloadBilling();
+  };
+
   // Crear/redimensionar/eliminar un muro crea o suelta pantallas en el backend: se recarga la lista.
   async function reloadScreens() {
     try {
       const res = await fetch(`/api/space/${slug}/screens`, { cache: 'no-store' });
       if (res.ok) setScreens(await res.json());
+      void reloadBilling();
     } catch {
       // se queda la lista anterior; un refresh de la página la pone al día
     }
@@ -227,9 +238,21 @@ export function BoardContent({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newScreenName.trim(), layout: newScreenLayout }),
       });
+      if (res.status === 402) {
+        const err = await readApiError(res, getText('Llegaste al límite de pantallas.', 'Screen limit reached.'));
+        if (err.code === 'SCREEN_LIMIT_REACHED' && err.data) {
+          showScreenLimit({
+            allowance: Number(err.data.allowance), used: Number(err.data.used),
+            requested: Number(err.data.requested), message: err.message,
+          });
+          return;
+        }
+        throw err;
+      }
       const created = await res.json().catch(() => null);
       if (res.ok && created?.id) {
         setScreens((prev) => [...prev, created]);
+        void reloadBilling();
         setNewScreenName('');
         setNewScreenLayout(null);
         setAddingScreen(false);
@@ -534,7 +557,7 @@ export function BoardContent({
           <p className="mt-3 text-sm text-gray-500 dark:text-neutral-400">
             {getText(
               'El Menu Board es parte del plan Emprendedor. Con el plan gratis, esta pantalla queda configurada pero no se activa públicamente.',
-              'The Menu Board is part of the Entrepreneur plan. On the free plan, this screen stays configured but not publicly active.',
+              'The Menu Board is part of the Growth plan. On the free plan, this screen stays configured but not publicly active.',
             )}
           </p>
         )}
@@ -654,7 +677,16 @@ export function BoardContent({
         <div className="mt-4 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-sm font-semibold">{getText('Pantallas adicionales', 'Additional screens')}</h2>
+              <h2 className="text-sm font-semibold">
+                {getText('Pantallas adicionales', 'Additional screens')}
+                {billing && (
+                  <span className={`ml-2 rounded-full px-2 py-0.5 text-[11px] font-medium ${billing.screensUsed >= billing.screenAllowance
+                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                    : 'bg-gray-100 text-gray-600 dark:bg-neutral-800 dark:text-neutral-300'}`}>
+                    {billing.screensUsed}/{billing.screenAllowance}
+                  </span>
+                )}
+              </h2>
               <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
                 {getText(
                   'Más TVs con su propia configuración (ej. solo comerciales, o en inglés). Lo que no cambies acá hereda lo del negocio, arriba.',
@@ -669,6 +701,19 @@ export function BoardContent({
               {addingScreen ? getText('Cancelar', 'Cancel') : getText('+ Agregar', '+ Add')}
             </button>
           </div>
+
+          {screenLimit && (
+            <ScreenLimitNotice
+              slug={slug}
+              details={screenLimit}
+              summary={billing}
+              onSummary={(s) => {
+                setBilling(s);
+                toast.success(getText('Listo: tu plan ya tiene más pantallas.', 'Done: your plan now has more screens.'));
+              }}
+              onClose={() => setScreenLimit(null)}
+            />
+          )}
 
           {addingScreen && (
             <div className="mt-3 flex flex-col gap-3">
@@ -953,6 +998,7 @@ export function BoardContent({
           screens={screens}
           getText={getText}
           onScreensChanged={reloadScreens}
+          onScreenLimit={showScreenLimit}
           toast={toast}
         />
 

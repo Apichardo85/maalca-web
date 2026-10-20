@@ -5,6 +5,7 @@ import type { BusinessType } from '@/lib/templates/registry';
 import { SpaceSidebar } from '@/components/space/SpaceSidebar';
 import { SpaceMobileNav } from '@/components/space/SpaceMobileNav';
 import { SupportModeBanner } from '@/components/space/SupportModeBanner';
+import { PastDueBanner } from '@/components/space/billing/PastDueBanner';
 import { NotificationsProvider } from '@/components/space/NotificationsProvider';
 import { isPaidPlan } from '@/lib/plan-limits';
 
@@ -74,6 +75,9 @@ export default async function SpaceSlugLayout({
       <div className="flex-1 min-w-0 transition-[padding] duration-200 md:pl-[var(--space-sidebar-w,15rem)]">
         {isImpersonation && (
           <SupportModeBanner businessName={business.name} expiresAt={impersonationExpiresAt} />
+        )}
+        {business.planStatus === 'PastDue' && (
+          <PastDueBanner slug={slug} canManage={role !== 'Staff'} />
         )}
         <SpaceMobileNav
           slug={slug}

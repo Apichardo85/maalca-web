@@ -203,7 +203,7 @@ export function SpaceSidebar({
             }`}
           >
             {isPaidPlan(plan)
-              ? (String(plan).toLowerCase() === 'enterprise' ? getText('Enterprise', 'Enterprise') : getText('Emprendedor', 'Entrepreneur'))
+              ? (String(plan).toLowerCase() === 'enterprise' ? getText('Profesional', 'Professional') : getText('Emprendedor', 'Growth'))
               : getText('Plan Gratis', 'Free Plan')}
           </span>
           <UserBadge fullName={userFullName} avatarUrl={userAvatarUrl} email={userEmail} role={userRole} />

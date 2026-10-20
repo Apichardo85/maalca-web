@@ -9,6 +9,14 @@ export const PRICE_ENTREPRENEUR = 38;
 export const PRICE_PROFESSIONAL = 95;
 export const PRICE_PREMIUM = 195;
 
+// Anuales (2 meses gratis) y cargos de la suscripción — respaldo si Stripe no responde; los
+// precios reales salen de /billing/summary (lookup_keys maalca_* en Stripe).
+export const PRICE_ENTREPRENEUR_YEARLY = 380;
+export const PRICE_PROFESSIONAL_YEARLY = 950;
+export const SETUP_FEE = 150;
+export const EXTRA_SCREEN_MONTHLY = 15;
+export const EXTRA_SCREEN_YEARLY = 150;
+
 // Add-ons mensuales (USD)
 export const ADDON_SOCIAL_POSTS = 75;
 export const ADDON_AI_AGENT = 150;

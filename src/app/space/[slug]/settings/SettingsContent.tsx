@@ -6,7 +6,9 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { isPaidPlan } from '@/lib/plan-limits';
-import { PRICE_ENTREPRENEUR, PRICE_PROFESSIONAL } from '@/config/pricing';
+import { PlanPicker } from '@/components/space/billing/PlanPicker';
+import { ExtraScreensControl } from '@/components/space/billing/ExtraScreensControl';
+import { planKey, priceOf, publicPlanName, useBillingSummary } from '@/lib/billing';
 
 interface Props {
   slug: string;
@@ -19,16 +21,7 @@ interface Props {
   zoomLink?: string | null;
 }
 
-const FEATURES: { es: string; en: string; free: boolean; entrepreneur: boolean }[] = [
-  { es: 'Catálogo (10 items)', en: 'Catalog (10 items)', free: true, entrepreneur: false },
-  { es: 'Catálogo ilimitado', en: 'Unlimited catalog', free: false, entrepreneur: true },
-  { es: 'Reservas online', en: 'Online booking', free: false, entrepreneur: true },
-  { es: 'Pagos con Stripe integrados', en: 'Integrated Stripe payments', free: false, entrepreneur: true },
-  { es: 'Automatizaciones básicas', en: 'Basic automations', free: false, entrepreneur: true },
-  { es: 'Código QR + contacto directo', en: 'QR code + direct contact', free: true, entrepreneur: true },
-];
-
-export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, currency: initialCurrency, businessLanguage: initialBizLanguage = 'es', businessType, zoomLink: initialZoomLink }: Props) {
+export function SettingsContent({ slug, plan, trialDaysRemaining, currency: initialCurrency, businessLanguage: initialBizLanguage = 'es', businessType, zoomLink: initialZoomLink }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -36,10 +29,10 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
   const searchParams = useSearchParams();
   const upgraded = searchParams.get('upgraded') === 'true';
   const canceled = searchParams.get('canceled') === 'true';
-  const isPastDue = planStatus === 'PastDue';
+  const suggestedExtras = Math.max(0, Number(searchParams.get('extraScreens') ?? 0) || 0);
+  const { summary, setSummary } = useBillingSummary(slug);
+  const planName = publicPlanName(plan, language);
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const pollCount = useRef(0);
 
   const [portalLoading, setPortalLoading] = useState(false);
@@ -177,35 +170,6 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
     return () => clearTimeout(timer);
   }, [upgraded, plan, router]);
 
-  async function handleUpgrade() {
-    setLoading(true);
-    setError(null);
-    try {
-      const origin = window.location.origin;
-      const res = await fetch(`/api/space/${slug}/billing/checkout-session`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          successUrl: `${origin}/space/${slug}/settings?upgraded=true`,
-          cancelUrl: `${origin}/space/${slug}/settings?canceled=true`,
-        }),
-      });
-      const data = await res.json().catch(() => null);
-      if (!res.ok || !data?.url) {
-        throw new Error(
-          getText(
-            'No pudimos iniciar el pago. Intenta de nuevo en unos minutos.',
-            "We couldn't start checkout. Please try again in a few minutes.",
-          ),
-        );
-      }
-      window.location.href = data.url;
-    } catch (e) {
-      setError(e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.'));
-      setLoading(false);
-    }
-  }
-
   const trialExpired = !isPaidPlan(plan) && trialDaysRemaining !== null && trialDaysRemaining <= 0;
 
   // Link fijo de Zoom (o Meet/similar) para reuniones virtuales — solo aplica a Servicios,
@@ -301,33 +265,12 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
           <div className="mt-6 max-w-3xl rounded-lg border border-green-200 dark:border-green-900/40 bg-green-50 dark:bg-green-900/20 px-4 py-3">
             <p className="text-sm text-green-700 dark:text-green-400">
               {isPaidPlan(plan)
-                ? getText('¡Listo! Ya estás en el plan Emprendedor. 🎉', "You're all set on the Emprendedor plan. 🎉")
+                ? getText(`¡Listo! Ya estás en el plan ${planName}. 🎉`, `You're all set on the ${planName} plan. 🎉`)
                 : getText(
-                    'Pago recibido — estamos activando tu plan Emprendedor, puede tardar unos segundos.',
-                    'Payment received — activating your Emprendedor plan, this can take a few seconds.',
+                    'Pago recibido — estamos activando tu plan, puede tardar unos segundos.',
+                    'Payment received — activating your plan, this can take a few seconds.',
                   )}
             </p>
-          </div>
-        )}
-
-        {isPastDue && (
-          <div className="mt-6 max-w-3xl rounded-lg border border-yellow-300 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20 px-4 py-3">
-            <p className="text-sm font-medium text-yellow-800 dark:text-yellow-400">
-              {getText(
-                '⚠️ Tu último pago falló. Actualiza tu método de pago para no perder el plan Emprendedor.',
-                '⚠️ Your last payment failed. Update your payment method to avoid losing your Emprendedor plan.',
-              )}
-            </p>
-            <button
-              onClick={handleManageBilling}
-              disabled={portalLoading}
-              className="mt-2 rounded-full bg-yellow-600 px-4 py-1.5 text-xs font-medium text-white hover:bg-yellow-700 disabled:opacity-50"
-            >
-              {portalLoading
-                ? getText('Redirigiendo...', 'Redirecting...')
-                : getText('Actualizar método de pago', 'Update payment method')}
-            </button>
-            {portalError && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{portalError}</p>}
           </div>
         )}
 
@@ -348,12 +291,12 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
                   {getText('Plan actual', 'Current plan')}
                 </p>
                 <p className="mt-1 text-lg font-bold">
-                  {isPaidPlan(plan) ? (String(plan).toLowerCase() === 'enterprise' ? getText('Enterprise', 'Enterprise') : getText('Emprendedor', 'Entrepreneur')) : getText('Plan Gratis', 'Free plan')}
+                  {isPaidPlan(plan) ? planName : getText('Plan Inicial (30 días gratis)', 'Starter (30-day free trial)')}
                 </p>
               </div>
               {isPaidPlan(plan) && (
                 <span className="rounded-full bg-brand-primary/10 px-3 py-1 text-xs font-medium text-brand-primary">
-                  ${String(plan).toLowerCase() === 'enterprise' ? PRICE_PROFESSIONAL : PRICE_ENTREPRENEUR}/{getText('mes', 'mo')}
+                  ${priceOf(summary, planKey(String(plan).toLowerCase() === 'enterprise' ? 'Enterprise' : 'Entrepreneur', summary?.interval ?? 'month'))}/{summary?.interval === 'year' ? getText('año', 'yr') : getText('mes', 'mo')}
                 </span>
               )}
             </div>
@@ -382,8 +325,21 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
                     ? getText('Redirigiendo a Stripe...', 'Redirecting to Stripe...')
                     : getText('Administrar suscripción y facturas', 'Manage subscription & invoices')}
                 </button>
-                {!isPastDue && portalError && (
+                {portalError && (
                   <p className="mt-2 text-xs text-red-600 dark:text-red-400">{portalError}</p>
+                )}
+                {summary && (
+                  <div className="mt-4 space-y-3">
+                    <p className="text-sm text-gray-600 dark:text-neutral-300">
+                      {getText(
+                        `Pantallas: usas ${summary.screensUsed} de ${summary.screenAllowance}.`,
+                        `Screens: using ${summary.screensUsed} of ${summary.screenAllowance}.`,
+                      )}
+                    </p>
+                    {summary.hasSubscription && (
+                      <ExtraScreensControl slug={slug} summary={summary} onUpdated={setSummary} />
+                    )}
+                  </div>
                 )}
                 <p className="mt-2 text-xs text-gray-400 dark:text-neutral-500">
                   {getText('¿Dudas? Escríbenos a hello@maalca.com.', 'Questions? Email us at hello@maalca.com.')}
@@ -537,32 +493,20 @@ export function SettingsContent({ slug, plan, planStatus, trialDaysRemaining, cu
             </div>
           )}
 
-          {/* Feature comparison */}
+          {/* Elegir plan → Stripe Checkout */}
           {!isPaidPlan(plan) && (
-            <div className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6">
-              <p className="text-sm font-semibold">{getText('Qué desbloqueas con Emprendedor', 'What Entrepreneur unlocks')}</p>
-              <ul className="mt-3 space-y-2">
-                {FEATURES.filter((f) => f.entrepreneur).map((f) => (
-                  <li key={f.es} className="flex items-center gap-2 text-sm text-gray-600 dark:text-neutral-300">
-                    <span className="text-green-600 dark:text-green-400">✓</span>
-                    {getText(f.es, f.en)}
-                  </li>
-                ))}
-              </ul>
-
-              {error && (
-                <p className="mt-4 text-sm text-red-600 dark:text-red-400">{error}</p>
-              )}
-
-              <button
-                onClick={handleUpgrade}
-                disabled={loading}
-                className="mt-5 w-full rounded-full bg-brand-primary py-3 text-sm font-medium text-white transition hover:bg-brand-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {loading
-                  ? getText('Redirigiendo a Stripe...', 'Redirecting to Stripe...')
-                  : getText('Actualizar a Emprendedor — $38/mes', 'Upgrade to Entrepreneur — $38/mo')}
-              </button>
+            <div id="plan" className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 lg:col-span-2">
+              <p className="text-sm font-semibold">{getText('Elige tu plan', 'Choose your plan')}</p>
+              <p className="mt-1 mb-4 text-xs text-gray-500 dark:text-neutral-400">
+                {getText('Pagas con tarjeta en Stripe. Cambias o cancelas cuando quieras.', 'Pay by card on Stripe. Change or cancel anytime.')}
+              </p>
+              <PlanPicker
+                slug={slug}
+                summary={summary}
+                successPath={`/space/${slug}/settings?upgraded=true`}
+                cancelPath={`/space/${slug}/settings?canceled=true`}
+                defaultExtraScreens={suggestedExtras}
+              />
             </div>
           )}
         </div>

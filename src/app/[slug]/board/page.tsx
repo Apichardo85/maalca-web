@@ -69,7 +69,7 @@ export function renderBoard(slug: string, data: BoardCatalogResponse, screenId?:
         <p className="text-2xl font-bold">{data.affiliate.name}</p>
         <p className="max-w-md text-white/60">
           {isEn
-            ? 'The Menu Board is a feature of the Entrepreneur plan. Upgrade your plan from the dashboard to activate it.'
+            ? 'The Menu Board is a feature of the Growth plan. Upgrade your plan from the dashboard to activate it.'
             : 'El Menu Board es una función del plan Emprendedor. Actualiza tu plan desde el dashboard para activarlo.'}
         </p>
       </div>

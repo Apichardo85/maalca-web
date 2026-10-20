@@ -7,6 +7,8 @@
 
 import { useState } from 'react';
 import QRCode from 'qrcode';
+import { ApiError, readApiError } from '@/lib/billing';
+import type { ScreenLimitDetails } from '@/components/space/billing/ScreenLimitNotice';
 
 export interface WallSlot {
   screenId: string;
@@ -34,6 +36,8 @@ interface Props {
   getText: (es: string, en: string) => string;
   /** Crear/redimensionar un muro crea o suelta pantallas: el listado de arriba se recarga. */
   onScreensChanged: () => void;
+  /** El muro necesita más pantallas que las del plan (402 SCREEN_LIMIT_REACHED). */
+  onScreenLimit?: (d: ScreenLimitDetails) => void;
   toast: { success: (m: string) => void; error: (m: string) => void };
 }
 
@@ -45,7 +49,7 @@ const btn =
 const input =
   'rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-1.5 text-sm text-gray-900 dark:text-white';
 
-export function WallsSection({ slug, initialWalls, screens, getText, onScreensChanged, toast }: Props) {
+export function WallsSection({ slug, initialWalls, screens, getText, onScreensChanged, onScreenLimit, toast }: Props) {
   const [walls, setWalls] = useState(initialWalls);
   const [busy, setBusy] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -80,9 +84,18 @@ export function WallsSection({ slug, initialWalls, screens, getText, onScreensCh
       headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
-    const data = res.status === 204 ? null : await res.json().catch(() => null);
-    if (!res.ok) throw new Error(data?.error?.message ?? `HTTP ${res.status}`);
-    return data;
+    if (!res.ok) throw await readApiError(res, `HTTP ${res.status}`);
+    return res.status === 204 ? null : await res.json().catch(() => null);
+  }
+
+  /** true si el error era el límite de pantallas y ya se mostró la oferta de extras. */
+  function handledScreenLimit(e: unknown) {
+    if (!(e instanceof ApiError) || e.code !== 'SCREEN_LIMIT_REACHED' || !e.data || !onScreenLimit) return false;
+    onScreenLimit({
+      allowance: Number(e.data.allowance), used: Number(e.data.used),
+      requested: Number(e.data.requested), message: e.message,
+    });
+    return true;
   }
 
   const replace = (w: WallRow) => setWalls((prev) => prev.map((x) => (x.id === w.id ? w : x)));
@@ -99,6 +112,7 @@ export function WallsSection({ slug, initialWalls, screens, getText, onScreensCh
       onScreensChanged();
       toast.success(getText(`Muro creado con ${created.slots.length} TVs.`, `Wall created with ${created.slots.length} TVs.`));
     } catch (e) {
+      if (handledScreenLimit(e)) return;
       toast.error(getText('No se pudo crear el muro.', "Couldn't create the wall.") + ` ${(e as Error).message}`);
     } finally {
       setBusy(null);
@@ -112,7 +126,8 @@ export function WallsSection({ slug, initialWalls, screens, getText, onScreensCh
       replace(updated);
       if (patch.cols !== undefined || patch.rows !== undefined) onScreensChanged();
       return updated;
-    } catch {
+    } catch (e) {
+      if (handledScreenLimit(e)) return;
       toast.error(getText('No se pudo guardar el cambio.', "Couldn't save the change."));
     } finally {
       setBusy(null);

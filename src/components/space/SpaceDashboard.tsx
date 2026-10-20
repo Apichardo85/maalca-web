@@ -155,7 +155,7 @@ export function SpaceDashboard({
         {justUpgraded && (
           <div className="mb-6 rounded-2xl border border-brand-primary bg-brand-primary/5 p-6 text-center">
             <h2 className="text-xl font-semibold text-brand-primary">
-              {getText('¡Bienvenido a Emprendedor! 🎉', 'Welcome to Entrepreneur! 🎉')}
+              {getText('¡Bienvenido a Emprendedor! 🎉', 'Welcome to Growth! 🎉')}
             </h2>
             <p className="mt-2 text-sm text-neutral-700 dark:text-neutral-300">
               {getText(
@@ -335,7 +335,7 @@ export function SpaceDashboard({
                 }}
                 className="mt-1 text-sm font-medium text-brand-primary hover:underline"
               >
-                {getText('Mejorar a Emprendedor →', 'Upgrade to Entrepreneur →')}
+                {getText('Mejorar a Emprendedor →', 'Upgrade to Growth →')}
               </button>
             </div>
           </div>
@@ -350,7 +350,7 @@ export function SpaceDashboard({
             <p className="mt-1 text-sm text-neutral-700 dark:text-neutral-300">
               {getText(
                 'Llegaste al límite de 10 items. Mejora a Emprendedor para items ilimitados.',
-                "You've reached the limit of 10 items. Upgrade to Entrepreneur for unlimited items.",
+                "You've reached the limit of 10 items. Upgrade to Growth for unlimited items.",
               )}
             </p>
             <button
@@ -383,7 +383,7 @@ export function SpaceDashboard({
                 }}
                 className="mt-1 text-sm font-medium text-brand-primary hover:underline"
               >
-                {getText('Mejorar a Emprendedor →', 'Upgrade to Entrepreneur →')}
+                {getText('Mejorar a Emprendedor →', 'Upgrade to Growth →')}
               </button>
             </div>
           </div>
@@ -398,7 +398,7 @@ export function SpaceDashboard({
             <p className="mt-1 text-sm text-neutral-700 dark:text-neutral-300">
               {getText(
                 'Mejora a Emprendedor para seguir editando tu espacio. Tu página pública sigue funcionando igual mientras tanto.',
-                'Upgrade to Entrepreneur to keep editing your space. Your public page keeps working the same either way.',
+                'Upgrade to Growth to keep editing your space. Your public page keeps working the same either way.',
               )}
             </p>
             <button

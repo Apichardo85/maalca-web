@@ -187,7 +187,7 @@ export function KitchenContent({ slug, plan, affiliateId, initialOrders }: Props
           <p className="text-sm text-gray-500 dark:text-neutral-400">
             {getText(
               'El panel de Cocina es parte del plan Emprendedor.',
-              'The Kitchen display is part of the Entrepreneur plan.',
+              'The Kitchen display is part of the Growth plan.',
             )}
           </p>
         </div>

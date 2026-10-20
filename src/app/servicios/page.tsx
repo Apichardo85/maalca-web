@@ -97,7 +97,7 @@ const plans: Plan[] = [
     highlight: false,
     features: [
       { es: "Todo lo del plan Emprendedor", en: "Everything in Growth" },
-      { es: "Hasta 3 pantallas de menú para TV incluidas", en: "Up to 3 TV menu screens included" },
+      { es: "2 pantallas de menú para TV incluidas", en: "2 TV menu screens included" },
       { es: "Facturas y propuestas con firma digital del cliente", en: "Invoices and proposals with client e-signature" },
       { es: "Automatizaciones avanzadas: recordatorios y bloqueo de horario", en: "Advanced automations: reminders and schedule blocking" },
       { es: "Reportes y analíticas ampliadas", en: "Extended reports and analytics" },

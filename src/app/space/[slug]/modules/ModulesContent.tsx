@@ -162,7 +162,7 @@ export function ModulesContent({ slug, businessId, activeTokens, businessType, p
                     <span className="text-2xl">🔥</span>
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                        {getText('Pasa a Emprendedor', 'Move up to Entrepreneur')}
+                        {getText('Pasa a Emprendedor', 'Move up to Growth')}
                       </p>
                       <p className="mt-1 text-xs text-gray-600 dark:text-neutral-300">
                         {getText(
@@ -177,7 +177,7 @@ export function ModulesContent({ slug, businessId, activeTokens, businessType, p
                     onClick={() => setShowUpgrade(true)}
                     className="mt-4 w-full rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-neutral-200 hover:border-gray-400"
                   >
-                    {getText('Ver plan Emprendedor', 'See Entrepreneur plan')}
+                    {getText('Ver plan Emprendedor', 'See Growth plan')}
                   </button>
                 </div>
               )}

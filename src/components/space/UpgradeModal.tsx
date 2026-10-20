@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { track } from '@/lib/analytics';
-import { ENTREPRENEUR_PRICE_USD } from '@/lib/plan-limits';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { useBillingSummary } from '@/lib/billing';
+import { PlanPicker } from './billing/PlanPicker';
 
 interface Props {
   businessId: string;
@@ -11,100 +10,37 @@ interface Props {
   onClose: () => void;
 }
 
-const FEATURES: { es: string; en: string }[] = [
-  { es: 'Productos ilimitados', en: 'Unlimited products' },
-  { es: 'Pedidos en línea', en: 'Online orders' },
-  { es: 'Pagos integrados', en: 'Integrated payments' },
-  { es: 'Analytics avanzado', en: 'Advanced analytics' },
-  { es: 'Soporte prioritario', en: 'Priority support' },
-];
-
+/** Upgrade desde cualquier parte del dashboard: el mismo selector de Configuración (Growth /
+ *  Professional, mensual/anual, pantallas extra, setup) → Stripe Checkout. */
 export function UpgradeModal({ businessId, businessSlug, onClose }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleUpgrade = async () => {
-    setLoading(true);
-    setError(null);
-    track('upgrade_clicked', { source: 'modal_cta', business_id: businessId });
-
-    try {
-      const origin = window.location.origin;
-      const res = await fetch(`/api/space/${businessSlug}/billing/checkout-session`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          successUrl: `${origin}/space/${businessSlug}?upgraded=1`,
-          cancelUrl: `${origin}/space/${businessSlug}`,
-        }),
-      });
-
-      const json = await res.json();
-
-      if (!res.ok || !json.url) {
-        setError(json.error || getText('No se pudo iniciar el checkout.', "Couldn't start checkout."));
-        setLoading(false);
-        return;
-      }
-
-      window.location.href = json.url;
-    } catch {
-      setError(getText('Error de red. Intenta de nuevo.', 'Network error. Please try again.'));
-      setLoading(false);
-    }
-  };
+  const { summary } = useBillingSummary(businessSlug);
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={onClose}>
       <div
-        className="w-full max-w-md rounded-2xl bg-white dark:bg-neutral-900 p-8 shadow-xl"
+        className="max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white dark:bg-neutral-900 p-6 sm:p-8 shadow-xl"
         onClick={(e) => e.stopPropagation()}
+        data-business-id={businessId}
       >
         <div className="text-center">
           <p className="text-3xl">🔥</p>
           <h2 className="mt-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{getText('Estás creciendo', "You're growing")}</h2>
           <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-            {getText('Desbloquea el plan Emprendedor', 'Unlock the Entrepreneur plan')}
+            {getText('Elige el plan que va con tu negocio.', 'Pick the plan that fits your business.')}
           </p>
         </div>
 
-        <ul className="mt-6 space-y-3">
-          {FEATURES.map((f) => (
-            <li key={f.es} className="flex items-start gap-2 text-sm">
-              <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-              <span className="text-neutral-700 dark:text-neutral-300">{getText(f.es, f.en)}</span>
-            </li>
-          ))}
-        </ul>
-
-        <div className="mt-6 rounded-xl bg-neutral-50 dark:bg-neutral-800 p-4 text-center">
-          <p className="text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400">{getText('Emprendedor', 'Entrepreneur')}</p>
-          <p className="mt-1">
-            <span className="text-3xl font-bold text-gray-900 dark:text-white">${ENTREPRENEUR_PRICE_USD}</span>
-            <span className="text-neutral-500 dark:text-neutral-400">{getText('/mes', '/mo')}</span>
-          </p>
+        <div className="mt-6">
+          <PlanPicker
+            slug={businessSlug}
+            summary={summary}
+            successPath={`/space/${businessSlug}/settings?upgraded=true`}
+            cancelPath={`/space/${businessSlug}`}
+            source="modal_cta"
+          />
         </div>
-
-        {error && (
-          <p className="mt-4 rounded-lg bg-red-50 dark:bg-red-900/20 px-3 py-2 text-sm text-red-700 dark:text-red-400">{error}</p>
-        )}
-
-        <button
-          onClick={handleUpgrade}
-          disabled={loading}
-          className="mt-6 w-full rounded-full bg-brand-primary py-3 text-sm font-medium text-white transition hover:bg-brand-primary-hover disabled:opacity-50"
-        >
-          {loading
-            ? getText('Redirigiendo...', 'Redirecting...')
-            : getText(`Activar Emprendedor — $${ENTREPRENEUR_PRICE_USD}/mes`, `Activate Entrepreneur — $${ENTREPRENEUR_PRICE_USD}/mo`)}
-        </button>
 
         <button
           onClick={onClose}
