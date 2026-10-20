@@ -39,6 +39,23 @@ export interface OrderRow {
   // Estación de pedidos (Fase 3): cuándo el personal reconoció este pedido. Null = la alarma de
   // la estación sigue sonando por este pedido en todos los dispositivos.
   acknowledgedAt?: string | null;
+  // "No vino": el cliente nunca recogió el pedido (queda Canceled). Ver CustomerTrustBadge.
+  noShowAt?: string | null;
+  // Historial del cliente (visitas y "No vino") — viene en el listado; los eventos en tiempo real
+  // de cambios de estado no lo traen (null) y el front conserva el que ya tenía.
+  customerVisits?: number | null;
+  customerNoShows?: number | null;
+}
+
+/** Fusiona una actualización en tiempo real conservando el historial del cliente que ya se tenía. */
+export function mergeOrderUpdate(prev: OrderRow | undefined, next: OrderRow): OrderRow {
+  if (!prev) return next;
+  return {
+    ...prev,
+    ...next,
+    customerVisits: next.customerVisits ?? prev.customerVisits,
+    customerNoShows: next.customerNoShows ?? prev.customerNoShows,
+  };
 }
 
 /** "2026-10-03" -> "mié, 3 oct". Se arma con partes numéricas para no correrse de día por zona horaria. */

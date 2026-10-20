@@ -18,6 +18,8 @@ export interface WhatsAppCartProps {
   currency?: string
   slug?: string
   onlinePayments?: boolean
+  /** Regla de confianza: tope de "pagar al recoger" para clientes nuevos (ver CartDrawer). */
+  pickupNewCustomerLimit?: number | null
   /** Módulo "Pedidos" apagado: nadie atiende pedidos en línea. No se ofrece recoger/pagar/mesa por la
    *  plataforma (el API también los rechaza); queda solo el canal directo (WhatsApp) con un aviso. */
   ordersPaused?: boolean
@@ -56,6 +58,7 @@ export function WhatsAppCart({
   currency = 'USD',
   slug,
   onlinePayments = false,
+  pickupNewCustomerLimit = null,
   ordersPaused = false,
   updateNotes,
   restaurantMode = false,
@@ -130,6 +133,7 @@ export function WhatsAppCart({
         businessName={businessName}
         slug={ordersPaused ? undefined : slug}
         onlinePayments={onlinePayments && !ordersPaused}
+        pickupNewCustomerLimit={pickupNewCustomerLimit}
         ordersPaused={ordersPaused}
         updateNotes={updateNotes}
         restaurantMode={restaurantMode}

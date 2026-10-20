@@ -63,6 +63,9 @@ interface CartDrawerProps {
   onlinePayments?: boolean
   /** Pedidos en línea pausados (módulo apagado): se muestra un aviso y solo queda el canal directo. */
   ordersPaused?: boolean
+  /** Regla de confianza del negocio: un cliente NUEVO solo puede pagar al recoger hasta este total.
+   *  Aquí solo se avisa (no sabemos si quien pide es nuevo); el API decide al crear el pedido. */
+  pickupNewCustomerLimit?: number | null
   /** Edita las notas de personalización de una línea — solo se usa si restaurantMode. */
   updateNotes?: (itemId: string, notes: string) => void
   /** Restaurante: habilita notas de personalización por línea + selector de propina. */
@@ -98,6 +101,7 @@ export function CartDrawer({
   slug,
   onlinePayments = false,
   ordersPaused = false,
+  pickupNewCustomerLimit = null,
   updateNotes,
   restaurantMode = false,
   pickupOrders = false,
@@ -927,6 +931,14 @@ export function CartDrawer({
               </button>
               {pickupError && (
                 <p style={{ margin: '0 0 10px', fontSize: '12px', color: '#b91c1c', textAlign: 'center' }}>{pickupError}</p>
+              )}
+              {!pickupError && pickupNewCustomerLimit != null && total > pickupNewCustomerLimit && (
+                <p style={{ margin: '0 0 10px', fontSize: '12px', color: '#777', textAlign: 'center' }}>
+                  {getText(
+                    `Si es tu primer pedido aquí, pagar al recoger está disponible hasta ${fmt.format(pickupNewCustomerLimit)}${onlinePayments ? ': paga con tarjeta arriba' : ''}.`,
+                    `If this is your first order here, pay at pickup is available up to ${fmt.format(pickupNewCustomerLimit)}${onlinePayments ? ': pay by card above' : ''}.`,
+                  )}
+                </p>
               )}
             </>
           )}

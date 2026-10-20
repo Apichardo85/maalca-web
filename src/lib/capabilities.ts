@@ -4,6 +4,9 @@ export interface PlanCapabilities {
   onlinePayments: boolean;
   /** El afiliado ya conectó Stripe (lo informa el API). Sin esto no se ofrece pago con tarjeta. */
   stripeReady?: boolean;
+  /** Regla de confianza del negocio: un cliente nuevo paga al recoger solo hasta este total
+   *  (null/ausente = sin límite). El checkout lo avisa; el API lo hace cumplir. */
+  pickupNewCustomerLimit?: number | null;
   bookingCalendar: boolean;
   realtimeStock: boolean;
   menuModifiers: boolean;

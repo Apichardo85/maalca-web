@@ -506,6 +506,7 @@ export function RetailTemplate({
         businessName={business.name}
         slug={business.slug}
         onlinePayments={capabilities.onlinePayments && capabilities.stripeReady !== false}
+        pickupNewCustomerLimit={capabilities.pickupNewCustomerLimit ?? null}
         ordersPaused={business.ordersEnabled === false}
         pickupOrders
         schedule={cartSchedule}

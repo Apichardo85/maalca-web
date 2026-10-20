@@ -6,7 +6,9 @@ import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { DangerZoneDelete } from '@/components/space/DangerZoneDelete';
 import { isPaidPlan } from '@/lib/plan-limits';
-import { formatScheduledFor, printTicket, type OrderRow } from '@/lib/orderTicket';
+import { formatScheduledFor, mergeOrderUpdate, printTicket, type OrderRow } from '@/lib/orderTicket';
+import { CustomerTrustBadge, canMarkNoShow } from '@/components/space/CustomerTrustBadge';
+import { PickupRulesCard, type PickupRules } from './PickupRulesCard';
 
 // OrderRow/formatScheduledFor/printTicket viven en @/lib/orderTicket (la Estación de pedidos,
 // /space/{slug}/station, los necesita igual que acá) — re-exportados para no tocar a quienes
@@ -23,6 +25,8 @@ interface Props {
   // Solo true en modo soporte de plataforma (ver isImpersonation en layout.tsx) — el gate real
   // vive en el backend, esto solo decide si se muestra el botón de borrar.
   canHardDelete?: boolean;
+  /** Reglas de confianza para pagar al recoger (null = no se pudieron cargar; la tarjeta usa defaults). */
+  pickupRules?: PickupRules | null;
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -43,7 +47,7 @@ const STATUS_LABELS: Record<string, { es: string; en: string }> = {
   Canceled: { es: 'Cancelado', en: 'Canceled' },
 };
 
-export function OrdersContent({ slug, businessName, timezone, plan, initialOrders, canHardDelete }: Props) {
+export function OrdersContent({ slug, businessName, timezone, plan, initialOrders, canHardDelete, pickupRules = null }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const [orders, setOrders] = useState(initialOrders);
@@ -143,6 +147,28 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
     }
   }
 
+  async function setNoShow(order: OrderRow, undo: boolean) {
+    if (!undo && !confirm(getText(
+      `¿Marcar que ${order.customerName || 'el cliente'} no vino a recoger este pedido? Sus próximos pedidos tendrán que pagarse por adelantado.`,
+      `Mark that ${order.customerName || 'the customer'} never picked up this order? Their next orders will have to be paid upfront.`,
+    ))) return;
+    setUpdatingId(order.id);
+    try {
+      const res = await fetch(`/api/space/${slug}/orders/${order.id}/no-show`, { method: undo ? 'DELETE' : 'PATCH' });
+      const data = await res.json().catch(() => null);
+      if (res.ok) {
+        setOrders((prev) => prev.map((o) => (o.id === order.id ? mergeOrderUpdate(o, data) : o)));
+        toast.success(undo ? getText('"No vino" deshecho.', 'No-show undone.') : getText('Marcado como "No vino".', 'Marked as no-show.'));
+      } else {
+        toast.error(data?.error?.message ?? getText('No se pudo actualizar.', "Couldn't update."));
+      }
+    } catch {
+      toast.error(getText('No se pudo actualizar.', "Couldn't update."));
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
   async function hardDeleteOrder(orderId: string) {
     try {
       const res = await fetch(`/api/space/${slug}/ops/orders/${orderId}`, {
@@ -180,6 +206,8 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
             )}
           </p>
         )}
+
+        {isPaidPlan(plan) && <PickupRulesCard slug={slug} initial={pickupRules} getText={getText} toast={toast} />}
 
         {orders.length === 0 ? (
           <div className="mt-8 max-w-3xl rounded-2xl border border-dashed border-gray-300 dark:border-neutral-700 p-10 text-center">
@@ -237,8 +265,9 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
                           : getText('Cliente sin nombre', 'Unnamed customer'))}
                     </p>
                     {order.customerPhone && (
-                      <p className="truncate text-xs text-gray-500 dark:text-neutral-400">{order.customerPhone}</p>
+                      <a href={`tel:${order.customerPhone}`} className="block truncate text-xs text-gray-500 hover:text-brand-primary dark:text-neutral-400">📞 {order.customerPhone}</a>
                     )}
+                    <div className="mt-1"><CustomerTrustBadge order={order} getText={getText} /></div>
                     {order.customerEmail && (
                       <p className="truncate text-xs text-gray-500 dark:text-neutral-400">{order.customerEmail}</p>
                     )}
@@ -286,7 +315,7 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
                     const payLater = (order.paymentMethod === 'PayAtPickup' || order.paymentMethod === 'PayAtTable') && order.status === 'Paid';
                     return (
                       <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${payLater ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400' : STATUS_STYLES[order.status]}`}>
-                        {payLater ? getText('Aceptado', 'Accepted') : (STATUS_LABELS[order.status]?.[language] ?? order.status)}
+                        {order.noShowAt ? getText('No vino', 'No-show') : payLater ? getText('Aceptado', 'Accepted') : (STATUS_LABELS[order.status]?.[language] ?? order.status)}
                       </span>
                     );
                   })()}
@@ -400,6 +429,24 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
                       className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-4 text-xs font-medium hover:border-brand-primary hover:text-brand-primary disabled:opacity-50"
                     >
                       {getText('Marcar listo', 'Mark ready')}
+                    </button>
+                  )}
+                  {canMarkNoShow(order) && (
+                    <button
+                      onClick={() => setNoShow(order, false)}
+                      disabled={updatingId === order.id}
+                      className="flex min-h-11 items-center justify-center rounded-full border border-red-300 px-4 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-950"
+                    >
+                      🚫 {getText('No vino', 'No-show')}
+                    </button>
+                  )}
+                  {order.noShowAt && (
+                    <button
+                      onClick={() => setNoShow(order, true)}
+                      disabled={updatingId === order.id}
+                      className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 px-4 text-xs font-medium text-gray-500 hover:border-brand-primary hover:text-brand-primary disabled:opacity-50 dark:border-neutral-700"
+                    >
+                      ↩ {getText('Deshacer "No vino"', 'Undo no-show')}
                     </button>
                   )}
                   {order.status === 'Ready' && (

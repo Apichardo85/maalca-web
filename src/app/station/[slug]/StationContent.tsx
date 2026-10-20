@@ -6,7 +6,8 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { isPaidPlan } from '@/lib/plan-limits';
-import { formatScheduledFor, printTicket, type OrderRow } from '@/lib/orderTicket';
+import { formatScheduledFor, mergeOrderUpdate, printTicket, type OrderRow } from '@/lib/orderTicket';
+import { CustomerTrustBadge, canMarkNoShow } from '@/components/space/CustomerTrustBadge';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -145,6 +146,8 @@ export function StationContent({ slug, plan, affiliateId, businessName, logoUrl,
   const [eta, setEtaChoice] = useState(15);
   const [connection, setConnection] = useState<'connecting' | 'online' | 'reconnecting' | 'offline'>('connecting');
   const [detailId, setDetailId] = useState<string | null>(null);
+  // "No vino" en dos toques (sin diálogos del navegador en el kiosko): el primero arma, el segundo confirma.
+  const [noShowArmed, setNoShowArmed] = useState<string | null>(null);
 
   useEffect(() => {
     setMuted(typeof window !== 'undefined' && localStorage.getItem(SOUND_MUTED_KEY) === '1');
@@ -224,7 +227,8 @@ export function StationContent({ slug, plan, affiliateId, businessName, logoUrl,
     if (!updated?.id) return;
     setOrders((prev) => {
       const exists = prev.some((o) => o.id === updated.id);
-      return exists ? prev.map((o) => (o.id === updated.id ? updated : o)) : [updated, ...prev];
+      // mergeOrderUpdate: los eventos de cambio de estado no traen el historial del cliente.
+      return exists ? prev.map((o) => (o.id === updated.id ? mergeOrderUpdate(o, updated) : o)) : [updated, ...prev];
     });
   }, []);
 
@@ -339,6 +343,31 @@ export function StationContent({ slug, plan, affiliateId, businessName, logoUrl,
       }
     } catch {
       toast.error(getText('No se pudo actualizar. Intenta de nuevo.', "Couldn't update. Try again."));
+    } finally {
+      setAdvancingId(null);
+    }
+  }
+
+  async function markNoShow(order: OrderRow) {
+    if (noShowArmed !== order.id) {
+      setNoShowArmed(order.id);
+      setTimeout(() => setNoShowArmed((id) => (id === order.id ? null : id)), 5000);
+      return;
+    }
+    setNoShowArmed(null);
+    setAdvancingId(order.id);
+    try {
+      const res = await fetch(`/api/space/${slug}/orders/${order.id}/no-show`, { method: 'PATCH' });
+      const data = await res.json().catch(() => null);
+      if (res.ok) {
+        setOrders((prev) => prev.map((o) => (o.id === order.id ? mergeOrderUpdate(o, data) : o)));
+        setDetailId(null);
+        toast.success(getText('Marcado como "No vino". Su próximo pedido tendrá que pagarse por adelantado.', 'Marked as no-show. Their next order will require paying in advance.'));
+      } else {
+        toast.error(data?.error?.message ?? getText('No se pudo marcar.', "Couldn't mark it."));
+      }
+    } catch {
+      toast.error(getText('No se pudo marcar.', "Couldn't mark it."));
     } finally {
       setAdvancingId(null);
     }
@@ -559,6 +588,7 @@ export function StationContent({ slug, plan, affiliateId, businessName, logoUrl,
                     {kindLabel(current)}
                   </span>
                   <span className="text-sm font-semibold text-gray-400 dark:text-white/40">{shortId(current)}</span>
+                  <CustomerTrustBadge order={current} getText={getText} size="md" />
                   {current.scheduledFor && (
                     <span className="inline-block rounded-full bg-amber-500/20 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
                       📅 {formatScheduledFor(current.scheduledFor, language)}
@@ -581,7 +611,16 @@ export function StationContent({ slug, plan, affiliateId, businessName, logoUrl,
                 <p className="text-2xl font-bold">
                   {current.customerName || getText('Cliente sin nombre', 'Unnamed customer')}
                 </p>
-                {current.customerPhone && <p className="text-gray-500 dark:text-white/60">{current.customerPhone}</p>}
+                {current.customerPhone && (
+                  <a href={`tel:${current.customerPhone}`} className="mt-1 inline-flex min-h-11 items-center gap-2 rounded-full border border-gray-300 px-4 text-base font-semibold dark:border-white/20">
+                    📞 {current.customerPhone}
+                  </a>
+                )}
+                {(current.customerNoShows ?? 0) > 0 && current.paymentMethod === 'PayAtPickup' && (
+                  <p className="mt-2 rounded-xl bg-red-600/10 px-3 py-2 text-sm font-semibold text-red-700 dark:text-red-300">
+                    {getText('Este cliente ya dejó pedidos sin recoger. Llámalo antes de prepararlo.', "This customer has left orders unclaimed before. Call them before preparing it.")}
+                  </p>
+                )}
               </div>
 
               <ul className="flex flex-col gap-1.5 border-t border-gray-200 pt-4 text-lg dark:border-white/10">
@@ -669,6 +708,7 @@ export function StationContent({ slug, plan, affiliateId, businessName, logoUrl,
                             💵 {getText('Falta cobrar', 'Not paid yet')}
                           </span>
                         )}
+                        <CustomerTrustBadge order={o} getText={getText} />
                         {o.notes && <span className="text-xs text-amber-700 dark:text-amber-300">📝 {getText('Nota', 'Note')}</span>}
                         <span className="ml-auto text-xs font-semibold text-brand-primary">{getText('Ver detalle ›', 'Details ›')}</span>
                       </div>
@@ -716,11 +756,16 @@ export function StationContent({ slug, plan, affiliateId, businessName, logoUrl,
                     {statusLabel(detailOrder)}
                   </span>
                   <span className="text-sm font-semibold text-gray-400 dark:text-white/40">{shortId(detailOrder)}</span>
+                  <CustomerTrustBadge order={detailOrder} getText={getText} />
                 </div>
                 <p className="mt-2 truncate text-2xl font-bold">
                   {detailOrder.customerName || getText('Cliente sin nombre', 'Unnamed customer')}
                 </p>
-                {detailOrder.customerPhone && <p className="text-gray-500 dark:text-white/60">{detailOrder.customerPhone}</p>}
+                {detailOrder.customerPhone && (
+                  <a href={`tel:${detailOrder.customerPhone}`} className="mt-1 inline-flex min-h-10 items-center gap-2 rounded-full border border-gray-300 px-3 text-sm font-semibold dark:border-white/20">
+                    📞 {detailOrder.customerPhone}
+                  </a>
+                )}
               </div>
               <button
                 type="button"
@@ -797,6 +842,25 @@ export function StationContent({ slug, plan, affiliateId, businessName, logoUrl,
                 </div>
               </div>
             </div>
+
+            {canMarkNoShow(detailOrder) && (
+              <div className="border-t border-gray-200 px-4 pt-3 dark:border-white/10">
+                <button
+                  type="button"
+                  disabled={advancingId === detailOrder.id}
+                  onClick={() => markNoShow(detailOrder)}
+                  className={`min-h-12 w-full rounded-2xl text-base font-semibold disabled:opacity-50 ${
+                    noShowArmed === detailOrder.id
+                      ? 'bg-red-600 text-white'
+                      : 'border-2 border-red-300 text-red-600 dark:border-red-500/40 dark:text-red-300'
+                  }`}
+                >
+                  {noShowArmed === detailOrder.id
+                    ? getText('Toca otra vez para confirmar "No vino"', 'Tap again to confirm no-show')
+                    : getText('🚫 No vino a recogerlo', '🚫 Never picked up')}
+                </button>
+              </div>
+            )}
 
             <div className="flex gap-3 border-t border-gray-200 p-4 dark:border-white/10">
               <button

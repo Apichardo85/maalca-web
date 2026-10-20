@@ -1141,6 +1141,7 @@ export function RestaurantTemplate({
         taxRate={0}
         slug={business.slug}
         onlinePayments={capabilities.onlinePayments && capabilities.stripeReady !== false}
+        pickupNewCustomerLimit={capabilities.pickupNewCustomerLimit ?? null}
         ordersPaused={business.ordersEnabled === false}
         updateNotes={updateNotes}
         clearCart={clearCart}

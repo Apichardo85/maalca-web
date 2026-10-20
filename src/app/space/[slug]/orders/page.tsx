@@ -40,5 +40,17 @@ export default async function OrdersPage({
     // orders stays [] — OrdersContent renders the empty state rather than crashing the page.
   }
 
-  return <OrdersContent slug={slug} businessName={space.business.name} timezone={space.business.timezone ?? undefined} plan={space.business.plan} initialOrders={orders} canHardDelete={space.isImpersonation === true} />;
+  // Reglas de confianza para pagar al recoger (tarjeta "Reglas" arriba de la lista).
+  let pickupRules: { newCustomerLimit: number | null; noShowRequiresCard: boolean } | null = null;
+  try {
+    const rulesRes = await fetch(`${API}/api/affiliates/${space.business.id}/pickup-rules`, {
+      headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': space.business.id },
+      cache: 'no-store',
+    });
+    if (rulesRes.ok) pickupRules = await rulesRes.json();
+  } catch {
+    // null — la tarjeta muestra los defaults (tarjeta tras No vino, sin límite)
+  }
+
+  return <OrdersContent slug={slug} businessName={space.business.name} timezone={space.business.timezone ?? undefined} plan={space.business.plan} initialOrders={orders} canHardDelete={space.isImpersonation === true} pickupRules={pickupRules} />;
 }

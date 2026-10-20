@@ -29,3 +29,12 @@ El bloqueo del dispositivo (que nadie salga del navegador o cambie de URL) lo ha
   verde = a tiempo, ámbar = faltan ≤ 4 min / listo esperando ≥ 10 min, rojo = atrasado.
 - Tocar un pedido → detalle (artículos y notas, cliente, horarios, total, cobro) con
   **Reimprimir** y el botón para avanzar (Empezar a preparar → Marcar listo → Entregado).
+
+## Clientes que no recogen ("No vino")
+- Cada pedido para recoger muestra el historial del cliente: **★ Cliente nuevo**, **✓ N visitas** o
+  **⚠ No vino ×N** (con aviso de llamarlo antes de preparar). El teléfono es un botón para llamar.
+- En el detalle de un pedido aceptado y sin cobrar: **"No vino a recogerlo"** (dos toques). El pedido
+  se cancela y el cliente suma un "No vino". Se puede deshacer desde Pedidos.
+- Reglas en **Pedidos → Reglas para "pagar al recoger"**: exigir tarjeta a quien ya no vino (activo
+  por defecto) y un límite de monto para clientes nuevos (apagado por defecto). El checkout avisa el
+  límite y el API lo hace cumplir; el mensaje al cliente nunca revela que tiene un "No vino".
