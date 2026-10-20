@@ -22,8 +22,8 @@ Override de prueba por URL (no hace falta en uso normal): `?sync=1`, `?wall=3x1&
 - **Slides de menú/combos**: se reparten — cada TV muestra una distinta, todas cambian juntas.
 - **Comerciales**: todas las TVs los muestran al mismo tiempo. El board decide solo según la
   proporción del archivo:
-  - proporción del muro (2 TVs ≈ 32:9, 3 TVs ≈ 48:9, margen ±25 %) → se **estira** sobre todo el
-    muro (cada TV muestra su tramo);
+  - proporción más parecida a la del muro que a la de una TV (ej. 32:9, 48:9) → se **estira**
+    sobre todo el muro (cada TV muestra su tramo);
   - cualquier otra (16:9 normal, video vertical del celular, logo) → va **completo en cada TV**,
     sincronizado frame a frame.
 - Todas las TVs del muro deben usar la **misma** URL base (mismo slug / mismo screenId); solo

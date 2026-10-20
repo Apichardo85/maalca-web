@@ -130,13 +130,17 @@ export function useMediaInfo(
 }
 
 /** ¿El comercial se estira sobre todo el muro, o va completo (y sincronizado) en cada TV?
- *  Solo se estira si su proporción se acerca a la del muro (ej. 32:9 en 2 TVs, 48:9 en 3).
- *  Un 16:9 normal estirado en 3 TVs con "Contain" quedaba solo en la del medio (las de los lados
- *  vacías), y con "Cover" se recortaría a una franja. Sin proporción conocida aún → repetir. */
+ *  Se estira si su proporción se parece MÁS a la del muro que a la de una sola pantalla
+ *  (comparación en escala logarítmica, o sea respecto del punto medio geométrico): un 48:9 o
+ *  32:9 cruza el muro; un 16:9 normal, un video vertical del celular o un logo cuadrado se
+ *  repiten en cada TV. Antes exigía ±25 % de la proporción exacta del muro: con pantallas de
+ *  forma distinta (ventanas verticales de prueba, TVs con la barra del sistema) un 48:9 quedaba
+ *  fuera y se repetía en vez de cruzar. Sin proporción conocida aún → repetir. */
 export function shouldSpan(mediaAspect: number | undefined, wall: WallLayout, screenAspect: number): boolean {
-  if (!mediaAspect) return false;
+  if (!mediaAspect || !screenAspect) return false;
   const wallAspect = (wall.cols * screenAspect) / wall.rows;
-  return mediaAspect >= wallAspect * 0.75 && mediaAspect <= wallAspect * 1.33;
+  if (wall.cols * wall.rows <= 1) return false;
+  return Math.abs(Math.log(mediaAspect / wallAspect)) < Math.abs(Math.log(mediaAspect / screenAspect));
 }
 
 /** Muro de 1 TV: el comercial ocupa la pantalla completa de cada TV (modo "repetir"). */
