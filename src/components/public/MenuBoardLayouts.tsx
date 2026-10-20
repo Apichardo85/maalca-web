@@ -135,16 +135,60 @@ function Media({ item, alt, className = '' }: { item: BoardItem; alt: string; cl
   );
 }
 
-/** Reemplazo de la foto ausente: degradado de la paleta con la inicial del plato, en vez de un recuadro vacío. */
-function PhotoFallback({ name, p }: { name: string; p: BoardPalette }) {
+/** Platos con foto primero (para los espacios de imagen) y el resto, en el mismo orden. */
+function splitByMedia(items: BoardItem[]) {
+  return { withMedia: items.filter(hasMedia), textOnly: items.filter((i) => !hasMedia(i)) };
+}
+
+/** Carta tipográfica para una slide SIN fotos (ej. "Kids Menu", "Sides"). Antes cada diseño
+ *  reservaba su espacio de foto igual y lo rellenaba con un degradado + la inicial gigante del
+ *  plato: se notaba que faltaba algo. Como en DoorDash, sin fotos el diseño cambia a texto bien
+ *  compuesto (nombre, puntos guía, precio, descripción) — se ve intencional, no incompleto. */
+function TextMenuView(v: LayoutViewProps) {
+  const { items, language, palette: p, categoryName } = v;
+  const list = items.slice(0, 8);
+  const twoCols = list.length > 4;
   return (
-    <div
-      className="absolute inset-0 flex items-center justify-center"
-      style={{ background: `linear-gradient(135deg, ${p.primary}, ${p.secondary})` }}
-    >
-      <span className="select-none text-[10rem] font-black leading-none" style={{ color: p.onPrimary, opacity: 0.18 }}>
-        {name.trim().charAt(0).toUpperCase()}
-      </span>
+    <div className="flex h-full w-full flex-col justify-center gap-8 px-6">
+      <div className="flex items-end gap-6">
+        <h2 className="text-6xl font-black uppercase leading-none tracking-tight">{categoryName}</h2>
+        <span className="mb-2 h-1.5 flex-1 rounded-full" style={{ background: p.accent }} />
+      </div>
+      <ul className={`grid gap-x-16 gap-y-7 ${twoCols ? 'grid-cols-2' : 'grid-cols-1'}`}>
+        {list.map((item) => {
+          const d = descOf(item, language);
+          return (
+            <li key={item.id} className="flex min-w-0 flex-col gap-1.5">
+              <div className="flex items-baseline gap-4">
+                <span className={`min-w-0 truncate font-extrabold uppercase tracking-tight ${twoCols ? 'text-4xl' : 'text-5xl'}`}>
+                  {nameOf(item, language)}
+                </span>
+                <span className="min-w-8 flex-1 translate-y-[-0.3em] border-b-2 border-dotted" style={{ borderColor: p.muted }} />
+                <span className={`font-black ${twoCols ? 'text-4xl' : 'text-5xl'}`} style={{ color: p.price }}>
+                  {v.formatPrice(item.price)}
+                </span>
+              </div>
+              {d && <p className="line-clamp-2 text-xl leading-snug" style={{ color: p.muted }}>{d}</p>}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+/** Franja de platos sin foto debajo de las fotos (Grid / Platos / Carrusel). */
+function TextStrip({ items, v }: { items: BoardItem[]; v: LayoutViewProps }) {
+  if (items.length === 0) return null;
+  const { palette: p, language } = v;
+  return (
+    <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(items.length, 3)}, minmax(0, 1fr))` }}>
+      {items.map((item) => (
+        <div key={item.id} className="flex items-center justify-between gap-3 rounded-2xl px-5 py-3" style={{ background: p.surface }}>
+          <span className="min-w-0 truncate text-xl font-bold">{nameOf(item, language)}</span>
+          <span className="text-2xl font-black" style={{ color: p.price }}>{v.formatPrice(item.price)}</span>
+        </div>
+      ))}
     </div>
   );
 }
@@ -198,16 +242,16 @@ function MoreList({ items, v }: { items: BoardItem[]; v: LayoutViewProps }) {
 
 function HeroView(v: LayoutViewProps) {
   const { items, language, palette: p, categoryName } = v;
-  const heroIdx = Math.max(0, items.findIndex(hasMedia));
+  const heroIdx = items.findIndex(hasMedia);
+  if (heroIdx < 0) return <TextMenuView {...v} />;
   const hero = items[heroIdx];
-  if (!hero) return null;
   const rest = items.filter((_, i) => i !== heroIdx).slice(0, 4);
   const name = nameOf(hero, language);
   const desc = descOf(hero, language);
   return (
     <div className="grid h-full w-full gap-8" style={{ gridTemplateColumns: '1.05fr 1fr' }}>
       <div className="relative overflow-hidden rounded-3xl shadow-2xl" style={{ background: p.surface }}>
-        {hasMedia(hero) ? <Media item={hero} alt={name} className="combo-kenburns" /> : <PhotoFallback name={name} p={p} />}
+        <Media item={hero} alt={name} className="combo-kenburns" />
         <Badge item={hero} language={language} p={p} />
       </div>
       <div className="flex min-h-0 flex-col justify-center gap-5">
@@ -225,8 +269,10 @@ function HeroView(v: LayoutViewProps) {
 
 function GridView(v: LayoutViewProps) {
   const { items, language, palette: p } = v;
-  const top = items.slice(0, 3);
-  const strip = items.slice(3, 6);
+  const { withMedia, textOnly } = splitByMedia(items);
+  if (withMedia.length === 0) return <TextMenuView {...v} />;
+  const top = withMedia.slice(0, 3);
+  const strip = [...withMedia.slice(3), ...textOnly].slice(0, 6 - top.length);
   return (
     <div className="flex h-full w-full flex-col gap-5">
       <div className="grid min-h-0 flex-1 gap-6" style={{ gridTemplateColumns: `repeat(${top.length}, minmax(0, 1fr))` }}>
@@ -235,7 +281,7 @@ function GridView(v: LayoutViewProps) {
           const desc = descOf(item, language);
           return (
             <div key={item.id} className="relative overflow-hidden rounded-3xl shadow-xl" style={{ background: p.surface }}>
-              {hasMedia(item) ? <Media item={item} alt={name} /> : <PhotoFallback name={name} p={p} />}
+              <Media item={item} alt={name} />
               <div className="absolute inset-x-0 bottom-0 h-3/5" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.88), transparent)' }} />
               <Badge item={item} language={language} p={p} />
               <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 p-5 text-white">
@@ -247,20 +293,7 @@ function GridView(v: LayoutViewProps) {
           );
         })}
       </div>
-      {strip.length > 0 && (
-        <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${strip.length}, minmax(0, 1fr))` }}>
-          {strip.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center justify-between gap-3 rounded-2xl px-5 py-3"
-              style={{ background: p.surface }}
-            >
-              <span className="min-w-0 truncate text-xl font-bold">{nameOf(item, language)}</span>
-              <span className="text-2xl font-black" style={{ color: p.price }}>{v.formatPrice(item.price)}</span>
-            </div>
-          ))}
-        </div>
-      )}
+      <TextStrip items={strip} v={v} />
     </div>
   );
 }
@@ -269,8 +302,10 @@ function GridView(v: LayoutViewProps) {
 
 function PlatesView(v: LayoutViewProps) {
   const { items, language, palette: p } = v;
-  const top = items.slice(0, 3);
-  const strip = items.slice(3, 6);
+  const { withMedia, textOnly } = splitByMedia(items);
+  if (withMedia.length === 0) return <TextMenuView {...v} />;
+  const top = withMedia.slice(0, 3);
+  const strip = [...withMedia.slice(3), ...textOnly].slice(0, 6 - top.length);
   return (
     <div className="relative flex h-full w-full flex-col gap-6">
       <div
@@ -290,7 +325,7 @@ function PlatesView(v: LayoutViewProps) {
                   background: p.surface,
                 }}
               >
-                {hasMedia(item) ? <Media item={item} alt={name} className="combo-kenburns" /> : <PhotoFallback name={name} p={p} />}
+                <Media item={item} alt={name} className="combo-kenburns" />
               </div>
               <span className="max-w-full text-3xl font-black uppercase leading-tight tracking-tight">{name}</span>
               <span className="text-5xl font-black leading-none" style={{ color: p.price }}>{v.formatPrice(item.price)}</span>
@@ -318,8 +353,8 @@ function PlatesView(v: LayoutViewProps) {
 
 function EditorialView(v: LayoutViewProps) {
   const { items, language, palette: p, categoryName } = v;
-  const featured = items.find(hasMedia) ?? items[0];
-  if (!featured) return null;
+  const featured = items.find(hasMedia);
+  if (!featured) return <TextMenuView {...v} />;
   const featName = nameOf(featured, language);
   const list = items.slice(0, 6);
   return (
@@ -346,7 +381,7 @@ function EditorialView(v: LayoutViewProps) {
         </ul>
       </div>
       <div className="relative overflow-hidden rounded-[3rem] shadow-2xl" style={{ background: p.surface }}>
-        {hasMedia(featured) ? <Media item={featured} alt={featName} className="combo-kenburns" /> : <PhotoFallback name={featName} p={p} />}
+        <Media item={featured} alt={featName} className="combo-kenburns" />
         <div className="absolute inset-x-0 bottom-0 h-1/2" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)' }} />
         <Badge item={featured} language={language} p={p} />
         <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 p-8 text-white">
@@ -362,9 +397,11 @@ function EditorialView(v: LayoutViewProps) {
 
 function CarouselView(v: LayoutViewProps) {
   const { language, palette: p } = v;
-  const items = v.items.slice(0, 5);
-  if (items.length === 0) return null;
-  const centerIdx = Math.max(0, items.findIndex(hasMedia));
+  const { withMedia, textOnly } = splitByMedia(v.items);
+  if (withMedia.length === 0) return <TextMenuView {...v} />;
+  const items = withMedia.slice(0, 5);
+  const strip = [...withMedia.slice(5), ...textOnly].slice(0, 3);
+  const centerIdx = 0;
   const center = items[centerIdx];
   const others = items.filter((_, i) => i !== centerIdx);
   const left = others.filter((_, i) => i % 2 === 0).reverse();
@@ -372,7 +409,8 @@ function CarouselView(v: LayoutViewProps) {
   const ordered = [...left, center, ...right];
   const centerPos = left.length;
   return (
-    <div className="relative flex h-full w-full items-center justify-center gap-6">
+    <div className="flex h-full w-full flex-col gap-5">
+    <div className="relative flex min-h-0 w-full flex-1 items-center justify-center gap-6">
       <div
         className="pointer-events-none absolute inset-0"
         style={{ background: `radial-gradient(ellipse at 50% 50%, ${p.primary}${p.isDark ? '55' : '2b'}, transparent 65%)` }}
@@ -393,7 +431,7 @@ function CarouselView(v: LayoutViewProps) {
               boxShadow: isCenter ? `0 30px 70px rgba(0,0,0,0.5), 0 0 0 6px ${p.accent}` : undefined,
             }}
           >
-            {hasMedia(item) ? <Media item={item} alt={name} className={isCenter ? 'combo-kenburns' : ''} /> : <PhotoFallback name={name} p={p} />}
+            <Media item={item} alt={name} className={isCenter ? 'combo-kenburns' : ''} />
             <div className="absolute inset-x-0 bottom-0 h-3/5" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.88), transparent)' }} />
             {isCenter && <Badge item={item} language={language} p={p} />}
             <div className="absolute inset-x-0 bottom-0 flex flex-col gap-2 p-6 text-white">
@@ -404,6 +442,8 @@ function CarouselView(v: LayoutViewProps) {
         );
       })}
     </div>
+    <TextStrip items={strip} v={v} />
+    </div>
   );
 }
 
@@ -412,6 +452,7 @@ function CarouselView(v: LayoutViewProps) {
 function BoldView(v: LayoutViewProps) {
   const { items, language, palette: p, categoryName } = v;
   const rows = items.slice(0, 6);
+  const anyMedia = rows.some(hasMedia);
   return (
     <div className="relative flex h-full w-full overflow-hidden rounded-[2.5rem] px-14 py-10" style={{ background: p.primary, color: p.onPrimary }}>
       <span
@@ -427,9 +468,18 @@ function BoldView(v: LayoutViewProps) {
             const name = nameOf(item, language);
             return (
               <li key={item.id} className="flex items-center gap-6">
-                <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full" style={{ background: p.secondary, boxShadow: `0 0 0 5px ${p.accent}` }}>
-                  {hasMedia(item) ? <Media item={item} alt={name} /> : <PhotoFallback name={name} p={p} />}
-                </div>
+                {/* Sin foto: un aro vacío del color de acento (mantiene la alineación de la columna)
+                    en vez del círculo con la inicial; si ningún plato tiene foto, no hay columna. */}
+                {anyMedia && (
+                  <div
+                    className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full"
+                    style={hasMedia(item)
+                      ? { background: p.secondary, boxShadow: `0 0 0 5px ${p.accent}` }
+                      : { boxShadow: `inset 0 0 0 4px ${p.accent}`, opacity: 0.35 }}
+                  >
+                    {hasMedia(item) && <Media item={item} alt={name} />}
+                  </div>
+                )}
                 <span className="min-w-0 flex-1 truncate text-5xl font-black uppercase leading-none tracking-tight">{name}</span>
                 <PricePill text={v.formatPrice(item.price)} p={p} />
               </li>
