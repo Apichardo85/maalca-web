@@ -861,7 +861,17 @@ export function MenuBoard({
       />
      <div
       className="flex flex-col"
-      style={{ width: stage.w, height: stage.h, transform: `scale(${stage.scale})`, transformOrigin: 'top left' }}
+      style={{
+        width: stage.w,
+        height: stage.h,
+        boxSizing: 'border-box',
+        // Zona segura de TV: muchas pantallas (Vizio, Android TV) hacen overscan y comen los
+        // bordes — los precios de la derecha salían cortados ("$18.0"). 3.5% por lado es el
+        // margen estándar de broadcast para texto; el fondo igual llena toda la pantalla.
+        padding: `${(stage.h * 0.035).toFixed(0)}px ${(stage.w * 0.035).toFixed(0)}px`,
+        transform: `scale(${stage.scale})`,
+        transformOrigin: 'top left',
+      }}
      >
       {/* Ken Burns lento en las fotos de combo + un pulso suave en el precio — nada de esto
           corre en los slides de menú normales (las clases solo existen en ComboSlideView), así
