@@ -443,6 +443,11 @@ export function WallsSection({ slug, initialWalls, screens, getText, onScreensCh
               <li>{getText('Pon como "Start URL" el link de ESA TV (botón Copiar link). Truco: activa "Remote Administration" en Fully y pégalo desde tu celular, sin escribirlo con el control.', 'Set its "Start URL" to THAT TV\'s link (Copy link). Tip: enable "Remote Administration" in Fully and paste it from your phone instead of typing with the remote.')}</li>
               <li>{getText('Ese link no cambia nunca: todo lo demás (modo, acomodo, contenido) se cambia desde aquí y las TVs lo toman solas en menos de 1 minuto.', "That link never changes: everything else (mode, layout, content) is changed here and the TVs pick it up within 1 minute.")}</li>
               <li>{getText('Usa "Calibrar" para comprobar que están sincronizadas, y vuelve a tocarlo para terminar.', 'Use "Calibrate" to check they are in sync, then tap it again to finish.')}</li>
+              <li>
+                {getText('Para que la TV no muestre un error cuando arranca antes de tener Internet: descarga ', 'So the TV does not show an error when it boots before it has Internet: download ')}
+                <a href="/tv-espera.html" download="tv-espera.html" className="font-medium text-brand-primary underline">tv-espera.html</a>
+                {getText(' en la TV (carpeta Descargas) y en Fully, Web Content Settings, pon "Custom Error URL" = file:///sdcard/Download/tv-espera.html. Activa también "Auto Reload after Page Error" (10 s) y "Auto Reload on Internet Reconnect". Mientras se conecta verá la pantalla de MaalCa y el menú aparece solo.', ' on the TV (Downloads folder) and in Fully, Web Content Settings, set "Custom Error URL" = file:///sdcard/Download/tv-espera.html. Also enable "Auto Reload after Page Error" (10 s) and "Auto Reload on Internet Reconnect". While it connects it shows the MaalCa screen and the menu appears by itself.')}
+              </li>
             </ol>
           )}
         </div>
