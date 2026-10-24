@@ -560,10 +560,58 @@ export function MenuBoard({
     };
   }, []);
 
+  // Service worker: guarda la página del board y sus scripts para que una TV que arranca o recarga
+  // sin Internet la abra igual (ver public/sw.js). Si el navegador no lo soporta, no pasa nada.
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  }, []);
+
   // Poll for catalog changes made from the dashboard — this is the whole point of the
   // board being "remote-updatable": the TV never needs to be touched. Now also picks up
   // comerciales nuevos/pausados y cambios de frecuencia sin reabrir la pestaña.
   useEffect(() => {
+    // Caché del último catálogo bueno (por TV): si la TV arranca o recarga SIN Internet, el service
+    // worker (public/sw.js) sirve la página guardada y de acá sale el catálogo más reciente que se
+    // vio, en vez de una pantalla de error o un menú de hace días.
+    const cacheKey = `maalca_board_cache_v1:${slug}:${screenId ?? ''}`;
+    let gotFresh = false;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const applyPolled = (data: any) => {
+      // Mismo mapeo que renderBoard (camelCase de la API → image_url/video_url del board).
+      // Misma alineación de idioma que el render inicial (renderBoard): sin ella, en negocios
+      // cuyo idioma base es inglés el poll dejaba `nameEn` = traducción al español y la TV
+      // pasaba a mostrar los platos en español aunque la pantalla estuviera en inglés.
+      const polledItems = alignCatalogToTemplates(
+        (data.items ?? []).map((item: Record<string, unknown>) => ({
+          ...item,
+          image_url: item.image_url ?? item.imageUrl ?? null,
+          video_url: item.video_url ?? item.videoUrl ?? null,
+        })) as unknown as BoardItem[],
+        normalizeBaseLanguage(data.affiliate?.language),
+      );
+      setCfg((prev) => {
+        const next = {
+          language: (data.language === 'en' ? 'en' : 'es') as 'es' | 'en',
+          theme: (data.boardTheme === 'Light' ? 'Light' : 'Dark') as 'Dark' | 'Light',
+          transitionEffect: (['Slide', 'Zoom', 'None'].includes(data.transitionEffect) ? data.transitionEffect : 'Fade') as TransitionEffect,
+          layout: normalizeLayout(data.layout),
+          primaryColor: data.affiliate?.primaryColor ?? prev.primaryColor,
+          secondaryColor: data.affiliate?.secondaryColor ?? null,
+          accentColor: data.affiliate?.accentColor ?? null,
+        };
+        return JSON.stringify(next) === JSON.stringify(prev) ? prev : next;
+      });
+      const nextWall: ApiWall | null = data.wall ?? null;
+      setApiWall((prev) => (JSON.stringify(prev) === JSON.stringify(nextWall) ? prev : nextWall));
+      setCatalog({
+        items: polledItems,
+        categories: data.categories ?? [],
+        screenAds: data.screenAds ?? [],
+        adFrequency: data.adFrequency ?? null,
+      });
+    };
     const pollOnce = async () => {
       try {
         // Mismo screenId que el render inicial: sin él, el backend devuelve el catálogo BASE
@@ -572,41 +620,22 @@ export function MenuBoard({
         const res = await fetch(`${API_BASE}/api/public/affiliates/${slug}/catalog${qs}`, { cache: 'no-store' });
         if (!res.ok) return;
         const data = await res.json();
-        // Mismo mapeo que renderBoard (camelCase de la API → image_url/video_url del board).
-        // Misma alineación de idioma que el render inicial (renderBoard): sin ella, en negocios
-        // cuyo idioma base es inglés el poll dejaba `nameEn` = traducción al español y la TV
-        // pasaba a mostrar los platos en español aunque la pantalla estuviera en inglés.
-        const polledItems = alignCatalogToTemplates(
-          (data.items ?? []).map((item: Record<string, unknown>) => ({
-            ...item,
-            image_url: item.image_url ?? item.imageUrl ?? null,
-            video_url: item.video_url ?? item.videoUrl ?? null,
-          })) as unknown as BoardItem[],
-          normalizeBaseLanguage(data.affiliate?.language),
-        );
-        setCfg((prev) => {
-          const next = {
-            language: (data.language === 'en' ? 'en' : 'es') as 'es' | 'en',
-            theme: (data.boardTheme === 'Light' ? 'Light' : 'Dark') as 'Dark' | 'Light',
-            transitionEffect: (['Slide', 'Zoom', 'None'].includes(data.transitionEffect) ? data.transitionEffect : 'Fade') as TransitionEffect,
-            layout: normalizeLayout(data.layout),
-            primaryColor: data.affiliate?.primaryColor ?? prev.primaryColor,
-            secondaryColor: data.affiliate?.secondaryColor ?? null,
-            accentColor: data.affiliate?.accentColor ?? null,
-          };
-          return JSON.stringify(next) === JSON.stringify(prev) ? prev : next;
-        });
-        const nextWall: ApiWall | null = data.wall ?? null;
-        setApiWall((prev) => (JSON.stringify(prev) === JSON.stringify(nextWall) ? prev : nextWall));
-        setCatalog({
-          items: polledItems,
-          categories: data.categories ?? [],
-          screenAds: data.screenAds ?? [],
-          adFrequency: data.adFrequency ?? null,
-        });
+        applyPolled(data);
+        gotFresh = true;
+        try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch { /* cuota llena o sin storage: se ignora */ }
         lastSuccessRef.current = Date.now();
       } catch {
-        // Transient network hiccup — keep showing the last good catalog, try again next tick.
+        // Sin red: mientras no haya habido ningún refresh bueno en esta carga, muestra el último
+        // catálogo guardado. Con la TV ya mostrando datos frescos se mantiene lo que hay.
+        if (!gotFresh) {
+          try {
+            const raw = localStorage.getItem(cacheKey);
+            if (raw) {
+              applyPolled(JSON.parse(raw));
+              lastSuccessRef.current = Date.now(); // el watchdog no recarga en bucle estando offline
+            }
+          } catch { /* caché ilegible: se ignora */ }
+        }
       }
     };
     // Sincronizado: todas las TVs consultan en el MISMO minuto del reloj del muro (+1.5 s), así un
