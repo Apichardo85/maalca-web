@@ -7,6 +7,7 @@ import { Toast } from '@/components/ui/Toast';
 import { isPaidPlan } from '@/lib/plan-limits';
 import { IMPLEMENTED_LAYOUTS, type BoardLayoutName } from '@/lib/board-layouts';
 import { WallsSection, type WallRow } from './WallsSection';
+import { ScreenDevicesPanel } from '@/components/space/ScreenDevicesPanel';
 import { readApiError, useBillingSummary } from '@/lib/billing';
 import { ScreenLimitNotice, type ScreenLimitDetails } from '@/components/space/billing/ScreenLimitNotice';
 
@@ -561,6 +562,11 @@ export function BoardContent({
             )}
           </p>
         )}
+
+        {/* Monitoreo: qué TVs están mostrando cada pantalla y desde cuándo (señal de vida del board). */}
+        <div className="mt-6">
+          <ScreenDevicesPanel mode="owner" slug={slug} lang={language === 'es' ? 'es' : 'en'} getText={getText} />
+        </div>
 
         {/* Frecuencia de rotación + idioma/tema/efecto — lado a lado en desktop (ambas son
             tarjetas cortas; apiladas dejaban un hueco enorme a la derecha en laptop). */}

@@ -14,6 +14,7 @@ const NAV = [
   // plataforma, no TeamMember de un afiliado.
   { href: '/ops/equipo', label: 'Staff MaalCa' },
   { href: '/ops/modulos', label: 'Módulos' },
+  { href: '/ops/pantallas', label: 'Pantallas' },
 ];
 
 function NavLink({ href, label }: { href: string; label: string }) {

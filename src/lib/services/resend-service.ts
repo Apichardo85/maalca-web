@@ -1549,3 +1549,63 @@ export async function sendCommunitySignupStatusEmail(
 
   return result
 }
+
+// ── Monitoreo de pantallas ────────────────────────────────────────────────────
+export interface ScreenAlertEvent {
+  kind: 'down' | 'up';
+  businessName: string;
+  slug: string;
+  screenName: string;
+  deviceId: string;
+  lastSeenAt: string;
+  showing?: string | null;
+  timezone?: string | null;
+}
+
+const escScreen = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+
+/** Aviso interno a MaalCa: TVs que se cayeron en horario de atención o que volvieron. Ver ScreenMonitorWorker (maalca-api). */
+export async function sendScreenAlertEmail(params: { to: string[]; events: ScreenAlertEvent[] }): Promise<boolean> {
+  if (!resend) {
+    console.log('[Resend] Skipped screen alert — RESEND_API_KEY not set');
+    return false;
+  }
+  const down = params.events.filter((e) => e.kind === 'down');
+  const up = params.events.filter((e) => e.kind === 'up');
+  const when = (e: ScreenAlertEvent) => {
+    try {
+      return new Intl.DateTimeFormat('es', { dateStyle: 'short', timeStyle: 'short', timeZone: e.timezone || 'America/New_York' }).format(new Date(e.lastSeenAt));
+    } catch {
+      return e.lastSeenAt;
+    }
+  };
+  const row = (e: ScreenAlertEvent) => `
+    <tr>
+      <td style="padding: 8px 0; border-bottom: 1px solid #eee;">
+        <strong>${escScreen(e.businessName)}</strong> · ${escScreen(e.screenName)}<br/>
+        <span style="color: #737373; font-size: 13px;">TV ${escScreen(e.deviceId.slice(0, 6).toUpperCase())} · última señal ${escScreen(when(e))}${e.showing ? ` · mostraba: ${escScreen(e.showing)}` : ''}</span>
+      </td>
+    </tr>`;
+  const section = (title: string, list: ScreenAlertEvent[], color: string) =>
+    list.length === 0 ? '' : `
+      <h3 style="color: ${color}; font-size: 16px; margin: 20px 0 6px;">${title}</h3>
+      <table style="width: 100%; border-collapse: collapse; font-size: 14px; color: #1a1a1a;">${list.map(row).join('')}</table>`;
+  const subject = down.length > 0
+    ? `🔴 ${down.length === 1 ? `Pantalla sin señal: ${down[0].businessName} · ${down[0].screenName}` : `${down.length} pantallas sin señal`}`
+    : `🟢 ${up.length === 1 ? `Pantalla de vuelta: ${up[0].businessName} · ${up[0].screenName}` : `${up.length} pantallas de vuelta`}`;
+  const html = renderPlainEmail(`
+    <p style="color: #525252; font-size: 14px; line-height: 1.6; margin-top: 0;">
+      Monitoreo de pantallas de MaalCa. Solo se avisa en horario de atención del negocio.
+    </p>
+    ${section('Sin señal (más de 5 min)', down, '#dc2626')}
+    ${section('De vuelta en línea', up, '#059669')}
+    ${emailCtaButton('Ver pantallas en /ops', 'https://maalca.com/ops/pantallas')}
+  `);
+  try {
+    await resend.emails.send({ from: FROM_EMAIL, to: params.to, subject, html });
+    return true;
+  } catch (err: unknown) {
+    console.error('[Resend] Screen alert failed:', err instanceof Error ? err.message : String(err));
+    return false;
+  }
+}

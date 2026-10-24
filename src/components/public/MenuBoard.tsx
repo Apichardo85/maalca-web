@@ -394,6 +394,30 @@ function ComboSlideView({
 const STAGE_W = 1920;
 const STAGE_H = 1080;
 
+/** Monitoreo de pantallas: el board manda una señal de vida por minuto (ver src/lib/screen-devices.ts). */
+const HEARTBEAT_MS = 60_000;
+const DEVICE_KEY = 'maalca_tv_device_id';
+const APP_VERSION = (process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? '').slice(0, 7) || 'dev';
+
+function newDeviceId(): string {
+  try {
+    return crypto.randomUUID().replace(/-/g, '');
+  } catch {
+    return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 12)}`;
+  }
+}
+
+/** Qué hay en pantalla, en corto, para el panel ("Menú: Tacos", "Comercial: Video 2/6"). */
+function describeSlide(slide: Slide | undefined, ads: ScreenAd[]): { kind: 'menu' | 'combo' | 'ad' | null; label: string | null } {
+  if (!slide) return { kind: null, label: null };
+  if (slide.kind === 'ad') {
+    const i = ads.findIndex((a) => a.id === slide.ad.id);
+    return { kind: 'ad', label: `${slide.ad.mediaType === 'Video' ? 'Video' : 'Imagen'}${i >= 0 ? ` ${i + 1}/${ads.length}` : ''}` };
+  }
+  if (slide.kind === 'combo') return { kind: 'combo', label: slide.items.slice(0, 3).map((it) => it.name).join(', ') };
+  return { kind: 'menu', label: slide.category };
+}
+
 function useStage() {
   const [stage, setStage] = useState({ scale: 1, w: STAGE_W, h: STAGE_H, ready: false });
   useEffect(() => {
@@ -767,6 +791,63 @@ export function MenuBoard({
 
   const slide = slides[slideIndex];
 
+  // Señal de vida (monitoreo de pantallas): cada minuto avisa al API que esta TV sigue mostrando
+  // la pantalla, qué tiene en ese momento y si la página está a la vista. La respuesta puede traer
+  // un comando del panel: "reload" (recarga) o "identify" (muestra el nombre de la pantalla 15 s).
+  const showingRef = useRef(describeSlide(slide, catalog.screenAds ?? []));
+  showingRef.current = describeSlide(slide, catalog.screenAds ?? []);
+  const [identify, setIdentify] = useState<string | null>(null);
+  useEffect(() => {
+    let deviceId = '';
+    try {
+      deviceId = localStorage.getItem(DEVICE_KEY) ?? '';
+      if (!/^[A-Za-z0-9_-]{8,64}$/.test(deviceId)) {
+        deviceId = newDeviceId();
+        localStorage.setItem(DEVICE_KEY, deviceId);
+      }
+    } catch {
+      deviceId = newDeviceId();
+    }
+    let hideTimer: ReturnType<typeof setTimeout> | undefined;
+    const beat = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/public/affiliates/${slug}/screen-heartbeat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          cache: 'no-store',
+          body: JSON.stringify({
+            deviceId,
+            screenId: screenId ?? null,
+            visible: document.visibilityState === 'visible',
+            showingKind: showingRef.current.kind,
+            showingLabel: showingRef.current.label,
+            viewport: `${window.innerWidth}x${window.innerHeight}`,
+            userAgent: navigator.userAgent,
+            appVersion: APP_VERSION,
+          }),
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data?.command === 'reload') {
+          window.location.reload();
+        } else if (data?.command === 'identify') {
+          setIdentify(data.screenName || 'Pantalla');
+          clearTimeout(hideTimer);
+          hideTimer = setTimeout(() => setIdentify(null), 15_000);
+        }
+      } catch {
+        // Sin red: el monitoreo lo registra como "sin señal"; nada que hacer aquí.
+      }
+    };
+    const first = setTimeout(beat, 5_000);
+    const every = setInterval(beat, HEARTBEAT_MS);
+    return () => {
+      clearTimeout(first);
+      clearInterval(every);
+      clearTimeout(hideTimer);
+    };
+  }, [slug, screenId]);
+
   // Precarga: las fotos de la slide actual y las 2 siguientes se descargan y decodifican de
   // antemano (new Image + decode), así que al rotar ya están listas y no se ven "cargando".
   // Se guardan en un Map para que el navegador no las suelte; las que quedan atrás se descartan
@@ -881,6 +962,15 @@ export function MenuBoard({
       className="fixed inset-0 overflow-hidden"
       style={{ background: palette.bg, color: palette.text, visibility: stage.ready ? 'visible' : 'hidden' }}
     >
+      {identify && (
+        <div
+          className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"
+          style={{ zIndex: 99998, background: 'rgba(0,0,0,.82)', color: '#fff', textAlign: 'center' }}
+        >
+          <div style={{ fontSize: '3vw', letterSpacing: '.3em', opacity: 0.7 }}>MAALCA · PANTALLA</div>
+          <div style={{ fontSize: '9vw', fontWeight: 800, lineHeight: 1.05, marginTop: '1vh' }}>{identify}</div>
+        </div>
+      )}
       <DebugBadge
         info={`tema ${theme} · diseño ${activeLayout} · idioma ${language}${
           syncOn
