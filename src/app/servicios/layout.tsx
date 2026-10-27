@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 export const metadata: Metadata = {
   title: 'Planes y precios | MaalCa',
   description:
-    'Planes de MaalCa para el espacio digital de tu negocio: Inicial gratis 30 días, Emprendedor y Profesional, con pantallas de menú, pedidos, reservas y facturación.',
+    'Planes de MaalCa para el espacio digital de tu negocio: Starter gratis 30 días, Growth y Professional, con pantallas de menú, pedidos, reservas y facturación.',
   openGraph: {
     title: 'Planes y precios | MaalCa',
     description:

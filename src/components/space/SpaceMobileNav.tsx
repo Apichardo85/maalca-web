@@ -202,7 +202,7 @@ export function SpaceMobileNav({
                 }`}
               >
                 {isPaidPlan(plan)
-                  ? (String(plan).toLowerCase() === 'enterprise' ? getText('Profesional', 'Professional') : getText('Emprendedor', 'Growth'))
+                  ? (String(plan).toLowerCase() === 'enterprise' ? getText('Professional', 'Professional') : getText('Growth', 'Growth'))
                   : getText('Plan Gratis', 'Free Plan')}
               </span>
               <UserBadge fullName={userFullName} avatarUrl={userAvatarUrl} email={userEmail} role={userRole} />

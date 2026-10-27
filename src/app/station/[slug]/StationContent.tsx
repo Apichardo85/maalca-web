@@ -439,7 +439,7 @@ export function StationContent({ slug, plan, affiliateId, businessName, logoUrl,
       <div className="flex min-h-screen items-center justify-center bg-gray-50 px-6 text-center text-gray-900 dark:bg-neutral-950 dark:text-white">
         <p className="max-w-md text-gray-500 dark:text-white/70">
           {getText(
-            'La Estación de pedidos es parte del plan Emprendedor.',
+            'La Estación de pedidos es parte del plan Growth.',
             'The Order Station is part of the Growth plan.',
           )}
         </p>

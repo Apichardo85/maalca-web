@@ -27,14 +27,15 @@ export interface BillingSummary {
   prices: BillingPrice[];
 }
 
-/** Nombre público del plan, igual que en /servicios: es Inicial · Emprendedor · Profesional,
- *  en Starter · Growth · Professional. Acepta 'free' | 'entrepreneur' | 'enterprise' o el enum del API. */
+/** Nombre público del plan, igual que en /servicios y en los dos idiomas:
+ *  Starter · Growth · Professional. Acepta 'free' | 'entrepreneur' | 'enterprise' o el enum del API.
+ *  `language` se mantiene en la firma por compatibilidad con los llamadores. */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function publicPlanName(plan: string | null | undefined, language: string = 'es'): string {
   const p = String(plan ?? '').toLowerCase();
-  const es = language === 'es';
-  if (p === 'enterprise') return es ? 'Profesional' : 'Professional';
-  if (p === 'entrepreneur') return es ? 'Emprendedor' : 'Growth';
-  return es ? 'Inicial' : 'Starter';
+  if (p === 'enterprise') return 'Professional';
+  if (p === 'entrepreneur') return 'Growth';
+  return 'Starter';
 }
 
 const FALLBACK: Record<string, number> = {

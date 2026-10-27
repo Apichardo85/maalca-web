@@ -52,7 +52,7 @@ const LIMITS: Record<Plan, PlanLimits> = {
     menuBoard: true,
     warningThresholdItems: Infinity,
   },
-  // Mismo techo que Emprendedor por ahora — Enterprise es hoy un tier de precio/relación
+  // Mismo techo que Growth por ahora — Enterprise es hoy un tier de precio/relación
   // (cortesía, negociación directa por volumen), no un set de capacidades distinto. Si en el
   // futuro Enterprise agrega features propias (multi-sucursal, SLA, etc.), se diferencian acá.
   enterprise: {

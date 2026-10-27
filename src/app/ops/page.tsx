@@ -40,7 +40,7 @@ export default async function OpsResumenPage() {
       {overview && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <Kpi label="Negocios" value={String(overview.totalAffiliates)} />
-          <Kpi label="Emprendedor" value={String(overview.entrepreneurCount)} />
+          <Kpi label="Growth" value={String(overview.entrepreneurCount)} />
           <Kpi label="Gratis" value={String(overview.freeCount)} />
           <Kpi label="MRR" value={`$${overview.mrrUsd.toLocaleString()}`} />
           <Kpi label="Nuevos este mes" value={String(overview.newThisMonth)} />

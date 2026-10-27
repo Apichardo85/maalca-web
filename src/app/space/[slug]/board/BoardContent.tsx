@@ -557,7 +557,7 @@ export function BoardContent({
         {!isPaidPlan(plan) && (
           <p className="mt-3 text-sm text-gray-500 dark:text-neutral-400">
             {getText(
-              'El Menu Board es parte del plan Emprendedor. Con el plan gratis, esta pantalla queda configurada pero no se activa públicamente.',
+              'El Menu Board es parte del plan Growth. Con el plan gratis, esta pantalla queda configurada pero no se activa públicamente.',
               'The Menu Board is part of the Growth plan. On the free plan, this screen stays configured but not publicly active.',
             )}
           </p>

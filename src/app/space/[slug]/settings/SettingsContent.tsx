@@ -67,7 +67,7 @@ export function SettingsContent({ slug, plan, trialDaysRemaining, currency: init
   }
 
   // Stripe Connect — cuenta donde el afiliado recibe el dinero de SUS clientes.
-  // Distinta de la suscripción de arriba. Solo aplica a plan Emprendedor.
+  // Distinta de la suscripción de arriba. Solo aplica a plan Growth.
   const [connectStatus, setConnectStatus] = useState<{
     connected: boolean;
     chargesEnabled: boolean;
@@ -291,7 +291,7 @@ export function SettingsContent({ slug, plan, trialDaysRemaining, currency: init
                   {getText('Plan actual', 'Current plan')}
                 </p>
                 <p className="mt-1 text-lg font-bold">
-                  {isPaidPlan(plan) ? planName : getText('Plan Inicial (30 días gratis)', 'Starter (30-day free trial)')}
+                  {isPaidPlan(plan) ? planName : getText('Starter (30 días gratis)', 'Starter (30-day free trial)')}
                 </p>
               </div>
               {isPaidPlan(plan) && (

@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
+import LandingClip from "@/components/home/LandingClip";
 
 export interface FeaturedAffiliate {
   slug: string;
@@ -72,6 +73,22 @@ const SHOWCASE: ShowcaseBusiness[] = [
   },
 ];
 
+// Clips del comercial (public/media/landing/*-{es,en}.mp4). Cada uno existe en los dos
+// idiomas: la ruta se arma con el idioma activo, así el toggle cambia también el video.
+const FLOW_CLIPS = [
+  { file: "flujo-pedido", titleKey: "home.flows.order.title", descKey: "home.flows.order.desc" },
+  { file: "flujo-pantalla", titleKey: "home.flows.screen.title", descKey: "home.flows.screen.desc" },
+  { file: "flujo-negocios", titleKey: "home.flows.spaces.title", descKey: "home.flows.spaces.desc" },
+];
+
+// Franja de precios de la home. Los montos son los mismos de /servicios (planes atados a los
+// Price IDs de Stripe); el detalle completo vive allá.
+const PRICING_STRIP = [
+  { name: "Starter", priceKey: "home.pricing.starter.price", descKey: "home.pricing.starter.desc", featured: false },
+  { name: "Growth", priceKey: "home.pricing.growth.price", descKey: "home.pricing.growth.desc", featured: true },
+  { name: "Professional", priceKey: "home.pricing.professional.price", descKey: "home.pricing.professional.desc", featured: false },
+];
+
 const STEP_KEYS = ["home.steps.1", "home.steps.2", "home.steps.3", "home.steps.4"];
 // Timeline real de "Sobre MaalCa" (ver seccion id="about") -- claves ya existian en
 // useSimpleLanguage.tsx, nunca se habian consumido en ningun componente.
@@ -93,7 +110,8 @@ const ABOUT_TIMELINE_KEYS = [
 // landing tenía el texto escrito directo en español y el toggle de idioma solo cambiaba el
 // Header/Footer, no el cuerpo de la página. Corregido sept. 2026.
 export default function HomeClient({ featuredAffiliates }: Props) {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
+  const lang = language === "en" ? "en" : "es";
   const [selectedId, setSelectedId] = useState(SHOWCASE[0].id);
   const [imageIndex, setImageIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -152,10 +170,14 @@ export default function HomeClient({ featuredAffiliates }: Props) {
             <span className="w-2.5 h-2.5 rounded-full bg-black/15" />
             <span className="w-2.5 h-2.5 rounded-full bg-black/15" />
           </div>
-          <img
-            src="/images/landing/modules-panel.png"
-            alt={t("home.hero.mockupAlt")}
-            className="w-full h-auto object-cover object-top"
+          {/* Comercial de 56 s en loop, mudo, en el idioma activo (key = recarga al cambiar). */}
+          <LandingClip
+            key={`hero-${lang}`}
+            eager
+            src={`/media/landing/hero-comercial-${lang}.mp4`}
+            poster={`/media/landing/hero-comercial-${lang}-poster.jpg`}
+            label={t("home.hero.videoAlt")}
+            className="w-full h-auto block"
           />
         </div>
       </section>
@@ -262,9 +284,6 @@ export default function HomeClient({ featuredAffiliates }: Props) {
           </div>
         </div>
 
-        <p className="mt-5 text-xs text-text-muted text-center max-w-lg">
-          {t("home.showcase.footnote")}
-        </p>
       </section>
 
       {/* Lightbox: en móvil la captura se ve pequeña dentro de la tarjeta — al hacer clic se
@@ -310,6 +329,31 @@ export default function HomeClient({ featuredAffiliates }: Props) {
           </div>
         </div>
       )}
+
+      {/* ============ ASÍ FUNCIONA ============
+          Tres cortes del comercial — pedido, pantalla y espacios — cada uno arranca solo al
+          entrar en pantalla (LandingClip). */}
+      <section className="w-full px-6 md:px-16 py-20 md:py-24 bg-surface flex flex-col items-center">
+        <h2 className="text-3xl md:text-4xl font-bold text-center text-text-primary">{t("home.flows.heading")}</h2>
+        <p className="mt-2.5 text-text-secondary text-center">{t("home.flows.subtitle")}</p>
+        <div className="mt-10 w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-6">
+          {FLOW_CLIPS.map((clip) => (
+            <div key={clip.file} className="bg-surface-elevated border border-border rounded-2xl overflow-hidden flex flex-col">
+              <LandingClip
+                key={`${clip.file}-${lang}`}
+                src={`/media/landing/${clip.file}-${lang}.mp4`}
+                poster={`/media/landing/${clip.file}-${lang}-poster.jpg`}
+                label={t(clip.titleKey)}
+                className="w-full aspect-video object-cover bg-black"
+              />
+              <div className="p-5">
+                <h3 className="text-lg font-bold text-text-primary">{t(clip.titleKey)}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-text-secondary">{t(clip.descKey)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* ============ ASÍ DE SIMPLE ============ */}
       <section className="w-full px-6 md:px-16 py-16 md:py-20 bg-surface flex flex-col items-center">
@@ -383,6 +427,31 @@ export default function HomeClient({ featuredAffiliates }: Props) {
             ))}
           </div>
         </div>
+      </section>
+
+      {/* ============ PRECIOS (franja) ============ */}
+      <section className="w-full px-6 md:px-16 py-16 md:py-20 bg-surface-muted flex flex-col items-center">
+        <h2 className="text-2xl md:text-3xl font-bold text-center text-text-primary">{t("home.pricing.heading")}</h2>
+        <div className="mt-8 w-full max-w-4xl grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {PRICING_STRIP.map((plan) => (
+            <div
+              key={plan.name}
+              className={`rounded-2xl p-6 border bg-surface ${
+                plan.featured ? "border-brand-primary shadow-lg" : "border-border"
+              }`}
+            >
+              <div className="text-xs font-bold tracking-wider text-brand-primary">{plan.name.toUpperCase()}</div>
+              <div className="mt-2 text-3xl font-bold text-text-primary">{t(plan.priceKey)}</div>
+              <p className="mt-2 text-sm text-text-secondary leading-relaxed">{t(plan.descKey)}</p>
+            </div>
+          ))}
+        </div>
+        <Link
+          href="/servicios"
+          className="mt-8 px-6 py-3 rounded-full text-sm font-semibold border border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white transition-colors"
+        >
+          {t("home.pricing.cta")}
+        </Link>
       </section>
 
       {/* ============ CTA FINAL ============ */}

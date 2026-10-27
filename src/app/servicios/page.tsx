@@ -32,6 +32,8 @@ type AddOn = {
   price: number;
   unit: { es: string; en: string };
   desc: { es: string; en: string };
+  /** Precio por volumen, ej. "desde la 2.ª, $10". */
+  note?: { es: string; en: string };
 };
 
 type ComparisonValue = boolean | string | { es: string; en: string };
@@ -39,7 +41,7 @@ type ComparisonValue = boolean | string | { es: string; en: string };
 const plans: Plan[] = [
   {
     id: "inicial",
-    name: { es: "Plan Inicial", en: "Starter Plan" },
+    name: { es: "Starter", en: "Starter" },
     tagline: {
       es: "Todo lo esencial para tener presencia digital sin costo: página web, catálogo básico, QR y contacto directo.",
       en: "Everything you need for a digital presence at no cost: website, basic catalog, QR code and direct contact.",
@@ -51,7 +53,7 @@ const plans: Plan[] = [
       { es: "Sitio web one-page con tu marca", en: "One-page website with your branding" },
       { es: "Catálogo básico (hasta 10 ítems)", en: "Basic catalog (up to 10 items)" },
       { es: "Código QR promocional descargable", en: "Downloadable promotional QR code" },
-      { es: "WhatsApp directo", en: "Direct contact channel" },
+      { es: "Tus canales de contacto", en: "Your contact channels" },
       { es: "Dashboard métricas básicas", en: "Basic metrics dashboard" },
       { es: "Hosting y SSL incluidos", en: "Hosting and SSL included" },
       { es: "Soporte básico por email (72h)", en: "Basic email support (72h)" },
@@ -60,7 +62,7 @@ const plans: Plan[] = [
   },
   {
     id: "emprendedor",
-    name: { es: "Emprendedor", en: "Growth" },
+    name: { es: "Growth", en: "Growth" },
     tagline: {
       es: "Cuando ya vendes: reservas, pagos online, catálogo ilimitado y automatizaciones que te ahorran horas.",
       en: "Once you're selling: bookings, online payments, unlimited catalog and automations that save you hours.",
@@ -69,7 +71,7 @@ const plans: Plan[] = [
     setup: { es: "Setup único $150", en: "One-time setup $150" },
     highlight: true,
     features: [
-      { es: "Todo lo del Plan Inicial (catálogo ilimitado)", en: "Everything in Starter (unlimited catalog)" },
+      { es: "Todo lo de Starter (catálogo ilimitado)", en: "Everything in Starter (unlimited catalog)" },
       { es: "Reservas / pedidos online con panel admin", en: "Online bookings / orders with admin panel" },
       { es: "Dashboard multiusuario con roles", en: "Multi-user dashboard with roles" },
       { es: "Automatizaciones básicas (confirmaciones, recordatorios)", en: "Basic automations (confirmations, reminders)" },
@@ -87,7 +89,7 @@ const plans: Plan[] = [
   // clientes porque ese producto todavía no existe (solo hay un asistente interno en /ops).
   {
     id: "profesional",
-    name: { es: "Profesional", en: "Professional" },
+    name: { es: "Professional", en: "Professional" },
     tagline: {
       es: "Para negocios que cotizan, facturan, agendan o reciben pedidos: todo el ciclo del cliente en un solo lugar.",
       en: "For businesses that quote, invoice, book or take orders: the full customer cycle in one place.",
@@ -96,7 +98,7 @@ const plans: Plan[] = [
     setup: { es: "Setup único $150", en: "One-time setup $150" },
     highlight: false,
     features: [
-      { es: "Todo lo del plan Emprendedor", en: "Everything in Growth" },
+      { es: "Todo lo de Growth", en: "Everything in Growth" },
       { es: "2 pantallas de menú para TV incluidas", en: "2 TV menu screens included" },
       { es: "Facturas y propuestas con firma digital del cliente", en: "Invoices and proposals with client e-signature" },
       { es: "Automatizaciones avanzadas: recordatorios y bloqueo de horario", en: "Advanced automations: reminders and schedule blocking" },
@@ -107,15 +109,27 @@ const plans: Plan[] = [
   },
 ];
 
+// Precios aprobados 2026-10-27. Cuando exista PlatformAddOn en el API (instrucción 1),
+// esta lista pasa a leerse de GET /api/public/platform-addons y se edita en /ops/precios.
 const addOns: AddOn[] = [
   {
-    id: "social-posts",
-    name: { es: "Publicaciones en redes sociales", en: "Social media posts" },
-    price: 75,
-    unit: { es: "/mes", en: "/mo" },
+    id: "screen-kit",
+    name: { es: "Kit de pantalla", en: "Screen kit" },
+    price: 249,
+    unit: { es: "pago único", en: "one-time" },
     desc: {
-      es: "8 publicaciones al mes (Instagram + Facebook) con diseño y copy.",
-      en: "8 posts a month (Instagram + Facebook) with design and copy.",
+      es: "Dispositivo de streaming, montaje en pared, configuración e instalación. La TV la pone el negocio.",
+      en: "Streaming device, wall mount, setup and installation. The business provides the TV.",
+    },
+  },
+  {
+    id: "screen-full-service",
+    name: { es: "Servicio completo de pantallas", en: "Full screen service" },
+    price: 39,
+    unit: { es: "/local/mes", en: "/location/mo" },
+    desc: {
+      es: "Cargamos y mantenemos tu contenido (menú, promos y comerciales), vigilamos cada TV y reemplazamos el dispositivo en 48 h. El diseño se genera solo desde tu catálogo.",
+      en: "We load and keep your content up to date (menu, promos and ads), watch every TV and replace the device within 48 h. The design is generated from your catalog.",
     },
   },
   {
@@ -124,8 +138,19 @@ const addOns: AddOn[] = [
     price: 15,
     unit: { es: "/mes", en: "/mo" },
     desc: {
-      es: "Una pantalla de TV más para tu menú o anuncios, además de las incluidas en tu plan.",
-      en: "One more TV screen for your menu or ads, on top of those included in your plan.",
+      es: "Más pantallas de TV para tu menú o anuncios, además de las incluidas en tu plan.",
+      en: "More TV screens for your menu or ads, on top of those included in your plan.",
+    },
+    note: { es: "Desde la 2.ª pantalla extra, $10 c/u", en: "From the 2nd extra screen, $10 each" },
+  },
+  {
+    id: "social-posts",
+    name: { es: "Publicaciones en redes sociales", en: "Social media posts" },
+    price: 249,
+    unit: { es: "/mes", en: "/mo" },
+    desc: {
+      es: "8 publicaciones + 1 reel al mes (Instagram + Facebook), con diseño y copy.",
+      en: "8 posts + 1 reel a month (Instagram + Facebook), with design and copy.",
     },
   },
   {
@@ -227,7 +252,7 @@ const comparisonRows: { label: { es: string; en: string }; values: ComparisonVal
   },
   {
     label: { es: "Pantallas de TV (menú y anuncios)", en: "TV screens (menu and ads)" },
-    values: [false, "1", "3"],
+    values: [false, "1", "2"],
   },
   {
     label: { es: "Soporte", en: "Support" },
@@ -552,20 +577,18 @@ export default function ServiciosPage() {
                     {language === "en" ? "Feature" : "Característica"}
                   </th>
                   <th className="text-center py-4 px-3">
-                    <span className="text-xs font-bold text-emerald-600 block">
-                      {language === "en" ? "Free" : "Gratis"}
-                    </span>
+                    <span className="text-xs font-bold text-emerald-600 block">Starter</span>
                     <span className="text-xs text-text-muted">$0</span>
                   </th>
                   <th className="text-center py-4 px-3">
                     <span className="text-xs font-bold text-text-primary block">
-                      {language === "en" ? "Growth" : "Emprendedor"}
+                      Growth
                     </span>
                     <span className="text-xs text-text-muted">${PRICE_ENTREPRENEUR}</span>
                   </th>
                   <th className="text-center py-4 px-3">
                     <span className="text-xs font-bold text-brand-primary block">
-                      {language === "en" ? "Professional" : "Profesional"}
+                      Professional
                     </span>
                     <span className="text-xs text-text-muted">${PRICE_PROFESSIONAL}</span>
                   </th>
@@ -600,11 +623,11 @@ export default function ServiciosPage() {
             </h2>
             <p className="text-lg text-text-secondary max-w-2xl mx-auto">
               {language === "en"
-                ? "Scale your plan without jumping tiers. Stackable on Growth or Corporate."
-                : "Escala tu plan sin cambiar de tier. Combinables sobre Emprendedor o Corporativo."}
+                ? "Scale your plan without jumping tiers. Stackable on Growth, Professional or Corporate."
+                : "Escala tu plan sin cambiar de tier. Combinables sobre Growth, Professional o Corporativo."}
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
             {addOns.map((addon, index) => (
               <div
                 key={addon.id}
@@ -617,6 +640,7 @@ export default function ServiciosPage() {
                 </div>
                 <h3 className="text-base font-bold text-text-primary mb-2 leading-snug">{L(addon.name)}</h3>
                 <p className="text-sm text-text-secondary leading-relaxed">{L(addon.desc)}</p>
+                {addon.note && <p className="mt-2 text-xs font-semibold text-brand-primary">{L(addon.note)}</p>}
               </div>
             ))}
           </div>

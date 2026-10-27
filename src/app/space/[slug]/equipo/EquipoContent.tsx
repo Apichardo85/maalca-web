@@ -763,7 +763,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
         {!isEntrepreneur && (
           <p className="mt-3 max-w-2xl rounded-lg bg-brand-primary/5 px-3 py-2 text-sm text-brand-primary">
             {getText(
-              'Dar acceso al dashboard a más personas es parte del plan Emprendedor.',
+              'Dar acceso al dashboard a más personas es parte del plan Growth.',
               'Granting dashboard access to more people is part of the Growth plan.',
             )}
           </p>

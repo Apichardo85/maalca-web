@@ -280,7 +280,7 @@ export function NegocioDetail({
               className="mt-1 w-full rounded-md border border-gray-200 dark:border-neutral-700 bg-transparent text-sm font-semibold disabled:opacity-50"
             >
               <option value="Free">Gratis</option>
-              <option value="Entrepreneur">Emprendedor</option>
+              <option value="Entrepreneur">Growth</option>
               <option value="Enterprise">Enterprise</option>
             </select>
           ) : (

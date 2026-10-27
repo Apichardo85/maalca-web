@@ -59,7 +59,7 @@ ${JSON.stringify(overview, null, 2)}
 Negocios (afiliados):
 ${JSON.stringify(affiliates, null, 2)}
 
-Cuando te pregunten por "riesgo de churn", priorizá negocios en plan Emprendedor con alertas activas (sin conectar pagos, sin pedidos en 30 días) y poca actividad reciente. Cuando te pidan redactar algo (email, mensaje), hacelo directamente, listo para copiar.`;
+Cuando te pregunten por "riesgo de churn", prioriza negocios en plan Growth con alertas activas (sin conectar pagos, sin pedidos en 30 días) y poca actividad reciente. Cuando te pidan redactar algo (email, mensaje), hazlo directamente, listo para copiar.`;
 
   try {
     const anthropicRes = await fetch(ANTHROPIC_MESSAGES_URL, {

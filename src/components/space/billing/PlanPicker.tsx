@@ -28,7 +28,7 @@ const PLANS: { plan: PaidPlan; es: string[]; en: string[] }[] = [
   },
   {
     plan: 'Enterprise',
-    es: ['Todo lo de Emprendedor', 'Menu Board: 2 pantallas incluidas', 'Soporte prioritario'],
+    es: ['Todo lo de Growth', 'Menu Board: 2 pantallas incluidas', 'Soporte prioritario'],
     en: ['Everything in Growth', 'Menu Board: 2 screens included', 'Priority support'],
   },
 ];
