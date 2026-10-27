@@ -1,3 +1,7 @@
+// Catálogo de módulos (iconos y textos). El backend (ModuleCatalog.cs) es la fuente de verdad del
+// plan mínimo vigente: GET /api/modules/catalog. Mantener tokens y tipos sincronizados.
+// Facturación NO es módulo: siempre visible.
+//
 // Catálogo único de módulos — token = ModuleCatalog.Whitelist en el backend
 // (Maalca.Application.Common) y coincide 1:1 con los tokens que SpaceSidebar.tsx/
 // SpaceMobileNav.tsx usan para gatear la nav real del afiliado.
@@ -18,26 +22,31 @@ export interface ModuleDef {
   businessTypes?: readonly string[];
   /** Si se define, el módulo se oculta para estos tipos de negocio (vitrina del dueño). */
   excludeBusinessTypes?: readonly string[];
+  /** Plan mínimo por defecto (el vigente lo da GET /api/modules/catalog; ops lo edita). */
+  minTier: PlanTier;
 }
 
+export type PlanTier = 'Starter' | 'Growth' | 'Professional';
+export const PLAN_TIERS: readonly PlanTier[] = ['Starter', 'Growth', 'Professional'];
+
 export const MODULE_CATALOG: readonly ModuleDef[] = [
-  { token: 'catalog', icon: '📦', es: 'Catálogo', en: 'Catalog', descEs: 'Tus items y precios, siempre al día.', descEn: 'Your items and prices, always up to date.' },
-  { token: 'page', icon: '🌐', es: 'Página', en: 'Page', descEs: 'Tu página pública en maalca.com.', descEn: 'Your public page on maalca.com.' },
-  { token: 'orders', icon: '🧾', es: 'Pedidos', en: 'Orders', descEs: 'Pedidos online con cobro real por Stripe.', descEn: 'Online orders with real Stripe checkout.' },
-  { token: 'kitchen', icon: '🍳', es: 'Cocina', en: 'Kitchen', descEs: 'Kanban en tiempo real para preparar pedidos.', descEn: 'Real-time kanban to prepare orders.', businessTypes: ['restaurant'] },
-  { token: 'pos', icon: '🧮', es: 'Punto de venta', en: 'Point of sale', descEs: 'Cobra en el local — efectivo, tarjeta o QR.', descEn: 'Charge in-store — cash, card, or QR.', businessTypes: ['restaurant', 'retail'] },
-  { token: 'board', icon: '📺', es: 'Pantalla', en: 'Screen', descEs: 'Menú o catálogo en una pantalla física, con comerciales.', descEn: 'Menu or catalog on a physical screen, with ads.' },
-  { token: 'queue', icon: '🪑', es: 'Fila de espera', en: 'Waiting queue', descEs: 'Walk-ins que esperan turno sin cita previa.', descEn: 'Walk-ins waiting their turn without an appointment.', businessTypes: ['barber'] },
-  { token: 'invoices', icon: '🧾', es: 'Facturas', en: 'Invoices', descEs: 'Factura a tus clientes por el trabajo realizado.', descEn: 'Invoice your customers for completed work.', businessTypes: ['service', 'professional'] },
-  { token: 'reservations', icon: '🍽️', es: 'Reservas', en: 'Reservations', descEs: 'Reserva de mesa — cuántas personas y a qué hora.', descEn: 'Table reservations — party size and time.', businessTypes: ['restaurant'] },
-  { token: 'inventory', icon: '📋', es: 'Inventario', en: 'Inventory', descEs: 'Stock de insumos con alerta de mínimo y registro de entradas/salidas.', descEn: 'Supply stock with low-stock alerts and in/out tracking.', businessTypes: ['restaurant', 'retail'] },
-  { token: 'proposals', icon: '✍️', es: 'Propuestas', en: 'Proposals', descEs: 'Envía propuestas y deja que el cliente firme y acepte en línea.', descEn: 'Send proposals and let clients sign and accept online.', businessTypes: ['service', 'professional'] },
-  { token: 'staff', icon: '👥', es: 'Equipo', en: 'Team', descEs: 'Tu equipo de trabajo — meseros, barberos, etc.', descEn: 'Your operating staff — waiters, barbers, etc.' },
-  { token: 'workforce', icon: '⏱️', es: 'Ponche y nómina', en: 'Time clock & payroll', descEs: 'Reloj de entrada/salida por PIN, reporte de nómina y tareas asignadas.', descEn: 'PIN clock-in/out, payroll report, and assigned tasks.' },
-  { token: 'modifiers', icon: '🧂', es: 'Guarniciones', en: 'Modifiers', descEs: 'Grupos reusables de acompañantes/extras con su precio real, para agregar a tus platos.', descEn: 'Reusable groups of sides/extras with their real price, to attach to your dishes.', businessTypes: ['restaurant'] },
-  { token: 'appointments', icon: '📅', es: 'Agenda', en: 'Agenda', descEs: 'Citas agendadas, asignadas a tu personal.', descEn: 'Booked appointments, assigned to your staff.', excludeBusinessTypes: ['retail', 'creator', 'publisher', 'restaurant'] },
-  { token: 'metrics', icon: '📊', es: 'Estadísticas', en: 'Stats', descEs: 'Visitas y actividad de tu página.', descEn: 'Visits and activity on your page.' },
-  { token: 'billing', icon: '💳', es: 'Facturación', en: 'Billing', descEs: 'Tu plan y método de pago con MaalCa.', descEn: 'Your plan and payment method with MaalCa.' },
+  { token: 'catalog', icon: '📦', es: 'Catálogo', en: 'Catalog', descEs: 'Tus items y precios, siempre al día.', descEn: 'Your items and prices, always up to date.', minTier: 'Starter' },
+  { token: 'page', icon: '🌐', es: 'Página', en: 'Page', descEs: 'Tu página pública en maalca.com.', descEn: 'Your public page on maalca.com.', minTier: 'Starter' },
+  { token: 'orders', icon: '🧾', es: 'Pedidos', en: 'Orders', descEs: 'Pedidos online con cobro real por Stripe.', descEn: 'Online orders with real Stripe checkout.', minTier: 'Growth' },
+  { token: 'kitchen', icon: '🍳', es: 'Cocina', en: 'Kitchen', descEs: 'Kanban en tiempo real para preparar pedidos.', descEn: 'Real-time kanban to prepare orders.', businessTypes: ['restaurant'], minTier: 'Growth' },
+  { token: 'station', icon: '🔔', es: 'Estación', en: 'Station', descEs: 'Pantalla de pedidos que suena hasta que alguien acepta.', descEn: 'Order screen that rings until someone accepts.', businessTypes: ['restaurant'], minTier: 'Growth' },
+  { token: 'pos', icon: '🧮', es: 'Punto de venta', en: 'Point of sale', descEs: 'Cobra en el local — efectivo, tarjeta o QR.', descEn: 'Charge in-store — cash, card, or QR.', businessTypes: ['restaurant', 'retail'], minTier: 'Growth' },
+  { token: 'board', icon: '📺', es: 'Pantalla', en: 'Screen', descEs: 'Menú, anuncios o contenido en las TVs de tu local.', descEn: 'Menu, ads or content on the TVs in your place.', minTier: 'Growth' },
+  { token: 'queue', icon: '🪑', es: 'Fila de espera', en: 'Waiting queue', descEs: 'Walk-ins que esperan turno sin cita previa.', descEn: 'Walk-ins waiting their turn without an appointment.', businessTypes: ['barber'], minTier: 'Growth' },
+  { token: 'invoices', icon: '🧾', es: 'Facturas', en: 'Invoices', descEs: 'Factura a tus clientes por el trabajo realizado.', descEn: 'Invoice your customers for completed work.', excludeBusinessTypes: ['community'], minTier: 'Professional' },
+  { token: 'reservations', icon: '🍽️', es: 'Reservas', en: 'Reservations', descEs: 'Reserva de mesa — cuántas personas y a qué hora.', descEn: 'Table reservations — party size and time.', businessTypes: ['restaurant'], minTier: 'Growth' },
+  { token: 'inventory', icon: '📋', es: 'Inventario', en: 'Inventory', descEs: 'Stock de insumos con alerta de mínimo y registro de entradas/salidas.', descEn: 'Supply stock with low-stock alerts and in/out tracking.', businessTypes: ['restaurant', 'retail', 'community'], minTier: 'Growth' },
+  { token: 'proposals', icon: '✍️', es: 'Propuestas', en: 'Proposals', descEs: 'Envía propuestas y deja que el cliente firme y acepte en línea.', descEn: 'Send proposals and let clients sign and accept online.', excludeBusinessTypes: ['community'], minTier: 'Professional' },
+  { token: 'staff', icon: '👥', es: 'Equipo', en: 'Team', descEs: 'Tu equipo de trabajo — meseros, barberos, etc.', descEn: 'Your operating staff — waiters, barbers, etc.', minTier: 'Growth' },
+  { token: 'workforce', icon: '⏱️', es: 'Ponche y nómina', en: 'Time clock & payroll', descEs: 'Reloj de entrada/salida por PIN, reporte de nómina y tareas asignadas.', descEn: 'PIN clock-in/out, payroll report, and assigned tasks.', minTier: 'Professional' },
+  { token: 'modifiers', icon: '🧂', es: 'Guarniciones', en: 'Modifiers', descEs: 'Grupos reusables de acompañantes/extras con su precio real, para agregar a tus platos.', descEn: 'Reusable groups of sides/extras with their real price, to attach to your dishes.', businessTypes: ['restaurant'], minTier: 'Growth' },
+  { token: 'appointments', icon: '📅', es: 'Agenda', en: 'Agenda', descEs: 'Citas agendadas, asignadas a tu personal.', descEn: 'Booked appointments, assigned to your staff.', excludeBusinessTypes: ['retail', 'creator', 'publisher', 'restaurant', 'community'], minTier: 'Growth' },
+  { token: 'metrics', icon: '📊', es: 'Estadísticas', en: 'Stats', descEs: 'Visitas y actividad de tu página.', descEn: 'Visits and activity on your page.', minTier: 'Starter' },
 ] as const;
 
 export function isModuleRelevant(mod: ModuleDef, businessType: string): boolean {

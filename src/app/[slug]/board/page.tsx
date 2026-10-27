@@ -59,7 +59,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
  *  exactamente lo mismo — la única diferencia entre pantallas es qué `data` les llegó
  *  (según los overrides que resolvió el backend), no el markup. */
 export function renderBoard(slug: string, data: BoardCatalogResponse, screenId?: string) {
-  // Gated by plan (see PublicCatalogService.BuildCapabilities in maalca-api — that's the
+  // Gated by plan + screen allowance (ModuleAccess / PublicCatalogService in maalca-api — that's the
   // real enforcement point; this just renders a diagnosable message instead of a bare 404
   // so whoever set up the TV knows *why* nothing's showing, not just that it's broken).
   if (!data.capabilities?.menuBoard) {
@@ -67,10 +67,11 @@ export function renderBoard(slug: string, data: BoardCatalogResponse, screenId?:
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center gap-3 bg-neutral-950 px-10 text-center text-white">
         <p className="text-2xl font-bold">{data.affiliate.name}</p>
+        <p className="text-lg font-semibold">{isEn ? 'This screen is paused' : 'Esta pantalla está en pausa'}</p>
         <p className="max-w-md text-white/60">
           {isEn
-            ? 'The Menu Board is a feature of the Growth plan. Upgrade your plan from the dashboard to activate it.'
-            : 'El Menu Board es una función del plan Growth. Actualiza tu plan desde el dashboard para activarlo.'}
+            ? 'Reactivate it from your dashboard at maalca.com.'
+            : 'Reactívala desde tu panel en maalca.com.'}
         </p>
       </div>
     );

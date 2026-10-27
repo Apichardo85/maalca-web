@@ -112,7 +112,7 @@ export function SpaceSidebar({
     // /ops para un tipo de negocio atípico dejaba la página alcanzable pero sin link en el nav.
     // El filtro de abajo (activeModules.includes(token)) ya hace el trabajo real.
     { label: getText('Cocina', 'Kitchen'), icon: '🍳', href: `/space/${slug}/kitchen`, token: 'kitchen' },
-    { label: getText('Estación', 'Station'), icon: '🔔', href: `/space/${slug}/station`, token: 'kitchen' },
+    { label: getText('Estación', 'Station'), icon: '🔔', href: `/space/${slug}/station`, token: 'station' },
     // POS — restaurante y retail cobran en el local con items de precio fijo. Servicios/Barbería
     // cobran al final de una cita (no aplica un mostrador de venta libre) y se suman después si
     // hace falta.
@@ -130,7 +130,7 @@ export function SpaceSidebar({
       ? [{ label: getText('Guarniciones', 'Modifiers'), icon: '🧂', href: `/space/${slug}/modifiers`, token: 'modifiers' }]
       : []),
     { label: getText('Fila de espera', 'Waiting queue'), icon: '🪑', href: `/space/${slug}/queue`, token: 'queue' },
-    // Facturas por trabajo realizado. No confundir con "Facturación" (token 'billing') más
+    // Facturas por trabajo realizado. No confundir con "Facturación" (sin token: siempre visible) más
     // abajo, que es el plan/pago con MaalCa.
     { label: getText('Facturas', 'Invoices'), icon: '🧾', href: `/space/${slug}/invoices`, token: 'invoices' },
     { label: getText('Propuestas', 'Proposals'), icon: '✍️', href: `/space/${slug}/proposals`, token: 'proposals' },
@@ -155,7 +155,7 @@ export function SpaceSidebar({
     { label: getText('Clientes', 'Customers'),                icon: '🗂️', href: `/space/${slug}/clientes` },
     { label: getText('Módulos', 'Modules'),                   icon: '🧩', href: `/space/${slug}/modules` },
     { label: getText('Estadísticas', 'Stats'),                icon: '📊', href: `/space/${slug}/stats`, token: 'metrics' },
-    { label: getText('Facturación', 'Billing'),               icon: '💳', href: `/space/${slug}/settings`, token: 'billing' },
+    { label: getText('Facturación', 'Billing'),               icon: '💳', href: `/space/${slug}/settings` },
   ];
 
   // Sin activeModules (undefined) no filtra nada — evita romper cualquier consumidor viejo que

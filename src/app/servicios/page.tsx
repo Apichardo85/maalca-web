@@ -294,7 +294,7 @@ const comparisonRows: { label: { es: string; en: string }; values: ComparisonVal
   },
   {
     label: { es: "Pantallas de TV (menú y anuncios)", en: "TV screens (menu and ads)" },
-    values: [false, "1", "2"],
+    values: [{ es: "1 (en la prueba)", en: "1 (during trial)" }, "1", "2"],
   },
   {
     label: { es: "Soporte", en: "Support" },

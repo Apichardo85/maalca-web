@@ -34,8 +34,9 @@ export function NegocioDetail({
   const [noteText, setNoteText] = useState('');
   const [savingNote, setSavingNote] = useState(false);
   const [selectedModules, setSelectedModules] = useState<Set<string>>(
-    new Set(initialAffiliate.modulosActivos ?? []),
+    new Set(initialAffiliate.modulosSeleccionados ?? initialAffiliate.modulosActivos ?? []),
   );
+  const [savingCortesia, setSavingCortesia] = useState(false);
   const [savingModules, setSavingModules] = useState(false);
   const [modulesDirty, setModulesDirty] = useState(false);
   const [showAllModules, setShowAllModules] = useState(false);
@@ -74,13 +75,40 @@ export function NegocioDetail({
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.error?.message ?? 'No se pudieron guardar los módulos.');
       setA(data);
-      setSelectedModules(new Set(data.modulosActivos ?? []));
+      setSelectedModules(new Set(data.modulosSeleccionados ?? data.modulosActivos ?? []));
       setModulesDirty(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Algo salió mal.');
     } finally {
       setSavingModules(false);
     }
+  }
+
+  // Cortesías: módulos que el negocio ve aunque su plan no los incluya. "*" = todo lo prendido.
+  async function saveCortesia(next: string[]) {
+    setSavingCortesia(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/ops/affiliates/${a.id}/modules-cortesia`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ modules: next }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error?.message ?? 'No se pudieron guardar las cortesías.');
+      setA(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Algo salió mal.');
+    } finally {
+      setSavingCortesia(false);
+    }
+  }
+
+  function toggleCortesia(token: string) {
+    const current = new Set(a.modulosCortesia ?? []);
+    if (current.has(token)) current.delete(token);
+    else current.add(token);
+    saveCortesia(Array.from(current));
   }
 
   async function setStatus(patch: { published?: boolean; active?: boolean }) {
@@ -400,8 +428,8 @@ export function NegocioDetail({
         </div>
         <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs text-gray-400 dark:text-neutral-500">
-            Lo que este negocio ve en su sidebar — puedes prender o apagar cualquiera, por encima
-            de lo que su plan normalmente incluiría.
+            Lo prendido para este negocio. Lo que de verdad ve = prendido ∩ su plan
+            ({a.effectiveTier ?? '—'}) ∪ cortesías. Un módulo prendido que el plan no incluye sale con candado.
           </p>
           <button
             type="button"
@@ -434,10 +462,57 @@ export function NegocioDetail({
                   <span className="block">{mod.es}</span>
                   <span className="mt-0.5 block truncate text-[10px] font-normal opacity-70">{mod.descEs}</span>
                 </span>
+                {active && !(a.modulosActivos ?? []).includes(mod.token) && (
+                  <span className="shrink-0 text-[10px]" title="Prendido, pero su plan no lo incluye">🔒</span>
+                )}
                 <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${active ? 'bg-brand-primary' : 'bg-gray-300 dark:bg-neutral-700'}`} />
               </button>
             );
           })}
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-neutral-300">Cortesías</h3>
+        <p className="mt-1 text-xs text-gray-400 dark:text-neutral-500">
+          Módulos regalados por encima del plan. &quot;Todo lo prendido&quot; protege a clientes de antes de los
+          planes por módulo.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {(() => {
+            const cortesia = new Set(a.modulosCortesia ?? []);
+            const all = cortesia.has('*');
+            const chip = (on: boolean) =>
+              `rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                on
+                  ? 'border-brand-primary bg-brand-primary/10 text-brand-primary'
+                  : 'border-gray-300 dark:border-neutral-700 text-gray-500 dark:text-neutral-400'
+              }`;
+            return (
+              <>
+                <button
+                  type="button"
+                  disabled={!canManage || savingCortesia}
+                  onClick={() => saveCortesia(all ? [] : ['*'])}
+                  className={chip(all)}
+                >
+                  {all ? 'Todo lo prendido ✓' : 'Todo lo prendido'}
+                </button>
+                {!all &&
+                  MODULE_TOKENS.filter((mod) => isModuleRelevant(mod, businessTypeKey)).map((mod) => (
+                    <button
+                      key={mod.token}
+                      type="button"
+                      disabled={!canManage || savingCortesia}
+                      onClick={() => toggleCortesia(mod.token)}
+                      className={chip(cortesia.has(mod.token))}
+                    >
+                      {mod.icon} {mod.es}
+                    </button>
+                  ))}
+              </>
+            );
+          })()}
         </div>
       </div>
 

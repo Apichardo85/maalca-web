@@ -21,7 +21,7 @@ export default async function StationSetupPage({ params }: { params: Promise<{ s
   if (res.status === 403) redirect('/');
   if (!res.ok) throw new Error(`Failed to load space: ${res.status}`);
   const { business } = await res.json();
-  if (!business.modulosActivos?.includes('kitchen')) redirect(`/space/${slug}/orders`);
+  if (!business.modulosActivos?.includes('station')) redirect(`/space/${slug}/orders`);
 
   return <StationSetup slug={slug} plan={business.plan} businessName={business.name} />;
 }

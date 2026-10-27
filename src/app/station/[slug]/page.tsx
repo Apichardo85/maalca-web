@@ -29,9 +29,9 @@ export const metadata: Metadata = { title: 'Estación de pedidos — MaalCa', ro
 // Estación de pedidos (Fase 3 del plan de La Catrina): pantalla dedicada, a diferencia de
 // Cocina (kanban de 3 columnas) o Pedidos (lista administrativa) — acá solo entra lo que
 // todavía NADIE atendió: pedidos Pending por aceptar (PayAtPickup/PayAtTable) y pedidos Paid
-// sin AcknowledgedAt (pagados online, nadie los vio aún). Mismo gate que Cocina (módulo
-// 'kitchen'): es la misma operación de pedidos, no un módulo aparte que haya que activar por
-// separado en /ops.
+// sin AcknowledgedAt (pagados online, nadie los vio aún). Módulo propio 'station' (antes
+// compartía el token de Cocina; la migración ModulePlanRulesAndCortesia se lo dio a quien
+// tenía Cocina prendida).
 export default async function StationPage({
   params,
 }: {
@@ -50,7 +50,7 @@ export default async function StationPage({
   if (!spaceRes.ok) throw new Error(`Failed to load space: ${spaceRes.status}`);
 
   const space: SpaceResponse = await spaceRes.json();
-  if (!space.business.modulosActivos.includes('kitchen')) redirect(`/space/${slug}/station`);
+  if (!space.business.modulosActivos.includes('station')) redirect(`/space/${slug}/station`);
 
   let orders: OrderRow[] = [];
   try {

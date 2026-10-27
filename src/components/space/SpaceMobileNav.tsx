@@ -84,7 +84,7 @@ export function SpaceMobileNav({
     // Cocina/Fila/Facturas/Propuestas: ya no se filtran por businessType acá — ver el comentario
     // completo en SpaceSidebar.tsx. El gate real es activeModules.includes(token) más abajo.
     { label: getText('Cocina', 'Kitchen'), icon: '🍳', href: `/space/${slug}/kitchen`, token: 'kitchen' },
-    { label: getText('Estación', 'Station'), icon: '🔔', href: `/space/${slug}/station`, token: 'kitchen' },
+    { label: getText('Estación', 'Station'), icon: '🔔', href: `/space/${slug}/station`, token: 'station' },
     // POS — restaurante y retail, ver mismo criterio en SpaceSidebar.tsx.
     ...(['restaurant', 'retail'].includes(businessType)
       ? [{ label: getText('Punto de venta', 'Point of sale'), icon: '🧮', href: `/space/${slug}/pos`, token: 'pos' }]
@@ -113,7 +113,7 @@ export function SpaceMobileNav({
     { label: getText('Clientes', 'Customers'), icon: '🗂️', href: `/space/${slug}/clientes` },
     { label: getText('Módulos', 'Modules'), icon: '🧩', href: `/space/${slug}/modules` },
     { label: getText('Estadísticas', 'Stats'), icon: '📊', href: `/space/${slug}/stats`, token: 'metrics' },
-    { label: getText('Facturación', 'Billing'), icon: '💳', href: `/space/${slug}/settings`, token: 'billing' },
+    { label: getText('Facturación', 'Billing'), icon: '💳', href: `/space/${slug}/settings` },
   ];
 
   const navItems = activeModules

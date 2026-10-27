@@ -24,7 +24,15 @@ export default async function ModulesPage({
   if (!res.ok) throw new Error(`Failed to load space: ${res.status}`);
 
   const data: {
-    business: { id?: string; modulosActivos?: string[]; businessType?: string; plan?: 'free' | 'entrepreneur' | 'enterprise' };
+    business: {
+      id?: string;
+      modulosActivos?: string[];
+      businessType?: string;
+      plan?: 'free' | 'entrepreneur' | 'enterprise';
+      trialEndsAt?: string | null;
+      effectiveTier?: string;
+      lockedModules?: { token: string; requiredTier: string }[];
+    };
   } = await res.json();
 
   return (
@@ -34,6 +42,8 @@ export default async function ModulesPage({
       activeTokens={data.business.modulosActivos ?? []}
       businessType={(data.business.businessType ?? '').toLowerCase()}
       plan={isPaidPlan(data.business.plan) || (data.business.plan as string) === 'enterprise' ? 'entrepreneur' : 'free'}
+      lockedModules={data.business.lockedModules ?? []}
+      trialEndsAt={data.business.plan === 'free' ? data.business.trialEndsAt ?? null : null}
     />
   );
 }

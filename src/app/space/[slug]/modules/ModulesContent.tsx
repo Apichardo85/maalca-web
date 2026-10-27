@@ -15,6 +15,10 @@ interface Props {
   activeTokens: string[];
   businessType: string;
   plan: 'free' | 'entrepreneur' | 'enterprise';
+  /** Relevantes para su rubro pero bloqueados por el plan (ModuleAccess en el API). */
+  lockedModules?: { token: string; requiredTier: string }[];
+  /** Solo en Starter: fin del trial de 30 días (con todo incluido). */
+  trialEndsAt?: string | null;
 }
 
 // Progresión natural sugerida por tipo de negocio — no es una regla del backend, es solo el
@@ -48,7 +52,7 @@ const NEXT_STEP_REASONS: Record<string, { es: string; en: string }> = {
   metrics: { es: 'Mide cuántas visitas y ventas está generando tu página.', en: 'Measure how many visits and sales your page is generating.' },
 };
 
-export function ModulesContent({ slug, businessId, activeTokens, businessType, plan }: Props) {
+export function ModulesContent({ slug, businessId, activeTokens, businessType, plan, lockedModules = [], trialEndsAt = null }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -58,6 +62,9 @@ export function ModulesContent({ slug, businessId, activeTokens, businessType, p
   const [showUpgrade, setShowUpgrade] = useState(false);
 
   const activeSet = new Set(activeTokens.map((t) => t.toLowerCase()));
+  const lockedTier = new Map(lockedModules.map((l) => [l.token.toLowerCase(), l.requiredTier]));
+  const trialEnd = trialEndsAt ? new Date(trialEndsAt) : null;
+  const trialActive = !!trialEnd && trialEnd.getTime() > Date.now();
   const relevant = ALL_MODULES.filter((mod) => isRelevant(mod, businessType));
   const active = relevant.filter((mod) => activeSet.has(mod.token));
 
@@ -114,6 +121,15 @@ export function ModulesContent({ slug, businessId, activeTokens, businessType, p
             "What's already running, and what you can add to your operation whenever you're ready.",
           )}
         </p>
+
+        {trialActive && trialEnd && (
+          <p className="mt-6 rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-3 text-sm text-gray-700 dark:text-neutral-200">
+            {getText(
+              `Estás probando todo, pantalla incluida, hasta el ${trialEnd.toLocaleDateString('es')}. Después, tu página y tu catálogo siguen en línea; lo demás vuelve con Growth.`,
+              `You're trying everything, screen included, until ${trialEnd.toLocaleDateString('en')}. After that your page and catalog stay online; the rest comes back with Growth.`,
+            )}
+          </p>
+        )}
 
         {(nextStepModule || !isPaidPlan(plan)) && (
           <section className="mt-8">
@@ -238,6 +254,31 @@ export function ModulesContent({ slug, businessId, activeTokens, businessType, p
               {available.map((mod) => {
                 const isRequested = requested.has(mod.token);
                 const isBusy = requesting === mod.token;
+                const needsTier = lockedTier.get(mod.token);
+                if (needsTier) {
+                  return (
+                    <div
+                      key={mod.token}
+                      className="rounded-2xl border border-dashed border-gray-300 dark:border-neutral-700 bg-white/60 dark:bg-neutral-900/60 p-5"
+                    >
+                      <div className="flex items-start justify-between">
+                        <span className="text-2xl grayscale opacity-70">{mod.icon}</span>
+                        <span className="rounded-full bg-gray-100 dark:bg-neutral-800 px-2 py-0.5 text-[10px] font-semibold text-gray-600 dark:text-neutral-300">
+                          🔒 {getText(`Disponible en ${needsTier}`, `Available on ${needsTier}`)}
+                        </span>
+                      </div>
+                      <p className="mt-3 text-sm font-semibold text-gray-700 dark:text-neutral-200">{getText(mod.es, mod.en)}</p>
+                      <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">{getText(mod.descEs, mod.descEn)}</p>
+                      <button
+                        type="button"
+                        onClick={() => setShowUpgrade(true)}
+                        className="mt-4 w-full rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-2 text-xs font-semibold text-gray-700 dark:text-neutral-200 hover:border-gray-400"
+                      >
+                        {getText(`Ver plan ${needsTier}`, `See ${needsTier} plan`)}
+                      </button>
+                    </div>
+                  );
+                }
                 return (
                   <div
                     key={mod.token}

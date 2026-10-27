@@ -11,7 +11,7 @@ export function TrialExpiredNotice({ slug }: Props) {
   return (
     <div className="rounded-lg border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-900/20 px-4 py-3 space-y-2">
       <p className="text-sm text-red-700 dark:text-red-400">
-        Tu período gratuito de 30 días terminó. Mejora a Growth para seguir editando tu espacio.
+        Tu prueba de 30 días terminó. Sigues en Starter con tu página, catálogo y código QR; para esto necesitas Growth.
       </p>
       <Link
         href={`/space/${slug}/settings`}

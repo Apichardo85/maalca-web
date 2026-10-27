@@ -21,8 +21,14 @@ export interface OpsAffiliate {
   stripeConnectChargesEnabled: boolean;
   alerts: string[];
   logoUrl?: string | null;
-  /** Módulos efectivamente activos (ModuleCatalog.FilterActive) — control desde /ops. */
+  /** Lo que el negocio VE (prendido ∩ plan ∪ cortesías) — ModuleAccess en maalca-api. */
   modulosActivos?: string[];
+  /** Lo que ops tiene prendido para este negocio, sin el filtro del plan. */
+  modulosSeleccionados?: string[];
+  /** Módulos regalados por encima del plan. ["*"] = conserva todo lo prendido. */
+  modulosCortesia?: string[];
+  /** Starter · Growth · Professional (un trial vigente cuenta como Professional). */
+  effectiveTier?: string;
   /** Modo "Solo pantallas": sin setup al pagar (el Kit de pantalla ya cubre ese trabajo). */
   screensOnly?: boolean;
 }
