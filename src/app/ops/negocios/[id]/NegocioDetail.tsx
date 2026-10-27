@@ -111,7 +111,7 @@ export function NegocioDetail({
     saveCortesia(Array.from(current));
   }
 
-  async function setStatus(patch: { published?: boolean; active?: boolean }) {
+  async function setStatus(patch: { published?: boolean; active?: boolean; isFeatured?: boolean }) {
     setBusy(true);
     setError(null);
     try {
@@ -310,6 +310,19 @@ export function NegocioDetail({
                 }`}
               >
                 {a.screensOnly ? 'Solo pantallas · sin setup ✓' : 'Solo pantallas (sin setup)'}
+              </button>
+              <button
+                onClick={() => setStatus({ isFeatured: !a.isFeatured })}
+                disabled={busy}
+                aria-pressed={!!a.isFeatured}
+                title="Destacado: aparece en maalca.com/casos con su marca viva (logo, colores y portada)."
+                className={`rounded-full border px-3 py-1.5 text-xs font-medium disabled:opacity-50 ${
+                  a.isFeatured
+                    ? 'border-brand-primary text-brand-primary'
+                    : 'border-gray-300 dark:border-neutral-700 text-gray-600 dark:text-neutral-300 hover:border-gray-400'
+                }`}
+              >
+                {a.isFeatured ? 'Destacado en casos ★' : 'Destacar en casos'}
               </button>
             </>
           )}

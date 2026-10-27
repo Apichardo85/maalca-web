@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'El producto en acción | MaalCa',
+  title: 'Cómo funciona MaalCa | MaalCa',
   description:
-    'Capturas reales de negocios que ya usan MaalCa: página propia, kiosco de autopedidos, pantalla de menú, reservas y ponche de personal.',
+    'Cómo funciona MaalCa: tu página, tus pantallas, tus pedidos y tu equipo desde un solo panel. Enciendes solo lo que necesitas.',
   openGraph: {
-    title: 'El producto en acción | MaalCa',
-    description: 'Capturas reales de negocios que ya usan MaalCa.',
+    title: 'Cómo funciona MaalCa | MaalCa',
+    description: 'Tu página, tus pantallas, tus pedidos y tu equipo desde un solo panel.',
     url: 'https://maalca.com/docs',
     type: 'website',
   },

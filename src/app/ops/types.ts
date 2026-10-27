@@ -31,6 +31,8 @@ export interface OpsAffiliate {
   effectiveTier?: string;
   /** Modo "Solo pantallas": sin setup al pagar (el Kit de pantalla ya cubre ese trabajo). */
   screensOnly?: boolean;
+  /** Destacado en maalca.com/casos (lo cura MaalCa desde ops, no el afiliado). */
+  isFeatured?: boolean;
 }
 
 export interface OpsTeamMember {
