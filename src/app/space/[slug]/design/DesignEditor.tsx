@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { sanitizeContactValue } from '@/lib/public-contact';
+import { sanitizeRichText } from '@/lib/sanitize-html';
 import { parseApiError } from '@/lib/api-errors';
 import { getCapabilities } from '@/lib/capabilities';
 import { TrialExpiredNotice } from '@/components/space/TrialExpiredNotice';
@@ -195,7 +196,12 @@ export function DesignEditor({
     // an unloaded field's default empty value, or a save could silently wipe real saved data.
     for (const f of GATED_FIELDS) {
       if (profileLoaded || touched.has(f)) {
-        body[f] = liveForm[f];
+        // La descripción llega como HTML del RichTextEditor: la saneamos antes de enviarla para
+        // que lo guardado quede limpio (no solo al mostrar). Defensa de punta a punta.
+        body[f] =
+          f === 'description' || f === 'descriptionEn'
+            ? sanitizeRichText(liveForm[f] as string)
+            : liveForm[f];
       }
     }
 

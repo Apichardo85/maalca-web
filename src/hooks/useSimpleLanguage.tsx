@@ -80,7 +80,7 @@ const translations = {
     'nav.home': 'Inicio',
     'nav.ecosystem': 'Ecosistema',
     'nav.services': 'Servicios',
-    'nav.contact': 'Contacto',    'nav.platform': 'Plataforma',    'nav.cases': 'Casos',    'nav.pricing': 'Precios',    'nav.docs': 'Docs',
+    'nav.contact': 'Contacto',    'nav.platform': 'Plataforma',    'nav.cases': 'Casos',    'nav.pricing': 'Precios',    'nav.docs': 'Cómo funciona',
     'nav.explore': 'Explorar',
     'nav.join': 'Únete al Ecosistema',
     // Footer
@@ -150,7 +150,7 @@ const translations = {
     'ecosystem.secondary.subtitle': 'MaalCa también crea contenido, publica libros y experimenta con IA.',
     'cta.final.title': 'Empieza hoy. Sin tarjeta. Sin compromiso.',
     'cta.final.subtitle': 'Tu primera página, catálogo y código QR: gratis para siempre. El resto lo sumas cuando tu negocio lo pida.',
-    'cta.final.btn': 'Crear mi cuenta gratis →',    'beyond.title': 'Más allá del negocio',    'beyond.subtitle': 'MaalCa también es una imprenta y una voz literaria.',    'beyond.editorial.title': 'Editorial MaalCa',    'beyond.editorial.desc': 'Publicamos libros con un precio justo, o gratis si la obra nos atraviesa.',    'beyond.editorial.cta': 'Conoce la editorial →',    'beyond.ciri.title': 'CiriWhispers',    'beyond.ciri.desc': 'El espacio literario del fundador. Narrativa, poesía y cartas. Escritura humana, sin algoritmos.',    'beyond.ciri.cta': 'Leer →',    'editorial.hero.eyebrow': 'Editorial independiente',    'editorial.hero.title': 'Publicar tu libro no debería costarte tus ahorros.',    'editorial.hero.subtitle': 'Tampoco debería depender de que alguien con poder te diga sí. En Editorial MaalCa hacemos las dos cosas: te ayudamos a publicar tu obra por un precio justo, o si nos atraviesa, la publicamos sin que pagues nada.',    'editorial.hero.cta.primary': 'Publica con nosotros',    'editorial.hero.cta.secondary': 'Ver catálogo',    'editorial.tracks.title': 'Dos formas de publicar',    'editorial.track.assisted.title': 'Track Asistido',    'editorial.track.assisted.price': '$185 USD',    'editorial.track.assisted.subtitle': 'Para quien tiene la obra lista',    'editorial.track.curated.title': 'Track Curado',    'editorial.track.curated.price': 'Gratis',    'editorial.track.curated.subtitle': 'Para obras que nos atraviesan',    'editorial.tech.title': 'Tecnología que abarata. Curaduría que importa.',    'editorial.tech.ai.title': 'Lo que automatizamos',    'editorial.tech.human.title': 'Lo que NO automatizamos',    'casos.title': 'Implementaciones reales',    'casos.subtitle': 'NEGOCIOS REALES. RESULTADOS HONESTOS.',    'casos.coming': 'PRÓXIMAMENTE',    'casos.coming.desc': 'Estamos sumando nuevos negocios. Cada cliente es una historia real de implementación.',
+    'cta.final.btn': 'Crear mi cuenta gratis →',    'beyond.title': 'Más allá del negocio',    'beyond.subtitle': 'MaalCa también es una imprenta y una voz literaria.',    'beyond.editorial.title': 'Editorial MaalCa',    'beyond.editorial.desc': 'Publicamos libros con un precio justo, o gratis si la obra nos atraviesa.',    'beyond.editorial.cta': 'Conoce la editorial →',    'beyond.ciri.title': 'CiriWhispers',    'beyond.ciri.desc': 'El espacio literario del fundador. Narrativa, poesía y cartas. Escritura humana, sin algoritmos.',    'beyond.ciri.cta': 'Leer →',    'editorial.hero.eyebrow': 'Editorial independiente',    'editorial.hero.title': 'Publicar tu libro no debería costarte tus ahorros.',    'editorial.hero.subtitle': 'Tampoco debería depender de que alguien con poder te diga sí. En Editorial MaalCa hacemos las dos cosas: te ayudamos a publicar tu obra por un precio justo, o si nos atraviesa, la publicamos sin que pagues nada.',    'editorial.hero.cta.primary': 'Publica con nosotros',    'editorial.hero.cta.secondary': 'Ver catálogo',    'editorial.tracks.title': 'Dos formas de publicar',    'editorial.track.assisted.title': 'Track Asistido',    'editorial.track.assisted.price': '$185 USD',    'editorial.track.assisted.subtitle': 'Para quien tiene la obra lista',    'editorial.track.curated.title': 'Track Curado',    'editorial.track.curated.price': 'Gratis',    'editorial.track.curated.subtitle': 'Para obras que nos atraviesan',    'editorial.tech.title': 'Tecnología que abarata. Curaduría que importa.',    'editorial.tech.ai.title': 'Lo que automatizamos',    'editorial.tech.human.title': 'Lo que NO automatizamos',    'casos.title': 'Implementaciones reales',    'casos.subtitle': 'Negocios reales. Resultados honestos.',    'casos.coming': 'Próximamente',    'casos.coming.desc': 'Estamos sumando nuevos negocios. Cada cliente es una historia real de implementación.',
     // Casos page — case data
     'cases.hero.text': 'Negocios que ya operan con MaalCa. Cada tarjeta muestra su marca viva — su logo, sus colores, su página real — no un mockup.',
     'cases.cta.profile': 'Ver perfil del negocio →',
@@ -1669,7 +1669,7 @@ const translations = {
     'nav.home': 'Home',
     'nav.ecosystem': 'Ecosystem',
     'nav.services': 'Services',
-    'nav.contact': 'Contact',    'nav.platform': 'Platform',    'nav.cases': 'Cases',    'nav.pricing': 'Pricing',    'nav.docs': 'Docs',
+    'nav.contact': 'Contact',    'nav.platform': 'Platform',    'nav.cases': 'Cases',    'nav.pricing': 'Pricing',    'nav.docs': 'How it works',
     'nav.explore': 'Explore',
     'nav.join': 'Join the Ecosystem',
     // Footer
@@ -1740,7 +1740,7 @@ const translations = {
     'ecosystem.secondary.subtitle': 'MaalCa also creates content, publishes books and experiments with AI.',
     'cta.final.title': 'Start today. No card. No commitment.',
     'cta.final.subtitle': 'Your first page, catalog and QR code: free forever. You add the rest when your business is ready for it.',
-    'cta.final.btn': 'Create my free account →',    'beyond.title': 'Beyond business',    'beyond.subtitle': 'MaalCa is also a publisher and a literary voice.',    'beyond.editorial.title': 'Editorial MaalCa',    'beyond.editorial.desc': 'We publish books at a fair price, or free if the work moves us to give it away.',    'beyond.editorial.cta': 'Discover the editorial →',    'beyond.ciri.title': 'CiriWhispers',    'beyond.ciri.desc': 'The founder\'s literary space. Fiction, poetry and letters. Human writing, no algorithms.',    'beyond.ciri.cta': 'Read →',    'editorial.hero.eyebrow': 'Independent editorial',    'editorial.hero.title': 'Publishing your book shouldn\'t cost you your savings.',    'editorial.hero.subtitle': 'It also shouldn\'t depend on someone with power saying yes. At Editorial MaalCa we do both: we help you publish at a fair price, or if it moves us, we publish it without charging you.',    'editorial.hero.cta.primary': 'Publish with us',    'editorial.hero.cta.secondary': 'See catalog',    'editorial.tracks.title': 'Two ways to publish',    'editorial.track.assisted.title': 'Assisted Track',    'editorial.track.assisted.price': '$185 USD',    'editorial.track.assisted.subtitle': 'For those with a finished work',    'editorial.track.curated.title': 'Curated Track',    'editorial.track.curated.price': 'Free',    'editorial.track.curated.subtitle': 'For works that move us',    'editorial.tech.title': 'Technology that reduces cost. Curation that matters.',    'editorial.tech.ai.title': 'What we automate',    'editorial.tech.human.title': 'What we do NOT automate',    'casos.title': 'Real implementations',    'casos.subtitle': 'REAL BUSINESSES. HONEST RESULTS.',    'casos.coming': 'COMING SOON',    'casos.coming.desc': 'We are adding more businesses. Every client is a real implementation story.',
+    'cta.final.btn': 'Create my free account →',    'beyond.title': 'Beyond business',    'beyond.subtitle': 'MaalCa is also a publisher and a literary voice.',    'beyond.editorial.title': 'Editorial MaalCa',    'beyond.editorial.desc': 'We publish books at a fair price, or free if the work moves us to give it away.',    'beyond.editorial.cta': 'Discover the editorial →',    'beyond.ciri.title': 'CiriWhispers',    'beyond.ciri.desc': 'The founder\'s literary space. Fiction, poetry and letters. Human writing, no algorithms.',    'beyond.ciri.cta': 'Read →',    'editorial.hero.eyebrow': 'Independent editorial',    'editorial.hero.title': 'Publishing your book shouldn\'t cost you your savings.',    'editorial.hero.subtitle': 'It also shouldn\'t depend on someone with power saying yes. At Editorial MaalCa we do both: we help you publish at a fair price, or if it moves us, we publish it without charging you.',    'editorial.hero.cta.primary': 'Publish with us',    'editorial.hero.cta.secondary': 'See catalog',    'editorial.tracks.title': 'Two ways to publish',    'editorial.track.assisted.title': 'Assisted Track',    'editorial.track.assisted.price': '$185 USD',    'editorial.track.assisted.subtitle': 'For those with a finished work',    'editorial.track.curated.title': 'Curated Track',    'editorial.track.curated.price': 'Free',    'editorial.track.curated.subtitle': 'For works that move us',    'editorial.tech.title': 'Technology that reduces cost. Curation that matters.',    'editorial.tech.ai.title': 'What we automate',    'editorial.tech.human.title': 'What we do NOT automate',    'casos.title': 'Real implementations',    'casos.subtitle': 'Real businesses. Honest results.',    'casos.coming': 'Coming soon',    'casos.coming.desc': 'We are adding more businesses. Every client is a real implementation story.',
     'cases.hero.text': 'Businesses already running on MaalCa. Each card shows their live brand — their logo, their colors, their real page — not a mockup.',
     'cases.cta.profile': 'View business profile →',
     'cases.cta.visit': 'Visit their page',
@@ -3189,15 +3189,17 @@ function setGlobalLanguage(lang: Language) {
 }
 function detectBrowserLanguage(): Language {
   if (typeof navigator === 'undefined') return 'es';
-  // Vitrina de un negocio: su idioma principal gana sobre el del navegador (ver [slug]/page.tsx).
-  const bizLang = (typeof window !== 'undefined' ? (window as unknown as { __MAALCA_DEFAULT_LANG__?: string }).__MAALCA_DEFAULT_LANG__ : undefined);
-  if (bizLang === 'en' || bizLang === 'es') return bizLang;
+  // El idioma que pide el visitante manda si lo tenemos (es/en): entrar desde un dispositivo
+  // en inglés sirve la página en inglés, aunque sea la vitrina de un negocio en español.
   const candidates = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language];
   for (const raw of candidates) {
     const lang = raw?.toLowerCase() ?? '';
     if (lang.startsWith('en')) return 'en';
     if (lang.startsWith('es')) return 'es';
   }
+  // El navegador no pide es/en: caemos al idioma por defecto del negocio (su vitrina) si lo hay.
+  const bizLang = (typeof window !== 'undefined' ? (window as unknown as { __MAALCA_DEFAULT_LANG__?: string }).__MAALCA_DEFAULT_LANG__ : undefined);
+  if (bizLang === 'en' || bizLang === 'es') return bizLang;
   return 'es';
 }
 function getGlobalLanguage(): Language {

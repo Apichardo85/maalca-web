@@ -33,7 +33,7 @@ export default function CasosPage() {
       {/* Hero */}
       <section className="py-16 md:py-20 bg-surface">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-sm font-medium text-brand-primary uppercase tracking-widest mb-4">
+          <p className="text-sm font-semibold text-brand-primary tracking-wide mb-4">
             {t("casos.subtitle")}
           </p>
           <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-text-primary mb-6">

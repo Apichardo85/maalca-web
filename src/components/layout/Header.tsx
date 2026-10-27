@@ -31,10 +31,12 @@ export default function Header({
 
   // Product nav (left of divider)
   const primaryNav = [
-    { label: t('nav.platform'), href: '/#plataforma' },
+    // 'Cómo funciona' (nav.docs) abre /docs, el explicador del producto; 'Casos' muestra los
+    // negocios reales. Antes había 'Plataforma' -> /#plataforma, que enseñaba las MISMAS
+    // tarjetas de negocios que /casos: redundante, por eso se quitó del nav.
+    { label: t('nav.docs'), href: '/docs' },
     { label: t('nav.cases'), href: '/casos' },
     { label: t('nav.pricing'), href: '/servicios' },
-    { label: t('nav.docs'), href: '/docs' },
   ];
 
   useEffect(() => {

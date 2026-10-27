@@ -1,39 +1,44 @@
 "use client";
 import { useSimpleLanguage } from "@/hooks/useSimpleLanguage";
+
 interface SimpleLanguageToggleProps {
   variant?: 'light' | 'dark';
-  /** ISO-2 de la bandera junto a "ES" (ej. "MX"). Sin valor = RD, como siempre. */
+  /** Compat: se ignora. Antes elegía la bandera junto a "ES"; ahora el toggle no usa banderas. */
   spanishFlag?: string | null;
 }
-// Emoji de bandera desde ISO-2 (indicadores regionales). Valida A-Z; cae a RD si no es valido.
-function flagEmoji(code?: string | null): string {
-  const c = (code ?? '').trim().toUpperCase();
-  if (!/^[A-Z]{2}$/.test(c)) return '🇩🇴';
-  return String.fromCodePoint(...[...c].map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65));
-}
-export default function SimpleLanguageToggle({ variant = 'light', spanishFlag }: SimpleLanguageToggleProps) {
+
+// Segmentado ES | EN con el idioma activo resaltado — se entiende de un vistazo cuál está puesto
+// y cuál se elige, en vez de una sola etiqueta "bandera + idioma destino" que no decía el estado.
+export default function SimpleLanguageToggle({ variant = 'light' }: SimpleLanguageToggleProps) {
   const { language, setLanguage } = useSimpleLanguage();
-  const toggleLanguage = () => {
-    setLanguage(language === 'es' ? 'en' : 'es');
-  };
-  const styles = variant === 'dark'
-    ? {
-        button: "relative flex items-center gap-2 px-3 py-1 rounded-lg bg-white/20 border border-white/30 hover:bg-white/30 transition-all duration-300 hover:scale-105 active:scale-95",
-        text: "text-sm font-medium text-white"
-      }
-    : {
-        button: "relative flex items-center gap-2 px-3 py-2 rounded-lg bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105 active:scale-95",
-        text: "text-sm font-medium text-gray-700"
-      };
-  return (
+
+  const isDark = variant === 'dark';
+  const base = "px-2.5 py-1 text-xs font-semibold rounded-md transition-colors";
+  const active = isDark ? "bg-white text-gray-900" : "bg-brand-primary text-white";
+  const idle = isDark ? "text-white/80 hover:text-white" : "text-text-secondary hover:text-text-primary";
+
+  const segment = (lang: 'es' | 'en', label: string) => (
     <button
-      onClick={toggleLanguage}
-      className={styles.button}
-      aria-label={language === 'es' ? 'Switch to English' : 'Cambiar a Español'}
+      type="button"
+      onClick={() => setLanguage(lang)}
+      aria-pressed={language === lang}
+      aria-label={lang === 'es' ? 'Español' : 'English'}
+      className={`${base} ${language === lang ? active : idle}`}
     >
-      <span className={styles.text}>
-        {language === 'es' ? '🇺🇸 EN' : `${flagEmoji(spanishFlag)} ES`}
-      </span>
+      {label}
     </button>
+  );
+
+  return (
+    <div
+      role="group"
+      aria-label="Idioma / Language"
+      className={`inline-flex items-center gap-0.5 rounded-lg p-0.5 ${
+        isDark ? "bg-white/15 border border-white/25" : "bg-surface border border-border"
+      }`}
+    >
+      {segment('es', 'ES')}
+      {segment('en', 'EN')}
+    </div>
   );
 }
