@@ -103,11 +103,9 @@ export function RetailTemplate({
   const accentFill = `var(--rl-accent, ${accent})`;
   const accentText = `var(--rl-accent-text, ${accent})`;
   const onAccent = 'var(--rl-on-accent, #ffffff)';
+  // waRaw alimenta el carrito por WhatsApp (WhatsAppCart, abajo). WhatsApp como CONTACTO ya no
+  // va destacado en el hero: vive en la fila de canales (ContactSection) como un canal más.
   const waRaw = resolveWhatsAppDigits(business);
-  // Resolved canal (with canalId) for click tracking — waRaw above is digits-only, used for
-  // the href; the canalId is what lets maalca-api attribute this click to a specific canal row
-  // instead of excluding it from the byCanal breakdown (Program.cs:854).
-  const whatsappEntry = resolveContactItems(business).find((c) => c.tipo === 'WhatsApp');
   const { cart, addToCart, removeFromCart, cartTotal, cartCount } = useCart();
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -287,32 +285,6 @@ export function RetailTemplate({
                 }}
               >
                 {getText('Ver catálogo', 'Shop now')}
-              </a>
-            )}
-            {waRaw && (
-              <a
-                href={`https://wa.me/${waRaw}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => trackCanalClick(business.slug, 'WhatsApp', whatsappEntry?.canalId)}
-                className="min-h-11"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  backgroundColor: heroSoft,
-                  border: `1px solid ${heroLine}`,
-                  backdropFilter: 'blur(6px)',
-                  color: heroFg,
-                  padding: '0 20px',
-                  borderRadius: '9999px',
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  textDecoration: 'none',
-                }}
-              >
-                <WhatsAppGlyph size={16} />
-                WhatsApp
               </a>
             )}
           </div>
@@ -653,14 +625,6 @@ function PinIcon({ size }: { size: number }) {
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>
       <path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z" />
       <circle cx="12" cy="10" r="3" />
-    </svg>
-  );
-}
-
-function WhatsAppGlyph({ size }: { size: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 20.5l1.7-5.4A8.4 8.4 0 1 1 21 11.5z" />
     </svg>
   );
 }
