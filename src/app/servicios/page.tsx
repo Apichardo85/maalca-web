@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/buttons";
 import { useRouter } from "next/navigation";
 import { useTranslation, useSimpleLanguage } from "@/hooks/useSimpleLanguage";
@@ -68,7 +68,7 @@ const plans: Plan[] = [
       en: "Once you're selling: bookings, online payments, unlimited catalog and automations that save you hours.",
     },
     price: 38,
-    setup: { es: "Setup único $150", en: "One-time setup $150" },
+    setup: { es: "Setup único $150 · sin setup si solo usas pantallas", en: "One-time setup $150 · no setup if you only use screens" },
     highlight: true,
     features: [
       { es: "Todo lo de Starter (catálogo ilimitado)", en: "Everything in Starter (unlimited catalog)" },
@@ -95,7 +95,7 @@ const plans: Plan[] = [
       en: "For businesses that quote, invoice, book or take orders: the full customer cycle in one place.",
     },
     price: PRICE_PROFESSIONAL,
-    setup: { es: "Setup único $150", en: "One-time setup $150" },
+    setup: { es: "Setup único $150 · sin setup si solo usas pantallas", en: "One-time setup $150 · no setup if you only use screens" },
     highlight: false,
     features: [
       { es: "Todo lo de Growth", en: "Everything in Growth" },
@@ -109,9 +109,51 @@ const plans: Plan[] = [
   },
 ];
 
-// Precios aprobados 2026-10-27. Cuando exista PlatformAddOn en el API (instrucción 1),
-// esta lista pasa a leerse de GET /api/public/platform-addons y se edita en /ops/precios.
-const addOns: AddOn[] = [
+// Extras: la fuente real es GET /api/public/platform-addons (se editan en /ops/precios). Esta
+// lista es solo el respaldo si el API no responde, con los precios aprobados el 2026-10-27.
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+
+interface PublicAddOn {
+  key: string;
+  name: { es: string; en: string };
+  desc: { es: string; en: string };
+  price: number;
+  unit: "OneTime" | "Monthly" | "PerLocationMonthly" | "Block5h";
+  volumePrice: number | null;
+  volumeFromQty: number | null;
+}
+
+const UNIT_TEXT: Record<PublicAddOn["unit"], { es: string; en: string }> = {
+  OneTime: { es: "pago único", en: "one-time" },
+  Monthly: { es: "/mes", en: "/mo" },
+  PerLocationMonthly: { es: "/local/mes", en: "/location/mo" },
+  Block5h: { es: "/ 5h", en: "/ 5h" },
+};
+
+function ordinalEn(n: number): string {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return `${n}${s[(v - 20) % 10] || s[v] || s[0]}`;
+}
+
+function fromApi(a: PublicAddOn): AddOn {
+  return {
+    id: a.key,
+    name: a.name,
+    price: a.price,
+    unit: UNIT_TEXT[a.unit] ?? UNIT_TEXT.Monthly,
+    desc: a.desc,
+    note:
+      a.volumePrice !== null && a.volumeFromQty !== null
+        ? {
+            es: `Desde la ${a.volumeFromQty}.ª, $${a.volumePrice} c/u`,
+            en: `From the ${ordinalEn(a.volumeFromQty)}, $${a.volumePrice} each`,
+          }
+        : undefined,
+  };
+}
+
+const FALLBACK_ADDONS: AddOn[] = [
   {
     id: "screen-kit",
     name: { es: "Kit de pantalla", en: "Screen kit" },
@@ -266,6 +308,22 @@ const comparisonRows: { label: { es: string; en: string }; values: ComparisonVal
 
 export default function ServiciosPage() {
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
+  const [addOns, setAddOns] = useState<AddOn[]>(FALLBACK_ADDONS);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${API_BASE}/api/public/platform-addons`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: PublicAddOn[] | null) => {
+        if (!cancelled && Array.isArray(data) && data.length > 0) setAddOns(data.map(fromApi));
+      })
+      .catch(() => {
+        /* sin API: se queda el respaldo */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const router = useRouter();
   const { t } = useTranslation();

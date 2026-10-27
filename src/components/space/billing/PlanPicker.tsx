@@ -5,7 +5,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { track } from '@/lib/analytics';
 import {
   type BillingInterval, type BillingSummary, type PaidPlan,
-  extraScreenKey, includedScreensFor, planKey, priceOf, publicPlanName, readApiError,
+  extraScreenKey, extraScreensCost, extraScreenTiers, includedScreensFor, planKey, priceOf, publicPlanName, readApiError,
 } from '@/lib/billing';
 
 interface Props {
@@ -52,10 +52,14 @@ export function PlanPicker({ slug, summary, successPath, cancelPath, defaultPlan
 
   const per = interval === 'year' ? getText('/año', '/yr') : getText('/mes', '/mo');
   const planPrice = priceOf(summary, planKey(plan, interval));
-  const extraPrice = priceOf(summary, extraScreenKey(interval));
+  const [extraTier1, extraTier2] = extraScreenTiers(summary, extraScreenKey(interval));
+  const extraPrice = extraTier1?.amount ?? priceOf(summary, extraScreenKey(interval));
+  const nextExtraPrice = extraTier2 && extraTier2.amount !== extraPrice ? extraTier2.amount : null;
   const setupDue = summary?.setupFeeDue ?? true;
   const setup = setupDue ? priceOf(summary, 'maalca_setup_fee') : 0;
-  const recurring = planPrice + extras * extraPrice;
+  // Precio graduado: la 1.ª pantalla extra a precio completo, desde la 2.ª más barato.
+  const extrasCost = extraScreensCost(summary, extraScreenKey(interval), extras);
+  const recurring = planPrice + extrasCost;
   const today = recurring + setup;
   const monthlyEquivalent = (p: PaidPlan) => priceOf(summary, planKey(p, 'month')) * 12;
   const used = summary?.screensUsed ?? 0;
@@ -145,8 +149,8 @@ export function PlanPicker({ slug, summary, successPath, cancelPath, defaultPlan
           <p className="text-sm font-medium text-gray-900 dark:text-white">{getText('Pantallas extra', 'Extra screens')}</p>
           <p className="text-xs text-gray-500 dark:text-neutral-400">
             {getText(
-              `${money(extraPrice)}${per} c/u · tendrás ${screensWithPlan} pantalla${screensWithPlan === 1 ? '' : 's'} (usas ${used})`,
-              `${money(extraPrice)}${per} each · you'll have ${screensWithPlan} screen${screensWithPlan === 1 ? '' : 's'} (using ${used})`,
+              `${money(extraPrice)}${per} la 1.ª${nextExtraPrice !== null ? `, ${money(nextExtraPrice)}${per} desde la 2.ª` : ' c/u'} · tendrás ${screensWithPlan} pantalla${screensWithPlan === 1 ? '' : 's'} (usas ${used})`,
+              `${money(extraPrice)}${per} the 1st${nextExtraPrice !== null ? `, ${money(nextExtraPrice)}${per} from the 2nd` : ' each'} · you'll have ${screensWithPlan} screen${screensWithPlan === 1 ? '' : 's'} (using ${used})`,
             )}
           </p>
         </div>
@@ -156,7 +160,7 @@ export function PlanPicker({ slug, summary, successPath, cancelPath, defaultPlan
       {/* Resumen */}
       <div className="mt-4 space-y-1 rounded-xl bg-gray-50 dark:bg-neutral-800/60 px-4 py-3 text-sm">
         <Row label={`${publicPlanName(plan, language)} ${interval === 'year' ? getText('anual', 'yearly') : getText('mensual', 'monthly')}`} value={money(planPrice)} />
-        {extras > 0 && <Row label={`${extras} × ${getText('pantalla extra', 'extra screen')}`} value={money(extras * extraPrice)} />}
+        {extras > 0 && <Row label={`${extras} × ${getText('pantalla extra', 'extra screen')}`} value={money(extrasCost)} />}
         {setupDue && <Row label={getText('Setup (una sola vez)', 'Setup (one time)')} value={money(setup)} />}
         <div className="mt-1 flex items-baseline justify-between border-t border-gray-200 dark:border-neutral-700 pt-2 font-semibold text-gray-900 dark:text-white">
           <span>{getText('Hoy pagas', 'Due today')}</span>

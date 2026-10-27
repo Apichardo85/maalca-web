@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
-import { type BillingSummary, extraScreenKey, priceOf, updateExtraScreens } from '@/lib/billing';
+import { type BillingSummary, extraScreenKey, extraScreenTiers, updateExtraScreens } from '@/lib/billing';
 import { Stepper } from './PlanPicker';
 
 interface Props {
@@ -31,7 +31,9 @@ export function ExtraScreensControl({ slug, summary, onUpdated, suggested, compa
 
   const interval = summary.interval ?? 'month';
   const per = interval === 'year' ? getText('/año', '/yr') : getText('/mes', '/mo');
-  const unit = priceOf(summary, extraScreenKey(interval));
+  const [firstTier, nextTier] = extraScreenTiers(summary, extraScreenKey(interval));
+  const unit = firstTier?.amount ?? 0;
+  const volume = nextTier && nextTier.amount !== unit ? nextTier.amount : null;
   const diff = value - summary.extraScreens;
   const minAllowed = Math.max(0, summary.screensUsed - summary.includedScreens);
 
@@ -54,8 +56,8 @@ export function ExtraScreensControl({ slug, summary, onUpdated, suggested, compa
           <p className="text-sm font-medium text-gray-900 dark:text-white">{getText('Pantallas extra', 'Extra screens')}</p>
           <p className="text-xs text-gray-500 dark:text-neutral-400">
             {getText(
-              `${money(unit)}${per} c/u · ${summary.includedScreens} incluida${summary.includedScreens === 1 ? '' : 's'} en tu plan`,
-              `${money(unit)}${per} each · ${summary.includedScreens} included in your plan`,
+              `${money(unit)}${per} la 1.ª${volume !== null ? `, ${money(volume)}${per} desde la 2.ª` : ' c/u'} · ${summary.includedScreens} incluida${summary.includedScreens === 1 ? '' : 's'} en tu plan`,
+              `${money(unit)}${per} the 1st${volume !== null ? `, ${money(volume)}${per} from the 2nd` : ' each'} · ${summary.includedScreens} included in your plan`,
             )}
           </p>
         </div>

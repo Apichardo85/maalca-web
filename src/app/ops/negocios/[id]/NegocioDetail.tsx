@@ -102,6 +102,25 @@ export function NegocioDetail({
     }
   }
 
+  async function setScreensOnly(next: boolean) {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/ops/affiliates/${a.id}/screens-only`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ screensOnly: next }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error?.message ?? 'No se pudo cambiar el modo Solo pantallas.');
+      setA(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Algo salió mal.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function savePlan(nextPlan: string) {
     const prevPlan = selectedPlan;
     setSelectedPlan(nextPlan);
@@ -251,6 +270,19 @@ export function NegocioDetail({
               >
                 {a.isActive ? 'Pausar' : 'Reactivar'}
               </button>
+              <button
+                onClick={() => setScreensOnly(!a.screensOnly)}
+                disabled={busy}
+                aria-pressed={!!a.screensOnly}
+                title="Solo pantallas: no se cobra el setup de $150 al pagar; el Kit de pantalla cubre ese trabajo."
+                className={`rounded-full border px-3 py-1.5 text-xs font-medium disabled:opacity-50 ${
+                  a.screensOnly
+                    ? 'border-brand-primary text-brand-primary'
+                    : 'border-gray-300 dark:border-neutral-700 text-gray-600 dark:text-neutral-300 hover:border-gray-400'
+                }`}
+              >
+                {a.screensOnly ? 'Solo pantallas · sin setup ✓' : 'Solo pantallas (sin setup)'}
+              </button>
             </>
           )}
           <button
@@ -279,9 +311,9 @@ export function NegocioDetail({
               onChange={(e) => savePlan(e.target.value)}
               className="mt-1 w-full rounded-md border border-gray-200 dark:border-neutral-700 bg-transparent text-sm font-semibold disabled:opacity-50"
             >
-              <option value="Free">Gratis</option>
+              <option value="Free">Starter</option>
               <option value="Entrepreneur">Growth</option>
-              <option value="Enterprise">Enterprise</option>
+              <option value="Enterprise">Professional</option>
             </select>
           ) : (
             <p className="mt-1 text-sm font-semibold">{a.plan}</p>

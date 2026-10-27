@@ -59,6 +59,8 @@ export function OnboardingForm() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
   const [whatsapp, setWhatsapp] = useState('');
+  // Modo "Solo pantallas": sin catálogo demo, página apagada y sin setup al pagar.
+  const [screensOnly, setScreensOnly] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -106,6 +108,7 @@ export function OnboardingForm() {
             businessType: type,
             primaryColor,
             ...(cleanWhatsapp ? { whatsapp: cleanWhatsapp } : {}),
+            ...(screensOnly ? { screensOnly: true } : {}),
           }),
         });
         if (!res.ok) {
@@ -149,7 +152,8 @@ export function OnboardingForm() {
           }
         }
 
-        router.push(`/space/${data.slug}?new=1`);
+        // Solo pantallas: el panel abre directo en Pantalla, que es lo único que vino a hacer.
+        router.push(screensOnly ? `/space/${data.slug}/board?new=1` : `/space/${data.slug}?new=1`);
       } catch (err) {
         if (err instanceof ApiError && err.status === 409) {
           setError(t('onboarding.error.duplicateBusiness'));
@@ -249,6 +253,18 @@ export function OnboardingForm() {
                   </button>
                 ))}
               </div>
+              <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-lg border border-neutral-200 px-3 py-3 text-sm text-neutral-700 hover:border-neutral-300">
+                <input
+                  type="checkbox"
+                  className="mt-0.5"
+                  checked={screensOnly}
+                  onChange={(e) => setScreensOnly(e.target.checked)}
+                />
+                <span>
+                  <span className="block font-medium">{t('onboarding.screensOnly.label')}</span>
+                  <span className="block text-xs text-neutral-400">{t('onboarding.screensOnly.hint')}</span>
+                </span>
+              </label>
             </div>
           )}
 

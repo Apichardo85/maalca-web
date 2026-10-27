@@ -11,7 +11,9 @@ export type ApiPlan = 'Free' | 'Entrepreneur' | 'Enterprise';
 export type BillingInterval = 'month' | 'year';
 export type PaidPlan = 'Entrepreneur' | 'Enterprise';
 
-export interface BillingPrice { lookupKey: string; amount: number; interval: string | null }
+/** Tramo de un precio escalonado de Stripe: upTo = hasta qué cantidad aplica (null = sin tope). */
+export interface BillingPriceTier { upTo: number | null; amount: number }
+export interface BillingPrice { lookupKey: string; amount: number; interval: string | null; tiers?: BillingPriceTier[] | null }
 
 export interface BillingSummary {
   plan: ApiPlan;
@@ -58,6 +60,36 @@ export const extraScreenKey = (interval: BillingInterval) =>
 /** Precio por lookup_key: el de Stripe si vino en el resumen, si no el respaldo de config/pricing. */
 export function priceOf(summary: BillingSummary | null, key: string): number {
   return summary?.prices.find((p) => p.lookupKey === key)?.amount ?? FALLBACK[key] ?? 0;
+}
+
+/** Tramos de respaldo de la pantalla extra si Stripe todavía no los devuelve: la 1.ª a precio
+ *  completo, desde la 2.ª a 2/3 (aprobado 2026-10-27: $15 → $10 al mes). */
+function fallbackExtraScreenTiers(key: string): BillingPriceTier[] {
+  const first = FALLBACK[key] ?? 0;
+  return [
+    { upTo: 1, amount: first },
+    { upTo: null, amount: Math.round((first * 2) / 3) },
+  ];
+}
+
+/** Tramos de la pantalla extra (Stripe si vinieron, si no el respaldo). */
+export function extraScreenTiers(summary: BillingSummary | null, key: string): BillingPriceTier[] {
+  const tiers = summary?.prices.find((p) => p.lookupKey === key)?.tiers;
+  return tiers && tiers.length > 0 ? tiers : fallbackExtraScreenTiers(key);
+}
+
+/** Costo de `qty` pantallas extra con precio graduado (cada tramo cobra sus unidades). */
+export function extraScreensCost(summary: BillingSummary | null, key: string, qty: number): number {
+  let total = 0;
+  let prevUpTo = 0;
+  for (const tier of extraScreenTiers(summary, key)) {
+    if (qty <= prevUpTo) break;
+    const cap = tier.upTo ?? Infinity;
+    const units = Math.min(qty, cap) - prevUpTo;
+    total += units * tier.amount;
+    prevUpTo = cap;
+  }
+  return total;
 }
 
 export const includedScreensFor = (plan: PaidPlan | ApiPlan) => (plan === 'Enterprise' ? 2 : 1);

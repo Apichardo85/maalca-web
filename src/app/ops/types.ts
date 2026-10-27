@@ -23,6 +23,8 @@ export interface OpsAffiliate {
   logoUrl?: string | null;
   /** Módulos efectivamente activos (ModuleCatalog.FilterActive) — control desde /ops. */
   modulosActivos?: string[];
+  /** Modo "Solo pantallas": sin setup al pagar (el Kit de pantalla ya cubre ese trabajo). */
+  screensOnly?: boolean;
 }
 
 export interface OpsTeamMember {
