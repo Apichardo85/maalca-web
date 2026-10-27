@@ -58,7 +58,20 @@ export function BusinessBrandCard({ brand }: { brand: BusinessBrand }) {
       : BUSINESS_TYPE_LABELS[typeKey] ?? brand.businessType;
   const typeIcon = BUSINESS_TYPE_ICONS[typeKey] ?? "✦";
 
-  const desc = (language === "en" ? brand.descriptionEn : brand.description) || brand.description || "";
+  // La descripción del negocio puede venir con HTML (ej. "<p>…</p>" del editor). En una tarjeta
+  // va como texto plano: quitamos etiquetas, decodificamos las entidades básicas y colapsamos
+  // espacios para que no salga el markup crudo.
+  const rawDesc = (language === "en" ? brand.descriptionEn : brand.description) || brand.description || "";
+  const desc = rawDesc
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/\s+/g, " ")
+    .trim();
 
   // El color del negocio manda. Si no puso uno usable, cae al azul MaalCa.
   const rgb = parseHex(brand.primaryColor) ?? parseHex(DEFAULT_BRAND)!;
