@@ -203,7 +203,7 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
   if (RESERVED.has(slug)) notFound();
 
   const data = await getCatalog(slug);
-  if (!data) notFound();
+  if (!data || data.pagePublished === false) notFound();
 
 
   const { affiliate, categories = [], items, capabilities } = data;
@@ -321,6 +321,8 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
 
 // DTO shapes from maalca-api (§2.4 of MODEL_PLAN_v2)
 interface PublicCatalogResponse {
+  /** false = negocio "Solo pantallas" con la página apagada: solo sus TVs usan este catálogo. */
+  pagePublished?: boolean;
   affiliate: {
     id: string;
     slug: string;

@@ -15,6 +15,7 @@ interface PageProps {
 }
 
 interface PublicCatalogResponse {
+  pagePublished?: boolean;
   affiliate: {
     id: string;
     slug: string;
@@ -74,7 +75,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function KioskPage({ params }: PageProps) {
   const { slug } = await params;
   const data = await getCatalog(slug);
-  if (!data) notFound();
+  if (!data || data.pagePublished === false) notFound();
 
   // Módulo de pedidos apagado: el kiosko no debe tomar pedidos que nadie va a atender.
   if (data.affiliate.ordersEnabled === false) {
