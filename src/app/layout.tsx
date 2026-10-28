@@ -3,6 +3,7 @@ import { Playfair_Display, Inter, Caveat } from "next/font/google";
 import "./globals.css";
 import { Header, Footer } from "@/components/layout";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import SiteContentLoader from "@/components/site/SiteContentLoader";
 import { OrganizationJsonLd, WebSiteJsonLd } from "@/components/seo/JsonLd";
 export const dynamic = "force-dynamic";
 
@@ -121,6 +122,7 @@ export default function RootLayout({
           Skip to content
         </a>
         <GoogleAnalytics />
+        <SiteContentLoader />
         <Header />
         <main id="main-content">{children}</main>
         <Footer />

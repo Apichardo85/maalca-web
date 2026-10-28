@@ -16,6 +16,7 @@ const NAV = [
   { href: '/ops/modulos', label: 'Módulos' },
   { href: '/ops/precios', label: 'Precios' },
   { href: '/ops/pantallas', label: 'Pantallas' },
+  { href: '/ops/sitio', label: 'Sitio' },
 ];
 
 function NavLink({ href, label }: { href: string; label: string }) {

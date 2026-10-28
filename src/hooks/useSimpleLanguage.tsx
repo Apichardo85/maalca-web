@@ -3180,6 +3180,28 @@ const translations = {
 // Global state (simple singleton pattern)
 let globalLanguage: Language = 'es';
 const listeners = new Set<(lang: Language) => void>();
+
+// Overrides de contenido del sitio (PlatformContent, editado desde /ops/sitio). Vacío = se usan
+// los textos por defecto de este diccionario. SiteContentLoader los carga una vez (ver layout).
+// Antídoto al "cuchillo de palo": MaalCa edita su propio copy sin desplegar, como un afiliado.
+let siteOverrides: { es: Record<string, string>; en: Record<string, string> } = { es: {}, en: {} };
+const overrideListeners = new Set<() => void>();
+
+export function applySiteOverrides(entries: { key: string; es?: string | null; en?: string | null }[]) {
+  const es: Record<string, string> = {};
+  const en: Record<string, string> = {};
+  for (const e of entries ?? []) {
+    if (e.es) es[e.key] = e.es;
+    if (e.en) en[e.key] = e.en;
+  }
+  siteOverrides = { es, en };
+  overrideListeners.forEach((l) => l());
+}
+
+/** Texto por defecto (diccionario hardcodeado), ignorando overrides — para el editor /ops/sitio. */
+export function getBaseTranslation(lang: Language, key: string): string {
+  return translations[lang][key as keyof typeof translations[typeof lang]] ?? key;
+}
 function setGlobalLanguage(lang: Language) {
   globalLanguage = lang;
   if (typeof window !== 'undefined') {
@@ -3214,12 +3236,16 @@ export function useSimpleLanguage() {
   // Always start with the SSR-safe default — localStorage is only readable client-side,
   // so reading it inside the useState initializer causes a server/client hydration mismatch.
   const [language, setLanguage] = useState<Language>('es');
+  const [, bumpOverrides] = useState(0);
   useEffect(() => {
     setLanguage(getGlobalLanguage());
     document.documentElement.lang = getGlobalLanguage();
     const listener = (lang: Language) => { setLanguage(lang); document.documentElement.lang = lang; };
     listeners.add(listener);
-    return () => { listeners.delete(listener); };
+    // Re-render cuando lleguen los overrides del sitio (carga asíncrona en el layout).
+    const onOverrides = () => bumpOverrides((n) => n + 1);
+    overrideListeners.add(onOverrides);
+    return () => { listeners.delete(listener); overrideListeners.delete(onOverrides); };
   }, []);
   const changeLanguage = (lang: Language) => {
     setGlobalLanguage(lang);
@@ -3229,7 +3255,10 @@ export function useSimpleLanguage() {
 export function useTranslation() {
   const { language } = useSimpleLanguage();
   const t = (key: string): string => {
-    return translations[language][key as keyof typeof translations[typeof language]] ?? key;
+    // Override de /ops/sitio primero; si no, el texto por defecto del diccionario.
+    return siteOverrides[language][key]
+      ?? translations[language][key as keyof typeof translations[typeof language]]
+      ?? key;
   };
   return { t, language };
 }
