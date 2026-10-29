@@ -19,6 +19,7 @@ import {
   type BoardOrientation, type BoardPanel, type DailyMenu, type DailyMenuSection, type WeekDayKey,
 } from '@/lib/board-layouts';
 import { ensureContrast, mix, type BoardPalette } from './MenuBoardLayouts';
+import { buildAutoDailyMenu, hasOwnDailyMenu } from '@/lib/daily-menu-auto';
 
 type BoardItem = PublicTemplateProps['items'][number] & {
   modifierGroups?: Array<{
@@ -35,6 +36,8 @@ export interface PanelAd {
   mediaType: 'Image' | 'Video';
   durationSeconds: number;
   fit?: 'Contain' | 'Cover';
+  /** Solo para la vitrina de platos (cuando el negocio no subió comerciales). */
+  caption?: { title: string; price: string } | null;
 }
 
 interface Props {
@@ -162,6 +165,12 @@ function AdRotator({ ads, className = '' }: { ads: PanelAd[]; className?: string
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={ad.mediaUrl} alt="" className="bp-ad-media bp-kb" style={{ objectFit: fit }} />
         </>
+      )}
+      {ad.caption && (
+        <div className="bp-ad-cap">
+          <span>{ad.caption.title}</span>
+          {ad.caption.price && <b>{ad.caption.price}</b>}
+        </div>
       )}
       {ads.length > 1 && <div className="bp-ad-bar" style={{ animationDuration: `${ad.mediaType === 'Video' ? MAX_VIDEO_AD_MS : Math.max(3, ad.durationSeconds || 8) * 1000}ms` }} />}
     </div>
@@ -566,7 +575,26 @@ export function PanelsBoard(props: Props) {
   const { orientation, business, items, ads, dailyMenu, language, palette, viewport } = props;
   const now = useBusinessNow(business.timezone);
   const itemsById = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
-  const ctx: PanelCtx = { language, business, items, itemsById, ads, dailyMenu, palette, now };
+  // Sin menú del día configurado: se arma uno con el catálogo que ya existe (combos con tamaños,
+  // especiales del día). Sin comerciales: vitrina con las fotos de los platos. Nunca sale vacío.
+  const effectiveMenu = useMemo(() => (hasOwnDailyMenu(dailyMenu)
+    ? dailyMenu
+    : buildAutoDailyMenu(items.map((i) => ({
+        ...i,
+        hasSizes: (i.modifierGroups ?? []).some((g) => g.options.length > 1),
+      })), business.categoryTranslations)), [dailyMenu, items, business.categoryTranslations]);
+  const effectiveAds = useMemo<PanelAd[]>(() => {
+    if (ads.length > 0) return ads;
+    return items
+      .filter((i) => (i.status ?? 'Active') === 'Active' && !i.is_demo && i.image_url
+        && (!i.weekDays?.length || i.weekDays.includes(now.day)))
+      .slice(0, 10)
+      .map((i) => ({
+        id: `dish-${i.id}`, mediaUrl: i.image_url as string, mediaType: 'Image' as const, durationSeconds: 7, fit: 'Cover' as const,
+        caption: { title: pick(language, i.name, i.nameEn), price: shortPrice(i.price, business.currency) },
+      }));
+  }, [ads, items, now.day, language, business.currency]);
+  const ctx: PanelCtx = { language, business, items, itemsById, ads: effectiveAds, dailyMenu: effectiveMenu, palette, now };
 
   const panels = props.panels.length > 0 ? props.panels : [{ kind: 'Daily' as const }];
   const portrait = orientation === 'Portrait';
@@ -702,6 +730,10 @@ const PANEL_CSS = `
 .bp-ad-blur{object-fit:cover;filter:blur(30px) brightness(.6);transform:scale(1.15)}
 .bp-kb{animation:bpKb 12s ease-out forwards}
 @keyframes bpKb{from{transform:scale(1.02)}to{transform:scale(1.10)}}
+.bp-ad-cap{position:absolute;left:0;right:0;bottom:0;padding:90px 40px 40px;background:linear-gradient(to top,rgba(0,0,0,.85),rgba(0,0,0,0));color:#fff;display:flex;align-items:flex-end;justify-content:space-between;gap:20px}
+.bp-ad-cap span{font-weight:900;font-size:52px;line-height:1.05}
+.bp-ad-cap b{font-weight:900;font-size:56px;background:var(--bp-accent);color:var(--bp-on-accent);border-radius:20px;padding:4px 20px;white-space:nowrap}
+.bp-adfull .bp-ad-cap{padding-bottom:140px}
 .bp-ad-bar{position:absolute;left:0;top:0;height:6px;background:var(--bp-hi);width:0;animation:bpBar linear forwards}
 @keyframes bpBar{to{width:100%}}
 .bp-ftr{flex:none;background:var(--bp-primary2);color:var(--bp-on-primary);display:flex;justify-content:space-between;align-items:center;gap:20px;padding:20px 44px;font-size:22px;font-weight:600}
