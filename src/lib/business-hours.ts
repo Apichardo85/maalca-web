@@ -67,7 +67,7 @@ function shiftOf(entry: HorarioEntry | undefined): { open: number; close: number
   return { open, close };
 }
 
-function nowInTimezone(timezone: string, now: Date): { day: string; minutes: number } | null {
+export function nowInTimezone(timezone: string, now: Date): { day: string; minutes: number } | null {
   try {
     const parts = new Intl.DateTimeFormat('en-US', {
       timeZone: timezone,

@@ -1,6 +1,10 @@
 import { redirect } from 'next/navigation';
 import { getMaalcaApiToken } from '@/lib/api-auth';
-import { normalizeLayout, type BoardLayoutName } from '@/lib/board-layouts';
+import {
+  normalizeDailyMenu, normalizeLayout, normalizeOrientation, normalizePanels,
+  type BoardLayoutName, type BoardOrientation, type BoardPanel, type DailyMenu,
+} from '@/lib/board-layouts';
+import type { DailyMenuProduct } from './DailyMenuEditor';
 import { BoardContent, type ScreenAdRow, type ScreenRow } from './BoardContent';
 import type { WallRow } from './WallsSection';
 
@@ -72,6 +76,10 @@ export default async function BoardPage({
   let boardTheme: 'Dark' | 'Light' = 'Dark';
   let transitionEffect: 'Fade' | 'Slide' | 'Zoom' | 'None' = 'Fade';
   let boardLayout: BoardLayoutName = 'Classic';
+  let boardOrientation: BoardOrientation = 'Landscape';
+  let boardPanels: BoardPanel[] | null = null;
+  let dailyMenu: DailyMenu | null = null;
+  let products: DailyMenuProduct[] = [];
   // No hay una entidad de categorías separada todavía — se derivan de los items del catálogo
   // (item.category), igual que hace el filtro de categorías del board público.
   let categories: string[] = [];
@@ -87,6 +95,22 @@ export default async function BoardPage({
           ? catalog.transitionEffect
           : 'Fade';
       boardLayout = normalizeLayout(catalog.layout);
+      // Sin screenId el catálogo resuelve la config del NEGOCIO (pantalla base). Panels null en la
+      // respuesta nunca pasa (el API manda el default), así que "sin configurar" no se distingue
+      // acá: se muestra el default ya resuelto, que es lo que la TV está mostrando.
+      boardOrientation = normalizeOrientation(catalog.orientation);
+      boardPanels = normalizePanels(catalog.panels);
+      dailyMenu = normalizeDailyMenu(catalog.affiliate?.dailyMenu);
+      const rawItems: Array<{
+        id: string; name: string; price?: number | null; category?: string | null;
+        modifierGroups?: Array<{ required?: boolean; options?: Array<{ name: string }> }> | null;
+      }> = Array.isArray(catalog.items) ? catalog.items : [];
+      products = rawItems
+        .filter((i) => i.id && i.name)
+        .map((i) => {
+          const sizes = (i.modifierGroups ?? []).find((g) => (g.options?.length ?? 0) > 1)?.options?.map((o) => o.name) ?? [];
+          return { id: i.id, name: i.name, price: i.price ?? null, category: i.category ?? null, sizes };
+        });
       const items: Array<{ category?: string | null }> = Array.isArray(catalog.items) ? catalog.items : [];
       categories = [...new Set(items.map((i) => i.category).filter((c): c is string => !!c))].sort();
     }
@@ -104,6 +128,10 @@ export default async function BoardPage({
       initialBoardTheme={boardTheme}
       initialTransitionEffect={transitionEffect}
       initialBoardLayout={boardLayout}
+      initialBoardOrientation={boardOrientation}
+      initialBoardPanels={boardPanels}
+      initialDailyMenu={dailyMenu}
+      products={products}
       initialScreens={screens}
       initialWalls={walls}
       categories={categories}

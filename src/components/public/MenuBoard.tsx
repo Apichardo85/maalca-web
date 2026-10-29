@@ -6,7 +6,12 @@ import { categoryLabel } from '@/lib/category-label';
 import { alignCatalogToTemplates, normalizeBaseLanguage } from '@/lib/catalog-language';
 import { formatPrice as formatCurrencyPrice } from '@/lib/currency';
 import { MenuLayoutView, makePalette } from './MenuBoardLayouts';
-import { IMPLEMENTED_LAYOUTS, normalizeLayout, type BoardLayoutName } from '@/lib/board-layouts';
+import {
+  IMPLEMENTED_LAYOUTS, normalizeLayout, normalizeOrientation, normalizePanels, normalizeDailyMenu, DEFAULT_PANELS,
+  type BoardLayoutName, type BoardOrientation, type BoardPanel, type DailyMenu,
+} from '@/lib/board-layouts';
+import type { HorarioEntry } from '@/lib/business-hours';
+import { PanelsBoard, describePanels } from './BoardPanels';
 import { useWallClock } from '@/hooks/useWallClock';
 import { buildFrames, locateFrame, locatePerTv, parseSyncParams, slideForScreen, syncParamsFromApi, type ApiWall, type SyncParams } from '@/lib/wall-sync';
 import SyncTestClient from '@/app/sync-test/SyncTestClient';
@@ -55,6 +60,11 @@ interface Props {
     accentColor?: string | null;
     currency?: 'USD' | 'DOP';
     categoryTranslations?: Record<string, { es?: string | null; en?: string | null }> | null;
+    /** Pie de los flyers verticales y estado "Abierto ahora" (layout Panels). */
+    address?: string | null;
+    phone?: string | null;
+    horario?: HorarioEntry[] | null;
+    timezone?: string | null;
   };
   initialItems: BoardItem[];
   initialCategories: BoardCategory[];
@@ -68,6 +78,11 @@ interface Props {
   transitionEffect?: TransitionEffect;
   /** Plantilla visual (Classic = la grilla original). */
   layout?: BoardLayoutName;
+  /** Layout "Panels": cómo está montada la TV y qué flyer va en cada espacio. */
+  orientation?: BoardOrientation;
+  panels?: BoardPanel[] | null;
+  /** Menú del día del negocio (Affiliate.DailyMenu) — lo usa el flyer "Menú del día". */
+  dailyMenu?: DailyMenu | null;
 }
 
 // Diccionario chico a propósito — el board tiene un puñado de strings fijos, no justifica
@@ -126,6 +141,7 @@ const WATCHDOG_CHECK_INTERVAL_MS = 60 * 1000;
 const STALE_RELOAD_THRESHOLD_MS = REFRESH_INTERVAL_MS * 3;
 
 interface CatalogPayload {
+  dailyMenu?: DailyMenu | null;
   items: BoardItem[];
   categories?: BoardCategory[];
   screenAds?: ScreenAd[];
@@ -462,6 +478,7 @@ export function MenuBoard({
   initialScreenAds = [], initialAdFrequency = null, initialWall = null,
   language: initialLanguageProp = 'es', theme: initialThemeProp = 'Dark',
   transitionEffect: initialEffectProp = 'Fade', layout: initialLayoutProp = 'Classic',
+  orientation: initialOrientationProp = 'Landscape', panels: initialPanelsProp = null, dailyMenu: initialDailyMenu = null,
 }: Props) {
   // Config visual en estado (no solo props): el poll la vuelve a leer, así un cambio de tema,
   // diseño, idioma, efecto o colores hecho desde el dashboard llega a la TV sin recargarla.
@@ -470,6 +487,8 @@ export function MenuBoard({
     theme: initialThemeProp,
     transitionEffect: initialEffectProp,
     layout: initialLayoutProp,
+    orientation: initialOrientationProp,
+    panels: initialPanelsProp ?? DEFAULT_PANELS,
     primaryColor: initialBusiness.primaryColor,
     secondaryColor: initialBusiness.secondaryColor ?? null,
     accentColor: initialBusiness.accentColor ?? null,
@@ -521,6 +540,7 @@ export function MenuBoard({
     categories: initialCategories,
     screenAds: initialScreenAds,
     adFrequency: initialAdFrequency,
+    dailyMenu: initialDailyMenu,
   });
   const [slideIndex, setSlideIndex] = useState(0);
   const stage = useStage();
@@ -621,6 +641,8 @@ export function MenuBoard({
           theme: (data.boardTheme === 'Light' ? 'Light' : 'Dark') as 'Dark' | 'Light',
           transitionEffect: (['Slide', 'Zoom', 'None'].includes(data.transitionEffect) ? data.transitionEffect : 'Fade') as TransitionEffect,
           layout: normalizeLayout(data.layout),
+          orientation: normalizeOrientation(data.orientation),
+          panels: normalizePanels(data.panels) ?? DEFAULT_PANELS,
           primaryColor: data.affiliate?.primaryColor ?? prev.primaryColor,
           secondaryColor: data.affiliate?.secondaryColor ?? null,
           accentColor: data.affiliate?.accentColor ?? null,
@@ -634,6 +656,7 @@ export function MenuBoard({
         categories: data.categories ?? [],
         screenAds: data.screenAds ?? [],
         adFrequency: data.adFrequency ?? null,
+        dailyMenu: normalizeDailyMenu(data.affiliate?.dailyMenu),
       });
     };
     const pollOnce = async () => {
@@ -794,8 +817,11 @@ export function MenuBoard({
   // Señal de vida (monitoreo de pantallas): cada minuto avisa al API que esta TV sigue mostrando
   // la pantalla, qué tiene en ese momento y si la página está a la vista. La respuesta puede traer
   // un comando del panel: "reload" (recarga) o "identify" (muestra el nombre de la pantalla 15 s).
-  const showingRef = useRef(describeSlide(slide, catalog.screenAds ?? []));
-  showingRef.current = describeSlide(slide, catalog.screenAds ?? []);
+  const describeNow = () => (activeLayout === 'Panels'
+    ? { kind: 'menu' as const, label: describePanels(cfg.panels, cfg.orientation) }
+    : describeSlide(slide, catalog.screenAds ?? []));
+  const showingRef = useRef(describeNow());
+  showingRef.current = describeNow();
   const [identify, setIdentify] = useState<string | null>(null);
   useEffect(() => {
     let deviceId = '';
@@ -886,7 +912,7 @@ export function MenuBoard({
   // (ad.durationSeconds vs SLIDE_INTERVAL_MS fijo). Se re-arma el timer cada vez que cambia
   // el slide activo en vez de un solo interval fijo para toda la rotación.
   useEffect(() => {
-    if (syncOn || slides.length <= 1) return;
+    if (syncOn || slides.length <= 1 || activeLayout === 'Panels') return;
     // Comercial en video: avanza por onEnded (dura lo que dure el video); este timer es solo el
     // tope de seguridad (video colgado, sin red, o más largo que MAX_VIDEO_AD_MS).
     const durationMs = slide?.kind === 'ad'
@@ -909,7 +935,7 @@ export function MenuBoard({
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [slideIndex, slides, slide, preloadSlide, syncOn]);
+  }, [slideIndex, slides, slide, preloadSlide, syncOn, activeLayout]);
 
   // Calibración activada desde el dashboard: todas las TVs del muro muestran la prueba de
   // sincronización (color por segundo, destello, barra que cruza el muro) hasta que se apague.
@@ -949,6 +975,37 @@ export function MenuBoard({
           <img src={slide.ad.mediaUrl} alt="" className={`absolute inset-0 h-full w-full ${fitCls}`} />
         )}
       </SpanFrame>
+    );
+  }
+
+  // Flyers verticales: contenido fijo (no rota), solo los comerciales cambian. Ver BoardPanels.tsx.
+  if (activeLayout === 'Panels') {
+    return (
+      <>
+        {identify && (
+          <div
+            className="pointer-events-none fixed inset-0 flex flex-col items-center justify-center"
+            style={{ zIndex: 99998, background: 'rgba(0,0,0,.82)', color: '#fff', textAlign: 'center' }}
+          >
+            <div style={{ fontSize: '3vw', letterSpacing: '.3em', opacity: 0.7 }}>MAALCA · PANTALLA</div>
+            <div style={{ fontSize: '9vw', fontWeight: 800, lineHeight: 1.05, marginTop: '1vh' }}>{identify}</div>
+          </div>
+        )}
+        <DebugBadge info={`diseño Panels · ${cfg.orientation} · ${cfg.panels.map((p) => p.kind).join('+')} · idioma ${language}`} />
+        {stage.ready && (
+          <PanelsBoard
+            orientation={cfg.orientation}
+            panels={cfg.panels}
+            business={business}
+            items={catalog.items}
+            ads={catalog.screenAds ?? []}
+            dailyMenu={catalog.dailyMenu ?? null}
+            language={language}
+            palette={palette}
+            viewport={{ w: stage.w * stage.scale, h: stage.h * stage.scale }}
+          />
+        )}
+      </>
     );
   }
 

@@ -31,7 +31,7 @@ function rgbToHex([r, g, b]: RGB): string {
 }
 
 /** Mezcla `a` hacia `b` en proporción t (0 = a, 1 = b). */
-function mix(a: string, b: string, t: number): string {
+export function mix(a: string, b: string, t: number): string {
   const ra = hexToRgb(a) ?? [0, 0, 0];
   const rb = hexToRgb(b) ?? [0, 0, 0];
   return rgbToHex([ra[0] + (rb[0] - ra[0]) * t, ra[1] + (rb[1] - ra[1]) * t, ra[2] + (rb[2] - ra[2]) * t] as RGB);
@@ -58,7 +58,7 @@ export function readableOn(bg: string): string {
 }
 
 /** Acerca `color` a blanco (fondo oscuro) o negro (fondo claro) hasta que se lea sobre `bg`. */
-function ensureContrast(color: string, bg: string, min = 3.2): string {
+export function ensureContrast(color: string, bg: string, min = 3.2): string {
   const towards = luminance(bg) < 0.5 ? '#ffffff' : '#000000';
   let c = color;
   for (let i = 0; i < 12 && contrast(c, bg) < min; i++) c = mix(c, towards, 0.15);
