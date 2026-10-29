@@ -249,9 +249,9 @@ export function DailyMenuEditor({ slug, initialMenu, products, getText }: Props)
                 </label>
                 {s.kind !== 'List' && (
                   <label className={`${label} sm:col-span-2`}>
-                    {getText('Precio desde el plato del catálogo', 'Price from catalog dish')}
+                    {getText('Precio desde tu catálogo', 'Price from your catalog')}
                     <select className={input} value={s.productId ?? ''} onChange={(e) => patchSection(i, { productId: e.target.value || null })}>
-                      <option value="">{s.kind === 'Combo' ? getText('— elige un plato —', '— pick a dish —') : getText('— sin precio —', '— no price —')}</option>
+                      <option value="">{s.kind === 'Combo' ? getText('— elige del catálogo —', '— pick from catalog —') : getText('— sin precio —', '— no price —')}</option>
                       {productsByCategory.map(([cat, list]) => (
                         <optgroup key={cat} label={cat}>
                           {list.map((p) => (
