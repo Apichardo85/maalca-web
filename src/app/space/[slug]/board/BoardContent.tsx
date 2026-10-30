@@ -215,6 +215,10 @@ export function BoardContent({
   const [boardLayout, setBoardLayout] = useState<BoardLayoutName>(initialBoardLayout);
   const [boardOrientation, setBoardOrientation] = useState<BoardOrientation>(initialBoardOrientation);
   const [boardPanels, setBoardPanels] = useState<BoardPanel[] | null>(initialBoardPanels);
+  // Imágenes subidas en Comerciales que se pueden fijar como flyer (ej. el menú impreso del negocio).
+  const imageOptions = ads
+    .filter((a) => a.mediaType === 'Image')
+    .map((a, i) => ({ url: a.mediaUrl, label: `${getText('Comercial', 'Commercial')} ${i + 1}${a.active ? '' : getText(' (pausado)', ' (paused)')}` }));
   const [newScreenLayout, setNewScreenLayout] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -706,6 +710,7 @@ export function BoardContent({
             {boardLayout === 'Panels' && (
               <div className="mt-3">
                 <PanelsConfig
+                  images={imageOptions}
                   orientation={boardOrientation}
                   panels={boardPanels}
                   categories={categories}
@@ -894,6 +899,7 @@ export function BoardContent({
                         {(screen.layout ?? boardLayout) === 'Panels' && (
                           <div className="mt-3">
                             <PanelsConfig
+                              images={imageOptions}
                               allowInherit
                               orientation={screen.orientation ?? null}
                               panels={screen.panels ?? null}

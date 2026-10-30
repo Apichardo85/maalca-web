@@ -16,10 +16,16 @@ import { formatPrice as formatCurrencyPrice } from '@/lib/currency';
 import { getOpenStatus, nowInTimezone, type HorarioEntry } from '@/lib/business-hours';
 import {
   WEEK_DAYS, sectionVisibleAt,
-  type BoardOrientation, type BoardPanel, type DailyMenu, type DailyMenuSection, type WeekDayKey,
+  type BoardOrientation, type BoardPanel, type BoardPanelStyle, type DailyMenu, type DailyMenuSection, type WeekDayKey,
 } from '@/lib/board-layouts';
 import { ensureContrast, mix, type BoardPalette } from './MenuBoardLayouts';
 import { buildAutoDailyMenu, hasOwnDailyMenu } from '@/lib/daily-menu-auto';
+import { Great_Vibes, Playfair_Display } from 'next/font/google';
+
+// Estilo Tropical: letra script para los adornos y una serif con presencia para títulos, como los
+// flyers impresos de restaurante (cargadas solo en el bundle del board).
+const scriptFont = Great_Vibes({ weight: '400', subsets: ['latin'], display: 'swap' });
+const serifFont = Playfair_Display({ weight: ['700', '900'], subsets: ['latin'], display: 'swap' });
 
 type BoardItem = PublicTemplateProps['items'][number] & {
   modifierGroups?: Array<{
@@ -179,6 +185,33 @@ function AdRotator({ ads, className = '' }: { ads: PanelAd[]; className?: string
 
 /* ───────────────────────── Piezas comunes ───────────────────────── */
 
+/** Flor de hibisco + hojas (SVG propio) para el estilo Tropical. Se mecen despacio. */
+function Hibiscus({ className, size = 220, delay = 0 }: { className: string; size?: number; delay?: number }) {
+  return (
+    <svg className={`bp-flower ${className}`} width={size} height={size} viewBox="0 0 200 200" style={{ animationDelay: `${delay}s` }} aria-hidden>
+      <defs>
+        <radialGradient id="bpPetal" cx="50%" cy="85%" r="90%">
+          <stop offset="0%" stopColor="#7A0A3D" />
+          <stop offset="35%" stopColor="#D81B60" />
+          <stop offset="100%" stopColor="#FF6FA8" />
+        </radialGradient>
+        <linearGradient id="bpLeaf" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#2E7D32" />
+          <stop offset="100%" stopColor="#81C784" />
+        </linearGradient>
+      </defs>
+      <path d="M100 100 C 40 60, 10 120, -10 170 C 50 160, 90 140, 100 100Z" fill="url(#bpLeaf)" opacity=".9" />
+      <path d="M100 100 C 160 40, 210 70, 215 20 C 160 10, 120 50, 100 100Z" fill="url(#bpLeaf)" opacity=".85" />
+      {[0, 72, 144, 216, 288].map((r) => (
+        <ellipse key={r} cx="100" cy="62" rx="34" ry="44" fill="url(#bpPetal)" transform={`rotate(${r} 100 100)`} />
+      ))}
+      <circle cx="100" cy="100" r="12" fill="#5A0629" />
+      <path d="M100 100 L 140 58" stroke="#F9C74F" strokeWidth="5" strokeLinecap="round" />
+      <circle cx="142" cy="56" r="7" fill="#F9C74F" />
+    </svg>
+  );
+}
+
 function Header({ business, title, eyebrow, sub, open, language }: {
   business: Props['business'];
   title: string;
@@ -197,7 +230,7 @@ function Header({ business, title, eyebrow, sub, open, language }: {
           </div>
         )}
         <div className="bp-htxt">
-          <div className="bp-eyebrow">{eyebrow}</div>
+          <div className="bp-eyebrow"><span className={`bp-eyebrow-txt ${scriptFont.className}`}>{eyebrow}</span></div>
           {/* Tamaño según el largo: "MIÉRCOLES"/"WEDNESDAY" no cabe al tamaño de "LUNES". */}
           <div className="bp-title" style={{ fontSize: title.length <= 6 ? 122 : title.length <= 8 ? 110 : title.length <= 9 ? 98 : 86 }}>{title}</div>
           <div className="bp-hsub">
@@ -232,7 +265,7 @@ function sectionKey(s: DailyMenuSection) {
   return s.name.trim().toLowerCase();
 }
 
-function DailyPanel({ ctx, withAds }: { ctx: PanelCtx; withAds: boolean }) {
+function DailyPanel({ ctx, withAds, style }: { ctx: PanelCtx; withAds: boolean; style: BoardPanelStyle }) {
   const { language, business, dailyMenu, itemsById, ads, now } = ctx;
   const t = (es: string, en: string) => (language === 'en' ? en : es);
   const dayName = language === 'en' ? DAY_EN[now.day] : DAY_ES[now.day];
@@ -300,13 +333,13 @@ function DailyPanel({ ctx, withAds }: { ctx: PanelCtx; withAds: boolean }) {
 
   return (
     <div
-      className={`bp-panel ${roomy ? 'bp-roomy' : ''} ${combos.length + featured.length + missing.length >= 6 ? 'bp-dense' : ''}`}
+      className={`bp-panel ${roomy ? 'bp-roomy' : ''} ${combos.length + featured.length + missing.length >= 6 ? 'bp-dense' : ''} ${style === 'Tropical' ? `bp-trop ${serifFont.className}` : ''}`}
       style={{ ['--cycle' as string]: `${cycle}s` }}
     >
       <Header
         business={business}
         language={language}
-        eyebrow={t('MENÚ DE HOY', "TODAY'S MENU")}
+        eyebrow={t('Menú de hoy', "Today's Menu")}
         title={dayName}
         sub={[now.dateLabel, hoursLabel].filter(Boolean).join(' · ')}
         open={open}
@@ -403,6 +436,7 @@ function DailyPanel({ ctx, withAds }: { ctx: PanelCtx; withAds: boolean }) {
         {withAds && ads.length > 0 && <AdRotator ads={ads} className="bp-adzone" />}
       </div>
       <Footer business={business} />
+      {style === 'Tropical' && <TropicalDecor />}
     </div>
   );
 }
@@ -415,7 +449,7 @@ function splitVariant(name: string): [string, string] | null {
   return m ? [m[1].trim(), m[2].trim()] : null;
 }
 
-function CategoryPanel({ ctx, category }: { ctx: PanelCtx; category: string }) {
+function CategoryPanel({ ctx, category, style }: { ctx: PanelCtx; category: string; style: BoardPanelStyle }) {
   const { language, business, items, now } = ctx;
   const t = (es: string, en: string) => (language === 'en' ? en : es);
   const title = categoryLabel(category, language, business.categoryTranslations);
@@ -451,7 +485,7 @@ function CategoryPanel({ ctx, category }: { ctx: PanelCtx; category: string }) {
   const samePrice = daily.length > 0 && daily.every((i) => i.price === firstPrice);
 
   return (
-    <div className="bp-panel bp-cat">
+    <div className={`bp-panel bp-cat ${style === 'Tropical' ? `bp-trop ${serifFont.className}` : ''}`}>
       <div className="bp-chdr">
         <div className="bp-sun" />
         {daily.length > 0 && (
@@ -526,6 +560,7 @@ function CategoryPanel({ ctx, category }: { ctx: PanelCtx; category: string }) {
         )}
       </div>
       <Footer business={business} />
+      {style === 'Tropical' && <TropicalDecor />}
     </div>
   );
 }
@@ -552,6 +587,31 @@ function AdsPanel({ ctx }: { ctx: PanelCtx }) {
   );
 }
 
+/** Adornos del estilo Tropical: flores en las esquinas (encima del borde, sin tapar el menú). */
+function TropicalDecor() {
+  return (
+    <>
+      <Hibiscus className="bp-fl-tr" size={230} />
+      <Hibiscus className="bp-fl-br" size={190} delay={2.5} />
+    </>
+  );
+}
+
+/* ───────────────────────── Flyer: Imagen fija ───────────────────────── */
+
+/** Un flyer ya diseñado por el negocio (subido como comercial) fijo en su espacio. Nunca se recorta:
+ *  si la proporción no es 9:16, el fondo es la misma imagen desenfocada. */
+function ImagePanel({ url, name }: { url: string; name: string }) {
+  return (
+    <div className="bp-panel bp-imgpanel">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={url} alt="" className="bp-ad-media bp-ad-blur" />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={url} alt={name} className="bp-ad-media bp-img-breathe" style={{ objectFit: 'contain' }} />
+    </div>
+  );
+}
+
 /* ───────────────────────── Montaje ───────────────────────── */
 
 interface PanelCtx {
@@ -566,9 +626,11 @@ interface PanelCtx {
 }
 
 function renderPanel(p: BoardPanel, ctx: PanelCtx, withAds: boolean) {
+  const style: BoardPanelStyle = p.style === 'Tropical' ? 'Tropical' : 'Modern';
   if (p.kind === 'Ads') return <AdsPanel ctx={ctx} />;
-  if (p.kind === 'Category' && p.category) return <CategoryPanel ctx={ctx} category={p.category} />;
-  return <DailyPanel ctx={ctx} withAds={withAds} />;
+  if (p.kind === 'Image' && p.mediaUrl) return <ImagePanel url={p.mediaUrl} name={ctx.business.name} />;
+  if (p.kind === 'Category' && p.category) return <CategoryPanel ctx={ctx} category={p.category} style={style} />;
+  return <DailyPanel ctx={ctx} withAds={withAds} style={style} />;
 }
 
 export function PanelsBoard(props: Props) {
@@ -653,7 +715,7 @@ export function PanelsBoard(props: Props) {
 
 /** Texto para el monitoreo de pantallas ("Flyers: Menú del día, Comerciales"). */
 export function describePanels(panels: BoardPanel[], orientation: BoardOrientation): string {
-  const names = panels.map((p) => (p.kind === 'Daily' ? 'Menú del día' : p.kind === 'Ads' ? 'Comerciales' : p.category ?? 'Categoría'));
+  const names = panels.map((p) => (p.kind === 'Daily' ? 'Menú del día' : p.kind === 'Ads' ? 'Comerciales' : p.kind === 'Image' ? 'Imagen' : p.category ?? 'Categoría'));
   return `${orientation === 'Portrait' ? 'Vertical' : 'Flyers'}: ${(orientation === 'Portrait' ? names.slice(0, 1) : names).join(', ')}`;
 }
 
@@ -664,7 +726,7 @@ const PANEL_CSS = `
 .bp-logo img{width:176px;height:176px;object-fit:contain}
 @keyframes bpBob{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-6px) rotate(1deg)}}
 .bp-htxt{flex:1;min-width:0}
-.bp-eyebrow{font-weight:800;letter-spacing:.34em;color:var(--bp-hi);font-size:28px}
+.bp-eyebrow{font-weight:800;letter-spacing:.34em;color:var(--bp-hi);font-size:28px;text-transform:uppercase}
 .bp-title{font-weight:900;font-size:122px;line-height:.92;text-transform:uppercase;letter-spacing:-.01em;white-space:nowrap;
   background:linear-gradient(100deg,currentColor 0%,currentColor 42%,var(--bp-hi) 50%,currentColor 58%,currentColor 100%);background-size:250% 100%;
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:bpShine 7s linear infinite}
@@ -749,6 +811,46 @@ const PANEL_CSS = `
 .bp-roomy .bp-prow h4{font-size:40px}
 /* Día cargado (ej. sábado: 4 combos + sopa + desayuno): platos en línea aunque haya espacio de sobra. */
 .bp-dense.bp-roomy .bp-it{display:inline}.bp-dense.bp-roomy .bp-sep{display:inline}.bp-dense.bp-roomy .bp-prow p{font-size:27px}.bp-roomy .bp-col li{font-size:27px}.bp-roomy .bp-fname{font-size:52px}
+/* Imagen fija */
+.bp-imgpanel{background:#000}
+.bp-img-breathe{animation:bpBreathe 18s ease-in-out infinite alternate}
+@keyframes bpBreathe{from{transform:scale(1)}to{transform:scale(1.035)}}
+/* ── Estilo Tropical (crema, morado/magenta, dorado, flores, script) ── */
+.bp-trop{--bp-bg:#FBF3E6;--bp-card:#FFFBF4;--bp-text:#2B1630;--bp-muted:#6E5468;--bp-line:rgba(91,21,87,.18);
+  --bp-primary:#5B1557;--bp-primary2:#3A0B38;--bp-on-primary:#FFF7EA;--bp-accent:#C2185B;--bp-accent2:#8E0F43;--bp-on-accent:#fff;
+  --bp-hi:#E8B04B;--bp-title:#6A1B5E;--bp-special-bg:#FCE7F1;
+  background:radial-gradient(ellipse at 50% 0%,#FFF9EF 0%,#F6E8D4 100%)}
+.bp-trop .bp-hdr{border-bottom:6px solid var(--bp-hi);background:linear-gradient(160deg,#6E1A68 0%,#3A0B38 100%)}
+.bp-trop .bp-eyebrow{letter-spacing:0;font-weight:400;font-size:64px;line-height:.9;color:var(--bp-hi);margin-bottom:-6px;text-transform:none}
+.bp-trop .bp-chdr .bp-eyebrow{font-size:28px;letter-spacing:.2em;line-height:1.2;text-transform:uppercase;margin:0;color:var(--bp-hi)}
+.bp-trop .bp-ftr{padding-right:150px}
+.bp-trop .bp-eyebrow-txt{display:inline-block}
+.bp-trop .bp-title{font-weight:900;letter-spacing:.02em}
+.bp-trop .bp-ribbon{height:10px;background:linear-gradient(90deg,transparent,var(--bp-hi) 15%,var(--bp-hi) 85%,transparent);animation:none}
+.bp-trop .bp-card{border-radius:22px;box-shadow:0 0 0 2px rgba(106,27,94,.35),0 10px 26px rgba(58,11,56,.12)}
+.bp-trop .bp-base{border-top:none;padding-top:16px}
+.bp-trop .bp-col h3,.bp-trop .bp-mini h3{background:linear-gradient(180deg,#7A1F72,#4A1046);color:#FFF4DE;border-radius:12px;padding:4px 14px;font-size:26px;letter-spacing:.08em;text-align:center;box-shadow:inset 0 0 0 2px rgba(232,176,75,.6)}
+.bp-trop .bp-mini h3{justify-content:space-between;padding:6px 16px;font-size:30px}
+.bp-trop .bp-mini h3 span{color:var(--bp-hi)}
+.bp-trop .bp-col li::before{content:'❦ ';color:#4CAF50;font-size:.8em}
+.bp-trop .bp-ctitle b{font-weight:900;color:var(--bp-title)}
+.bp-trop .bp-prow{border-left-color:var(--bp-accent)}
+.bp-trop .bp-prow h4{color:var(--bp-title);letter-spacing:.05em}
+.bp-trop .bp-chip{background:linear-gradient(180deg,#6E1A68,#3A0B38);box-shadow:inset 0 0 0 2px rgba(232,176,75,.55)}
+.bp-trop .bp-chip small{color:var(--bp-hi)}
+.bp-trop .bp-special .bp-chip{background:linear-gradient(180deg,#D81B60,#8E0F43)}
+.bp-trop .bp-feat-a{background:linear-gradient(150deg,#D81B60,#8E0F43)}
+.bp-trop .bp-feat-b{background:linear-gradient(150deg,#6E1A68,#3A0B38)}
+.bp-trop .bp-fprice b,.bp-trop .bp-feat-b .bp-fprice b{color:#FFE29A}
+.bp-trop .bp-ftr{background:linear-gradient(90deg,#3A0B38,#6E1A68,#3A0B38);border-top:4px solid var(--bp-hi)}
+.bp-trop .bp-chdr{background:linear-gradient(160deg,#6E1A68 0%,#3A0B38 100%);border-bottom:6px solid var(--bp-hi)}
+.bp-trop .bp-now{background:linear-gradient(90deg,#6E1A68,#C2185B)}
+.bp-trop .bp-pricelist li i{border-bottom-color:rgba(106,27,94,.35)}
+.bp-flower{position:absolute;z-index:4;pointer-events:none;filter:drop-shadow(0 6px 10px rgba(0,0,0,.25));animation:bpSway 7s ease-in-out infinite;transform-origin:50% 50%}
+.bp-fl-tr{right:-50px;top:-40px}
+.bp-fl-bl{left:-60px;bottom:-50px}
+.bp-fl-br{right:-60px;bottom:-60px}
+@keyframes bpSway{0%,100%{transform:rotate(-4deg) scale(1)}50%{transform:rotate(4deg) scale(1.04)}}
 /* Comerciales a pantalla completa */
 .bp-adpanel{background:#000}
 .bp-adfull{position:absolute;inset:0}
