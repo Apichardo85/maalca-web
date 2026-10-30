@@ -20,11 +20,17 @@ export function normalizeOrientation(value: string | null | undefined): BoardOri
   return value === 'Portrait' ? 'Portrait' : 'Landscape';
 }
 
-/** Un flyer vertical: Menú del día, Comerciales a pantalla completa o una Categoría del catálogo. */
-export type BoardPanelKind = 'Daily' | 'Ads' | 'Category';
+/** Un flyer vertical: Menú del día, Comerciales a pantalla completa, una Categoría del catálogo o una
+ *  Imagen fija (un flyer ya diseñado por el negocio, subido como comercial, que se queda en su espacio). */
+export type BoardPanelKind = 'Daily' | 'Ads' | 'Category' | 'Image';
+/** Estilo visual de los flyers que se dibujan (Menú del día / Categoría). Modern = paleta del negocio;
+ *  Tropical = crema, morado/magenta, dorado, flores y letra script (estilo de flyer de restaurante). */
+export type BoardPanelStyle = 'Modern' | 'Tropical';
 export interface BoardPanel {
   kind: BoardPanelKind;
   category?: string | null;
+  mediaUrl?: string | null;
+  style?: BoardPanelStyle | null;
 }
 
 export const DEFAULT_PANELS: BoardPanel[] = [{ kind: 'Daily' }, { kind: 'Ads' }];
@@ -34,11 +40,17 @@ export function normalizePanels(value: unknown): BoardPanel[] | null {
   if (!Array.isArray(value)) return null;
   const out: BoardPanel[] = [];
   for (const raw of value.slice(0, MAX_PANELS)) {
-    const kind = (raw as { kind?: string })?.kind;
-    if (kind === 'Daily' || kind === 'Ads') out.push({ kind });
+    const r = raw as { kind?: string; category?: string; mediaUrl?: string; style?: string };
+    const style: BoardPanelStyle | null = r?.style === 'Tropical' ? 'Tropical' : r?.style === 'Modern' ? 'Modern' : null;
+    const kind = r?.kind;
+    if (kind === 'Daily') out.push({ kind, style });
+    else if (kind === 'Ads') out.push({ kind });
     else if (kind === 'Category') {
-      const category = String((raw as { category?: string }).category ?? '').trim();
-      if (category) out.push({ kind, category });
+      const category = String(r.category ?? '').trim();
+      if (category) out.push({ kind, category, style });
+    } else if (kind === 'Image') {
+      const mediaUrl = String(r.mediaUrl ?? '').trim();
+      if (mediaUrl) out.push({ kind, mediaUrl });
     }
   }
   return out.length > 0 ? out : null;
