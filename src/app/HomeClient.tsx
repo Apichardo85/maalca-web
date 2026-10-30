@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
 import LandingClip from "@/components/home/LandingClip";
 import { BusinessBrandCard, type BusinessBrand } from "@/components/public/BusinessBrandCard";
+import { SITE_MEDIA_BY_KEY } from "@/lib/site-content";
 
 // La marca viva de cada negocio destacado llega de /api/public/affiliates/featured (ver
 // page.tsx) — mismo shape que consume BusinessBrandCard. Se cura desde /ops (IsFeatured).
@@ -15,9 +16,9 @@ interface Props {
 // Clips del comercial (public/media/landing/*-{es,en}.mp4). Cada uno existe en los dos
 // idiomas: la ruta se arma con el idioma activo, así el toggle cambia también el video.
 const FLOW_CLIPS = [
-  { file: "flujo-pedido", titleKey: "home.flows.order.title", descKey: "home.flows.order.desc" },
-  { file: "flujo-pantalla", titleKey: "home.flows.screen.title", descKey: "home.flows.screen.desc" },
-  { file: "flujo-negocios", titleKey: "home.flows.spaces.title", descKey: "home.flows.spaces.desc" },
+  { file: "flujo-pedido", slot: "order", titleKey: "home.flows.order.title", descKey: "home.flows.order.desc" },
+  { file: "flujo-pantalla", slot: "screen", titleKey: "home.flows.screen.title", descKey: "home.flows.screen.desc" },
+  { file: "flujo-negocios", slot: "spaces", titleKey: "home.flows.spaces.title", descKey: "home.flows.spaces.desc" },
 ];
 
 // Franja de precios de la home. Los montos son los mismos de /servicios (planes atados a los
@@ -49,8 +50,12 @@ const ABOUT_TIMELINE_KEYS = [
 // landing tenía el texto escrito directo en español y el toggle de idioma solo cambiaba el
 // Header/Footer, no el cuerpo de la página. Corregido sept. 2026.
 export default function HomeClient({ featuredAffiliates }: Props) {
-  const { t, language } = useTranslation();
+  const { t, language, media } = useTranslation();
   const lang = language === "en" ? "en" : "es";
+  // Video/poster: override de /ops/sitio en el idioma activo, o el archivo por defecto (fallback).
+  const slotUrl = (key: string) => media(key, SITE_MEDIA_BY_KEY[key].fallback(lang));
+  const heroVideo = slotUrl("media.hero.video");
+  const heroPoster = slotUrl("media.hero.poster");
 
   return (
     <main className="w-full bg-surface">
@@ -87,10 +92,10 @@ export default function HomeClient({ featuredAffiliates }: Props) {
           </div>
           {/* Comercial de 56 s en loop, mudo, en el idioma activo (key = recarga al cambiar). */}
           <LandingClip
-            key={`hero-${lang}`}
+            key={`hero-${lang}-${heroVideo}`}
             eager
-            src={`/media/landing/hero-comercial-${lang}.mp4`}
-            poster={`/media/landing/hero-comercial-${lang}-poster.jpg`}
+            src={heroVideo}
+            poster={heroPoster}
             label={t("home.hero.videoAlt")}
             className="w-full h-auto block"
           />
@@ -128,12 +133,15 @@ export default function HomeClient({ featuredAffiliates }: Props) {
         <h2 className="text-3xl md:text-4xl font-bold text-center text-text-primary">{t("home.flows.heading")}</h2>
         <p className="mt-2.5 text-text-secondary text-center">{t("home.flows.subtitle")}</p>
         <div className="mt-10 w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-6">
-          {FLOW_CLIPS.map((clip) => (
+          {FLOW_CLIPS.map((clip) => {
+            const clipVideo = slotUrl(`media.flow.${clip.slot}.video`);
+            const clipPoster = slotUrl(`media.flow.${clip.slot}.poster`);
+            return (
             <div key={clip.file} className="bg-surface-elevated border border-border rounded-2xl overflow-hidden flex flex-col">
               <LandingClip
-                key={`${clip.file}-${lang}`}
-                src={`/media/landing/${clip.file}-${lang}.mp4`}
-                poster={`/media/landing/${clip.file}-${lang}-poster.jpg`}
+                key={`${clip.file}-${lang}-${clipVideo}`}
+                src={clipVideo}
+                poster={clipPoster}
                 label={t(clip.titleKey)}
                 className="w-full aspect-video object-cover bg-black"
               />
@@ -142,7 +150,8 @@ export default function HomeClient({ featuredAffiliates }: Props) {
                 <p className="mt-1.5 text-sm leading-relaxed text-text-secondary">{t(clip.descKey)}</p>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 

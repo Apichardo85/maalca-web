@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { SITE_CONTENT_GROUPS } from '@/lib/site-content';
 import { getBaseTranslation } from '@/hooks/useSimpleLanguage';
 import { useOpsCanManage } from '../OpsRoleContext';
+import MediaEditor from './MediaEditor';
 
 // Panel de Sitio (Fase 1): MaalCa edita el copy de maalca.com sin desplegar. Cada campo tiene su
 // texto por defecto (del diccionario de la web) como marcador; si escribes algo, se guarda como
@@ -20,6 +21,7 @@ export default function OpsSitioPage() {
   const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const [mediaOv, setMediaOv] = useState<Record<string, Override>>({});
 
   const allKeys = useMemo(
     () => SITE_CONTENT_GROUPS.flatMap((g) => g.fields.map((f) => f.key)),
@@ -47,6 +49,7 @@ export default function OpsSitioPage() {
       .then((rows: { key: string; es?: string | null; en?: string | null }[]) => {
         const map: Record<string, Override> = {};
         if (Array.isArray(rows)) for (const r of rows) map[r.key] = { es: r.es, en: r.en };
+        setMediaOv(map);
         initDrafts(map);
       })
       .catch(() => initDrafts({}))
@@ -197,6 +200,12 @@ export default function OpsSitioPage() {
             </div>
           </section>
         ))}
+
+        <MediaEditor
+          overrides={mediaOv}
+          canManage={canManage}
+          onChanged={(key, value) => setMediaOv((m) => ({ ...m, [key]: value }))}
+        />
       </div>
     </div>
   );

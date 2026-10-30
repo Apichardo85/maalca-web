@@ -16,6 +16,43 @@ export interface SiteContentGroup {
   fields: SiteContentField[];
 }
 
+// Medios (Fase 2): video y poster del hero y de los tres flujos de la home. Cada slot guarda en
+// PlatformContent la URL por idioma (es/en) bajo `key`; si no hay override, `fallback(lang)` es
+// el archivo de /public/media/landing que ya existía. Un solo origen de verdad para la home y
+// para el editor de /ops/sitio.
+export type SiteMediaLang = 'es' | 'en';
+
+export interface SiteMediaSlot {
+  key: string;
+  labelEs: string;
+  kind: 'video' | 'image';
+  fallback: (lang: SiteMediaLang) => string;
+}
+
+const clip = (file: string) => ({
+  video: (lang: SiteMediaLang) => `/media/landing/${file}-${lang}.mp4`,
+  poster: (lang: SiteMediaLang) => `/media/landing/${file}-${lang}-poster.jpg`,
+});
+const HERO = clip('hero-comercial');
+const FLOW_ORDER = clip('flujo-pedido');
+const FLOW_SCREEN = clip('flujo-pantalla');
+const FLOW_SPACES = clip('flujo-negocios');
+
+export const SITE_MEDIA_SLOTS: SiteMediaSlot[] = [
+  { key: 'media.hero.video', labelEs: 'Home — Video de portada', kind: 'video', fallback: HERO.video },
+  { key: 'media.hero.poster', labelEs: 'Home — Imagen de portada (poster)', kind: 'image', fallback: HERO.poster },
+  { key: 'media.flow.order.video', labelEs: 'Así funciona — Pedido (video)', kind: 'video', fallback: FLOW_ORDER.video },
+  { key: 'media.flow.order.poster', labelEs: 'Así funciona — Pedido (poster)', kind: 'image', fallback: FLOW_ORDER.poster },
+  { key: 'media.flow.screen.video', labelEs: 'Así funciona — Pantalla (video)', kind: 'video', fallback: FLOW_SCREEN.video },
+  { key: 'media.flow.screen.poster', labelEs: 'Así funciona — Pantalla (poster)', kind: 'image', fallback: FLOW_SCREEN.poster },
+  { key: 'media.flow.spaces.video', labelEs: 'Así funciona — Espacios (video)', kind: 'video', fallback: FLOW_SPACES.video },
+  { key: 'media.flow.spaces.poster', labelEs: 'Así funciona — Espacios (poster)', kind: 'image', fallback: FLOW_SPACES.poster },
+];
+
+export const SITE_MEDIA_BY_KEY: Record<string, SiteMediaSlot> = Object.fromEntries(
+  SITE_MEDIA_SLOTS.map((s) => [s.key, s]),
+);
+
 export const SITE_CONTENT_GROUPS: SiteContentGroup[] = [
   {
     group: 'Home — Portada',

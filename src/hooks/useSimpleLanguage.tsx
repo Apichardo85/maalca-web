@@ -3260,5 +3260,11 @@ export function useTranslation() {
       ?? translations[language][key as keyof typeof translations[typeof language]]
       ?? key;
   };
-  return { t, language };
+  // Medios editables desde /ops/sitio: URL del override en el idioma activo, o el archivo por
+  // defecto. Solo https o ruta propia; cualquier otra cosa se ignora (defensa si alguien guarda basura).
+  const media = (key: string, fallback: string): string => {
+    const v = siteOverrides[language][key];
+    return v && (v.startsWith('https://') || v.startsWith('/')) ? v : fallback;
+  };
+  return { t, language, media };
 }
