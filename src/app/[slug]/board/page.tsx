@@ -5,7 +5,7 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { MenuBoard } from '@/components/public/MenuBoard';
-import { normalizeLayout } from '@/lib/board-layouts';
+import { normalizeDailyMenu, normalizeLayout, normalizeOrientation, normalizePanels } from '@/lib/board-layouts';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { alignCatalogToTemplates, normalizeBaseLanguage } from '@/lib/catalog-language';
 import type { ApiWall } from '@/lib/wall-sync';
@@ -98,6 +98,10 @@ export function renderBoard(slug: string, data: BoardCatalogResponse, screenId?:
         accentColor: data.affiliate.accentColor ?? null,
         currency: data.affiliate.currency === 'DOP' ? 'DOP' : 'USD',
         categoryTranslations: data.affiliate.categoryTranslations ?? null,
+        address: data.affiliate.address ?? null,
+        phone: data.affiliate.whatsApp ?? null,
+        horario: data.affiliate.horario ?? null,
+        timezone: data.affiliate.timezone ?? null,
       }}
       initialItems={mappedItems}
       initialCategories={data.categories ?? []}
@@ -107,6 +111,9 @@ export function renderBoard(slug: string, data: BoardCatalogResponse, screenId?:
       language={data.language === 'en' ? 'en' : 'es'}
       theme={data.boardTheme === 'Light' ? 'Light' : 'Dark'}
       layout={normalizeLayout(data.layout)}
+      orientation={normalizeOrientation(data.orientation)}
+      panels={normalizePanels(data.panels)}
+      dailyMenu={normalizeDailyMenu(data.affiliate.dailyMenu)}
       transitionEffect={
         data.transitionEffect === 'Slide' || data.transitionEffect === 'Zoom' || data.transitionEffect === 'None'
           ? data.transitionEffect
@@ -144,6 +151,11 @@ interface BoardCatalogResponse {
     currency?: string | null;
     language?: string | null;
     categoryTranslations?: Record<string, { es?: string | null; en?: string | null }> | null;
+    address?: string | null;
+    whatsApp?: string | null;
+    horario?: Array<{ dia: string; abre: string; cierra: string; cerrado: boolean }> | null;
+    timezone?: string | null;
+    dailyMenu?: unknown;
   };
   categories?: PublicTemplateProps['categories'];
   items: PublicTemplateProps['items'];
@@ -154,6 +166,9 @@ interface BoardCatalogResponse {
   boardTheme?: string | null;
   transitionEffect?: string | null;
   layout?: string | null;
+  /** Layout "Panels": orientación de la TV y flyers por espacio (ya resueltos por el API). */
+  orientation?: string | null;
+  panels?: unknown;
   /** Muro sincronizado (config del dashboard) con la posición de ESTA pantalla. */
   wall?: ApiWall | null;
 }

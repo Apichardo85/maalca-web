@@ -5,7 +5,11 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { isPaidPlan } from '@/lib/plan-limits';
-import { IMPLEMENTED_LAYOUTS, type BoardLayoutName } from '@/lib/board-layouts';
+import {
+  IMPLEMENTED_LAYOUTS, type BoardLayoutName, type BoardOrientation, type BoardPanel, type DailyMenu,
+} from '@/lib/board-layouts';
+import { PanelsConfig } from './PanelsConfig';
+import { DailyMenuEditor, type DailyMenuProduct } from './DailyMenuEditor';
 import { WallsSection, type WallRow } from './WallsSection';
 import { ScreenDevicesPanel } from '@/components/space/ScreenDevicesPanel';
 import { readApiError, useBillingSummary } from '@/lib/billing';
@@ -43,6 +47,9 @@ export interface ScreenRow {
   layout: string | null;
   contentMode: string;
   adIds: string[] | null;
+  /** Diseño "Flyers verticales": orientación y flyers propios (null = hereda del negocio). */
+  orientation?: BoardOrientation | null;
+  panels?: BoardPanel[] | null;
   /** Muro sincronizado al que pertenece (null = pantalla suelta). Se gestiona en WallsSection. */
   wallId?: string | null;
   wallCol?: number | null;
@@ -58,6 +65,12 @@ interface Props {
   initialBoardTheme: 'Dark' | 'Light';
   initialTransitionEffect: 'Fade' | 'Slide' | 'Zoom' | 'None';
   initialBoardLayout: BoardLayoutName;
+  initialBoardOrientation: BoardOrientation;
+  /** null = sin configurar (el board usa Menú del día + Comerciales). */
+  initialBoardPanels: BoardPanel[] | null;
+  initialDailyMenu: DailyMenu | null;
+  /** Platos del catálogo para enlazar precios en el menú del día. */
+  products: DailyMenuProduct[];
   initialScreens: ScreenRow[];
   initialWalls: WallRow[];
   /** Categorías reales del catálogo (derivadas de los items) — para elegir por checkbox en vez
@@ -73,6 +86,7 @@ const LAYOUT_LABELS: Record<BoardLayoutName, { es: string; en: string }> = {
   Carousel: { es: 'Carrusel', en: 'Carousel' },
   Plates: { es: 'Platos flotantes', en: 'Floating plates' },
   Bold: { es: 'Título gigante', en: 'Bold title' },
+  Panels: { es: 'Flyers verticales (menú del día)', en: 'Vertical flyers (daily menu)' },
 };
 
 /** Miniatura esquemática de cada plantilla (no es el render real, solo la silueta de la composición). */
@@ -104,6 +118,10 @@ function LayoutThumb({ layout }: { layout: BoardLayoutName | 'inherit' }) {
         </div>
       ) : layout === 'Bold' ? (
         <div className={`${strong} flex flex-1 flex-col justify-center gap-1 p-1`}><div className="h-1.5 rounded-sm bg-white/70" /><div className="h-1.5 rounded-sm bg-white/70" /><div className="h-1.5 rounded-sm bg-white/70" /></div>
+      ) : layout === 'Panels' ? (
+        <div className="flex flex-1 items-stretch justify-center gap-1">
+          <div className={`${strong} aspect-[9/16]`} /><div className={`${block} aspect-[9/16]`} /><div className={`${block} aspect-[9/16]`} />
+        </div>
       ) : layout === 'inherit' ? (
         <div className="flex flex-1 items-center justify-center text-[10px] font-semibold uppercase tracking-wide">=</div>
       ) : (
@@ -182,7 +200,8 @@ function LayoutPicker({
  */
 export function BoardContent({
   slug, plan, initialAds, initialAdFrequency, initialLanguage, initialBoardTheme,
-  initialTransitionEffect, initialBoardLayout, initialScreens, initialWalls, categories,
+  initialTransitionEffect, initialBoardLayout, initialBoardOrientation, initialBoardPanels, initialDailyMenu, products,
+  initialScreens, initialWalls, categories,
 }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -194,6 +213,8 @@ export function BoardContent({
   const [boardTheme, setBoardTheme] = useState(initialBoardTheme);
   const [transitionEffect, setTransitionEffect] = useState(initialTransitionEffect);
   const [boardLayout, setBoardLayout] = useState<BoardLayoutName>(initialBoardLayout);
+  const [boardOrientation, setBoardOrientation] = useState<BoardOrientation>(initialBoardOrientation);
+  const [boardPanels, setBoardPanels] = useState<BoardPanel[] | null>(initialBoardPanels);
   const [newScreenLayout, setNewScreenLayout] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -286,6 +307,8 @@ export function BoardContent({
           layout: next.layout,
           contentMode: next.contentMode,
           adIds: next.adIds,
+          orientation: next.orientation ?? null,
+          panels: next.panels ?? null,
         }),
       });
       const updated = await res.json().catch(() => null);
@@ -331,6 +354,8 @@ export function BoardContent({
               layout: sc.layout,
               contentMode: sc.contentMode,
               adIds: sc.adIds,
+              orientation: sc.orientation ?? null,
+              panels: sc.panels ?? null,
             }),
           }),
         ),
@@ -482,6 +507,9 @@ export function BoardContent({
     boardTheme?: 'Dark' | 'Light';
     transitionEffect?: 'Fade' | 'Slide' | 'Zoom' | 'None';
     boardLayout?: BoardLayoutName;
+    boardOrientation?: BoardOrientation;
+    /** [] = volver al default (Menú del día + Comerciales). */
+    boardPanels?: BoardPanel[];
   }) {
     setSavingPrefs(true);
     try {
@@ -675,9 +703,34 @@ export function BoardContent({
                 "Colors come from your business palette and every layout works in dark and light mode.",
               )}
             </p>
+            {boardLayout === 'Panels' && (
+              <div className="mt-3">
+                <PanelsConfig
+                  orientation={boardOrientation}
+                  panels={boardPanels}
+                  categories={categories}
+                  disabled={savingPrefs}
+                  getText={getText}
+                  onChange={({ orientation, panels }) => {
+                    const o = orientation ?? 'Landscape';
+                    setBoardOrientation(o);
+                    setBoardPanels(panels);
+                    savePrefs({ boardOrientation: o, boardPanels: panels ?? [] });
+                  }}
+                />
+              </div>
+            )}
           </div>
         </div>
         </div>
+
+        {/* Menú del día — lo usa el flyer "Menú del día" del diseño Flyers verticales. Solo negocios con
+            platos (restaurantes); los precios se enlazan a esos platos. */}
+        {(products.length > 0 || initialDailyMenu) && (
+          <div className="mt-4">
+            <DailyMenuEditor slug={slug} initialMenu={initialDailyMenu} products={products} getText={getText} />
+          </div>
+        )}
 
         {/* Pantallas adicionales — Fase 9 Etapa B */}
         <div className="mt-4 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5">
@@ -838,6 +891,19 @@ export function BoardContent({
                           getText={getText}
                           onChange={(layout) => updateScreen(screen, { layout })}
                         />
+                        {(screen.layout ?? boardLayout) === 'Panels' && (
+                          <div className="mt-3">
+                            <PanelsConfig
+                              allowInherit
+                              orientation={screen.orientation ?? null}
+                              panels={screen.panels ?? null}
+                              categories={categories}
+                              disabled={screenBusyId === screen.id}
+                              getText={getText}
+                              onChange={({ orientation, panels }) => updateScreen(screen, { orientation, panels })}
+                            />
+                          </div>
+                        )}
                       </div>
                       <label className="flex flex-col gap-1 text-xs font-medium text-gray-500 dark:text-neutral-400">
                         {getText('Idioma', 'Language')}
