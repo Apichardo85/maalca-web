@@ -274,6 +274,25 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
     return entry;
   }
 
+  // Atajos del bloqueo: escribir fecha + dos horas con el teclado táctil es lo más lento de esta
+  // pantalla, y los dos bloqueos más comunes son el almuerzo y el día completo.
+  function applyBlockPreset(kind: 'lunch' | 'day') {
+    if (kind === 'lunch') {
+      setBlockStart('12:00');
+      setBlockEnd('13:00');
+      return;
+    }
+    if (!blockDate) return;
+    const h = hoursFor(new Date(`${blockDate}T00:00:00`));
+    if (h.abre && h.cierra) {
+      setBlockStart(h.abre);
+      setBlockEnd(h.cierra);
+    }
+  }
+  // "HH:mm" compara bien como string. Sin esto el botón se habilitaba con "hasta" antes que
+  // "desde" y el error llegaba recién del servidor.
+  const blockRangeInvalid = !!blockStart && !!blockEnd && blockEnd <= blockStart;
+
   const todayStr = localDateStr(new Date());
   const dayOptions = nextDays(14);
   const selectedDateObj = date ? new Date(`${date}T00:00:00`) : null;
@@ -446,12 +465,33 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
         )}
 
         {services.length === 0 ? (
-          <p className="mt-6 text-sm text-gray-400 dark:text-neutral-500">
-            {getText(
-              'Todavía no tienes servicios en tu catálogo — agrega uno primero para poder agendar citas.',
-              "You don't have any services in your catalog yet — add one first to book appointments.",
+          // Antes esto era un párrafo gris sin salida: decía "agrega uno primero" pero no había
+          // dónde tocar, y en tablet había que adivinar que el camino era Servicios → Nuevo.
+          // Ahora lleva directo al formulario. ?from=catalog solo decide a dónde vuelve la flecha
+          // de atrás del formulario (a la lista de servicios, no al dashboard).
+          <div className="mt-6 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 shadow-sm">
+            <h2 className="text-base font-semibold">
+              {getText('Crea tu primer servicio para empezar a agendar', 'Create your first service to start booking')}
+            </h2>
+            <p className="mt-1 max-w-xl text-sm text-gray-500 dark:text-neutral-400">
+              {getText(
+                'Cada cita se agenda sobre un servicio. Ponle nombre, duración y modalidad — por ejemplo una llamada de 30 minutos por videollamada.',
+                'Every appointment is booked against a service. Give it a name, duration and modality — for example a 30-minute video call.',
+              )}
+            </p>
+            {canManage ? (
+              <Link
+                href={`/space/${slug}/catalog/new?from=catalog`}
+                className="mt-4 inline-flex min-h-[48px] items-center justify-center rounded-full bg-brand-primary px-6 text-sm font-semibold text-white hover:bg-brand-primary-hover"
+              >
+                {getText('+ Crear servicio', '+ Create service')}
+              </Link>
+            ) : (
+              <p className="mt-4 text-xs text-gray-400 dark:text-neutral-500">
+                {getText('Pídele al administrador que cree un servicio.', 'Ask an admin to create a service.')}
+              </p>
             )}
-          </p>
+          </div>
         ) : (
           <div className="mt-6 lg:grid lg:grid-cols-[380px_1fr] lg:items-start lg:gap-6">
           {canManage && (
@@ -795,48 +835,94 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
               )}
             </p>
 
-            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
-              <input
-                type="date"
-                value={blockDate}
-                onChange={(e) => setBlockDate(e.target.value)}
-                className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-2 text-xs sm:col-span-1"
-              />
-              <input
-                type="time"
-                value={blockStart}
-                onChange={(e) => setBlockStart(e.target.value)}
-                className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-2 text-xs"
-              />
-              <input
-                type="time"
-                value={blockEnd}
-                onChange={(e) => setBlockEnd(e.target.value)}
-                className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-2 text-xs"
-              />
-              <select
-                value={blockStaffId}
-                onChange={(e) => setBlockStaffId(e.target.value)}
-                className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-2 text-xs"
-              >
-                <option value="">{getText('Todo el personal', 'Everyone')}</option>
-                {personal.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-              <input
-                value={blockReason}
-                onChange={(e) => setBlockReason(e.target.value)}
-                placeholder={getText('Motivo (opcional)', 'Reason (optional)')}
-                className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 py-2 text-xs"
-              />
+            {/* La rejilla se adapta al ancho REAL de la tarjeta (auto-fit), no al de la ventana: en
+                tablet el menú lateral se come ~360px y sm:grid-cols-5 metía cinco campos en una
+                fila de ~150px cada uno — los date/time salían vacíos y con solo la flecha, y
+                "Todo el personal" y "Motivo" quedaban cortados. */}
+            <div className="mt-3 grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-3">
+              <label className="block">
+                <span className="mb-1 block text-xs font-medium text-gray-500 dark:text-neutral-400">{getText('Fecha', 'Date')}</span>
+                <input
+                  type="date"
+                  value={blockDate}
+                  onChange={(e) => setBlockDate(e.target.value)}
+                  className="min-h-[44px] w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 text-sm dark:[color-scheme:dark]"
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-xs font-medium text-gray-500 dark:text-neutral-400">{getText('Desde', 'From')}</span>
+                <input
+                  type="time"
+                  value={blockStart}
+                  onChange={(e) => setBlockStart(e.target.value)}
+                  className="min-h-[44px] w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 text-sm dark:[color-scheme:dark]"
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-xs font-medium text-gray-500 dark:text-neutral-400">{getText('Hasta', 'Until')}</span>
+                <input
+                  type="time"
+                  value={blockEnd}
+                  onChange={(e) => setBlockEnd(e.target.value)}
+                  aria-invalid={blockRangeInvalid}
+                  className="min-h-[44px] w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 text-sm dark:[color-scheme:dark]"
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-xs font-medium text-gray-500 dark:text-neutral-400">{getText('Aplica a', 'Applies to')}</span>
+                <select
+                  value={blockStaffId}
+                  onChange={(e) => setBlockStaffId(e.target.value)}
+                  className="min-h-[44px] w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 text-sm dark:[color-scheme:dark]"
+                >
+                  <option value="">{getText('Todo el personal', 'Everyone')}</option>
+                  {personal.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block sm:col-span-2">
+                <span className="mb-1 block text-xs font-medium text-gray-500 dark:text-neutral-400">{getText('Motivo (opcional)', 'Reason (optional)')}</span>
+                <input
+                  value={blockReason}
+                  onChange={(e) => setBlockReason(e.target.value)}
+                  placeholder={getText('Almuerzo, viaje, cita médica…', 'Lunch, trip, appointment…')}
+                  className="min-h-[44px] w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 text-sm dark:[color-scheme:dark]"
+                />
+              </label>
             </div>
+
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="text-xs text-gray-400 dark:text-neutral-500">{getText('Atajos:', 'Shortcuts:')}</span>
+              <button
+                type="button"
+                onClick={() => applyBlockPreset('lunch')}
+                className="min-h-[40px] rounded-full border border-gray-300 dark:border-neutral-700 px-4 text-xs font-medium hover:border-brand-primary hover:text-brand-primary"
+              >
+                {getText('Almuerzo 12:00–13:00', 'Lunch 12:00–13:00')}
+              </button>
+              <button
+                type="button"
+                onClick={() => applyBlockPreset('day')}
+                disabled={!blockDate}
+                className="min-h-[40px] rounded-full border border-gray-300 dark:border-neutral-700 px-4 text-xs font-medium hover:border-brand-primary hover:text-brand-primary disabled:opacity-40"
+              >
+                {getText('Todo el día', 'Whole day')}
+              </button>
+            </div>
+
+            {blockRangeInvalid && (
+              <p className="mt-2 text-xs text-red-600 dark:text-red-400">
+                {getText('La hora de fin tiene que ser después de la de inicio.', 'The end time has to be after the start time.')}
+              </p>
+            )}
+
             <button
               onClick={createTimeBlock}
-              disabled={savingBlock || !blockDate || !blockStart || !blockEnd}
-              className="mt-3 rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-2 text-xs font-semibold hover:border-brand-primary hover:text-brand-primary disabled:opacity-50"
+              disabled={savingBlock || !blockDate || !blockStart || !blockEnd || blockRangeInvalid}
+              className="mt-4 inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-brand-primary px-6 text-sm font-semibold text-white hover:bg-brand-primary-hover disabled:opacity-40 sm:w-auto"
             >
               {savingBlock ? getText('Guardando…', 'Saving…') : getText('+ Bloquear horario', '+ Block time')}
             </button>
@@ -859,7 +945,7 @@ export function AgendaContent({ slug, canManage, initialAppointments, services, 
                     <button
                       onClick={() => removeTimeBlock(b.id)}
                       disabled={busyId === b.id}
-                      className="shrink-0 text-gray-400 hover:text-red-500 disabled:opacity-50"
+                      className="shrink-0 min-h-[44px] px-3 text-gray-400 hover:text-red-500 disabled:opacity-50"
                     >
                       {getText('Quitar', 'Remove')}
                     </button>

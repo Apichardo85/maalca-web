@@ -440,11 +440,14 @@ export default function EditForm({
           {isBarberOrService && (
             <div>
               <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">{getText('Duración (minutos)', 'Duration (minutes)')}</label>
+              {/* min="5" y no "1": con step="5" el navegador cuenta los valores válidos desde el mínimo,
+                  así que min="1" dejaba solo 1, 6, 11 … 26, 31 y rechazaba 30, 45, 60 y 90 — ninguna
+                  duración normal se podía guardar. */}
               <input
                 type="number"
                 value={durationMinutes}
                 onChange={(e) => setDurationMinutes(e.target.value)}
-                min="1"
+                min="5"
                 step="5"
                 placeholder={getText('Ej. 30', 'E.g. 30')}
                 className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-neutral-500 focus:border-neutral-400 dark:focus:border-neutral-500 focus:outline-none"
