@@ -3,9 +3,12 @@
  *  - Modo sin conexión SOLO para el board de las TVs (/{slug}/board y /{slug}/board/{pantalla}):
  *    la página se pide primero a la red y, si falla o tarda, se sirve la última guardada; los
  *    scripts de Next (/_next/static, con hash en el nombre) van de caché primero.
+ *    Las fotos de Supabase Storage se sirven del caché de media (ver src/lib/media-cache.ts) cuando
+ *    ya están guardadas, para no volver a bajarlas de la red; los videos van por blob: local.
  *    Todo lo demás pasa directo a la red, sin tocar. */
 const BOARD_CACHE = 'maalca-board-v1';
 const BOARD_RE = /^\/[^/]+\/board(\/[^/]+)?\/?$/;
+const MEDIA_CACHE = 'maalca-media-v1';
 const NETWORK_TIMEOUT_MS = 6000;
 
 self.addEventListener('install', () => self.skipWaiting());
@@ -47,7 +50,15 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return;
+  if (url.origin !== self.location.origin) {
+    // Foto de Storage ya guardada → del caché; si no está, red normal (la guarda la página con CORS).
+    if (url.pathname.includes('/storage/v1/object/public/') && !req.headers.has('range')) {
+      event.respondWith(
+        caches.open(MEDIA_CACHE).then((c) => c.match(req.url)).then((hit) => hit || fetch(req)),
+      );
+    }
+    return;
+  }
   if (req.mode === 'navigate' && BOARD_RE.test(url.pathname)) {
     event.respondWith(networkFirst(req));
   } else if (url.pathname.startsWith('/_next/static/')) {

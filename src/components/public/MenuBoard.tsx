@@ -13,6 +13,7 @@ import {
 import type { HorarioEntry } from '@/lib/business-hours';
 import { PanelsBoard, describePanels } from './BoardPanels';
 import { useWallClock } from '@/hooks/useWallClock';
+import { cachedMediaSrc, pruneMedia, warmMedia, type MediaItem } from '@/lib/media-cache';
 import { buildFrames, locateFrame, locatePerTv, parseSyncParams, slideForScreen, syncParamsFromApi, type ApiWall, type SyncParams } from '@/lib/wall-sync';
 import SyncTestClient from '@/app/sync-test/SyncTestClient';
 import { SINGLE_SCREEN, SpanFrame, SyncedVideo, shouldSpan, useMediaInfo, type MediaInfo } from './BoardSync';
@@ -157,6 +158,14 @@ type Slide =
 
 /** Imágenes que una slide necesita para verse completa. Los videos se cargan solos y quedan
  *  fuera; un plato con video no muestra su foto. */
+/** <video> que usa la copia local (Cache Storage) si ya existe; la URL se fija al montar para no
+ *  reiniciar el video a media reproducción cuando termina de guardarse. */
+function CachedVideo({ src, ...rest }: React.VideoHTMLAttributes<HTMLVideoElement> & { src: string }) {
+  const local = useMemo(() => cachedMediaSrc(src), [src]);
+  // eslint-disable-next-line jsx-a11y/media-has-caption
+  return <video src={local} {...rest} />;
+}
+
 function slideImageUrls(slide: Slide | undefined): string[] {
   if (!slide) return [];
   if (slide.kind === 'ad') return slide.ad.mediaType === 'Image' && slide.ad.mediaUrl ? [slide.ad.mediaUrl] : [];
@@ -361,7 +370,7 @@ function ComboSlideView({
         <div className={`relative flex-1 overflow-hidden ${isDark ? 'bg-neutral-800' : 'bg-neutral-200'}`}>
           {hasMedia ? (
             item.video_url ? (
-              <video
+              <CachedVideo
                 src={item.video_url}
                 className="combo-kenburns absolute inset-0 h-full w-full object-cover"
                 autoPlay muted loop playsInline
@@ -744,6 +753,20 @@ export function MenuBoard({
     setSlideIndex(0);
   }, [slides.length, syncOn]);
 
+  // Caché de media: guarda una sola vez cada foto/video de la rotación y limpia lo que sobra.
+  useEffect(() => {
+    const items: MediaItem[] = [];
+    for (const sl of slides) {
+      if (sl.kind === 'ad') items.push({ url: sl.ad.mediaUrl, video: sl.ad.mediaType === 'Video' });
+      else for (const it of sl.items) {
+        if (it.video_url) items.push({ url: it.video_url, video: true });
+        else if (it.image_url) items.push({ url: it.image_url, video: false });
+      }
+    }
+    warmMedia(items);
+    pruneMedia(new Set(items.map((m) => m.url)));
+  }, [slides]);
+
   // ── Timeline sincronizado ──────────────────────────────────────────────────────────────
   const adMedia = useMemo(() => {
     const seen = new Map<string, { url: string; type: 'Image' | 'Video' }>();
@@ -1108,7 +1131,7 @@ export function MenuBoard({
                 className={`absolute inset-0 h-full w-full ${slide.ad.fit === 'Cover' ? 'object-cover' : 'object-contain'}`}
               />
             ) : slide.ad.mediaType === 'Video' ? (
-              <video
+              <CachedVideo
                 key={slide.ad.id}
                 src={slide.ad.mediaUrl}
                 className={`absolute inset-0 h-full w-full ${slide.ad.fit === 'Cover' ? 'object-cover' : 'object-contain'}`}
@@ -1166,7 +1189,7 @@ export function MenuBoard({
                 {hasMedia && (
                   <div className={`relative flex-1 overflow-hidden ${c.mediaFallback}`}>
                     {item.video_url ? (
-                      <video
+                      <CachedVideo
                         src={item.video_url}
                         className="absolute inset-0 h-full w-full object-cover"
                         autoPlay

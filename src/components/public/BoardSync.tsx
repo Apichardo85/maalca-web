@@ -2,7 +2,8 @@
 
 // Piezas visuales de las pantallas sincronizadas (ver src/lib/wall-sync.ts).
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { cachedMediaSrc } from '@/lib/media-cache';
 import type { WallClock } from '@/lib/wall-clock';
 import type { WallLayout } from '@/lib/wall-sync';
 
@@ -15,6 +16,7 @@ import type { WallLayout } from '@/lib/wall-sync';
 export function SyncedVideo({
   src, startAt, clock, className,
 }: { src: string; startAt: number; clock: WallClock; className?: string }) {
+  const local = useMemo(() => cachedMediaSrc(src), [src]);
   const ref = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -46,7 +48,7 @@ export function SyncedVideo({
     };
   }, [src, startAt, clock]);
 
-  return <video ref={ref} src={src} className={className} autoPlay muted loop playsInline preload="auto" />;
+  return <video ref={ref} src={local} className={className} autoPlay muted loop playsInline preload="auto" />;
 }
 
 /** Lienzo virtual del muro completo (cols × rows pantallas + marcos); esta TV muestra solo su
@@ -112,7 +114,7 @@ export function useMediaInfo(
           v.removeAttribute('src');
           v.load();
         };
-        v.src = url;
+        v.src = cachedMediaSrc(url);
         cleanups.push(() => { v.onloadedmetadata = null; v.removeAttribute('src'); });
       } else {
         const img = new Image();
