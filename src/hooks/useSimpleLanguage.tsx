@@ -565,6 +565,11 @@ const translations = {
     'services.cta.description': 'Empieza gratis hoy, o conversemos sobre qué etapa necesita tu negocio.',
     'services.cta.consultation': 'Empezar gratis',
     'services.cta.portfolio': 'Ver casos reales',
+    'services.cta.booking': 'Agendar asesoría',
+    // Ruta de la oficina virtual de MaalCa (su propio espacio público, con el widget de citas).
+    // Es una clave de contenido a propósito: editable desde /ops/sitio sin desplegar, igual que
+    // cualquier otro texto del sitio. Si el slug del espacio cambia, se corrige ahí.
+    'services.cta.bookingUrl': '/maalca',
     // Contact Page - Hero
     'contactPage.hero.title': 'Hablemos de tu',
     'contactPage.hero.subtitle': 'Proyecto',
@@ -2149,6 +2154,8 @@ const translations = {
     'services.cta.description': "Start free today, or let's talk about what stage your business needs.",
     'services.cta.consultation': 'Start free',
     'services.cta.portfolio': 'See real cases',
+    'services.cta.booking': 'Book a consultation',
+    'services.cta.bookingUrl': '/maalca',
     // Contact Page - Hero
     'contactPage.hero.title': 'Let\'s talk about your',
     'contactPage.hero.subtitle': 'Project',

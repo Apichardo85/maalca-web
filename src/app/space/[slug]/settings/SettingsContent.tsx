@@ -6,6 +6,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { isPaidPlan } from '@/lib/plan-limits';
+import { hasAppointments } from '@/lib/appointment-capable';
 import { PlanPicker } from '@/components/space/billing/PlanPicker';
 import { ExtraScreensControl } from '@/components/space/billing/ExtraScreensControl';
 import { planKey, priceOf, publicPlanName, useBillingSummary } from '@/lib/billing';
@@ -172,9 +173,12 @@ export function SettingsContent({ slug, plan, trialDaysRemaining, currency: init
 
   const trialExpired = !isPaidPlan(plan) && trialDaysRemaining !== null && trialDaysRemaining <= 0;
 
-  // Link fijo de Zoom (o Meet/similar) para reuniones virtuales — solo aplica a Servicios,
-  // que es el único businessType con Modality en sus items de catálogo (ver Service.Modality).
-  const isService = businessType === 'Service';
+  // Link fijo de la sala de reuniones (Zoom, Meet, Teams — el campo acepta cualquier URL).
+  // Antes estaba limitado a businessType === 'Service', así que una barbería con agenda no
+  // podía ofrecer una consulta virtual aunque el motor ya lo soportaba. Ahora el criterio es
+  // "¿este tipo de negocio tiene agenda de citas?", compartido con el catálogo — ver
+  // lib/appointment-capable.ts.
+  const showMeetingLink = hasAppointments(businessType);
   const [zoomLink, setZoomLink] = useState(initialZoomLink ?? '');
   const [zoomSaving, setZoomSaving] = useState(false);
   const [zoomError, setZoomError] = useState<string | null>(null);
@@ -393,36 +397,43 @@ export function SettingsContent({ slug, plan, trialDaysRemaining, currency: init
             {currencyError && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{currencyError}</p>}
           </div>
 
-          {/* Link de reuniones virtuales — Servicios: la misma sala de Zoom para todas las
-              citas marcadas como virtuales, ver Service.Modality y Appointment.IsVirtual. */}
-          {isService && (
-            <div className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6">
-              <p className="text-xs uppercase tracking-wider text-gray-400 dark:text-neutral-500">
-                {getText('Reuniones virtuales', 'Virtual meetings')}
-              </p>
-              <p className="mt-1 text-sm text-gray-600 dark:text-neutral-300">
-                {getText(
-                  'Pega el link de tu sala de Zoom — se incluye automáticamente en las citas que el cliente reserve como virtuales.',
-                  "Paste your Zoom room link — it's automatically included in appointments the client books as virtual.",
-                )}
-              </p>
-              <input
-                type="url"
-                value={zoomLink}
-                onChange={(e) => setZoomLink(e.target.value)}
-                disabled={zoomSaving}
-                placeholder="https://zoom.us/j/..."
-                className="mt-4 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm disabled:opacity-50"
-              />
-              <button
-                onClick={handleSaveZoomLink}
-                disabled={zoomSaving}
-                className="mt-3 w-full rounded-full border border-gray-300 dark:border-neutral-700 py-2.5 text-sm font-medium text-gray-700 dark:text-neutral-300 hover:border-gray-400 disabled:opacity-50"
-              >
-                {zoomSaving ? getText('Guardando...', 'Saving...') : getText('Guardar link', 'Save link')}
-              </button>
-              {zoomError && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{zoomError}</p>}
-            </div>
+          {/* Link de la sala de reuniones — se adjunta a toda cita marcada como virtual
+              (ver Service.Modality y Appointment.IsVirtual). El campo acepta cualquier URL,
+              no solo Zoom. */}
+          {showMeetingLink && (
+          <div className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6">
+            <p className="text-xs uppercase tracking-wider text-gray-400 dark:text-neutral-500">
+              {getText('Reuniones virtuales', 'Virtual meetings')}
+            </p>
+            <p className="mt-1 text-sm text-gray-600 dark:text-neutral-300">
+              {getText(
+                'Pega el link de tu sala de reuniones (Zoom, Google Meet, Teams). Se incluye automáticamente en el correo y en la invitación de calendario de cada cita que el cliente reserve como virtual.',
+                'Paste your meeting room link (Zoom, Google Meet, Teams). It is automatically included in the email and calendar invite for every appointment the client books as virtual.',
+              )}
+            </p>
+            <input
+              type="url"
+              value={zoomLink}
+              onChange={(e) => setZoomLink(e.target.value)}
+              disabled={zoomSaving}
+              placeholder="https://meet.google.com/... · https://zoom.us/j/..."
+              className="mt-4 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm disabled:opacity-50"
+            />
+            <button
+              onClick={handleSaveZoomLink}
+              disabled={zoomSaving}
+              className="mt-3 w-full rounded-full border border-gray-300 dark:border-neutral-700 py-2.5 text-sm font-medium text-gray-700 dark:text-neutral-300 hover:border-gray-400 disabled:opacity-50"
+            >
+              {zoomSaving ? getText('Guardando...', 'Saving...') : getText('Guardar link', 'Save link')}
+            </button>
+            {zoomError && <p className="mt-2 text-xs text-red-600 dark:text-red-400">{zoomError}</p>}
+            <p className="mt-3 text-xs text-gray-400 dark:text-neutral-500">
+              {getText(
+                'Es una sala fija: todas tus citas virtuales usan este mismo link. Deja un margen entre citas para no cruzarte con el cliente anterior.',
+                'This is a fixed room: all your virtual appointments use this same link. Leave a gap between appointments so you do not overlap with the previous client.',
+              )}
+            </p>
+          </div>
           )}
 
           {/* Stripe Connect — recibir pagos de tus propios clientes */}

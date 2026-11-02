@@ -21,6 +21,14 @@ interface AppointmentNotificationBody {
   staffName?: string | null;
   isVirtual?: boolean;
   zoomLink?: string | null;
+  // Para la invitación de calendario (.ics). Opcionales: una versión vieja del API que todavía
+  // no los manda sigue funcionando, solo que la invitación usa duración y zona por defecto.
+  durationMinutes?: number | null;
+  timezone?: string | null;
+  // SEQUENCE del .ics — lo calcula el API a partir de la última modificación de la cita (ver
+  // AppointmentSchedule.RevisionStamp). Sube en cada cambio, así que el calendario del cliente
+  // actualiza el evento en vez de duplicarlo cuando reagenda o cuando el dueño confirma.
+  sequence?: number | null;
 }
 
 export async function POST(request: NextRequest) {
@@ -58,6 +66,10 @@ export async function POST(request: NextRequest) {
     staffName: body.staffName,
     manageUrl,
     zoomLink: body.isVirtual ? body.zoomLink : null,
+    token: body.token,
+    durationMinutes: body.durationMinutes ?? null,
+    timezone: body.timezone ?? null,
+    sequence: body.sequence ?? null,
     brand: { name: body.businessName, logoUrl: body.logoUrl ?? null, color: body.brandColor ?? null },
   });
 

@@ -88,6 +88,17 @@ export const SITE_CONTENT_GROUPS: SiteContentGroup[] = [
     ],
   },
   {
+    group: 'Servicios (/servicios)',
+    fields: [
+      { key: 'services.cta.title', labelEs: 'Cierre — título' },
+      { key: 'services.cta.description', labelEs: 'Cierre — descripción', multiline: true },
+      { key: 'services.cta.booking', labelEs: 'Botón "Agendar asesoría"' },
+      // Ruta/URL de la oficina virtual de MaalCa. Se edita acá (no en código) para que cambiar
+      // el slug del espacio o apuntar a otra página no requiera desplegar.
+      { key: 'services.cta.bookingUrl', labelEs: 'Destino del botón de asesoría (ruta o URL)' },
+    ],
+  },
+  {
     group: 'Casos (/casos)',
     fields: [
       { key: 'casos.subtitle', labelEs: 'Etiqueta superior' },

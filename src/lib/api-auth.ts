@@ -91,7 +91,9 @@ export async function getCurrentSpaceUser(): Promise<CurrentSpaceUser | null> {
 export async function resolveAffiliateIdBySlug(
   slug: string,
   token: string,
-): Promise<{ id: string; name: string } | null> {
+  // timezone es opcional porque lo añadió el .ics de las citas (ver AffiliateSlugLookupDto en
+  // maalca-api): un API todavía sin desplegar simplemente no lo manda.
+): Promise<{ id: string; name: string; timezone?: string | null } | null> {
   const res = await fetch(`${API}/api/affiliates/by-slug/${slug}`, {
     headers: { Authorization: `Bearer ${token}` },
     cache: 'no-store',

@@ -72,6 +72,10 @@ export async function POST(
       time: appointmentBody.time,
       staffName: staffName ?? null,
       manageUrl,
+      // Invitación de calendario.
+      token: data?.token ?? null,
+      durationMinutes: data?.service?.durationMinutes ?? null,
+      timezone: affiliate.timezone ?? null,
     });
   }
 

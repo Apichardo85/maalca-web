@@ -90,17 +90,30 @@ function nowInZone(timezone?: string | null): { y: number; m: number; d: number;
 }
 
 /** Slots de 30 en 30 min entre abre y cierra; con nowMinutes (solo "hoy") excluye los ya pasados. */
+/** Paso de la grilla. Debe coincidir con AppointmentSchedule.SlotMinutes en maalca-api. */
+const SLOT_MINUTES = 30;
+
+/** "HH:mm" → minutos desde medianoche, o null si no parsea. */
+function toMinutes(hhmm: string): number | null {
+  const [h, m] = hhmm.split(':').map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) return null;
+  return h * 60 + m;
+}
+
+/** Minutos desde medianoche → "HH:mm". */
+function formatHm(minutes: number): string {
+  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+}
+
 function generateTimeSlots(abre: string, cierra: string, nowMinutes: number | null): string[] {
   const [openH, openM] = abre.split(':').map(Number);
   const [closeH, closeM] = cierra.split(':').map(Number);
   if ([openH, openM, closeH, closeM].some((n) => Number.isNaN(n))) return [];
 
   const slots: string[] = [];
-  for (let mins = openH * 60 + openM; mins < closeH * 60 + closeM; mins += 30) {
+  for (let mins = openH * 60 + openM; mins < closeH * 60 + closeM; mins += SLOT_MINUTES) {
     if (nowMinutes !== null && mins <= nowMinutes + 15) continue; // margen de 15min para reservas de último minuto
-    const h = Math.floor(mins / 60);
-    const m = mins % 60;
-    slots.push(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`);
+    slots.push(formatHm(mins));
   }
   return slots;
 }
@@ -229,6 +242,10 @@ function CustomSelect({
  * vez de un formulario plano suelto. Se auto-oculta si el negocio no tiene servicios
  * configurados en Agenda todavía.
  */
+/** Clave reservada que manda el API para citas y bloqueos sin profesional asignado.
+ *  Debe coincidir con PublicBookingService.UnassignedStaffKey en maalca-api. */
+const UNASSIGNED_STAFF_KEY = 'unassigned';
+
 export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props>(function PublicBookingSection(
   { slug, language, accent, horario, timezone, enableWalkIn },
   ref,
@@ -308,6 +325,10 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
 
   useEffect(() => {
     setWantsVirtual(false);
+    // Cambiar de servicio cambia cuántos tramos de 30 min ocupa la cita, así que una hora ya
+    // elegida puede quedar inválida (una de 60 min donde solo quedaban 30 libres). Se limpia
+    // para que el cliente la vuelva a elegir, en vez de descubrir el choque al confirmar.
+    setTime('');
   }, [serviceId]);
 
   useEffect(() => {
@@ -488,13 +509,45 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
       ? generateTimeSlots(selectedDayHours.abre, selectedDayHours.cierra, date === todayStr ? nowInfo.minutes : null)
       : [];
 
+  // Tramos de la grilla que ocuparía la cita que se está reservando. Un servicio de 60 min no
+  // ocupa solo su hora de inicio: ocupa 09:00 y 09:30. Antes esto se comparaba contra la hora
+  // exacta, así que dos asesorías de 60 min podían empezar con 30 min de diferencia y solaparse
+  // — en virtual, los dos clientes en la misma sala. El API ahora manda todos los tramos que
+  // cubre cada cita (ver AppointmentSchedule.CoveredSlots en maalca-api) y acá se compara el
+  // intervalo completo de la cita nueva contra ellos.
+  const slotsNeeded = Math.max(1, Math.ceil((selectedService?.durationMinutes || SLOT_MINUTES) / SLOT_MINUTES));
+  const closeMinutes = selectedDayHours && !selectedDayHours.cerrado ? toMinutes(selectedDayHours.cierra) : null;
+  const openMinutes = selectedDayHours && !selectedDayHours.cerrado ? toMinutes(selectedDayHours.abre) : null;
+
   // Task #189 — con un profesional elegido, se oculta cualquier hora ya tomada por él/ella. Con
   // "Cualquiera disponible" (selectedMember === null), una hora solo se oculta si TODO el
   // personal está ocupado a esa hora — si al menos uno está libre, el negocio puede asignarlo.
+  //
+  // Sin personal el negocio es una sola persona, así que se lee la línea "sin asignar" que manda
+  // el API (PublicBookingService.UnassignedStaffKey). Antes esta rama devolvía `false` siempre:
+  // un consultor solo mostraba todas las horas libres aunque ya tuviera citas, y podía recibir
+  // varias reservas para la misma hora.
   const isSlotTaken = (slot: string): boolean => {
-    if (selectedMember) return (busyByStaff[selectedMember.id] ?? []).includes(slot);
-    if (team.length === 0) return false;
-    return team.every((m) => (busyByStaff[m.id] ?? []).includes(slot));
+    const start = toMinutes(slot);
+    if (start === null) return true;
+
+    // La cita no puede pasar de la hora de cierre: una de 60 min no cabe en el último tramo de
+    // 30. No se evalúa en horarios que cruzan medianoche (cierra <= abre), que generateTimeSlots
+    // tampoco contempla.
+    if (closeMinutes !== null && openMinutes !== null && closeMinutes > openMinutes &&
+        start + slotsNeeded * SLOT_MINUTES > closeMinutes) {
+      return true;
+    }
+
+    const needed = Array.from({ length: slotsNeeded }, (_, i) => formatHm(start + i * SLOT_MINUTES));
+    const collides = (key: string) => {
+      const taken = busyByStaff[key] ?? [];
+      return needed.some((s) => taken.includes(s));
+    };
+
+    if (selectedMember) return collides(selectedMember.id);
+    if (team.length === 0) return collides(UNASSIGNED_STAFF_KEY);
+    return team.every((m) => collides(m.id));
   };
   const timeSlots = rawTimeSlots.filter((slot) => !isSlotTaken(slot));
 

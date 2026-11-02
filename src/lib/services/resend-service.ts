@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
 import { renderCardEmail, renderPlainEmail, emailCtaButton, safeBrandColor, MAALCA_BRAND_COLOR, type EmailBrand } from '@/lib/email/layout'
+import { buildAppointmentIcs, googleCalendarUrl } from '@/lib/calendar-invite'
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -470,6 +471,17 @@ export async function sendAppointmentConfirmationEmail(params: {
   // Tarea #405/#408 — solo viene cuando la cita quedó marcada IsVirtual=true (ver
   // Service.Modality/Appointment.IsVirtual). El link fijo de Zoom del negocio.
   zoomLink?: string | null;
+  // Invitación de calendario (.ics adjunto + botón de Google Calendar). Los tres son opcionales:
+  // si el llamador no los pasa, el correo sale igual pero sin invitación — nunca se bloquea el
+  // envío por esto. durationMinutes llega null cuando el dueño no fijó duración del servicio
+  // (Service.DurationMinutes es nullable a propósito) y cae al default del helper.
+  token?: string | null;
+  durationMinutes?: number | null;
+  timezone?: string | null;
+  // SEQUENCE del .ics, calculado por el API (AppointmentSchedule.RevisionStamp). Con el mismo
+  // UID, un número mayor actualiza el evento en el calendario del cliente; sin él, reagendar
+  // dejaría la hora vieja agendada.
+  sequence?: number | null;
   brand?: EmailBrand;
 }): Promise<boolean> {
   if (!resend) {
@@ -493,11 +505,46 @@ export async function sendAppointmentConfirmationEmail(params: {
       `
     : `<p style="font-size: 13px; color: #737373;">Si necesitas cambiarla o cancelarla, contacta directamente al negocio.</p>`;
 
+  // Invitación de calendario: el .ics va adjunto y el botón abre Google Calendar. Se mandan los
+  // dos porque ningún cliente de correo cubre a todos — en Gmail móvil el adjunto se pierde, y
+  // en Apple Mail el .ics se guarda con un toque. Si la fecha no se pudo resolver, los helpers
+  // devuelven null y el correo sale sin invitación.
+  const invite = {
+    uid: params.token ?? null,
+    title: `${params.serviceName} — ${params.businessName}`,
+    date: params.date,
+    time: params.time,
+    durationMinutes: params.durationMinutes ?? null,
+    timezone: params.timezone ?? null,
+    description: params.manageUrl
+      ? `Confirma, reagenda o cancela: ${params.manageUrl}`
+      : null,
+    location: params.zoomLink ?? null,
+    url: params.manageUrl ?? null,
+    sequence: params.sequence ?? 0,
+  };
+  const ics = buildAppointmentIcs(invite);
+  const gcalUrl = googleCalendarUrl(invite);
+  const calendarButton = gcalUrl
+    ? `<div style="text-align: center; margin: 16px 0;"><a href="${gcalUrl}" style="display: inline-block; border: 1px solid #d4d4d4; color: #1a1a1a; text-decoration: none; font-size: 13px; font-weight: 600; padding: 9px 18px; border-radius: 8px;">📅 Añadir a mi calendario</a></div>`
+    : '';
+
   try {
     await resend.emails.send({
       from: fromFor(params.brand),
       to: params.customerEmail,
       subject: `Cita confirmada — ${params.businessName}`,
+      ...(ics
+        ? {
+            attachments: [
+              {
+                filename: 'cita.ics',
+                content: Buffer.from(ics, 'utf-8').toString('base64'),
+                contentType: 'text/calendar; charset=utf-8; method=PUBLISH',
+              },
+            ],
+          }
+        : {}),
       html: renderPlainEmail(`
         <p style="font-size: 15px; line-height: 1.6;">${greeting},</p>
         <p style="font-size: 15px; line-height: 1.6;">Tu cita en <strong>${params.businessName}</strong> quedó confirmada:</p>
@@ -506,6 +553,7 @@ export async function sendAppointmentConfirmationEmail(params: {
           ${dateFmt} · ${params.time}${staffLine}
         </p>
         ${params.zoomLink ? `<div style="text-align: center; margin: 16px 0;"><a href="${params.zoomLink}" style="display: inline-block; background: #1a1a1a; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">💻 Unirme a la reunión</a></div>` : ''}
+        ${calendarButton}
         ${footer}
       `, params.brand),
     });
@@ -1278,6 +1326,14 @@ export async function sendAppointmentStatusEmail(params: {
   staffName?: string | null
   manageUrl?: string | null
   zoomLink?: string | null
+  // Invitación de calendario — mismos campos que sendAppointmentConfirmationEmail. Solo se
+  // adjunta cuando kind === 'confirmed': una cancelación no puede retirar un evento que se
+  // mandó con METHOD:PUBLISH (haría falta una invitación real con ORGANIZER/ATTENDEE), así que
+  // no se finge; el cliente ve la cancelación en el correo y en /cita/{token}.
+  token?: string | null
+  durationMinutes?: number | null
+  timezone?: string | null
+  sequence?: number | null
   brand?: EmailBrand
 }): Promise<boolean> {
   if (!resend) {
@@ -1303,11 +1359,45 @@ export async function sendAppointmentStatusEmail(params: {
     ? `<div style="text-align: center; margin: 16px 0;"><a href="${params.zoomLink}" style="display: inline-block; background: #1a1a1a; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 20px; border-radius: 8px;">💻 Unirme a la reunión</a></div>`
     : ''
 
+  // Mismo UID que mandó la reserva y un SEQUENCE mayor: el calendario del cliente lo trata como
+  // actualización del evento que ya tiene, no como una cita nueva. El número lo calcula el API;
+  // el 1 de respaldo cubre un API viejo que todavía no lo manda.
+  const invite = confirmed
+    ? {
+        uid: params.token ?? null,
+        title: `${params.serviceName} — ${params.businessName}`,
+        date: params.date,
+        time: params.time,
+        durationMinutes: params.durationMinutes ?? null,
+        timezone: params.timezone ?? null,
+        description: params.manageUrl ? `Confirma, reagenda o cancela: ${params.manageUrl}` : null,
+        location: params.zoomLink ?? null,
+        url: params.manageUrl ?? null,
+        sequence: params.sequence ?? 1,
+      }
+    : null
+  const ics = invite ? buildAppointmentIcs(invite) : null
+  const gcalUrl = invite ? googleCalendarUrl(invite) : null
+  const calendarButton = gcalUrl
+    ? `<div style="text-align: center; margin: 16px 0;"><a href="${gcalUrl}" style="display: inline-block; border: 1px solid #d4d4d4; color: #1a1a1a; text-decoration: none; font-size: 13px; font-weight: 600; padding: 9px 18px; border-radius: 8px;">📅 Añadir a mi calendario</a></div>`
+    : ''
+
   try {
     await resend.emails.send({
       from: fromFor(params.brand),
       to: params.customerEmail,
       subject: confirmed ? `Cita confirmada — ${params.businessName}` : `Cita cancelada — ${params.businessName}`,
+      ...(ics
+        ? {
+            attachments: [
+              {
+                filename: 'cita.ics',
+                content: Buffer.from(ics, 'utf-8').toString('base64'),
+                contentType: 'text/calendar; charset=utf-8; method=PUBLISH',
+              },
+            ],
+          }
+        : {}),
       html: renderPlainEmail(
         `
         <p style="font-size: 15px; line-height: 1.6;">${greeting},</p>
@@ -1317,6 +1407,7 @@ export async function sendAppointmentStatusEmail(params: {
           ${dateFmt} · ${params.time}${staffLine}
         </p>
         ${zoom}
+        ${calendarButton}
         ${action}
       `,
         params.brand,

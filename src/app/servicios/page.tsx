@@ -38,6 +38,11 @@ type AddOn = {
 
 type ComparisonValue = boolean | string | { es: string; en: string };
 
+/** Solo rutas internas ("/algo") o URLs absolutas http(s). Cualquier otra cosa oculta el botón. */
+function isUsableHref(value: string): boolean {
+  return value.startsWith("/") || value.startsWith("http://") || value.startsWith("https://");
+}
+
 const plans: Plan[] = [
   {
     id: "inicial",
@@ -329,6 +334,9 @@ export default function ServiciosPage() {
   const { t } = useTranslation();
   const { language } = useSimpleLanguage();
   const L = (v: { es: string; en: string }) => (language === "en" ? v.en : v.es);
+  // Destino del botón de asesoría — override de /ops/sitio si existe, si no el default del
+  // diccionario ('/maalca'). Ver services.cta.bookingUrl en useSimpleLanguage.tsx.
+  const bookingUrl = t("services.cta.bookingUrl");
 
   const renderComparisonValue = (val: ComparisonValue) => {
     if (val === true) {
@@ -832,6 +840,11 @@ export default function ServiciosPage() {
               {t("services.cta.description")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              {/* Agendar asesoría — manda a la oficina virtual de MaalCa, que es nuestro propio
+                  espacio público con el widget de citas (el mismo que usan los negocios). El
+                  destino se edita desde /ops/sitio (clave services.cta.bookingUrl), así que
+                  cambiar el slug no obliga a desplegar. Se oculta si la clave quedó con un valor
+                  que no es ruta ni URL — t() devuelve la propia clave cuando no hay traducción. */}
               <Button
                 variant="primary"
                 size="lg"
@@ -840,6 +853,19 @@ export default function ServiciosPage() {
               >
                 {t("services.cta.consultation")}
               </Button>
+              {isUsableHref(bookingUrl) && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="border-border text-text-primary hover:bg-surface"
+                  onClick={() => {
+                    if (bookingUrl.startsWith("http")) window.open(bookingUrl, "_blank", "noopener,noreferrer");
+                    else router.push(bookingUrl);
+                  }}
+                >
+                  {t("services.cta.booking")}
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="lg"

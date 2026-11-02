@@ -11,6 +11,7 @@ import { WeekDayEditor } from '@/components/space/catalog/WeekDayEditor';
 import { RecipeEditor, type RecipeLine, type RecipeInventoryOption } from '@/components/space/catalog/RecipeEditor';
 import type { MealPeriod, WeekDay } from '@/lib/types';
 import { parseApiError } from '@/lib/api-errors';
+import { hasAppointments } from '@/lib/appointment-capable';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
@@ -53,8 +54,10 @@ export default function NewItemForm({ slug, businessType, businessLanguage, from
   const isBarberOrService = businessType === 'Barber' || businessType === 'Service';
   const isCommunity = businessType === 'Community';
   const isRetail = businessType === 'Retail';
-  // Modality (Presencial/Virtual/Ambas) solo aplica a Servicios — Barbería siempre es presencial.
-  const isService = businessType === 'Service';
+  // Modalidad (Presencial/Virtual/Ambas) aplica a todo tipo con agenda de citas — antes estaba
+  // limitada a 'Service', así que una barbería no podía ofrecer una consulta virtual aunque el
+  // motor ya lo soportaba. Criterio compartido con Configuración: ver lib/appointment-capable.ts.
+  const showModality = hasAppointments(businessType);
   const namePlaceholderPair = (businessType && NAME_PLACEHOLDERS[businessType]) || DEFAULT_NAME_PLACEHOLDER;
   const namePlaceholder = getText(namePlaceholderPair.es, namePlaceholderPair.en);
   const backHref = from === 'catalog' ? `/space/${slug}/catalog` : `/space/${slug}`;
@@ -114,7 +117,7 @@ export default function NewItemForm({ slug, businessType, businessLanguage, from
       if (isBarberOrService && durationMinutes) {
         body.durationMinutes = Number(durationMinutes);
       }
-      if (isService) {
+      if (showModality) {
         body.modality = modality;
       }
 
@@ -337,7 +340,7 @@ export default function NewItemForm({ slug, businessType, businessLanguage, from
             </div>
           )}
 
-          {isService && (
+          {showModality && (
             <div>
               <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">{getText('Modalidad', 'Modality')}</label>
               <select
@@ -346,14 +349,14 @@ export default function NewItemForm({ slug, businessType, businessLanguage, from
                 className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:border-neutral-400 dark:focus:border-neutral-500 focus:outline-none"
               >
                 <option value="InPerson">{getText('Presencial', 'In person')}</option>
-                <option value="Virtual">{getText('Virtual (Zoom)', 'Virtual (Zoom)')}</option>
+                <option value="Virtual">{getText('Virtual (videollamada)', 'Virtual (video call)')}</option>
                 <option value="Both">{getText('Ambas — el cliente elige', 'Both — client chooses')}</option>
               </select>
               {modality !== 'InPerson' && (
                 <p className="mt-2 text-xs text-neutral-400">
                   {getText(
-                    'Configura tu link de Zoom en Configuración para que las citas virtuales lo incluyan.',
-                    'Set your Zoom link in Settings so virtual bookings include it.',
+                    'Configura tu link de reuniones en Configuración para que las citas virtuales lo incluyan.',
+                    'Set your meeting link in Settings so virtual bookings include it.',
                   )}
                 </p>
               )}
