@@ -1,6 +1,6 @@
 'use client'
-import { useState, useCallback } from 'react'
-import type { RetailAttributes } from '@/lib/commerce'
+import { useState, useCallback, useMemo } from 'react'
+import { unitPriceFor, type RetailAttributes } from '@/lib/commerce'
 
 export interface CartItem {
   id: string
@@ -12,6 +12,8 @@ export interface CartItem {
   rules?: RetailAttributes | null
   /** Precio público del producto (Retail con cuentas): permite volver al precio público al cerrar sesión. */
   basePrice?: number
+  /** Solo en el carrito expuesto: precio por unidad antes del escalón de volumen (para tacharlo). */
+  listPrice?: number
 }
 
 export interface CartEntry {
@@ -79,8 +81,18 @@ export function useCart(): UseCartReturn {
     })
   }, [])
 
-  const cartTotal = cart.reduce((sum, e) => sum + e.item.price * e.qty, 0)
-  const cartCount = cart.reduce((sum, e) => sum + e.qty, 0)
+  // Precio por cantidad (Retail): el carrito que ve el resto de la app trae en item.price el precio por unidad
+  // que corresponde a la cantidad de la línea (escalón alcanzado vs. su precio), y listPrice con el de antes del
+  // escalón. Lo guardado no cambia: si baja la cantidad, vuelve solo al precio normal. El API recalcula igual.
+  const pricedCart = useMemo(() => cart.map(e => {
+    const tiers = e.item.rules?.volumeTiers
+    if (!tiers || tiers.length === 0) return e
+    const unit = unitPriceFor(e.item.price, tiers, e.qty)
+    return unit === e.item.price ? e : { ...e, item: { ...e.item, price: unit, listPrice: e.item.price } }
+  }), [cart])
 
-  return { cart, addToCart, removeFromCart, clearCart, updateNotes, reprice, cartTotal, cartCount }
+  const cartTotal = pricedCart.reduce((sum, e) => sum + e.item.price * e.qty, 0)
+  const cartCount = pricedCart.reduce((sum, e) => sum + e.qty, 0)
+
+  return { cart: pricedCart, addToCart, removeFromCart, clearCart, updateNotes, reprice, cartTotal, cartCount }
 }

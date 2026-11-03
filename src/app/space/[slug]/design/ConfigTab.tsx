@@ -253,6 +253,54 @@ export function ConfigTab({ slug, form, businessType, onChange, onCommit, onComm
         </p>
       </div>
 
+      {/* Plantilla de tienda (solo Retail): mismo catálogo, carrito y precios; cambia cómo se ve la tienda. */}
+      {businessType === 'retail' && (
+        <fieldset>
+          <legend className="mb-1 block text-sm font-medium text-gray-700 dark:text-neutral-300">
+            {getText('Estilo de tienda', 'Store style')}
+          </legend>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {([
+              {
+                value: 'boutique',
+                title: getText('Boutique', 'Boutique'),
+                desc: getText('Foto primero, ideal para pocos productos y una tienda de marca.', 'Photo-first, great for a short catalog and a brand shop.'),
+              },
+              {
+                value: 'marketplace',
+                title: getText('Distribuidor', 'Distributor'),
+                desc: getText('Buscador, filtros por marca y tamaño, precio por cantidad y "Comprar de nuevo". Para catálogos grandes y mayoreo.', 'Search, brand and size filters, volume pricing and "Buy again". For large catalogs and wholesale.'),
+              },
+            ] as const).map((opt) => {
+              const active = (form.storeLayout === 'marketplace' ? 'marketplace' : 'boutique') === opt.value;
+              return (
+                <label
+                  key={opt.value}
+                  className={`flex cursor-pointer gap-3 rounded-lg border-2 p-3 transition ${
+                    active
+                      ? 'border-gray-900 bg-gray-50 dark:border-white dark:bg-neutral-800'
+                      : 'border-gray-200 hover:border-gray-300 dark:border-neutral-700 dark:hover:border-neutral-600'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="storeLayout"
+                    value={opt.value}
+                    checked={active}
+                    onChange={() => onChange('storeLayout', opt.value)}
+                    className="mt-1 h-4 w-4 shrink-0 accent-gray-900"
+                  />
+                  <span>
+                    <span className="block text-sm font-semibold text-gray-900 dark:text-white">{opt.title}</span>
+                    <span className="mt-0.5 block text-xs text-gray-500 dark:text-neutral-400">{opt.desc}</span>
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+      )}
+
       {/* Logo + color — instant preview. Apilado en mobile: lado a lado no cabía sin
           achicar los swatches por debajo del mínimo táctil de 44px. */}
       <div className="flex flex-col items-start gap-6 sm:flex-row">

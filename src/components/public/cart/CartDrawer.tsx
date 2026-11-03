@@ -546,6 +546,12 @@ export function CartDrawer({
                 <p style={{ margin: '2px 0 0', fontSize: '13px', color: '#888' }}>
                   {fmt.format(entry.item.price * entry.qty)}
                 </p>
+                {entry.item.listPrice != null && (
+                  <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#2f6b3f', fontWeight: 600 }}>
+                    {getText(`Precio por volumen: ${fmt.format(entry.item.price)} c/u`, `Volume price: ${fmt.format(entry.item.price)} each`)}{' '}
+                    <s style={{ color: '#888', fontWeight: 400 }}>{fmt.format(entry.item.listPrice)}</s>
+                  </p>
+                )}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                 <button

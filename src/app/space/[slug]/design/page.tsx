@@ -144,6 +144,7 @@ export default async function DesignPage({
       primaryColor={biz.primaryColor ?? '#045AFE'}
       secondaryColor={biz.secondaryColor ?? ''}
       accentColor={biz.accentColor ?? ''}
+      storeLayout={biz.storeLayout === 'marketplace' ? 'marketplace' : 'boutique'}
       profileLoaded={publicProfile !== null}
       description={publicProfile?.description ?? ''}
       descriptionEn={publicProfile?.descriptionEn ?? ''}

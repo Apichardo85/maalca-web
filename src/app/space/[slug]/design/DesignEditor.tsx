@@ -38,6 +38,7 @@ interface Props {
   primaryColor: string;
   secondaryColor: string;
   accentColor: string;
+  storeLayout: string;
   profileLoaded: boolean;
   description: string;
   descriptionEn: string;
@@ -72,6 +73,7 @@ export function DesignEditor({
   primaryColor,
   secondaryColor,
   accentColor,
+  storeLayout,
   profileLoaded,
   description,
   descriptionEn,
@@ -104,6 +106,7 @@ export function DesignEditor({
 
   const initialForm: ProfileFormState = {
     name, description, descriptionEn, whatsapp, contactEmail, address, primaryColor, secondaryColor, accentColor, logoUrl, coverImageUrl,
+    storeLayout,
   };
 
   // liveForm updates on every keystroke/click/upload. previewSnapshot only updates for the
@@ -190,6 +193,7 @@ export function DesignEditor({
       // '' borra el color (vuelve al cálculo automático); el API lo trata como "limpiar".
       secondaryColor: liveForm.secondaryColor,
       accentColor: liveForm.accentColor,
+      ...(businessType === 'retail' ? { storeLayout: liveForm.storeLayout } : {}),
     };
     // The public-profile fetch can fail (see page.tsx) — only send gated fields we know are
     // real (successfully loaded) or that the user explicitly edited this session. Never send
@@ -259,6 +263,7 @@ export function DesignEditor({
     contactEmail: previewSnapshot.contactEmail || null,
     canales,
     business_type: businessType,
+    store_layout: liveForm.storeLayout === 'marketplace' ? 'marketplace' : 'boutique',
     processSteps: processSteps.length > 0 ? processSteps : null,
     faq: faq.length > 0 ? faq : null,
     timezone,

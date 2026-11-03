@@ -18,6 +18,8 @@ export interface RetailAttributesForm {
   minOrderQty: string;
   orderQtyMultiple: string;
   maxPerOrder: string;
+  /** Precio por cantidad: filas "desde N unidades → precio c/u". Filas vacías se ignoran al guardar. */
+  volumeTiers: { minQty: string; price: string }[];
 }
 
 const str = (v: number | string | null | undefined) => (v == null ? '' : String(v));
@@ -36,6 +38,7 @@ export function retailFormFrom(r: RetailAttributes | null | undefined): RetailAt
     minOrderQty: str(r?.minOrderQty),
     orderQtyMultiple: str(r?.orderQtyMultiple),
     maxPerOrder: str(r?.maxPerOrder),
+    volumeTiers: (r?.volumeTiers ?? []).map((t) => ({ minQty: str(t.minQty), price: str(t.price) })),
   };
 }
 
@@ -57,6 +60,9 @@ export function retailPayload(f: RetailAttributesForm): RetailAttributes {
     minOrderQty: int(f.minOrderQty),
     orderQtyMultiple: int(f.orderQtyMultiple),
     maxPerOrder: int(f.maxPerOrder),
+    volumeTiers: f.volumeTiers
+      .filter((t) => t.minQty.trim() !== '' && t.price.trim() !== '')
+      .map((t) => ({ minQty: Math.floor(Number(t.minQty)), price: Number(t.price) })),
   };
 }
 
@@ -174,11 +180,76 @@ export function RetailAttributesEditor({
             {getText('Vacío = sin regla. Ej.: cajas de 6 → múltiplos de 6.', 'Empty = no rule. E.g. boxes of 6 → multiples of 6.')}
           </p>
         </div>
+
+        <VolumeTiersEditor value={value.volumeTiers} onChange={(volumeTiers) => onChange({ ...value, volumeTiers })} getText={getText} />
       </div>
     </details>
   );
 }
 
 function hasAny(v: RetailAttributesForm): boolean {
-  return Object.values(v).some((x) => x !== '');
+  return Object.values(v).some((x) => (Array.isArray(x) ? x.length > 0 : x !== ''));
+}
+
+const MAX_TIERS = 5;
+
+/** Precio por cantidad (mayoreo por volumen): "desde N unidades, cada una a $X". El API valida y lo aplica al pedido. */
+function VolumeTiersEditor({
+  value,
+  onChange,
+  getText,
+}: {
+  value: { minQty: string; price: string }[];
+  onChange: (next: { minQty: string; price: string }[]) => void;
+  getText: (es: string, en: string) => string;
+}) {
+  const setRow = (i: number, k: 'minQty' | 'price', v: string) => onChange(value.map((r, j) => (j === i ? { ...r, [k]: v } : r)));
+  return (
+    <div>
+      <p className={labelCls}>{getText('Precio por cantidad', 'Volume pricing')}</p>
+      {value.length > 0 && (
+        <div className="space-y-2">
+          {value.map((row, i) => (
+            <div key={i} className="flex items-end gap-2">
+              <div className="flex-1">
+                <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1" htmlFor={`tier-q-${i}`}>
+                  {getText('Desde (unidades)', 'From (units)')}
+                </label>
+                <input id={`tier-q-${i}`} type="number" min="2" step="1" className={inputCls} value={row.minQty} onChange={(e) => setRow(i, 'minQty', e.target.value)} placeholder="6" />
+              </div>
+              <div className="flex-1">
+                <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1" htmlFor={`tier-p-${i}`}>
+                  {getText('Precio por unidad', 'Price per unit')}
+                </label>
+                <input id={`tier-p-${i}`} type="number" min="0" step="0.01" className={inputCls} value={row.price} onChange={(e) => setRow(i, 'price', e.target.value)} />
+              </div>
+              <button
+                type="button"
+                onClick={() => onChange(value.filter((_, j) => j !== i))}
+                aria-label={getText('Quitar escalón', 'Remove tier')}
+                className="h-11 w-11 shrink-0 rounded-lg border border-neutral-200 dark:border-neutral-700 text-neutral-500 hover:text-red-600"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      {value.length < MAX_TIERS && (
+        <button
+          type="button"
+          onClick={() => onChange([...value, { minQty: '', price: '' }])}
+          className="mt-2 min-h-11 rounded-lg border border-dashed border-neutral-300 dark:border-neutral-600 px-4 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:border-neutral-400"
+        >
+          + {getText('Agregar escalón', 'Add tier')}
+        </button>
+      )}
+      <p className={hintCls}>
+        {getText(
+          'Ej.: desde 6 a $24.99 c/u, desde 12 a $22.50 c/u. Cuenta el total pedido de este producto. Si el cliente tiene una lista de precios más baja, se cobra la más baja.',
+          'E.g. from 6 at $24.99 each, from 12 at $22.50 each. Counts the total ordered of this product. If the customer has a lower price list, the lower price wins.',
+        )}
+      </p>
+    </div>
+  );
 }

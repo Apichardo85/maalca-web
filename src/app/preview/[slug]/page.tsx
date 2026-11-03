@@ -97,6 +97,7 @@ export default async function PreviewAffiliatePage({ params }: PageProps) {
         timezone: affiliate.timezone ?? null,
         horario: affiliate.horario ?? null,
         currency: (affiliate.currency as 'USD' | 'DOP' | undefined) ?? 'USD',
+        store_layout: affiliate.storeLayout === 'marketplace' ? 'marketplace' : 'boutique',
       }}
       items={mappedItems}
       categories={categories}
@@ -127,6 +128,7 @@ interface PublicCatalogResponse {
     timezone?: string | null;
     horario?: PublicTemplateProps['business']['horario'];
     currency?: string | null;
+    storeLayout?: string | null;
   };
   categories?: PublicTemplateProps['categories'];
   items: PublicTemplateProps['items'];

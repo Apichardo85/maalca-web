@@ -310,6 +310,7 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
           programs,
           spanishFlag: affiliate.spanishFlag ?? null,
           ordersEnabled: affiliate.ordersEnabled !== false,
+          store_layout: affiliate.storeLayout === 'marketplace' ? 'marketplace' : 'boutique',
           donationsRaisedThisMonth: donationsSummary?.raisedThisMonth ?? null,
         }}
         items={mappedItems}
@@ -357,6 +358,8 @@ interface PublicCatalogResponse {
     spanishFlag?: string | null;
     // false = módulo "Pedidos" apagado (API: AffiliatePublicDto.OrdersEnabled). Ausente = activo.
     ordersEnabled?: boolean;
+    /** Retail: "boutique" | "marketplace" (Affiliate.StoreLayout). */
+    storeLayout?: string | null;
     // Idioma principal del negocio ('es' | 'en') — Affiliate.Language.
     language?: string | null;
   };

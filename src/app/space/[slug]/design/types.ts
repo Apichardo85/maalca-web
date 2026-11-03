@@ -23,6 +23,8 @@ export interface ProfileFormState {
   accentColor: string;
   logoUrl: string | null;
   coverImageUrl: string | null;
+  /** Solo Retail: "boutique" | "marketplace" (plantilla de tienda, Affiliate.StoreLayout). */
+  storeLayout: string;
 }
 
 /** Fields only reachable via the public-profile fallback fetch — gated on load/touch before submit. */

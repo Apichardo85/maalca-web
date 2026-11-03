@@ -499,8 +499,8 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
         </div>
         <p className="mt-2 text-xs text-gray-500 dark:text-neutral-400">
           {getText(
-            '¿Vienes de Clover? Exporta tus items, guárdalos como CSV e impórtalos aquí. Columnas de tienda opcionales: Marca, Producto base, Variante, Peso oz, Peligroso, Destacado.',
-            'Coming from Clover? Export your items, save them as CSV and import them here. Optional store columns: Brand, Base product, Variant, Weight oz, Hazmat, Featured.',
+            '¿Vienes de Clover? Exporta tus items, guárdalos como CSV e impórtalos aquí. Columnas de tienda opcionales: Marca, Producto base, Variante, Peso oz, Peligroso, Destacado, Precio volumen (ej. "6:24.99; 12:22.50").',
+            'Coming from Clover? Export your items, save them as CSV and import them here. Optional store columns: Brand, Base product, Variant, Weight oz, Hazmat, Featured, Volume pricing (e.g. "6:24.99; 12:22.50").',
           )}
         </p>
 

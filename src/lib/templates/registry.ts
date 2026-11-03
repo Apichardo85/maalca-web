@@ -71,6 +71,10 @@ export interface PublicTemplateProps {
     spanishFlag?: string | null;
     /** false = el módulo "Pedidos" está apagado: no se ofrece pedir por la plataforma (solo canal directo). */
     ordersEnabled?: boolean;
+    /** Solo Retail: plantilla de la tienda. "boutique" (foto primero, catálogo corto) | "marketplace"
+     *  (distribuidor tipo Amazon: buscador, filtros, precio por volumen, comprar de nuevo). Ausente = boutique.
+     *  Se elige en Diseño > Configuración (Affiliate.StoreLayout). */
+    store_layout?: 'boutique' | 'marketplace' | null;
     /** Apagador explícito por sección opcional (Pasos, Galería) — clave ausente =
      *  visible. Independiente de si la sección tiene contenido.
      *
@@ -222,7 +226,8 @@ export const TEMPLATES: Record<BusinessType, ComponentType<PublicTemplateProps>>
   restaurant: dynamic(() => import('@/components/public/templates/Restaurant').then((m) => m.RestaurantTemplate)),
   barber: dynamic(() => import('@/components/public/templates/Barber').then((m) => m.BarberTemplate)),
   service: dynamic(() => import('@/components/public/templates/Service').then((m) => m.ServiceTemplate)),
-  retail: dynamic(() => import('@/components/public/templates/Retail').then((m) => m.RetailTemplate)),
+  // Retail tiene dos plantillas sobre el mismo motor de comercio; RetailLayouts elige por business.store_layout.
+  retail: dynamic(() => import('@/components/public/templates/RetailLayouts').then((m) => m.RetailLayoutsTemplate)),
   community: dynamic(() => import('@/components/public/templates/Community').then((m) => m.CommunityTemplate)),
 };
 

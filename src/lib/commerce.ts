@@ -19,6 +19,31 @@ export interface RetailAttributes {
   minOrderQty?: number | null;
   orderQtyMultiple?: number | null;
   maxPerOrder?: number | null;
+  /** Precio por cantidad (escalones ordenados por minQty). Espejo de RetailAttributes.TierPrice en el API. */
+  volumeTiers?: VolumeTier[] | null;
+}
+
+export interface VolumeTier {
+  minQty: number;
+  price: number;
+}
+
+/** Precio por unidad del escalón alcanzado con `qty` unidades (null = no llega a ningún escalón). */
+export function tierPriceFor(tiers: VolumeTier[] | null | undefined, qty: number): number | null {
+  let price: number | null = null;
+  for (const t of [...(tiers ?? [])].sort((a, b) => a.minQty - b.minQty)) if (qty >= t.minQty) price = t.price;
+  return price;
+}
+
+/** Precio por unidad a cobrar: el menor entre el de la línea (público o de su lista) y el del escalón alcanzado. */
+export function unitPriceFor(price: number, tiers: VolumeTier[] | null | undefined, qty: number): number {
+  const tp = tierPriceFor(tiers, qty);
+  return tp != null && tp < price ? tp : price;
+}
+
+/** Siguiente escalón por alcanzar desde `qty` (para "agrega N más y paga $X c/u"). */
+export function nextTier(tiers: VolumeTier[] | null | undefined, qty: number): VolumeTier | null {
+  return [...(tiers ?? [])].sort((a, b) => a.minQty - b.minQty).find((t) => t.minQty > qty) ?? null;
 }
 
 /** Texto de las advertencias CPSIA que deben verse en la venta online de juguetes. */

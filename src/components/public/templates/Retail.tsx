@@ -920,6 +920,11 @@ function ProductCard({
     addToCart({ id: item.id, name: cartName, price: effectivePrice, basePrice: item.price ?? 0, image: imageUrl ?? undefined, rules }, addStep(cartQty, rules));
   const removeThis = () => removeFromCart(item.id, removeStep(cartQty, rules));
   const rulesLabel = qtyRulesLabel(rules, getText);
+  // Precio por cantidad: el mejor escalón que mejora su precio ("Desde 12 u.: $22.50 c/u"). El carrito lo aplica solo.
+  const topTier = [...(rules?.volumeTiers ?? [])].filter((t) => t.price < effectivePrice).sort((a, b) => b.minQty - a.minQty)[0];
+  const tierLabel = topTier
+    ? getText(`Desde ${topTier.minQty} u.: ${formatPrice(topTier.price, currency)} c/u`, `From ${topTier.minQty} units: ${formatPrice(topTier.price, currency)} each`)
+    : null;
   const choking = rules?.chokingWarning ? CHOKING_WARNINGS[rules.chokingWarning] : null;
   const variantChips = variants ? (
     <div onClick={stop} style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
@@ -1097,6 +1102,9 @@ function ProductCard({
         {rulesLabel && (
           <p style={{ margin: '3px 0 0', fontSize: '11px', color: MUTED }}>{rulesLabel}</p>
         )}
+        {tierLabel && (
+          <p style={{ margin: '3px 0 0', fontSize: '11px', fontWeight: 700, color: accentText }}>{tierLabel}</p>
+        )}
         {variantChips}
       </div>
     </div>
@@ -1121,10 +1129,20 @@ function ProductCard({
       unavailableLabel={soldOut ? getText('Agotado', 'Sold out') : null}
       onRemove={removeThis}
       extra={
-        variantChips || rulesLabel || choking ? (
+        variantChips || rulesLabel || choking || tierLabel ? (
           <div style={{ marginTop: 12 }}>
             {variantChips}
             {rulesLabel && <p style={{ margin: '10px 0 0', fontSize: 12, color: MUTED }}>📦 {rulesLabel}</p>}
+            {(rules?.volumeTiers ?? []).filter((t) => t.price < effectivePrice).length > 0 && (
+              <p style={{ margin: '8px 0 0', fontSize: 12, color: INK }}>
+                <strong>{getText('Precio por cantidad', 'Volume pricing')}: </strong>
+                {[...(rules?.volumeTiers ?? [])]
+                  .filter((t) => t.price < effectivePrice)
+                  .sort((a, b) => a.minQty - b.minQty)
+                  .map((t) => getText(`${t.minQty}+ u. ${formatPrice(t.price, currency)} c/u`, `${t.minQty}+ ${formatPrice(t.price, currency)} each`))
+                  .join(' · ')}
+              </p>
+            )}
             {choking && (
               <div role="note" style={{ marginTop: 12, padding: '10px 12px', border: '2px solid #1f2937', borderRadius: 10, fontSize: 12, lineHeight: 1.45, color: INK }}>
                 <strong>⚠ {choking.en}</strong>

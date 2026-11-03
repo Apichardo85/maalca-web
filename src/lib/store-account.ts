@@ -34,6 +34,8 @@ export interface StoreOrderSummary {
   fulfillmentType: string | null;
   trackingToken: string | null;
   priceListName: string | null;
+  /** Líneas del pedido ("Comprar de nuevo"). Ausente en respuestas de un API anterior. */
+  items?: { itemId: string; name: string; qty: number; unitPrice: number }[] | null;
 }
 
 export interface JoinStoreInput {

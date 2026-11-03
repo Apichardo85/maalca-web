@@ -19,6 +19,8 @@ interface Props {
   surface: string;
   border: string;
   currency?: string;
+  /** "Repetir pedido": la plantilla vuelve a cargar sus líneas en el carrito. Ausente = sin el botón. */
+  onReorder?: (order: StoreOrderSummary) => void;
 }
 
 const STATUS_LABEL: Record<string, { es: string; en: string }> = {
@@ -31,7 +33,7 @@ const STATUS_LABEL: Record<string, { es: string; en: string }> = {
 };
 
 export function StoreAccountSheet({
-  open, onClose, account, businessName, getText, language, accent, onAccent, ink, muted, surface, border, currency = 'USD',
+  open, onClose, account, businessName, getText, language, accent, onAccent, ink, muted, surface, border, currency = 'USD', onReorder,
 }: Props) {
   const { me, token, email } = account;
   const [mail, setMail] = useState('');
@@ -193,6 +195,15 @@ export function StoreAccountSheet({
                         <strong>{fmt.format(o.total)}</strong>
                         {o.trackingToken && (
                           <a href={`/t/${o.trackingToken}`} style={{ marginLeft: 8, color: ink, textDecoration: 'underline' }}>{getText('Ver', 'View')}</a>
+                        )}
+                        {onReorder && o.status !== 'Canceled' && (o.items?.length ?? 0) > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => onReorder(o)}
+                            style={{ marginLeft: 8, background: 'none', border: 0, padding: 0, color: ink, fontWeight: 700, textDecoration: 'underline', cursor: 'pointer', fontSize: 13 }}
+                          >
+                            {getText('Repetir', 'Reorder')}
+                          </button>
                         )}
                       </span>
                     </li>
