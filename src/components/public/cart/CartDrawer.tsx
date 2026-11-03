@@ -57,6 +57,8 @@ export interface CartDrawerProps {
   taxRate: number
   /** El envío también paga impuesto (mismo criterio que SalesTax.Compute en el API). */
   taxOnShipping?: boolean
+  /** Estado donde el negocio cobra impuesto: un envío a otro estado va sin impuesto (mismo criterio que el API). */
+  taxState?: string | null
   whatsappNumber: string
   businessName: string
   currency?: string
@@ -105,6 +107,7 @@ export function CartDrawer({
   cartCount,
   taxRate,
   taxOnShipping = true,
+  taxState = null,
   whatsappNumber,
   businessName,
   currency = 'USD',
@@ -212,7 +215,9 @@ export function CartDrawer({
   const scheduledFor = !shipping && schedule && scheduleAck && !tableNumber ? schedule.dateIso : undefined
 
   // Mismo cálculo que el API (SalesTax.Compute): subtotal (+ envío si se grava), redondeado; lista exenta = 0.
-  const taxExempt = !!storeSession?.taxExempt
+  const outOfStateShipment = shipping && !!taxState && shipTo.state.trim().length === 2
+    && shipTo.state.trim().toUpperCase() !== taxState.toUpperCase()
+  const taxExempt = !!storeSession?.taxExempt || outOfStateShipment
   const tax = taxExempt ? 0 : Math.round((cartTotal + (taxOnShipping ? shipCost : 0)) * taxRate * 100) / 100
   const tip = !restaurantMode
     ? 0
@@ -868,7 +873,11 @@ export function CartDrawer({
             {taxRate > 0 && taxExempt && (
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                 <span style={{ color: '#aaa' }}>Tax</span>
-                <span style={{ color: '#aaa' }}>{getText('Exento (reventa)', 'Exempt (resale)')}</span>
+                <span style={{ color: '#aaa' }}>
+                  {outOfStateShipment
+                    ? getText(`Sin impuesto (envío fuera de ${taxState})`, `No tax (shipping outside ${taxState})`)
+                    : getText('Exento (reventa)', 'Exempt (resale)')}
+                </span>
               </div>
             )}
             {taxRate > 0 && !taxExempt && (

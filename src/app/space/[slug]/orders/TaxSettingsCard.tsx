@@ -8,6 +8,8 @@ import { useState } from 'react';
 export interface TaxSettings {
   rate: number | null;
   taxShipping: boolean;
+  /** Estado donde cobra impuesto (2 letras). Envíos a otro estado van sin impuesto. */
+  state?: string | null;
 }
 
 export function TaxSettingsCard({
@@ -20,6 +22,7 @@ export function TaxSettingsCard({
 }) {
   const [settings, setSettings] = useState<TaxSettings>(initial ?? { rate: null, taxShipping: true });
   const [rateText, setRateText] = useState(initial?.rate != null ? String(initial.rate) : '');
+  const [stateText, setStateText] = useState(initial?.state ?? '');
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -34,11 +37,12 @@ export function TaxSettingsCard({
       const res = await fetch(`/api/space/${slug}/tax-settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rate, taxShipping: settings.taxShipping }),
+        body: JSON.stringify({ rate, taxShipping: settings.taxShipping, state: stateText.trim().toUpperCase() || null }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data) throw new Error(data?.error?.message);
-      setSettings({ rate: data.rate ?? null, taxShipping: data.taxShipping !== false });
+      setSettings({ rate: data.rate ?? null, taxShipping: data.taxShipping !== false, state: data.state ?? null });
+      setStateText(data.state ?? '');
       setRateText(data.rate != null ? String(data.rate) : '');
       toast.success(getText('Impuesto guardado.', 'Tax saved.'));
     } catch (e) {
@@ -49,7 +53,7 @@ export function TaxSettingsCard({
   }
 
   const summary = settings.rate
-    ? `${settings.rate}%${settings.taxShipping ? getText(' · también sobre el envío', ' · also on shipping') : ''}`
+    ? `${settings.rate}%${settings.state ? ` ${getText('en', 'in')} ${settings.state}` : ''}${settings.taxShipping ? getText(' · también sobre el envío', ' · also on shipping') : ''}`
     : getText('sin configurar — no se cobra impuesto', 'not set — no tax charged');
 
   return (
@@ -78,8 +82,24 @@ export function TaxSettingsCard({
             />
             <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
               {getText(
-                'Estatal + condado + ciudad de donde vendes (en NY, consulta la tasa de tu condado en tax.ny.gov). Vacío = no se cobra impuesto.',
-                'State + county + city where you sell (in NY, check your county rate at tax.ny.gov). Empty = no tax charged.',
+                'Estatal + local de donde vendes (NJ: 6.625%; NY: según el condado, en tax.ny.gov). Vacío = no se cobra impuesto.',
+                'State + local rate where you sell (NJ: 6.625%; NY: by county, at tax.ny.gov). Empty = no tax charged.',
+              )}
+            </p>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-neutral-300">{getText('Estado donde cobras impuesto', 'State where you collect tax')}</label>
+            <input
+              value={stateText}
+              onChange={(e) => setStateText(e.target.value.toUpperCase().slice(0, 2))}
+              maxLength={2}
+              placeholder="NJ"
+              className="w-20 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm uppercase dark:border-neutral-700 dark:bg-neutral-900"
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
+              {getText(
+                'Los envíos a otro estado van sin impuesto. Recoger en tienda y envíos dentro del estado sí lo pagan.',
+                'Shipments to another state carry no tax. Store pickup and in-state shipments do.',
               )}
             </p>
           </div>

@@ -16,6 +16,8 @@ export interface PlanCapabilities {
   salesTaxRate?: number | null;
   /** El envío también paga impuesto (default true). */
   salesTaxOnShipping?: boolean;
+  /** Estado donde se cobra impuesto (ej. "NJ"): un envío a otro estado va sin impuesto. */
+  salesTaxState?: string | null;
   bookingCalendar: boolean;
   realtimeStock: boolean;
   menuModifiers: boolean;

@@ -53,7 +53,7 @@ export default async function OrdersPage({
   }
 
   // Impuesto de venta (tarjeta "Impuesto" junto a las reglas).
-  let taxSettings: { rate: number | null; taxShipping: boolean } | null = null;
+  let taxSettings: { rate: number | null; taxShipping: boolean; state?: string | null } | null = null;
   try {
     const taxRes = await fetch(`${API}/api/affiliates/${space.business.id}/tax-settings`, {
       headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': space.business.id },
