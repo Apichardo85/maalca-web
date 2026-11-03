@@ -50,7 +50,8 @@ const MUTED = 'var(--st-muted, #5e636d)';
 const BORDER = 'var(--st-border, #e4e1da)';
 const BORDER_SOFT = 'var(--st-border-soft, #efece6)';
 const PLACEHOLDER = 'var(--st-placeholder, #f1eee8)';
-const BAR = 'var(--st-ink-surface, #13151a)';
+// Barras (cabecera, hero, franja mayorista): el color secundario del negocio tal cual, en claro y en oscuro.
+const BAR = 'var(--st-bar, #13151a)';
 const ACCENT = 'var(--st-accent, #e3a93b)';
 const ON_ACCENT = 'var(--st-on-accent, #13151a)';
 const ACCENT_TEXT = 'var(--st-accent-text, #7a4e00)';
@@ -107,7 +108,9 @@ export function StoreTemplate({ business, items, categories: categoriesProp, cap
   const primary = business.primary_color ?? DEFAULT_BRAND;
   const light = deriveBrandPalette(primary, business.secondary_color ?? DEFAULT_BAR, business.accent_color);
   const dark = deriveDarkBrandPalette(primary, business.secondary_color ?? DEFAULT_BAR, business.accent_color);
-  const themeCss = brandPaletteCss('st-scope', 'st', light, dark);
+  // Barras = secundario tal cual (en oscuro el derivado toma el matiz del primario y un dorado quedaba oliva).
+  const bar = /^#[0-9a-f]{6}$/i.test(business.secondary_color ?? '') ? (business.secondary_color as string) : DEFAULT_BAR;
+  const themeCss = brandPaletteCss('st-scope', 'st', light, dark) + `.st-scope{--st-bar:${bar}}`;
 
   // ── Carrito, cuenta de cliente y horario (mismo motor que la boutique) ──
   const waRaw = resolveWhatsAppDigits(business);
@@ -189,14 +192,16 @@ export function StoreTemplate({ business, items, categories: categoriesProp, cap
     for (const i of items) m.set(groupKeyOf(i), [...(m.get(groupKeyOf(i)) ?? []), i]);
     return m;
   }, [items]);
-  const categoryNames: string[] =
-    categoriesProp.length > 0
-      ? [...categoriesProp].sort((a, b) => a.sort_order - b.sort_order).map((c) => c.name)
-      : Array.from(new Set(items.map((i) => i.category).filter((c): c is string => !!c)));
   const inCategory = (i: Item, cat: string) => {
     const catId = categoriesProp.find((c) => c.name === cat)?.id;
     return (catId !== undefined && i.category_id === catId) || i.category === cat;
   };
+  // Solo departamentos con productos: una categoría vacía (ej. las de ejemplo de un espacio nuevo) no se ofrece.
+  const categoryNames: string[] = (
+    categoriesProp.length > 0
+      ? [...categoriesProp].sort((a, b) => a.sort_order - b.sort_order).map((c) => c.name)
+      : Array.from(new Set(items.map((i) => i.category).filter((c): c is string => !!c)))
+  ).filter((c) => items.some((i) => inCategory(i, c)));
   const brandCounts = useMemo(() => {
     const m = new Map<string, number>();
     for (const i of items) {
