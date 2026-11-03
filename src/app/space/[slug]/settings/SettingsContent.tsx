@@ -193,7 +193,7 @@ export function SettingsContent({ slug, plan, trialDaysRemaining, currency: init
         body: JSON.stringify({ zoomLink: zoomLink.trim() }),
       });
       if (!res.ok) throw new Error();
-      toast.success(getText('Link de Zoom guardado.', 'Zoom link saved.'));
+      toast.success(getText('Link de reunión guardado.', 'Meeting link saved.'));
     } catch {
       setZoomError(getText('No pudimos guardar el link. Intenta de nuevo.', "We couldn't save the link. Please try again."));
       toast.error(getText('No pudimos guardar el link.', "Couldn't save the link."));

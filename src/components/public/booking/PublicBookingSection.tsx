@@ -789,7 +789,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                       ) : null}
                       {selectedService?.modality === 'Virtual' && (
                         <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-neutral-400">
-                          💻 {getText('Esta cita será por Zoom.', "This appointment will be over Zoom.")}
+                          💻 {getText('Esta cita será por videollamada.', 'This appointment will be a video call.')}
                         </p>
                       )}
                       {selectedService?.modality === 'Both' && (
@@ -808,7 +808,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
                             className={`flex-1 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${wantsVirtual ? '' : 'border-[#e5e7eb] text-[#374151] dark:border-neutral-700 dark:text-neutral-200'}`}
                             style={wantsVirtual ? { backgroundColor: color, borderColor: color, color: '#fff' } : undefined}
                           >
-                            💻 {getText('Por Zoom', 'By Zoom')}
+                            💻 {getText('Videollamada', 'Video call')}
                           </button>
                         </div>
                       )}

@@ -122,7 +122,7 @@ export function PublicAppointmentContent({
         {appointment.isVirtual && (
           <div className="mt-4 rounded-lg bg-gray-50 px-3 py-2.5 text-sm dark:bg-neutral-800">
             <p className="font-semibold text-gray-700 dark:text-neutral-200">
-              💻 {getText('Cita virtual (Zoom)', 'Virtual appointment (Zoom)')}
+              💻 {getText('Cita por videollamada', 'Video call appointment')}
             </p>
             {appointment.zoomLink && (appointment.status === 'Scheduled' || appointment.status === 'Confirmed') && (
               <a
