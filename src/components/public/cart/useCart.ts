@@ -10,6 +10,8 @@ export interface CartItem {
   /** Retail: reglas de cantidad (mín./múltiplo/máx.) y hazmat del producto — el carrito suma/resta en
    *  pasos válidos y el checkout solo ofrece envíos terrestres si hay perfumes. */
   rules?: RetailAttributes | null
+  /** Precio público del producto (Retail con cuentas): permite volver al precio público al cerrar sesión. */
+  basePrice?: number
 }
 
 export interface CartEntry {
@@ -28,6 +30,8 @@ export interface UseCartReturn {
   clearCart: () => void
   /** Edita las notas de una línea ya en el carrito — no crea una línea nueva ni cambia qty. */
   updateNotes: (itemId: string, notes: string) => void
+  /** Recalcula el precio mostrado de cada línea (ej. al iniciar/cerrar sesión de miembro). El API recalcula igual. */
+  reprice: (priceOf: (item: CartItem) => number) => void
   cartTotal: number
   cartCount: number
 }
@@ -62,8 +66,21 @@ export function useCart(): UseCartReturn {
     setCart(prev => prev.map(e => (e.item.id === itemId ? { ...e, notes } : e)))
   }, [])
 
+  const reprice = useCallback((priceOf: (item: CartItem) => number) => {
+    setCart(prev => {
+      let changed = false
+      const next = prev.map(e => {
+        const price = priceOf(e.item)
+        if (price === e.item.price) return e
+        changed = true
+        return { ...e, item: { ...e.item, price } }
+      })
+      return changed ? next : prev
+    })
+  }, [])
+
   const cartTotal = cart.reduce((sum, e) => sum + e.item.price * e.qty, 0)
   const cartCount = cart.reduce((sum, e) => sum + e.qty, 0)
 
-  return { cart, addToCart, removeFromCart, clearCart, updateNotes, cartTotal, cartCount }
+  return { cart, addToCart, removeFromCart, clearCart, updateNotes, reprice, cartTotal, cartCount }
 }

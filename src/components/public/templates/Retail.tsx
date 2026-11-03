@@ -36,6 +36,8 @@ import PublicThemeToggle from '@/components/public/PublicThemeToggle';
 import { brandPaletteCss, deriveBrandPalette, deriveDarkBrandPalette } from '@/lib/brand-palette';
 import { useDeepLinkedItemId } from '@/lib/use-deep-linked-item';
 import { addStep, addWouldExceed, CHOKING_WARNINGS, qtyRulesLabel, removeStep } from '@/lib/commerce';
+import { useStoreAccount } from '@/lib/store-account';
+import { StoreAccountSheet } from '@/components/public/StoreAccountSheet';
 
 // Serif editorial solo para títulos (hero, secciones, nombre del producto en el detalle). El resto va en la
 // sans del sitio para que precios y descripciones se lean limpios en móvil.
@@ -107,9 +109,30 @@ export function RetailTemplate({
   // waRaw alimenta el carrito por WhatsApp (WhatsAppCart, abajo). WhatsApp como CONTACTO ya no
   // va destacado en el hero: vive en la fila de canales (ContactSection) como un canal más.
   const waRaw = resolveWhatsAppDigits(business);
-  const { cart, addToCart, removeFromCart, cartTotal, cartCount } = useCart();
+  const { cart, addToCart, removeFromCart, reprice, cartTotal, cartCount } = useCart();
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
+
+  // Cuenta de cliente (miembro/mayorista): solo si la tienda tiene el módulo de listas de precio. Los precios de su
+  // lista se muestran aquí; el API los recalcula al crear el pedido (con su sesión).
+  const storeAccounts = capabilities.storeAccounts === true;
+  const account = useStoreAccount(business.slug, storeAccounts);
+  const { memberPrices } = account;
+  const memberListName = account.me?.status === 'approved' ? account.me.priceListName : null;
+  const [accountOpen, setAccountOpen] = useState(false);
+  useEffect(() => {
+    // Al volver del inicio de sesión (?cuenta=1) se abre la hoja de cuenta y se limpia la URL.
+    const url = new URL(window.location.href);
+    if (storeAccounts && url.searchParams.get('cuenta') === '1') {
+      setAccountOpen(true);
+      url.searchParams.delete('cuenta');
+      window.history.replaceState(null, '', url.pathname + (url.search ? url.search : '') + url.hash);
+    }
+  }, [storeAccounts]);
+  // Iniciar/cerrar sesión cambia el precio de lo que ya está en el carrito.
+  useEffect(() => {
+    reprice((it) => memberPrices.get(it.id) ?? it.basePrice ?? it.price);
+  }, [memberPrices, reprice]);
 
   // Abierto/cerrado depende del reloj: solo en cliente (la página es ISR) y se refresca cada minuto.
   // Cerrado => el pedido se programa para la próxima apertura; el API lo exige igual (ResolveSchedule)
@@ -217,6 +240,20 @@ export function RetailTemplate({
 
         {/* language/theme toggles — esquina superior derecha, fuera del contenido centrado */}
         <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 2, display: 'flex', gap: '8px' }}>
+          {storeAccounts && (
+            <button
+              type="button"
+              onClick={() => setAccountOpen(true)}
+              style={{
+                minHeight: 36, padding: '0 12px', borderRadius: 9999, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                border: heroDark ? '1px solid rgba(255,255,255,0.5)' : '1px solid rgba(0,0,0,0.2)',
+                background: heroDark ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.7)',
+                color: heroDark ? '#ffffff' : '#1f1a14', whiteSpace: 'nowrap',
+              }}
+            >
+              {memberListName ? `🏷️ ${memberListName}` : account.token ? `👤 ${getText('Mi cuenta', 'My account')}` : `👤 ${getText('Entrar', 'Sign in')}`}
+            </button>
+          )}
           <SimpleLanguageToggle variant={heroDark ? 'light' : 'dark'} spanishFlag={business.spanishFlag} />
           <PublicThemeToggle variant={heroDark ? 'light' : 'dark'} />
         </div>
@@ -448,6 +485,8 @@ export function RetailTemplate({
                   return group && group.length > 1 ? group : undefined;
                 })()}
                 qtyOf={(id) => cart.find((e) => e.item.id === id)?.qty ?? 0}
+                memberPriceOf={(id) => memberPrices.get(id)}
+                memberListName={memberListName}
                 accent={accentFill}
                 accentText={accentText}
                 onAccent={onAccent}
@@ -488,6 +527,24 @@ export function RetailTemplate({
 
       <PublicFooter business={business} capabilities={capabilities} language={language} />
 
+      {storeAccounts && (
+        <StoreAccountSheet
+          open={accountOpen}
+          onClose={() => setAccountOpen(false)}
+          account={account}
+          businessName={business.name}
+          getText={getText}
+          language={language}
+          accent={accentFill}
+          onAccent={onAccent}
+          ink={INK}
+          muted={MUTED}
+          surface={SURFACE}
+          border={BORDER}
+          currency={business.currency}
+        />
+      )}
+
       {/* Carrito siempre disponible: sin WhatsApp el cliente igual puede pedir y pagar al recoger (o con
           tarjeta si hay Stripe); el carrito oculta las opciones que el negocio no tiene. */}
       <WhatsAppCart
@@ -502,6 +559,11 @@ export function RetailTemplate({
         onlinePayments={capabilities.onlinePayments && capabilities.stripeReady !== false}
         pickupNewCustomerLimit={capabilities.pickupNewCustomerLimit ?? null}
         shippingMethods={capabilities.shippingMethods}
+        storeSession={
+          account.token && account.me && account.me.status !== 'unavailable'
+            ? { token: account.token, name: account.me.name, email: account.me.email ?? account.email, priceListName: memberListName, minOrderAmount: memberListName ? account.me.minOrderAmount : null }
+            : null
+        }
         ordersPaused={business.ordersEnabled === false}
         pickupOrders
         schedule={cartSchedule}
@@ -656,6 +718,8 @@ function ProductCard({
   item: baseItem,
   variants,
   qtyOf,
+  memberPriceOf,
+  memberListName,
   accent,
   accentText,
   onAccent,
@@ -672,6 +736,9 @@ function ProductCard({
   /** Variantes del mismo producto base (incluye `item`); undefined = producto sin variantes. */
   variants?: PublicTemplateProps['items'];
   qtyOf: (itemId: string) => number;
+  /** Precio de la lista del cliente con sesión (undefined = precio público). */
+  memberPriceOf: (itemId: string) => number | undefined;
+  memberListName: string | null;
   accent: string;
   accentText: string;
   onAccent: string;
@@ -688,6 +755,9 @@ function ProductCard({
   const item = variants?.find((v) => v.id === variantId) ?? baseItem;
   const cartQty = qtyOf(item.id);
   const rules = item.retail ?? null;
+  const memberPrice = memberPriceOf(item.id);
+  const hasMemberPrice = memberPrice != null && item.price != null && memberPrice !== item.price;
+  const effectivePrice = memberPrice ?? item.price ?? 0;
   const imageUrl = item.imageUrl ?? item.image_url ?? baseItem.imageUrl ?? baseItem.image_url;
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
   const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
@@ -705,7 +775,7 @@ function ProductCard({
   const hasDetail = Boolean(imageUrl || description);
   const cartName = item.retail?.variantLabel && variants ? `${displayName} · ${item.retail.variantLabel}` : displayName;
   const addThis = () =>
-    addToCart({ id: item.id, name: cartName, price: item.price ?? 0, image: imageUrl ?? undefined, rules }, addStep(cartQty, rules));
+    addToCart({ id: item.id, name: cartName, price: effectivePrice, basePrice: item.price ?? 0, image: imageUrl ?? undefined, rules }, addStep(cartQty, rules));
   const removeThis = () => removeFromCart(item.id, removeStep(cartQty, rules));
   const rulesLabel = qtyRulesLabel(rules, getText);
   const choking = rules?.chokingWarning ? CHOKING_WARNINGS[rules.chokingWarning] : null;
@@ -848,7 +918,13 @@ function ProductCard({
             />
           </div>
         )}
-        {item.price != null && (
+        {item.price != null && hasMemberPrice ? (
+          <p style={{ margin: '6px 0 0', fontSize: '15px', fontWeight: 700, color: accentText }}>
+            {formatPrice(effectivePrice, currency)}
+            <s style={{ marginLeft: 6, fontSize: 12, fontWeight: 500, color: MUTED }}>{formatPrice(item.price, currency)}</s>
+            {memberListName && <span style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>🏷️ {memberListName}</span>}
+          </p>
+        ) : item.price != null && (
           <p style={{ margin: '6px 0 0', fontSize: '15px', fontWeight: 700, color: onSale ? accentText : INK }}>
             {formatPrice(item.price, currency)}
             {onSale && (
@@ -874,7 +950,7 @@ function ProductCard({
       onClose={() => setDetailOpen(false)}
       name={displayName}
       description={description}
-      priceLabel={item.price != null ? formatPrice(item.price, currency) : null}
+      priceLabel={item.price != null ? formatPrice(effectivePrice, currency) : null}
       imageUrl={imageUrl}
       images={item.images}
       shareUrl={shareUrl}
@@ -883,7 +959,7 @@ function ProductCard({
         ...(item.featured ? [`⭐ ${getText('Destacado', 'Featured')}`] : []),
         ...(item.popular ? [`🔥 ${getText('Popular', 'Popular')}`] : []),
       ]}
-      compareAtLabel={onSale ? formatPrice(item.compareAtPrice as number, currency) : null}
+      compareAtLabel={hasMemberPrice ? formatPrice(item.price as number, currency) : onSale ? formatPrice(item.compareAtPrice as number, currency) : null}
       category={categoryLabel(item.category, language, categoryTranslations)}
       qty={cartQty}
       onAdd={atMax ? () => {} : addThis}

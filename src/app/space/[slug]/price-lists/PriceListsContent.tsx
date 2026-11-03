@@ -3,12 +3,13 @@
 // Listas de precio (Miembro, Mayorista…): un descuento general sobre el precio público y, si hace falta, un
 // precio fijo por producto. El precio final lo calcula el API (PriceListPricing) — la vista previa de abajo usa
 // ese mismo cálculo, así lo que ves aquí es lo que se cobra.
-// Quién compra con qué lista lo deciden las cuentas de cliente de la tienda (siguiente fase): hasta entonces las
-// listas se preparan aquí y los pedidos públicos siguen a precio público.
+// Quién compra con qué lista lo decide la cuenta de cliente de la tienda (MembersPanel, abajo): un invitado siempre
+// paga el precio público.
 import { useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
+import { MembersPanel, type StoreCustomerRow, type StoreSettings } from './MembersPanel';
 
 export interface PriceListRow {
   id: string;
@@ -34,6 +35,8 @@ interface Props {
   slug: string;
   initialLists: PriceListRow[];
   currency: 'USD' | 'DOP';
+  initialMembers: StoreCustomerRow[];
+  initialSettings: StoreSettings | null;
 }
 
 const emptyForm = () => ({ name: '', description: '', discountPercent: '', minOrderAmount: '', isActive: true });
@@ -46,7 +49,7 @@ function resolvePrice(publicPrice: number, discountPercent: number, fixed: strin
   return Math.round(publicPrice * (1 - pct / 100) * 100) / 100;
 }
 
-export function PriceListsContent({ slug, initialLists, currency }: Props) {
+export function PriceListsContent({ slug, initialLists, currency, initialMembers, initialSettings }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -171,12 +174,6 @@ export function PriceListsContent({ slug, initialLists, currency }: Props) {
         )}
       </div>
 
-      <p className="mt-4 rounded-lg border border-border bg-surface-elevated px-3 py-2 text-xs text-text-secondary">
-        {getText(
-          'Próximamente: tus clientes inician sesión en tu tienda y ven el precio de su lista. Mientras tanto, prepara aquí tus listas — tu página sigue mostrando el precio público.',
-          'Coming soon: your customers sign in to your store and see their list price. Meanwhile, set up your lists here — your page keeps showing the public price.',
-        )}
-      </p>
 
       {showForm && (
         <div className="mt-5 rounded-xl border border-border bg-surface p-4 space-y-3">
@@ -313,6 +310,16 @@ export function PriceListsContent({ slug, initialLists, currency }: Props) {
           ))}
         </ul>
       )}
+      <MembersPanel
+        slug={slug}
+        lists={lists}
+        initialMembers={initialMembers}
+        initialSettings={initialSettings}
+        getText={getText}
+        language={language}
+        onError={(m) => toast.error(m)}
+        onSuccess={(m) => toast.success(m)}
+      />
     </div>
   );
 }

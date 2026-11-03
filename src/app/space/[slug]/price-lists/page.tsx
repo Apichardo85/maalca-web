@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getMaalcaApiToken } from '@/lib/api-auth';
 import { PriceListsContent, type PriceListRow } from './PriceListsContent';
+import type { StoreCustomerRow, StoreSettings } from './MembersPanel';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -36,5 +37,27 @@ export default async function PriceListsPage({ params }: { params: Promise<{ slu
     // Queda vacío — PriceListsContent muestra el estado vacío.
   }
 
-  return <PriceListsContent slug={slug} initialLists={lists} currency={space.business.currency === 'DOP' ? 'DOP' : 'USD'} />;
+  const headers = { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': space.business.id };
+  let members: StoreCustomerRow[] = [];
+  let settings: StoreSettings | null = null;
+  try {
+    const [mRes, sRes] = await Promise.all([
+      fetch(`${API}/api/affiliates/${space.business.id}/store-customers`, { headers, cache: 'no-store' }),
+      fetch(`${API}/api/affiliates/${space.business.id}/store-settings`, { headers, cache: 'no-store' }),
+    ]);
+    if (mRes.ok) members = await mRes.json();
+    if (sRes.ok) settings = await sRes.json();
+  } catch {
+    // Vacío/null — el panel de miembros usa los defaults (con aprobación, sin miembros).
+  }
+
+  return (
+    <PriceListsContent
+      slug={slug}
+      initialLists={lists}
+      currency={space.business.currency === 'DOP' ? 'DOP' : 'USD'}
+      initialMembers={members}
+      initialSettings={settings}
+    />
+  );
 }

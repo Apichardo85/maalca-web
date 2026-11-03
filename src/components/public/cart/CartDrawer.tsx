@@ -3,6 +3,7 @@ import { formatPhoneInput, isValidPhone, normalizePhone, PHONE_INPUT_PROPS } fro
 import { useEffect, useMemo, useState } from 'react'
 import { addStep, addWouldExceed, deliveryDaysLabel, qtyRuleError, removeStep, shippingCost, US_ZIP, type PublicShippingMethod } from '@/lib/commerce'
 import type { CartEntry, CartItem } from './useCart'
+import { storeOrderEndpoint } from '@/lib/store-account'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080'
 
@@ -45,7 +46,7 @@ function buildWhatsAppUrl(
   return `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`
 }
 
-interface CartDrawerProps {
+export interface CartDrawerProps {
   isOpen: boolean
   onClose: () => void
   cart: CartEntry[]
@@ -70,6 +71,8 @@ interface CartDrawerProps {
   /** Envío a domicilio (Retail): métodos activos del negocio. Se ofrece solo con pago online (un envío se cobra
    *  antes de despacharse) y fuera de pedidos de mesa. Con perfumes en el carrito, solo métodos terrestres. */
   shippingMethods?: PublicShippingMethod[]
+  /** Cliente con sesión en la tienda (miembro/mayorista): el pedido va con su token y el API aplica su lista. */
+  storeSession?: { token: string; name?: string | null; email?: string | null; priceListName?: string | null; minOrderAmount?: number | null } | null
   /** Edita las notas de personalización de una línea — solo se usa si restaurantMode. */
   updateNotes?: (itemId: string, notes: string) => void
   /** Restaurante: habilita notas de personalización por línea + selector de propina. */
@@ -107,6 +110,7 @@ export function CartDrawer({
   ordersPaused = false,
   pickupNewCustomerLimit = null,
   shippingMethods,
+  storeSession = null,
   updateNotes,
   restaurantMode = false,
   pickupOrders = false,
@@ -139,6 +143,19 @@ export function CartDrawer({
   const [fulfillment, setFulfillment] = useState<'pickup' | 'shipping'>('pickup')
   const [shipMethodId, setShipMethodId] = useState<string | null>(null)
   const [shipTo, setShipTo] = useState({ line1: '', line2: '', city: '', state: '', zip: '' })
+
+  // Con sesión de miembro: nombre y correo de su cuenta precargados (los puede cambiar).
+  useEffect(() => {
+    if (!isOpen || !storeSession) return
+    if (storeSession.name) setGuestName(n => n || storeSession.name || '')
+    if (storeSession.email) setGuestEmail(m => m || storeSession.email || '')
+  }, [isOpen, storeSession])
+
+  // Pedido con sesión → endpoint de tienda con su token (el API aplica la lista del cliente); invitado → público.
+  const orderUrl = storeSession && slug ? storeOrderEndpoint(slug) : `${API_BASE}/api/public/affiliates/${slug}/orders`
+  const orderHeaders: Record<string, string> = storeSession
+    ? { 'Content-Type': 'application/json', Authorization: `Bearer ${storeSession.token}` }
+    : { 'Content-Type': 'application/json' }
 
   // Con el carrito abierto la página de atrás no debe moverse: el scroll es solo del panel.
   useEffect(() => {
@@ -227,9 +244,9 @@ export function CartDrawer({
     setTableError('')
     try {
       const origin = window.location.origin
-      const res = await fetch(`${API_BASE}/api/public/affiliates/${slug}/orders`, {
+      const res = await fetch(orderUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: orderHeaders,
         body: JSON.stringify({
           items: cart.map(e => ({
             itemId: e.item.id,
@@ -307,9 +324,9 @@ export function CartDrawer({
     setPickupError('')
     setCheckoutState('loading')
     try {
-      const res = await fetch(`${API_BASE}/api/public/affiliates/${slug}/orders`, {
+      const res = await fetch(orderUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: orderHeaders,
         body: JSON.stringify({
           items: cart.map(e => ({ itemId: e.item.id, name: e.item.name, price: e.item.price, qty: e.qty, notes: e.notes?.trim() || undefined })),
           subtotal: cartTotal,
@@ -353,9 +370,9 @@ export function CartDrawer({
     setCheckoutState('loading')
     setTableError('')
     try {
-      const res = await fetch(`${API_BASE}/api/public/affiliates/${slug}/orders`, {
+      const res = await fetch(orderUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: orderHeaders,
         body: JSON.stringify({
           items: cart.map(e => ({
             itemId: e.item.id,
@@ -865,6 +882,16 @@ export function CartDrawer({
             )}
             {ruleError && (
               <p role="alert" style={{ margin: '4px 0 0', fontSize: '12px', color: '#b91c1c' }}>{ruleError}</p>
+            )}
+            {storeSession?.priceListName && (
+              <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#047857', fontWeight: 600 }}>
+                🏷️ {getText(`Precio ${storeSession.priceListName} aplicado`, `${storeSession.priceListName} pricing applied`)}
+                {storeSession.minOrderAmount && cartTotal < storeSession.minOrderAmount ? (
+                  <span style={{ display: 'block', color: '#b45309', fontWeight: 500 }}>
+                    {getText(`Pedido mínimo ${fmt.format(storeSession.minOrderAmount)} (te faltan ${fmt.format(storeSession.minOrderAmount - cartTotal)})`, `Minimum order ${fmt.format(storeSession.minOrderAmount)} (${fmt.format(storeSession.minOrderAmount - cartTotal)} to go)`)}
+                  </span>
+                ) : null}
+              </p>
             )}
             <div
               style={{

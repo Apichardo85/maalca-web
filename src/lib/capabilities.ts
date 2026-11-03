@@ -10,6 +10,8 @@ export interface PlanCapabilities {
   pickupNewCustomerLimit?: number | null;
   /** Envío a domicilio: métodos activos del negocio (vacío/ausente = no ofrece envío). Solo se ofrece con stripeReady. */
   shippingMethods?: PublicShippingMethod[];
+  /** Cuentas de clientes (miembros/mayoristas) activas: la tienda muestra "Iniciar sesión". */
+  storeAccounts?: boolean;
   bookingCalendar: boolean;
   realtimeStock: boolean;
   menuModifiers: boolean;

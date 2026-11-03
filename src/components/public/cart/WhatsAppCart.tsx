@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { CartFab } from './CartFab'
-import { CartDrawer } from './CartDrawer'
+import { CartDrawer, type CartDrawerProps } from './CartDrawer'
 import type { CartEntry, CartItem } from './useCart'
 import type { PublicShippingMethod } from '@/lib/commerce'
 
@@ -23,6 +23,8 @@ export interface WhatsAppCartProps {
   pickupNewCustomerLimit?: number | null
   /** Envío a domicilio (Retail): métodos activos del negocio. Vacío/ausente = solo recoger. */
   shippingMethods?: PublicShippingMethod[]
+  /** Cliente con sesión de miembro (ver CartDrawer). */
+  storeSession?: CartDrawerProps['storeSession']
   /** Módulo "Pedidos" apagado: nadie atiende pedidos en línea. No se ofrece recoger/pagar/mesa por la
    *  plataforma (el API también los rechaza); queda solo el canal directo (WhatsApp) con un aviso. */
   ordersPaused?: boolean
@@ -63,6 +65,7 @@ export function WhatsAppCart({
   onlinePayments = false,
   pickupNewCustomerLimit = null,
   shippingMethods,
+  storeSession = null,
   ordersPaused = false,
   updateNotes,
   restaurantMode = false,
@@ -139,6 +142,7 @@ export function WhatsAppCart({
         onlinePayments={onlinePayments && !ordersPaused}
         pickupNewCustomerLimit={pickupNewCustomerLimit}
         shippingMethods={ordersPaused ? undefined : shippingMethods}
+        storeSession={ordersPaused ? null : storeSession}
         ordersPaused={ordersPaused}
         updateNotes={updateNotes}
         restaurantMode={restaurantMode}
