@@ -1700,3 +1700,47 @@ export async function sendScreenAlertEmail(params: { to: string[]; events: Scree
     return false;
   }
 }
+
+// ---------------------------------------------------------------- levantamientos (/ops/levantamientos)
+
+function escIntake(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string))
+}
+
+/**
+ * Aviso interno a MaalCa: un prospecto envió su levantamiento. Lo dispara la ruta pública
+ * /api/levantamiento/[token] cuando maalca-api confirma el envío (destinatario = quien lo creó en /ops).
+ */
+export async function sendIntakeSubmittedEmail(params: {
+  to: string
+  businessName: string
+  contactName?: string | null
+  intakeId: string
+  answeredCount: number
+  questionCount: number
+}): Promise<boolean> {
+  if (!resend) {
+    console.log('[Resend] Skipped intake submitted — RESEND_API_KEY not set')
+    return false
+  }
+  const who = params.contactName ? `${escIntake(params.contactName)} (${escIntake(params.businessName)})` : escIntake(params.businessName)
+  const html = renderPlainEmail(`
+    <h2 style="color: #1a1a1a; font-size: 20px; margin-top: 0;">Levantamiento recibido</h2>
+    <p style="color: #525252; font-size: 14px; line-height: 1.6;">
+      ${who} envió sus respuestas: ${params.answeredCount} de ${params.questionCount} preguntas contestadas.
+    </p>
+    ${emailCtaButton('Ver respuestas en /ops', `https://maalca.com/ops/levantamientos/${encodeURIComponent(params.intakeId)}`)}
+  `)
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: [params.to],
+      subject: `📋 Levantamiento recibido: ${params.businessName}`,
+      html,
+    })
+    return true
+  } catch (err: unknown) {
+    console.error('[Resend] Intake submitted failed:', err instanceof Error ? err.message : String(err))
+    return false
+  }
+}
