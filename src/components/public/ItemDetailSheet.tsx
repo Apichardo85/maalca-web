@@ -28,6 +28,8 @@ interface Props {
   unavailableLabel?: string | null;
   /** Horario/periodos en texto (p. ej. "Desayuno · lun–sáb"). */
   availabilityLabel?: string | null;
+  /** Contenido extra bajo la descripción (Retail: selector de variantes, reglas de cantidad, advertencias). */
+  extra?: React.ReactNode;
   /** Carrito (Restaurant/Retail). Se omiten en plantillas sin carrito, que usan onCta. */
   qty?: number;
   onAdd?: () => void;
@@ -59,6 +61,7 @@ export function ItemDetailSheet({
   tags = [],
   unavailableLabel,
   availabilityLabel,
+  extra,
   qty = 0,
   onAdd = () => {},
   onRemove = () => {},
@@ -235,6 +238,7 @@ export function ItemDetailSheet({
           {availabilityLabel && (
             <p style={{ margin: '12px 0 0', fontSize: 12, color: mutedColor }}>🕒 {availabilityLabel}</p>
           )}
+          {extra}
           {shareUrl && (
             <button
               type="button"

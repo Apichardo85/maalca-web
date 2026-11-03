@@ -9,6 +9,7 @@ import { isPaidPlan } from '@/lib/plan-limits';
 import { formatScheduledFor, mergeOrderUpdate, printTicket, type OrderRow } from '@/lib/orderTicket';
 import { CustomerTrustBadge, canMarkNoShow } from '@/components/space/CustomerTrustBadge';
 import { PickupRulesCard, type PickupRules } from './PickupRulesCard';
+import { CARRIERS, carrierLabel } from '@/lib/commerce';
 
 // OrderRow/formatScheduledFor/printTicket viven en @/lib/orderTicket (la Estación de pedidos,
 // /space/{slug}/station, los necesita igual que acá) — re-exportados para no tocar a quienes
@@ -56,6 +57,10 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
   // Referencia libre al cobro real en el POS del negocio (ej. número de orden en Toast) — opcional,
   // solo para poder conciliar después; MaalCa no procesa ese cobro.
   const [collectRef, setCollectRef] = useState('');
+  // Despacho manual de un envío: paquetería + número de rastreo.
+  const [shippingId, setShippingId] = useState<string | null>(null);
+  const [shipCarrier, setShipCarrier] = useState<string>('usps');
+  const [shipTracking, setShipTracking] = useState('');
   // Minutos estimados que se envían al aceptar un pedido (el cliente los ve en su enlace de seguimiento).
   const [acceptEta, setAcceptEta] = useState(15);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
@@ -142,6 +147,30 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
       }
     } catch {
       toast.error(getText('No se pudo registrar el cobro.', "Couldn't record the payment."));
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
+  async function markShipped(orderId: string) {
+    setUpdatingId(orderId);
+    try {
+      const res = await fetch(`/api/space/${slug}/orders/${orderId}/ship`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ carrier: shipCarrier, trackingNumber: shipTracking.trim() }),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data) {
+        setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...data, customerVisits: o.customerVisits, customerNoShows: o.customerNoShows } : o)));
+        setShippingId(null);
+        setShipTracking('');
+        toast.success(getText('Envío registrado. El cliente ya ve su número de rastreo.', 'Shipment recorded. The customer can now see the tracking number.'));
+      } else {
+        toast.error(data?.error?.message ?? getText('No se pudo registrar el envío.', "Couldn't record the shipment."));
+      }
+    } catch {
+      toast.error(getText('No se pudo registrar el envío.', "Couldn't record the shipment."));
     } finally {
       setUpdatingId(null);
     }
@@ -294,6 +323,33 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
                         📅 {getText('Programado para', 'Scheduled for')} {formatScheduledFor(order.scheduledFor, language)}
                       </p>
                     )}
+                    {order.fulfillmentType === 'shipping' && (
+                      <div className="mt-1 text-xs text-gray-600 dark:text-neutral-300">
+                        <p className="font-semibold text-brand-primary">
+                          📦 {getText('Envío', 'Shipping')}{order.shippingMethodName && <span className="font-normal text-gray-500 dark:text-neutral-400"> · {order.shippingMethodName}</span>}
+                        </p>
+                        {order.shipTo && (
+                          <p className="mt-0.5 leading-snug">
+                            {order.shipTo.name && <>{order.shipTo.name}<br /></>}
+                            {order.shipTo.line1}{order.shipTo.line2 ? `, ${order.shipTo.line2}` : ''}<br />
+                            {order.shipTo.city}, {order.shipTo.state} {order.shipTo.zip}
+                          </p>
+                        )}
+                        {order.trackingNumber && (
+                          <p className="mt-1 inline-block rounded-full bg-blue-100 px-2 py-0.5 font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                            🚚 {carrierLabel(order.shippingCarrier)} ·{' '}
+                            {order.trackingUrl ? (
+                              <a href={order.trackingUrl} target="_blank" rel="noopener noreferrer" className="underline">{order.trackingNumber}</a>
+                            ) : order.trackingNumber}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    {order.priceListName && (
+                      <p className="mt-1 inline-block rounded-full bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                        🏷️ {order.priceListName}
+                      </p>
+                    )}
                     {(order.paymentMethod === 'PayAtPickup' || order.paymentMethod === 'PayAtTable') && ['Paid', 'Preparing', 'Ready', 'Fulfilled'].includes(order.status) && (
                       order.collectedAt ? (
                         <p className="mt-1 inline-block rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
@@ -398,9 +454,62 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
                   )
                 )}
 
+                {order.fulfillmentType === 'shipping' && ['Paid', 'Preparing', 'Ready'].includes(order.status) && (
+                  shippingId === order.id ? (
+                    <div className="mt-3 rounded-xl border border-blue-200 bg-blue-50 p-3 dark:border-blue-900/50 dark:bg-blue-950/20">
+                      <p className="text-xs font-semibold text-blue-800 dark:text-blue-300">
+                        {getText('¿Con qué paquetería lo enviaste?', 'Which carrier did you ship with?')}
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <select
+                          value={shipCarrier}
+                          onChange={(e) => setShipCarrier(e.target.value)}
+                          className="min-h-11 rounded-lg border border-blue-300 bg-white px-3 text-sm dark:border-blue-800 dark:bg-neutral-900"
+                        >
+                          {CARRIERS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                        </select>
+                        <input
+                          type="text"
+                          value={shipTracking}
+                          onChange={(e) => setShipTracking(e.target.value)}
+                          maxLength={80}
+                          placeholder={getText('Número de rastreo', 'Tracking number')}
+                          className="min-h-11 min-w-0 flex-1 rounded-lg border border-blue-300 bg-white px-3 text-sm dark:border-blue-800 dark:bg-neutral-900"
+                        />
+                      </div>
+                      <div className="mt-2 flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={updatingId === order.id || shipTracking.trim().length < 4}
+                          onClick={() => markShipped(order.id)}
+                          className="flex min-h-11 flex-1 items-center justify-center rounded-full bg-brand-primary px-4 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                        >
+                          {getText('Confirmar envío', 'Confirm shipment')}
+                        </button>
+                        <button type="button" onClick={() => { setShippingId(null); setShipTracking(''); }} className="px-2 text-xs text-gray-500 underline">
+                          {getText('Cancelar', 'Cancel')}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => { setShippingId(order.id); setShipCarrier('usps'); setShipTracking(''); }}
+                      className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-brand-primary px-4 text-sm font-semibold text-white hover:opacity-90"
+                    >
+                      📦 {getText('Marcar enviado', 'Mark shipped')}
+                    </button>
+                  )
+                )}
+
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 dark:border-neutral-800 pt-3">
                   <span className="text-sm font-bold">
                     {fmt(order.total, order.currency)}
+                    {!!order.shippingCost && (
+                      <span className="ml-1.5 font-normal text-gray-500 dark:text-neutral-400">
+                        ({getText('envío', 'shipping')} {fmt(order.shippingCost, order.currency)})
+                      </span>
+                    )}
                     {!!order.tip && (
                       <span className="ml-1.5 font-normal text-emerald-600 dark:text-emerald-400">
                         ({getText('propina', 'tip')} {fmt(order.tip, order.currency)})
@@ -422,7 +531,7 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
                       {getText('Falta cobrar antes de entregar.', 'Collect payment before handing over.')}
                     </span>
                   )}
-                  {order.status === 'Preparing' && (
+                  {order.status === 'Preparing' && order.fulfillmentType !== 'shipping' && (
                     <button
                       onClick={() => updateStatus(order.id, 'Ready')}
                       disabled={updatingId === order.id}
@@ -449,7 +558,7 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
                       ↩ {getText('Deshacer "No vino"', 'Undo no-show')}
                     </button>
                   )}
-                  {order.status === 'Ready' && (
+                  {order.status === 'Ready' && order.fulfillmentType !== 'shipping' && (
                     <button
                       onClick={() => updateStatus(order.id, 'Fulfilled')}
                       disabled={updatingId === order.id}

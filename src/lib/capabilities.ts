@@ -1,3 +1,4 @@
+import type { PublicShippingMethod } from '@/lib/commerce';
 import { getPlanLimits, type Plan } from '@/lib/plan-limits';
 
 export interface PlanCapabilities {
@@ -7,6 +8,8 @@ export interface PlanCapabilities {
   /** Regla de confianza del negocio: un cliente nuevo paga al recoger solo hasta este total
    *  (null/ausente = sin límite). El checkout lo avisa; el API lo hace cumplir. */
   pickupNewCustomerLimit?: number | null;
+  /** Envío a domicilio: métodos activos del negocio (vacío/ausente = no ofrece envío). Solo se ofrece con stripeReady. */
+  shippingMethods?: PublicShippingMethod[];
   bookingCalendar: boolean;
   realtimeStock: boolean;
   menuModifiers: boolean;

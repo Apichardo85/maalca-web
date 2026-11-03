@@ -35,6 +35,15 @@ export interface OrderTracking {
   canPayOnline?: boolean;
   /** Idioma principal del negocio (Affiliate.Language). */
   language?: 'es' | 'en';
+  /** Envío a domicilio ('shipping'); null = recoger / mesa. */
+  fulfillmentType?: string | null;
+  shippingMethodName?: string | null;
+  shippingCost?: number;
+  shipTo?: { name?: string | null; line1: string; line2?: string | null; city: string; state: string; zip: string } | null;
+  shippingCarrier?: string | null;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
+  shippedAt?: string | null;
 }
 
 const POLL_MS = 15_000;
@@ -46,6 +55,16 @@ const STEPS = [
   { key: 'preparing', es: 'Preparando', en: 'Preparing', icon: '👨‍🍳' },
   { key: 'ready', es: 'Listo', en: 'Ready', icon: '🛍️' },
 ] as const;
+
+// Envío a domicilio: el último paso es "Enviado" (con número de rastreo), no "Listo para recoger".
+const SHIP_STEPS = [
+  STEPS[0],
+  STEPS[1],
+  { key: 'preparing', es: 'Preparando tu envío', en: 'Preparing your shipment', icon: '📦' },
+  { key: 'shipped', es: 'Enviado', en: 'Shipped', icon: '🚚' },
+] as const;
+
+const CARRIER_LABELS: Record<string, string> = { usps: 'USPS', ups: 'UPS', fedex: 'FedEx', dhl: 'DHL' };
 
 function stepIndex(status: OrderTracking['status']): number {
   switch (status) {
@@ -190,15 +209,26 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
   }, []);
 
   const canceled = t.status === 'Canceled';
+  const isShipping = t.fulfillmentType === 'shipping';
+  const steps = isShipping ? SHIP_STEPS : STEPS;
   const idx = stepIndex(t.status);
   // "Listo" (Ready) y "Entregado" (Fulfilled) muestran el último paso completo para el cliente.
-  const isReady = t.status === 'Ready' || t.status === 'Fulfilled';
+  // Envío: "listo" = despachado (tiene número de rastreo); un envío nunca pasa por "Listo para recoger".
+  const isReady = isShipping ? !!t.shippedAt : t.status === 'Ready' || t.status === 'Fulfilled';
   const eta = t.estimatedReadyAt ? new Date(t.estimatedReadyAt) : null;
   const minsLeft = eta ? Math.round((eta.getTime() - now) / 60000) : null;
   const etaClock = eta?.toLocaleTimeString(lang === 'en' ? 'en-US' : 'es', { hour: 'numeric', minute: '2-digit' });
 
   const headline = canceled
     ? tx('Pedido cancelado', 'Order canceled')
+    : isShipping
+      ? isReady
+        ? tx('¡Tu pedido va en camino!', 'Your order is on its way!')
+        : t.status === 'Pending'
+          ? tx('Esperando la confirmación del pago', 'Waiting for payment confirmation')
+          : t.status === 'Paid'
+            ? tx('Pedido confirmado', 'Order confirmed')
+            : tx('Preparando tu envío', 'Preparing your shipment')
     : isReady
       ? tx('¡Tu pedido está listo!', 'Your order is ready!')
       : t.status === 'Pending'
@@ -224,7 +254,7 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">{headline}</h2>
 
-          {!canceled && !t.expired && !isReady && eta && (
+          {!canceled && !t.expired && !isReady && eta && !isShipping && (
             <p className="mt-1 text-sm text-gray-600 dark:text-neutral-300">
               {minsLeft !== null && minsLeft > 0
                 ? <>{tx('Listo en aprox.', 'Ready in about')} <strong>{minsLeft} min</strong> · {etaClock}</>
@@ -240,12 +270,12 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
 
           {!canceled && !t.expired && (
             <ol className="mt-5 space-y-0">
-              {STEPS.map((s, i) => {
+              {steps.map((s, i) => {
                 const done = i < idx || (i === idx && isReady);
                 const current = i === idx && !isReady;
                 return (
                   <li key={s.key} className="relative flex gap-3 pb-5 last:pb-0">
-                    {i < STEPS.length - 1 && (
+                    {i < steps.length - 1 && (
                       <span
                         className="absolute left-[15px] top-8 h-[calc(100%-1.5rem)] w-0.5"
                         style={{ backgroundColor: i < idx ? color : '#e5e7eb' }}
@@ -266,6 +296,28 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
             </ol>
           )}
 
+          {isShipping && !canceled && !t.expired && (t.trackingNumber || t.shipTo) && (
+            <div className="mt-5 rounded-xl bg-gray-50 p-4 text-sm text-gray-700 dark:bg-neutral-800/60 dark:text-neutral-200">
+              {t.trackingNumber && (
+                <p>
+                  🚚 {CARRIER_LABELS[t.shippingCarrier ?? ''] ?? tx('Paquetería', 'Carrier')} ·{' '}
+                  {t.trackingUrl ? (
+                    <a href={t.trackingUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline" style={{ color }}>
+                      {t.trackingNumber}
+                    </a>
+                  ) : (
+                    <strong>{t.trackingNumber}</strong>
+                  )}
+                </p>
+              )}
+              {t.shipTo && (
+                <p className={t.trackingNumber ? 'mt-2 text-xs text-gray-500 dark:text-neutral-400' : 'text-xs text-gray-500 dark:text-neutral-400'}>
+                  {tx('Se envía a', 'Ships to')}: {t.shipTo.name ? `${t.shipTo.name}, ` : ''}{t.shipTo.line1}{t.shipTo.line2 ? `, ${t.shipTo.line2}` : ''}, {t.shipTo.city}, {t.shipTo.state} {t.shipTo.zip}
+                </p>
+              )}
+            </div>
+          )}
+
           {t.expired ? (
             <p className="mt-4 text-sm text-gray-500 dark:text-neutral-400">{tx('Este pedido ya finalizó y el detalle dejó de estar disponible.', 'This order is complete and the details are no longer available.')}</p>
           ) : (
@@ -283,6 +335,12 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
               </ul>
               {t.tip > 0 && (
                 <div className="mt-2 flex justify-between text-xs text-gray-500 dark:text-neutral-400"><span>{tx('Propina', 'Tip')}</span><span>{money.format(t.tip)}</span></div>
+              )}
+              {isShipping && (
+                <div className="mt-2 flex justify-between text-xs text-gray-500 dark:text-neutral-400">
+                  <span>{tx('Envío', 'Shipping')}{t.shippingMethodName ? ` · ${t.shippingMethodName}` : ''}</span>
+                  <span>{t.shippingCost ? money.format(t.shippingCost) : tx('Gratis', 'Free')}</span>
+                </div>
               )}
               <div className="mt-2 flex justify-between text-sm font-bold text-gray-900 dark:text-white"><span>Total</span><span>{money.format(t.total)}</span></div>
               {t.payAtVenue && !t.collected && !canceled && (

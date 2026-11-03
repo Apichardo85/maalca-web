@@ -51,6 +51,7 @@ export default async function EditCatalogItemPage({ params, searchParams }: Page
     compareAtPrice: raw.compareAtPrice != null ? Number(raw.compareAtPrice) : null,
     trackStock:  raw.trackStock ?? false,
     stock:       raw.stock != null ? Number(raw.stock) : null,
+    retail:      raw.retail ?? null,
     is_demo:     raw.is_demo ?? raw.isDemo ?? false,
     active:      raw.active ?? true,
     imageUrl:    raw.imageUrl ?? raw.image_url ?? null,

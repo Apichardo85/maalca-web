@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 import type { Plan } from '@/lib/plan-limits';
 export type { Plan } from '@/lib/plan-limits';
 import type { PlanCapabilities } from '@/lib/capabilities';
+import type { RetailAttributes } from '@/lib/commerce';
 import type { PublicCanal } from '@/lib/public-contact';
 import type { MealPeriod, WeekDay, MenuItemFlags } from '@/lib/types';
 
@@ -191,6 +192,8 @@ export interface PublicTemplateProps {
     stock?: number | null;
     /** Retail — true = mostrar Agotado/Quedan N y limitar la cantidad al stock. */
     trackStock?: boolean | null;
+    /** Retail (InventoryItem) — marca, peso/medidas, hazmat, asfixia, variantes y reglas de cantidad. */
+    retail?: RetailAttributes | null;
     durationMinutes?: number | null;
     status?: string | null;
     is_demo?: boolean;

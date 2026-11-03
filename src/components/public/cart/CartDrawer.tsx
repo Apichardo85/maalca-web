@@ -1,6 +1,7 @@
 'use client'
 import { formatPhoneInput, isValidPhone, normalizePhone, PHONE_INPUT_PROPS } from '@/lib/phone';
 import { useEffect, useMemo, useState } from 'react'
+import { addStep, addWouldExceed, deliveryDaysLabel, qtyRuleError, removeStep, shippingCost, US_ZIP, type PublicShippingMethod } from '@/lib/commerce'
 import type { CartEntry, CartItem } from './useCart'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080'
@@ -48,8 +49,8 @@ interface CartDrawerProps {
   isOpen: boolean
   onClose: () => void
   cart: CartEntry[]
-  addToCart: (item: CartItem) => void
-  removeFromCart: (itemId: string) => void
+  addToCart: (item: CartItem, qty?: number) => void
+  removeFromCart: (itemId: string, qty?: number) => void
   cartTotal: number
   cartCount: number
   taxRate: number
@@ -66,6 +67,9 @@ interface CartDrawerProps {
   /** Regla de confianza del negocio: un cliente NUEVO solo puede pagar al recoger hasta este total.
    *  Aquí solo se avisa (no sabemos si quien pide es nuevo); el API decide al crear el pedido. */
   pickupNewCustomerLimit?: number | null
+  /** Envío a domicilio (Retail): métodos activos del negocio. Se ofrece solo con pago online (un envío se cobra
+   *  antes de despacharse) y fuera de pedidos de mesa. Con perfumes en el carrito, solo métodos terrestres. */
+  shippingMethods?: PublicShippingMethod[]
   /** Edita las notas de personalización de una línea — solo se usa si restaurantMode. */
   updateNotes?: (itemId: string, notes: string) => void
   /** Restaurante: habilita notas de personalización por línea + selector de propina. */
@@ -102,6 +106,7 @@ export function CartDrawer({
   onlinePayments = false,
   ordersPaused = false,
   pickupNewCustomerLimit = null,
+  shippingMethods,
   updateNotes,
   restaurantMode = false,
   pickupOrders = false,
@@ -130,6 +135,10 @@ export function CartDrawer({
   const [customTip, setCustomTip] = useState('')
   // Cerrado: el cliente confirma que entiende que el pedido es para la próxima apertura.
   const [scheduleAck, setScheduleAck] = useState(false)
+  // Envío a domicilio (Retail): recoger (default) o envío, con método y dirección.
+  const [fulfillment, setFulfillment] = useState<'pickup' | 'shipping'>('pickup')
+  const [shipMethodId, setShipMethodId] = useState<string | null>(null)
+  const [shipTo, setShipTo] = useState({ line1: '', line2: '', city: '', state: '', zip: '' })
 
   // Con el carrito abierto la página de atrás no debe moverse: el scroll es solo del panel.
   useEffect(() => {
@@ -166,9 +175,21 @@ export function CartDrawer({
         `ORDER SCHEDULED for ${schedule.whenEn} at ${schedule.opensAtLabel}`,
       )
     : undefined
+  // Envío a domicilio: solo con pago online y fuera de la mesa. Con perfumes (hazmat) solo métodos terrestres.
+  const hazmatInCart = cart.some(e => !!e.item.rules?.hazmat)
+  const shipMethods = (shippingMethods ?? []).filter(m => !hazmatInCart || m.allowsHazmat)
+  const canShip = guestCheckout && !!slug && onlinePayments && !tableNumber && (shippingMethods?.length ?? 0) > 0
+  const shipping = canShip && fulfillment === 'shipping'
+  const shipMethod = shipping ? (shipMethods.find(m => m.id === shipMethodId) ?? shipMethods[0] ?? null) : null
+  const shipCost = shipMethod ? shippingCost(shipMethod, cartTotal) : 0
+
+  // Reglas de cantidad (mínimo / múltiplo / máximo): el API las exige igual; aquí se avisa antes de enviar.
+  const ruleError = cart.map(e => qtyRuleError(e.item.name, e.qty, e.item.rules, getText)).find(Boolean) ?? null
+
   // Cerrado y sin confirmar (o pedido de mesa, que no se programa): los botones de envío quedan apagados.
-  const closedBlocked = !!schedule && (!scheduleAck || !!tableNumber)
-  const scheduledFor = schedule && scheduleAck && !tableNumber ? schedule.dateIso : undefined
+  // Un envío no depende del horario: se despacha cuando abran.
+  const closedBlocked = !shipping && !!schedule && (!scheduleAck || !!tableNumber)
+  const scheduledFor = !shipping && schedule && scheduleAck && !tableNumber ? schedule.dateIso : undefined
 
   const tax = cartTotal * taxRate
   const tip = !restaurantMode
@@ -178,11 +199,30 @@ export function CartDrawer({
       : tipMode
         ? cartTotal * tipMode
         : 0
-  const total = cartTotal + tax + tip
+  const total = cartTotal + tax + tip + shipCost
   const waUrl = buildWhatsAppUrl(cart, cartTotal, tax, tip, total, whatsappNumber, businessName, taxRate, getText, scheduledFor ? scheduleNote : undefined)
 
+  /** Validación del envío antes de ir a pagar: método, dirección completa y un contacto para avisar. */
+  function shippingProblem(): string | null {
+    if (!shipping) return null
+    if (!shipMethod) return getText('Tu pedido incluye perfumes: este negocio no tiene envío terrestre. Elige recoger.', 'Your order includes perfumes: this business has no ground shipping. Choose pickup.')
+    if (guestName.trim().length < 2) return getText('Escribe tu nombre para el envío.', 'Enter your name for shipping.')
+    if (!(guestPhone && isValidPhone(guestPhone)) && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail.trim()))
+      return getText('Déjanos un teléfono o correo para avisarte del envío.', 'Leave a phone or email so we can update you.')
+    if (shipTo.line1.trim().length < 3 || shipTo.city.trim().length < 2 || shipTo.state.trim().length < 2)
+      return getText('Completa la dirección (calle, ciudad y estado).', 'Complete the address (street, city and state).')
+    if (!US_ZIP.test(shipTo.zip.trim())) return getText('El código postal (ZIP) no es válido.', 'The ZIP code is not valid.')
+    return null
+  }
+
   async function handleCardCheckout() {
-    if (!slug || closedBlocked) return
+    if (!slug || closedBlocked || ruleError) return
+    const problem = shippingProblem()
+    if (problem) {
+      setTableError(problem)
+      setCheckoutState('error')
+      return
+    }
     setCheckoutState('loading')
     setTableError('')
     try {
@@ -210,6 +250,20 @@ export function CartDrawer({
           cancelUrl: `${origin}${window.location.pathname}?paid=false${tableNumber ? `&mesa=${encodeURIComponent(tableNumber)}` : ''}`,
           tableNumber: tableNumber || undefined,
           scheduledFor,
+          ...(shipping && shipMethod
+            ? {
+                fulfillmentType: 'shipping',
+                shippingMethodId: shipMethod.id,
+                shipTo: {
+                  name: guestName.trim(),
+                  line1: shipTo.line1.trim(),
+                  line2: shipTo.line2.trim() || undefined,
+                  city: shipTo.city.trim(),
+                  state: shipTo.state.trim().toUpperCase(),
+                  zip: shipTo.zip.trim(),
+                },
+              }
+            : {}),
         }),
       })
       const data = await res.json().catch(() => null)
@@ -234,7 +288,11 @@ export function CartDrawer({
   // Pedido para recoger pagando en el local: sin Stripe ni WhatsApp. Le llega al restaurante (panel + push)
   // y al cliente le llega correo cuando lo aceptan y cuando está listo.
   async function handlePayAtPickup() {
-    if (!slug || tableNumber || closedBlocked) return
+    if (!slug || tableNumber || closedBlocked || shipping) return
+    if (ruleError) {
+      setPickupError(ruleError)
+      return
+    }
     const name = guestName.trim()
     const phoneOk = !!guestPhone && isValidPhone(guestPhone)
     const email = guestEmail.trim()
@@ -464,7 +522,7 @@ export function CartDrawer({
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                 <button
-                  onClick={() => removeFromCart(entry.item.id)}
+                  onClick={() => removeFromCart(entry.item.id, removeStep(entry.qty, entry.item.rules))}
                   aria-label={`${getText('Quitar', 'Remove')} ${entry.item.name}`}
                   style={{
                     width: '32px',
@@ -494,9 +552,11 @@ export function CartDrawer({
                   {entry.qty}
                 </span>
                 <button
-                  onClick={() => addToCart(entry.item)}
+                  onClick={() => addToCart(entry.item, addStep(entry.qty, entry.item.rules))}
+                  disabled={addWouldExceed(entry.qty, entry.item.rules, null)}
                   aria-label={`${getText('Agregar', 'Add')} ${entry.item.name}`}
                   style={{
+                    opacity: addWouldExceed(entry.qty, entry.item.rules, null) ? 0.35 : 1,
                     width: '32px',
                     height: '32px',
                     borderRadius: '50%',
@@ -639,6 +699,112 @@ export function CartDrawer({
               )}
             </div>
           )}
+          {canShip && !orderSent && (
+            <div style={{ marginBottom: '14px' }}>
+              <div role="radiogroup" style={{ display: 'flex', gap: '6px', marginBottom: shipping ? '10px' : 0 }}>
+                {(['pickup', 'shipping'] as const).map(opt => (
+                  <button
+                    key={opt}
+                    role="radio"
+                    aria-checked={fulfillment === opt}
+                    onClick={() => setFulfillment(opt)}
+                    style={{
+                      flex: 1, padding: '10px 0', borderRadius: '9999px', fontWeight: 600, fontSize: '13px', cursor: 'pointer',
+                      border: fulfillment === opt ? 'none' : '1px solid #e5e3de',
+                      backgroundColor: fulfillment === opt ? '#1a1a1a' : '#ffffff',
+                      color: fulfillment === opt ? '#ffffff' : '#1a1a1a',
+                    }}
+                  >
+                    {opt === 'pickup' ? getText('Recoger en tienda', 'Store pickup') : getText('Envío a domicilio', 'Ship to me')}
+                  </button>
+                ))}
+              </div>
+              {shipping && (
+                <>
+                  {shipMethods.length === 0 ? (
+                    <p style={{ margin: '0 0 10px', fontSize: '12px', color: '#b91c1c' }}>
+                      {getText(
+                        'Tu pedido incluye perfumes, que solo viajan por tierra, y este negocio no tiene envío terrestre. Elige recoger.',
+                        'Your order includes perfumes, which ship by ground only, and this business has no ground shipping. Choose pickup.',
+                      )}
+                    </p>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
+                      {shipMethods.map(m => {
+                        const cost = shippingCost(m, cartTotal)
+                        const days = deliveryDaysLabel(m, getText)
+                        const selected = shipMethod?.id === m.id
+                        return (
+                          <label
+                            key={m.id}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '10px', cursor: 'pointer',
+                              border: selected ? '1.5px solid #1a1a1a' : '1px solid #e5e3de', backgroundColor: '#ffffff', fontSize: '13px',
+                            }}
+                          >
+                            <input type="radio" name="ship-method" checked={selected} onChange={() => setShipMethodId(m.id)} />
+                            <span style={{ flex: 1, minWidth: 0 }}>
+                              <span style={{ fontWeight: 600, color: '#1a1a1a' }}>{getText(m.name, m.nameEn || m.name)}</span>
+                              {days && <span style={{ display: 'block', fontSize: '11px', color: '#888' }}>{days}</span>}
+                            </span>
+                            <span style={{ fontWeight: 600, color: '#1a1a1a' }}>{cost === 0 ? getText('Gratis', 'Free') : fmt.format(cost)}</span>
+                          </label>
+                        )
+                      })}
+                      {hazmatInCart && (
+                        <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>
+                          {getText('Los perfumes solo viajan por tierra: te mostramos los envíos terrestres.', 'Perfumes ship by ground only: showing ground options.')}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  <input
+                    value={shipTo.line1}
+                    onChange={e => setShipTo(a => ({ ...a, line1: e.target.value }))}
+                    maxLength={200}
+                    autoComplete="address-line1"
+                    placeholder={getText('Dirección (calle y número)', 'Street address')}
+                    style={{ width: '100%', marginBottom: '8px', boxSizing: 'border-box', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e3de', fontSize: '13px' }}
+                  />
+                  <input
+                    value={shipTo.line2}
+                    onChange={e => setShipTo(a => ({ ...a, line2: e.target.value }))}
+                    maxLength={200}
+                    autoComplete="address-line2"
+                    placeholder={getText('Apto, suite (opcional)', 'Apt, suite (optional)')}
+                    style={{ width: '100%', marginBottom: '8px', boxSizing: 'border-box', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e3de', fontSize: '13px' }}
+                  />
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      value={shipTo.city}
+                      onChange={e => setShipTo(a => ({ ...a, city: e.target.value }))}
+                      maxLength={100}
+                      autoComplete="address-level2"
+                      placeholder={getText('Ciudad', 'City')}
+                      style={{ flex: 2, minWidth: 0, boxSizing: 'border-box', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e3de', fontSize: '13px' }}
+                    />
+                    <input
+                      value={shipTo.state}
+                      onChange={e => setShipTo(a => ({ ...a, state: e.target.value.toUpperCase() }))}
+                      maxLength={2}
+                      autoComplete="address-level1"
+                      placeholder={getText('Estado', 'State')}
+                      style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e3de', fontSize: '13px' }}
+                    />
+                    <input
+                      value={shipTo.zip}
+                      onChange={e => setShipTo(a => ({ ...a, zip: e.target.value }))}
+                      maxLength={10}
+                      inputMode="numeric"
+                      autoComplete="postal-code"
+                      placeholder="ZIP"
+                      style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e5e3de', fontSize: '13px' }}
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          )}
           {guestCheckout && slug && checkoutState !== 'placed' && (
             <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
               <input
@@ -690,6 +856,15 @@ export function CartDrawer({
                 <span style={{ color: '#aaa' }}>{getText('Propina', 'Tip')}</span>
                 <span style={{ color: '#aaa' }}>{fmt.format(tip)}</span>
               </div>
+            )}
+            {shipMethod && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                <span style={{ color: '#aaa' }}>{getText('Envío', 'Shipping')}</span>
+                <span style={{ color: '#aaa' }}>{shipCost === 0 ? getText('Gratis', 'Free') : fmt.format(shipCost)}</span>
+              </div>
+            )}
+            {ruleError && (
+              <p role="alert" style={{ margin: '4px 0 0', fontSize: '12px', color: '#b91c1c' }}>{ruleError}</p>
             )}
             <div
               style={{
@@ -743,7 +918,7 @@ export function CartDrawer({
             </p>
           )}
 
-          {schedule && checkoutState !== 'placed' && (
+          {schedule && !shipping && checkoutState !== 'placed' && (
             <div
               role="status"
               style={{
@@ -790,7 +965,7 @@ export function CartDrawer({
             <>
               <button
                 onClick={handleCardCheckout}
-                disabled={checkoutState === 'loading' || closedBlocked}
+                disabled={checkoutState === 'loading' || closedBlocked || !!ruleError || (shipping && !shipMethod)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -909,7 +1084,7 @@ export function CartDrawer({
             </p>
           )}
 
-          {guestCheckout && slug && !tableNumber && !pickupPlaced && (
+          {guestCheckout && slug && !tableNumber && !pickupPlaced && !shipping && (
             <>
               <button
                 onClick={handlePayAtPickup}
@@ -943,7 +1118,7 @@ export function CartDrawer({
             </>
           )}
 
-          {!tableNumber && !pickupPlaced && hasWhatsApp && (<a
+          {!tableNumber && !pickupPlaced && !shipping && hasWhatsApp && (<a
             href={closedBlocked ? undefined : waUrl}
             target="_blank"
             rel="noopener noreferrer"

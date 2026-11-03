@@ -45,6 +45,16 @@ export interface OrderRow {
   // de cambios de estado no lo traen (null) y el front conserva el que ya tenía.
   customerVisits?: number | null;
   customerNoShows?: number | null;
+  // Tienda: lista de precios aplicada (null = público) y envío a domicilio (fulfillmentType 'shipping').
+  priceListName?: string | null;
+  fulfillmentType?: string | null;
+  shippingMethodName?: string | null;
+  shippingCost?: number;
+  shipTo?: { name?: string | null; line1: string; line2?: string | null; city: string; state: string; zip: string } | null;
+  shippingCarrier?: string | null;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
+  shippedAt?: string | null;
 }
 
 /** Fusiona una actualización en tiempo real conservando el historial del cliente que ya se tenía. */
@@ -71,9 +81,15 @@ const esc = (v: string) => v.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 export function printTicket(order: OrderRow, title: string, language: 'es' | 'en', timeZone?: string) {
   const t = (es: string, en: string) => (language === 'es' ? es : en);
   const money = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: order.currency || 'USD' }).format(n);
+  const isShipping = order.fulfillmentType === 'shipping';
   const kind = order.tableNumber
     ? `${t('MESA', 'TABLE')} ${order.tableNumber}`
+    : isShipping ? t('ENVÍO', 'SHIP')
     : order.paymentMethod === 'PayAtPickup' ? t('PARA RECOGER', 'PICKUP') : t('PEDIDO ONLINE', 'ONLINE ORDER');
+  const a = isShipping ? order.shipTo : null;
+  const shipBlock = a
+    ? `<hr><div><b>${t('ENVIAR A', 'SHIP TO')}:</b></div><div><b>${esc(a.name ?? '')}</b></div><div>${esc(a.line1)}</div>${a.line2 ? `<div>${esc(a.line2)}</div>` : ''}<div>${esc(`${a.city}, ${a.state} ${a.zip}`)}</div>${order.shippingMethodName ? `<div>${esc(order.shippingMethodName)}</div>` : ''}`
+    : '';
   const payLater = order.paymentMethod === 'PayAtPickup' || order.paymentMethod === 'PayAtTable';
   const unpaid = payLater && !order.collectedAt;
   const when = new Date(order.createdAt).toLocaleString(language === 'es' ? 'es' : 'en-US', timeZone ? { timeZone } : undefined);
@@ -95,11 +111,13 @@ export function printTicket(order: OrderRow, title: string, language: 'es' | 'en
     <div>#${esc(order.id.slice(0, 8).toUpperCase())}</div>
     ${order.customerName ? `<div><b>${esc(order.customerName)}</b></div>` : ''}
     ${order.customerPhone ? `<div>${esc(order.customerPhone)}</div>` : ''}
+    ${shipBlock}
     <hr>${items}<hr>
     ${order.notes ? `<div><b>${t('Notas', 'Notes')}:</b> ${esc(order.notes)}</div><hr>` : ''}
     <div class="row"><span>Subtotal</span><span>${money(order.subtotal)}</span></div>
     ${order.tax ? `<div class="row"><span>Tax</span><span>${money(order.tax)}</span></div>` : ''}
     ${order.tip ? `<div class="row"><span>${t('Propina', 'Tip')}</span><span>${money(order.tip)}</span></div>` : ''}
+    ${isShipping ? `<div class="row"><span>${t('Envío', 'Shipping')}</span><span>${money(order.shippingCost ?? 0)}</span></div>` : ''}
     <div class="row tot"><span>TOTAL</span><span>${money(order.total)}</span></div>
     ${unpaid ? `<div class="big">${t('COBRAR AL ENTREGAR', 'COLLECT PAYMENT')}</div>` : `<div class="c">${t('Pagado', 'Paid')}${order.collectedMethod ? ` (${order.collectedMethod})` : ''}</div>`}
   </body></html>`;

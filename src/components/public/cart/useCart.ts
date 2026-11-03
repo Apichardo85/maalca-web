@@ -1,11 +1,15 @@
 'use client'
 import { useState, useCallback } from 'react'
+import type { RetailAttributes } from '@/lib/commerce'
 
 export interface CartItem {
   id: string
   name: string
   price: number
   image?: string
+  /** Retail: reglas de cantidad (mín./múltiplo/máx.) y hazmat del producto — el carrito suma/resta en
+   *  pasos válidos y el checkout solo ofrece envíos terrestres si hay perfumes. */
+  rules?: RetailAttributes | null
 }
 
 export interface CartEntry {
@@ -17,8 +21,10 @@ export interface CartEntry {
 
 export interface UseCartReturn {
   cart: CartEntry[]
-  addToCart: (item: CartItem) => void
-  removeFromCart: (itemId: string) => void
+  /** qty = unidades a sumar (1 por defecto; Retail suma en múltiplos de caja). */
+  addToCart: (item: CartItem, qty?: number) => void
+  /** qty = unidades a restar (1 por defecto); llegar a 0 quita la línea. */
+  removeFromCart: (itemId: string, qty?: number) => void
   clearCart: () => void
   /** Edita las notas de una línea ya en el carrito — no crea una línea nueva ni cambia qty. */
   updateNotes: (itemId: string, notes: string) => void
@@ -29,22 +35,24 @@ export interface UseCartReturn {
 export function useCart(): UseCartReturn {
   const [cart, setCart] = useState<CartEntry[]>([])
 
-  const addToCart = useCallback((item: CartItem) => {
+  const addToCart = useCallback((item: CartItem, qty = 1) => {
+    const n = Math.max(1, Math.floor(qty))
     setCart(prev => {
       const existing = prev.find(e => e.item.id === item.id)
       if (existing) {
-        return prev.map(e => e.item.id === item.id ? { ...e, qty: e.qty + 1 } : e)
+        return prev.map(e => e.item.id === item.id ? { ...e, qty: e.qty + n } : e)
       }
-      return [...prev, { item, qty: 1 }]
+      return [...prev, { item, qty: n }]
     })
   }, [])
 
-  const removeFromCart = useCallback((itemId: string) => {
+  const removeFromCart = useCallback((itemId: string, qty = 1) => {
+    const n = Math.max(1, Math.floor(qty))
     setCart(prev => {
       const entry = prev.find(e => e.item.id === itemId)
       if (!entry) return prev
-      if (entry.qty === 1) return prev.filter(e => e.item.id !== itemId)
-      return prev.map(e => e.item.id === itemId ? { ...e, qty: e.qty - 1 } : e)
+      if (entry.qty <= n) return prev.filter(e => e.item.id !== itemId)
+      return prev.map(e => e.item.id === itemId ? { ...e, qty: e.qty - n } : e)
     })
   }, [])
 

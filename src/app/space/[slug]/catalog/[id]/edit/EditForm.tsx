@@ -9,7 +9,9 @@ import { ImageGalleryEditor } from '@/components/space/catalog/ImageGalleryEdito
 import { MealPeriodEditor } from '@/components/space/catalog/MealPeriodEditor';
 import { WeekDayEditor } from '@/components/space/catalog/WeekDayEditor';
 import { RecipeEditor, type RecipeLine, type RecipeInventoryOption } from '@/components/space/catalog/RecipeEditor';
+import { RetailAttributesEditor, retailFormFrom, retailPayload } from '@/components/space/catalog/RetailAttributesEditor';
 import type { MealPeriod, WeekDay } from '@/lib/types';
+import type { RetailAttributes } from '@/lib/commerce';
 import { parseApiError } from '@/lib/api-errors';
 import { hasAppointments } from '@/lib/appointment-capable';
 import { useToast } from '@/hooks/useToast';
@@ -28,6 +30,7 @@ interface Item {
   compareAtPrice?: number | null;
   trackStock?: boolean;
   stock?: number | null;
+  retail?: RetailAttributes | null;
   is_demo: boolean;
   active: boolean;
   imageUrl?: string | null;
@@ -125,6 +128,7 @@ export default function EditForm({
 
   const [compareAtPrice, setCompareAtPrice] = useState(item.compareAtPrice != null ? String(item.compareAtPrice) : '');
   const [trackStock, setTrackStock] = useState(item.trackStock ?? false);
+  const [retail, setRetail] = useState(() => retailFormFrom(item.retail));
   const [stock, setStock] = useState(item.stock != null ? String(item.stock) : '');
   const [periods, setPeriods] = useState<MealPeriod[]>(item.periods);
   const [weekDays, setWeekDays] = useState<WeekDay[]>(item.weekDays);
@@ -167,6 +171,7 @@ export default function EditForm({
       if (isRetail || isRestaurant) body.compareAtPrice = compareAtPrice === '' ? 0 : Number(compareAtPrice);
       if (isRetail) {
         body.trackStock = trackStock;
+        body.retail = retailPayload(retail);
         body.featured = featured;
         body.popular = popular;
         if (trackStock) body.stock = stock === '' ? 0 : Math.max(0, Math.floor(Number(stock)));
@@ -436,6 +441,8 @@ export default function EditForm({
               )}
             </div>
           )}
+
+          {isRetail && <RetailAttributesEditor value={retail} onChange={setRetail} getText={getText} />}
 
           {isBarberOrService && (
             <div>

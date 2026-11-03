@@ -92,6 +92,13 @@ export function SpaceMobileNav({
     ...(['restaurant', 'retail'].includes(businessType)
       ? [{ label: getText('Inventario', 'Inventory'), icon: '📋', href: `/space/${slug}/inventory`, token: 'inventory' }]
       : []),
+    // Tienda (Retail): envíos a domicilio y listas de precio (miembro/mayorista). El gate real es el token.
+    ...(businessType === 'retail'
+      ? [
+          { label: getText('Envíos', 'Shipping'), icon: '📦', href: `/space/${slug}/shipping`, token: 'shipping' },
+          { label: getText('Listas de precio', 'Price lists'), icon: '🏷️', href: `/space/${slug}/price-lists`, token: 'pricelists' },
+        ]
+      : []),
     // Guarniciones/modificadores reusables (ej. "Guarnición" con precios reales de
     // Acompañantes) — solo Restaurante, ver ModifierGroup en el backend.
     ...(businessType === 'restaurant'

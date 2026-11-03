@@ -11,7 +11,7 @@ import { OpenStatusBar } from '@/components/public/OpenStatusBar';
 import { getOpenStatus, getScheduleTarget, cartScheduleFrom, todayKeyInTimezone, type OpenStatus } from '@/lib/business-hours';
 import { Playfair_Display } from 'next/font/google';
 import type { ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
-import { useCart } from '@/components/public/cart/useCart';
+import { useCart, type CartItem } from '@/components/public/cart/useCart';
 import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
 import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
 import { trackCanalClick } from '@/lib/public-events';
@@ -35,6 +35,7 @@ import { categoryLabel } from '@/lib/category-label';
 import PublicThemeToggle from '@/components/public/PublicThemeToggle';
 import { brandPaletteCss, deriveBrandPalette, deriveDarkBrandPalette } from '@/lib/brand-palette';
 import { useDeepLinkedItemId } from '@/lib/use-deep-linked-item';
+import { addStep, addWouldExceed, CHOKING_WARNINGS, qtyRulesLabel, removeStep } from '@/lib/commerce';
 
 // Serif editorial solo para títulos (hero, secciones, nombre del producto en el detalle). El resto va en la
 // sans del sitio para que precios y descripciones se lean limpios en móvil.
@@ -152,10 +153,18 @@ export function RetailTemplate({
   // Con búsqueda activa se filtra sobre la pestaña vigente; al escribir se vuelve a "Todos" para no
   // buscar solo dentro de una categoría sin que se note.
   const filteredItems = itemsFor(activeTab)
-    .filter((i) => matchesCatalogQuery(query, [i.name, i.nameEn, i.category]))
+    .filter((i) => matchesCatalogQuery(query, [i.name, i.nameEn, i.category, i.retail?.brand, i.retail?.variantGroup]))
     .filter((i) => !onlyOffers || isOnSale(i));
+  // Variantes (50 ml / 100 ml): productos con el mismo "producto base" se muestran como UNA ficha con selector.
+  // Cada variante sigue siendo su propio item (precio, stock, SKU); la ficha muestra la que se elija.
+  const variantKey = (i: (typeof items)[number]) => i.retail?.variantGroup?.trim().toLowerCase() || null;
+  const variantsByGroup = new Map<string, typeof items>();
+  for (const i of items) {
+    const k = variantKey(i);
+    if (k) variantsByGroup.set(k, [...(variantsByGroup.get(k) ?? []), i]);
+  }
   // Orden estable: el "default" respeta el orden que definió el dueño (SortOrder del API).
-  const visibleItems =
+  const sortedItems =
     sort === 'default'
       ? [...filteredItems].sort((a, b) => featuredRank(b) - featuredRank(a))
       : [...filteredItems].sort((a, b) =>
@@ -165,6 +174,14 @@ export function RetailTemplate({
               ? (a.price ?? 0) - (b.price ?? 0)
               : (b.price ?? 0) - (a.price ?? 0),
         );
+  const seenGroups = new Set<string>();
+  const visibleItems = sortedItems.filter((i) => {
+    const k = variantKey(i);
+    if (!k) return true;
+    if (seenGroups.has(k)) return false;
+    seenGroups.add(k);
+    return true;
+  });
 
   return (
     <div id="top" className={`${display.variable} rl-scope`} style={{ minHeight: '100vh', backgroundColor: BG, containerType: 'inline-size' } as React.CSSProperties}>
@@ -425,7 +442,12 @@ export function RetailTemplate({
               <ProductCard
                 key={item.id}
                 item={item}
-                cartQty={cart.find((e) => e.item.id === item.id)?.qty ?? 0}
+                variants={(() => {
+                  const k = variantKey(item);
+                  const group = k ? variantsByGroup.get(k) : undefined;
+                  return group && group.length > 1 ? group : undefined;
+                })()}
+                qtyOf={(id) => cart.find((e) => e.item.id === id)?.qty ?? 0}
                 accent={accentFill}
                 accentText={accentText}
                 onAccent={onAccent}
@@ -479,6 +501,7 @@ export function RetailTemplate({
         slug={business.slug}
         onlinePayments={capabilities.onlinePayments && capabilities.stripeReady !== false}
         pickupNewCustomerLimit={capabilities.pickupNewCustomerLimit ?? null}
+        shippingMethods={capabilities.shippingMethods}
         ordersPaused={business.ordersEnabled === false}
         pickupOrders
         schedule={cartSchedule}
@@ -630,8 +653,9 @@ function PinIcon({ size }: { size: number }) {
 }
 
 function ProductCard({
-  item,
-  cartQty,
+  item: baseItem,
+  variants,
+  qtyOf,
   accent,
   accentText,
   onAccent,
@@ -645,27 +669,33 @@ function ProductCard({
   autoOpen,
 }: {
   item: PublicTemplateProps['items'][number];
-  cartQty: number;
+  /** Variantes del mismo producto base (incluye `item`); undefined = producto sin variantes. */
+  variants?: PublicTemplateProps['items'];
+  qtyOf: (itemId: string) => number;
   accent: string;
   accentText: string;
   onAccent: string;
   language: 'es' | 'en';
   getText: (es: string, en: string) => string;
-  addToCart: (item: { id: string; name: string; price: number; image?: string }) => void;
-  removeFromCart: (itemId: string) => void;
+  addToCart: (item: CartItem, qty?: number) => void;
+  removeFromCart: (itemId: string, qty?: number) => void;
   currency?: 'USD' | 'DOP';
   categoryTranslations?: PublicTemplateProps['business']['categoryTranslations'];
   shareUrl: string;
   autoOpen: boolean;
 }) {
-  const imageUrl = item.imageUrl ?? item.image_url;
+  const [variantId, setVariantId] = useState(baseItem.id);
+  const item = variants?.find((v) => v.id === variantId) ?? baseItem;
+  const cartQty = qtyOf(item.id);
+  const rules = item.retail ?? null;
+  const imageUrl = item.imageUrl ?? item.image_url ?? baseItem.imageUrl ?? baseItem.image_url;
   const description = language === 'en' && item.descriptionEn ? item.descriptionEn : item.description;
   const displayName = language === 'en' && item.nameEn ? item.nameEn : item.name;
   const onSale = isOnSale(item);
   const off = percentOff(item);
   const left = stockLeft(item);
   const soldOut = left === 0;
-  const atMax = left !== null && cartQty >= left;
+  const atMax = addWouldExceed(cartQty, rules, left);
   const lowStock = left !== null && left > 0 && left <= 5;
   const [detailOpen, setDetailOpen] = useState(false);
   useEffect(() => {
@@ -673,7 +703,35 @@ function ProductCard({
   }, [autoOpen]);
   const stop = (e: React.MouseEvent) => e.stopPropagation();
   const hasDetail = Boolean(imageUrl || description);
-  const addThis = () => addToCart({ id: item.id, name: displayName, price: item.price ?? 0, image: imageUrl ?? undefined });
+  const cartName = item.retail?.variantLabel && variants ? `${displayName} · ${item.retail.variantLabel}` : displayName;
+  const addThis = () =>
+    addToCart({ id: item.id, name: cartName, price: item.price ?? 0, image: imageUrl ?? undefined, rules }, addStep(cartQty, rules));
+  const removeThis = () => removeFromCart(item.id, removeStep(cartQty, rules));
+  const rulesLabel = qtyRulesLabel(rules, getText);
+  const choking = rules?.chokingWarning ? CHOKING_WARNINGS[rules.chokingWarning] : null;
+  const variantChips = variants ? (
+    <div onClick={stop} style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+      {variants.map((v) => {
+        const active = v.id === item.id;
+        return (
+          <button
+            key={v.id}
+            type="button"
+            onClick={() => setVariantId(v.id)}
+            aria-pressed={active}
+            style={{
+              fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 9999, cursor: 'pointer',
+              border: active ? 'none' : `1px solid ${BORDER}`,
+              backgroundColor: active ? accent : 'transparent',
+              color: active ? onAccent : INK,
+            }}
+          >
+            {v.retail?.variantLabel || v.name}
+          </button>
+        );
+      })}
+    </div>
+  ) : null;
   const badge: React.CSSProperties = { fontSize: 11, fontWeight: 700, padding: '4px 9px', borderRadius: 9999, lineHeight: 1.2, whiteSpace: 'nowrap' };
 
   return (
@@ -745,7 +803,7 @@ function ProductCard({
                 style={{ backgroundColor: SURFACE, boxShadow: '0 4px 14px rgba(0,0,0,0.25)' }}
               >
                 <button
-                  onClick={() => removeFromCart(item.id)}
+                  onClick={removeThis}
                   aria-label={`${getText('Quitar', 'Remove')} ${displayName}`}
                   className="flex h-11 w-10 items-center justify-center text-lg font-semibold"
                   style={{ color: INK }}
@@ -771,6 +829,11 @@ function ProductCard({
       </div>
 
       <div style={{ padding: '10px 2px 0', display: 'flex', flexDirection: 'column', flex: 1 }}>
+        {rules?.brand && (
+          <p style={{ margin: '0 0 2px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: MUTED }}>
+            {rules.brand}
+          </p>
+        )}
         <p style={{ margin: 0, fontWeight: 600, fontSize: '14px', color: INK, lineHeight: 1.3 }}>
           {hasDetail ? <CardOpenButton onOpen={() => setDetailOpen(true)}>{displayName}</CardOpenButton> : displayName}
         </p>
@@ -800,6 +863,10 @@ function ProductCard({
             {getText(`Quedan ${left}`, `${left} left`)}
           </p>
         )}
+        {rulesLabel && (
+          <p style={{ margin: '3px 0 0', fontSize: '11px', color: MUTED }}>{rulesLabel}</p>
+        )}
+        {variantChips}
       </div>
     </div>
     <ItemDetailSheet
@@ -812,6 +879,7 @@ function ProductCard({
       images={item.images}
       shareUrl={shareUrl}
       tags={[
+        ...(rules?.brand ? [rules.brand] : []),
         ...(item.featured ? [`⭐ ${getText('Destacado', 'Featured')}`] : []),
         ...(item.popular ? [`🔥 ${getText('Popular', 'Popular')}`] : []),
       ]}
@@ -820,7 +888,21 @@ function ProductCard({
       qty={cartQty}
       onAdd={atMax ? () => {} : addThis}
       unavailableLabel={soldOut ? getText('Agotado', 'Sold out') : null}
-      onRemove={() => removeFromCart(item.id)}
+      onRemove={removeThis}
+      extra={
+        variantChips || rulesLabel || choking ? (
+          <div style={{ marginTop: 12 }}>
+            {variantChips}
+            {rulesLabel && <p style={{ margin: '10px 0 0', fontSize: 12, color: MUTED }}>📦 {rulesLabel}</p>}
+            {choking && (
+              <div role="note" style={{ marginTop: 12, padding: '10px 12px', border: '2px solid #1f2937', borderRadius: 10, fontSize: 12, lineHeight: 1.45, color: INK }}>
+                <strong>⚠ {choking.en}</strong>
+                {language === 'es' && <span style={{ display: 'block', marginTop: 4 }}>{choking.es}</span>}
+              </div>
+            )}
+          </div>
+        ) : undefined
+      }
       accent={accent}
       onAccent={onAccent}
       textColor={INK}

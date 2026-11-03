@@ -9,6 +9,7 @@ import { ImageGalleryEditor } from '@/components/space/catalog/ImageGalleryEdito
 import { MealPeriodEditor } from '@/components/space/catalog/MealPeriodEditor';
 import { WeekDayEditor } from '@/components/space/catalog/WeekDayEditor';
 import { RecipeEditor, type RecipeLine, type RecipeInventoryOption } from '@/components/space/catalog/RecipeEditor';
+import { RetailAttributesEditor, retailFormFrom, retailPayload } from '@/components/space/catalog/RetailAttributesEditor';
 import type { MealPeriod, WeekDay } from '@/lib/types';
 import { parseApiError } from '@/lib/api-errors';
 import { hasAppointments } from '@/lib/appointment-capable';
@@ -75,6 +76,7 @@ export default function NewItemForm({ slug, businessType, businessLanguage, from
   const [weekDays, setWeekDays] = useState<WeekDay[]>([]);
   const [compareAtPrice, setCompareAtPrice] = useState('');
   const [trackStock, setTrackStock] = useState(false);
+  const [retail, setRetail] = useState(() => retailFormFrom(null));
   const [stock, setStock] = useState('');
   const [flags, setFlags] = useState({ vegetarian: false, spicy: false, glutenFree: false });
   const [featured, setFeatured] = useState(false);
@@ -102,6 +104,7 @@ export default function NewItemForm({ slug, businessType, businessLanguage, from
       if (isRetail) {
         body.featured = featured;
         body.popular = popular;
+        body.retail = retailPayload(retail);
       }
       if (isRetail && trackStock) {
         body.trackStock = true;
@@ -324,6 +327,8 @@ export default function NewItemForm({ slug, businessType, businessLanguage, from
               )}
             </div>
           )}
+
+          {isRetail && <RetailAttributesEditor value={retail} onChange={setRetail} getText={getText} />}
 
           {isBarberOrService && (
             <div>
