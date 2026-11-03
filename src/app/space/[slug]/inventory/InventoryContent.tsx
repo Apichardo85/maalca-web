@@ -497,6 +497,12 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
             {importing ? getText('Importando…', 'Importing…') : getText('Importar CSV', 'Import CSV')}
           </button>
         </div>
+        <p className="mt-2 text-xs text-gray-500 dark:text-neutral-400">
+          {getText(
+            '¿Vienes de Clover? Exporta tus items, guárdalos como CSV e impórtalos aquí. Columnas de tienda opcionales: Marca, Producto base, Variante, Peso oz, Peligroso, Destacado.',
+            'Coming from Clover? Export your items, save them as CSV and import them here. Optional store columns: Brand, Base product, Variant, Weight oz, Hazmat, Featured.',
+          )}
+        </p>
 
         {/* Filtros — antes no había ninguno: con más de 20 items (una página) no había forma de
             encontrar uno específico sin pasar de página en página. */}

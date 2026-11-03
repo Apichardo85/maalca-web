@@ -160,6 +160,11 @@ export function RetailTemplate({
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<SortKey>('default');
   const [onlyOffers, setOnlyOffers] = useState(false);
+  // Filtro por marca (perfumería: se compra por marca). Solo aparece con 2+ marcas en el catálogo.
+  const [brand, setBrand] = useState<string | null>(null);
+  const brands = Array.from(
+    new Set(items.map((i) => i.retail?.brand?.trim()).filter((b): b is string => !!b)),
+  ).sort((a, b) => a.localeCompare(b));
   // Enlace compartido (/{slug}/p/{id}): abre el detalle de ese producto al cargar.
   const deepLinkedId = useDeepLinkedItemId();
   const searchActive = query.trim().length > 0;
@@ -177,7 +182,8 @@ export function RetailTemplate({
   // buscar solo dentro de una categoría sin que se note.
   const filteredItems = itemsFor(activeTab)
     .filter((i) => matchesCatalogQuery(query, [i.name, i.nameEn, i.category, i.retail?.brand, i.retail?.variantGroup]))
-    .filter((i) => !onlyOffers || isOnSale(i));
+    .filter((i) => !onlyOffers || isOnSale(i))
+    .filter((i) => !brand || i.retail?.brand?.trim() === brand);
   // Variantes (50 ml / 100 ml): productos con el mismo "producto base" se muestran como UNA ficha con selector.
   // Cada variante sigue siendo su propio item (precio, stock, SKU); la ficha muestra la que se elija.
   const variantKey = (i: (typeof items)[number]) => i.retail?.variantGroup?.trim().toLowerCase() || null;
@@ -187,9 +193,12 @@ export function RetailTemplate({
     if (k) variantsByGroup.set(k, [...(variantsByGroup.get(k) ?? []), i]);
   }
   // Orden estable: el "default" respeta el orden que definió el dueño (SortOrder del API).
+  // Con la fila de Destacados visible, la grilla no los vuelve a poner primero (si no, se ven dos veces arriba).
+  const featuredRowVisible = items.filter((i) => i.featured).length >= 2 && !searchActive && activeTab === ALL_TAB && !brand && !onlyOffers;
   const sortedItems =
     sort === 'default'
-      ? [...filteredItems].sort((a, b) => featuredRank(b) - featuredRank(a))
+      ? [...filteredItems].sort((a, b) =>
+          featuredRowVisible ? Number(!!b.popular) - Number(!!a.popular) : featuredRank(b) - featuredRank(a))
       : [...filteredItems].sort((a, b) =>
           sort === 'name'
             ? a.name.localeCompare(b.name, language)
@@ -197,6 +206,32 @@ export function RetailTemplate({
               ? (a.price ?? 0) - (b.price ?? 0)
               : (b.price ?? 0) - (a.price ?? 0),
         );
+  // Destacados: fila deslizable arriba del catálogo, solo en la vista general (sin búsqueda ni filtros).
+  const featuredSeen = new Set<string>();
+  const featuredItems = items
+    .filter((i) => i.featured)
+    .filter((i) => {
+      const k = variantKey(i);
+      if (!k) return true;
+      if (featuredSeen.has(k)) return false;
+      featuredSeen.add(k);
+      return true;
+    })
+    .slice(0, 10);
+  const showFeatured = featuredRowVisible && featuredItems.length >= 2;
+
+  // Franja de confianza: sale sola de lo que el negocio ya configuró (envíos, cuentas, pagos, recoger), sin
+  // textos que haya que mantener a mano.
+  const shipMethods = capabilities.stripeReady !== false && capabilities.onlinePayments ? capabilities.shippingMethods ?? [] : [];
+  const freeOver = shipMethods.map((m) => m.freeOverAmount).filter((v): v is number => !!v && v > 0).sort((a, b) => a - b)[0];
+  const trust: string[] = [
+    ...(shipMethods.length > 0
+      ? [freeOver ? getText(`📦 Envío gratis desde ${formatPrice(freeOver, business.currency)}`, `📦 Free shipping over ${formatPrice(freeOver, business.currency)}`) : getText('📦 Envío a domicilio', '📦 Home delivery')]
+      : []),
+    ...(business.ordersEnabled !== false && items.length > 0 ? [getText('🛍️ Recoge en tienda', '🛍️ Store pickup')] : []),
+    ...(capabilities.onlinePayments && capabilities.stripeReady !== false ? [getText('🔒 Pago seguro con tarjeta', '🔒 Secure card payment')] : []),
+    ...(storeAccounts ? [getText('🏷️ Precios para miembros y mayoristas', '🏷️ Member & wholesale pricing')] : []),
+  ];
   const seenGroups = new Set<string>();
   const visibleItems = sortedItems.filter((i) => {
     const k = variantKey(i);
@@ -341,9 +376,35 @@ export function RetailTemplate({
                 {getText('Ver catálogo', 'Shop now')}
               </a>
             )}
+            {storeAccounts && !memberListName && (
+              <button
+                type="button"
+                onClick={() => setAccountOpen(true)}
+                className="min-h-11"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', padding: '0 20px', borderRadius: 9999, fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                  background: 'transparent', color: heroFg, border: `1.5px solid ${heroLine}`,
+                }}
+              >
+                {getText('Precios de mayoreo', 'Wholesale pricing')}
+              </button>
+            )}
           </div>
         </div>
       </section>
+
+      {trust.length > 0 && (
+        <div style={{ borderBottom: `1px solid ${BORDER}`, backgroundColor: SURFACE }}>
+          <div
+            className="mx-auto max-w-public-content [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            style={{ display: 'flex', gap: 22, overflowX: 'auto', padding: '12px 24px', justifyContent: 'safe center' }}
+          >
+            {trust.map((t) => (
+              <span key={t} style={{ fontSize: 12, fontWeight: 600, color: INK, whiteSpace: 'nowrap', letterSpacing: '0.01em' }}>{t}</span>
+            ))}
+          </div>
+        </div>
+      )}
 
       <AboutSection description={business.description} descriptionEn={business.descriptionEn} maxWidthClassName="max-w-public-content" language={language} />
 
@@ -352,6 +413,49 @@ export function RetailTemplate({
 
       {/* ── GALERÍA ── */}
       <GallerySection images={business.galleryImages} visible={business.sectionVisibility?.gallery !== false} accent={accent} getText={getText} />
+
+      {/* ── DESTACADOS — fila deslizable, tarjetas más grandes ── */}
+      {showFeatured && (
+        <section className="mx-auto max-w-public-content" style={{ padding: '28px 0 4px' }}>
+          <div style={{ padding: '0 24px', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+            <h2 className={display.className} style={{ margin: 0, fontSize: 24, fontWeight: 600, color: INK }}>
+              {getText('Destacados', 'Featured')}
+            </h2>
+            <span style={{ fontSize: 12, color: MUTED }}>{getText('Desliza →', 'Swipe →')}</span>
+          </div>
+          <div
+            className="[scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            style={{ display: 'flex', gap: 16, overflowX: 'auto', padding: '14px 24px 6px', scrollSnapType: 'x mandatory', scrollPaddingInline: 24 }}
+          >
+            {featuredItems.map((item) => (
+              <div key={item.id} style={{ flex: '0 0 auto', width: 'min(62vw, 240px)', scrollSnapAlign: 'start' }}>
+                <ProductCard
+                  item={item}
+                  variants={(() => {
+                    const k = variantKey(item);
+                    const group = k ? variantsByGroup.get(k) : undefined;
+                    return group && group.length > 1 ? group : undefined;
+                  })()}
+                  qtyOf={(id) => cart.find((e) => e.item.id === id)?.qty ?? 0}
+                  memberPriceOf={(id) => memberPrices.get(id)}
+                  memberListName={memberListName}
+                  accent={accentFill}
+                  accentText={accentText}
+                  onAccent={onAccent}
+                  language={language}
+                  getText={getText}
+                  addToCart={addToCart}
+                  removeFromCart={removeFromCart}
+                  currency={business.currency}
+                  categoryTranslations={business.categoryTranslations}
+                  shareUrl={`https://maalca.com/${business.slug}/p/${item.id}`}
+                  autoOpen={false}
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ── SEARCH — independiente de las pestañas; ancla #catalog de la barra inferior ── */}
       <div id="catalog" style={{ scrollMarginTop: '56px' }} />
@@ -396,6 +500,37 @@ export function RetailTemplate({
                 onClick={() => setActiveTab(name)}
               />
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── MARCAS — perfumería y tiendas multimarca: se compra por marca ── */}
+      {brands.length >= 2 && (
+        <div className="mx-auto max-w-public-content" style={{ padding: '14px 24px 0' }}>
+          <p style={{ margin: '0 0 8px', fontSize: 11, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: MUTED }}>
+            {getText('Marcas', 'Brands')}
+          </p>
+          <div className="[scrollbar-width:none] [&::-webkit-scrollbar]:hidden overflow-x-auto md:flex-wrap" style={{ display: 'flex', gap: 8 }}>
+            {brands.map((b) => {
+              const active = brand === b;
+              return (
+                <button
+                  key={b}
+                  type="button"
+                  onClick={() => setBrand(active ? null : b)}
+                  aria-pressed={active}
+                  className={`${display.className} min-h-11 shrink-0 whitespace-nowrap`}
+                  style={{
+                    padding: '0 16px', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer',
+                    border: `1px solid ${active ? accentFill : BORDER}`,
+                    backgroundColor: active ? accentFill : 'transparent',
+                    color: active ? onAccent : INK,
+                  }}
+                >
+                  {b}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -461,7 +596,9 @@ export function RetailTemplate({
             <p style={{ fontSize: '14px', color: MUTED }}>
               {searchActive
                 ? getText('No hay productos que coincidan con tu búsqueda.', 'No products match your search.')
-                : getText('No hay productos en esta categoría.', 'No products in this category.')}
+                : brand
+                  ? getText(`No hay productos de ${brand} aquí.`, `No ${brand} products here.`)
+                  : getText('No hay productos en esta categoría.', 'No products in this category.')}
             </p>
             {searchActive && (
               <button
@@ -776,7 +913,9 @@ function ProductCard({
   }, [autoOpen]);
   const stop = (e: React.MouseEvent) => e.stopPropagation();
   const hasDetail = Boolean(imageUrl || description);
-  const cartName = item.retail?.variantLabel && variants ? `${displayName} · ${item.retail.variantLabel}` : displayName;
+  // Con variantes, la ficha se titula con el producto base ("Sauvage Eau de Toilette") y el tamaño va en los chips.
+  const titleName = variants && item.retail?.variantGroup ? item.retail.variantGroup : displayName;
+  const cartName = item.retail?.variantLabel && variants ? `${titleName} · ${item.retail.variantLabel}` : displayName;
   const addThis = () =>
     addToCart({ id: item.id, name: cartName, price: effectivePrice, basePrice: item.price ?? 0, image: imageUrl ?? undefined, rules }, addStep(cartQty, rules));
   const removeThis = () => removeFromCart(item.id, removeStep(cartQty, rules));
@@ -835,11 +974,24 @@ function ProductCard({
             style={soldOut ? { opacity: 0.55, filter: 'grayscale(0.5)' } : undefined}
           />
         ) : (
+          // Sin foto: monograma enmarcado (marco fino + marca arriba), para que una tienda sin fotos todavía
+          // se vea cuidada en lugar de "le falta algo".
           <div
-            className={display.className}
-            style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '56px', fontWeight: 600, color: accentText, opacity: 0.55 }}
+            style={{
+              position: 'absolute', inset: 10, borderRadius: 12, border: `1px solid ${BORDER}`,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10,
+              background: `radial-gradient(120% 80% at 50% 0%, ${SURFACE}, transparent 70%)`,
+            }}
           >
-            {displayName.trim().charAt(0).toUpperCase()}
+            {rules?.brand && (
+              <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.24em', textTransform: 'uppercase', color: MUTED, padding: '0 10px', textAlign: 'center' }}>
+                {rules.brand}
+              </span>
+            )}
+            <span className={display.className} style={{ fontSize: 'clamp(40px, 9cqi, 60px)', fontWeight: 500, lineHeight: 1, color: accentText, opacity: 0.7 }}>
+              {(item.retail?.variantGroup || displayName).trim().charAt(0).toUpperCase()}
+            </span>
+            <span aria-hidden style={{ width: 22, height: 1, backgroundColor: accentText, opacity: 0.35 }} />
           </div>
         )}
 
@@ -907,8 +1059,8 @@ function ProductCard({
             {rules.brand}
           </p>
         )}
-        <p style={{ margin: 0, fontWeight: 600, fontSize: '14px', color: INK, lineHeight: 1.3 }}>
-          {hasDetail ? <CardOpenButton onOpen={() => setDetailOpen(true)}>{displayName}</CardOpenButton> : displayName}
+        <p className={display.className} style={{ margin: 0, fontWeight: 600, fontSize: '15px', color: INK, lineHeight: 1.3 }}>
+          {hasDetail ? <CardOpenButton onOpen={() => setDetailOpen(true)}>{titleName}</CardOpenButton> : titleName}
         </p>
         {description && (
           <div onClick={stop}>
@@ -951,7 +1103,7 @@ function ProductCard({
     <ItemDetailSheet
       open={detailOpen}
       onClose={() => setDetailOpen(false)}
-      name={displayName}
+      name={titleName}
       description={description}
       priceLabel={item.price != null ? formatPrice(effectivePrice, currency) : null}
       imageUrl={imageUrl}
