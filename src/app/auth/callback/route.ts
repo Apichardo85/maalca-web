@@ -28,17 +28,26 @@ export async function GET(request: NextRequest) {
   );
 
   // ── Routing ──────────────────────────────────────────────────────────────
-  //  1. Platform admin  →  /ops (siempre, sin excepción — ver tarea #142)
+  //  1. Platform admin  →  /ops (siempre, salvo regreso desde una tienda pública — ver isStoreReturn)
   //  2. ?redirect / ?next explícito  →  se respeta (ej. /onboarding)
   //  3. Usuario con negocio real (maalca-api)  →  /space/[slug]
   //  4. Usuario nuevo  →  /onboarding
+  const redirectParam = searchParams.get("redirect") ?? searchParams.get("next");
+  // Solo rutas internas: "//host" y "/\\host" son redirecciones abiertas, no rutas.
+  const safeRedirect =
+    redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//") && !redirectParam.startsWith("/\\")
+      ? redirectParam
+      : null;
+
+  // Excepción a "admin siempre a /ops": quien inicia sesión DESDE la tienda pública de un negocio (el login de
+  // cliente vuelve a "/{slug}?cuenta=1") se queda en esa tienda, aunque su correo sea de admin. Si no, el admin
+  // que prueba la cuenta mayorista de un negocio acababa en /ops y nunca podía comprar como cliente.
+  const isStoreReturn = !!safeRedirect && /^\/[a-z0-9][a-z0-9-]*\?cuenta=1$/i.test(safeRedirect);
+
   const PLATFORM_ADMIN_EMAILS = ["alejandropichardo85@gmail.com"];
-  if (PLATFORM_ADMIN_EMAILS.includes(email)) {
+  if (PLATFORM_ADMIN_EMAILS.includes(email) && !isStoreReturn) {
     return NextResponse.redirect(`${origin}/ops`);
   }
-
-  const redirectParam = searchParams.get("redirect") ?? searchParams.get("next");
-  const safeRedirect = redirectParam && redirectParam.startsWith("/") ? redirectParam : null;
 
   const redirectPath = safeRedirect
     ?? await resolveUserDestination(email, data.session?.access_token);

@@ -207,6 +207,8 @@ export function CartDrawer({
   const shipCost = shipMethod ? shippingCost(shipMethod, cartTotal) : 0
 
   // Reglas de cantidad (mínimo / múltiplo / máximo): el API las exige igual; aquí se avisa antes de enviar.
+  // Pedido mínimo de la lista del cliente (mayorista): sin llegar al mínimo no se puede pedir (el API lo exige igual).
+  const belowMinOrder = !!storeSession?.minOrderAmount && cartTotal < storeSession.minOrderAmount
   const ruleError = cart.map(e => qtyRuleError(e.item.name, e.qty, e.item.rules, getText)).find(Boolean) ?? null
 
   // Cerrado y sin confirmar (o pedido de mesa, que no se programa): los botones de envío quedan apagados.
@@ -243,7 +245,7 @@ export function CartDrawer({
   }
 
   async function handleCardCheckout() {
-    if (!slug || closedBlocked || ruleError) return
+    if (!slug || closedBlocked || ruleError || belowMinOrder) return
     const problem = shippingProblem()
     if (problem) {
       setTableError(problem)
@@ -315,7 +317,7 @@ export function CartDrawer({
   // Pedido para recoger pagando en el local: sin Stripe ni WhatsApp. Le llega al restaurante (panel + push)
   // y al cliente le llega correo cuando lo aceptan y cuando está listo.
   async function handlePayAtPickup() {
-    if (!slug || tableNumber || closedBlocked || shipping) return
+    if (!slug || tableNumber || closedBlocked || shipping || belowMinOrder) return
     if (ruleError) {
       setPickupError(ruleError)
       return
@@ -1018,7 +1020,7 @@ export function CartDrawer({
             <>
               <button
                 onClick={handleCardCheckout}
-                disabled={checkoutState === 'loading' || closedBlocked || !!ruleError || (shipping && !shipMethod)}
+                disabled={checkoutState === 'loading' || closedBlocked || !!ruleError || belowMinOrder || (shipping && !shipMethod)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -1141,7 +1143,7 @@ export function CartDrawer({
             <>
               <button
                 onClick={handlePayAtPickup}
-                disabled={checkoutState === 'loading' || closedBlocked}
+                disabled={checkoutState === 'loading' || closedBlocked || belowMinOrder}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%',
                   backgroundColor: onlinePayments ? '#ffffff' : '#1a1a1a',
@@ -1150,7 +1152,7 @@ export function CartDrawer({
                   borderRadius: '9999px', padding: '14px', fontWeight: 600, fontSize: '14px', minHeight: '48px',
                   boxSizing: 'border-box', marginBottom: '10px',
                   cursor: checkoutState === 'loading' || closedBlocked ? 'default' : 'pointer',
-                  opacity: checkoutState === 'loading' ? 0.7 : closedBlocked ? 0.45 : 1,
+                  opacity: checkoutState === 'loading' ? 0.7 : closedBlocked || belowMinOrder ? 0.45 : 1,
                 }}
               >
                 {checkoutState === 'loading'

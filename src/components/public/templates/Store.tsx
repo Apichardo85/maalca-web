@@ -110,7 +110,9 @@ export function StoreTemplate({ business, items, categories: categoriesProp, cap
   const dark = deriveDarkBrandPalette(primary, business.secondary_color ?? DEFAULT_BAR, business.accent_color);
   // Barras = secundario tal cual (en oscuro el derivado toma el matiz del primario y un dorado quedaba oliva).
   const bar = /^#[0-9a-f]{6}$/i.test(business.secondary_color ?? '') ? (business.secondary_color as string) : DEFAULT_BAR;
-  const themeCss = brandPaletteCss('st-scope', 'st', light, dark) + `.st-scope{--st-bar:${bar}}`;
+  // Modo oscuro: los neutros salen del color de las barras (un primario dorado teñía todo de oliva).
+  const darkNeutrals = '[data-theme="dark"] .st-scope{--st-bg:color-mix(in srgb,var(--st-bar) 70%,#000);--st-surface:color-mix(in srgb,var(--st-bar) 90%,#fff);--st-border:color-mix(in srgb,var(--st-bar) 76%,#fff);--st-border-soft:color-mix(in srgb,var(--st-bar) 84%,#fff);--st-placeholder:color-mix(in srgb,var(--st-bar) 84%,#fff)}';
+  const themeCss = brandPaletteCss('st-scope', 'st', light, dark) + `.st-scope{--st-bar:${bar}}` + darkNeutrals;
 
   // ── Carrito, cuenta de cliente y horario (mismo motor que la boutique) ──
   const waRaw = resolveWhatsAppDigits(business);
@@ -1111,8 +1113,9 @@ function BigPrice({ value, money, size = 22 }: { value: number; money: (n: numbe
   );
 }
 
-function bestTier(i: Item) {
-  const t = i.retail?.volumeTiers ?? [];
+/** Mejor escalón por volumen QUE MEJORA el precio actual del cliente (con una lista mayorista más baja, puede no haber). */
+function bestTier(i: Item, current: number) {
+  const t = (i.retail?.volumeTiers ?? []).filter((x) => x.price < current);
   return t.length > 0 ? [...t].sort((a, b) => b.minQty - a.minQty)[0] : null;
 }
 
@@ -1155,9 +1158,9 @@ function MiniCard({ item, priceOf, memberPriceOf, money, getText, language, grou
         {item.retail?.brand && <strong>{item.retail.brand} </strong>}
         {titleOf(item, language, grouped)}
       </span>
-      {bestTier(item) && (
+      {bestTier(item, price) && (
         <span style={{ fontSize: 12, color: SAVE, fontWeight: 700 }}>
-          {getText(`${bestTier(item)!.minQty}+ u.: ${money(bestTier(item)!.price)} c/u`, `${bestTier(item)!.minQty}+ units: ${money(bestTier(item)!.price)} each`)}
+          {getText(`${bestTier(item, price)!.minQty}+ u.: ${money(bestTier(item, price)!.price)} c/u`, `${bestTier(item, price)!.minQty}+ units: ${money(bestTier(item, price)!.price)} each`)}
         </span>
       )}
     </button>
@@ -1178,7 +1181,7 @@ function ResultCard(props: CardProps) {
   const soldOut = left === 0;
   const inCart = qtyInCart(item.id);
   const atMax = addWouldExceed(inCart, item.retail, left);
-  const tier = bestTier(item);
+  const tier = bestTier(item, price);
   const off = percentOff(item);
   return (
     <article style={{ ...card, overflow: 'hidden', display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -1216,7 +1219,7 @@ function ResultCard(props: CardProps) {
         {hasMember && memberListName && <span style={{ fontSize: 11, fontWeight: 700, color: SAVE, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{memberListName}</span>}
         {tier && (
           <span style={{ fontSize: 12, color: SAVE, fontWeight: 700 }}>
-            {getText(`Desde ${tier.minQty} u.: ${money(Math.min(tier.price, price))} c/u`, `From ${tier.minQty} units: ${money(Math.min(tier.price, price))} each`)}
+            {getText(`Desde ${tier.minQty} u.: ${money(tier.price)} c/u`, `From ${tier.minQty} units: ${money(tier.price)} each`)}
           </span>
         )}
         {left != null && left > 0 && left <= 5 && <span style={{ fontSize: 12, color: DEAL, fontWeight: 600 }}>{getText(`Quedan ${left}`, `Only ${left} left`)}</span>}
@@ -1460,7 +1463,7 @@ function ProductView(props: CardProps & {
               )}
 
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, borderTop: `1px solid ${BORDER_SOFT}`, paddingTop: 10 }}>
-                <span>{getText(`Subtotal (${qty} u.)`, `Subtotal (${qty} units)`)}</span>
+                <span>{getText(`Subtotal (${qty} ${qty === 1 ? 'unidad' : 'unidades'})`, `Subtotal (${qty} ${qty === 1 ? 'unit' : 'units'})`)}</span>
                 <strong>{money(unit * qty)}</strong>
               </div>
 
