@@ -83,6 +83,8 @@ interface Props {
    *  Service.tsx: cae al azul de plataforma si el negocio no configuró uno propio. Antes este
    *  archivo tenía un rojo fijo sin usar el color del afiliado en absoluto. */
   accent?: string | null;
+  /** Impuesto de venta (%) del negocio: el API lo calcula igual al crear el pedido. Null = sin configurar. */
+  salesTaxRate?: number | null;
 }
 
 const ALL_TAB = '__all__';
@@ -91,7 +93,7 @@ const ALL_TAB = '__all__';
 // que parece colgado.
 const THANKS_RESET_MS = 8000;
 
-export function KioskContent({ slug, businessName, logoUrl, currency, items, onlinePayments, businessType, accent }: Props) {
+export function KioskContent({ slug, businessName, logoUrl, currency, items, onlinePayments, businessType, accent, salesTaxRate = null }: Props) {
   const router = useRouter();
   const kioskAccent = accent ?? '#045AFE';
   const searchParams = useSearchParams();
@@ -258,7 +260,9 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
       : tipMode
         ? subtotal * tipMode
         : 0;
-  const total = subtotal + tip;
+  // Mismo cálculo que SalesTax.Compute en el API (en el kiosko no hay envío).
+  const tax = salesTaxRate ? Math.round(subtotal * salesTaxRate) / 100 : 0;
+  const total = subtotal + tax + tip;
 
   const customizeTotal = useMemo(() => {
     if (!customizeItem) return 0;
@@ -294,7 +298,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
             notes: buildLineNotes(l),
           })),
           subtotal,
-          tax: 0,
+          tax,
           tip,
           total,
           currency,
@@ -628,6 +632,12 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
             </div>
           )}
 
+          {tax > 0 && (
+            <div className="flex items-center justify-between text-sm text-gray-500 dark:text-neutral-400">
+              <span>Tax ({salesTaxRate}%)</span>
+              <span>{fmt.format(tax)}</span>
+            </div>
+          )}
           <div className="flex items-center justify-between text-lg font-bold">
             <span>{t('kiosk.total')}</span>
             <span>{fmt.format(total)}</span>

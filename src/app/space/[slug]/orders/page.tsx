@@ -52,5 +52,17 @@ export default async function OrdersPage({
     // null — la tarjeta muestra los defaults (tarjeta tras No vino, sin límite)
   }
 
-  return <OrdersContent slug={slug} businessName={space.business.name} timezone={space.business.timezone ?? undefined} plan={space.business.plan} initialOrders={orders} canHardDelete={space.isImpersonation === true} pickupRules={pickupRules} />;
+  // Impuesto de venta (tarjeta "Impuesto" junto a las reglas).
+  let taxSettings: { rate: number | null; taxShipping: boolean } | null = null;
+  try {
+    const taxRes = await fetch(`${API}/api/affiliates/${space.business.id}/tax-settings`, {
+      headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': space.business.id },
+      cache: 'no-store',
+    });
+    if (taxRes.ok) taxSettings = await taxRes.json();
+  } catch {
+    // null — la tarjeta muestra "sin configurar"
+  }
+
+  return <OrdersContent taxSettings={taxSettings} slug={slug} businessName={space.business.name} timezone={space.business.timezone ?? undefined} plan={space.business.plan} initialOrders={orders} canHardDelete={space.isImpersonation === true} pickupRules={pickupRules} />;
 }

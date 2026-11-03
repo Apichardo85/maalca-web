@@ -20,6 +20,7 @@ export interface PriceListRow {
   isActive: boolean;
   sortOrder: number;
   items: { itemId: string; price: number }[];
+  taxExempt?: boolean;
 }
 
 interface PreviewLine {
@@ -39,7 +40,7 @@ interface Props {
   initialSettings: StoreSettings | null;
 }
 
-const emptyForm = () => ({ name: '', description: '', discountPercent: '', minOrderAmount: '', isActive: true });
+const emptyForm = () => ({ name: '', description: '', discountPercent: '', minOrderAmount: '', isActive: true, taxExempt: false });
 const inputCls = 'w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary';
 
 /** Mismo cálculo que PriceListPricing.Resolve en el API, para ver el efecto mientras se escribe. */
@@ -83,6 +84,7 @@ export function PriceListsContent({ slug, initialLists, currency, initialMembers
       discountPercent: String(l.discountPercent),
       minOrderAmount: l.minOrderAmount != null ? String(l.minOrderAmount) : '',
       isActive: l.isActive,
+      taxExempt: l.taxExempt === true,
     });
     setFixed(Object.fromEntries(l.items.map((i) => [i.itemId, String(i.price)])));
     setPreview(null);
@@ -109,6 +111,7 @@ export function PriceListsContent({ slug, initialLists, currency, initialMembers
         discountPercent: Number(form.discountPercent || 0),
         minOrderAmount: form.minOrderAmount.trim() === '' ? null : Number(form.minOrderAmount),
         isActive: form.isActive,
+        taxExempt: form.taxExempt,
         sortOrder: existing?.sortOrder ?? lists.length,
         // Al crear todavía no hay vista previa: los precios fijos se ponen después, al editar.
         items: editingId
@@ -200,6 +203,15 @@ export function PriceListsContent({ slug, initialLists, currency, initialMembers
             <label className="flex items-center gap-2 self-end pb-2.5 text-sm text-text-primary">
               <input type="checkbox" checked={form.isActive} onChange={set('isActive')} />
               {getText('Activa', 'Active')}
+            </label>
+            <label className="sm:col-span-3 flex items-start gap-2 text-sm text-text-primary">
+              <input type="checkbox" className="mt-0.5" checked={form.taxExempt} onChange={set('taxExempt')} />
+              <span>
+                {getText('Exenta de impuesto de venta (reventa)', 'Sales-tax exempt (resale)')}
+                <span className="block text-xs text-text-muted">
+                  {getText('Solo para clientes con certificado de reventa (en NY, formulario ST-120). Guarda copia del certificado.', 'Only for customers with a resale certificate (in NY, form ST-120). Keep a copy of the certificate.')}
+                </span>
+              </span>
             </label>
           </div>
 
@@ -295,6 +307,7 @@ export function PriceListsContent({ slug, initialLists, currency, initialMembers
                     {l.discountPercent > 0 ? getText(`${l.discountPercent}% menos`, `${l.discountPercent}% off`) : getText('Sin descuento general', 'No overall discount')}
                     {l.items.length > 0 && ` · ${getText(`${l.items.length} precio(s) fijo(s)`, `${l.items.length} fixed price(s)`)}`}
                     {l.minOrderAmount ? ` · ${getText('mínimo', 'min.')} ${fmt.format(l.minOrderAmount)}` : ''}
+                    {l.taxExempt ? ` · ${getText('sin impuesto', 'tax exempt')}` : ''}
                   </p>
                 </div>
                 <div className="flex gap-2">

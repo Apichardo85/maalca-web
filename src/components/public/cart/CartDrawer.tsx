@@ -55,6 +55,8 @@ export interface CartDrawerProps {
   cartTotal: number
   cartCount: number
   taxRate: number
+  /** El envío también paga impuesto (mismo criterio que SalesTax.Compute en el API). */
+  taxOnShipping?: boolean
   whatsappNumber: string
   businessName: string
   currency?: string
@@ -72,7 +74,7 @@ export interface CartDrawerProps {
    *  antes de despacharse) y fuera de pedidos de mesa. Con perfumes en el carrito, solo métodos terrestres. */
   shippingMethods?: PublicShippingMethod[]
   /** Cliente con sesión en la tienda (miembro/mayorista): el pedido va con su token y el API aplica su lista. */
-  storeSession?: { token: string; name?: string | null; email?: string | null; priceListName?: string | null; minOrderAmount?: number | null } | null
+  storeSession?: { token: string; name?: string | null; email?: string | null; priceListName?: string | null; minOrderAmount?: number | null; taxExempt?: boolean } | null
   /** Edita las notas de personalización de una línea — solo se usa si restaurantMode. */
   updateNotes?: (itemId: string, notes: string) => void
   /** Restaurante: habilita notas de personalización por línea + selector de propina. */
@@ -102,6 +104,7 @@ export function CartDrawer({
   cartTotal,
   cartCount,
   taxRate,
+  taxOnShipping = true,
   whatsappNumber,
   businessName,
   currency = 'USD',
@@ -208,7 +211,9 @@ export function CartDrawer({
   const closedBlocked = !shipping && !!schedule && (!scheduleAck || !!tableNumber)
   const scheduledFor = !shipping && schedule && scheduleAck && !tableNumber ? schedule.dateIso : undefined
 
-  const tax = cartTotal * taxRate
+  // Mismo cálculo que el API (SalesTax.Compute): subtotal (+ envío si se grava), redondeado; lista exenta = 0.
+  const taxExempt = !!storeSession?.taxExempt
+  const tax = taxExempt ? 0 : Math.round((cartTotal + (taxOnShipping ? shipCost : 0)) * taxRate * 100) / 100
   const tip = !restaurantMode
     ? 0
     : tipMode === 'custom'
@@ -860,7 +865,13 @@ export function CartDrawer({
               <span style={{ color: '#888' }}>Subtotal</span>
               <span style={{ color: '#1a1a1a', fontWeight: 500 }}>{fmt.format(cartTotal)}</span>
             </div>
-            {taxRate > 0 && (
+            {taxRate > 0 && taxExempt && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                <span style={{ color: '#aaa' }}>Tax</span>
+                <span style={{ color: '#aaa' }}>{getText('Exento (reventa)', 'Exempt (resale)')}</span>
+              </div>
+            )}
+            {taxRate > 0 && !taxExempt && (
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                 <span style={{ color: '#aaa' }}>
                   Tax ({(taxRate * 100).toFixed(3).replace(/\.?0+$/, '')}%)

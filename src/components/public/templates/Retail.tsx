@@ -559,9 +559,11 @@ export function RetailTemplate({
         onlinePayments={capabilities.onlinePayments && capabilities.stripeReady !== false}
         pickupNewCustomerLimit={capabilities.pickupNewCustomerLimit ?? null}
         shippingMethods={capabilities.shippingMethods}
+        taxRate={(capabilities.salesTaxRate ?? 0) / 100}
+        taxOnShipping={capabilities.salesTaxOnShipping !== false}
         storeSession={
           account.token && account.me && account.me.status !== 'unavailable'
-            ? { token: account.token, name: account.me.name, email: account.me.email ?? account.email, priceListName: memberListName, minOrderAmount: memberListName ? account.me.minOrderAmount : null }
+            ? { token: account.token, name: account.me.name, email: account.me.email ?? account.email, priceListName: memberListName, minOrderAmount: memberListName ? account.me.minOrderAmount : null, taxExempt: !!memberListName && account.me.taxExempt === true }
             : null
         }
         ordersPaused={business.ordersEnabled === false}

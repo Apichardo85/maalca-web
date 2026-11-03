@@ -15,6 +15,8 @@ export interface WhatsAppCartProps {
   businessName: string
   /** Tax rate as a decimal, e.g. 0.08875 for 8.875%. Default: 0 */
   taxRate?: number
+  /** El envío también paga impuesto (ver CartDrawer). */
+  taxOnShipping?: boolean
   /** ISO 4217 currency code. Default: 'USD' */
   currency?: string
   slug?: string
@@ -60,6 +62,7 @@ export function WhatsAppCart({
   whatsappNumber,
   businessName,
   taxRate = 0,
+  taxOnShipping = true,
   currency = 'USD',
   slug,
   onlinePayments = false,
@@ -135,6 +138,7 @@ export function WhatsAppCart({
         cartTotal={cartTotal}
         cartCount={cartCount}
         taxRate={taxRate}
+        taxOnShipping={taxOnShipping}
         currency={currency}
         whatsappNumber={whatsappNumber}
         businessName={businessName}

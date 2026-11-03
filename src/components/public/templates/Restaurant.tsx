@@ -1138,7 +1138,7 @@ export function RestaurantTemplate({
         cartCount={cartCount}
         whatsappNumber={waRaw ?? ''}
         businessName={business.name}
-        taxRate={0}
+        taxRate={(capabilities.salesTaxRate ?? 0) / 100}
         slug={business.slug}
         onlinePayments={capabilities.onlinePayments && capabilities.stripeReady !== false}
         pickupNewCustomerLimit={capabilities.pickupNewCustomerLimit ?? null}

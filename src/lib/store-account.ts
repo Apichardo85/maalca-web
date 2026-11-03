@@ -20,6 +20,8 @@ export interface StoreMe {
   priceListName: string | null;
   discountPercent: number | null;
   minOrderAmount: number | null;
+  /** Su lista es exenta de impuesto (reventa). */
+  taxExempt?: boolean;
 }
 
 export interface StoreOrderSummary {

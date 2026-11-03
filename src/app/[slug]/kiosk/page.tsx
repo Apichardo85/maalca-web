@@ -53,7 +53,7 @@ interface PublicCatalogResponse {
       options: Array<{ id: string; name: string; priceDelta: number; isDefault: boolean }>;
     }> | null;
   }>;
-  capabilities: { onlinePayments?: boolean };
+  capabilities: { onlinePayments?: boolean; salesTaxRate?: number | null };
 }
 
 async function getCatalog(slug: string): Promise<PublicCatalogResponse | null> {
@@ -121,6 +121,7 @@ export default async function KioskPage({ params }: PageProps) {
       currency={currency}
       items={items}
       onlinePayments={data.capabilities?.onlinePayments ?? false}
+      salesTaxRate={data.capabilities?.salesTaxRate ?? null}
       businessType={businessType}
       accent={data.affiliate.primaryColor}
     />

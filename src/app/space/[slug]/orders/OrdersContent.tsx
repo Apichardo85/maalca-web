@@ -9,6 +9,7 @@ import { isPaidPlan } from '@/lib/plan-limits';
 import { formatScheduledFor, mergeOrderUpdate, printTicket, type OrderRow } from '@/lib/orderTicket';
 import { CustomerTrustBadge, canMarkNoShow } from '@/components/space/CustomerTrustBadge';
 import { PickupRulesCard, type PickupRules } from './PickupRulesCard';
+import { TaxSettingsCard, type TaxSettings } from './TaxSettingsCard';
 import { CARRIERS, carrierLabel } from '@/lib/commerce';
 
 // OrderRow/formatScheduledFor/printTicket viven en @/lib/orderTicket (la Estación de pedidos,
@@ -28,6 +29,8 @@ interface Props {
   canHardDelete?: boolean;
   /** Reglas de confianza para pagar al recoger (null = no se pudieron cargar; la tarjeta usa defaults). */
   pickupRules?: PickupRules | null;
+  /** Impuesto de venta del negocio (null = no se pudo cargar; la tarjeta muestra "sin configurar"). */
+  taxSettings?: TaxSettings | null;
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -48,7 +51,7 @@ const STATUS_LABELS: Record<string, { es: string; en: string }> = {
   Canceled: { es: 'Cancelado', en: 'Canceled' },
 };
 
-export function OrdersContent({ slug, businessName, timezone, plan, initialOrders, canHardDelete, pickupRules = null }: Props) {
+export function OrdersContent({ slug, businessName, timezone, plan, initialOrders, canHardDelete, pickupRules = null, taxSettings = null }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const [orders, setOrders] = useState(initialOrders);
@@ -237,6 +240,7 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
         )}
 
         {isPaidPlan(plan) && <PickupRulesCard slug={slug} initial={pickupRules} getText={getText} toast={toast} />}
+        {isPaidPlan(plan) && <TaxSettingsCard slug={slug} initial={taxSettings} getText={getText} toast={toast} />}
 
         {orders.length === 0 ? (
           <div className="mt-8 max-w-3xl rounded-2xl border border-dashed border-gray-300 dark:border-neutral-700 p-10 text-center">
