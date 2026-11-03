@@ -40,6 +40,13 @@ interface Props {
   enableWalkIn?: boolean;
   /** IANA del negocio — "hoy" y "ahora" se miden ahí, no en el reloj del visitante. */
   timezone?: string | null;
+  /**
+   * La página que lo aloja ya trae su propio encabezado y su propio botón de reservar (los abre
+   * con el handle `openBooking()`), así que el widget no repite ni el título "Reserva tu cita" ni
+   * el botón "Reservar ahora" cuando no hay equipo. Lo usa /agendar en la vitrina. Por defecto
+   * es false: las plantillas de negocio (Barbería, Servicios) se ven exactamente igual que antes.
+   */
+  embedded?: boolean;
 }
 
 /** Handle imperativo — permite que un "Reservar" en la tarjeta de un servicio, más
@@ -247,7 +254,7 @@ function CustomSelect({
 const UNASSIGNED_STAFF_KEY = 'unassigned';
 
 export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props>(function PublicBookingSection(
-  { slug, language, accent, horario, timezone, enableWalkIn },
+  { slug, language, accent, horario, timezone, enableWalkIn, embedded = false },
   ref,
 ) {
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -552,7 +559,14 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
   const timeSlots = rawTimeSlots.filter((slot) => !isSlotTaken(slot));
 
   return (
-    <section className="mx-auto max-w-public-content" style={{ padding: '56px 24px' }} id="reservar">
+    <section
+      className="mx-auto max-w-public-content"
+      // Embebido y sin equipo no queda nada visible (el modal es fixed): sin padding para no
+      // dejar un hueco en blanco entre el hero de la página anfitriona y su pie.
+      style={{ padding: embedded && team.length === 0 ? 0 : '56px 24px' }}
+      id="reservar"
+    >
+      {!embedded && (
       <div className="mx-auto mb-10 max-w-xl text-center">
         <span
           className="mb-3 inline-block rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider"
@@ -587,6 +601,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
           </button>
         )}
       </div>
+      )}
 
       {team.length > 0 ? (
         <div className="mx-auto grid max-w-4xl grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
@@ -642,7 +657,7 @@ export const PublicBookingSection = forwardRef<PublicBookingSectionHandle, Props
             </button>
           )}
         </div>
-      ) : (
+      ) : embedded ? null : (
         <div className="mx-auto max-w-sm text-center">
           <button
             type="button"

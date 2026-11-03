@@ -335,7 +335,7 @@ export default function ServiciosPage() {
   const { language } = useSimpleLanguage();
   const L = (v: { es: string; en: string }) => (language === "en" ? v.en : v.es);
   // Destino del botón de asesoría — override de /ops/sitio si existe, si no el default del
-  // diccionario ('/maalca'). Ver services.cta.bookingUrl en useSimpleLanguage.tsx.
+  // diccionario ('/agendar'). Ver services.cta.bookingUrl en useSimpleLanguage.tsx.
   const bookingUrl = t("services.cta.bookingUrl");
 
   const renderComparisonValue = (val: ComparisonValue) => {

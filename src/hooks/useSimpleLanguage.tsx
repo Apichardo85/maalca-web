@@ -566,10 +566,18 @@ const translations = {
     'services.cta.consultation': 'Empezar gratis',
     'services.cta.portfolio': 'Ver casos reales',
     'services.cta.booking': 'Agendar asesoría',
-    // Ruta de la oficina virtual de MaalCa (su propio espacio público, con el widget de citas).
-    // Es una clave de contenido a propósito: editable desde /ops/sitio sin desplegar, igual que
-    // cualquier otro texto del sitio. Si el slug del espacio cambia, se corrige ahí.
-    'services.cta.bookingUrl': '/maalca',
+    // Destino del botón de asesoría: la página /agendar de la vitrina, que embebe el widget de
+    // reservas del espacio de MaalCa. Es una clave de contenido a propósito: editable desde
+    // /ops/sitio sin desplegar, igual que cualquier otro texto del sitio.
+    'services.cta.bookingUrl': '/agendar',
+    // Página /agendar (agenda de la videollamada). Editables desde /ops/sitio.
+    'agendar.eyebrow': 'Hablemos',
+    'agendar.title': 'Agenda una videollamada',
+    'agendar.subtitle': 'Cuéntanos de tu negocio y te mostramos cómo MaalCa puede trabajar para ti.',
+    'agendar.point1': 'Eliges el día y la hora que te convenga',
+    'agendar.point2': 'Recibes el link de la videollamada en tu correo',
+    'agendar.point3': 'Lo agregas a tu calendario con un toque',
+    'agendar.cta': 'Elegir día y hora',
     // Contact Page - Hero
     'contactPage.hero.title': 'Hablemos de tu',
     'contactPage.hero.subtitle': 'Proyecto',
@@ -2155,7 +2163,14 @@ const translations = {
     'services.cta.consultation': 'Start free',
     'services.cta.portfolio': 'See real cases',
     'services.cta.booking': 'Book a consultation',
-    'services.cta.bookingUrl': '/maalca',
+    'services.cta.bookingUrl': '/agendar',
+    'agendar.eyebrow': "Let's talk",
+    'agendar.title': 'Book a video call',
+    'agendar.subtitle': 'Tell us about your business and we will show you how MaalCa can work for you.',
+    'agendar.point1': 'Pick the day and time that suits you',
+    'agendar.point2': 'Get the video call link in your email',
+    'agendar.point3': 'Add it to your calendar with one tap',
+    'agendar.cta': 'Pick a day and time',
     // Contact Page - Hero
     'contactPage.hero.title': 'Let\'s talk about your',
     'contactPage.hero.subtitle': 'Project',

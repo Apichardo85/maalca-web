@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: '/ecosistema', destination: '/casos', permanent: true },
+      // /maalca era el espacio de MaalCa como si fuera un negocio cliente más: una página de
+      // negocio genérica (con un servicio de prueba a $0.00) que no le decía nada a un visitante.
+      // La agenda de la videollamada vive ahora en /agendar, dentro de la vitrina. No es
+      // permanente a propósito: mientras se separa el espacio de los inquilinos (Fase 3) puede
+      // volver a hacer falta. Solo la ruta exacta; /space/maalca (el panel) no se toca.
+      { source: '/maalca', destination: '/agendar', permanent: false },
     ];
   },
   eslint: {

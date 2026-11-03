@@ -99,6 +99,18 @@ export const SITE_CONTENT_GROUPS: SiteContentGroup[] = [
     ],
   },
   {
+    group: 'Agendar (/agendar)',
+    fields: [
+      { key: 'agendar.eyebrow', labelEs: 'Etiqueta superior' },
+      { key: 'agendar.title', labelEs: 'Título' },
+      { key: 'agendar.subtitle', labelEs: 'Subtítulo', multiline: true },
+      { key: 'agendar.point1', labelEs: 'Punto 1' },
+      { key: 'agendar.point2', labelEs: 'Punto 2' },
+      { key: 'agendar.point3', labelEs: 'Punto 3' },
+      { key: 'agendar.cta', labelEs: 'Botón para abrir la reserva' },
+    ],
+  },
+  {
     group: 'Casos (/casos)',
     fields: [
       { key: 'casos.subtitle', labelEs: 'Etiqueta superior' },
