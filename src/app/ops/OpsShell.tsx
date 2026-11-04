@@ -9,6 +9,8 @@ import { OpsAssistantBubble } from './OpsAssistantBubble';
 const NAV = [
   { href: '/ops', label: 'Resumen' },
   { href: '/ops/negocios', label: 'Negocios' },
+  // Levantamientos: formularios con marca que el prospecto llena por enlace (sin copiar datos a mano).
+  { href: '/ops/levantamientos', label: 'Levantamientos' },
   // "Staff MaalCa", no "Equipo" — evita que se confunda con /space/{slug}/equipo (personal de
   // cada negocio). Son datos distintos por diseño: esto es Owner/Support internos de la
   // plataforma, no TeamMember de un afiliado.
