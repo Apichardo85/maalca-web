@@ -233,6 +233,38 @@ export const INTAKE_TEMPLATES: IntakeTemplate[] = [
       { key: 'comentarios', label: '¿Algo más que debamos saber?', type: 'textarea', section: 'Para terminar' },
     ],
   },
+  {
+    id: 'ntc-going-digital',
+    name: 'NTC — Going Digital (English)',
+    description: 'Neighborhood Transformation Center (Elmira, NY): meals, classes, volunteers, forms and reporting. Crear el levantamiento con idioma English.',
+    intro:
+      'Thank you for taking the time to walk us through how the Center works today. Your answers help us set up a simple digital system that fits your programs, your volunteers and the reports you send to funders. You can answer in parts; everything saves automatically.',
+    questions: [
+      { key: 'org_name', label: 'Organization name', type: 'text', section: 'About the Center', required: true },
+      { key: 'address', label: 'Address and shared spaces', type: 'textarea', section: 'About the Center', required: true, help: 'Include any space you share with other organizations (for example Meals on Wheels at 409 William St).' },
+      { key: 'phone', label: 'Main phone', type: 'phone', section: 'About the Center', required: true },
+      { key: 'email', label: 'Main email', type: 'email', section: 'About the Center', required: true },
+      { key: 'contact_role', label: 'Main contact and role', type: 'text', section: 'About the Center', required: true },
+      { key: 'programs', label: 'Programs and services you run', type: 'textarea', section: 'About the Center', required: true, help: 'One per line: meals, classes, youth programs, pantry, lawn mowing, etc.' },
+      { key: 'logo', label: 'Logo', type: 'file', section: 'Your brand', help: 'PNG or JPG, ideally with a transparent background.' },
+      { key: 'brand_colors', label: 'Brand colors', type: 'text', section: 'Your brand', help: 'Example: navy and gold. Hex codes if you have them.' },
+      { key: 'online_presence', label: 'Website and social media', type: 'textarea', section: 'Your brand', help: 'One link per line.' },
+      { key: 'report_to', label: 'Who do you report to?', type: 'multiselect', section: 'Reporting', required: true, options: ['Food Bank', 'United Way', 'City / County', 'State', 'Foundations / donors', 'Board of directors', 'Other'] },
+      { key: 'report_frequency', label: 'How often do you report?', type: 'multiselect', section: 'Reporting', required: true, options: ['Weekly', 'Monthly', 'Quarterly', 'Yearly', 'On request'] },
+      { key: 'report_hardest', label: 'What is the hardest part of putting a report together?', type: 'textarea', section: 'Reporting' },
+      { key: 'count_meals', label: 'How do you count meals served and people helped today?', type: 'textarea', section: 'Daily operation', required: true },
+      { key: 'who_enters', label: 'Who writes the information down or enters it?', type: 'text', section: 'Daily operation', required: true },
+      { key: 'data_lives', label: 'Where does your information live today?', type: 'multiselect', section: 'Daily operation', required: true, options: ['Paper forms', 'Excel / Google Sheets', 'Another system', 'Email', 'Text messages / WhatsApp', 'In people\'s heads'] },
+      { key: 'forms', label: 'Forms you use and send out', type: 'file', section: 'Daily operation', help: 'Upload samples (sign-in sheets, intake forms, volunteer forms, report templates). Photos are fine.' },
+      { key: 'guest_info', label: 'What information do you collect about the people you serve?', type: 'textarea', section: 'Daily operation', help: 'Name, household size, zip code, phone, etc. Do not send personal data of real people here.' },
+      { key: 'mow', label: 'Do you run a lawn mowing or similar service that needs scheduling?', type: 'yesno', section: 'Daily operation' },
+      { key: 'volunteers', label: 'How many volunteers and staff would use a system?', type: 'number', section: 'Team and devices', required: true },
+      { key: 'devices', label: 'What devices do you have?', type: 'multiselect', section: 'Team and devices', required: true, options: ['Desktop computer', 'Laptop', 'Tablet', 'Smartphones', 'Shared computer', 'None / very few'] },
+      { key: 'internet', label: 'How is the internet at the Center?', type: 'select', section: 'Team and devices', required: true, options: ['Reliable', 'Drops sometimes', 'Drops often', 'No internet'] },
+      { key: 'fix_first', label: 'If we could fix one thing first, what would it be?', type: 'textarea', section: 'To finish', required: true },
+      { key: 'comments', label: 'Anything else we should know?', type: 'textarea', section: 'To finish' },
+    ],
+  },
 ];
 
 // ---------------------------------------------------------------- textos del formulario público
