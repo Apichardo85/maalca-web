@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
+import { BulkPhotoUpload } from './BulkPhotoUpload';
 
 export interface InventoryItemRow {
   id: string;
@@ -114,6 +115,7 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
   const [historyRows, setHistoryRows] = useState<InventoryMovementRow[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [showPhotos, setShowPhotos] = useState(false);
   // CSV con productos que ya existen: espera la decisión del dueño (actualizar u omitir) en el modal.
   const [importPending, setImportPending] = useState<{ csvContent: string; preview: ImportResult } | null>(null);
 
@@ -496,11 +498,18 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
           >
             {importing ? getText('Importando…', 'Importing…') : getText('Importar CSV', 'Import CSV')}
           </button>
+          <button
+            type="button"
+            onClick={() => setShowPhotos(true)}
+            className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 dark:border-neutral-700 px-3 text-xs font-semibold text-gray-600 dark:text-neutral-300"
+          >
+            {getText('Subir fotos', 'Upload photos')}
+          </button>
         </div>
         <p className="mt-2 text-xs text-gray-500 dark:text-neutral-400">
           {getText(
-            '¿Vienes de Clover? Exporta tus items, guárdalos como CSV e impórtalos aquí. Columnas de tienda opcionales: Marca, Producto base, Variante, Peso oz, Peligroso, Destacado, Precio volumen (ej. "6:24.99; 12:22.50").',
-            'Coming from Clover? Export your items, save them as CSV and import them here. Optional store columns: Brand, Base product, Variant, Weight oz, Hazmat, Featured, Volume pricing (e.g. "6:24.99; 12:22.50").',
+            '¿Vienes de Clover? Exporta tus items, guárdalos como CSV e impórtalos aquí. Columnas de tienda opcionales: Marca, Producto base, Variante, Peso oz, Peligroso, Destacado, Precio volumen (ej. "6:24.99; 12:22.50"). Fotos: usa «Subir fotos» y nombra cada archivo con el código de barras del producto.',
+            'Coming from Clover? Export your items, save them as CSV and import them here. Optional store columns: Brand, Base product, Variant, Weight oz, Hazmat, Featured, Volume pricing (e.g. "6:24.99; 12:22.50"). Photos: use “Upload photos” and name each file after the product barcode.',
           )}
         </p>
 
@@ -771,6 +780,10 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
           </div>
         )}
       </div>
+
+      {showPhotos && (
+        <BulkPhotoUpload slug={slug} onClose={() => setShowPhotos(false)} onDone={() => refetch(page)} />
+      )}
 
       {importPending && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => !importing && setImportPending(null)}>
