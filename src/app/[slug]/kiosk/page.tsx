@@ -35,6 +35,7 @@ interface PublicCatalogResponse {
     category?: string | null;
     image_url?: string | null;
     imageUrl?: string | null;
+    barcode?: string | null;
     status?: string | null;
     is_demo?: boolean;
     // Receta (Restaurante) — solo presente cuando el plato tiene ingredientes ligados en
@@ -103,6 +104,7 @@ export default async function KioskPage({ params }: PageProps) {
       price: i.price ?? 0,
       category: i.category ?? null,
       imageUrl: i.image_url ?? i.imageUrl ?? null,
+      barcode: i.barcode ?? null,
       ingredients: i.ingredients?.length
         ? i.ingredients.map((ing) => ({ id: ing.inventoryItemId, name: ing.name }))
         : undefined,

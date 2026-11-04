@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from '@/hooks/useSimpleLanguage';
+import { useBarcodeScanner } from '@/hooks/useBarcodeScanner';
+import { findByBarcode, normalizeBarcode } from '@/lib/barcode';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -33,6 +35,8 @@ export interface KioskItem {
   price: number;
   category?: string | null;
   imageUrl?: string | null;
+  /** UPC/EAN — permite agregar el producto con una pistola lectora de código de barras. */
+  barcode?: string | null;
   /** Receta (Restaurante) — solo presente si el plato tiene ingredientes ligados en
    *  Inventario. Cuando existe, el cliente puede destildar los que no quiera en su pedido
    *  (ver toggleIngredient) en vez de escribirlo a mano en notas. */
@@ -101,6 +105,8 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
 
   const [cart, setCart] = useState<CartLine[]>([]);
   const [category, setCategory] = useState(ALL_TAB);
+  const [query, setQuery] = useState('');
+  const [scanNote, setScanNote] = useState<{ ok: boolean; text: string } | null>(null);
   const [checkoutState, setCheckoutState] = useState<'idle' | 'loading' | 'unavailable'>('idle');
   const [tipMode, setTipMode] = useState<number | 'custom' | null>(null);
   const [customTip, setCustomTip] = useState('');
@@ -137,7 +143,14 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
     return Array.from(set);
   }, [items]);
 
-  const visibleItems = category === ALL_TAB ? items : items.filter((i) => i.category === category);
+  const q = query.trim().toLowerCase();
+  const qDigits = normalizeBarcode(query);
+  const searchedItems = q
+    ? items.filter((i) =>
+        [i.name, i.description, i.category].some((v) => (v ?? '').toLowerCase().includes(q)) ||
+        (qDigits.length >= 4 && normalizeBarcode(i.barcode).includes(qDigits)))
+    : items;
+  const visibleItems = category === ALL_TAB ? searchedItems : searchedItems.filter((i) => i.category === category);
 
   const fmt = useMemo(
     () => new Intl.NumberFormat('en-US', { style: 'currency', currency }),
@@ -151,6 +164,24 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
       return [...prev, { lineId: item.id, itemId: item.id, name: item.name, price: item.price, qty: 1 }];
     });
   }
+
+  /** Pistola lectora: el código agrega el producto igual que tocarlo (o abre su selector). */
+  function handleScan(code: string) {
+    const hit = findByBarcode(items, code);
+    if (hit) {
+      if (hit.modifierGroups?.length) openCustomize(hit);
+      else addToCart(hit);
+      setScanNote({ ok: true, text: t('kiosk.scanAdded') + hit.name });
+    } else {
+      setScanNote({ ok: false, text: t('kiosk.scanNotFound') + code });
+    }
+  }
+  useBarcodeScanner(handleScan, checkoutState !== 'loading');
+  useEffect(() => {
+    if (!scanNote) return;
+    const id = setTimeout(() => setScanNote(null), 2500);
+    return () => clearTimeout(id);
+  }, [scanNote]);
 
   /** Abre el selector de guarnición/modificadores para `item`, preseleccionando las opciones
    *  marcadas IsDefault en cada grupo (ej. "Ninguna" en Guarnición). */
@@ -386,6 +417,35 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
           </p>
         ) : (
           <>
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                // Una pistola lectora teclea el código y manda Enter: si coincide exacto, se agrega solo.
+                if (e.key !== 'Enter') return;
+                const hit = findByBarcode(items, query);
+                if (!hit) return;
+                e.preventDefault();
+                handleScan(query);
+                setQuery('');
+              }}
+              placeholder={t('kiosk.search')}
+              aria-label={t('kiosk.search')}
+              className="mt-5 min-h-12 w-full rounded-full border border-gray-300 bg-transparent px-5 text-base dark:border-neutral-700"
+            />
+            {scanNote && (
+              <div
+                role="status"
+                className={`mt-3 rounded-xl px-4 py-2.5 text-sm font-semibold ${
+                  scanNote.ok
+                    ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200'
+                    : 'bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-200'
+                }`}
+              >
+                {scanNote.text}
+              </div>
+            )}
             {categories.length > 0 && (
               <div className="-mx-1 mt-5 flex gap-2 overflow-x-auto px-1 pb-1">
                 <button
@@ -416,6 +476,9 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
               </div>
             )}
 
+            {visibleItems.length === 0 && (
+              <p className="mt-6 text-sm text-gray-400 dark:text-neutral-500">{t('kiosk.noMatches')}</p>
+            )}
             <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
               {visibleItems.map((item) => (
                 <div key={item.id} className="group relative">
@@ -424,11 +487,22 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
                     onClick={() => (item.modifierGroups?.length ? openCustomize(item) : addToCart(item))}
                     className="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-left shadow-sm transition-transform active:scale-95 hover:border-[var(--kiosk-accent)]"
                   >
-                    {/* Sin foto: tarjeta de solo texto, sin recuadro vacío ni ícono de relleno. */}
-                    {item.imageUrl && (
+                    {/* Restaurante sin foto: tarjeta de solo texto. Tienda (retail): todas las tarjetas
+                        con el mismo alto — recuadro suave con el logo — para que el grid no se vea
+                        desparejo cuando unos productos tienen foto y otros no. */}
+                    {item.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={item.imageUrl} alt={item.name} className="h-28 w-full object-cover" />
-                    )}
+                    ) : businessType === 'retail' ? (
+                      <div aria-hidden="true" className="flex h-28 w-full items-center justify-center bg-gray-100 dark:bg-neutral-800">
+                        {logoUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={logoUrl} alt="" className="h-14 w-14 object-contain opacity-30" />
+                        ) : (
+                          <span className="text-3xl font-bold text-gray-300 dark:text-neutral-600">{item.name.trim().charAt(0).toUpperCase()}</span>
+                        )}
+                      </div>
+                    ) : null}
                     <div className={`flex min-h-[80px] flex-col items-start justify-between p-3 ${!item.imageUrl && (item.description || (item.ingredients && item.ingredients.length > 0)) ? 'pr-12' : ''}`}>
                       <span className="text-sm font-semibold leading-snug">{item.name}</span>
                       <span className="mt-2 text-base font-bold text-[var(--kiosk-accent)]">{fmt.format(item.price)}</span>

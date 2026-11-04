@@ -6,6 +6,8 @@ import { useToast } from '@/hooks/useToast';
 import { CustomerPicker } from '@/components/ui/CustomerPicker';
 import { useOrdersRealtime } from '@/hooks/useOrdersRealtime';
 import { Toast } from '@/components/ui/Toast';
+import { useBarcodeScanner } from '@/hooks/useBarcodeScanner';
+import { findByBarcode, normalizeBarcode } from '@/lib/barcode';
 
 export interface PosItem {
   id: string;
@@ -13,6 +15,7 @@ export interface PosItem {
   price: number;
   category?: string | null;
   imageUrl?: string | null;
+  barcode?: string | null;
   description?: string | null;
   status?: string | null;
   isDemo?: boolean;
@@ -134,8 +137,11 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
   }, [items]);
 
   const pq = productQuery.trim().toLowerCase();
+  const pqDigits = normalizeBarcode(productQuery);
   const searchedItems = pq
-    ? items.filter((i) => [i.name, i.description, i.category].some((v) => (v ?? '').toLowerCase().includes(pq)))
+    ? items.filter((i) =>
+        [i.name, i.description, i.category].some((v) => (v ?? '').toLowerCase().includes(pq)) ||
+        (pqDigits.length >= 4 && normalizeBarcode(i.barcode).includes(pqDigits)))
     : items;
   const visibleItems = category === ALL_TAB ? searchedItems : searchedItems.filter((i) => i.category === category);
   const categoryCount = (c: string) => searchedItems.filter((i) => i.category === c).length;
@@ -154,6 +160,18 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
       return [...prev, { itemId: item.id, name: item.name, price: item.price, qty: 1 }];
     });
   }
+
+  // Pistola lectora de código de barras: agrega el producto al cobro igual que tocarlo.
+  function handleScan(code: string) {
+    const hit = findByBarcode(items, code);
+    if (hit) {
+      addToCart(hit);
+      toast.success(getText(`Agregado: ${hit.name}`, `Added: ${hit.name}`));
+    } else {
+      toast.error(getText(`Código no encontrado: ${code}`, `Barcode not found: ${code}`));
+    }
+  }
+  useBarcodeScanner(handleScan);
 
   function changeQty(itemId: string, delta: number) {
     setCart((prev) =>
@@ -322,7 +340,14 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
               type="search"
               value={productQuery}
               onChange={(e) => setProductQuery(e.target.value)}
-              placeholder={getText('Buscar producto…', 'Search products…')}
+              onKeyDown={(e) => {
+                // La pistola lectora teclea el código y manda Enter dentro de este campo.
+                if (e.key !== 'Enter' || !findByBarcode(items, productQuery)) return;
+                e.preventDefault();
+                handleScan(productQuery);
+                setProductQuery('');
+              }}
+              placeholder={getText('Buscar producto o escanear código…', 'Search products or scan a barcode…')}
               className="mt-4 min-h-11 w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700"
             />
             {categories.length > 0 && (
