@@ -10,6 +10,7 @@
 // Navegación interna en tres vistas (inicio · resultados · ficha) con historial del navegador, para que "atrás"
 // funcione como en cualquier tienda. Se adapta por container queries (@…:) y no por viewport, así la vista previa
 // del editor de Diseño se ve igual que la página real.
+import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart, type CartItem } from '@/components/public/cart/useCart';
@@ -688,6 +689,12 @@ export function StoreTemplate({ business, items, categories: categoriesProp, cap
 
           {items.length === 0 && (
             <div style={{ ...card, padding: '64px 24px', textAlign: 'center', color: MUTED }}>{getText('Productos disponibles pronto.', 'Products available soon.')}</div>
+          )}
+
+          {business.sectionVisibility?.gallery !== false && (business.galleryImages?.length ?? 0) > 0 && (
+            <Shelf title={getText('Galería', 'Gallery')}>
+              <PublicGalleryLightbox images={business.galleryImages ?? []} accent={ACCENT} getText={getText} />
+            </Shelf>
           )}
 
           {storeAccounts && !memberListName && (
