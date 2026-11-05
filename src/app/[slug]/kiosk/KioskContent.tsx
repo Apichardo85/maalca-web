@@ -375,7 +375,7 @@ export function KioskContent({ slug, businessName, logoUrl, currency, items, onl
         <div className="flex items-center gap-3">
           {logoUrl && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={logoUrl} alt={businessName} className="h-10 w-10 rounded-full object-cover" />
+            <img src={logoUrl} alt={businessName} className="h-10 w-auto min-w-10 max-w-[200px] rounded-lg bg-white object-contain p-1" />
           )}
           <div>
             <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">

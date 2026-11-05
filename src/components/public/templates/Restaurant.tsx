@@ -540,12 +540,17 @@ export function RestaurantTemplate({
             <img
               src={business.logo_url}
               alt={business.name}
+              // Entero, no recortado (ver Store.tsx).
               style={{
                 display: 'block',
-                width: '84px',
                 height: '84px',
+                width: 'auto',
+                minWidth: '84px',
+                maxWidth: '250px',
                 borderRadius: '16px',
-                objectFit: 'cover',
+                objectFit: 'contain',
+                padding: '6px',
+                backgroundColor: '#ffffff',
                 border: '2px solid rgba(255,255,255,0.2)',
                 marginBottom: '12px',
               }}

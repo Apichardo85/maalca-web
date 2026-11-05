@@ -239,6 +239,16 @@ export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
   community: 'Comunidad',
 };
 
+/** Igual que BUSINESS_TYPE_LABELS, en inglés: el panel de un negocio con idioma inglés mostraba
+ *  "Tienda" suelto en medio de una pantalla en inglés. */
+export const BUSINESS_TYPE_LABELS_EN: Record<BusinessType, string> = {
+  restaurant: 'Restaurant',
+  barber: 'Barbershop',
+  service: 'Services',
+  retail: 'Store',
+  community: 'Community',
+};
+
 /** Same emoji as the onboarding business-type selector (BUSINESS_TYPES in
  *  OnboardingForm.tsx) — kept here instead of imported from there so the read-only
  *  display in ConfigTab.tsx doesn't reach into an unrelated route's form file. */

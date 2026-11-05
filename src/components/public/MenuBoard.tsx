@@ -1093,7 +1093,7 @@ export function MenuBoard({
           <img
             src={business.logoUrl}
             alt={business.name}
-            className="h-14 w-14 rounded-full object-cover ring-2 ring-white/40"
+            className="h-14 w-auto min-w-14 max-w-[260px] rounded-xl bg-white object-contain p-1 ring-2 ring-white/40"
           />
         )}
         <h1 className="text-3xl font-bold tracking-tight">{business.name}</h1>

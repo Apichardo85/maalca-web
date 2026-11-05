@@ -85,7 +85,7 @@ export function PoncheContent({ slug, businessName, logoUrl, initialTeam }: Prop
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-neutral-950 text-white px-6 py-10">
       <div className="w-full max-w-md text-center mb-8">
-        {logoUrl && <img src={logoUrl} alt={businessName} className="mx-auto mb-3 h-14 w-14 rounded-full object-cover" />}
+        {logoUrl && <img src={logoUrl} alt={businessName} className="mx-auto mb-3 h-14 w-auto min-w-14 max-w-[220px] rounded-xl bg-white object-contain p-1" />}
         <h1 className="text-lg font-bold">{businessName}</h1>
         <p className="text-sm text-neutral-400">{t('ponche.clockTitle')}</p>
       </div>

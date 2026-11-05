@@ -209,12 +209,17 @@ export function BarberTemplate({
             <img
               src={business.logo_url}
               alt={business.name}
+              // Entero, no recortado (ver Store.tsx).
               style={{
                 display: 'block',
-                width: '78px',
                 height: '78px',
+                width: 'auto',
+                minWidth: '78px',
+                maxWidth: '230px',
                 borderRadius: '11px',
-                objectFit: 'cover',
+                objectFit: 'contain',
+                padding: '6px',
+                backgroundColor: '#ffffff',
                 border: '2px solid rgba(255,255,255,0.25)',
                 marginBottom: '14px',
               }}

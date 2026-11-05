@@ -58,6 +58,10 @@ interface Props {
   causas: CausaDto[];
   communityImpact: CommunityImpactDto;
   publicUrl: string;
+  /** Muestra del catálogo real para la vista previa (la arma design/page.tsx). */
+  previewItems?: PublicTemplateProps['items'];
+  /** Capacidades reales del negocio publicado — mandan sobre las del plan en la previa. */
+  previewCapabilities?: Record<string, unknown> | null;
 }
 
 type Tab = 'config' | 'canales' | 'contenido';
@@ -93,6 +97,8 @@ export function DesignEditor({
   causas: initialCausas,
   communityImpact: initialCommunityImpact,
   publicUrl,
+  previewItems = [],
+  previewCapabilities = null,
 }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -240,7 +246,10 @@ export function DesignEditor({
     { key: 'contenido', label: getText('Contenido', 'Content'), icon: '📝' },
   ];
 
-  const capabilities = getCapabilities(plan);
+  // Capacidades del plan, corregidas con las reales del negocio (las mismas que recibe la
+  // tienda publicada): sin esto la previa anunciaba "Pago seguro con tarjeta" aunque el alta en
+  // Stripe estuviera a medias y la tienda real no ofreciera tarjeta.
+  const capabilities = { ...getCapabilities(plan), ...(previewCapabilities ?? {}) } as PublicTemplateProps['capabilities'];
 
   // Exact shape of PublicTemplateProps['business'] (registry.ts) — same fields the real
   // public page and /preview/[slug] build, so PreviewFrame can render the actual template
@@ -392,7 +401,7 @@ export function DesignEditor({
           <p className="mb-3 text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
             {getText('Vista previa', 'Preview')}
           </p>
-          <PreviewFrame business={previewBusiness} capabilities={capabilities} />
+          <PreviewFrame business={previewBusiness} capabilities={capabilities} items={previewItems} />
         </div>
       </div>
     </div>

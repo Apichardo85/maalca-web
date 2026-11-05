@@ -6,6 +6,8 @@ import { TEMPLATES, type PublicTemplateProps } from '@/lib/templates/registry';
 interface Props {
   business: PublicTemplateProps['business'];
   capabilities: PublicTemplateProps['capabilities'];
+  /** Muestra del catálogo real. Vacío = la plantilla dibuja su estado "sin productos". */
+  items?: PublicTemplateProps['items'];
 }
 
 type PreviewMode = 'desktop' | 'mobile';
@@ -25,7 +27,7 @@ const NATURAL_WIDTHS: Record<PreviewMode, number> = { desktop: 1280, mobile: 390
  * from the real templates (Horario, FAQ, Pasos, social links each shipped as separate fixes)
  * because every field had to be duplicated by hand instead of coming from the same component.
  */
-export function PreviewFrame({ business, capabilities }: Props) {
+export function PreviewFrame({ business, capabilities, items = [] }: Props) {
   const outerRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<PreviewMode>('desktop');
@@ -107,7 +109,7 @@ export function PreviewFrame({ business, capabilities }: Props) {
           ref={innerRef}
           style={{ width: naturalWidth, transform: `scale(${scale})`, transformOrigin: 'top left' }}
         >
-          <Template business={business} items={[]} categories={[]} capabilities={capabilities} />
+          <Template business={business} items={items} categories={[]} capabilities={capabilities} />
         </div>
       </div>
     </div>

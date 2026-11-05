@@ -364,6 +364,16 @@ export function StoreTemplate({ business, items, categories: categoriesProp, cap
     const s = new Set<string>();
     return list.filter((i) => (s.has(groupKeyOf(i)) ? false : (s.add(groupKeyOf(i)), true)));
   };
+  // En la portada de cada categoría van primero los que tienen foto y están marcados como
+  // populares: por orden alfabético salía lo que el catálogo tenga en la A, normalmente sin foto.
+  const showcase = (list: Item[]) =>
+    [...list].sort((a, b) => {
+      const byPhoto = Number(Boolean(imageOf(b))) - Number(Boolean(imageOf(a)));
+      if (byPhoto !== 0) return byPhoto;
+      const byPick = Number(Boolean(b.popular || b.featured)) - Number(Boolean(a.popular || a.featured));
+      if (byPick !== 0) return byPick;
+      return 0;
+    });
   const quads = categoryNames
     .map((name) => ({ name, items: dedupe(items.filter((i) => inCategory(i, name))) }))
     .filter((q) => q.items.length > 0)
@@ -421,7 +431,9 @@ export function StoreTemplate({ business, items, categories: categoriesProp, cap
           <a href="#top" onClick={(e) => { e.preventDefault(); go({ kind: 'home' }); }} style={{ display: 'flex', alignItems: 'center', gap: 10, color: ON_BAR, textDecoration: 'none', minHeight: 44 }}>
             {business.logo_url && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={business.logo_url} alt="" style={{ width: 36, height: 36, borderRadius: 8, objectFit: 'cover', backgroundColor: '#ffffff' }} />
+              // El logo puede ser ancho (lockup con el nombre). Recortarlo en cuadrado deja una letra
+              // suelta, así que se muestra entero: alto fijo, ancho libre hasta un máximo.
+              <img src={business.logo_url} alt="" style={{ height: 36, width: 'auto', minWidth: 36, maxWidth: 150, borderRadius: 8, objectFit: 'contain', backgroundColor: '#ffffff', padding: 3 }} />
             )}
             <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
               <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.01em' }}>{business.name}</span>
@@ -611,7 +623,7 @@ export function StoreTemplate({ business, items, categories: categoriesProp, cap
                 <div key={q.name} style={{ ...card, padding: 18, display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
                   <h2 style={{ ...h2, fontSize: 18 }}>{categoryLabel(q.name, language, business.categoryTranslations)}</h2>
                   <div className="grid grid-cols-2 gap-3">
-                    {q.items.slice(0, 4).map((i) => (
+                    {showcase(q.items).slice(0, 4).map((i) => (
                       <button key={i.id} type="button" onClick={() => go({ kind: 'product', id: i.id })} style={{ background: 'none', border: 0, padding: 0, textAlign: 'left', cursor: 'pointer', color: INK, minWidth: 0 }}>
                         <Thumb item={i} radius={8} />
                         <span style={{ display: 'block', marginTop: 6, fontSize: 12, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -780,11 +792,15 @@ export function StoreTemplate({ business, items, categories: categoriesProp, cap
                   ))}
                 </Facet>
               )}
-              <Facet title={getText('Disponibilidad y precio', 'Availability & price')}>
-                {items.some((i) => i.trackStock) && <FacetOption checked={onlyStock} onChange={() => setOnlyStock(!onlyStock)}>{getText('Solo en existencia', 'In stock only')}</FacetOption>}
-                {deals.length > 0 && <FacetOption checked={onlyDeals} onChange={() => setOnlyDeals(!onlyDeals)}>{getText('En oferta', 'On sale')}</FacetOption>}
-                {anyTiers && <FacetOption checked={onlyVolume} onChange={() => setOnlyVolume(!onlyVolume)}>{getText('Con precio por cantidad', 'With volume pricing')}</FacetOption>}
-              </Facet>
+              {/* Sin control de stock, sin ofertas y sin precios por cantidad este grupo se queda
+                  en un título suelto sin nada debajo, así que no se dibuja. */}
+              {(items.some((i) => i.trackStock) || deals.length > 0 || anyTiers) && (
+                <Facet title={getText('Disponibilidad y precio', 'Availability & price')}>
+                  {items.some((i) => i.trackStock) && <FacetOption checked={onlyStock} onChange={() => setOnlyStock(!onlyStock)}>{getText('Solo en existencia', 'In stock only')}</FacetOption>}
+                  {deals.length > 0 && <FacetOption checked={onlyDeals} onChange={() => setOnlyDeals(!onlyDeals)}>{getText('En oferta', 'On sale')}</FacetOption>}
+                  {anyTiers && <FacetOption checked={onlyVolume} onChange={() => setOnlyVolume(!onlyVolume)}>{getText('Con precio por cantidad', 'With volume pricing')}</FacetOption>}
+                </Facet>
+              )}
               {brandCounts.length >= 2 && (
                 <Facet title={getText('Marca', 'Brand')}>
                   {(showAllBrands ? brandCounts : brandCounts.slice(0, 8)).map(([b, n]) => (
@@ -1077,7 +1093,7 @@ function Thumb({ item, radius = 10, compact }: { item: Item; radius?: number; co
             <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: MUTED }}>{item.retail.brand}</span>
           )}
           <span style={{ fontSize: compact ? 20 : 'clamp(26px, 6cqi, 44px)', fontWeight: 600, color: ACCENT_TEXT, opacity: 0.75, lineHeight: 1 }}>
-            {(item.retail?.variantGroup || item.name).trim().charAt(0).toUpperCase()}
+            {initialOf(item)}
           </span>
         </span>
       )}
@@ -1098,6 +1114,19 @@ interface CardProps {
   groupMembers: Map<string, Item[]>;
   memberListName: string | null;
   onOpen: (i: Item) => void;
+}
+
+/** Primera LETRA del producto (o de su marca). "18 EDP 3.4 oz" daba un "1" que parecía un precio. */
+function initialOf(i: Item): string {
+  const letter = (s?: string | null) => (s ?? '').match(/\p{L}/u)?.[0]?.toUpperCase() ?? '';
+  return letter(i.retail?.variantGroup) || letter(i.name) || letter(i.retail?.brand) || '·';
+}
+
+/** La marca solo se antepone cuando el nombre no la trae ya ("Afnan 9PM by Afnan"). */
+function showBrand(i: Item, title: string): boolean {
+  const brand = i.retail?.brand?.trim();
+  if (!brand) return false;
+  return !title.toLowerCase().includes(brand.toLowerCase());
 }
 
 function titleOf(i: Item, language: 'es' | 'en', grouped: boolean): string {
@@ -1162,7 +1191,7 @@ function MiniCard({ item, priceOf, memberPriceOf, money, getText, language, grou
         </span>
       )}
       <span style={{ fontSize: 13, lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-        {item.retail?.brand && <strong>{item.retail.brand} </strong>}
+        {showBrand(item, titleOf(item, language, grouped)) && <strong>{item.retail!.brand} </strong>}
         {titleOf(item, language, grouped)}
       </span>
       {bestTier(item, price) && (
@@ -1201,7 +1230,7 @@ function ResultCard(props: CardProps) {
       </button>
       <div style={{ padding: '0 12px 12px', display: 'flex', flexDirection: 'column', gap: 5, flex: 1 }}>
         <button type="button" onClick={() => onOpen(item)} style={{ background: 'none', border: 0, padding: 0, textAlign: 'left', color: INK, fontSize: 14, lineHeight: 1.35, cursor: 'pointer' }}>
-          {item.retail?.brand && <strong>{item.retail.brand} </strong>}
+          {showBrand(item, titleOf(item, language, grouped)) && <strong>{item.retail!.brand} </strong>}
           {titleOf(item, language, grouped)}
         </button>
         {grouped && (

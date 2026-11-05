@@ -310,12 +310,16 @@ export function RetailTemplate({
             <img
               src={business.logo_url}
               alt={business.name}
+              // Entero, no recortado: un logo ancho en un círculo se queda en una letra suelta.
               style={{
                 display: 'block',
-                width: '96px',
                 height: '96px',
-                borderRadius: '50%',
-                objectFit: 'cover',
+                width: 'auto',
+                minWidth: '96px',
+                maxWidth: '280px',
+                borderRadius: '20px',
+                objectFit: 'contain',
+                padding: '8px',
                 border: `3px solid ${heroLine}`,
                 boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
                 backgroundColor: '#ffffff',

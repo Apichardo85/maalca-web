@@ -54,7 +54,10 @@ interface PublicCatalogResponse {
       options: Array<{ id: string; name: string; priceDelta: number; isDefault: boolean }>;
     }> | null;
   }>;
-  capabilities: { onlinePayments?: boolean; salesTaxRate?: number | null };
+  // stripeReady === false = el negocio activó cobros pero no terminó el alta en Stripe. La tienda
+  // ya lo mira para no mostrar el botón de tarjeta; el kiosko debe hacer lo mismo o el cliente toca
+  // "Pagar con tarjeta" y no pasa nada.
+  capabilities: { onlinePayments?: boolean; stripeReady?: boolean; salesTaxRate?: number | null };
 }
 
 async function getCatalog(slug: string): Promise<PublicCatalogResponse | null> {
@@ -122,7 +125,7 @@ export default async function KioskPage({ params }: PageProps) {
       logoUrl={data.affiliate.logoUrl ?? null}
       currency={currency}
       items={items}
-      onlinePayments={data.capabilities?.onlinePayments ?? false}
+      onlinePayments={(data.capabilities?.onlinePayments ?? false) && data.capabilities?.stripeReady !== false}
       salesTaxRate={data.capabilities?.salesTaxRate ?? null}
       businessType={businessType}
       accent={data.affiliate.primaryColor}

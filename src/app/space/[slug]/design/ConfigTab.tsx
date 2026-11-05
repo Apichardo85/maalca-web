@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
-import { BUSINESS_TYPE_LABELS, BUSINESS_TYPE_ICONS, type BusinessType } from '@/lib/templates/registry';
+import { BUSINESS_TYPE_LABELS, BUSINESS_TYPE_LABELS_EN, BUSINESS_TYPE_ICONS, type BusinessType } from '@/lib/templates/registry';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import type { ProfileFormState, CanalDto } from './types';
 
@@ -246,7 +246,7 @@ export function ConfigTab({ slug, form, businessType, onChange, onCommit, onComm
         </label>
         <div className="flex items-center gap-2 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800/50 px-3 py-2.5 text-sm text-gray-700 dark:text-neutral-300">
           <span className="text-base">{BUSINESS_TYPE_ICONS[businessType]}</span>
-          <span>{BUSINESS_TYPE_LABELS[businessType]}</span>
+          <span>{getText(BUSINESS_TYPE_LABELS[businessType], BUSINESS_TYPE_LABELS_EN[businessType])}</span>
         </div>
         <p className="mt-1 text-xs text-gray-400 dark:text-neutral-500">
           {getText('Contáctanos para cambiar el tipo de negocio.', 'Contact us to change the business type.')}
@@ -278,7 +278,7 @@ export function ConfigTab({ slug, form, businessType, onChange, onCommit, onComm
                   key={opt.value}
                   className={`flex cursor-pointer gap-3 rounded-lg border-2 p-3 transition ${
                     active
-                      ? 'border-gray-900 bg-gray-50 dark:border-white dark:bg-neutral-800'
+                      ? 'border-gray-900 bg-gray-50 ring-2 ring-gray-900/15 dark:border-white dark:bg-neutral-800 dark:ring-white/25'
                       : 'border-gray-200 hover:border-gray-300 dark:border-neutral-700 dark:hover:border-neutral-600'
                   }`}
                 >
@@ -288,7 +288,7 @@ export function ConfigTab({ slug, form, businessType, onChange, onCommit, onComm
                     value={opt.value}
                     checked={active}
                     onChange={() => onChange('storeLayout', opt.value)}
-                    className="mt-1 h-4 w-4 shrink-0 accent-gray-900"
+                    className="mt-1 h-4 w-4 shrink-0 accent-gray-900 dark:accent-white"
                   />
                   <span>
                     <span className="block text-sm font-semibold text-gray-900 dark:text-white">{opt.title}</span>

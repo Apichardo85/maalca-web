@@ -3,7 +3,7 @@ import { getMaalcaApiToken } from '@/lib/api-auth';
 import { DesignEditor } from './DesignEditor';
 import type { ProcessStepDto, FaqEntryDto, HorarioDayDto, SectionVisibilityDto, CausaDto, CommunityImpactDto, MealPeriodHoursDto, CategoryTranslationsDto } from './types';
 import { EMPTY_COMMUNITY_IMPACT } from './types';
-import type { BusinessType, Plan } from '@/lib/templates/registry';
+import type { BusinessType, Plan, PublicTemplateProps } from '@/lib/templates/registry';
 
 // The public template's default timezone fallback when a business hasn't configured one yet —
 // matches the default used across affiliates-config.ts for Dominican-based businesses.
@@ -21,6 +21,38 @@ interface CanalDto {
   verificado: boolean;
   orden: number;
   activo: boolean;
+}
+
+type PreviewItem = {
+  category?: string | null;
+  image_url?: string | null;
+  imageUrl?: string | null;
+  popular?: boolean;
+  featured?: boolean;
+  status?: string | null;
+  is_demo?: boolean;
+};
+
+/** Muestra del catálogo para la vista previa: unos pocos por categoría, primero los que tienen
+ *  foto y los destacados. Mandar los 646 al cliente solo para dibujar una previa escalada
+ *  pesaría más que la página entera. */
+const PREVIEW_PER_CATEGORY = 6;
+const PREVIEW_MAX = 36;
+function sampleForPreview<T extends PreviewItem>(items: T[]): T[] {
+  const usable = items.filter((i) => i.status !== 'Inactive' && !i.is_demo);
+  const rank = (i: T) => (i.image_url || i.imageUrl ? 0 : 2) + (i.popular || i.featured ? 0 : 1);
+  const byCategory = new Map<string, T[]>();
+  for (const i of usable) {
+    const key = i.category ?? '';
+    const list = byCategory.get(key);
+    if (list) list.push(i);
+    else byCategory.set(key, [i]);
+  }
+  const out: T[] = [];
+  for (const list of byCategory.values()) {
+    out.push(...[...list].sort((a, b) => rank(a) - rank(b)).slice(0, PREVIEW_PER_CATEGORY));
+  }
+  return out.slice(0, PREVIEW_MAX);
 }
 
 export default async function DesignPage({
@@ -67,6 +99,12 @@ export default async function DesignPage({
   let galleryImages: string[] = [];
   let causas: CausaDto[] = [];
   let communityImpact: CommunityImpactDto = EMPTY_COMMUNITY_IMPACT;
+  // La vista previa renderiza la plantilla real, pero antes iba siempre con el catálogo vacío:
+  // el dueño veía "Productos disponibles pronto" sobre 646 productos y no podía juzgar nada.
+  // Se le pasa una muestra del catálogo real y las capacidades reales (las mismas que ve la
+  // tienda), no las del plan: así la previa no promete tarjeta si Stripe no está conectado.
+  let previewItems: PublicTemplateProps['items'] = [];
+  let previewCapabilities: Record<string, unknown> | null = null;
 
   try {
     const publicRes = await fetch(`${API}/api/public/affiliates/${slug}`, { cache: 'no-store' });
@@ -98,20 +136,22 @@ export default async function DesignPage({
 
   // Categorías del catálogo (para traducirlas en Contenido). Solo tipos con menú/catálogo con
   // categorías; si el fetch falla la sección simplemente no aparece (no tumba el editor).
-  if (['restaurant', 'retail', 'barber'].includes((biz.businessType as string)?.toLowerCase())) {
-    try {
-      const catRes = await fetch(`${API}/api/public/affiliates/${slug}/catalog`, { cache: 'no-store' });
-      if (catRes.ok) {
-        const c = await catRes.json();
+  try {
+    const catRes = await fetch(`${API}/api/public/affiliates/${slug}/catalog`, { cache: 'no-store' });
+    if (catRes.ok) {
+      const c = await catRes.json();
+      if (['restaurant', 'retail', 'barber'].includes((biz.businessType as string)?.toLowerCase())) {
         const names = new Set<string>();
         for (const i of (c.items ?? []) as Array<{ category?: string | null }>) if (i.category) names.add(i.category);
         for (const cat of (c.categories ?? []) as Array<{ name?: string | null }>) if (cat.name) names.add(cat.name);
         for (const k of Object.keys(categoryTranslations)) names.add(k);
         categoryNames = Array.from(names).sort((a, b) => a.localeCompare(b));
       }
-    } catch {
-      // sin lista de categorías: la sección de traducciones queda oculta
+      previewItems = sampleForPreview((c.items ?? []) as PublicTemplateProps['items']);
+      previewCapabilities = (c.capabilities ?? null) as Record<string, unknown> | null;
     }
+  } catch {
+    // sin catálogo: la previa queda como antes (vacía) y la sección de traducciones oculta
   }
 
   // Causas -- ya no viene del payload público de arriba (backlog 2026-09-25, ver Causa.cs);
@@ -164,6 +204,8 @@ export default async function DesignPage({
       causas={causas}
       communityImpact={communityImpact}
       publicUrl={publicUrl}
+      previewItems={previewItems}
+      previewCapabilities={previewCapabilities}
     />
   );
 }

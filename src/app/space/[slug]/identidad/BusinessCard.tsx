@@ -83,8 +83,9 @@ export function BusinessCard({ business, qrDataUrl }: Props) {
               alt={business.name}
               width={64}
               height={64}
-              className="rounded-full object-cover"
-              style={{ width: 64, height: 64, boxShadow: `0 0 0 2px ${pal.detail}` }}
+              // Entero, no recortado: un logo ancho dentro de un círculo se queda en una letra suelta.
+              className="rounded-2xl bg-white object-contain"
+              style={{ height: 64, width: 'auto', minWidth: 64, maxWidth: 200, padding: 6, boxShadow: `0 0 0 2px ${pal.detail}` }}
             />
           ) : (
             <div

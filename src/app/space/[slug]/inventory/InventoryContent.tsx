@@ -18,6 +18,9 @@ export interface InventoryItemRow {
   status: string;
   barcode?: string | null;
   internalCode?: string | null;
+  // false = el negocio no lleva la cuenta de este producto. Su quantity es 0 porque nadie la
+  // mueve, no porque se haya agotado, así que no es "stock bajo" ni hay nada que mostrar.
+  trackStock?: boolean;
 }
 
 interface InventoryMovementRow {
@@ -41,6 +44,8 @@ interface InventorySummary {
   totalItems: number;
   lowStockCount: number;
   lowStockItems: LowStockItem[];
+  /** Cuántos items llevan seguimiento. 0 = no se controla inventario y el valor total no dice nada. */
+  trackedCount?: number;
 }
 
 interface ImportDuplicate {
@@ -86,7 +91,19 @@ const UNIT_LABELS: Record<string, { es: string; en: string }> = {
   paquete: { es: 'paquete', en: 'pack' },
   docena: { es: 'docena', en: 'dozen' },
 };
-const unitLabel = (unit: string, language: 'es' | 'en') => UNIT_LABELS[unit]?.[language] ?? unit;
+// `qty` solo para el plural: "1 unidad" pero "2 unidades" / "0 units". Las abreviaturas (kg, ml)
+// no se pluralizan.
+const UNIT_PLURALS: Record<string, { es: string; en: string }> = {
+  unidad: { es: 'unidades', en: 'units' },
+  litro: { es: 'litros', en: 'liters' },
+  caja: { es: 'cajas', en: 'boxes' },
+  paquete: { es: 'paquetes', en: 'packs' },
+  docena: { es: 'docenas', en: 'dozens' },
+};
+const unitLabel = (unit: string, language: 'es' | 'en', qty?: number) => {
+  if (qty !== undefined && qty !== 1 && UNIT_PLURALS[unit]) return UNIT_PLURALS[unit][language];
+  return UNIT_LABELS[unit]?.[language] ?? unit;
+};
 
 const emptyForm = { name: '', category: '', quantity: '0', minStock: '0', unitPrice: '0', unit: 'unidad', barcode: '' };
 
@@ -421,8 +438,10 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
     }
   }
 
-  const lowStockCount = summary?.lowStockCount ?? items.filter((i) => i.quantity <= i.minStock).length;
-  const totalValue = summary?.totalValue;
+  const lowStockCount = summary?.lowStockCount ?? items.filter((i) => i.trackStock === true && i.quantity <= i.minStock).length;
+  // Sin ningún producto con seguimiento, "valor total: $0.00" solo confunde: se omite.
+  const tracksStock = (summary?.trackedCount ?? items.filter((i) => i.trackStock === true).length) > 0;
+  const totalValue = tracksStock ? summary?.totalValue : undefined;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">
@@ -677,7 +696,7 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
             </p>
           )}
           {items.map((item) => {
-            const lowStock = item.quantity <= item.minStock;
+            const lowStock = item.trackStock === true && item.quantity <= item.minStock;
             return (
               <div
                 key={item.id}
@@ -696,10 +715,12 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
                     <p className="mt-0.5 text-xs text-gray-500 dark:text-neutral-400">
                       {[
                         item.category,
-                        getText(
-                          `${item.quantity} ${unitLabel(item.unit || 'unidad', 'es')} en stock (mín. ${item.minStock})`,
-                          `${item.quantity} ${unitLabel(item.unit || 'unidad', 'en')} in stock (min ${item.minStock})`,
-                        ),
+                        item.trackStock === true
+                          ? getText(
+                              `${item.quantity} ${unitLabel(item.unit || 'unidad', 'es', item.quantity)} en stock (mín. ${item.minStock})`,
+                              `${item.quantity} ${unitLabel(item.unit || 'unidad', 'en', item.quantity)} in stock (min ${item.minStock})`,
+                            )
+                          : getText('Sin control de stock', 'Stock not tracked'),
                       ]
                         .filter(Boolean)
                         .join(' · ')}

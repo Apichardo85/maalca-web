@@ -179,7 +179,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
       >
         {business.logo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={business.logo_url} alt={business.name} className="h-14 w-14 shrink-0 rounded-xl object-cover" />
+          <img src={business.logo_url} alt={business.name} className="h-14 w-auto min-w-14 max-w-[200px] shrink-0 rounded-xl bg-white object-contain p-1" />
         ) : (
           <div
             className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-base font-semibold"
@@ -240,7 +240,7 @@ export function ServiceTemplate({ business, items, capabilities }: PublicTemplat
             <div className="flex items-start justify-between gap-3">
               {business.logo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={business.logo_url} alt={business.name} className="h-20 w-20 rounded-2xl object-cover" />
+                <img src={business.logo_url} alt={business.name} className="h-20 w-auto min-w-20 max-w-[260px] rounded-2xl bg-white object-contain p-1.5" />
               ) : (
                 <div
                   className="flex h-20 w-20 items-center justify-center rounded-2xl text-2xl font-semibold"
