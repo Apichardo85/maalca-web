@@ -44,6 +44,8 @@ export interface OrderTracking {
   trackingNumber?: string | null;
   trackingUrl?: string | null;
   shippedAt?: string | null;
+  /** Número corto del pedido (8 caracteres del id): el mismo del correo, la cuenta y el ticket. */
+  orderCode?: string | null;
 }
 
 const POLL_MS = 15_000;
@@ -232,7 +234,7 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
     : isReady
       ? tx('¡Tu pedido está listo!', 'Your order is ready!')
       : t.status === 'Pending'
-        ? tx('Esperando que el restaurante lo acepte', 'Waiting for the restaurant to accept it')
+        ? tx('Esperando que el negocio lo acepte', 'Waiting for the business to accept it')
         : t.status === 'Paid'
           ? tx('Pedido aceptado', 'Order accepted')
           : tx('Preparando tu pedido', 'Preparing your order');
@@ -395,7 +397,7 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
         </div>
 
         <p className="mt-4 text-center text-xs text-gray-400 dark:text-neutral-500">
-          {tx('Esta página se actualiza sola', 'This page updates automatically')} · {tx('Pedido', 'Order')} #{token.slice(0, 6).toUpperCase()}
+          {tx('Esta página se actualiza sola', 'This page updates automatically')} · {tx('Pedido', 'Order')} #{t.orderCode ?? token.slice(0, 6).toUpperCase()}
         </p>
       </div>
     </div>

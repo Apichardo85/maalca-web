@@ -144,7 +144,7 @@ export function CuentaContent({ slug, name, logoUrl, color, currency }: Props) {
                         <span className="font-semibold">
                           {new Date(o.createdAt).toLocaleDateString(language === 'en' ? 'en-US' : 'es', { day: 'numeric', month: 'long', year: 'numeric' })}
                         </span>
-                        <span className="ml-2 text-text-muted">#{o.id.slice(0, 8)}</span>
+                        <span className="ml-2 text-text-muted">#{o.id.slice(0, 8).toUpperCase()}</span>
                       </div>
                       <span className="rounded-full px-3 py-1 text-xs font-semibold" style={{ background: `${chip}22`, color: chip }}>
                         {language === 'en' ? st.en : st.es}

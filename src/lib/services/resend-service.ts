@@ -414,7 +414,7 @@ function buildOrderStatusEmail(params: {
     params.kind === 'confirmed'
       ? (en ? 'We received your payment and your order is being prepared.' : 'Recibimos tu pago y tu pedido ya está en proceso.')
       : params.kind === 'received'
-        ? (en ? 'Your order is at the restaurant. You pay when you pick it up.' : 'Tu pedido ya está en el restaurante. Pagas al recogerlo.')
+        ? (en ? 'The business received your order. You pay when you pick it up.' : 'El negocio recibió tu pedido. Pagas al recogerlo.')
         : (en ? 'Your order is ready. If you have any questions, reply to this email or contact the business directly.' : 'Tu pedido ya está listo. Si tienes dudas, responde a este correo o contacta directamente al negocio.');
   const trackBlock = params.trackUrl
     ? `${emailCtaButton(en ? 'Track my order →' : 'Seguir mi pedido →', params.trackUrl)}
@@ -444,7 +444,7 @@ function buildOrderStatusEmail(params: {
           <td style="padding: 12px 0 0; font-weight: 600; color: #1a1a1a; font-size: 15px; text-align: right;">${params.currency} ${params.total.toFixed(2)}</td>
         </tr>
       </table>
-      <p style="color: #a3a3a3; font-size: 12px; margin: 0;">${en ? 'Order' : 'Pedido'} #${params.orderId.slice(0, 8)}</p>
+      <p style="color: #a3a3a3; font-size: 12px; margin: 0;">${en ? 'Order' : 'Pedido'} #${params.orderId.slice(0, 8).toUpperCase()}</p>
     `,
     footerText: params.brand
       ? (en ? `You are receiving this email because you placed an order at ${params.businessName}.` : `Recibes este correo porque hiciste un pedido en ${params.businessName}.`)
@@ -1939,7 +1939,7 @@ export async function sendOrderShippedEmail(params: {
         ${itemRows}
         <tr><td style="padding: 12px 0 0; font-weight: 600; color: #1a1a1a; font-size: 15px;">Total</td><td style="padding: 12px 0 0; font-weight: 600; color: #1a1a1a; font-size: 15px; text-align: right;">${params.currency} ${params.total.toFixed(2)}</td></tr>
       </table>
-      <p style="color: #a3a3a3; font-size: 12px; margin: 0;">${en ? 'Order' : 'Pedido'} #${params.orderId.slice(0, 8)}</p>`,
+      <p style="color: #a3a3a3; font-size: 12px; margin: 0;">${en ? 'Order' : 'Pedido'} #${params.orderId.slice(0, 8).toUpperCase()}</p>`,
         footerText: en ? `You are receiving this email because you placed an order at ${escapeHtml(params.businessName)}.` : `Recibes este correo porque hiciste un pedido en ${escapeHtml(params.businessName)}.`,
       }),
     });
