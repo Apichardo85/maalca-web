@@ -1701,46 +1701,181 @@ export async function sendScreenAlertEmail(params: { to: string[]; events: Scree
   }
 }
 
-// ---------------------------------------------------------------- levantamientos (/ops/levantamientos)
+/**
+ * El negocio aprobó la cuenta de un cliente/mayorista. La tienda le promete "te avisamos cuando
+ * te aprueben" y hasta ahora no salía nada: el cliente se quedaba esperando. Va con la marca del
+ * negocio (logo, color, nombre) y las respuestas le llegan al negocio (replyTo).
+ */
+export async function sendStoreAccountApprovedEmail(params: {
+  businessName: string
+  businessEmail?: string | null
+  slug?: string | null
+  customerName: string
+  customerEmail: string
+  priceListName?: string | null
+  brand?: EmailBrand
+  language?: 'es' | 'en'
+}): Promise<{ sent: boolean }> {
+  if (!resend) {
+    console.log('[Resend] Skipped store-account approval email — RESEND_API_KEY not set')
+    return { sent: false }
+  }
 
-function escIntake(s: string): string {
-  return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string))
+  const origin = (process.env.NEXT_PUBLIC_SITE_URL || 'https://maalca.com').replace(/\/$/, '')
+  const storeUrl = params.slug ? `${origin}/${params.slug}` : origin
+  const en = params.language === 'en'
+  const name = escapeHtml(params.customerName)
+  const business = escapeHtml(params.businessName)
+  const color = safeBrandColor(params.brand?.color)
+
+  // La lista solo se nombra si el negocio le asignó una; si no, se habla de "tus precios".
+  const listLine = params.priceListName
+    ? (en
+        ? `Your price list: <strong>${escapeHtml(params.priceListName)}</strong>. You'll see those prices across the catalog.`
+        : `Tu lista de precios: <strong>${escapeHtml(params.priceListName)}</strong>. Verás esos precios en todo el catálogo.`)
+    : (en
+        ? 'Your prices now show across the catalog.'
+        : 'Tus precios ya aparecen en todo el catálogo.')
+
+  const bodyHtml = `
+    <h2 style="font-size: 18px; margin: 0 0 4px 0;">${en ? 'Your account is approved' : 'Tu cuenta quedó aprobada'}</h2>
+    <p style="font-size: 14px; line-height: 1.6; color: #5a5a5a; margin: 0 0 16px 0;">
+      ${en
+        ? `Hi ${name}, ${business} approved your account. ${listLine}`
+        : `Hola ${name}, ${business} aprobó tu cuenta. ${listLine}`}
+    </p>
+    ${emailCtaButton(en ? 'Shop the catalog' : 'Ver el catálogo', storeUrl, color)}
+    <p style="font-size: 13px; line-height: 1.6; color: #a3a3a3; margin: 16px 0 0 0;">
+      ${en
+        ? 'Sign in with the same email you used to request the account and your prices will be there.'
+        : 'Entra con el mismo correo con el que pediste la cuenta y verás tus precios.'}
+    </p>
+  `
+
+  try {
+    await resend.emails.send({
+      from: fromFor(params.brand),
+      replyTo: params.businessEmail || undefined,
+      to: params.customerEmail,
+      subject: en ? `You're approved at ${params.businessName}` : `Tu cuenta en ${params.businessName} fue aprobada`,
+      html: renderCardEmail({
+        bodyHtml,
+        brand: params.brand,
+        footerText: en
+          ? `Sent because you requested an account at ${business}.`
+          : `Enviado porque pediste una cuenta en ${business}.`,
+      }),
+    })
+    return { sent: true }
+  } catch (err: unknown) {
+    console.error('[Resend] Store account approval email failed:', err instanceof Error ? err.message : String(err))
+    return { sent: false }
+  }
 }
 
 /**
- * Aviso interno a MaalCa: un prospecto envió su levantamiento. Lo dispara la ruta pública
- * /api/levantamiento/[token] cuando maalca-api confirma el envío (destinatario = quien lo creó en /ops).
+ * Correo de acceso de Supabase Auth (enlace mágico, confirmación de registro, recuperación).
+ * Lo dispara /api/auth/email-hook: con el hook activo Supabase ya no manda su plantilla por
+ * defecto, así que este correo es el único que recibe el usuario. Va con la marca del negocio
+ * al que está entrando cuando se puede deducir; si no, con la de MaalCa.
  */
-export async function sendIntakeSubmittedEmail(params: {
+export async function sendAuthEmail(params: {
   to: string
-  businessName: string
-  contactName?: string | null
-  intakeId: string
-  answeredCount: number
-  questionCount: number
-}): Promise<boolean> {
+  confirmUrl: string
+  actionType: string
+  brand?: EmailBrand
+  language?: 'es' | 'en'
+}): Promise<{ sent: boolean }> {
   if (!resend) {
-    console.log('[Resend] Skipped intake submitted — RESEND_API_KEY not set')
-    return false
+    console.log('[Resend] Skipped auth email — RESEND_API_KEY not set')
+    return { sent: false }
   }
-  const who = params.contactName ? `${escIntake(params.contactName)} (${escIntake(params.businessName)})` : escIntake(params.businessName)
-  const html = renderPlainEmail(`
-    <h2 style="color: #1a1a1a; font-size: 20px; margin-top: 0;">Levantamiento recibido</h2>
-    <p style="color: #525252; font-size: 14px; line-height: 1.6;">
-      ${who} envió sus respuestas: ${params.answeredCount} de ${params.questionCount} preguntas contestadas.
+
+  const en = params.language === 'en'
+  const who = params.brand?.name ? escapeHtml(params.brand.name) : 'MaalCa'
+  const color = safeBrandColor(params.brand?.color)
+
+  // Cada tipo de correo de Supabase dice algo distinto; el botón y el aviso de seguridad son
+  // los mismos en todos.
+  const copy = (() => {
+    switch (params.actionType) {
+      case 'signup':
+        return {
+          subject: en ? `Confirm your email for ${who}` : `Confirma tu correo para ${who}`,
+          title: en ? 'Confirm your email' : 'Confirma tu correo',
+          lead: en
+            ? `Tap the button to confirm this address and finish signing up at ${who}.`
+            : `Pulsa el botón para confirmar este correo y terminar tu registro en ${who}.`,
+          cta: en ? 'Confirm email' : 'Confirmar correo',
+        }
+      case 'recovery':
+        return {
+          subject: en ? `Reset your password at ${who}` : `Restablece tu contraseña en ${who}`,
+          title: en ? 'Reset your password' : 'Restablece tu contraseña',
+          lead: en
+            ? 'Tap the button to choose a new password.'
+            : 'Pulsa el botón para elegir una contraseña nueva.',
+          cta: en ? 'Choose a new password' : 'Elegir contraseña nueva',
+        }
+      case 'email_change':
+        return {
+          subject: en ? `Confirm your new email at ${who}` : `Confirma tu correo nuevo en ${who}`,
+          title: en ? 'Confirm your new email' : 'Confirma tu correo nuevo',
+          lead: en
+            ? 'Tap the button to confirm this address.'
+            : 'Pulsa el botón para confirmar esta dirección.',
+          cta: en ? 'Confirm email' : 'Confirmar correo',
+        }
+      case 'invite':
+        return {
+          subject: en ? `You've been invited to ${who}` : `Te invitaron a ${who}`,
+          title: en ? "You've been invited" : 'Te invitaron',
+          lead: en
+            ? `Tap the button to accept the invitation and set up your account at ${who}.`
+            : `Pulsa el botón para aceptar la invitación y crear tu cuenta en ${who}.`,
+          cta: en ? 'Accept invitation' : 'Aceptar invitación',
+        }
+      default:
+        return {
+          subject: en ? `Sign in to ${who}` : `Entra a ${who}`,
+          title: en ? 'Your sign-in link' : 'Tu enlace de acceso',
+          lead: en
+            ? `Tap the button to sign in to ${who}.`
+            : `Pulsa el botón para entrar a ${who}.`,
+          cta: en ? 'Sign in' : 'Entrar',
+        }
+    }
+  })()
+
+  const bodyHtml = `
+    <h2 style="font-size: 18px; margin: 0 0 4px 0;">${copy.title}</h2>
+    <p style="font-size: 14px; line-height: 1.6; color: #5a5a5a; margin: 0 0 4px 0;">${copy.lead}</p>
+    <p style="font-size: 13px; line-height: 1.6; color: #a3a3a3; margin: 0;">
+      ${en ? 'The link works once and expires in an hour.' : 'El enlace sirve una sola vez y vence en una hora.'}
     </p>
-    ${emailCtaButton('Ver respuestas en /ops', `https://maalca.com/ops/levantamientos/${encodeURIComponent(params.intakeId)}`)}
-  `)
+    ${emailCtaButton(copy.cta, params.confirmUrl, color)}
+    <p style="font-size: 12px; line-height: 1.6; color: #a3a3a3; margin: 0; word-break: break-all;">
+      ${en ? "If the button doesn't work, copy this link:" : 'Si el botón no funciona, copia este enlace:'}<br />
+      ${escapeHtml(params.confirmUrl)}
+    </p>
+  `
+
   try {
     await resend.emails.send({
-      from: FROM_EMAIL,
-      to: [params.to],
-      subject: `📋 Levantamiento recibido: ${params.businessName}`,
-      html,
+      from: fromFor(params.brand),
+      to: params.to,
+      subject: copy.subject,
+      html: renderCardEmail({
+        bodyHtml,
+        brand: params.brand,
+        footerText: en
+          ? "If you didn't ask for this, ignore this email — nobody can get in without the link."
+          : 'Si no lo pediste, ignora este correo: nadie puede entrar sin el enlace.',
+      }),
     })
-    return true
+    return { sent: true }
   } catch (err: unknown) {
-    console.error('[Resend] Intake submitted failed:', err instanceof Error ? err.message : String(err))
-    return false
+    console.error('[Resend] Auth email failed:', err instanceof Error ? err.message : String(err))
+    return { sent: false }
   }
 }
