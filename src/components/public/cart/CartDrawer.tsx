@@ -351,6 +351,7 @@ export function CartDrawer({
           customerEmail: emailOk ? email : undefined,
           scheduledFor,
           payAtPickup: true,
+          language: getText('es', 'en'),
         }),
       })
       if (!res.ok) {

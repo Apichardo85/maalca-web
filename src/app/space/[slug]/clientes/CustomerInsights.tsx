@@ -13,6 +13,7 @@ interface Insights {
   monthly: { month: string; total: number; orders: number }[];
   topProducts: { name: string; qty: number; amount: number; lastAt: string }[];
   orders: { id: string; createdAt: string; status: string; total: number; counted: boolean; items: { name: string; qty: number; price: number }[] }[];
+  noShows?: number;
 }
 
 interface Props {
@@ -74,6 +75,12 @@ export function CustomerInsights({ slug, customerId, customerName, getText, lang
     }
   }
 
+  async function clearNoShows() {
+    if (!data) return;
+    const res = await fetch(`/api/space/${slug}/customers/${customerId}/clear-no-shows`, { method: 'POST' });
+    if (res.ok) setData({ ...data, noShows: 0 });
+  }
+
   function exportCsv() {
     if (!data) return;
     const rows: (string | number)[][] = [[
@@ -127,8 +134,20 @@ export function CustomerInsights({ slug, customerId, customerName, getText, lang
         </div>
       )}
 
+      {(data.noShows ?? 0) > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm dark:border-red-900 dark:bg-red-950/40">
+          <p className="text-red-700 dark:text-red-300">
+            {getText(`Tiene ${data.noShows} marca(s) "No vino". Si el negocio exige pago adelantado tras un No vino, no podrá pedir pagando al recoger.`,
+              `${data.noShows} no-show mark(s). If the business requires prepayment after a no-show, they cannot order with pay-at-pickup.`)}
+          </p>
+          <button onClick={clearNoShows} className="rounded-lg border border-red-300 px-3 py-1 font-semibold text-red-700 dark:border-red-800 dark:text-red-300">
+            {getText('Quitar marcas', 'Clear marks')}
+          </button>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <div className={card}><p className={label}>{getText('Compras', 'Purchases')}</p><p className={value}>{stats.purchaseCount}<span className="text-xs font-normal text-gray-400"> / {stats.orderCount}</span></p></div>
+        <div className={card}><p className={label}>{getText('Cobradas / pedidos', 'Paid / orders')}</p><p className={value}>{stats.purchaseCount}<span className="text-xs font-normal text-gray-400"> / {stats.orderCount}</span></p></div>
         <div className={card}><p className={label}>{getText('Total comprado', 'Total spent')}</p><p className={value}>{money(stats.spent)}</p></div>
         <div className={card}><p className={label}>{getText('Ticket promedio', 'Average ticket')}</p><p className={value}>{money(stats.avgTicket)}</p></div>
         <div className={card}><p className={label}>{getText('Compra cada', 'Buys every')}</p><p className={value}>{stats.avgDaysBetween != null ? `${Math.round(stats.avgDaysBetween)} ${getText('días', 'days')}` : '—'}</p></div>

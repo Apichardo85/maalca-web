@@ -74,7 +74,7 @@ export function CuentaContent({ slug, name, logoUrl, color, barColor, currency }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, me?.status]);
 
-  const counted = useMemo(() => (orders ?? []).filter((o) => o.status !== 'Canceled'), [orders]);
+  const counted = useMemo(() => (orders ?? []).filter((o) => o.counted ?? o.status !== 'Canceled'), [orders]);
   const isDone = (o: StoreOrderSummary) => o.status === 'Fulfilled' || o.status === 'Canceled';
   const shown = (orders ?? []).filter((o) => (filter === 'all' ? true : filter === 'done' ? isDone(o) : !isDone(o)));
   const spent = counted.reduce((sum, o) => sum + o.total, 0);

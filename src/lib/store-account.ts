@@ -42,6 +42,8 @@ export interface StoreOrderSummary {
   items?: { itemId: string; name: string; qty: number; unitPrice: number; imageUrl?: string | null }[] | null;
   shippingCarrier?: string | null;
   trackingNumber?: string | null;
+  /** Cuenta como compra (cobrada). Ausente en un API anterior. */
+  counted?: boolean;
 }
 
 export interface JoinStoreInput {
