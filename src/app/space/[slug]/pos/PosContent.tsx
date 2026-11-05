@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { CustomerPicker } from '@/components/ui/CustomerPicker';
@@ -95,15 +95,37 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
   const [selectedCustomerId, setSelectedCustomerId] = useState(NEW_CUSTOMER);
   const [customerName, setCustomerName] = useState('');
 
+  // Lista de precios del cliente elegido (mayorista, etc.): el POS cobra con ese precio, igual que la tienda.
+  const [memberList, setMemberList] = useState<{ name: string; prices: Map<string, number> } | null>(null);
+  const basePrice = (itemId: string, fallback: number) => items.find((i) => i.id === itemId)?.price ?? fallback;
+  function applyList(list: { name: string; prices: Map<string, number> } | null) {
+    setMemberList(list);
+    setCart((prev) => prev.map((l) => ({ ...l, price: list?.prices.get(l.itemId) ?? basePrice(l.itemId, l.price) })));
+  }
+
   function selectCustomer(id: string) {
     setSelectedCustomerId(id);
     if (id === NEW_CUSTOMER) {
       setCustomerName('');
+      applyList(null);
       return;
     }
     const found = customers.find((c) => c.id === id);
     if (found) setCustomerName(found.name);
+    fetch(`/api/space/${slug}/customers/${id}/price-list`, { cache: 'no-store' })
+      .then((r) => (r.status === 200 ? r.json() : null))
+      .then((d: { name: string; prices: { itemId: string; price: number }[] } | null) =>
+        applyList(d ? { name: d.name, prices: new Map(d.prices.map((p) => [p.itemId, p.price])) } : null),
+      )
+      .catch(() => applyList(null));
   }
+
+  // "Vender en el POS a su nombre" desde la ficha del cliente: llega como ?customer=<id>.
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('customer');
+    if (id && customers.some((c) => c.id === id)) selectCustomer(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // Cobro real con Stripe (QR) — mientras esto no sea null, el pedido está Pending esperando
   // que el cliente pague desde su teléfono. Se cierra solo cuando llega el evento de SignalR.
   const [checkoutModal, setCheckoutModal] = useState<CheckoutModalState | null>(null);
@@ -157,7 +179,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
       if (existing) {
         return prev.map((l) => (l.itemId === item.id ? { ...l, qty: l.qty + 1 } : l));
       }
-      return [...prev, { itemId: item.id, name: item.name, price: item.price, qty: 1 }];
+      return [...prev, { itemId: item.id, name: item.name, price: memberList?.prices.get(item.id) ?? item.price, qty: 1 }];
     });
   }
 
@@ -217,6 +239,8 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
           tip,
           total,
           customerName: customerName.trim() || null,
+          customerId: selectedCustomerId === NEW_CUSTOMER ? null : selectedCustomerId,
+          priceListName: memberList?.name ?? null,
           notes: splitNote,
           currency,
           paymentMethod,
@@ -234,6 +258,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
       setSplitCount(null);
       setSelectedCustomerId(NEW_CUSTOMER);
       setCustomerName('');
+      setMemberList(null);
     } catch (e) {
       const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
       toast.error(msg);
@@ -260,6 +285,8 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
           tip,
           total,
           customerName: customerName.trim() || null,
+          customerId: selectedCustomerId === NEW_CUSTOMER ? null : selectedCustomerId,
+          priceListName: memberList?.name ?? null,
           notes: splitNote,
           currency,
           successUrl: `${origin}/pay/success`,
@@ -508,12 +535,18 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
               <input
                 value={customerName}
                 onChange={(e) => {
+                  if (selectedCustomerId !== NEW_CUSTOMER) applyList(null);
                   setSelectedCustomerId(NEW_CUSTOMER);
                   setCustomerName(e.target.value);
                 }}
                 placeholder={getText('Nombre del cliente', "Customer's name")}
                 className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
               />
+              {memberList && (
+                <p className="rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                  🏷️ {getText(`Precio ${memberList.name} aplicado`, `${memberList.name} pricing applied`)}
+                </p>
+              )}
             </div>
           )}
 

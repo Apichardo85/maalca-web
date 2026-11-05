@@ -7,6 +7,8 @@ import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { Modal } from '@/components/ui/Modal';
 import { DangerZoneDelete } from '@/components/space/DangerZoneDelete';
+import { CustomerInsights } from './CustomerInsights';
+import { SalesReport } from './SalesReport';
 
 export interface CustomerRow {
   id: string;
@@ -129,6 +131,7 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
   const [selected, setSelected] = useState<CustomerRow | null>(null);
   const [history, setHistory] = useState<CustomerHistory | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [showReport, setShowReport] = useState(false);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -246,14 +249,24 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
             )}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowForm(true)}
-          className="flex min-h-11 flex-shrink-0 items-center justify-center rounded-full bg-brand-primary px-4 text-sm font-medium text-white transition hover:bg-brand-primary-hover"
-        >
-          + {getText('Cliente', 'Customer')}
-        </button>
+        <div className="flex flex-shrink-0 gap-2">
+          <button
+            type="button"
+            onClick={() => setShowReport(true)}
+            className="flex min-h-11 items-center justify-center rounded-full border border-gray-200 px-4 text-sm font-medium text-gray-700 transition hover:border-brand-primary dark:border-neutral-700 dark:text-neutral-300"
+          >
+            📊 {getText('Reporte', 'Report')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowForm(true)}
+            className="flex min-h-11 items-center justify-center rounded-full bg-brand-primary px-4 text-sm font-medium text-white transition hover:bg-brand-primary-hover"
+          >
+            + {getText('Cliente', 'Customer')}
+          </button>
+        </div>
       </div>
+      <SalesReport slug={slug} open={showReport} onClose={() => setShowReport(false)} getText={getText} />
 
       <input
         type="text"
@@ -415,6 +428,8 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
                 {selected.notes}
               </p>
             )}
+
+            <CustomerInsights slug={slug} customerId={selected.id} customerName={selected.name} getText={getText} language={language} />
 
             {loadingHistory && (
               <p className="py-8 text-center text-sm text-gray-400">{getText('Cargando historial...', 'Loading history...')}</p>
