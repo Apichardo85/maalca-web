@@ -231,6 +231,8 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
           : t.status === 'Paid'
             ? tx('Pedido confirmado', 'Order confirmed')
             : tx('Preparando tu envío', 'Preparing your shipment')
+    : t.status === 'Fulfilled'
+      ? tx('¡Pedido entregado! Gracias.', 'Order picked up. Thank you!')
     : isReady
       ? tx('¡Tu pedido está listo!', 'Your order is ready!')
       : t.status === 'Pending'
@@ -290,7 +292,7 @@ export function TrackingContent({ token, initial, apiBase }: { token: string; in
                       {done ? '✓' : s.icon}
                     </span>
                     <div className="pt-1">
-                      <p className={`text-sm font-semibold ${done || current ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-neutral-500'}`}>{lang === 'en' ? s.en : s.es}</p>
+                      <p className={`text-sm font-semibold ${done || current ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-neutral-500'}`}>{!isShipping && t.status === 'Fulfilled' && i === steps.length - 1 ? tx('Entregado', 'Picked up') : lang === 'en' ? s.en : s.es}</p>
                     </div>
                   </li>
                 );
