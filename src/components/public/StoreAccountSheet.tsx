@@ -212,6 +212,19 @@ export function StoreAccountSheet({
               </div>
             )}
 
+            {me && me.status === 'approved' && !(orders && orders.length > 0) && (
+              <div style={{ marginTop: 20 }}>
+                <p style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 700 }}>{getText('Mis pedidos', 'My orders')}</p>
+                {orders === null ? (
+                  <p style={{ margin: 0, fontSize: 13, color: muted }}>{getText('Cargando…', 'Loading…')}</p>
+                ) : orders.length === 0 ? (
+                  <p style={{ margin: 0, fontSize: 13, color: muted }}>
+                    {getText('Aún no tienes pedidos con esta cuenta. Cuando hagas uno aparecerá aquí.', "You don't have orders on this account yet. Your next order will show up here.")}
+                  </p>
+                ) : null}
+              </div>
+            )}
+
             <button type="button" onClick={() => account.signOut()} style={{ ...secondary, marginTop: 18, minHeight: 40, fontSize: 13 }}>
               {getText('Cerrar sesión', 'Sign out')}
             </button>
