@@ -85,6 +85,24 @@ export function MembersPanel({ slug, lists, initialMembers, initialSettings, get
     }
   }
 
+  async function remove(m: StoreCustomerRow) {
+    if (!window.confirm(getText(`¿Eliminar a ${m.name} de la tienda? Sus pedidos se conservan y puede volver a pedir acceso.`, `Delete ${m.name} from the store? Their orders are kept and they can request access again.`))) return;
+    setBusyId(m.id);
+    try {
+      const res = await fetch(`/api/space/${slug}/store-customers/${m.id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        onError(getText('No se pudo eliminar.', "Couldn't delete."));
+        return;
+      }
+      setMembers((prev) => prev.filter((x) => x.id !== m.id));
+      onSuccess(getText(`${m.name} eliminado.`, `${m.name} deleted.`));
+    } catch {
+      onError(getText('No se pudo eliminar.', "Couldn't delete."));
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   async function saveSettings() {
     setSavingSettings(true);
     try {
@@ -239,6 +257,14 @@ export function MembersPanel({ slug, lists, initialMembers, initialSettings, get
                     {m.status === 'approved' ? getText('Quitar acceso', 'Remove access') : getText('Rechazar', 'Reject')}
                   </button>
                 )}
+                <button
+                  type="button"
+                  disabled={busyId === m.id}
+                  onClick={() => remove(m)}
+                  className="min-h-10 rounded-full px-3 text-xs font-medium text-text-muted underline hover:text-red-600 disabled:opacity-50"
+                >
+                  {getText('Eliminar', 'Delete')}
+                </button>
               </div>
             </li>
           ))}
