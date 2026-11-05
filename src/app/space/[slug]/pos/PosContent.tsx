@@ -397,19 +397,24 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
             )}
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
               {visibleItems.map((item) => (
-                <div key={item.id} className="group relative">
+                <div key={item.id} className="group relative h-full">
                   <button
                     type="button"
                     onClick={() => addToCart(item)}
-                    className="flex w-full flex-col overflow-hidden rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-left shadow-sm transition-transform active:scale-95 hover:border-brand-primary"
+                    className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-left shadow-sm transition-transform active:scale-95 hover:border-brand-primary"
                   >
-                    {/* Sin foto: tarjeta de solo texto, sin recuadro vacío ni ícono de relleno. */}
-                    {item.imageUrl && (
+                    {/* Restaurante sin foto: tarjeta de solo texto. Los demás negocios: todas las tarjetas con el mismo
+                        alto (recuadro suave con la inicial) para que el grid no quede desparejo — mismo criterio que el kiosko. */}
+                    {item.imageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={item.imageUrl} alt={item.name} className="h-24 w-full object-cover" />
-                    )}
-                    <div className={`flex min-h-[72px] flex-col items-start justify-between p-3 ${!item.imageUrl && item.description ? 'pr-10' : ''}`}>
-                      <span className="text-sm font-semibold leading-snug">{item.name}</span>
+                      <img src={item.imageUrl} alt={item.name} className={`h-28 w-full ${isRestaurant ? "object-cover" : "bg-white object-contain"}`} />
+                    ) : !isRestaurant ? (
+                      <div aria-hidden="true" className="flex h-28 w-full items-center justify-center bg-gray-100 dark:bg-neutral-800">
+                        <span className="text-3xl font-bold text-gray-300 dark:text-neutral-600">{item.name.trim().charAt(0).toUpperCase()}</span>
+                      </div>
+                    ) : null}
+                    <div className={`flex min-h-[84px] flex-1 flex-col items-start justify-between p-3 ${!item.imageUrl && isRestaurant && item.description ? 'pr-10' : ''}`}>
+                      <span className="line-clamp-2 text-sm font-semibold leading-snug">{item.name}</span>
                       <span className="mt-2 text-base font-bold text-brand-primary">{fmt(item.price)}</span>
                     </div>
                   </button>

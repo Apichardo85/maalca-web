@@ -17,6 +17,7 @@ interface CatalogHead {
     name: string;
     logoUrl?: string | null;
     primaryColor?: string | null;
+    secondaryColor?: string | null;
     currency?: string | null;
     language?: string | null;
   };
@@ -56,6 +57,7 @@ export default async function CuentaPage({ params }: PageProps) {
         name={affiliate.name}
         logoUrl={affiliate.logoUrl ?? null}
         color={affiliate.primaryColor ?? null}
+        barColor={affiliate.secondaryColor ?? null}
         currency={affiliate.currency ?? 'USD'}
       />
     </>

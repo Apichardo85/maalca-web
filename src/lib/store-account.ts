@@ -22,6 +22,10 @@ export interface StoreMe {
   minOrderAmount: number | null;
   /** Su lista es exenta de impuesto (reventa). */
   taxExempt?: boolean;
+  /** Datos que dio al pedir la cuenta (editables en "Mi cuenta"). */
+  phone?: string | null;
+  businessName?: string | null;
+  taxId?: string | null;
 }
 
 export interface StoreOrderSummary {
@@ -35,7 +39,9 @@ export interface StoreOrderSummary {
   trackingToken: string | null;
   priceListName: string | null;
   /** Líneas del pedido ("Comprar de nuevo"). Ausente en respuestas de un API anterior. */
-  items?: { itemId: string; name: string; qty: number; unitPrice: number }[] | null;
+  items?: { itemId: string; name: string; qty: number; unitPrice: number; imageUrl?: string | null }[] | null;
+  shippingCarrier?: string | null;
+  trackingNumber?: string | null;
 }
 
 export interface JoinStoreInput {
@@ -60,6 +66,8 @@ export interface UseStoreAccount {
   signOut: () => Promise<void>;
   join: (input: JoinStoreInput) => Promise<string | null>;
   loadOrders: () => Promise<StoreOrderSummary[]>;
+  /** Corrige sus datos (nombre, teléfono, empresa, Tax ID). Devuelve el mensaje de error, o null si se guardó. */
+  updateProfile: (input: { name?: string; phone?: string; businessName?: string; taxId?: string }) => Promise<string | null>;
 }
 
 export function useStoreAccount(slug: string, enabled: boolean): UseStoreAccount {
@@ -164,6 +172,13 @@ export function useStoreAccount(slug: string, enabled: boolean): UseStoreAccount
     loadOrders: async () => {
       const res = await call('/orders');
       return res.ok ? res.json() : [];
+    },
+    updateProfile: async (input) => {
+      const res = await call('/me', { method: 'PATCH', body: JSON.stringify(input) });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) return data?.error?.message ?? 'Error';
+      setMe(data);
+      return null;
     },
   };
 }
