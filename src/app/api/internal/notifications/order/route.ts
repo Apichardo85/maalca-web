@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sendOrderConfirmationEmail, sendOrderFulfilledEmail, type OrderEmailItem } from '@/lib/services/resend-service';
+import { sendOrderConfirmationEmail, sendOrderFulfilledEmail, sendOrderShippedEmail, type OrderEmailItem } from '@/lib/services/resend-service';
 
 /**
  * Endpoint interno server-to-server: maalca-api (C#) llama aquí cuando un Order real cambia
@@ -9,7 +9,9 @@ import { sendOrderConfirmationEmail, sendOrderFulfilledEmail, type OrderEmailIte
  * porque el "proveedor" acá es nuestro propio backend, no un tercero con firma HMAC.
  */
 interface OrderNotificationBody {
-  kind: 'confirmed' | 'fulfilled' | 'received';
+  kind: 'confirmed' | 'fulfilled' | 'received' | 'shipped';
+  carrier?: string | null;
+  trackingNumber?: string | null;
   trackUrl?: string | null;
   orderId: string;
   businessName: string;
@@ -62,7 +64,9 @@ export async function POST(request: NextRequest) {
   };
 
   const sent =
-    body.kind === 'fulfilled'
+    body.kind === 'shipped'
+      ? await sendOrderShippedEmail({ ...params, carrier: body.carrier ?? null, trackingNumber: body.trackingNumber ?? '' })
+      : body.kind === 'fulfilled'
       ? await sendOrderFulfilledEmail(params)
       : await sendOrderConfirmationEmail({ ...params, kind: body.kind === 'received' ? 'received' : 'confirmed' });
 

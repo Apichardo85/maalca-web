@@ -1879,3 +1879,73 @@ export async function sendAuthEmail(params: {
     return { sent: false }
   }
 }
+
+// ── Pedido despachado (envío con paquetería) ────────────────────────────────────────────────
+const CARRIER_LABELS: Record<string, string> = { usps: 'USPS', ups: 'UPS', fedex: 'FedEx', dhl: 'DHL', other: '' };
+
+function carrierTrackingUrl(carrier: string, number: string): string | null {
+  const n = encodeURIComponent(number);
+  switch (carrier) {
+    case 'usps': return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${n}`;
+    case 'ups': return `https://www.ups.com/track?tracknum=${n}`;
+    case 'fedex': return `https://www.fedex.com/fedextrack/?trknbr=${n}`;
+    case 'dhl': return `https://www.dhl.com/en/express/tracking.html?AWB=${n}&brand=DHL`;
+    default: return null;
+  }
+}
+
+/** Aviso "tu pedido va en camino" con paquetería y número de rastreo — al despachar un envío desde el panel. */
+export async function sendOrderShippedEmail(params: {
+  customerEmail: string;
+  customerName: string | null;
+  businessName: string;
+  orderId: string;
+  items: OrderEmailItem[];
+  total: number;
+  currency: string;
+  carrier: string | null;
+  trackingNumber: string;
+  brand?: EmailBrand;
+  trackUrl?: string | null;
+  language?: 'es' | 'en';
+}): Promise<boolean> {
+  if (!resend) {
+    console.log('[Resend] Skipped order shipped notice — RESEND_API_KEY not set');
+    return false;
+  }
+  const en = params.language === 'en';
+  const carrier = (params.carrier ?? '').toLowerCase();
+  const carrierName = CARRIER_LABELS[carrier] ?? '';
+  const carrierUrl = carrierTrackingUrl(carrier, params.trackingNumber);
+  const ctaUrl = carrierUrl ?? params.trackUrl ?? null;
+  const greeting = params.customerName ? (en ? `Hi, ${escapeHtml(params.customerName)}!` : `¡Hola, ${escapeHtml(params.customerName)}!`) : (en ? 'Hi!' : '¡Hola!');
+  const itemRows = params.items
+    .map((i) => `<tr><td style="padding: 6px 0; color: #525252; font-size: 14px;">${i.qty}× ${escapeHtml(i.name)}</td><td style="padding: 6px 0; color: #525252; font-size: 14px; text-align: right;">${params.currency} ${(i.price * i.qty).toFixed(2)}</td></tr>`)
+    .join('');
+
+  try {
+    await resend.emails.send({
+      from: fromFor(params.brand),
+      to: params.customerEmail,
+      subject: en ? `Your order is on its way — ${params.businessName}` : `Tu pedido va en camino — ${params.businessName}`,
+      html: renderCardEmail({
+        brand: params.brand,
+        bodyHtml: `
+      <h2 style="color: #1a1a1a; font-size: 20px; margin-top: 0;">${en ? 'Your order is on its way 📦' : 'Tu pedido va en camino 📦'}</h2>
+      <p style="color: #525252; line-height: 1.6; font-size: 15px;">${greeting} ${en ? `${escapeHtml(params.businessName)} shipped your order.` : `${escapeHtml(params.businessName)} despachó tu pedido.`}</p>
+      <p style="color: #1a1a1a; font-size: 15px; margin: 16px 0 4px;">${carrierName ? `<strong>${carrierName}</strong> · ` : ''}${en ? 'Tracking number' : 'Número de rastreo'}: <strong>${escapeHtml(params.trackingNumber)}</strong></p>
+      ${ctaUrl ? emailCtaButton(en ? 'Track my package →' : 'Rastrear mi paquete →', ctaUrl) : ''}
+      <table style="width: 100%; border-collapse: collapse; margin: 20px 0; border-top: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5;">
+        ${itemRows}
+        <tr><td style="padding: 12px 0 0; font-weight: 600; color: #1a1a1a; font-size: 15px;">Total</td><td style="padding: 12px 0 0; font-weight: 600; color: #1a1a1a; font-size: 15px; text-align: right;">${params.currency} ${params.total.toFixed(2)}</td></tr>
+      </table>
+      <p style="color: #a3a3a3; font-size: 12px; margin: 0;">${en ? 'Order' : 'Pedido'} #${params.orderId.slice(0, 8)}</p>`,
+        footerText: en ? `You are receiving this email because you placed an order at ${escapeHtml(params.businessName)}.` : `Recibes este correo porque hiciste un pedido en ${escapeHtml(params.businessName)}.`,
+      }),
+    });
+    return true;
+  } catch (err: unknown) {
+    console.error('[Resend] Order shipped notice failed:', err instanceof Error ? err.message : String(err));
+    return false;
+  }
+}

@@ -11,7 +11,7 @@
 // funcione como en cualquier tienda. Se adapta por container queries (@…:) y no por viewport, así la vista previa
 // del editor de Diseño se ve igual que la página real.
 import { PublicGalleryLightbox } from '@/components/public/PublicGalleryLightbox';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart, type CartItem } from '@/components/public/cart/useCart';
 import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
@@ -342,6 +342,21 @@ export function StoreTemplate({ business, items, categories: categoriesProp, cap
     if (added > 0) setCartOpen(true);
   };
 
+  // "Repetir pedido" desde /{slug}/cuenta llega como ?reorder=<id>: cuando cargan sus pedidos se vuelve a armar el carrito.
+  const reorderDone = useRef(false);
+  useEffect(() => {
+    if (reorderDone.current || !storeAccounts || orders.length === 0) return;
+    const url = new URL(window.location.href);
+    const id = url.searchParams.get('reorder');
+    if (!id) return;
+    reorderDone.current = true;
+    const target = orders.find((o) => o.id === id);
+    if (target) repeatOrder(target);
+    url.searchParams.delete('reorder');
+    window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orders, storeAccounts]);
+
   // Productos comprados antes (únicos, los más recientes primero) para la fila "Comprar de nuevo".
   const buyAgain = useMemo(() => {
     const out: { item: Item; qty: number }[] = [];
@@ -586,7 +601,7 @@ export function StoreTemplate({ business, items, categories: categoriesProp, cap
                         <Icon name="repeat" size={16} /> {getText('Repetir último pedido', 'Reorder last order')}
                       </button>
                     )}
-                    <button type="button" onClick={() => setAccountOpen(true)} style={linkBtn}>{getText('Ver mis pedidos', 'View my orders')}</button>
+                    <a href={`/${business.slug}/cuenta`} style={{ ...linkBtn, textDecoration: 'none' }}>{getText('Ver mis pedidos', 'View my orders')}</a>
                   </>
                 ) : account.me?.status === 'pending' ? (
                   <>
@@ -641,7 +656,7 @@ export function StoreTemplate({ business, items, categories: categoriesProp, cap
           )}
 
           {buyAgain.length > 0 && (
-            <Shelf title={getText('Comprar de nuevo', 'Buy again')} action={{ label: getText('Ver pedidos', 'View orders'), onClick: () => setAccountOpen(true) }}>
+            <Shelf title={getText('Comprar de nuevo', 'Buy again')} action={{ label: getText('Ver pedidos', 'View orders'), onClick: () => { window.location.href = `/${business.slug}/cuenta`; } }}>
               <div className="grid grid-cols-1 gap-3 @2xl:grid-cols-2 @5xl:grid-cols-4">
                 {buyAgain.slice(0, 8).map(({ item: i, qty }) => (
                   <div key={i.id} style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: 10, display: 'flex', gap: 10, alignItems: 'center', minWidth: 0 }}>
