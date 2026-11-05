@@ -117,7 +117,7 @@ export function StoreTemplate({ business, items, categories: categoriesProp, cap
 
   // ── Carrito, cuenta de cliente y horario (mismo motor que la boutique) ──
   const waRaw = resolveWhatsAppDigits(business);
-  const { cart, addToCart, removeFromCart, reprice, cartTotal, cartCount } = useCart();
+  const { cart, addToCart, removeFromCart, clearCart, reprice, cartTotal, cartCount } = useCart();
   const storeAccounts = capabilities.storeAccounts === true;
   const account = useStoreAccount(business.slug, storeAccounts);
   const { memberPrices } = account;
@@ -959,6 +959,7 @@ export function StoreTemplate({ business, items, categories: categoriesProp, cap
 
       <WhatsAppCart
         cart={cart}
+        clearCart={clearCart}
         addToCart={addToCart}
         removeFromCart={removeFromCart}
         cartTotal={cartTotal}

@@ -109,7 +109,7 @@ export function RetailTemplate({
   // waRaw alimenta el carrito por WhatsApp (WhatsAppCart, abajo). WhatsApp como CONTACTO ya no
   // va destacado en el hero: vive en la fila de canales (ContactSection) como un canal más.
   const waRaw = resolveWhatsAppDigits(business);
-  const { cart, addToCart, removeFromCart, reprice, cartTotal, cartCount } = useCart();
+  const { cart, addToCart, removeFromCart, clearCart, reprice, cartTotal, cartCount } = useCart();
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
 
@@ -690,6 +690,7 @@ export function RetailTemplate({
           tarjeta si hay Stripe); el carrito oculta las opciones que el negocio no tiene. */}
       <WhatsAppCart
         cart={cart}
+        clearCart={clearCart}
         addToCart={addToCart}
         removeFromCart={removeFromCart}
         cartTotal={cartTotal}
