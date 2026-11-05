@@ -25,6 +25,8 @@ const emptyForm = () => ({
   maxDays: '',
   allowsHazmat: true,
   isActive: true,
+  weightRates: '',
+  states: '',
 });
 
 const inputCls = 'w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-brand-primary';
@@ -61,6 +63,8 @@ export function ShippingContent({ slug, initialMethods, currency }: Props) {
       maxDays: m.maxDays != null ? String(m.maxDays) : '',
       allowsHazmat: m.allowsHazmat,
       isActive: m.isActive,
+      weightRates: m.weightRates ?? '',
+      states: m.states ?? '',
     });
     setShowForm(true);
   }
@@ -76,6 +80,8 @@ export function ShippingContent({ slug, initialMethods, currency }: Props) {
       maxDays: num(f.maxDays),
       allowsHazmat: f.allowsHazmat,
       isActive: f.isActive,
+      weightRates: f.weightRates.trim() || null,
+      states: f.states.trim() || null,
       sortOrder,
     };
   }
@@ -198,6 +204,26 @@ export function ShippingContent({ slug, initialMethods, currency }: Props) {
               <label className="mb-1 block text-xs font-medium text-text-secondary">{getText('Días hábiles (máximo)', 'Business days (max)')}</label>
               <input type="number" min="0" step="1" className={inputCls} value={form.maxDays} onChange={set('maxDays')} placeholder="5" />
             </div>
+            <div className="sm:col-span-2">
+              <label className="mb-1 block text-xs font-medium text-text-secondary">{getText('Tarifa por peso (opcional)', 'Rate by weight (optional)')}</label>
+              <input className={inputCls} value={form.weightRates} onChange={set('weightRates')} placeholder="1:6.50; 3:9.99; 10:18.00" />
+              <p className="mt-1 text-xs text-text-muted">
+                {getText(
+                  'Cada par es "hasta N libras : precio". Ej.: hasta 1 lb $6.50, hasta 3 lb $9.99, hasta 10 lb $18. Pasado el último tope se cobra el último precio. Usa el peso de cada producto (Catálogo); si un producto no tiene peso, se cobra el costo fijo de arriba.',
+                  'Each pair is "up to N lb : price". E.g. up to 1 lb $6.50, up to 3 lb $9.99, up to 10 lb $18. Past the last tier the last price applies. Uses each product\'s weight (Catalog); if a product has no weight, the fixed cost above applies.',
+                )}
+              </p>
+            </div>
+            <div className="sm:col-span-2">
+              <label className="mb-1 block text-xs font-medium text-text-secondary">{getText('Estados a los que llega (opcional)', 'States it ships to (optional)')}</label>
+              <input className={inputCls} value={form.states} onChange={set('states')} placeholder="NJ, NY, PA" />
+              <p className="mt-1 text-xs text-text-muted">
+                {getText(
+                  'Códigos de 2 letras separados por coma. Vacío = todo el país. Para cobrar distinto por zona, crea un método por zona (ej. "Zona cercana" NJ, NY, PA y "Resto del país" sin estados).',
+                  'Two-letter codes separated by commas. Empty = nationwide. To charge by zone, create one method per zone (e.g. "Nearby" NJ, NY, PA and "Rest of US" with no states).',
+                )}
+              </p>
+            </div>
           </div>
           <label className="flex items-start gap-2 text-sm text-text-primary">
             <input type="checkbox" className="mt-0.5" checked={form.allowsHazmat} onChange={set('allowsHazmat')} />
@@ -251,6 +277,13 @@ export function ShippingContent({ slug, initialMethods, currency }: Props) {
                       {m.freeOverAmount ? ` · ${getText('gratis desde', 'free over')} ${fmt.format(m.freeOverAmount)}` : ''}
                       {days ? ` · ${days}` : ''}
                     </p>
+                    {(m.weightRates || m.states) && (
+                      <p className="mt-0.5 text-xs text-text-muted">
+                        {m.weightRates ? `⚖️ ${m.weightRates}` : ''}
+                        {m.weightRates && m.states ? ' · ' : ''}
+                        {m.states ? `📍 ${m.states}` : ''}
+                      </p>
+                    )}
                     <p className="mt-1 text-xs text-text-muted">
                       {m.allowsHazmat ? `🚛 ${getText('Terrestre (acepta perfumes)', 'Ground (accepts perfumes)')}` : `✈️ ${getText('No acepta perfumes', 'No perfumes')}`}
                     </p>

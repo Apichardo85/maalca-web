@@ -1,7 +1,7 @@
 'use client'
 import { formatPhoneInput, isValidPhone, normalizePhone, PHONE_INPUT_PROPS } from '@/lib/phone';
 import { useEffect, useMemo, useState } from 'react'
-import { addStep, addWouldExceed, deliveryDaysLabel, qtyRuleError, removeStep, shippingCost, US_ZIP, type PublicShippingMethod } from '@/lib/commerce'
+import { addStep, addWouldExceed, cartWeightOz, deliveryDaysLabel, qtyRuleError, removeStep, shippingCost, shippingServesState, US_ZIP, type PublicShippingMethod } from '@/lib/commerce'
 import type { CartEntry, CartItem } from './useCart'
 import { storeOrderEndpoint } from '@/lib/store-account'
 
@@ -200,11 +200,14 @@ export function CartDrawer({
     : undefined
   // Envío a domicilio: solo con pago online y fuera de la mesa. Con perfumes (hazmat) solo métodos terrestres.
   const hazmatInCart = cart.some(e => !!e.item.rules?.hazmat)
-  const shipMethods = (shippingMethods ?? []).filter(m => !hazmatInCart || m.allowsHazmat)
+  const cartWeight = cartWeightOz(cart)
+  const destState = shipTo.state.trim()
+  // Con estado escrito (2 letras) solo se ofrecen los métodos que llegan ahí; el API lo vuelve a validar.
+  const shipMethods = (shippingMethods ?? []).filter(m => (!hazmatInCart || m.allowsHazmat) && (destState.length < 2 || shippingServesState(m, destState)))
   const canShip = guestCheckout && !!slug && onlinePayments && !tableNumber && (shippingMethods?.length ?? 0) > 0
   const shipping = canShip && fulfillment === 'shipping'
   const shipMethod = shipping ? (shipMethods.find(m => m.id === shipMethodId) ?? shipMethods[0] ?? null) : null
-  const shipCost = shipMethod ? shippingCost(shipMethod, cartTotal) : 0
+  const shipCost = shipMethod ? shippingCost(shipMethod, cartTotal, cartWeight) : 0
 
   // Reglas de cantidad (mínimo / múltiplo / máximo): el API las exige igual; aquí se avisa antes de enviar.
   // Pedido mínimo de la lista del cliente (mayorista): sin llegar al mínimo no se puede pedir (el API lo exige igual).
@@ -760,14 +763,18 @@ export function CartDrawer({
                   {shipMethods.length === 0 ? (
                     <p style={{ margin: '0 0 10px', fontSize: '12px', color: '#b91c1c' }}>
                       {getText(
-                        'Tu pedido incluye perfumes, que solo viajan por tierra, y este negocio no tiene envío terrestre. Elige recoger.',
-                        'Your order includes perfumes, which ship by ground only, and this business has no ground shipping. Choose pickup.',
+                        destState.length >= 2 && (shippingMethods ?? []).length > 0
+                          ? 'Este negocio no tiene un envío disponible para ese estado con tu pedido. Cambia el estado o elige recoger.'
+                          : 'Tu pedido incluye perfumes, que solo viajan por tierra, y este negocio no tiene envío terrestre. Elige recoger.',
+                        destState.length >= 2 && (shippingMethods ?? []).length > 0
+                          ? 'This business has no shipping available to that state for your order. Change the state or choose pickup.'
+                          : 'Your order includes perfumes, which ship by ground only, and this business has no ground shipping. Choose pickup.',
                       )}
                     </p>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
                       {shipMethods.map(m => {
-                        const cost = shippingCost(m, cartTotal)
+                        const cost = shippingCost(m, cartTotal, cartWeight)
                         const days = deliveryDaysLabel(m, getText)
                         const selected = shipMethod?.id === m.id
                         return (

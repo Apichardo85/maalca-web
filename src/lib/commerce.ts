@@ -106,6 +106,10 @@ export interface PublicShippingMethod {
   minDays?: number | null;
   maxDays?: number | null;
   allowsHazmat: boolean;
+  /** "1:6.50; 3:9.99; 10:18" = hasta N lb : precio. Sin valor: costo fijo (price). */
+  weightRates?: string | null;
+  /** "NJ,NY,PA": estados a los que llega. Sin valor: todo el país. */
+  states?: string | null;
 }
 
 export interface ShippingMethodRow extends PublicShippingMethod {
@@ -122,9 +126,43 @@ export interface ShippingAddress {
   zip: string;
 }
 
-/** Mismo cálculo que ShippingPricing.Cost en el API. */
-export function shippingCost(m: Pick<PublicShippingMethod, 'price' | 'freeOverAmount'>, subtotal: number): number {
+/** "1:6.50; 3:9.99; 10:18" → [{upToLb, price}] ordenado. Mismo parseo que ShippingPricing.ParseWeightRates en el API. */
+export function parseWeightRates(raw?: string | null): { upToLb: number; price: number }[] {
+  if (!raw) return [];
+  return raw
+    .split(/[;\n]/)
+    .map((part) => part.split(':'))
+    .filter((kv) => kv.length === 2)
+    .map(([a, b]) => ({ upToLb: Number(a.trim()), price: Number(b.trim().replace(/^\$/, '')) }))
+    .filter((t) => t.upToLb > 0 && t.price >= 0 && Number.isFinite(t.upToLb) && Number.isFinite(t.price))
+    .sort((x, y) => x.upToLb - y.upToLb);
+}
+
+/** Peso del carrito en onzas (productos sin peso suman 0). */
+export function cartWeightOz(cart: { qty: number; item: { rules?: { weightOz?: number | null } | null } }[]): number {
+  return cart.reduce((sum, e) => sum + (e.item.rules?.weightOz ?? 0) * e.qty, 0);
+}
+
+/** ¿El método llega a ese estado? Sin estados configurados llega a todos. */
+export function shippingServesState(m: Pick<PublicShippingMethod, 'states'>, state: string): boolean {
+  if (!m.states) return true;
+  const s = state.trim().toUpperCase();
+  return !!s && m.states.split(',').map((x) => x.trim().toUpperCase()).includes(s);
+}
+
+/** Mismo cálculo que ShippingPricing.Cost en el API (gratis desde monto → tarifa por peso → costo fijo). */
+export function shippingCost(
+  m: Pick<PublicShippingMethod, 'price' | 'freeOverAmount' | 'weightRates'>,
+  subtotal: number,
+  weightOz = 0,
+): number {
   if (m.freeOverAmount && m.freeOverAmount > 0 && subtotal >= m.freeOverAmount) return 0;
+  const tiers = parseWeightRates(m.weightRates);
+  if (tiers.length > 0 && weightOz > 0) {
+    const lb = weightOz / 16;
+    const tier = tiers.find((t) => lb <= t.upToLb) ?? tiers[tiers.length - 1];
+    return Math.round(tier.price * 100) / 100;
+  }
   return Math.max(0, Math.round(m.price * 100) / 100);
 }
 
