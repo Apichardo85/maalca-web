@@ -1,7 +1,7 @@
 'use client';
 
-// Envíos a domicilio: métodos con costo fijo, gratis desde un monto y días estimados. Sin agregador todavía:
-// el negocio compra la etiqueta por su cuenta y, en Pedidos, anota paquetería + número de rastreo.
+// Envíos a domicilio: métodos con costo fijo o por peso/estado, gratis desde un monto y días estimados. Etiquetas:
+// con United Bridge conectado (abajo) se compran desde Pedidos; sin él, se anota paquetería + rastreo a mano.
 // "Terrestre" = puede llevar perfumes (material inflamable en cantidad limitada): con perfumes en el carrito,
 // el checkout solo ofrece estos métodos.
 import { useState } from 'react';
@@ -9,6 +9,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { deliveryDaysLabel, type ShippingMethodRow } from '@/lib/commerce';
+import { CarrierAccountCard } from './CarrierAccountCard';
 
 interface Props {
   slug: string;
@@ -305,6 +306,8 @@ export function ShippingContent({ slug, initialMethods, currency }: Props) {
           })}
         </ul>
       )}
+
+      <CarrierAccountCard slug={slug} />
     </div>
   );
 }

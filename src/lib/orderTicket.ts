@@ -53,6 +53,8 @@ export interface OrderRow {
   shipTo?: { name?: string | null; line1: string; line2?: string | null; city: string; state: string; zip: string } | null;
   shippingCarrier?: string | null;
   trackingNumber?: string | null;
+  labelUrl?: string | null;
+  labelCost?: number | null;
   trackingUrl?: string | null;
   shippedAt?: string | null;
 }

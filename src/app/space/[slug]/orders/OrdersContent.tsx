@@ -64,6 +64,11 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
   const [shippingId, setShippingId] = useState<string | null>(null);
   const [shipCarrier, setShipCarrier] = useState<string>('usps');
   const [shipTracking, setShipTracking] = useState('');
+  // Etiqueta con United Bridge: pedido abierto, peso manual (lb, opcional), costo real cotizado y ocupado.
+  const [labelId, setLabelId] = useState<string | null>(null);
+  const [labelLb, setLabelLb] = useState('');
+  const [labelQuote, setLabelQuote] = useState<{ total: number; charged: number; currency: string; accountBalance: number | null; weightOz: number } | null>(null);
+  const [labelBusy, setLabelBusy] = useState(false);
   // Minutos estimados que se envían al aceptar un pedido (el cliente los ve en su enlace de seguimiento).
   const [acceptEta, setAcceptEta] = useState(15);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
@@ -155,6 +160,37 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
     }
   }
 
+  async function labelCall(orderId: string, kind: 'label-quote' | 'label') {
+    setLabelBusy(true);
+    try {
+      const lb = Number(labelLb);
+      const res = await fetch(`/api/space/${slug}/orders/${orderId}/${kind}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(lb > 0 ? { weightOz: Math.round(lb * 16 * 100) / 100 } : {}),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data) {
+        toast.error(data?.error?.message ?? getText('No se pudo completar con United Bridge.', "Couldn't complete with United Bridge."));
+        return;
+      }
+      if (kind === 'label-quote') {
+        setLabelQuote(data);
+      } else {
+        setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, ...data.order, customerVisits: o.customerVisits, customerNoShows: o.customerNoShows } : o)));
+        setLabelId(null);
+        setLabelQuote(null);
+        setLabelLb('');
+        toast.success(getText('Etiqueta comprada. El pedido quedó enviado y el cliente ya ve su rastreo.', 'Label bought. The order is shipped and the customer can see tracking.'));
+        if (data.labelUrl) window.open(data.labelUrl, '_blank', 'noopener,noreferrer');
+      }
+    } catch {
+      toast.error(getText('No se pudo conectar con United Bridge.', "Couldn't reach United Bridge."));
+    } finally {
+      setLabelBusy(false);
+    }
+  }
+
   async function markShipped(orderId: string) {
     setUpdatingId(orderId);
     try {
@@ -179,14 +215,14 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
     }
   }
 
-  async function setNoShow(order: OrderRow, undo: boolean) {
+  async function setNoShow(order: OrderRow, undo: boolean, reactivate = true) {
     if (!undo && !confirm(getText(
       `¿Marcar que ${order.customerName || 'el cliente'} no vino a recoger este pedido? Sus próximos pedidos tendrán que pagarse por adelantado.`,
       `Mark that ${order.customerName || 'the customer'} never picked up this order? Their next orders will have to be paid upfront.`,
     ))) return;
     setUpdatingId(order.id);
     try {
-      const res = await fetch(`/api/space/${slug}/orders/${order.id}/no-show`, { method: undo ? 'DELETE' : 'PATCH' });
+      const res = await fetch(`/api/space/${slug}/orders/${order.id}/no-show${undo && !reactivate ? '?reactivate=false' : ''}`, { method: undo ? 'DELETE' : 'PATCH' });
       const data = await res.json().catch(() => null);
       if (res.ok) {
         setOrders((prev) => prev.map((o) => (o.id === order.id ? mergeOrderUpdate(o, data) : o)));
@@ -339,6 +375,14 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
                             {order.shipTo.city}, {order.shipTo.state} {order.shipTo.zip}
                           </p>
                         )}
+                        {order.labelUrl && (
+                          <p className="mt-1 text-xs text-gray-600 dark:text-neutral-400">
+                            🏷️ <a href={order.labelUrl} target="_blank" rel="noopener noreferrer" className="font-semibold underline">{getText('Imprimir etiqueta', 'Print label')}</a>
+                            {order.labelCost != null && (
+                              <> · {getText('costo', 'cost')} {fmt(order.labelCost, order.currency)} / {getText('cobraste', 'charged')} {fmt(order.shippingCost ?? 0, order.currency)}</>
+                            )}
+                          </p>
+                        )}
                         {order.trackingNumber && (
                           <p className="mt-1 inline-block rounded-full bg-blue-100 px-2 py-0.5 font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
                             🚚 {carrierLabel(order.shippingCarrier)} ·{' '}
@@ -458,7 +502,74 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
                   )
                 )}
 
-                {order.fulfillmentType === 'shipping' && ['Paid', 'Preparing', 'Ready'].includes(order.status) && (
+                {order.fulfillmentType === 'shipping' && ['Paid', 'Preparing', 'Ready'].includes(order.status) && shippingId !== order.id && (
+                  labelId === order.id ? (
+                    <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-900/50 dark:bg-emerald-950/20">
+                      <p className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+                        {getText('Etiqueta con United Bridge', 'United Bridge label')}
+                      </p>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.1"
+                          value={labelLb}
+                          onChange={(e) => { setLabelLb(e.target.value); setLabelQuote(null); }}
+                          placeholder={getText('Peso en lb (opcional)', 'Weight in lb (optional)')}
+                          className="min-h-11 min-w-0 flex-1 rounded-lg border border-emerald-300 bg-white px-3 text-sm dark:border-emerald-800 dark:bg-neutral-900"
+                        />
+                        <button
+                          type="button"
+                          disabled={labelBusy}
+                          onClick={() => labelCall(order.id, 'label-quote')}
+                          className="min-h-11 rounded-full border border-emerald-600 px-4 text-sm font-semibold text-emerald-700 disabled:opacity-50 dark:text-emerald-300"
+                        >
+                          {getText('Ver costo real', 'Get real cost')}
+                        </button>
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
+                        {getText('Sin peso, se suma el de los productos más la caja.', 'Empty = product weights plus the box.')}
+                      </p>
+                      {labelQuote && (
+                        <p className="mt-2 text-sm text-gray-800 dark:text-neutral-200">
+                          {getText('Costo real', 'Real cost')}: <b>{fmt(labelQuote.total, labelQuote.currency)}</b> · {getText('cobraste', 'charged')}: <b>{fmt(labelQuote.charged, labelQuote.currency)}</b>{' '}
+                          <span className={labelQuote.charged - labelQuote.total >= 0 ? 'font-semibold text-emerald-700 dark:text-emerald-300' : 'font-semibold text-red-600'}>
+                            ({labelQuote.charged - labelQuote.total >= 0 ? '+' : ''}{fmt(labelQuote.charged - labelQuote.total, labelQuote.currency)})
+                          </span>
+                          <br />
+                          <span className="text-xs text-gray-500 dark:text-neutral-400">
+                            {Math.round((labelQuote.weightOz / 16) * 100) / 100} lb{labelQuote.accountBalance != null ? ` · ${getText('saldo', 'balance')} ${fmt(labelQuote.accountBalance, labelQuote.currency)}` : ''}
+                          </span>
+                        </p>
+                      )}
+                      <div className="mt-2 flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={labelBusy}
+                          onClick={() => {
+                            if (window.confirm(getText('Esto compra la etiqueta y descuenta el saldo de tu cuenta de United Bridge. ¿Continuar?', 'This buys the label and charges your United Bridge balance. Continue?'))) labelCall(order.id, 'label');
+                          }}
+                          className="flex min-h-11 flex-1 items-center justify-center rounded-full bg-emerald-600 px-4 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                        >
+                          {labelBusy ? getText('Procesando…', 'Working…') : getText('Comprar etiqueta', 'Buy label')}
+                        </button>
+                        <button type="button" onClick={() => { setLabelId(null); setLabelQuote(null); setLabelLb(''); }} className="px-2 text-xs text-gray-500 underline">
+                          {getText('Cancelar', 'Cancel')}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => { setLabelId(order.id); setLabelQuote(null); setLabelLb(''); }}
+                      className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-emerald-600 px-4 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-950/30"
+                    >
+                      🏷️ {getText('Comprar etiqueta (United Bridge)', 'Buy label (United Bridge)')}
+                    </button>
+                  )
+                )}
+
+                {order.fulfillmentType === 'shipping' && ['Paid', 'Preparing', 'Ready'].includes(order.status) && labelId !== order.id && (
                   shippingId === order.id ? (
                     <div className="mt-3 rounded-xl border border-blue-200 bg-blue-50 p-3 dark:border-blue-900/50 dark:bg-blue-950/20">
                       <p className="text-xs font-semibold text-blue-800 dark:text-blue-300">
@@ -560,6 +671,16 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
                       className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 px-4 text-xs font-medium text-gray-500 hover:border-brand-primary hover:text-brand-primary disabled:opacity-50 dark:border-neutral-700"
                     >
                       ↩ {getText('Deshacer "No vino"', 'Undo no-show')}
+                    </button>
+                  )}
+                  {order.noShowAt && (
+                    <button
+                      onClick={() => setNoShow(order, true, false)}
+                      disabled={updatingId === order.id}
+                      title={getText('Quita la marca al cliente y deja el pedido cancelado', 'Clears the customer mark and leaves the order canceled')}
+                      className="flex min-h-11 items-center justify-center rounded-full border border-gray-300 px-4 text-xs font-medium text-gray-500 hover:border-brand-primary hover:text-brand-primary disabled:opacity-50 dark:border-neutral-700"
+                    >
+                      {getText('Solo quitar la marca', 'Only clear the mark')}
                     </button>
                   )}
                   {order.status === 'Ready' && order.fulfillmentType !== 'shipping' && (
