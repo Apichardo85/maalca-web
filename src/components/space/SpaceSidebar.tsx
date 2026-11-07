@@ -141,6 +141,7 @@ export function SpaceSidebar({
     // abajo, que es el plan/pago con MaalCa.
     { label: getText('Facturas', 'Invoices'), icon: '🧾', href: `/space/${slug}/invoices`, token: 'invoices' },
     { label: getText('Contratos y cobros', 'Contracts & collections'), icon: '📑', href: `/space/${slug}/contratos`, token: 'contracts' },
+    { label: getText('Rutas y reparto', 'Routes & delivery'), icon: '🚚', href: `/space/${slug}/ruta`, token: 'routes' },
     { label: getText('Propuestas', 'Proposals'), icon: '✍️', href: `/space/${slug}/proposals`, token: 'proposals' },
     { label: getText('Pantalla', 'Screen'),                   icon: '📺', href: `/space/${slug}/board`, token: 'board' },
     // Equipo (Personal + Equipo unificados): staff que atiende clientes y/o tiene acceso al

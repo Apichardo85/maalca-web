@@ -107,6 +107,7 @@ export function SpaceMobileNav({
     { label: getText('Fila de espera', 'Waiting queue'), icon: '🪑', href: `/space/${slug}/queue`, token: 'queue' },
     { label: getText('Facturas', 'Invoices'), icon: '🧾', href: `/space/${slug}/invoices`, token: 'invoices' },
     { label: getText('Contratos y cobros', 'Contracts & collections'), icon: '📑', href: `/space/${slug}/contratos`, token: 'contracts' },
+    { label: getText('Rutas y reparto', 'Routes & delivery'), icon: '🚚', href: `/space/${slug}/ruta`, token: 'routes' },
     { label: getText('Propuestas', 'Proposals'), icon: '✍️', href: `/space/${slug}/proposals`, token: 'proposals' },
     { label: getText('Pantalla', 'Screen'), icon: '📺', href: `/space/${slug}/board`, token: 'board' },
     // Equipo (Personal + Equipo unificados) — mismo criterio que SpaceSidebar.tsx.
