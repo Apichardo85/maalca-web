@@ -34,6 +34,35 @@ export interface ContractRow {
   isActive: boolean;
   notes: string | null;
   createdAt: string;
+  contractNumber: string | null;
+  racksLoaned: number;
+  bottlesLoaned: number;
+}
+
+export interface TemplateTag {
+  key: string;
+  labelEs: string;
+  labelEn: string;
+}
+
+export interface ContractTemplate {
+  title: string;
+  body: string;
+  isCustom: boolean;
+  tags: TemplateTag[];
+}
+
+export interface ContractDocument {
+  title: string;
+  body: string;
+  contractNumber: string | null;
+  date: string;
+  businessName: string;
+  businessPhone: string | null;
+  businessAddress: string | null;
+  businessLogoUrl: string | null;
+  businessColor: string | null;
+  customerName: string;
 }
 
 export interface AgingBuckets {

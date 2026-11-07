@@ -5,6 +5,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { CustomerPicker, type PickerCustomer } from '@/components/ui/CustomerPicker';
+import { ContractDocumentModal } from './ContractDocumentModal';
 import {
   BILLING_OPTIONS,
   DELIVERY_OPTIONS,
@@ -24,6 +25,9 @@ interface FormState {
   startDate: string;
   endDate: string;
   notes: string;
+  contractNumber: string;
+  racksLoaned: number | '';
+  bottlesLoaned: number | '';
 }
 
 const today = () => new Date().toLocaleDateString('en-CA'); // yyyy-MM-dd en hora local
@@ -37,6 +41,9 @@ const emptyForm = (): FormState => ({
   startDate: today(),
   endDate: '',
   notes: '',
+  contractNumber: '',
+  racksLoaned: 1,
+  bottlesLoaned: 4,
 });
 
 export function ContractsTab({
@@ -55,6 +62,7 @@ export function ContractsTab({
   const [contracts, setContracts] = useState<ContractRow[]>(initialContracts);
   const [form, setForm] = useState<FormState | null>(null);
   const [saving, setSaving] = useState(false);
+  const [docId, setDocId] = useState<string | null>(null);
 
   const label = <T extends { value: string; es: string; en: string }>(opts: T[], v: string) => {
     const o = opts.find((x) => x.value === v);
@@ -79,6 +87,9 @@ export function ContractsTab({
       startDate: c.startDate.slice(0, 10),
       endDate: c.endDate ? c.endDate.slice(0, 10) : '',
       notes: c.notes ?? '',
+      contractNumber: c.contractNumber ?? '',
+      racksLoaned: c.racksLoaned,
+      bottlesLoaned: c.bottlesLoaned,
     });
   }
 
@@ -94,6 +105,10 @@ export function ContractsTab({
       endDate: f.endDate || null,
       isActive,
       notes: f.notes.trim() || null,
+      // Vacío al crear = el sistema asigna el siguiente folio; vacío al editar = se conserva el actual.
+      contractNumber: f.contractNumber.trim() || null,
+      racksLoaned: f.racksLoaned === '' ? 0 : f.racksLoaned,
+      bottlesLoaned: f.bottlesLoaned === '' ? 0 : f.bottlesLoaned,
     };
   }
 
@@ -145,6 +160,9 @@ export function ContractsTab({
               endDate: null,
               isActive: true,
               notes: c.notes,
+              contractNumber: c.contractNumber,
+              racksLoaned: c.racksLoaned,
+              bottlesLoaned: c.bottlesLoaned,
             }),
           })
         : await fetch(`/api/space/${slug}/contracts/${c.id}`, { method: 'DELETE' });
@@ -186,6 +204,39 @@ export function ContractsTab({
               newLabel={getText('Sin cliente', 'No customer')}
               noResultsLabel={getText('Sin resultados', 'No results')}
             />
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div>
+              <label className="text-xs font-semibold">{getText('Folio', 'Number')}</label>
+              <input
+                className={`${input} mt-1`}
+                value={form.contractNumber}
+                maxLength={20}
+                placeholder={form.id ? '' : getText('Automático', 'Automatic')}
+                onChange={(e) => setForm({ ...form, contractNumber: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold">{getText('Anaqueles prestados', 'Racks loaned')}</label>
+              <input
+                type="number"
+                min="0"
+                className={`${input} mt-1`}
+                value={form.racksLoaned}
+                onChange={(e) => setForm({ ...form, racksLoaned: e.target.value === '' ? '' : Number(e.target.value) })}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold">{getText('Botellones prestados', 'Bottles loaned')}</label>
+              <input
+                type="number"
+                min="0"
+                className={`${input} mt-1`}
+                value={form.bottlesLoaned}
+                onChange={(e) => setForm({ ...form, bottlesLoaned: e.target.value === '' ? '' : Number(e.target.value) })}
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -259,6 +310,7 @@ export function ContractsTab({
               <div className="min-w-0">
                 <p className="break-words text-sm font-medium">
                   {c.customerName ?? customers.find((x) => x.id === c.customerId)?.name ?? '—'}
+                  {c.contractNumber && <span className="mr-2 text-xs font-bold text-red-700 dark:text-red-400">No. {c.contractNumber}</span>}
                   {!c.isActive && <span className="ml-2 text-xs font-semibold text-gray-400 dark:text-neutral-500">{getText('Inactivo', 'Inactive')}</span>}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-neutral-400">
@@ -266,9 +318,13 @@ export function ContractsTab({
                 </p>
                 <p className="text-xs text-gray-500 dark:text-neutral-400">
                   {formatDate(c.startDate)}{c.endDate ? ` → ${formatDate(c.endDate)}` : ''}
+                  {' · '}{getText('Prestados', 'Loaned')}: {c.racksLoaned} {getText('anaq.', 'racks')} / {c.bottlesLoaned} {getText('botellones', 'bottles')}
                 </p>
               </div>
-              <div className="flex shrink-0 gap-2">
+              <div className="flex shrink-0 flex-wrap justify-end gap-2">
+                <button type="button" onClick={() => setDocId(c.id)} className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-semibold">
+                  {getText('Contrato', 'Document')}
+                </button>
                 <button type="button" onClick={() => edit(c)} className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-semibold">
                   {getText('Editar', 'Edit')}
                 </button>
@@ -280,6 +336,8 @@ export function ContractsTab({
           ))}
         </ul>
       )}
+
+      {docId && <ContractDocumentModal slug={slug} contractId={docId} onClose={() => setDocId(null)} />}
     </div>
   );
 }

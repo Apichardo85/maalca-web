@@ -7,8 +7,9 @@ import type { AgingReport, ContractRow } from '@/lib/receivables';
 import { ReceivablesTab } from './ReceivablesTab';
 import { ContractsTab } from './ContractsTab';
 import { ImportTab } from './ImportTab';
+import { TemplateTab } from './TemplateTab';
 
-type Tab = 'receivables' | 'contracts' | 'import';
+type Tab = 'receivables' | 'contracts' | 'template' | 'import';
 
 interface Props {
   slug: string;
@@ -26,6 +27,7 @@ export function ContratosContent({ slug, currency, customers, initialContracts, 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'receivables', label: getText('Cobros', 'Collections') },
     { id: 'contracts', label: getText('Contratos', 'Contracts') },
+    { id: 'template', label: getText('Plantilla de contrato', 'Contract template') },
     { id: 'import', label: getText('Importar clientes', 'Import customers') },
   ];
 
@@ -56,6 +58,7 @@ export function ContratosContent({ slug, currency, customers, initialContracts, 
       <div className="mt-6">
         {tab === 'receivables' && <ReceivablesTab slug={slug} currency={currency} initialAging={initialAging} />}
         {tab === 'contracts' && <ContractsTab slug={slug} customers={customers} initialContracts={initialContracts} />}
+        {tab === 'template' && <TemplateTab slug={slug} />}
         {tab === 'import' && <ImportTab slug={slug} />}
       </div>
     </div>
