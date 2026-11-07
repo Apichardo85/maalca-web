@@ -4,10 +4,11 @@ import { useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
-import type { AdminRoute, DriverOption, UnbilledReport, Vehicle } from '@/lib/delivery';
+import type { AdminRoute, Anaquel, ContainerType, DriverOption, UnbilledReport, Vehicle } from '@/lib/delivery';
 import { RoutesTab } from './RoutesTab';
 import { VehiclesTab } from './VehiclesTab';
 import { BillingTab } from './BillingTab';
+import { EnvasesTab } from './EnvasesTab';
 
 interface Props {
   slug: string;
@@ -17,11 +18,14 @@ interface Props {
   initialRoutes: AdminRoute[];
   drivers: DriverOption[];
   initialUnbilled: UnbilledReport | null;
+  initialTypes: ContainerType[];
+  initialAnaqueles: Anaquel[];
+  businessName?: string;
 }
 
-type Tab = 'routes' | 'vehicles' | 'billing';
+type Tab = 'routes' | 'vehicles' | 'containers' | 'billing';
 
-export function RepartoContent({ slug, currency, customers, initialVehicles, initialRoutes, drivers, initialUnbilled }: Props) {
+export function RepartoContent({ slug, currency, customers, initialVehicles, initialRoutes, drivers, initialUnbilled, initialTypes, initialAnaqueles, businessName }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -29,6 +33,8 @@ export function RepartoContent({ slug, currency, customers, initialVehicles, ini
   const [vehicles, setVehicles] = useState(initialVehicles);
   const [routes, setRoutes] = useState(initialRoutes);
   const [unbilled, setUnbilled] = useState(initialUnbilled);
+  const [types, setTypes] = useState(initialTypes);
+  const [anaqueles, setAnaqueles] = useState(initialAnaqueles);
 
   async function load<T>(path: string, set: (v: T) => void) {
     try {
@@ -43,6 +49,7 @@ export function RepartoContent({ slug, currency, customers, initialVehicles, ini
   const tabs: { key: Tab; label: string }[] = [
     { key: 'routes', label: getText('Rutas', 'Routes') },
     { key: 'vehicles', label: getText('Vehículos', 'Vehicles') },
+    { key: 'containers', label: getText('Envases', 'Containers') },
     { key: 'billing', label: getText('Facturar ciclo', 'Bill cycle') },
   ];
 
@@ -70,6 +77,19 @@ export function RepartoContent({ slug, currency, customers, initialVehicles, ini
         )}
         {tab === 'vehicles' && (
           <VehiclesTab slug={slug} vehicles={vehicles} drivers={drivers} notify={notify} onChange={() => load('vehicles', setVehicles)} />
+        )}
+        {tab === 'containers' && (
+          <EnvasesTab
+            slug={slug}
+            types={types}
+            anaqueles={anaqueles}
+            customers={customers}
+            businessName={businessName}
+            notify={notify}
+            onChange={async () => {
+              await Promise.all([load('container-types?includeInactive=true', setTypes), load('anaqueles', setAnaqueles)]);
+            }}
+          />
         )}
         {tab === 'billing' && (
           <BillingTab slug={slug} currency={currency} report={unbilled} notify={notify} onChange={() => load('billing/unbilled-deliveries', setUnbilled)} />

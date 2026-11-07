@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getMaalcaApiToken } from '@/lib/api-auth';
 import { RepartoContent } from './RepartoContent';
-import type { AdminRoute, DriverOption, UnbilledReport, Vehicle } from '@/lib/delivery';
+import type { AdminRoute, Anaquel, ContainerType, DriverOption, UnbilledReport, Vehicle } from '@/lib/delivery';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -40,13 +40,17 @@ export default async function RepartoPage({ params }: { params: Promise<{ slug: 
   let routes: AdminRoute[] = [];
   let drivers: DriverOption[] = [];
   let unbilled: UnbilledReport | null = null;
+  let types: ContainerType[] = [];
+  let anaqueles: Anaquel[] = [];
   try {
-    const [cRes, vRes, rRes, tRes, uRes] = await Promise.all([
+    const [cRes, vRes, rRes, tRes, uRes, ctRes, aRes] = await Promise.all([
       fetch(`${base}/customers?limit=1000`, { headers, cache: 'no-store' }),
       fetch(`${base}/vehicles`, { headers, cache: 'no-store' }),
       fetch(`${base}/routes`, { headers, cache: 'no-store' }),
       fetch(`${base}/team`, { headers, cache: 'no-store' }),
       fetch(`${base}/billing/unbilled-deliveries`, { headers, cache: 'no-store' }),
+      fetch(`${base}/container-types?includeInactive=true`, { headers, cache: 'no-store' }),
+      fetch(`${base}/anaqueles`, { headers, cache: 'no-store' }),
     ]);
     if (cRes.ok) customers = (await cRes.json())?.data ?? [];
     if (vRes.ok) vehicles = await vRes.json();
@@ -57,6 +61,8 @@ export default async function RepartoPage({ params }: { params: Promise<{ slug: 
       drivers = list.filter((t) => t.isActive !== false).map((t) => ({ id: t.id, name: t.name }));
     }
     if (uRes.ok) unbilled = await uRes.json();
+    if (ctRes.ok) types = await ctRes.json();
+    if (aRes.ok) anaqueles = await aRes.json();
   } catch {
     // Quedan vacíos: RepartoContent muestra estados vacíos en vez de tronar.
   }
@@ -70,6 +76,9 @@ export default async function RepartoPage({ params }: { params: Promise<{ slug: 
       initialRoutes={routes}
       drivers={drivers}
       initialUnbilled={unbilled}
+      initialTypes={types}
+      initialAnaqueles={anaqueles}
+      businessName={space.business.name}
     />
   );
 }

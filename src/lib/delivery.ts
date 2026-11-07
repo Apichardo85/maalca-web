@@ -190,3 +190,27 @@ export interface BillResult {
   invoicesCreated: number;
   totalInvoiced: number;
 }
+
+// ── Envases (admin): tipos y anaqueles ──────────────────────────────────────────────────────────
+
+export interface ContainerType {
+  id: string;
+  name: string;
+  capacityLiters: number | null;
+  deposit: number;
+  isActive: boolean;
+}
+
+export interface Anaquel {
+  id: string;
+  qrCode: string;
+  label: string | null;
+  location: string | null;
+  capacity: number;
+  status: string;
+  customerId: string | null;
+  customerName: string | null;
+  notes: string | null;
+}
+
+export const ANAQUEL_STATUSES = ['disponible', 'activo', 'pendiente_reposicion', 'completo', 'danado', 'fuera_servicio'] as const;
