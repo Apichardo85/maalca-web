@@ -115,3 +115,78 @@ export function extractQrCode(raw: string): string {
 export function mapsUrl(address: string): string {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 }
+
+// ── Admin de reparto (vehículos, planificador de rutas, facturar ciclo) ─────────────────────────
+
+export interface Vehicle {
+  id: string;
+  plate: string;
+  name: string | null;
+  capacityContainers: number;
+  driverId: string | null;
+  driverName: string | null;
+  status: string;
+  isActive: boolean;
+  notes: string | null;
+}
+
+export interface AdminRoute {
+  id: string;
+  name: string;
+  routeDate: string;
+  vehicleId: string | null;
+  vehiclePlate: string | null;
+  driverId: string | null;
+  driverName: string | null;
+  status: RouteStatus;
+  loadedFull: number | null;
+  notes: string | null;
+  stopsTotal: number;
+  stopsDone: number;
+  stops: RouteStop[];
+}
+
+export interface DriverOption {
+  id: string;
+  name: string;
+}
+
+export interface UnbilledCustomer {
+  customerId: string;
+  customerName: string;
+  billingCycle: string | null;
+  creditDays: number | null;
+  deliveries: number;
+  total: number;
+  oldestDelivery: string;
+  cycleEnd: string;
+  ready: boolean;
+  readyDeliveries: number;
+  readyTotal: number;
+}
+
+export interface UnbilledReport {
+  asOf: string;
+  customers: UnbilledCustomer[];
+  totalUnbilled: number;
+  totalReady: number;
+}
+
+export interface BillRow {
+  customerId: string;
+  customerName: string;
+  status: 'invoiced' | 'preview' | 'empty' | 'zero_total';
+  deliveries: number;
+  total: number;
+  throughDate: string;
+  dueDate: string | null;
+  invoiceId: string | null;
+  invoiceNumber: string | null;
+}
+
+export interface BillResult {
+  dryRun: boolean;
+  rows: BillRow[];
+  invoicesCreated: number;
+  totalInvoiced: number;
+}
