@@ -79,6 +79,7 @@ export default async function RepartoPage({ params }: { params: Promise<{ slug: 
       initialTypes={types}
       initialAnaqueles={anaqueles}
       businessName={space.business.name}
+      brand={{ name: space.business.name, logoUrl: space.business.logoUrl ?? null, primaryColor: space.business.primaryColor ?? null }}
     />
   );
 }

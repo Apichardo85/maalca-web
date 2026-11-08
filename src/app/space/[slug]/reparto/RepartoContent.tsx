@@ -5,6 +5,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import type { AdminRoute, Anaquel, ContainerType, DriverOption, UnbilledReport, Vehicle } from '@/lib/delivery';
+import type { BrandInfo } from '@/lib/pdf/document';
 import { RoutesTab } from './RoutesTab';
 import { VehiclesTab } from './VehiclesTab';
 import { BillingTab } from './BillingTab';
@@ -21,11 +22,12 @@ interface Props {
   initialTypes: ContainerType[];
   initialAnaqueles: Anaquel[];
   businessName?: string;
+  brand?: BrandInfo;
 }
 
 type Tab = 'routes' | 'vehicles' | 'containers' | 'billing';
 
-export function RepartoContent({ slug, currency, customers, initialVehicles, initialRoutes, drivers, initialUnbilled, initialTypes, initialAnaqueles, businessName }: Props) {
+export function RepartoContent({ slug, currency, customers, initialVehicles, initialRoutes, drivers, initialUnbilled, initialTypes, initialAnaqueles, businessName, brand }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -93,6 +95,7 @@ export function RepartoContent({ slug, currency, customers, initialVehicles, ini
             anaqueles={anaqueles}
             customers={customers}
             businessName={businessName}
+            brand={brand}
             notify={notify}
             onChange={async () => {
               await Promise.all([load('container-types?includeInactive=true', setTypes), load('anaqueles', setAnaqueles)]);

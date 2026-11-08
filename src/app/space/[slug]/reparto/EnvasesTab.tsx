@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import QRCode from 'qrcode';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import type { BrandInfo } from '@/lib/pdf/document';
 import { readApiError } from '@/lib/receivables';
 import { ANAQUEL_STATUSES, type Anaquel, type ContainerType } from '@/lib/delivery';
 
@@ -18,6 +19,7 @@ interface Props {
   anaqueles: Anaquel[];
   customers: Customer[];
   businessName?: string;
+  brand?: BrandInfo;
   onChange: () => Promise<void>;
   notify: { success: (m: string) => void; error: (m: string) => void };
 }
@@ -42,7 +44,7 @@ interface RackForm {
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] as string);
 
-export function EnvasesTab({ slug, types, anaqueles, customers, businessName, onChange, notify }: Props) {
+export function EnvasesTab({ slug, types, anaqueles, customers, businessName, brand: brandInfo, onChange, notify }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const [typeForm, setTypeForm] = useState<TypeForm | null>(null);
@@ -141,14 +143,16 @@ export function EnvasesTab({ slug, types, anaqueles, customers, businessName, on
       notify.error(getText('El navegador bloqueó la ventana de impresión.', 'The browser blocked the print window.'));
       return;
     }
+    const color = /^#[0-9a-f]{6}$/i.test(brandInfo?.primaryColor ?? '') ? (brandInfo?.primaryColor as string) : '#045AFE';
+    const logo = brandInfo?.logoUrl ? `<img class="lg" src="${esc(brandInfo.logoUrl)}"/>` : '';
     const cards = await Promise.all(
       list.map(async (a) => {
         const img = await QRCode.toDataURL(a.qrCode, { width: 300, margin: 1, errorCorrectionLevel: 'M' });
-        return `<div class="c"><img src="${img}"/><div class="n">${esc(a.customerName ?? getText('Sin asignar', 'Unassigned'))}</div><div class="s">${esc([a.label, a.location].filter(Boolean).join(' · '))}</div><div class="k">${esc(a.qrCode)}</div></div>`;
+        return `<div class="c"><div class="h">${logo}<span>${esc(businessName ?? '')}</span></div><img src="${img}"/><div class="n">${esc(a.customerName ?? getText('Sin asignar', 'Unassigned'))}</div><div class="s">${esc([a.label, a.location].filter(Boolean).join(' · '))}</div><div class="k">${esc(a.qrCode)}</div><div class="p">${getText('Propiedad de', 'Property of')} ${esc(businessName ?? '')} — ${getText('no retirar', 'do not remove')}</div></div>`;
       }),
     );
     w.document.write(
-      `<!doctype html><html><head><meta charset="utf-8"><title>${esc(businessName ?? 'QR')}</title><style>body{font-family:sans-serif;margin:12px}.g{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.c{border:1px dashed #999;padding:10px;text-align:center;break-inside:avoid}.c img{width:100%;max-width:200px}.n{font-weight:700;font-size:14px}.s{font-size:12px;color:#444}.k{font:11px monospace;margin-top:4px}</style></head><body><div class="g">${cards.join('')}</div><script>window.onload=function(){window.print()}</script></body></html>`,
+      `<!doctype html><html><head><meta charset="utf-8"><title>${esc(businessName ?? 'QR')}</title><style>body{font-family:sans-serif;margin:12px}.g{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.c{border:1px dashed #999;border-top:6px solid ${color};padding:10px;text-align:center;break-inside:avoid}.h{display:flex;align-items:center;justify-content:center;gap:6px;font-weight:700;font-size:12px;color:${color};margin-bottom:6px}.c .lg{width:auto;height:24px;max-width:70px;object-fit:contain}.p{font-size:9px;color:#666;margin-top:6px}.c img{width:100%;max-width:200px}.n{font-weight:700;font-size:14px}.s{font-size:12px;color:#444}.k{font:11px monospace;margin-top:4px}</style></head><body><div class="g">${cards.join('')}</div><script>window.onload=function(){window.print()}</script></body></html>`,
     );
     w.document.close();
   }

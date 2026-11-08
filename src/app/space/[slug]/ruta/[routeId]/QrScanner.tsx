@@ -7,8 +7,8 @@ type Detector = { detect: (v: HTMLVideoElement) => Promise<{ rawValue: string }[
 type DetectorCtor = new (opts: { formats: string[] }) => Detector;
 
 /**
- * Escáner de QR con la cámara (BarcodeDetector, disponible en Chrome de Android). Si el navegador no lo soporta
- * o no hay permiso de cámara, queda el campo para escribir el código del anaquel a mano.
+ * Escáner de QR con la cámara. Usa BarcodeDetector (Chrome de Android) y, donde no existe (Safari en iPhone),
+ * jsQR sobre un canvas. Vibra al leer. Si no hay cámara o permiso, queda el campo para escribir el código a mano.
  */
 export function QrScanner({ onResult, onClose }: { onResult: (raw: string) => void; onClose: () => void }) {
   const { language } = useSimpleLanguage();
@@ -21,7 +21,7 @@ export function QrScanner({ onResult, onClose }: { onResult: (raw: string) => vo
 
   useEffect(() => {
     const Ctor = (window as unknown as { BarcodeDetector?: DetectorCtor }).BarcodeDetector;
-    if (!Ctor || !navigator.mediaDevices?.getUserMedia) {
+    if (!navigator.mediaDevices?.getUserMedia) {
       setError(getText('Este navegador no puede leer QR con la cámara. Escribe el código del anaquel.', "This browser can't read QR codes. Type the rack code."));
       return;
     }
@@ -38,14 +38,29 @@ export function QrScanner({ onResult, onClose }: { onResult: (raw: string) => vo
         if (!video) return;
         video.srcObject = stream;
         await video.play();
-        const detector = new Ctor({ formats: ['qr_code'] });
+        const detector = Ctor ? new Ctor({ formats: ['qr_code'] }) : null;
+        const jsQR = detector ? null : (await import('jsqr')).default;
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
         const tick = async () => {
           if (stopped || !videoRef.current) return;
           try {
-            const found = await detector.detect(videoRef.current);
-            if (found[0]?.rawValue) {
+            let raw: string | undefined;
+            if (detector) {
+              raw = (await detector.detect(videoRef.current))[0]?.rawValue;
+            } else if (jsQR && ctx && videoRef.current.videoWidth > 0) {
+              const v = videoRef.current;
+              const scale = Math.min(1, 640 / v.videoWidth);
+              canvas.width = Math.round(v.videoWidth * scale);
+              canvas.height = Math.round(v.videoHeight * scale);
+              ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+              const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+              raw = jsQR(img.data, img.width, img.height)?.data || undefined;
+            }
+            if (raw) {
               stopped = true;
-              onResultRef.current(found[0].rawValue);
+              navigator.vibrate?.(150);
+              onResultRef.current(raw);
               return;
             }
           } catch {
