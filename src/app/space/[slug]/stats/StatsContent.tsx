@@ -18,6 +18,7 @@ import {
 } from 'recharts';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { ModuleIntro } from '@/components/space/ModuleIntro';
+import { OperationStats, type OperationData } from './OperationStats';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { KpiTile, type SpaceKpis } from '@/components/space/KpiTile';
@@ -112,6 +113,8 @@ interface Props {
   plan: Plan;
   detailed: DetailedMetrics | null;
   reports: BusinessReports | null;
+  /** Cobros, utilidad y reparto: solo si el negocio tiene esos módulos activos. */
+  operation?: OperationData | null;
 }
 
 const RANGE_OPTIONS = [7, 30, 90] as const;
@@ -133,7 +136,7 @@ function formatShortDate(date: string, language: 'es' | 'en'): string {
   return new Intl.DateTimeFormat(language === 'es' ? 'es-DO' : 'en-US', { day: 'numeric', month: 'short' }).format(d);
 }
 
-export function StatsContent({ slug, kpis, plan, detailed: initialDetailed, reports: initialReports }: Props) {
+export function StatsContent({ slug, kpis, plan, detailed: initialDetailed, reports: initialReports, operation = null }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -219,15 +222,25 @@ export function StatsContent({ slug, kpis, plan, detailed: initialDetailed, repo
           </h1>
         </div>
 
-        <ModuleIntro
-          id="estadisticas"
-          className="mt-4"
-          summary={getText('Mira cuánta gente visita tu página y cómo va tu actividad.', 'See how many people visit your page and how your activity is going.')}
-          steps={[
-            getText('Las tarjetas de arriba resumen lo más importante de un vistazo.', 'The cards above summarize the essentials at a glance.'),
-            getText('Si aún no hay datos, comparte tu página o tu QR para empezar a recibir visitas.', 'If there is no data yet, share your page or QR to start getting visits.'),
-          ]}
-        />
+        {operation ? (
+          <OperationStats slug={slug} data={operation} />
+        ) : (
+          <ModuleIntro
+            id="estadisticas"
+            className="mt-4"
+            summary={getText('Mira cuánta gente visita tu página y cómo va tu actividad.', 'See how many people visit your page and how your activity is going.')}
+            steps={[
+              getText('Las tarjetas de arriba resumen lo más importante de un vistazo.', 'The cards above summarize the essentials at a glance.'),
+              getText('Si aún no hay datos, comparte tu página o tu QR para empezar a recibir visitas.', 'If there is no data yet, share your page or QR to start getting visits.'),
+            ]}
+          />
+        )}
+
+        {operation && (
+          <h2 className="mt-10 text-sm font-bold uppercase tracking-widest text-gray-400 dark:text-neutral-500">
+            {getText('Tu página pública', 'Your public page')}
+          </h2>
+        )}
 
         {/* Same KpiTile cards as the Dashboard's own KPI row — same data, same component. */}
         <section className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4">
