@@ -72,13 +72,14 @@ export function ReceivablesTab({
         metaLines: [`${getText('Al', 'As of')}: ${formatDate(st.asOf)}`],
         items: st.lines.map((l) => ({
           description: `${formatDate(l.date)} · ${l.type === 'payment' ? getText('Pago', 'Payment') : l.type === 'settled' ? getText('Saldada', 'Settled') : getText('Factura', 'Invoice')}${l.reference ? ` ${l.reference}` : ''}`,
-          total: l.debit > 0 ? `+${fmt.format(l.debit)}` : `−${fmt.format(l.credit)}`,
+          total: l.debit > 0 ? `+${fmt.format(l.debit)}` : `-${fmt.format(l.credit)}`,
         })),
         subtotalLines: [
           { label: getText('Facturado', 'Invoiced'), value: fmt.format(st.totalInvoiced) },
           { label: getText('Pagado', 'Paid'), value: fmt.format(st.totalPaid) },
           ...(st.creditOnAccount > 0 ? [{ label: getText('Saldo a favor', 'Customer credit'), value: fmt.format(st.creditOnAccount) }] : []),
         ],
+        amountLabel: getText('Saldo', 'Balance'),
         amountValue: fmt.format(st.balance),
         status:
           st.balance > 0
