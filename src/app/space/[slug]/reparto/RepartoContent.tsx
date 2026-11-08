@@ -16,7 +16,7 @@ import { LiveTab } from './LiveTab';
 interface Props {
   slug: string;
   currency: 'USD' | 'DOP';
-  customers: { id: string; name: string; email: string | null; phone: string | null }[];
+  customers: { id: string; name: string; email: string | null; phone: string | null; address?: string | null }[];
   initialVehicles: Vehicle[];
   initialRoutes: AdminRoute[];
   drivers: DriverOption[];
@@ -101,7 +101,7 @@ export function RepartoContent({ slug, currency, customers, initialVehicles, ini
           <p role="status" className="mb-2 text-xs text-gray-500 dark:text-neutral-400">{getText('Actualizando…', 'Refreshing…')}</p>
         )}
         {tab === 'routes' && (
-          <RoutesTab slug={slug} routes={routes} vehicles={vehicles} drivers={drivers} customers={customers} notify={notify} onChange={() => load('routes', setRoutes)} />
+          <RoutesTab slug={slug} currency={currency} routes={routes} vehicles={vehicles} drivers={drivers} customers={customers} notify={notify} onChange={() => load('routes', setRoutes)} />
         )}
         {tab === 'live' && <LiveTab slug={slug} />}
         {tab === 'vehicles' && (

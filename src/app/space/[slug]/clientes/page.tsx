@@ -5,7 +5,7 @@ import { ClientesContent, type CustomerRow } from './ClientesContent';
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 interface SpaceResponse {
-  business: { id: string; currency?: 'USD' | 'DOP' };
+  business: { id: string; currency?: 'USD' | 'DOP'; businessType?: string };
   isImpersonation?: boolean;
 }
 
@@ -47,5 +47,12 @@ export default async function ClientesPage({
     // Queda vacío — ClientesContent renderiza el estado vacío en vez de tronar.
   }
 
-  return <ClientesContent slug={slug} initialCustomers={customers} canHardDelete={space.isImpersonation === true} />;
+  return (
+    <ClientesContent
+      slug={slug}
+      initialCustomers={customers}
+      canHardDelete={space.isImpersonation === true}
+      requireContact={space.business.businessType?.toLowerCase() === 'retail'}
+    />
+  );
 }

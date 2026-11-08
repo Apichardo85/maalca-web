@@ -15,6 +15,8 @@ export interface CustomerRow {
   name: string;
   email: string | null;
   phone: string | null;
+  address?: string | null;
+  rnc?: string | null;
   notes: string | null;
   status: 'Active' | 'Inactive';
   lastVisit: string | null;
@@ -103,6 +105,8 @@ const CHANNEL_ES: Record<string, string> = {
   'in-person': 'En persona', phone: 'Teléfono', web: 'Web',
 };
 
+const validEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+
 interface Props {
   slug: string;
   initialCustomers: CustomerRow[];
@@ -110,12 +114,14 @@ interface Props {
   // isImpersonation en layout.tsx) — el gate real (platform_admin + platform_role Owner) vive
   // en el backend, esto solo decide si se muestra el botón.
   canHardDelete?: boolean;
+  // Negocios tipo tienda (reparto): correo y dirección son obligatorios al crear un cliente.
+  requireContact?: boolean;
 }
 
 // Clientes (tarea #249) — lista + ficha con historial real. Reusa el backend Customer.cs que ya
 // existía (CRUD completo) desde antes de esta tarea, y el vínculo por teléfono con
 // Appointment/Invoice/QueueEntry/TableReservation/Proposal cableado en la tarea #244.
-export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props) {
+export function ClientesContent({ slug, initialCustomers, canHardDelete, requireContact = false }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -129,6 +135,8 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
   const [rnc, setRnc] = useState('');
   const [address, setAddress] = useState('');
   const [saving, setSaving] = useState(false);
+  const [editForm, setEditForm] = useState<{ name: string; phone: string; email: string; rnc: string; address: string; notes: string } | null>(null);
+  const [editSaving, setEditSaving] = useState(false);
 
   const [selected, setSelected] = useState<CustomerRow | null>(null);
   const [history, setHistory] = useState<CustomerHistory | null>(null);
@@ -163,6 +171,14 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
       toast.error(getText('El teléfono no es válido: escribe 10 dígitos o déjalo vacío.', 'Invalid phone: enter 10 digits or leave it empty.'));
       return;
     }
+    if (requireContact && !validEmail(email)) {
+      toast.error(getText('Escribe un correo válido: el cliente lo necesita para entrar a su cuenta.', 'Enter a valid email: the customer needs it to sign in to their account.'));
+      return;
+    }
+    if (requireContact && !address.trim()) {
+      toast.error(getText('La dirección es obligatoria: sin ella no se puede armar la ruta.', 'Address is required: without it the route cannot be planned.'));
+      return;
+    }
     setSaving(true);
     try {
       const res = await fetch(`/api/space/${slug}/customers`, {
@@ -177,7 +193,10 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
           status: 'Active',
         }),
       });
-      if (!res.ok) throw new Error('add failed');
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error?.message || 'add failed');
+      }
       setName('');
       setPhone('');
       setEmail('');
@@ -186,8 +205,9 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
       setShowForm(false);
       toast.success(getText('Cliente agregado.', 'Customer added.'));
       await refetch();
-    } catch {
-      toast.error(getText('No se pudo agregar. Intenta de nuevo.', "Couldn't add it. Try again."));
+    } catch (e) {
+      const message = e instanceof Error && e.message !== 'add failed' ? e.message : undefined;
+      toast.error(message || getText('No se pudo agregar. Intenta de nuevo.', "Couldn't add it. Try again."));
     } finally {
       setSaving(false);
     }
@@ -204,6 +224,60 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
       // El modal muestra "sin historial" si history queda null.
     } finally {
       setLoadingHistory(false);
+    }
+  }
+
+  function startEdit(c: CustomerRow) {
+    setEditForm({
+      name: c.name,
+      phone: c.phone ?? '',
+      email: c.email ?? '',
+      rnc: c.rnc ?? '',
+      address: c.address ?? '',
+      notes: c.notes ?? '',
+    });
+  }
+
+  async function saveEdit() {
+    if (!selected || !editForm || editSaving) return;
+    if (!editForm.name.trim()) {
+      toast.error(getText('El nombre es obligatorio.', 'Name is required.'));
+      return;
+    }
+    if (editForm.phone && !isValidPhone(editForm.phone)) {
+      toast.error(getText('El teléfono no es válido: escribe 10 dígitos o déjalo vacío.', 'Invalid phone: enter 10 digits or leave it empty.'));
+      return;
+    }
+    if (editForm.email.trim() && !validEmail(editForm.email)) {
+      toast.error(getText('El correo no es válido.', 'Invalid email.'));
+      return;
+    }
+    setEditSaving(true);
+    try {
+      const body = {
+        name: editForm.name.trim(),
+        phone: editForm.phone ? normalizePhone(editForm.phone) : null,
+        email: editForm.email.trim().toLowerCase() || null,
+        notes: editForm.notes.trim() || null,
+        // "" vacía el campo en el API; null lo dejaría como está.
+        rnc: editForm.rnc.trim(),
+        address: editForm.address.trim(),
+        status: selected.status,
+      };
+      const res = await fetch(`/api/space/${slug}/customers/${selected.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error('save failed');
+      setSelected({ ...selected, name: body.name, phone: body.phone, email: body.email, notes: body.notes, rnc: body.rnc || null, address: body.address || null });
+      setEditForm(null);
+      toast.success(getText('Cliente actualizado.', 'Customer updated.'));
+      await refetch();
+    } catch {
+      toast.error(getText('No se pudo guardar. Intenta de nuevo.', "Couldn't save. Try again."));
+    } finally {
+      setEditSaving(false);
     }
   }
 
@@ -335,6 +409,9 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
                 {c.status === 'Inactive' && (
                   <span className="text-xs text-gray-400 dark:text-neutral-500">{getText('Inactivo', 'Inactive')}</span>
                 )}
+                {requireContact && !c.address && (
+                  <span className="text-xs font-medium text-amber-600 dark:text-amber-400">{getText('Falta dirección', 'Missing address')}</span>
+                )}
               </button>
             ))}
           </div>
@@ -361,6 +438,9 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
                       <p className="font-medium text-gray-900 dark:text-white">{c.name}</p>
                       {c.status === 'Inactive' && (
                         <span className="text-xs text-gray-400 dark:text-neutral-500">{getText('Inactivo', 'Inactive')}</span>
+                      )}
+                      {requireContact && !c.address && (
+                        <span className="text-xs font-medium text-amber-600 dark:text-amber-400">{getText('Falta dirección', 'Missing address')}</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-gray-500 dark:text-neutral-400">
@@ -399,7 +479,7 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder={getText('Email (opcional)', 'Email (optional)')}
+            placeholder={requireContact ? getText('Correo * (para su cuenta)', 'Email * (for their account)') : getText('Email (opcional)', 'Email (optional)')}
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
           />
           <input
@@ -413,18 +493,60 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
             type="text"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            placeholder={getText('Dirección (opcional)', 'Address (optional)')}
+            placeholder={requireContact ? getText('Dirección * (calle, sector, ciudad)', 'Address * (street, area, city)') : getText('Dirección (opcional)', 'Address (optional)')}
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
           />
           <button
             type="button"
             onClick={handleAdd}
-            disabled={!name.trim() || saving}
+            disabled={!name.trim() || saving || (requireContact && (!email.trim() || !address.trim()))}
             className="w-full rounded-lg bg-brand-primary py-2.5 text-sm font-medium text-white transition hover:bg-brand-primary-hover disabled:opacity-50"
           >
             {saving ? getText('Guardando...', 'Saving...') : getText('Agregar', 'Add')}
           </button>
         </div>
+      </Modal>
+
+      {/* Editar cliente */}
+      <Modal isOpen={!!editForm} onClose={() => setEditForm(null)} title={getText('Editar cliente', 'Edit customer')} size="sm">
+        {editForm && (
+          <div className="space-y-3 px-6 py-4">
+            {([
+              ['name', getText('Nombre', 'Name'), 'text'],
+              ['phone', getText('Teléfono', 'Phone'), 'tel'],
+              ['email', getText('Correo', 'Email'), 'email'],
+              ['rnc', getText('Cédula o RNC', 'ID or tax ID'), 'text'],
+              ['address', getText('Dirección (calle, sector, ciudad)', 'Address (street, area, city)'), 'text'],
+            ] as const).map(([key, label, type]) => (
+              <label key={key} className="block text-xs text-gray-500 dark:text-neutral-400">
+                {label}
+                <input
+                  type={type}
+                  value={editForm[key]}
+                  onChange={(e) => setEditForm({ ...editForm, [key]: key === 'phone' ? formatPhoneInput(e.target.value) : e.target.value })}
+                  className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-brand-primary focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
+                />
+              </label>
+            ))}
+            <label className="block text-xs text-gray-500 dark:text-neutral-400">
+              {getText('Notas', 'Notes')}
+              <textarea
+                rows={3}
+                value={editForm.notes}
+                onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                className="mt-1 w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-brand-primary focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={saveEdit}
+              disabled={editSaving || !editForm.name.trim()}
+              className="w-full rounded-lg bg-brand-primary py-2.5 text-sm font-medium text-white transition hover:bg-brand-primary-hover disabled:opacity-50"
+            >
+              {editSaving ? getText('Guardando...', 'Saving...') : getText('Guardar cambios', 'Save changes')}
+            </button>
+          </div>
+        )}
       </Modal>
 
       {/* Ficha del cliente */}
@@ -441,6 +563,16 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
                 <a href={`mailto:${selected.email}`} className="break-all hover:text-brand-primary">
                   ✉️ {selected.email}
                 </a>
+              )}
+              {selected.address ? (
+                <span>📍 {selected.address}</span>
+              ) : requireContact ? (
+                <span className="font-medium text-amber-600 dark:text-amber-400">📍 {getText('Sin dirección', 'No address')}</span>
+              ) : null}
+              {selected.rnc && (
+                <span>
+                  {getText('RNC/Cédula', 'Tax ID')}: <strong className="text-gray-900 dark:text-white">{selected.rnc}</strong>
+                </span>
               )}
               {selected.phone && selected.phone.replace(/\D/g, '').length >= 7 && (
                 <a
@@ -466,13 +598,22 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
               </p>
             )}
 
-            <button
-              type="button"
-              onClick={() => toggleActive(selected)}
-              className="mb-4 rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold dark:border-neutral-700"
-            >
-              {selected.status === 'Active' ? getText('Desactivar cliente', 'Deactivate customer') : getText('Activar cliente', 'Activate customer')}
-            </button>
+            <div className="mb-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => startEdit(selected)}
+                className="rounded-full bg-brand-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-primary-hover"
+              >
+                {getText('Editar cliente', 'Edit customer')}
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleActive(selected)}
+                className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold dark:border-neutral-700"
+              >
+                {selected.status === 'Active' ? getText('Desactivar cliente', 'Deactivate customer') : getText('Activar cliente', 'Activate customer')}
+              </button>
+            </div>
 
             <CustomerInsights slug={slug} customerId={selected.id} customerName={selected.name} getText={getText} language={language} />
 
