@@ -69,7 +69,7 @@ interface Props {
   // (platform_admin + platform_role Owner), esto solo controla si se muestra el botón.
   canHardDelete?: boolean;
   /** Para el PDF de marca -- logo/color del negocio (Affiliate.LogoUrl/PrimaryColor via /api/space/{slug}). */
-  business: { name: string; logoUrl?: string | null; primaryColor?: string | null };
+  business: { name: string; logoUrl?: string | null; primaryColor?: string | null; businessType?: string };
 }
 
 const STATUS_STYLES: Record<InvoiceRow['status'], string> = {
@@ -93,6 +93,17 @@ const emptyLine = (): LineDraft => ({ description: '', quantity: 1, unitPrice: 0
 export function InvoicesContent({ slug, currency, initialInvoices, customers, canHardDelete, business }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
+
+  // Ejemplo del campo Descripción según el tipo de negocio (antes era fijo, de restaurante/barbería).
+  const descriptionPlaceholder = (
+    {
+      retail: getText('Ej. 10 unidades de producto, caja de mercancía, flete a domicilio…', 'E.g. 10 units of product, case of goods, home delivery…'),
+      service: getText('Ej. Instalación, consultoría por hora, mantenimiento mensual…', 'E.g. Installation, hourly consulting, monthly maintenance…'),
+      barber: getText('Ej. Corte de cabello, barba, tratamiento capilar…', 'E.g. Haircut, beard trim, hair treatment…'),
+      restaurant: getText('Ej. Cena para 2, catering para 20 personas, servicio de mesa…', 'E.g. Dinner for 2, catering for 20, table service…'),
+      community: getText('Ej. Cuota mensual, inscripción, donación…', 'E.g. Monthly fee, registration, donation…'),
+    } as Record<string, string>
+  )[(business.businessType ?? '').toLowerCase()] ?? getText('Ej. Producto o servicio facturado…', 'E.g. Product or service billed…');
   const toast = useToast();
 
   const [invoices, setInvoices] = useState<InvoiceRow[]>(initialInvoices);
@@ -533,10 +544,7 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers, ca
                       <input
                         value={line.description}
                         onChange={(e) => updateLine(i, { description: e.target.value })}
-                        placeholder={getText(
-                          'Ej. Cena para 2, corte de cabello, camisa talla M…',
-                          'E.g. Dinner for 2, haircut, t-shirt size M…',
-                        )}
+                        placeholder={descriptionPlaceholder}
                         className="mt-1 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
                       />
                     </div>

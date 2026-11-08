@@ -87,7 +87,7 @@ export default async function InvoicesPage({
       initialInvoices={invoices}
       customers={customers}
       canHardDelete={space.isImpersonation === true}
-      business={{ name: space.business.name, logoUrl: space.business.logoUrl, primaryColor: space.business.primaryColor }}
+      business={{ name: space.business.name, logoUrl: space.business.logoUrl, primaryColor: space.business.primaryColor, businessType: space.business.businessType }}
     />
   );
 }
