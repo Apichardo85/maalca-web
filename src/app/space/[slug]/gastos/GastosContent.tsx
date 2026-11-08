@@ -125,7 +125,8 @@ export function GastosContent({ slug, currency, brand: brandInfo, initialMonth, 
 
   function monthTitle(m: string) {
     const [y, mo] = m.split('-').map(Number);
-    return new Date(y, mo - 1, 1).toLocaleDateString(es ? 'es-DO' : 'en-US', { month: 'long', year: 'numeric' });
+    const label = new Date(y, mo - 1, 1).toLocaleDateString(es ? 'es-DO' : 'en-US', { month: 'long', year: 'numeric' });
+    return label.charAt(0).toUpperCase() + label.slice(1);
   }
 
   function openNew() {
@@ -241,7 +242,7 @@ export function GastosContent({ slug, currency, brand: brandInfo, initialMonth, 
 
       <div className="mt-3 flex items-center justify-between">
         <button type="button" onClick={() => go(-1)} aria-label={getText('Mes anterior', 'Previous month')} className="h-10 w-10 rounded-full border border-gray-300 dark:border-neutral-700 text-lg">‹</button>
-        <p className="text-base font-semibold capitalize">{monthTitle(month)}</p>
+        <p className="text-base font-semibold">{monthTitle(month)}</p>
         <button type="button" onClick={() => go(1)} aria-label={getText('Mes siguiente', 'Next month')} className="h-10 w-10 rounded-full border border-gray-300 dark:border-neutral-700 text-lg">›</button>
       </div>
 

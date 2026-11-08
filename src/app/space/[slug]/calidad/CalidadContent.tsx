@@ -204,7 +204,7 @@ export function CalidadContent({ slug, initialTests, initialMaintenance, initial
           ) : (
             <p>{getText('Aún no hay análisis registrados.', 'No tests recorded yet.')}</p>
           )}
-          {summary.overdue && (
+          {summary.overdue && summary.lastTestDate && (
             <p className="mt-1 text-amber-800 dark:text-amber-300">
               {getText(`Toca un análisis nuevo (pasaron más de ${summary.reminderDays} días).`, `A new test is due (more than ${summary.reminderDays} days).`)}
             </p>
