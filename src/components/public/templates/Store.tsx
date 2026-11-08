@@ -448,7 +448,7 @@ export function StoreTemplate({ business, items, categories: categoriesProp, cap
               // eslint-disable-next-line @next/next/no-img-element
               // El logo puede ser ancho (lockup con el nombre). Recortarlo en cuadrado deja una letra
               // suelta, así que se muestra entero: alto fijo, ancho libre hasta un máximo.
-              <img src={business.logo_url} alt="" style={{ height: 36, width: 'auto', minWidth: 36, maxWidth: 150, borderRadius: 8, objectFit: 'contain', backgroundColor: '#ffffff', padding: 3 }} />
+              <img src={business.logo_url} alt="" style={{ height: 44, width: 'auto', minWidth: 44, maxWidth: 180, borderRadius: 8, objectFit: 'contain', backgroundColor: '#ffffff', padding: 3 }} />
             )}
             <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
               <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.01em' }}>{business.name}</span>
@@ -564,6 +564,11 @@ export function StoreTemplate({ business, items, categories: categoriesProp, cap
                 </>
               )}
               <div style={{ position: 'relative', padding: 'clamp(24px, 5cqi, 48px)', display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 640 }}>
+                {business.logo_url && !business.cover_image_url && (
+                  // Sin portada, el logo da identidad al hero (el del encabezado es pequeño).
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={business.logo_url} alt="" style={{ height: 88, width: 'auto', maxWidth: 240, borderRadius: 12, objectFit: 'contain', backgroundColor: '#ffffff', padding: 6, alignSelf: 'flex-start' }} />
+                )}
                 <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: DETAIL }}>
                   {storeAccounts ? getText('Al detalle y al por mayor', 'Retail & wholesale') : getText('Tienda en línea', 'Online store')}
                 </span>
