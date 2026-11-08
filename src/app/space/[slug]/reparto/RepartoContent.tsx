@@ -11,6 +11,7 @@ import { RoutesTab } from './RoutesTab';
 import { VehiclesTab } from './VehiclesTab';
 import { BillingTab } from './BillingTab';
 import { EnvasesTab } from './EnvasesTab';
+import { LiveTab } from './LiveTab';
 
 interface Props {
   slug: string;
@@ -26,7 +27,7 @@ interface Props {
   brand?: BrandInfo;
 }
 
-type Tab = 'routes' | 'vehicles' | 'containers' | 'billing';
+type Tab = 'routes' | 'live' | 'vehicles' | 'containers' | 'billing';
 
 export function RepartoContent({ slug, currency, customers, initialVehicles, initialRoutes, drivers, initialUnbilled, initialTypes, initialAnaqueles, businessName, brand }: Props) {
   const { language } = useSimpleLanguage();
@@ -56,6 +57,7 @@ export function RepartoContent({ slug, currency, customers, initialVehicles, ini
   const notify = { success: toast.success, error: toast.error };
   const tabs: { key: Tab; label: string }[] = [
     { key: 'routes', label: getText('Rutas', 'Routes') },
+    { key: 'live', label: getText('En vivo', 'Live') },
     { key: 'vehicles', label: getText('Vehículos', 'Vehicles') },
     { key: 'containers', label: getText('Envases', 'Containers') },
     { key: 'billing', label: getText('Facturar ciclo', 'Bill cycle') },
@@ -101,6 +103,7 @@ export function RepartoContent({ slug, currency, customers, initialVehicles, ini
         {tab === 'routes' && (
           <RoutesTab slug={slug} routes={routes} vehicles={vehicles} drivers={drivers} customers={customers} notify={notify} onChange={() => load('routes', setRoutes)} />
         )}
+        {tab === 'live' && <LiveTab slug={slug} />}
         {tab === 'vehicles' && (
           <VehiclesTab slug={slug} vehicles={vehicles} drivers={drivers} notify={notify} onChange={() => load('vehicles?includeInactive=true', setVehicles)} />
         )}

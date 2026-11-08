@@ -55,6 +55,10 @@ export function RouteContent({ slug, currency, brand: brandInfo, initialSheet, p
   const [loadedFull, setLoadedFull] = useState(initialSheet.loadedFull?.toString() ?? '');
   const [busy, setBusy] = useState(false);
   const [recon, setRecon] = useState<Reconciliation | null>(null);
+  // Modo camión: estado de la ubicación del teléfono (se comparte con la oficina mientras la ruta está en curso).
+  const [gps, setGps] = useState<'off' | 'ok' | 'denied' | 'unsupported'>('off');
+  const lastPos = useRef<{ lat: number; lng: number } | null>(null);
+  const lastSent = useRef(0);
 
   const base = `/api/space/${slug}/routes/${sheet.routeId}`;
   const editable = sheet.status === 'in_progress';
@@ -161,6 +165,72 @@ export function RouteContent({ slug, currency, brand: brandInfo, initialSheet, p
       })
       .catch(() => {});
   }, []);
+
+  // Comparte la ubicación cada ~15 s mientras la ruta está en curso. Es mejor esfuerzo: sin señal simplemente no se envía.
+  useEffect(() => {
+    if (sheet.status !== 'in_progress') return;
+    if (!('geolocation' in navigator)) {
+      setGps('unsupported');
+      return;
+    }
+    const routeBase = `/api/space/${slug}/routes/${sheet.routeId}`;
+    const watchId = navigator.geolocation.watchPosition(
+      (p) => {
+        lastPos.current = { lat: p.coords.latitude, lng: p.coords.longitude };
+        setGps('ok');
+        const now = Date.now();
+        if (now - lastSent.current < 15000 || !navigator.onLine) return;
+        lastSent.current = now;
+        fetch(`${routeBase}/position`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            lat: p.coords.latitude,
+            lng: p.coords.longitude,
+            accuracyMeters: p.coords.accuracy,
+            speedKmh: p.coords.speed != null ? p.coords.speed * 3.6 : null,
+          }),
+        }).catch(() => {});
+      },
+      (err) => setGps(err.code === err.PERMISSION_DENIED ? 'denied' : 'off'),
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 },
+    );
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [sheet.status, sheet.routeId, slug]);
+
+  // Mantiene la pantalla encendida durante la ruta: con el teléfono bloqueado el navegador deja de enviar la ubicación.
+  useEffect(() => {
+    if (sheet.status !== 'in_progress' || !('wakeLock' in navigator)) return;
+    let lock: WakeLockSentinel | null = null;
+    const request = () => {
+      navigator.wakeLock.request('screen').then((l) => { lock = l; }).catch(() => {});
+    };
+    request();
+    const onVisible = () => { if (document.visibilityState === 'visible') request(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      lock?.release().catch(() => {});
+    };
+  }, [sheet.status]);
+
+  // "Llegué" y "Salí": no bloquean la entrega. Llegué guarda también dónde estaba el teléfono.
+  async function mark(stop: DriverStop, kind: 'arrive' | 'depart') {
+    setBusy(true);
+    try {
+      const body = kind === 'arrive' && lastPos.current ? { lat: lastPos.current.lat, lng: lastPos.current.lng } : {};
+      const res = await fetch(`${base}/stops/${stop.stop.id}/${kind}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (!res.ok) {
+        toast.error(await readApiError(res, getText('No se pudo registrar.', "Couldn't record it.")));
+        return;
+      }
+      await refresh();
+    } catch {
+      toast.error(getText('Sin conexión. Intenta de nuevo.', 'No connection. Try again.'));
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function call(path: string, body: unknown, errorMsg: string): Promise<Response | null> {
     setBusy(true);
@@ -293,6 +363,14 @@ export function RouteContent({ slug, currency, brand: brandInfo, initialSheet, p
         <div className="h-full" style={{ width: `${sheet.stops.length ? (done / sheet.stops.length) * 100 : 0}%`, ...brand }} />
       </div>
 
+      {editable && gps !== 'off' && (
+        <p className={`mt-2 text-xs ${gps === 'ok' ? 'text-green-700 dark:text-green-400' : 'text-amber-700 dark:text-amber-300'}`}>
+          {gps === 'ok' && getText('Ubicación compartida con la oficina. Mantén la pantalla encendida.', 'Location shared with the office. Keep the screen on.')}
+          {gps === 'denied' && getText('Activa el permiso de ubicación del navegador para compartirla con la oficina.', 'Allow browser location access to share it with the office.')}
+          {gps === 'unsupported' && getText('Este teléfono no permite compartir la ubicación.', 'This phone cannot share its location.')}
+        </p>
+      )}
+
       {(sheet.status === 'planned' || sheet.status === 'loading') && (
         <div className="mt-4 rounded-xl border border-gray-200 dark:border-neutral-800 p-3">
           <label className="text-sm font-semibold">{getText('Botellones llenos cargados en el camión', 'Full bottles loaded on the truck')}</label>
@@ -331,10 +409,20 @@ export function RouteContent({ slug, currency, brand: brandInfo, initialSheet, p
                         {getText('Llamar', 'Call')}
                       </a>
                     )}
-                    {s.stop.customerAddress && (
-                      <a href={mapsUrl(s.stop.customerAddress)} target="_blank" rel="noopener noreferrer" className={btn}>
-                        {getText('Cómo llegar', 'Directions')}
+                    {(s.stop.customerAddress || (s.stop.customerLat != null && s.stop.customerLng != null)) && (
+                      <a href={mapsUrl(s.stop.customerAddress ?? '', s.stop.customerLat, s.stop.customerLng)} target="_blank" rel="noopener noreferrer" className={btn}>
+                        {getText('Navegar', 'Navigate')}
                       </a>
+                    )}
+                    {editable && s.stop.status === 'pending' && !s.stop.arrivedAt && (
+                      <button type="button" onClick={() => mark(s, 'arrive')} disabled={busy} className={btn}>
+                        {getText('Llegué', "I'm here")}
+                      </button>
+                    )}
+                    {editable && s.stop.arrivedAt && !s.stop.departedAt && (
+                      <button type="button" onClick={() => mark(s, 'depart')} disabled={busy} className={btn}>
+                        {getText('Salí', 'I left')}
+                      </button>
                     )}
                   </div>
 
@@ -367,6 +455,12 @@ export function RouteContent({ slug, currency, brand: brandInfo, initialSheet, p
                   {s.creditOnAccount > 0 && (
                     <p className="text-green-700 dark:text-green-400">
                       {getText('Saldo a favor', 'Credit on account')}: {fmt.format(s.creditOnAccount)}
+                    </p>
+                  )}
+                  {s.stop.arrivedAt && (
+                    <p className="text-gray-500 dark:text-neutral-400">
+                      {getText('Llegó', 'Arrived')} {new Date(s.stop.arrivedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {s.stop.departedAt && ` · ${getText('Salió', 'Left')} ${new Date(s.stop.departedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
                     </p>
                   )}
                   {s.stop.notes && <p className="italic text-gray-500 dark:text-neutral-400">{s.stop.notes}</p>}

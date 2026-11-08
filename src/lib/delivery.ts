@@ -26,6 +26,11 @@ export interface RouteStop {
   status: StopStatus;
   visitedAt: string | null;
   notes: string | null;
+  /** Modo camión: cuándo marcó "llegué" / "salí" y la ubicación GPS del cliente (para navegar). */
+  arrivedAt?: string | null;
+  departedAt?: string | null;
+  customerLat?: number | null;
+  customerLng?: number | null;
 }
 
 export interface ContainerBalanceItem {
@@ -112,8 +117,27 @@ export function extractQrCode(raw: string): string {
   return (m ? m[0] : raw).trim().toUpperCase();
 }
 
-export function mapsUrl(address: string): string {
+/** Con coordenadas del cliente abre la navegación punto a punto; si no, busca por dirección. */
+export function mapsUrl(address: string, lat?: number | null, lng?: number | null): string {
+  if (lat != null && lng != null) return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+}
+
+/** Ruta en curso con su última posición (GET routes/live, tablero del dueño). */
+export interface LiveRoute {
+  routeId: string;
+  name: string;
+  vehiclePlate: string | null;
+  driverName: string | null;
+  stopsTotal: number;
+  stopsDone: number;
+  currentStopId: string | null;
+  currentStopCustomer: string | null;
+  currentStopArrivedAt: string | null;
+  lat: number | null;
+  lng: number | null;
+  positionAt: string | null;
+  secondsSincePosition: number | null;
 }
 
 // ── Admin de reparto (vehículos, planificador de rutas, facturar ciclo) ─────────────────────────
