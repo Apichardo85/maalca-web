@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
@@ -46,14 +46,23 @@ const emptyForm = (): FormState => ({
   bottlesLoaned: 4,
 });
 
+/** Lo que el cliente pidió al registrarse en la tienda; el contrato sale prellenado y la fábrica pone precios y condiciones. */
+export interface ContractPrefill {
+  email: string;
+  deliveryFrequency: DeliveryFrequency | null;
+  wantsCredit: boolean;
+}
+
 export function ContractsTab({
   slug,
   customers,
   initialContracts,
+  prefill = null,
 }: {
   slug: string;
   customers: PickerCustomer[];
   initialContracts: ContractRow[];
+  prefill?: ContractPrefill | null;
 }) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -63,6 +72,24 @@ export function ContractsTab({
   const [form, setForm] = useState<FormState | null>(null);
   const [saving, setSaving] = useState(false);
   const [docId, setDocId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!prefill) return;
+    const customer = customers.find((c) => c.email?.toLowerCase() === prefill.email.toLowerCase());
+    if (!customer) {
+      toast.error(getText('No encontré la ficha de ese cliente en Clientes. Elígelo a mano.', "Couldn't find that customer's record. Pick them by hand."));
+      setForm(emptyForm());
+      return;
+    }
+    setForm({
+      ...emptyForm(),
+      customerId: customer.id,
+      deliveryFrequency: prefill.deliveryFrequency ?? 'weekly',
+      creditDays: prefill.wantsCredit ? 15 : 0,
+      notes: prefill.wantsCredit ? getText('El cliente solicitó crédito al registrarse: confirma los días.', 'The customer requested credit at sign-up: confirm the days.') : '',
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefill]);
 
   const label = <T extends { value: string; es: string; en: string }>(opts: T[], v: string) => {
     const o = opts.find((x) => x.value === v);

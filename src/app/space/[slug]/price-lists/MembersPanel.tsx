@@ -257,6 +257,14 @@ export function MembersPanel({ slug, lists, initialMembers, initialSettings, get
                     ✓ {getText('Aprobar', 'Approve')}
                   </button>
                 )}
+                {m.status === 'approved' && (m.address || m.deliveryFrequency || m.wantsCredit) && (
+                  <a
+                    href={`/space/${slug}/contratos?nuevo=1&email=${encodeURIComponent(m.email)}${m.deliveryFrequency ? `&freq=${m.deliveryFrequency}` : ''}${m.wantsCredit ? '&credito=1' : ''}`}
+                    className="inline-flex min-h-10 items-center rounded-full border border-brand-primary px-4 text-xs font-semibold text-brand-primary hover:bg-brand-primary/10"
+                  >
+                    {getText('Crear contrato', 'Create contract')}
+                  </a>
+                )}
                 {m.status !== 'rejected' && (
                   <button
                     type="button"

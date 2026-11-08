@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { ModuleIntro } from '@/components/space/ModuleIntro';
 import type { PickerCustomer } from '@/components/ui/CustomerPicker';
 import type { AgingReport, ContractRow } from '@/lib/receivables';
 import type { BrandInfo } from '@/lib/pdf/document';
 import { ReceivablesTab } from './ReceivablesTab';
-import { ContractsTab } from './ContractsTab';
+import { ContractsTab, type ContractPrefill } from './ContractsTab';
 import { ImportTab } from './ImportTab';
 import { TemplateTab } from './TemplateTab';
 
@@ -26,6 +26,19 @@ export function ContratosContent({ slug, currency, brand, customers, initialCont
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const [tab, setTab] = useState<Tab>('receivables');
+  // Viene de Miembros → "Crear contrato": abre la pestaña de contratos con el formulario prellenado con lo que pidió el cliente al registrarse.
+  const [prefill, setPrefill] = useState<ContractPrefill | null>(null);
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (q.get('nuevo') !== '1' || !q.get('email')) return;
+    const freq = q.get('freq');
+    setPrefill({
+      email: q.get('email')!,
+      deliveryFrequency: freq === 'daily' || freq === 'weekly' || freq === 'on_demand' ? freq : null,
+      wantsCredit: q.get('credito') === '1',
+    });
+    setTab('contracts');
+  }, []);
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'receivables', label: getText('Cobros', 'Collections') },
@@ -75,7 +88,7 @@ export function ContratosContent({ slug, currency, brand, customers, initialCont
 
       <div className="mt-6">
         {tab === 'receivables' && <ReceivablesTab slug={slug} currency={currency} brand={brand} initialAging={initialAging} />}
-        {tab === 'contracts' && <ContractsTab slug={slug} customers={customers} initialContracts={initialContracts} />}
+        {tab === 'contracts' && <ContractsTab slug={slug} customers={customers} initialContracts={initialContracts} prefill={prefill} />}
         {tab === 'template' && <TemplateTab slug={slug} />}
         {tab === 'import' && <ImportTab slug={slug} />}
       </div>
