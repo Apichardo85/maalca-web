@@ -114,7 +114,8 @@ export async function postOrQueue(
 async function readError(res: Response): Promise<string> {
   try {
     const data = await res.json();
-    const msg = data?.error ?? data?.message ?? data?.detail ?? data?.title;
+    // El API responde { error: { code, message } }; se aceptan también las formas planas.
+    const msg = data?.error?.message ?? (typeof data?.error === 'string' ? data.error : undefined) ?? data?.message ?? data?.detail ?? data?.title;
     if (typeof msg === 'string' && msg) return msg;
   } catch {
     // cuerpo no JSON
@@ -159,8 +160,10 @@ export async function flushQueue(routeId: string): Promise<FlushResult> {
 
 /** Marca en la hoja las paradas con acciones en cola (visitada / omitida), para que el conductor vea su avance real. */
 export function applyQueueToSheet(sheet: DriverSheet, queue: QueuedAction[]): DriverSheet {
-  if (queue.length === 0) return sheet;
-  const byStop = new Map(queue.map((a) => [a.stopId, a]));
+  // Solo lo pendiente de envío cuenta como avance; lo que el servidor rechazó no se pinta como hecho.
+  const pending = queue.filter((a) => !a.error);
+  if (pending.length === 0) return sheet;
+  const byStop = new Map(pending.map((a) => [a.stopId, a]));
   return {
     ...sheet,
     stops: sheet.stops.map((s) => {

@@ -249,7 +249,7 @@ export function RouteContent({ slug, currency, brand: brandInfo, initialSheet, p
       {(!online || queue.length > 0) && (
         <div role="status" className="mb-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
           <p className="font-semibold">
-            {!online ? getText('Sin conexión', 'Offline') : getText('Entregas por enviar', 'Deliveries to send')}
+            {!online ? getText('Sin conexión', 'Offline') : pendingSend.length > 0 ? getText('Entregas por enviar', 'Deliveries to send') : getText('Hay registros que revisar', 'Records to review')}
             {pendingSend.length > 0 && ` · ${pendingSend.length} ${getText('por enviar', 'to send')}`}
           </p>
           {!online && <p className="mt-0.5">{getText('Sigue registrando: se guarda en el teléfono y se envía sola cuando vuelva la señal.', 'Keep recording: it is saved on the phone and sent when the signal returns.')}</p>}
@@ -318,7 +318,7 @@ export function RouteContent({ slug, currency, brand: brandInfo, initialSheet, p
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
                   <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_STYLE[s.stop.status]}`}>{stopLabel[s.stop.status]}</span>
-                  {queue.some((a) => a.stopId === s.stop.id) && <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-300">{getText('Por enviar', 'To send')}</span>}
+                  {pendingSend.some((a) => a.stopId === s.stop.id) && <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-300">{getText('Por enviar', 'To send')}</span>}
                   {s.amountOwed > 0 && <span className={`text-xs font-semibold ${s.hasOverdue ? 'text-red-600 dark:text-red-400' : ''}`}>{fmt.format(s.amountOwed)}</span>}
                 </div>
               </button>
