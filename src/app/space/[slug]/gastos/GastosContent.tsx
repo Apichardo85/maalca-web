@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { ModuleIntro } from '@/components/space/ModuleIntro';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { downloadBrandedPdf, type BrandInfo } from '@/lib/pdf/document';
@@ -222,6 +223,21 @@ export function GastosContent({ slug, currency, brand: brandInfo, initialMonth, 
     <div className="mx-auto w-full max-w-3xl px-4 py-5">
       <Toast toasts={toast.toasts} onRemove={toast.remove} />
       <h1 className="text-xl font-bold">{getText('Gastos y utilidad', 'Expenses & profit')}</h1>
+
+      <ModuleIntro
+        id="gastos"
+        className="mt-3"
+        summary={getText(
+          'Anota lo que gastas y mira cuánto te queda cada mes.',
+          'Record what you spend and see what’s left each month.',
+        )}
+        steps={[
+          getText('Con Nuevo gasto, anota cada gasto con su categoría y monto.', 'Use New expense to record each expense with its category and amount.'),
+          getText('Los gastos que se repiten (luz, alquiler, nómina) se crean con Generar gastos fijos.', 'Recurring expenses (power, rent, payroll) are created with Generate fixed expenses.'),
+          getText('Arriba ves ventas, gastos y la utilidad del mes. Cambia de mes con las flechas.', 'Above you see sales, expenses and the month’s profit. Change month with the arrows.'),
+          getText('Descarga el reporte en PDF para contabilidad.', 'Download the PDF report for accounting.'),
+        ]}
+      />
 
       <div className="mt-3 flex items-center justify-between">
         <button type="button" onClick={() => go(-1)} aria-label={getText('Mes anterior', 'Previous month')} className="h-10 w-10 rounded-full border border-gray-300 dark:border-neutral-700 text-lg">‹</button>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { ModuleIntro } from '@/components/space/ModuleIntro';
 import { useToast } from '@/hooks/useToast';
 import { CustomerPicker } from '@/components/ui/CustomerPicker';
 import { Toast } from '@/components/ui/Toast';
@@ -498,6 +499,20 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers, ca
             {showForm ? getText('Cancelar', 'Cancel') : getText('+ Nueva factura', '+ New invoice')}
           </button>
         </div>
+
+        <ModuleIntro
+          id="facturas"
+          className="mt-4"
+          summary={getText(
+            'Crea facturas para tus clientes y sigue cuáles están pagadas, pendientes o vencidas.',
+            'Create invoices for your customers and track which are paid, pending or overdue.',
+          )}
+          steps={[
+            getText('Pulsa Nueva factura, elige el cliente y agrega las líneas.', 'Press New invoice, choose the customer and add the lines.'),
+            getText('Guárdala y descarga el PDF con tu logo.', 'Save it and download the PDF with your logo.'),
+            getText('Si te equivocas, anula la factura y crea una que la reemplace.', 'If you make a mistake, void the invoice and create a replacement.'),
+          ]}
+        />
 
         {showForm && (
           <div className="mt-4 rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 space-y-3">

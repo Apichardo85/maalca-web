@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { ModuleIntro } from '@/components/space/ModuleIntro';
 import type { PickerCustomer } from '@/components/ui/CustomerPicker';
 import type { AgingReport, ContractRow } from '@/lib/receivables';
 import type { BrandInfo } from '@/lib/pdf/document';
@@ -39,6 +40,21 @@ export function ContratosContent({ slug, currency, brand, customers, initialCont
         {getText('Tu espacio', 'Your space')}
       </p>
       <h1 className="mt-1 text-2xl font-bold">{getText('Contratos y cobros', 'Contracts & collections')}</h1>
+
+      <ModuleIntro
+        id="contratos"
+        className="mt-4"
+        summary={getText(
+          'Aquí llevas el acuerdo con cada cliente y lo que te debe.',
+          'Keep each customer’s agreement and what they owe you here.',
+        )}
+        steps={[
+          getText('En Contratos, crea el acuerdo del cliente: precio, días de crédito y cada cuánto se cobra.', 'In Contracts, create the customer’s agreement: price, credit days and billing cycle.'),
+          getText('En Cobros, registra cada pago o abono; el saldo se actualiza solo.', 'In Collections, record each payment; the balance updates by itself.'),
+          getText('Abre el estado de cuenta de un cliente para descargarlo en PDF o mandarlo por WhatsApp.', 'Open a customer’s statement to download it as a PDF or send it by WhatsApp.'),
+          getText('¿Muchos clientes? Súbelos de una vez en Importar clientes.', 'Many customers? Upload them at once in Import customers.'),
+        ]}
+      />
 
       <div className="mt-5 flex gap-1 overflow-x-auto border-b border-gray-200 dark:border-neutral-800">
         {tabs.map((t) => (

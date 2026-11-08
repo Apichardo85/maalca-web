@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { ModuleIntro } from '@/components/space/ModuleIntro';
 import { useToast } from '@/hooks/useToast';
 import { CustomerPicker } from '@/components/ui/CustomerPicker';
 import { useOrdersRealtime } from '@/hooks/useOrdersRealtime';
@@ -333,6 +334,20 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
             🖥️ {getText('Abrir kiosko de autopedidos', 'Open self-order kiosk')}
           </a>
         </div>
+
+        <ModuleIntro
+          id="pos"
+          className="mt-3"
+          summary={getText(
+            'Cobra las ventas de mostrador: lo que vendes aquí cuenta en tus ventas y baja el inventario.',
+            'Ring up counter sales: what you sell here counts as sales and lowers inventory.',
+          )}
+          steps={[
+            getText('Toca los productos para agregarlos a la cuenta.', 'Tap products to add them to the order.'),
+            getText('Revisa el total y elige cómo paga el cliente.', 'Check the total and choose how the customer pays.'),
+            getText('Confirma el cobro; la venta queda registrada.', 'Confirm the payment; the sale is recorded.'),
+          ]}
+        />
 
         {/* Mini-cuenta pegajosa — solo mobile. En una pantalla angosta el panel completo del
             carrito queda abajo del todo del grid de productos, así que sin esto la persona

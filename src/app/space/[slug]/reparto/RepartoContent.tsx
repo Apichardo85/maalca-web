@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { ModuleIntro } from '@/components/space/ModuleIntro';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import type { AdminRoute, Anaquel, ContainerType, DriverOption, UnbilledReport, Vehicle } from '@/lib/delivery';
@@ -64,6 +65,21 @@ export function RepartoContent({ slug, currency, customers, initialVehicles, ini
     <div className="mx-auto w-full max-w-3xl px-4 py-5">
       <Toast toasts={toast.toasts} onRemove={toast.remove} />
       <h1 className="text-xl font-bold">{getText('Reparto', 'Delivery')}</h1>
+
+      <ModuleIntro
+        id="reparto"
+        className="mt-3"
+        summary={getText(
+          'Organiza el reparto: tus vehículos, las rutas del día y los envases que cada cliente tiene prestados.',
+          'Organize deliveries: your vehicles, the day’s routes and the containers each customer has on loan.',
+        )}
+        steps={[
+          getText('En Vehículos, registra cada camión y quién lo maneja.', 'In Vehicles, add each truck and who drives it.'),
+          getText('En Envases, crea el tipo de botellón y el anaquel con QR de cada cliente.', 'In Containers, create the bottle type and each customer’s QR shelf.'),
+          getText('En Rutas, arma la ruta con sus paradas y asígnala; el conductor la ve en su celular.', 'In Routes, build the route with its stops and assign it; the driver sees it on their phone.'),
+          getText('Al cerrar el ciclo, usa Facturar ciclo para cobrar lo entregado.', 'At the end of the cycle, use Bill cycle to invoice what was delivered.'),
+        ]}
+      />
 
       <div className="mt-4 flex gap-1 overflow-x-auto border-b border-gray-200 dark:border-neutral-800">
         {tabs.map((t) => (
