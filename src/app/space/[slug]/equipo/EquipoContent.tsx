@@ -6,7 +6,7 @@ import { getRoleSuggestions } from '@/lib/personal-roles';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { isPaidPlan } from '@/lib/plan-limits';
-import { ACCESS_CHOICES, accessLabel, accessValue, parseAccess } from '@/lib/access-profiles';
+import { ACCESS_CHOICES, accessLabel, accessValue, parseAccess, suggestedAccess } from '@/lib/access-profiles';
 
 export interface PersonalMember {
   id: string;
@@ -342,7 +342,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
   function openInvite(member: PersonalMember) {
     setInviteOpenFor(member.id);
     setInviteEmail(member.email ?? '');
-    setInviteAccess('Staff|');
+    setInviteAccess(suggestedAccess(member.role));
     setError(null);
   }
 

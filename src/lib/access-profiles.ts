@@ -74,6 +74,16 @@ export const ACCESS_CHOICES: AccessChoice[] = [
   { value: 'Owner|', role: 'Owner', profile: null, es: 'Dueño (todo)', en: 'Owner (everything)' },
 ];
 
+/** Acceso sugerido según el cargo de Personal ("Conductor" → Chofer, "Cajero" → Cajero…). Sin coincidencia: Empleado básico. */
+export function suggestedAccess(jobRole: string | null | undefined): string {
+  const r = (jobRole ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  if (/(conductor|chofer|repartidor|driver)/.test(r)) return 'Staff|driver';
+  if (/(cajer|cashier)/.test(r)) return 'Staff|cashier';
+  if (/(almacen|bodeg|warehouse)/.test(r)) return 'Staff|warehouse';
+  if (/(contador|contabil|accountant)/.test(r)) return 'Manager|accounting';
+  return 'Staff|';
+}
+
 export function accessValue(role: string, profile?: string | null): string {
   return `${role}|${isAccessProfile(profile) ? profile : ''}`;
 }
