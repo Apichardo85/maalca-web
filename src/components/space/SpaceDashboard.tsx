@@ -14,6 +14,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { CreatingSpaceAnimation } from './CreatingSpaceAnimation';
 import { UpgradeModal } from './UpgradeModal';
 import { KpiTile, type SpaceKpis } from './KpiTile';
+import { MODULE_CATALOG } from '@/lib/module-catalog';
 import { isPaidPlan } from '@/lib/plan-limits';
 
 interface Business {
@@ -29,8 +30,14 @@ interface Business {
   trial_days_remaining: number | null;
 }
 
-const KNOWN_MODULES = ['catalog', 'page', 'metrics'] as const;
-type ModuleKey = typeof KNOWN_MODULES[number];
+// Ruta de cada módulo dentro de /space/{slug}. Un token que no esté aquí no genera tarjeta en el Dashboard.
+const MODULE_PATH: Record<string, string> = {
+  catalog: 'catalog', page: 'design', metrics: 'stats', orders: 'orders', kitchen: 'kitchen', station: 'station',
+  pos: 'pos', board: 'board', queue: 'queue', invoices: 'invoices', reservations: 'reservations',
+  shipping: 'shipping', contracts: 'contratos', routes: 'reparto', expenses: 'gastos', pricelists: 'price-lists',
+  inventory: 'inventory', proposals: 'proposals', staff: 'equipo', workforce: 'equipo', modifiers: 'modifiers',
+  appointments: 'agenda',
+};
 
 interface CatalogItem {
   id: string;
@@ -90,10 +97,6 @@ export function SpaceDashboard({
 
   const demoItems = items.filter((i) => i.is_demo);
   const hasDemoItems = demoItems.length > 0;
-
-  const activeModules = business.modulos_activos.filter(
-    (m): m is ModuleKey => (KNOWN_MODULES as readonly string[]).includes(m),
-  );
 
   const canalesDone = progress.canales_configured ?? progress.whatsapp_configured;
   const checklistDone = progress.first_product_added && canalesDone && progress.link_shared;
@@ -597,35 +600,27 @@ export function SpaceDashboard({
           <h2 className="text-sm font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
             {getText('Tus módulos', 'Your modules')}
           </h2>
-          <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {activeModules.includes('catalog') && (
-              <ModuleCard
-                icon="📦"
-                title={getText('Catálogo', 'Catalog')}
-                body={getText(`${productCount} items publicados`, `${productCount} items published`)}
-                href={`/space/${business.slug}/catalog`}
-              />
-            )}
-            {activeModules.includes('page') && (
-              <ModuleCard
-                icon="🌐"
-                title={getText('Página', 'Page')}
-                body={publicUrl.replace(/^https?:\/\//, '')}
-                href={`/space/${business.slug}/design`}
-              />
-            )}
-            {activeModules.includes('metrics') && (
-              <ModuleCard
-                icon="📊"
-                title={getText('Métricas', 'Metrics')}
-                body={
-                  kpis.visitas.disponible
-                    ? getText(`${kpis.visitas.valor} visitas`, `${kpis.visitas.valor} visits`)
-                    : getText('Próximamente', 'Coming soon')
-                }
-                href={`/space/${business.slug}/stats`}
-              />
-            )}
+          <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Uno por cada módulo activo del negocio (no una lista fija): cada tipo de negocio ve los suyos. */}
+            {MODULE_CATALOG.filter((m) => business.modulos_activos.includes(m.token) && MODULE_PATH[m.token] !== undefined).map((m) => {
+              const body =
+                m.token === 'catalog'
+                  ? getText(`${productCount} items publicados`, `${productCount} items published`)
+                  : m.token === 'page'
+                    ? publicUrl.replace(/^https?:\/\//, '')
+                    : m.token === 'metrics' && kpis.visitas.disponible
+                      ? getText(`${kpis.visitas.valor} visitas`, `${kpis.visitas.valor} visits`)
+                      : getText(m.descEs, m.descEn);
+              return (
+                <ModuleCard
+                  key={m.token}
+                  icon={m.icon}
+                  title={getText(m.es, m.en)}
+                  body={body}
+                  href={`/space/${business.slug}/${MODULE_PATH[m.token]}`}
+                />
+              );
+            })}
             <ModuleCard
               icon="🧩"
               title={getText('Explora más módulos', 'Explore more modules')}
@@ -715,7 +710,7 @@ function ModuleCard({ icon, title, body, href, compact }: ModuleCardProps) {
       <span className={compact ? 'text-xl' : 'text-2xl'}>{icon}</span>
       <div className={compact ? 'min-w-0' : 'mt-3'}>
         <p className="text-sm font-semibold text-gray-900 dark:text-white">{title}</p>
-        <p className="mt-0.5 truncate text-xs text-gray-500 dark:text-neutral-400">{body}</p>
+        <p className="mt-0.5 line-clamp-2 text-xs text-gray-500 dark:text-neutral-400">{body}</p>
       </div>
     </Link>
   );
