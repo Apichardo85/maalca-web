@@ -173,6 +173,10 @@ export function ImportTab({ slug }: { slug: string }) {
             ))}
           </div>
 
+          <p className="mt-3 text-xs text-gray-500 dark:text-neutral-400">
+            {getText('Si no asignas una columna a "Ciclo de cobro", esos clientes se facturan cada mes; los días de crédito vacíos se toman como contado.', 'If no column is mapped to "Billing cycle", those customers are billed monthly; empty credit days mean cash.')}
+          </p>
+
           <div className="mt-4 flex gap-2">
             <button
               type="button"
