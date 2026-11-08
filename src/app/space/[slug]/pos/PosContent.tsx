@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { ModuleIntro } from '@/components/space/ModuleIntro';
 import { useToast } from '@/hooks/useToast';
@@ -9,6 +9,8 @@ import { useOrdersRealtime } from '@/hooks/useOrdersRealtime';
 import { Toast } from '@/components/ui/Toast';
 import { useBarcodeScanner } from '@/hooks/useBarcodeScanner';
 import { findByBarcode, normalizeBarcode } from '@/lib/barcode';
+import type { BrandInfo } from '@/lib/pdf/document';
+import { printReceipt, type ReceiptData } from '@/lib/pos-receipt';
 
 export interface PosItem {
   id: string;
@@ -43,6 +45,7 @@ interface Props {
   items: PosItem[];
   businessType: string;
   customers: CustomerOption[];
+  brand: BrandInfo;
 }
 
 // Mismo criterio que Propuestas/Reservas (tareas #330/#352): un sentinel para "cliente nuevo"
@@ -66,7 +69,7 @@ interface CheckoutModalState {
   url: string;
 }
 
-export function PosContent({ slug, affiliateId, currency, items, businessType, customers }: Props) {
+export function PosContent({ slug, affiliateId, currency, items, businessType, customers, brand }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -131,6 +134,11 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
   // que el cliente pague desde su teléfono. Se cierra solo cuando llega el evento de SignalR.
   const [checkoutModal, setCheckoutModal] = useState<CheckoutModalState | null>(null);
 
+  // Recibo de la última venta cobrada: se ofrece imprimir justo después de cobrar. `draftRef` guarda
+  // la cuenta actual para poder armarlo cuando el carrito ya se limpió (p. ej. pago por QR vía SignalR).
+  const [lastSale, setLastSale] = useState<ReceiptData | null>(null);
+  const draftRef = useRef<Omit<ReceiptData, 'paymentLabel' | 'reference' | 'date'> | null>(null);
+
   // OrdersHub — mismo canal que usa Kitchen Display. Cuando el pedido Pending de este QR pasa
   // a Paid (confirmado por el webhook de Stripe Connect, no por esta pestaña), cerramos el
   // modal y limpiamos el carrito automáticamente — el mostrador no tiene que estar pendiente
@@ -142,6 +150,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
       if (!prev || prev.orderId !== order.id) return prev;
       if (order.status !== 'Paid') return prev;
       toast.success(getText('Pago recibido.', 'Payment received.'));
+      if (draftRef.current) setLastSale({ ...draftRef.current, paymentLabel: getText('Tarjeta', 'Card'), date: new Date() });
       setCart([]);
       setPaymentMethod(null);
       setTipMode(null);
@@ -215,6 +224,18 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
         ? subtotal * tipMode
         : 0;
   const total = subtotal + tip;
+  draftRef.current = {
+    businessName: brand.name,
+    logoUrl: brand.logoUrl,
+    primaryColor: brand.primaryColor,
+    lines: cart.map((l) => ({ name: l.name, qty: l.qty, price: l.price })),
+    subtotal,
+    tip,
+    total,
+    currency,
+    customerName: customerName.trim() || null,
+    language: language === 'es' ? 'es' : 'en',
+  };
   const perPersonTotal = splitCount && splitCount > 1 ? total / splitCount : null;
   const splitNote =
     splitCount && splitCount > 1
@@ -252,6 +273,11 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
         throw new Error(data?.error?.message ?? getText('No pudimos registrar la venta.', "We couldn't register the sale."));
       }
       toast.success(getText('Venta registrada.', 'Sale registered.'));
+      if (draftRef.current) {
+        const ref = typeof data?.id === 'string' ? data.id.slice(-6).toUpperCase() : null;
+        const pm = PAYMENT_METHODS.find((m) => m.value === paymentMethod);
+        setLastSale({ ...draftRef.current, paymentLabel: pm ? getText(pm.es, pm.en) : '', reference: ref, date: new Date() });
+      }
       setCart([]);
       setPaymentMethod(null);
       setTipMode(null);
@@ -780,6 +806,31 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
               className="mt-4 w-full rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-2 text-sm font-medium"
             >
               {getText('Cerrar', 'Close')}
+            </button>
+          </div>
+        </div>
+      )}
+      {lastSale && !checkoutModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-xs rounded-2xl bg-white p-6 text-center shadow-xl dark:bg-neutral-900">
+            <p className="text-3xl" aria-hidden="true">✅</p>
+            <h3 className="mt-2 text-base font-bold">{getText('Venta cobrada', 'Sale completed')}</h3>
+            <p className="mt-1 text-2xl font-bold text-brand-primary">{fmt(lastSale.total)}</p>
+            <button
+              type="button"
+              onClick={() => {
+                if (!printReceipt(lastSale)) toast.error(getText('El navegador bloqueó la ventana de impresión.', 'The browser blocked the print window.'));
+              }}
+              className="mt-5 w-full rounded-full bg-brand-primary px-4 py-3 text-sm font-semibold text-white hover:bg-brand-primary-hover"
+            >
+              {getText('Imprimir recibo', 'Print receipt')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setLastSale(null)}
+              className="mt-2 w-full rounded-full border border-gray-300 px-4 py-2.5 text-sm font-medium dark:border-neutral-700"
+            >
+              {getText('Listo', 'Done')}
             </button>
           </div>
         </div>

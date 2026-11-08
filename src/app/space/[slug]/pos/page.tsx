@@ -5,7 +5,7 @@ import { PosContent, type PosItem } from './PosContent';
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 interface SpaceResponse {
-  business: { id: string; businessType: string; plan: 'free' | 'entrepreneur' | 'enterprise'; currency?: 'USD' | 'DOP'; modulosActivos: string[] };
+  business: { id: string; businessType: string; plan: 'free' | 'entrepreneur' | 'enterprise'; currency?: 'USD' | 'DOP'; modulosActivos: string[]; name: string; logoUrl?: string | null; primaryColor?: string | null };
 }
 
 interface CustomerRow {
@@ -81,6 +81,7 @@ export default async function PosPage({
       items={sellable}
       businessType={space.business.businessType.toLowerCase()}
       customers={customers}
+      brand={{ name: space.business.name, logoUrl: space.business.logoUrl ?? null, primaryColor: space.business.primaryColor ?? null }}
     />
   );
 }
