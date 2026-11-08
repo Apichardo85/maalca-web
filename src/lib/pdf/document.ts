@@ -56,6 +56,8 @@ export interface BrandedDocumentConfig {
   items?: DocumentLineItem[];
   /** Subtotal/impuesto -- se muestran antes del total en fuente más chica. */
   subtotalLines?: DocumentTotalLine[];
+  /** Tablas adicionales con título (reportes): se dibujan después de `items`, antes de los totales. */
+  sections?: { title: string; items: DocumentLineItem[]; emptyText?: string }[];
   /** Rótulo del monto grande (por defecto "Total"): "Saldo" en un estado de cuenta, "Utilidad" en un reporte. */
   amountLabel?: string;
   amountValue: string;
@@ -221,10 +223,29 @@ export async function downloadBrandedPdf(config: BrandedDocumentConfig): Promise
     y += 14;
   }
 
-  // --- Tabla de items con filas alternas y salto de página ---
-  const items = config.items ?? [];
-  if (items.length > 0) {
-    const hasQty = items.some((i) => i.quantity != null);
+  // --- Tablas (items + secciones extra) con filas alternas y salto de página ---
+  const drawTable = (rows: DocumentLineItem[], heading?: string, emptyText?: string) => {
+    if (rows.length === 0 && !emptyText) return;
+    if (heading) {
+      if (y + 60 > bottomLimit) {
+        doc.addPage();
+        y = 56;
+      }
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(30, 30, 30);
+      doc.text(heading, marginX, y + 4);
+      y += 16;
+    }
+    if (rows.length === 0) {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(130, 130, 130);
+      doc.text(emptyText as string, marginX + 10, y + 8);
+      y += 34;
+      return;
+    }
+    const hasQty = rows.some((i) => i.quantity != null);
     const totalX = right - 10;
     const qtyX = right - 130;
     const drawHead = () => {
@@ -239,7 +260,7 @@ export async function downloadBrandedPdf(config: BrandedDocumentConfig): Promise
       y += 24;
     };
     drawHead();
-    items.forEach((item, idx) => {
+    rows.forEach((item, idx) => {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(10);
       const descW = contentWidth - 20 - (hasQty ? 150 : 110);
@@ -266,11 +287,13 @@ export async function downloadBrandedPdf(config: BrandedDocumentConfig): Promise
     doc.setDrawColor(225, 225, 225);
     doc.setLineWidth(0.8);
     doc.line(marginX, y, right, y);
-    y += 20;
-  }
+    y += 22;
+  };
+  drawTable(config.items ?? []);
+  for (const section of config.sections ?? []) drawTable(section.items, section.title, section.emptyText);
 
   // --- Caja de totales a la derecha ---
-  const boxW = 250;
+  const boxW = 290;
   const boxX = right - boxW;
   const sub = config.subtotalLines ?? [];
   const totalBoxH = 46;

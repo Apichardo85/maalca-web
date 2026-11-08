@@ -79,21 +79,42 @@ export function GastosContent({ slug, currency, brand: brandInfo, initialMonth, 
   async function downloadReport() {
     if (!profit) return;
     try {
+      const pct = (n: number) => (profit.expensesTotal > 0 ? `${Math.round((n / profit.expensesTotal) * 100)}%` : '0%');
+      const detail = [...expenses].filter((e) => e.isActive !== false).sort((x, y) => x.expenseDate.localeCompare(y.expenseDate));
       await downloadBrandedPdf({
         brand: brandInfo,
         documentTitle: getText('Reporte de utilidad', 'Profit report'),
-        metaLines: [monthTitle(month)],
-        items: profit.expensesByCategory.map((c) => ({ description: categoryLabel(c.category, es), total: fmt.format(c.total) })),
+        metaLines: [monthTitle(month), `${getText('Generado', 'Generated')}: ${formatDate(new Date().toISOString())}`],
+        sections: [
+          {
+            title: getText('Gastos por categoría', 'Expenses by category'),
+            emptyText: getText('Sin gastos registrados este mes.', 'No expenses recorded this month.'),
+            items: profit.expensesByCategory.map((c) => ({ description: `${categoryLabel(c.category, es)} · ${pct(c.total)}`, total: fmt.format(c.total) })),
+          },
+          {
+            title: getText('Detalle de gastos', 'Expense detail'),
+            items: detail.map((e) => ({
+              description: `${formatDate(e.expenseDate)} · ${categoryLabel(e.category, es)} — ${e.description}${e.vendor ? ` (${e.vendor})` : ''}`,
+              total: fmt.format(e.amount),
+            })),
+          },
+        ],
         subtotalLines: [
-          { label: getText('Ventas', 'Sales'), value: fmt.format(profit.salesTotal) },
+          { label: getText('Ventas del mes', 'Sales'), value: fmt.format(profit.salesTotal) },
           { label: `  ${getText('Facturado', 'Invoiced')}`, value: fmt.format(profit.salesInvoiced) },
           { label: `  ${getText('Mostrador', 'Counter')}`, value: fmt.format(profit.salesCounter) },
-          { label: getText('Gastos', 'Expenses'), value: fmt.format(profit.expensesTotal) },
+          { label: getText('Gastos del mes', 'Expenses'), value: fmt.format(profit.expensesTotal) },
+          { label: getText('Cobrado', 'Collected'), value: fmt.format(profit.collectedTotal) },
           { label: getText('Utilidad de caja', 'Cash profit'), value: fmt.format(profit.cashProfit) },
         ],
         amountLabel: getText('Utilidad del mes', 'Profit for the month'),
         amountValue: fmt.format(profit.profit),
-        status: profit.profit < 0 ? { label: getText('Pérdida', 'Loss'), tone: 'danger' } : { label: getText('Utilidad', 'Profit'), tone: 'success' },
+        status:
+          profit.profit < 0
+            ? { label: getText('Pérdida', 'Loss'), tone: 'danger' }
+            : profit.profit === 0
+              ? { label: getText('Equilibrio', 'Break-even'), tone: 'neutral' }
+              : { label: getText('Utilidad', 'Profit'), tone: 'success' },
         filename: `utilidad-${month}`,
       });
     } catch {
