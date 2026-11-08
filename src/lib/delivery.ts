@@ -238,3 +238,10 @@ export interface Anaquel {
 }
 
 export const ANAQUEL_STATUSES = ['disponible', 'activo', 'pendiente_reposicion', 'completo', 'danado', 'fuera_servicio'] as const;
+
+/** Cobros y entregas de hoy (GET board/today, tablero del dueño). */
+export interface OwnerBoardToday {
+  date: string;
+  collected: { total: number; cash: number; transfer: number; count: number };
+  deliveries: { count: number; fullDelivered: number; emptiesReturned: number; damaged: number; stopsNotHome: number };
+}

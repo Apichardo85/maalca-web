@@ -107,6 +107,7 @@ export function SpaceMobileNav({
     { label: getText('Fila de espera', 'Waiting queue'), icon: '🪑', href: `/space/${slug}/queue`, token: 'queue' },
     { label: getText('Facturas', 'Invoices'), icon: '🧾', href: `/space/${slug}/invoices`, token: 'invoices' },
     { label: getText('Contratos y cobros', 'Contracts & collections'), icon: '📑', href: `/space/${slug}/contratos`, token: 'contracts' },
+    { label: getText('Operación hoy', "Today's operation"), icon: '📈', href: `/space/${slug}/tablero`, token: 'routes' },
     { label: getText('Mis rutas', 'My routes'), icon: '🚚', href: `/space/${slug}/ruta`, token: 'routes' },
     { label: getText('Reparto (admin)', 'Delivery (admin)'), icon: '📦', href: `/space/${slug}/reparto`, token: 'routes' },
     { label: getText('Gastos y utilidad', 'Expenses & profit'), icon: '💸', href: `/space/${slug}/gastos`, token: 'expenses' },
