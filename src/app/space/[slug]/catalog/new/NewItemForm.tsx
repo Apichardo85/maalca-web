@@ -28,6 +28,8 @@ interface Props {
   from?: string;
   /** Inventory items available to link as ingredients — only populated for Restaurant. */
   inventoryItems?: RecipeInventoryOption[];
+  /** El negocio tiene el módulo Envíos activo: solo entonces se piden peso y medidas. */
+  shippingEnabled?: boolean;
 }
 
 const FLAG_OPTIONS = [
@@ -47,7 +49,7 @@ const NAME_PLACEHOLDERS: Record<string, { es: string; en: string }> = {
 };
 const DEFAULT_NAME_PLACEHOLDER = { es: 'Ej. Nombre del item', en: 'E.g. Item name' };
 
-export default function NewItemForm({ slug, businessType, businessLanguage, from, inventoryItems = [] }: Props) {
+export default function NewItemForm({ slug, businessType, businessLanguage, from, inventoryItems = [], shippingEnabled = false }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const baseLanguage = normalizeBaseLanguage(businessLanguage);
@@ -328,7 +330,7 @@ export default function NewItemForm({ slug, businessType, businessLanguage, from
             </div>
           )}
 
-          {isRetail && <RetailAttributesEditor value={retail} onChange={setRetail} getText={getText} />}
+          {isRetail && <RetailAttributesEditor value={retail} onChange={setRetail} getText={getText} shippingEnabled={shippingEnabled} />}
 
           {isBarberOrService && (
             <div>

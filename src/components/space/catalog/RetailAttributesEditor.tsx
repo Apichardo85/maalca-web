@@ -75,10 +75,13 @@ export function RetailAttributesEditor({
   value,
   onChange,
   getText,
+  shippingEnabled = false,
 }: {
   value: RetailAttributesForm;
   onChange: (next: RetailAttributesForm) => void;
   getText: (es: string, en: string) => string;
+  /** Peso, medidas y material peligroso solo sirven si el negocio tiene el módulo Envíos activo. */
+  shippingEnabled?: boolean;
 }) {
   const set = (k: keyof RetailAttributesForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     onChange({ ...value, [k]: e.target.value });
@@ -86,22 +89,22 @@ export function RetailAttributesEditor({
   return (
     <details className="rounded-xl border border-neutral-200 dark:border-neutral-700 p-4 group" open={hasAny(value)}>
       <summary className="cursor-pointer text-sm font-semibold text-neutral-800 dark:text-neutral-200 select-none">
-        {getText('Detalles de tienda y envío (opcional)', 'Store & shipping details (optional)')}
+        {shippingEnabled ? getText('Detalles de tienda y envío (opcional)', 'Store & shipping details (optional)') : getText('Detalles de tienda (opcional)', 'Store details (optional)')}
       </summary>
 
       <div className="mt-4 space-y-5">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label className={labelCls}>{getText('Marca', 'Brand')}</label>
-            <input className={inputCls} value={value.brand} onChange={set('brand')} maxLength={120} placeholder={getText('Ej. Dior', 'E.g. Dior')} />
+            <input className={inputCls} value={value.brand} onChange={set('brand')} maxLength={120} placeholder={getText('Ej. Nueva Era', 'E.g. Acme')} />
           </div>
           <div>
             <label className={labelCls}>{getText('Producto base (variantes)', 'Base product (variants)')}</label>
-            <input className={inputCls} value={value.variantGroup} onChange={set('variantGroup')} maxLength={80} placeholder={getText('Ej. Sauvage EDT', 'E.g. Sauvage EDT')} />
+            <input className={inputCls} value={value.variantGroup} onChange={set('variantGroup')} maxLength={80} placeholder={getText('Ej. Botellón de agua', 'E.g. Water bottle')} />
           </div>
           <div>
             <label className={labelCls}>{getText('Esta variante', 'This variant')}</label>
-            <input className={inputCls} value={value.variantLabel} onChange={set('variantLabel')} maxLength={60} placeholder={getText('Ej. 100 ml', 'E.g. 100 ml')} />
+            <input className={inputCls} value={value.variantLabel} onChange={set('variantLabel')} maxLength={60} placeholder={getText('Ej. 5 galones', 'E.g. 5 gallons')} />
           </div>
         </div>
         <p className={hintCls + ' -mt-3'}>
@@ -111,6 +114,7 @@ export function RetailAttributesEditor({
           )}
         </p>
 
+        {shippingEnabled && (
         <div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
@@ -134,8 +138,10 @@ export function RetailAttributesEditor({
             {getText('Del producto ya empacado. Hacen falta para cotizar envíos con la paquetería.', 'Of the packed product. Needed to quote shipping with carriers.')}
           </p>
         </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {shippingEnabled && (
           <div>
             <label className={labelCls}>{getText('Material peligroso para envío', 'Hazardous for shipping')}</label>
             <select className={inputCls} value={value.hazmat} onChange={set('hazmat')}>
@@ -146,6 +152,7 @@ export function RetailAttributesEditor({
               {getText('Con "Sí", el checkout solo ofrece envíos terrestres.', 'With "Yes", checkout only offers ground shipping.')}
             </p>
           </div>
+          )}
           <div>
             <label className={labelCls}>{getText('Advertencia de asfixia (juguetes)', 'Choking hazard warning (toys)')}</label>
             <select className={inputCls} value={value.chokingWarning} onChange={set('chokingWarning')}>

@@ -47,7 +47,7 @@ export function ModuleIntro({ id, summary, steps, className = '' }: Props) {
       <button
         type="button"
         onClick={() => set(true)}
-        className={`inline-flex items-center gap-1.5 rounded-full border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-600 hover:border-[var(--brand-primary,#045AFE)] hover:text-[var(--brand-primary,#045AFE)] dark:border-neutral-700 dark:text-neutral-300 ${className}`}
+        className={`inline-flex items-center gap-1.5 rounded-full border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-600 hover:border-[#045AFE] hover:text-[#045AFE] dark:border-neutral-700 dark:text-neutral-300 ${className}`}
       >
         <span aria-hidden="true">?</span>
         {getText('Cómo funciona', 'How it works')}
@@ -58,11 +58,11 @@ export function ModuleIntro({ id, summary, steps, className = '' }: Props) {
   return (
     <section
       aria-label={getText('Cómo funciona este módulo', 'How this module works')}
-      className={`rounded-xl border border-[var(--brand-primary,#045AFE)]/25 bg-[var(--brand-tint,rgba(4,90,254,0.07))] p-4 ${className}`}
+      className={`rounded-xl border border-[#045AFE]/25 bg-[#045AFE]/[0.07] p-4 ${className}`}
     >
       <div className="flex items-start justify-between gap-3">
         <p className="text-sm text-gray-800 dark:text-neutral-100">
-          <span className="font-semibold text-[var(--brand-primary,#045AFE)]">{getText('Cómo funciona. ', 'How it works. ')}</span>
+          <span className="font-semibold text-[#045AFE]">{getText('Cómo funciona. ', 'How it works. ')}</span>
           {summary}
         </p>
         <button
@@ -77,7 +77,7 @@ export function ModuleIntro({ id, summary, steps, className = '' }: Props) {
         <ol className="mt-3 space-y-1.5 text-sm text-gray-700 dark:text-neutral-300">
           {steps.map((s, i) => (
             <li key={i} className="flex gap-2">
-              <span className="font-semibold text-[var(--brand-primary,#045AFE)]">{i + 1}.</span>
+              <span className="font-semibold text-[#045AFE]">{i + 1}.</span>
               <span>{s}</span>
             </li>
           ))}

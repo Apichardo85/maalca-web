@@ -371,7 +371,7 @@ export function ConfigTab({ slug, form, businessType, onChange, onCommit, onComm
           />
           <ColorPickerRow
             label={getText('Color de acento', 'Accent color')}
-            hint={getText('Detalles: franja de la barbería, resaltados y etiquetas. Automático = se calcula.', 'Details: barber stripe, highlights and tags. Auto = derived.')}
+            hint={getText('Detalles pequeños: resaltados, franjas y etiquetas. Automático = se calcula a partir del color principal.', 'Small details: highlights, stripes and tags. Auto = derived from the primary color.')}
             value={form.accentColor}
             options={ACCENT_PALETTE}
             autoLabel={getText('Automático', 'Auto')}

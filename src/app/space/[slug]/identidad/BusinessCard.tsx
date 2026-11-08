@@ -111,12 +111,12 @@ export function BusinessCard({ business, qrDataUrl }: Props) {
           style={{ background: pal.bg }}
         >
           {contacts.length > 0 && (
-            <div className="flex flex-col items-center gap-1">
+            <div className="flex flex-col items-start gap-1">
               {contacts.map((c) => {
                 const Icon = CONTACT_ICON_BY_TIPO[c.tipo];
                 return (
-                  <div key={c.tipo} className="flex items-center gap-1.5 text-xs" style={{ color: pal.muted }}>
-                    {Icon && <Icon size={12} />}
+                  <div key={c.tipo} className="flex items-start gap-1.5 text-left text-xs" style={{ color: pal.muted }}>
+                    {Icon && <span className="mt-0.5 shrink-0"><Icon size={12} /></span>}
                     <span>{c.value}</span>
                   </div>
                 );
@@ -125,12 +125,12 @@ export function BusinessCard({ business, qrDataUrl }: Props) {
           )}
 
           {social.length > 0 && (
-            <div className="flex flex-col items-center gap-1">
+            <div className="flex flex-col items-start gap-1">
               {social.map((s) => {
                 const Icon = SOCIAL_ICON_BY_TIPO[s.tipo];
                 return (
-                  <div key={s.tipo} className="flex items-center gap-1.5 text-xs" style={{ color: pal.muted }}>
-                    {Icon && <Icon size={12} />}
+                  <div key={s.tipo} className="flex items-start gap-1.5 text-left text-xs" style={{ color: pal.muted }}>
+                    {Icon && <span className="mt-0.5 shrink-0"><Icon size={12} /></span>}
                     <span>{socialHandle(s)}</span>
                   </div>
                 );

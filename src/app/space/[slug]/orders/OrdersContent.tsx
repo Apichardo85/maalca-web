@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { ModuleIntro } from '@/components/space/ModuleIntro';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { DangerZoneDelete } from '@/components/space/DangerZoneDelete';
@@ -265,6 +266,16 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
           {getText('Tu espacio', 'Your space')}
         </p>
         <h1 className="mt-1 text-2xl font-bold">{getText('Pedidos', 'Orders')}</h1>
+
+        <ModuleIntro
+          id="pedidos"
+          className="mt-4"
+          summary={getText('Aquí llegan los pedidos de tu tienda en línea y los del punto de venta.', 'Orders from your online store and your point of sale arrive here.')}
+          steps={[
+            getText('Cada pedido nuevo aparece en la lista con su estado.', 'Each new order shows in the list with its status.'),
+            getText('Ábrelo para ver el detalle y actualizar su estado.', 'Open it to see the detail and update its status.'),
+          ]}
+        />
 
         {!isPaidPlan(plan) && (
           <p className="mt-3 max-w-3xl text-sm text-gray-500 dark:text-neutral-400">

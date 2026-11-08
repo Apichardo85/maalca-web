@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { ModuleIntro } from '@/components/space/ModuleIntro';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { BulkPhotoUpload } from './BulkPhotoUpload';
@@ -470,6 +471,18 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
             {showForm ? getText('Cancelar', 'Cancel') : getText('+ Agregar', '+ Add')}
           </button>
         </div>
+
+
+        <ModuleIntro
+          id="inventario"
+          className="mt-4"
+          summary={getText('Lleva cuántas unidades tienes de cada artículo.', 'Track how many units you have of each item.')}
+          steps={[
+            getText('Agrega cada artículo con su cantidad y su mínimo.', 'Add each item with its quantity and minimum.'),
+            getText('Si baja del mínimo, aparece un aviso arriba.', 'If it drops below the minimum, a warning shows above.'),
+            getText('Las ventas del punto de venta descuentan existencias solas.', 'Point-of-sale sales deduct stock automatically.'),
+          ]}
+        />
 
         {/* Alerta de stock bajo — antes solo era una línea de texto que además reemplazaba el
             conteo total de items, así que nunca se veían los dos datos a la vez. Ahora es un

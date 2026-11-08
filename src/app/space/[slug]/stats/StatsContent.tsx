@@ -17,6 +17,7 @@ import {
   Legend,
 } from 'recharts';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { ModuleIntro } from '@/components/space/ModuleIntro';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { KpiTile, type SpaceKpis } from '@/components/space/KpiTile';
@@ -217,6 +218,16 @@ export function StatsContent({ slug, kpis, plan, detailed: initialDetailed, repo
             {getText('Estadísticas', 'Stats')}
           </h1>
         </div>
+
+        <ModuleIntro
+          id="estadisticas"
+          className="mt-4"
+          summary={getText('Mira cuánta gente visita tu página y cómo va tu actividad.', 'See how many people visit your page and how your activity is going.')}
+          steps={[
+            getText('Las tarjetas de arriba resumen lo más importante de un vistazo.', 'The cards above summarize the essentials at a glance.'),
+            getText('Si aún no hay datos, comparte tu página o tu QR para empezar a recibir visitas.', 'If there is no data yet, share your page or QR to start getting visits.'),
+          ]}
+        />
 
         {/* Same KpiTile cards as the Dashboard's own KPI row — same data, same component. */}
         <section className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-4">

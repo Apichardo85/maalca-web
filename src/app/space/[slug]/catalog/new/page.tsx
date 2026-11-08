@@ -25,6 +25,7 @@ export default async function NewCatalogItemPage({ params, searchParams }: PageP
   const spaceData = spaceRes.ok ? await spaceRes.json() : null;
   const businessType: string | null = spaceData?.business?.businessType ?? null;
   const businessLanguage: string | null = spaceData?.business?.language ?? null;
+  const shippingEnabled = Array.isArray(spaceData?.business?.modulosActivos) && spaceData.business.modulosActivos.includes('shipping');
 
   // Receta (Restaurante) — igual que en edit/page.tsx: solo carga el inventario si aplica,
   // para no pagar el round-trip en los demás tipos de negocio.
@@ -42,5 +43,5 @@ export default async function NewCatalogItemPage({ params, searchParams }: PageP
     }
   }
 
-  return <NewItemForm slug={slug} businessType={businessType} businessLanguage={businessLanguage} from={from} inventoryItems={inventoryItems} />;
+  return <NewItemForm slug={slug} businessType={businessType} businessLanguage={businessLanguage} from={from} inventoryItems={inventoryItems} shippingEnabled={shippingEnabled} />;
 }

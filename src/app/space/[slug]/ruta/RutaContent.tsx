@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { ModuleIntro } from '@/components/space/ModuleIntro';
 import type { RouteSummary, RouteStatus } from '@/lib/delivery';
 
 const STATUS_ES: Record<RouteStatus, [string, string]> = {
@@ -22,6 +23,17 @@ export function RutaContent({ slug, routes }: { slug: string; routes: RouteSumma
         {getText('Reparto', 'Delivery')}
       </p>
       <h1 className="mt-1 text-2xl font-bold">{getText('Mis rutas de hoy', "Today's routes")}</h1>
+
+      <ModuleIntro
+        id="mis-rutas"
+        className="mt-4"
+        summary={getText('Estas son las rutas que te asignaron para hoy.', 'These are the routes assigned to you today.')}
+        steps={[
+          getText('Abre una ruta para ver sus paradas.', 'Open a route to see its stops.'),
+          getText('En cada parada anota lo entregado y lo cobrado.', 'At each stop record what you delivered and collected.'),
+          getText('Si no hay señal, sigue trabajando: se envía solo al volver.', 'If there is no signal, keep working: it sends by itself when back online.'),
+        ]}
+      />
 
       {routes.length === 0 ? (
         <p className="mt-6 text-sm text-gray-500 dark:text-neutral-400">

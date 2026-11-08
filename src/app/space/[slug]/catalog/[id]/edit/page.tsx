@@ -25,6 +25,7 @@ export default async function EditCatalogItemPage({ params, searchParams }: Page
   });
   const spaceData = spaceRes.ok ? await spaceRes.json() : null;
   const businessType: string | null = spaceData?.business?.businessType ?? null;
+  const shippingEnabled = Array.isArray(spaceData?.business?.modulosActivos) && spaceData.business.modulosActivos.includes('shipping');
   const businessLanguage: string | null = spaceData?.business?.language ?? null;
 
   const res = await fetch(
@@ -130,6 +131,7 @@ export default async function EditCatalogItemPage({ params, searchParams }: Page
       initialRecipe={recipe}
       availableModifierGroups={availableModifierGroups}
       initialModifierGroupIds={modifierGroupIds}
+      shippingEnabled={shippingEnabled}
     />
   );
 }

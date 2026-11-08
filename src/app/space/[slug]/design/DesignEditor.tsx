@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { ModuleIntro } from '@/components/space/ModuleIntro';
 import { sanitizeContactValue } from '@/lib/public-contact';
 import { sanitizeRichText } from '@/lib/sanitize-html';
 import { parseApiError } from '@/lib/api-errors';
@@ -332,6 +333,17 @@ export function DesignEditor({
             <TrialExpiredNotice slug={slug} />
           </div>
         )}
+
+
+        <ModuleIntro
+          id="disenar"
+          className="mt-4"
+          summary={getText('Aquí cambias cómo se ve tu página pública: colores, textos y canales de contacto.', 'Change how your public page looks here: colors, texts and contact channels.')}
+          steps={[
+            getText('Cambia lo que quieras y mira la vista previa.', 'Change what you like and watch the preview.'),
+            getText('Guarda para publicar los cambios en tu página.', 'Save to publish the changes to your page.'),
+          ]}
+        />
 
         {/* Tabs */}
         <div className="mt-4 flex gap-1 overflow-x-auto">

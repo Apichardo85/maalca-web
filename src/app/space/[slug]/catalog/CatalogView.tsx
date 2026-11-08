@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
+import { ModuleIntro } from '@/components/space/ModuleIntro';
 import { getPlanLimits, type Plan } from '@/lib/plan-limits';
 import { matchesCatalogQuery } from '@/lib/catalog-search';
 import { isPaidPlan } from '@/lib/plan-limits';
@@ -114,6 +115,18 @@ export function CatalogView({ slug, plan, items: initialItems, productCount, bus
             {getText('+ Agregar item', '+ Add item')}
           </Link>
         </div>
+
+
+        <ModuleIntro
+          id="catalogo"
+          className="mt-4"
+          summary={getText('Aquí están los productos o servicios que vendes.', 'Here are the products or services you sell.')}
+          steps={[
+            getText('Pulsa + Agregar item y completa nombre, precio y foto.', 'Press + Add item and fill in name, price and photo.'),
+            getText('Lo que agregas aparece en tu página pública y en el punto de venta.', 'What you add shows on your public page and in the point of sale.'),
+            getText('Abre un item para cambiar su precio o su información.', 'Open an item to change its price or details.'),
+          ]}
+        />
 
         {/* Empty state */}
         {items.length === 0 && (

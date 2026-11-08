@@ -62,6 +62,8 @@ interface Props {
   availableModifierGroups?: { id: string; name: string }[];
   /** IDs de los grupos ya asignados a este plato. */
   initialModifierGroupIds?: string[];
+  /** El negocio tiene el módulo Envíos activo: solo entonces se piden peso y medidas. */
+  shippingEnabled?: boolean;
 }
 
 const FLAG_OPTIONS = [
@@ -91,6 +93,7 @@ export default function EditForm({
   initialRecipe = [],
   availableModifierGroups = [],
   initialModifierGroupIds = [],
+  shippingEnabled = false,
 }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -442,7 +445,7 @@ export default function EditForm({
             </div>
           )}
 
-          {isRetail && <RetailAttributesEditor value={retail} onChange={setRetail} getText={getText} />}
+          {isRetail && <RetailAttributesEditor value={retail} onChange={setRetail} getText={getText} shippingEnabled={shippingEnabled} />}
 
           {isBarberOrService && (
             <div>
