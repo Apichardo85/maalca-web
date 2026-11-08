@@ -10,6 +10,7 @@ import {
   type DriverStop,
   type ProductLite,
 } from '@/lib/delivery';
+import { postOrQueue } from '@/lib/offline-queue';
 import { QrScanner } from './QrScanner';
 
 interface Props {
@@ -133,10 +134,13 @@ export function DeliveryForm({ slug, routeId, stop, containerTypes, products, cu
     }
     setSaving(true);
     try {
-      const res = await fetch(`/api/space/${slug}/routes/${routeId}/stops/${stop.stop.id}/delivery`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      // Sin señal: se guarda en el teléfono y se envía sola al volver (con la misma llave, no se duplica).
+      const outcome = await postOrQueue(routeId, {
+        kind: 'delivery',
+        stopId: stop.stop.id,
+        url: `/api/space/${slug}/routes/${routeId}/stops/${stop.stop.id}/delivery`,
+        label: stop.stop.customerName,
+        body: {
           items: items.flatMap((row) => {
             const p = productById.get(row.productId);
             return p ? [{ itemId: p.id, description: p.name, quantity: row.qty, unitPrice: priceOf(p) }] : [];
@@ -148,8 +152,14 @@ export function DeliveryForm({ slug, routeId, stop, containerTypes, products, cu
           receivedBy: receivedBy.trim() || null,
           notes: notes.trim() || null,
           idempotencyKey: idempotencyKey.current,
-        }),
+        },
       });
+      if (outcome.queued) {
+        notify.success(getText('Sin señal: la entrega quedó guardada en el teléfono y se enviará sola.', 'No signal: the delivery is saved on the phone and will send itself.'));
+        onDone();
+        return;
+      }
+      const res = outcome.res;
       if (!res.ok) {
         notify.error(await readApiError(res, getText('No se pudo registrar la entrega. Intenta de nuevo.', "Couldn't record the delivery. Try again.")));
         return;

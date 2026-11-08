@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
@@ -8,6 +8,17 @@ import { Toast } from '@/components/ui/Toast';
 import { formatDate, moneyFormatter, readApiError } from '@/lib/receivables';
 import { mapsUrl, type DriverSheet, type DriverStop, type ProductLite, type Reconciliation, type StopStatus } from '@/lib/delivery';
 import type { BrandInfo } from '@/lib/pdf/document';
+import {
+  applyQueueToSheet,
+  flushQueue,
+  onQueueChange,
+  postOrQueue,
+  readQueue,
+  readSheetSnapshot,
+  removeAction,
+  saveSheetSnapshot,
+  type QueuedAction,
+} from '@/lib/offline-queue';
 import { DeliveryForm } from './DeliveryForm';
 
 interface Props {
@@ -31,7 +42,14 @@ export function RouteContent({ slug, currency, brand: brandInfo, initialSheet, p
   const toast = useToast();
   const fmt = moneyFormatter(currency);
 
-  const [sheet, setSheet] = useState<DriverSheet>(initialSheet);
+  const [rawSheet, setSheet] = useState<DriverSheet>(initialSheet);
+  // Acciones guardadas sin señal: se reflejan en la hoja (parada visitada/omitida) hasta que se envían.
+  const [queue, setQueue] = useState<QueuedAction[]>([]);
+  const [online, setOnline] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const sheet = useMemo(() => applyQueueToSheet(rawSheet, queue), [rawSheet, queue]);
+  const pendingSend = queue.filter((a) => !a.error);
+  const needsReview = queue.filter((a) => a.error);
   const [openStop, setOpenStop] = useState<string | null>(null);
   const [delivering, setDelivering] = useState<string | null>(null);
   const [loadedFull, setLoadedFull] = useState(initialSheet.loadedFull?.toString() ?? '');
@@ -80,11 +98,69 @@ export function RouteContent({ slug, currency, brand: brandInfo, initialSheet, p
   async function refresh() {
     try {
       const res = await fetch(`${base}/driver-sheet`, { cache: 'no-store' });
-      if (res.ok) setSheet(await res.json());
+      if (res.ok) {
+        const fresh: DriverSheet = await res.json();
+        saveSheetSnapshot(fresh.routeId, fresh);
+        setSheet(fresh);
+      }
     } catch {
       /* se queda con lo que ya tiene */
     }
   }
+
+  async function syncNow() {
+    if (!readQueue(sheet.routeId).some((a) => !a.error)) return;
+    setSyncing(true);
+    const r = await flushQueue(sheet.routeId);
+    setSyncing(false);
+    if (r.sent > 0) {
+      toast.success(getText(`${r.sent} enviada(s).`, `${r.sent} sent.`));
+      await refresh();
+    }
+    if (r.failed > 0) toast.error(getText(`${r.failed} no se pudo(ieron) registrar: revisa el aviso de arriba.`, `${r.failed} couldn't be recorded: check the notice above.`));
+  }
+  const syncRef = useRef(syncNow);
+  syncRef.current = syncNow;
+
+  // Al abrir: copia local más reciente (si la página vino de la caché sin señal), cola pendiente y reenvío automático.
+  useEffect(() => {
+    const id = initialSheet.routeId;
+    const snap = readSheetSnapshot(id);
+    if (snap && snap.savedAt > (Date.parse(initialSheet.generatedAt) || 0)) setSheet(snap.sheet);
+    else saveSheetSnapshot(id, initialSheet);
+    setQueue(readQueue(id));
+    setOnline(navigator.onLine);
+    const off = onQueueChange(id, () => setQueue(readQueue(id)));
+    const goOnline = () => {
+      setOnline(true);
+      void syncRef.current();
+    };
+    const goOffline = () => setOnline(false);
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+    const timer = setInterval(() => void syncRef.current(), 20000);
+    void syncRef.current();
+    return () => {
+      off();
+      window.removeEventListener('online', goOnline);
+      window.removeEventListener('offline', goOffline);
+      clearInterval(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Deja lista la ruta para abrirla sin señal: registra el service worker y guarda la página y sus scripts en caché.
+  useEffect(() => {
+    if (!('serviceWorker' in navigator) || !navigator.onLine) return;
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then(async () => {
+        await navigator.serviceWorker.ready;
+        await fetch(window.location.pathname, { headers: { 'x-offline-prime': '1' }, credentials: 'same-origin' });
+        for (const e of performance.getEntriesByType('resource')) if (e.name.includes('/_next/static/')) fetch(e.name).catch(() => {});
+      })
+      .catch(() => {});
+  }, []);
 
   async function call(path: string, body: unknown, errorMsg: string): Promise<Response | null> {
     setBusy(true);
@@ -114,14 +190,37 @@ export function RouteContent({ slug, currency, brand: brandInfo, initialSheet, p
 
   async function skip(stop: DriverStop, status: 'skipped' | 'failed') {
     const notes = window.prompt(getText('Motivo (opcional)', 'Reason (optional)')) ?? null;
-    const res = await call(`stops/${stop.stop.id}/skip`, { status, notes: notes?.trim() || null }, getText('No se pudo actualizar la parada.', "Couldn't update the stop."));
-    if (res) {
+    setBusy(true);
+    try {
+      const outcome = await postOrQueue(sheet.routeId, {
+        kind: 'skip',
+        stopId: stop.stop.id,
+        url: `${base}/stops/${stop.stop.id}/skip`,
+        body: { status, notes: notes?.trim() || null },
+        label: stop.stop.customerName,
+        skipStatus: status,
+      });
+      if (outcome.queued) {
+        toast.success(getText('Sin señal: guardado en el teléfono, se enviará solo.', 'No signal: saved on the phone, it will send itself.'));
+        setOpenStop(null);
+        return;
+      }
+      if (!outcome.res.ok) {
+        toast.error(await readApiError(outcome.res, getText('No se pudo actualizar la parada.', "Couldn't update the stop.")));
+        return;
+      }
       setOpenStop(null);
       await refresh();
+    } finally {
+      setBusy(false);
     }
   }
 
   async function closeRoute() {
+    if (queue.length > 0) {
+      toast.error(getText(`Hay ${queue.length} acción(es) sin enviar o por revisar. Envíalas antes de cerrar la ruta.`, `${queue.length} action(s) not sent or needing review. Send them before closing the route.`));
+      return;
+    }
     const pending = sheet.stops.filter((s) => s.stop.status === 'pending').length;
     if (pending > 0 && !window.confirm(getText(`Quedan ${pending} paradas pendientes. Se marcarán como omitidas. ¿Cerrar la ruta?`, `${pending} stops are pending. They will be marked skipped. Close the route?`))) return;
     const res = await call('close', { markPendingAsSkipped: true }, getText('No se pudo cerrar la ruta.', "Couldn't close the route."));
@@ -146,6 +245,36 @@ export function RouteContent({ slug, currency, brand: brandInfo, initialSheet, p
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-5">
       <Toast toasts={toast.toasts} onRemove={toast.remove} />
+
+      {(!online || queue.length > 0) && (
+        <div role="status" className="mb-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
+          <p className="font-semibold">
+            {!online ? getText('Sin conexión', 'Offline') : getText('Entregas por enviar', 'Deliveries to send')}
+            {pendingSend.length > 0 && ` · ${pendingSend.length} ${getText('por enviar', 'to send')}`}
+          </p>
+          {!online && <p className="mt-0.5">{getText('Sigue registrando: se guarda en el teléfono y se envía sola cuando vuelva la señal.', 'Keep recording: it is saved on the phone and sent when the signal returns.')}</p>}
+          {online && pendingSend.length > 0 && (
+            <button type="button" onClick={() => void syncNow()} disabled={syncing} className="mt-2 rounded-full border border-amber-400 px-3 py-1.5 text-xs font-semibold disabled:opacity-50">
+              {syncing ? getText('Enviando…', 'Sending…') : getText('Enviar ahora', 'Send now')}
+            </button>
+          )}
+          {needsReview.map((a) => (
+            <div key={a.id} className="mt-2 rounded-lg bg-white/70 p-2 dark:bg-black/30">
+              <p className="font-semibold">{a.label}</p>
+              <p className="text-xs">{a.error}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm(getText('¿Descartar esta acción? No se registrará en el sistema.', 'Discard this action? It will not be recorded.'))) removeAction(sheet.routeId, a.id);
+                }}
+                className="mt-1 text-xs font-semibold underline"
+              >
+                {getText('Descartar', 'Discard')}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       <Link href={`/space/${slug}/ruta`} className="text-sm text-gray-500 dark:text-neutral-400">
         ← {getText('Mis rutas', 'My routes')}
@@ -189,6 +318,7 @@ export function RouteContent({ slug, currency, brand: brandInfo, initialSheet, p
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
                   <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_STYLE[s.stop.status]}`}>{stopLabel[s.stop.status]}</span>
+                  {queue.some((a) => a.stopId === s.stop.id) && <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-300">{getText('Por enviar', 'To send')}</span>}
                   {s.amountOwed > 0 && <span className={`text-xs font-semibold ${s.hasOverdue ? 'text-red-600 dark:text-red-400' : ''}`}>{fmt.format(s.amountOwed)}</span>}
                 </div>
               </button>

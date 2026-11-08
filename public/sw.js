@@ -1,6 +1,6 @@
 /* Service worker de MaalCa:
  *  - Web Push (avisos al dueño).
- *  - Modo sin conexión SOLO para el board de las TVs (/{slug}/board y /{slug}/board/{pantalla}):
+ *  - Modo sin conexión para el board de las TVs (/{slug}/board y /{slug}/board/{pantalla}) y la hoja de ruta del conductor:
  *    la página se pide primero a la red y, si falla o tarda, se sirve la última guardada; los
  *    scripts de Next (/_next/static, con hash en el nombre) van de caché primero.
  *    Las fotos de Supabase Storage se sirven del caché de media (ver src/lib/media-cache.ts) cuando
@@ -8,6 +8,8 @@
  *    Todo lo demás pasa directo a la red, sin tocar. */
 const BOARD_CACHE = 'maalca-board-v1';
 const BOARD_RE = /^\/[^/]+\/board(\/[^/]+)?\/?$/;
+// Hoja de ruta del conductor (/space/{slug}/ruta/{id}): se guarda la última versión para abrirla sin señal.
+const ROUTE_RE = /^\/space\/[^/]+\/ruta\/[^/]+\/?$/;
 const MEDIA_CACHE = 'maalca-media-v1';
 const NETWORK_TIMEOUT_MS = 6000;
 
@@ -60,6 +62,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   if (req.mode === 'navigate' && BOARD_RE.test(url.pathname)) {
+    event.respondWith(networkFirst(req));
+  } else if ((req.mode === 'navigate' || req.headers.get('x-offline-prime')) && ROUTE_RE.test(url.pathname)) {
     event.respondWith(networkFirst(req));
   } else if (url.pathname.startsWith('/_next/static/')) {
     event.respondWith(cacheFirst(req));
