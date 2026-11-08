@@ -34,7 +34,7 @@ interface Business {
 const MODULE_PATH: Record<string, string> = {
   catalog: 'catalog', page: 'design', metrics: 'stats', orders: 'orders', kitchen: 'kitchen', station: 'station',
   pos: 'pos', board: 'board', queue: 'queue', invoices: 'invoices', reservations: 'reservations',
-  shipping: 'shipping', contracts: 'contratos', routes: 'reparto', expenses: 'gastos', pricelists: 'price-lists',
+  shipping: 'shipping', contracts: 'contratos', routes: 'reparto', expenses: 'gastos', quality: 'calidad', pricelists: 'price-lists',
   inventory: 'inventory', proposals: 'proposals', staff: 'equipo', workforce: 'equipo', modifiers: 'modifiers',
   appointments: 'agenda',
 };
