@@ -21,6 +21,11 @@ export interface StoreCustomerRow {
   createdAt: string;
   approvedAt: string | null;
   orderCount: number;
+  address?: string | null;
+  gpsLat?: number | null;
+  gpsLng?: number | null;
+  deliveryFrequency?: string | null;
+  wantsCredit?: boolean;
 }
 
 export interface StoreSettings {
@@ -211,6 +216,11 @@ export function MembersPanel({ slug, lists, initialMembers, initialSettings, get
                     {m.email}{m.phone ? ` · ${m.phone}` : ''}{m.taxId ? ` · Tax ID ${m.taxId}` : ''}
                   </p>
                   {m.message && <p className="mt-1 text-sm italic text-text-secondary">“{m.message}”</p>}
+                  {(m.address || m.gpsLat != null || m.deliveryFrequency || m.wantsCredit) && (
+                    <p className="mt-1 text-xs text-text-secondary">
+                      {[m.address, m.gpsLat != null ? getText('con ubicación', 'with location') : null, m.deliveryFrequency ? ({ daily: getText('entrega diaria', 'daily delivery'), weekly: getText('entrega semanal', 'weekly delivery'), on_demand: getText('entrega a pedido', 'on-demand delivery') } as Record<string, string>)[m.deliveryFrequency] : null, m.wantsCredit ? getText('pide crédito', 'requests credit') : null].filter(Boolean).join(' · ')}
+                    </p>
+                  )}
                   <p className="mt-1 text-xs text-text-muted">
                     {new Date(m.createdAt).toLocaleDateString(language === 'en' ? 'en-US' : 'es', { day: 'numeric', month: 'short', year: 'numeric' })}
                     {m.orderCount > 0 && ` · ${m.orderCount} ${getText(m.orderCount === 1 ? 'pedido' : 'pedidos', m.orderCount === 1 ? 'order' : 'orders')}`}

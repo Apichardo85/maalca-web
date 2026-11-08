@@ -12,6 +12,8 @@ export interface PlanCapabilities {
   shippingMethods?: PublicShippingMethod[];
   /** Cuentas de clientes (miembros/mayoristas) activas: la tienda muestra "Iniciar sesión". */
   storeAccounts?: boolean;
+  /** Negocio con reparto (módulo de rutas): el registro de cliente pide dirección, ubicación y frecuencia de entrega. */
+  deliveryRoutes?: boolean;
   /** Impuesto de venta (%) del negocio; con valor el API lo calcula en cada pedido. Null/ausente = sin configurar. */
   salesTaxRate?: number | null;
   /** El envío también paga impuesto (default true). */

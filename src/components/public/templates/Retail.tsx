@@ -683,6 +683,7 @@ export function RetailTemplate({
           surface={SURFACE}
           border={BORDER}
           currency={business.currency}
+          deliveryRoutes={capabilities.deliveryRoutes === true}
         />
       )}
 

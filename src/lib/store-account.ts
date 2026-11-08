@@ -52,6 +52,12 @@ export interface JoinStoreInput {
   businessName?: string;
   taxId?: string;
   message?: string;
+  /** Solo negocios con reparto. */
+  address?: string;
+  gpsLat?: number;
+  gpsLng?: number;
+  deliveryFrequency?: 'daily' | 'weekly' | 'on_demand';
+  wantsCredit?: boolean;
 }
 
 export interface UseStoreAccount {

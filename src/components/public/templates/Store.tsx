@@ -955,6 +955,7 @@ export function StoreTemplate({ business, items, categories: categoriesProp, cap
           surface={SURFACE}
           border={BORDER}
           currency={business.currency}
+          deliveryRoutes={capabilities.deliveryRoutes === true}
           onReorder={(o) => {
             setAccountOpen(false);
             repeatOrder(o);

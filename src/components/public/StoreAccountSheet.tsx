@@ -19,6 +19,8 @@ interface Props {
   surface: string;
   border: string;
   currency?: string;
+  /** Negocio con reparto: el registro pide dirección, ubicación y frecuencia de entrega. */
+  deliveryRoutes?: boolean;
   /** "Repetir pedido": la plantilla vuelve a cargar sus líneas en el carrito. Ausente = sin el botón. */
   onReorder?: (order: StoreOrderSummary) => void;
 }
@@ -33,7 +35,7 @@ const STATUS_LABEL: Record<string, { es: string; en: string }> = {
 };
 
 export function StoreAccountSheet({
-  open, onClose, account, businessName, getText, language, accent, onAccent, ink, muted, surface, border, currency = 'USD', onReorder,
+  open, onClose, account, businessName, getText, language, accent, onAccent, ink, muted, surface, border, currency = 'USD', deliveryRoutes = false, onReorder,
 }: Props) {
   const { me, token, email } = account;
   const [mail, setMail] = useState('');
@@ -41,6 +43,31 @@ export function StoreAccountSheet({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState({ name: '', phone: '', businessName: '', taxId: '', message: '' });
+  // Solo negocios con reparto: dónde se entrega, ubicación del teléfono, cada cuánto y si pide crédito.
+  const [delivery, setDelivery] = useState<{ address: string; gps: { lat: number; lng: number } | null; frequency: '' | 'daily' | 'weekly' | 'on_demand'; credit: boolean }>({
+    address: '', gps: null, frequency: '', credit: false,
+  });
+  const [locating, setLocating] = useState(false);
+
+  function locateMe() {
+    if (!('geolocation' in navigator)) {
+      setError(getText('Este navegador no permite usar tu ubicación. Escribe la dirección.', 'This browser cannot share your location. Type the address.'));
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (p) => {
+        setDelivery((d) => ({ ...d, gps: { lat: p.coords.latitude, lng: p.coords.longitude } }));
+        setError(null);
+        setLocating(false);
+      },
+      () => {
+        setError(getText('No pudimos obtener tu ubicación. Escribe la dirección.', "We couldn't get your location. Type the address."));
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 15000 },
+    );
+  }
   const [orders, setOrders] = useState<StoreOrderSummary[] | null>(null);
   const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency });
 
@@ -88,6 +115,10 @@ export function StoreAccountSheet({
       setError(getText('Escribe tu nombre.', 'Enter your name.'));
       return;
     }
+    if (deliveryRoutes && !delivery.address.trim() && !delivery.gps) {
+      setError(getText('Escribe tu dirección de entrega o usa tu ubicación.', 'Enter your delivery address or use your location.'));
+      return;
+    }
     setBusy(true);
     setError(null);
     const err = await account.join({
@@ -96,6 +127,15 @@ export function StoreAccountSheet({
       businessName: form.businessName.trim() || undefined,
       taxId: form.taxId.trim() || undefined,
       message: form.message.trim() || undefined,
+      ...(deliveryRoutes
+        ? {
+            address: delivery.address.trim() || undefined,
+            gpsLat: delivery.gps?.lat,
+            gpsLng: delivery.gps?.lng,
+            deliveryFrequency: delivery.frequency || undefined,
+            wantsCredit: delivery.credit,
+          }
+        : {}),
     });
     setBusy(false);
     if (err) setError(err);
@@ -160,6 +200,28 @@ export function StoreAccountSheet({
                 <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} maxLength={30} autoComplete="tel" placeholder={getText('Teléfono (opcional)', 'Phone (optional)')} style={input} />
                 <input value={form.businessName} onChange={(e) => setForm({ ...form, businessName: e.target.value })} maxLength={160} placeholder={getText('Negocio (si compras para revender)', 'Business (if you buy to resell)')} style={input} />
                 <input value={form.taxId} onChange={(e) => setForm({ ...form, taxId: e.target.value })} maxLength={40} placeholder={getText('Tax ID / certificado de reventa (opcional)', 'Tax ID / resale certificate (optional)')} style={input} />
+                {deliveryRoutes && (
+                  <>
+                    <input value={delivery.address} onChange={(e) => setDelivery({ ...delivery, address: e.target.value })} maxLength={250} autoComplete="street-address" placeholder={getText('Dirección de entrega', 'Delivery address')} style={input} />
+                    <button type="button" onClick={locateMe} disabled={locating} style={{ ...input, textAlign: 'left', cursor: 'pointer', color: delivery.gps ? accent : ink }}>
+                      {delivery.gps
+                        ? getText('✓ Ubicación guardada (toca para actualizarla)', '✓ Location saved (tap to update)')
+                        : locating
+                          ? getText('Buscando tu ubicación…', 'Finding your location…')
+                          : getText('📍 Usar mi ubicación actual', '📍 Use my current location')}
+                    </button>
+                    <select value={delivery.frequency} onChange={(e) => setDelivery({ ...delivery, frequency: e.target.value as typeof delivery.frequency })} style={input}>
+                      <option value="">{getText('¿Cada cuánto necesitas entregas?', 'How often do you need deliveries?')}</option>
+                      <option value="daily">{getText('Todos los días', 'Every day')}</option>
+                      <option value="weekly">{getText('Cada semana', 'Every week')}</option>
+                      <option value="on_demand">{getText('Cuando lo pida', 'On demand')}</option>
+                    </select>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, marginBottom: 8 }}>
+                      <input type="checkbox" checked={delivery.credit} onChange={(e) => setDelivery({ ...delivery, credit: e.target.checked })} />
+                      {getText('Quiero solicitar crédito (el negocio lo revisa)', 'I want to request credit (the business reviews it)')}
+                    </label>
+                  </>
+                )}
                 <textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} maxLength={500} rows={2} placeholder={getText('Mensaje para el negocio (opcional)', 'Message to the business (optional)')} style={{ ...input, resize: 'vertical' }} />
                 <button type="button" disabled={busy} onClick={submitJoin} style={{ ...primary, opacity: busy ? 0.6 : 1 }}>
                   {me.signupMode === 'open' ? getText('Hacerme miembro', 'Become a member') : getText('Enviar solicitud', 'Send request')}
