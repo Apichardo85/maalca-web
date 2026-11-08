@@ -62,6 +62,8 @@ export function RoutesTab({ slug, currency = 'DOP', routes, vehicles, drivers, c
   const [saving, setSaving] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [recon, setRecon] = useState<Record<string, Reconciliation | 'loading' | 'error'>>({});
+  // El listado del API no trae las paradas: se piden al abrir una ruta (o al editarla).
+  const [details, setDetails] = useState<Record<string, AdminRoute | 'loading' | 'error'>>({});
 
   const byId = useMemo(() => new Map(customers.map((c) => [c.id, c])), [customers]);
   const input = 'w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm';
@@ -172,12 +174,29 @@ export function RoutesTab({ slug, currency = 'DOP', routes, vehicles, drivers, c
     }
   }
 
+  async function loadDetail(id: string): Promise<AdminRoute | null> {
+    const cached = details[id];
+    if (cached && typeof cached !== 'string') return cached;
+    setDetails((prev) => ({ ...prev, [id]: 'loading' }));
+    try {
+      const res = await fetch(`/api/space/${slug}/routes/${id}`, { cache: 'no-store' });
+      if (!res.ok) throw new Error('detail');
+      const data: AdminRoute = await res.json();
+      setDetails((prev) => ({ ...prev, [id]: data }));
+      return data;
+    } catch {
+      setDetails((prev) => ({ ...prev, [id]: 'error' }));
+      return null;
+    }
+  }
+
   async function toggle(r: AdminRoute) {
     if (openId === r.id) {
       setOpenId(null);
       return;
     }
     setOpenId(r.id);
+    void loadDetail(r.id);
     if ((r.status === 'in_progress' || r.status === 'completed') && !recon[r.id]) {
       setRecon((prev) => ({ ...prev, [r.id]: 'loading' }));
       try {
@@ -191,14 +210,19 @@ export function RoutesTab({ slug, currency = 'DOP', routes, vehicles, drivers, c
     }
   }
 
-  function startEdit(r: AdminRoute) {
+  async function startEdit(r: AdminRoute) {
+    const full = await loadDetail(r.id);
+    if (!full) {
+      notify.error(getText('No se pudieron cargar las paradas de la ruta.', "Couldn't load the route's stops."));
+      return;
+    }
     setForm({
       id: r.id,
       name: r.name,
       date: r.routeDate.slice(0, 10),
       vehicleId: r.vehicleId ?? '',
       driverId: r.driverId ?? '',
-      stops: [...r.stops].sort((a, b) => a.sortOrder - b.sortOrder).map((s) => s.customerId),
+      stops: [...full.stops].sort((a, b) => a.sortOrder - b.sortOrder).map((s) => s.customerId),
     });
     setQuery('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -214,16 +238,16 @@ export function RoutesTab({ slug, currency = 'DOP', routes, vehicles, drivers, c
     return a ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(a)}` : null;
   }
 
-  const missingAddress = (r: AdminRoute) => r.stops.filter((s) => !addressOf(s)).length;
-
-  function RouteCard({ r }: { r: AdminRoute }) {
+  function renderRoute(r: AdminRoute) {
     const open = openId === r.id;
-    const stops = [...r.stops].sort((a, b) => a.sortOrder - b.sortOrder);
+    const det = details[r.id];
+    const full = det && typeof det !== 'string' ? det : null;
+    const stops = [...(full?.stops ?? [])].sort((a, b) => a.sortOrder - b.sortOrder);
     const pct = r.stopsTotal > 0 ? Math.round((r.stopsDone / r.stopsTotal) * 100) : 0;
-    const noAddr = missingAddress(r);
+    const noAddr = stops.filter((st) => !addressOf(st)).length;
     const rc = recon[r.id];
     return (
-      <li className="overflow-hidden rounded-2xl border border-gray-200 dark:border-neutral-800">
+      <li key={r.id} className="overflow-hidden rounded-2xl border border-gray-200 dark:border-neutral-800">
         <button type="button" onClick={() => toggle(r)} aria-expanded={open} className="flex w-full items-start gap-3 p-4 text-left hover:bg-gray-50 dark:hover:bg-neutral-900/60">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
@@ -308,7 +332,11 @@ export function RoutesTab({ slug, currency = 'DOP', routes, vehicles, drivers, c
               <h3 className="text-sm font-semibold">
                 {getText('Paradas', 'Stops')} ({stops.length})
               </h3>
-              {stops.length === 0 ? (
+              {det === undefined || det === 'loading' ? (
+                <p className="mt-1 text-xs text-gray-500">{getText('Cargando paradas…', 'Loading stops…')}</p>
+              ) : det === 'error' ? (
+                <p className="mt-1 text-xs text-red-600">{getText('No se pudieron cargar las paradas.', "Couldn't load the stops.")}</p>
+              ) : stops.length === 0 ? (
                 <p className="mt-1 text-xs text-gray-500">{getText('Esta ruta no tiene paradas.', 'This route has no stops.')}</p>
               ) : (
                 <ol className="mt-2 space-y-2">
@@ -471,7 +499,7 @@ export function RoutesTab({ slug, currency = 'DOP', routes, vehicles, drivers, c
             </h3>
             <ul className="space-y-2">
               {g.items.map((r) => (
-                <RouteCard key={r.id} r={r} />
+                renderRoute(r)
               ))}
             </ul>
           </section>

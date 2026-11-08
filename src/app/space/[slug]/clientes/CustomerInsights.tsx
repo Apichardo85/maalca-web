@@ -22,16 +22,17 @@ interface Props {
   customerName: string;
   getText: (es: string, en: string) => string;
   language: string;
+  currency?: 'USD' | 'DOP';
 }
 
 const ACCOUNT_ES: Record<string, string> = { approved: 'Aprobada', pending: 'Pendiente', rejected: 'Sin acceso' };
 
-export function CustomerInsights({ slug, customerId, customerName, getText, language }: Props) {
+export function CustomerInsights({ slug, customerId, customerName, getText, language, currency = 'USD' }: Props) {
   const [data, setData] = useState<Insights | null>(null);
   const [failed, setFailed] = useState(false);
   const [lists, setLists] = useState<{ id: string; name: string }[]>([]);
   const [savingList, setSavingList] = useState(false);
-  const money = (n: number) => `$${n.toFixed(2)}`;
+  const money = (n: number) => `${currency === 'DOP' ? 'RD$' : '$'}${n.toFixed(2)}`;
   const date = (iso: string | null) =>
     iso ? new Date(iso).toLocaleDateString(language === 'en' ? 'en-US' : 'es', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 

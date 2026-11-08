@@ -116,12 +116,14 @@ interface Props {
   canHardDelete?: boolean;
   // Negocios tipo tienda (reparto): correo y dirección son obligatorios al crear un cliente.
   requireContact?: boolean;
+  currency?: 'USD' | 'DOP';
 }
 
 // Clientes (tarea #249) — lista + ficha con historial real. Reusa el backend Customer.cs que ya
 // existía (CRUD completo) desde antes de esta tarea, y el vínculo por teléfono con
 // Appointment/Invoice/QueueEntry/TableReservation/Proposal cableado en la tarea #244.
-export function ClientesContent({ slug, initialCustomers, canHardDelete, requireContact = false }: Props) {
+export function ClientesContent({ slug, initialCustomers, canHardDelete, requireContact = false, currency = 'USD' }: Props) {
+  const sym = currency === 'DOP' ? 'RD$' : '$';
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -363,7 +365,7 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete, require
           </button>
         </div>
       </div>
-      <SalesReport slug={slug} open={showReport} onClose={() => setShowReport(false)} getText={getText} />
+      <SalesReport slug={slug} open={showReport} onClose={() => setShowReport(false)} getText={getText} currency={currency} />
 
       <input
         type="text"
@@ -615,7 +617,7 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete, require
               </button>
             </div>
 
-            <CustomerInsights slug={slug} customerId={selected.id} customerName={selected.name} getText={getText} language={language} />
+            <CustomerInsights slug={slug} customerId={selected.id} customerName={selected.name} getText={getText} language={language} currency={currency} />
 
             {loadingHistory && (
               <p className="py-8 text-center text-sm text-gray-400">{getText('Cargando historial...', 'Loading history...')}</p>
@@ -634,7 +636,7 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete, require
                     {' · '}
                     {getText('Gastado', 'Spent')}:{' '}
                     <strong className="text-gray-900 dark:text-white">
-                      ${history.orders!
+                      {sym}{history.orders!
                         .filter((o) => (o.status === 'Paid' || o.status === 'Preparing' || o.status === 'Ready' || o.status === 'Fulfilled')
                           // Pago en el local: solo cuenta como gastado cuando ya se cobró.
                           && !((o.paymentMethod === 'PayAtPickup' || o.paymentMethod === 'PayAtTable') && !o.collectedAt))
@@ -648,7 +650,7 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete, require
                   empty={getText('Sin pedidos.', 'No orders.')}
                   items={history.orders ?? []}
                   render={(o) =>
-                    `${dateFmt(o.createdAt)} — $${o.total.toFixed(2)}${o.tableNumber ? ` · ${getText('Mesa', 'Table')} ${o.tableNumber}` : ''} · ${st(o.status)}`
+                    `${dateFmt(o.createdAt)} — ${sym}${o.total.toFixed(2)}${o.tableNumber ? ` · ${getText('Mesa', 'Table')} ${o.tableNumber}` : ''} · ${st(o.status)}`
                   }
                 />
                 <HistorySection
@@ -661,7 +663,7 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete, require
                   title={getText('Facturas', 'Invoices')}
                   empty={getText('Sin facturas.', 'No invoices.')}
                   items={history.invoices}
-                  render={(i) => `${i.invoiceNumber} — $${i.total.toFixed(2)} · ${st(i.status)}`}
+                  render={(i) => `${i.invoiceNumber} — ${sym}${i.total.toFixed(2)} · ${st(i.status)}`}
                 />
                 <HistorySection
                   title={getText('Reservas', 'Reservations')}

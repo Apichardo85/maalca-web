@@ -53,6 +53,7 @@ export default async function ClientesPage({
       initialCustomers={customers}
       canHardDelete={space.isImpersonation === true}
       requireContact={space.business.businessType?.toLowerCase() === 'retail'}
+      currency={space.business.currency === 'DOP' ? 'DOP' : 'USD'}
     />
   );
 }

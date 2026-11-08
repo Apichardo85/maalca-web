@@ -22,11 +22,13 @@ interface Props {
   open: boolean;
   onClose: () => void;
   getText: (es: string, en: string) => string;
+  currency?: 'USD' | 'DOP';
 }
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 
-export function SalesReport({ slug, open, onClose, getText }: Props) {
+export function SalesReport({ slug, open, onClose, getText, currency = 'USD' }: Props) {
+  const sym = currency === 'DOP' ? 'RD$' : '$';
   const today = new Date();
   const [from, setFrom] = useState(iso(new Date(today.getFullYear(), today.getMonth(), 1)));
   const [to, setTo] = useState(iso(today));
@@ -86,7 +88,7 @@ export function SalesReport({ slug, open, onClose, getText }: Props) {
         ) : (
           <>
             <p className="mb-2 text-sm text-gray-600 dark:text-neutral-400">
-              {rows.length} {getText('clientes', 'customers')} · {orders} {getText('compras', 'purchases')} · <strong className="text-gray-900 dark:text-white">${total.toFixed(2)}</strong>
+              {rows.length} {getText('clientes', 'customers')} · {orders} {getText('compras', 'purchases')} · <strong className="text-gray-900 dark:text-white">{sym}{total.toFixed(2)}</strong>
             </p>
             <table className="w-full text-sm">
               <thead>
@@ -106,8 +108,8 @@ export function SalesReport({ slug, open, onClose, getText }: Props) {
                       {r.businessName && <span className="block text-xs text-gray-500">{r.businessName}</span>}
                     </td>
                     <td className="py-2 text-right">{r.orders}</td>
-                    <td className="py-2 text-right font-semibold">${r.spent.toFixed(2)}</td>
-                    <td className="hidden py-2 text-right sm:table-cell">${r.avgTicket.toFixed(2)}</td>
+                    <td className="py-2 text-right font-semibold">{sym}{r.spent.toFixed(2)}</td>
+                    <td className="hidden py-2 text-right sm:table-cell">{sym}{r.avgTicket.toFixed(2)}</td>
                     <td className="hidden py-2 text-right text-xs text-gray-500 sm:table-cell">{r.lastOrderAt?.slice(0, 10)}</td>
                   </tr>
                 ))}
