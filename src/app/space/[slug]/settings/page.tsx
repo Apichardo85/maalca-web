@@ -37,6 +37,7 @@ export default async function SettingsPage({
       businessLanguage={business.language === 'en' ? 'en' : 'es'}
       businessType={business.businessType ?? null}
       zoomLink={business.zoomLink ?? null}
+      showReceivablesSettings={(business.modulosActivos ?? []).some((m: string) => m === 'contracts' || m === 'routes')}
     />
   );
 }

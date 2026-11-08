@@ -122,6 +122,8 @@ export interface AgingReport {
   totalCreditOnAccount: number;
   totals: AgingBuckets;
   rows: AgingRow[];
+  /** Desde cuándo se cuentan los días: la emisión de la factura o su vencimiento (Configuración → Cobros e impuestos). */
+  basis?: 'issue' | 'due';
 }
 
 export const EMPTY_AGING: AgingReport = {

@@ -158,6 +158,11 @@ export function ReceivablesTab({
           </div>
         ))}
       </div>
+      <p className="mt-1 text-xs text-gray-400 dark:text-neutral-500">
+        {aging.basis === 'due'
+          ? getText('Días desde el vencimiento; lo que aún no vence está en el primer rango.', 'Days since the due date; anything not yet due is in the first range.')
+          : getText('Días desde la emisión de la factura.', 'Days since the invoice date.')}
+      </p>
 
       <input
         type="search"
@@ -264,7 +269,7 @@ export function ReceivablesTab({
                     <div className="min-w-0">
                       <p className="text-sm font-medium">{inv.invoiceNumber}</p>
                       <p className="text-xs text-gray-500 dark:text-neutral-400">
-                        {formatDate(inv.issueDate)} · {inv.ageDays} {getText('días', 'days')}
+                        {formatDate(inv.issueDate)} · {inv.ageDays} {aging.basis === 'due' ? getText('días de vencida', 'days past due') : getText('días', 'days')}
                         {inv.isOverdue && <span className="ml-2 font-semibold text-red-600 dark:text-red-400">{getText('Vencida', 'Overdue')}</span>}
                       </p>
                     </div>

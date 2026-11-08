@@ -208,6 +208,13 @@ export function GastosContent({ slug, currency, initialMonth, initialExpenses, i
             </div>
           </div>
 
+          {(profit.taxInvoiced ?? 0) > 0 && (
+            <p className="mt-2 text-xs text-gray-500 dark:text-neutral-400">
+              {getText('Impuesto facturado este mes', 'Tax invoiced this month')}: {fmt.format(profit.taxInvoiced ?? 0)} ·{' '}
+              {getText('no cuenta como venta ni utilidad; la utilidad de caja sí incluye lo cobrado con impuesto.', 'not counted as sales or profit; cash profit does include collected tax.')}
+            </p>
+          )}
+
           {profit.expensesByCategory.length > 0 && (
             <ul className="mt-3 space-y-1.5">
               {profit.expensesByCategory.map((c) => (

@@ -10,6 +10,7 @@ import { hasAppointments } from '@/lib/appointment-capable';
 import { PlanPicker } from '@/components/space/billing/PlanPicker';
 import { ExtraScreensControl } from '@/components/space/billing/ExtraScreensControl';
 import { planKey, priceOf, publicPlanName, useBillingSummary } from '@/lib/billing';
+import { ReceivablesSettingsCard } from './ReceivablesSettingsCard';
 
 interface Props {
   slug: string;
@@ -20,9 +21,10 @@ interface Props {
   businessLanguage?: 'es' | 'en';
   businessType?: string | null;
   zoomLink?: string | null;
+  showReceivablesSettings?: boolean;
 }
 
-export function SettingsContent({ slug, plan, trialDaysRemaining, currency: initialCurrency, businessLanguage: initialBizLanguage = 'es', businessType, zoomLink: initialZoomLink }: Props) {
+export function SettingsContent({ slug, plan, trialDaysRemaining, currency: initialCurrency, businessLanguage: initialBizLanguage = 'es', businessType, zoomLink: initialZoomLink, showReceivablesSettings = false }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -435,6 +437,9 @@ export function SettingsContent({ slug, plan, trialDaysRemaining, currency: init
             </p>
           </div>
           )}
+
+          {/* Cobros e impuestos de las facturas de reparto/contratos (módulos contracts/routes) */}
+          {showReceivablesSettings && <ReceivablesSettingsCard slug={slug} />}
 
           {/* Stripe Connect — recibir pagos de tus propios clientes */}
           {isPaidPlan(plan) && (

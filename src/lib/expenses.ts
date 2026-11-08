@@ -58,6 +58,8 @@ export interface ProfitReport {
   expensesByCategory: { category: string; total: number }[];
   profit: number;
   cashProfit: number;
+  /** Impuesto (ITBIS) de las facturas del mes: no es ingreso del negocio. */
+  taxInvoiced?: number;
 }
 
 /** Mes "aaaa-mm" de hoy (hora local del navegador / servidor). */
