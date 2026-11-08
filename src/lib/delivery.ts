@@ -50,6 +50,17 @@ export interface DriverAnaquel {
   location: string | null;
 }
 
+/** Lo ya registrado en una parada (entrega, envases, cobro): la hoja impresa sale llena con esto. */
+export interface StopResult {
+  items: { itemId: string | null; description: string; quantity: number; unitPrice: number; lineTotal: number }[];
+  total: number;
+  containersDelivered: number;
+  containersReturned: number;
+  containersDamaged: number;
+  paymentAmount: number;
+  paymentMethod: string | null;
+}
+
 export interface DriverStop {
   stop: RouteStop;
   containers: ContainerBalanceItem[];
@@ -63,6 +74,7 @@ export interface DriverStop {
   bottlesLoaned: number;
   creditDays: number | null;
   agreedPrices: AgreedPrice[] | null;
+  result?: StopResult | null;
 }
 
 export interface ContainerTypeLite {

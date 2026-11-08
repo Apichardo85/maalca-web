@@ -6,6 +6,7 @@ import { getRoleSuggestions } from '@/lib/personal-roles';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { isPaidPlan } from '@/lib/plan-limits';
+import { ACCESS_CHOICES, accessLabel, accessValue, parseAccess } from '@/lib/access-profiles';
 
 export interface PersonalMember {
   id: string;
@@ -63,6 +64,7 @@ export interface Collaborator {
   pending: boolean;
   createdAt: string;
   teamMemberId?: string | null;
+  profile?: string | null;
 }
 
 interface Props {
@@ -89,20 +91,7 @@ const TASK_STATUS_STYLES: Record<StaffTaskRow['status'], { accent: string; badge
   Done: { accent: 'border-l-emerald-500', badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
 };
 
-// "Owner" incluido a propósito — antes solo se podía dar Manager/Staff desde acá, así que no
-// había forma real de agregar un co-dueño (socio) al negocio: la única invitación con label
-// "Dueño" vivía en /ops/equipo, que es el equipo INTERNO de la plataforma (PlatformAdmin, acceso
-// a /ops) y no tiene nada que ver con ser dueño de ESTE negocio (UserAffiliateMap) — confusión
-// real reportada en producción (2026-08-17). Gateado igual que el resto de esta sección:
-// canManageAccess ya exige role === 'Owner' para siquiera ver el formulario de invitar.
-const DASHBOARD_ROLES = ['Owner', 'Manager', 'Staff'] as const;
-
-const ROLE_LABELS: Record<string, { es: string; en: string }> = {
-  Owner: { es: 'Dueño', en: 'Owner' },
-  Manager: { es: 'Manager', en: 'Manager' },
-  Staff: { es: 'Staff', en: 'Staff' },
-};
-
+// Acceso = rol + perfil (ver lib/access-profiles.ts). Dar acceso lo gatea canManageAccess: solo el Dueño.
 export function EquipoContent({ slug, businessType, plan, role, initialPersonal, initialCollaborators, workforceEnabled }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -184,13 +173,13 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
   // Dar acceso a un miembro de Personal existente
   const [inviteOpenFor, setInviteOpenFor] = useState<string | null>(null);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<'Owner' | 'Manager' | 'Staff'>('Staff');
+  const [inviteAccess, setInviteAccess] = useState('Staff|');
   const [inviting, setInviting] = useState(false);
 
   // Agregar cuenta de dashboard suelta (sin vínculo a Personal) — solo Owner
   const [standaloneOpen, setStandaloneOpen] = useState(false);
   const [standaloneEmail, setStandaloneEmail] = useState('');
-  const [standaloneRole, setStandaloneRole] = useState<'Owner' | 'Manager' | 'Staff'>('Staff');
+  const [standaloneAccess, setStandaloneAccess] = useState('Staff|');
   const [standaloneSaving, setStandaloneSaving] = useState(false);
 
   const linkedByTeamMemberId = new Map(
@@ -353,7 +342,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
   function openInvite(member: PersonalMember) {
     setInviteOpenFor(member.id);
     setInviteEmail(member.email ?? '');
-    setInviteRole('Staff');
+    setInviteAccess('Staff|');
     setError(null);
   }
 
@@ -365,7 +354,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
       const res = await fetch(`/api/space/${slug}/team`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: inviteEmail.trim(), role: inviteRole, teamMemberId: member.id }),
+        body: JSON.stringify({ email: inviteEmail.trim(), ...parseAccess(inviteAccess), teamMemberId: member.id }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.error?.message ?? getText('No pudimos enviar la invitación.', "We couldn't send the invite."));
@@ -392,19 +381,21 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
     }
   }
 
-  async function updateAccessRole(mapId: string, role: string) {
+  async function updateAccess(mapId: string, value: string) {
+    const { role, profile } = parseAccess(value);
     setBusyId(mapId);
     setError(null);
     try {
       const res = await fetch(`/api/space/${slug}/team/${mapId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role }),
+        // Profile "" quita el perfil; así un Empleado básico no se queda con el perfil anterior.
+        body: JSON.stringify({ role, profile: profile ?? '' }),
       });
       const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error(data?.error?.message ?? getText('No pudimos cambiar el rol.', "We couldn't change the role."));
-      setCollaborators((prev) => prev.map((c) => (c.id === mapId ? { ...c, role: data.role } : c)));
-      toast.success(getText('Rol actualizado.', 'Role updated.'));
+      if (!res.ok) throw new Error(data?.error?.message ?? getText('No pudimos cambiar el acceso.', "We couldn't change the access."));
+      setCollaborators((prev) => prev.map((c) => (c.id === mapId ? { ...c, role: data.role, profile: data.profile ?? null } : c)));
+      toast.success(getText('Acceso actualizado.', 'Access updated.'));
     } catch (e) {
       const msg = e instanceof Error ? e.message : getText('Algo salió mal.', 'Something went wrong.');
       setError(msg);
@@ -446,7 +437,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
       const res = await fetch(`/api/space/${slug}/team`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: standaloneEmail.trim(), role: standaloneRole }),
+        body: JSON.stringify({ email: standaloneEmail.trim(), ...parseAccess(standaloneAccess) }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.error?.message ?? getText('No pudimos invitar a esa persona.', "We couldn't invite that person."));
@@ -1015,10 +1006,26 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                       {member.isActive ? getText('Disponible', 'Available') : getText('No disponible', 'Unavailable')}
                     </span>
                     {link && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:text-blue-400">
-                        🔑 {ROLE_LABELS[link.role]?.[language] ?? link.role}
-                        {link.pending && ` · ${getText('pendiente', 'pending')}`}
-                      </span>
+                      canManageAccess ? (
+                        <select
+                          value={accessValue(link.role, link.profile)}
+                          disabled={busyId === link.id}
+                          onChange={(e) => updateAccess(link.id, e.target.value)}
+                          aria-label={getText('Acceso al sistema', 'System access')}
+                          className="min-h-11 rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 text-xs"
+                        >
+                          {ACCESS_CHOICES.map((o) => (
+                            <option key={o.value} value={o.value}>
+                              🔑 {o[language]}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:text-blue-400">
+                          🔑 {accessLabel(link.role, link.profile, language)}
+                          {link.pending && ` · ${getText('pendiente', 'pending')}`}
+                        </span>
+                      )
                     )}
                     {canManagePersonal && (
                       <>
@@ -1121,13 +1128,13 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                       className="flex-1 rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm"
                     />
                     <select
-                      value={inviteRole}
-                      onChange={(e) => setInviteRole(e.target.value as 'Owner' | 'Manager' | 'Staff')}
+                      value={inviteAccess}
+                      onChange={(e) => setInviteAccess(e.target.value)}
                       className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm"
                     >
-                      {DASHBOARD_ROLES.map((r) => (
-                        <option key={r} value={r}>
-                          {ROLE_LABELS[r][language]}
+                      {ACCESS_CHOICES.map((c) => (
+                        <option key={c.value} value={c.value}>
+                          {c[language]}
                         </option>
                       ))}
                     </select>
@@ -1186,18 +1193,20 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                   <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
                     {canManageAccess ? (
                       <select
-                        value={c.role}
+                        value={accessValue(c.role, c.profile)}
                         disabled={busyId === c.id}
-                        onChange={(e) => updateAccessRole(c.id, e.target.value)}
+                        onChange={(e) => updateAccess(c.id, e.target.value)}
                         className="min-h-11 rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 text-xs"
                       >
-                        <option value="Owner">{ROLE_LABELS.Owner[language]}</option>
-                        <option value="Manager">{ROLE_LABELS.Manager[language]}</option>
-                        <option value="Staff">{ROLE_LABELS.Staff[language]}</option>
+                        {ACCESS_CHOICES.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o[language]}
+                          </option>
+                        ))}
                       </select>
                     ) : (
                       <span className="rounded-full bg-purple-100 dark:bg-purple-900/30 px-2 py-0.5 text-[11px] font-medium text-purple-700 dark:text-purple-400">
-                        {ROLE_LABELS[c.role]?.[language] ?? c.role}
+                        {accessLabel(c.role, c.profile, language)}
                       </span>
                     )}
                     {canManageAccess && (
@@ -1231,13 +1240,13 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                       className="flex-1 rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
                     />
                     <select
-                      value={standaloneRole}
-                      onChange={(e) => setStandaloneRole(e.target.value as 'Owner' | 'Manager' | 'Staff')}
+                      value={standaloneAccess}
+                      onChange={(e) => setStandaloneAccess(e.target.value)}
                       className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
                     >
-                      {DASHBOARD_ROLES.map((r) => (
-                        <option key={r} value={r}>
-                          {ROLE_LABELS[r][language]}
+                      {ACCESS_CHOICES.map((c) => (
+                        <option key={c.value} value={c.value}>
+                          {c[language]}
                         </option>
                       ))}
                     </select>

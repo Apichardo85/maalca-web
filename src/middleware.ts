@@ -5,6 +5,9 @@ import { createServerClient } from "@supabase/ssr";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // El layout de /space lo lee para saber en qué página está y aplicar el perfil de acceso del usuario.
+  request.headers.set("x-pathname", pathname);
+
   // Build a response we can attach updated Supabase cookies to
   let response = NextResponse.next({ request });
 

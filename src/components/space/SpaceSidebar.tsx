@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { canOpenPage, pageOfPath } from '@/lib/access-profiles';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { CATALOG_NAV_LABELS, type BusinessType } from '@/lib/templates/registry';
 import { UserBadge } from './UserBadge';
@@ -26,6 +27,8 @@ interface Props {
   userAvatarUrl?: string | null;
   userEmail?: string | null;
   userRole?: string | null;
+  /** Perfil de acceso (chofer, cajero…): limita las páginas que se muestran. Ver lib/access-profiles.ts. */
+  userProfile?: string | null;
   /** Affiliate.modulosActivos ya filtrado por ModuleCatalog.FilterActive — controlado desde
    *  /ops (control de módulos por afiliado). Items sin `token` (Dashboard, Diseñar, Identidad,
    *  Módulos) siempre se muestran; el resto se filtra por esta lista. */
@@ -42,6 +45,7 @@ export function SpaceSidebar({
   userAvatarUrl = null,
   userEmail = null,
   userRole = null,
+  userProfile = null,
   activeModules,
 }: Props) {
   const pathname = usePathname();
@@ -174,9 +178,10 @@ export function SpaceSidebar({
   // Sin activeModules (undefined) no filtra nada — evita romper cualquier consumidor viejo que
   // todavía no pase la prop. Con la lista presente, un item sin token siempre pasa; uno con
   // token solo se muestra si MaalCa lo dejó activo para este afiliado (ver /ops).
-  const navItems = activeModules
+  const navItems = (activeModules
     ? allNavItems.filter((item) => !item.token || activeModules.includes(item.token))
-    : allNavItems;
+    : allNavItems
+  ).filter((item) => canOpenPage(userRole, userProfile, pageOfPath(item.href)));
 
   const isActive = (href: string) => {
     if (href === `/space/${slug}`) return pathname === href;

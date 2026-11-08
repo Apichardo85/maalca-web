@@ -203,6 +203,8 @@ export async function sendTeamInviteEmail(params: {
   businessName: string;
   slug: string;
   role: string;
+  /** Perfil de acceso (driver, cashier, warehouse, accounting); null si solo tiene rol. */
+  profile?: string | null;
   inviterEmail: string | null;
 }): Promise<boolean> {
   if (!resend) {
@@ -226,30 +228,45 @@ export async function sendTeamInviteEmail(params: {
 
 const ROLE_LABELS_ES: Record<string, string> = { Owner: 'Dueño', Manager: 'Gerente', Staff: 'Empleado' };
 
+// Qué va a ver la persona al entrar, según su acceso. Texto general: sirve para cualquier tipo de negocio.
+const PROFILE_INVITE_ES: Record<string, { label: string; sees: string }> = {
+  driver: { label: 'Chofer', sees: 'tus rutas de reparto del día: paradas, direcciones, entregas y cobros' },
+  cashier: { label: 'Cajero', sees: 'el punto de venta, los pedidos y los clientes' },
+  warehouse: { label: 'Almacén', sees: 'el inventario' },
+  accounting: { label: 'Contabilidad', sees: 'las facturas, los contratos y cobros y los gastos' },
+};
+
 function buildTeamInviteEmail(params: {
   businessName: string;
   slug: string;
   role: string;
+  profile?: string | null;
   inviterEmail: string | null;
 }): string {
-  const roleLabel = ROLE_LABELS_ES[params.role] ?? params.role;
-  const signupUrl = `https://maalca.com/login`;
+  const profileInfo = params.profile ? PROFILE_INVITE_ES[params.profile] : undefined;
+  const accessLabel = profileInfo?.label ?? ROLE_LABELS_ES[params.role] ?? params.role;
+  const loginUrl = `https://maalca.com/login`;
   const inviterLine = params.inviterEmail
-    ? `<strong>${params.inviterEmail}</strong> te invitó`
-    : 'Te invitaron';
+    ? `<strong>${params.inviterEmail}</strong> te dio acceso`
+    : 'Te dieron acceso';
+  const seesLine = profileInfo
+    ? `Al entrar verás ${profileInfo.sees}.`
+    : params.role === 'Owner'
+      ? 'Tendrás acceso a todo el negocio.'
+      : 'Al entrar verás las partes del negocio que te correspondan.';
 
   return renderCardEmail({
     bodyHtml: `
       <h2 style="color: #1a1a1a; font-size: 20px; margin-top: 0;">Te invitaron a ${params.businessName} 🤝</h2>
       <p style="color: #525252; line-height: 1.6; font-size: 15px;">
-        ${inviterLine} a ayudar a administrar <strong>${params.businessName}</strong> en MaalCa, con acceso de <strong>${roleLabel}</strong>.
+        ${inviterLine} a <strong>${params.businessName}</strong> en MaalCa como <strong>${accessLabel}</strong>. ${seesLine}
       </p>
-      ${emailCtaButton('Iniciar sesión →', signupUrl)}
+      ${emailCtaButton('Entrar a MaalCa →', loginUrl)}
       <p style="color: #525252; line-height: 1.6; font-size: 14px;">
-        Entra con este mismo correo (creando una cuenta si aún no tienes una) y verás el negocio automáticamente.
+        Entra con este mismo correo (si aún no tienes cuenta, créala con él) y el negocio aparecerá solo. Si no esperabas esta invitación, puedes ignorar este mensaje.
       </p>
     `,
-    footerText: `Recibes este correo porque alguien te invitó a un negocio en <a href="https://maalca.com" style="color: ${MAALCA_BRAND_COLOR};">maalca.com</a>.`,
+    footerText: `Recibes este correo porque alguien te dio acceso a un negocio en <a href="https://maalca.com" style="color: ${MAALCA_BRAND_COLOR};">maalca.com</a>.`,
   });
 }
 

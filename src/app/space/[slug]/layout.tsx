@@ -1,3 +1,4 @@
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getCurrentSpaceUser } from '@/lib/api-auth';
 import { canAddBusiness, type Plan } from '@/lib/plan-limits';
@@ -8,6 +9,7 @@ import { SupportModeBanner } from '@/components/space/SupportModeBanner';
 import { PastDueBanner } from '@/components/space/billing/PastDueBanner';
 import { NotificationsProvider } from '@/components/space/NotificationsProvider';
 import { isPaidPlan } from '@/lib/plan-limits';
+import { canOpenPage, homePage, pageOfPath } from '@/lib/access-profiles';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
@@ -57,7 +59,14 @@ export default async function SpaceSlugLayout({
   if (res.status === 403) redirect('/');
   if (!res.ok) throw new Error(`Failed to load space: ${res.status}`);
 
-  const { business, role, isImpersonation, impersonationExpiresAt } = await res.json();
+  const { business, role, profile, isImpersonation, impersonationExpiresAt } = await res.json();
+
+  // Perfil de acceso (chofer, cajero…): si abre una página que no es de su perfil —por la dirección, un marcador o un
+  // enlace viejo— lo mandamos a la suya. La API además le niega los datos aunque llegue (ver ProfileAccessMiddleware).
+  const pathname = (await headers()).get('x-pathname') ?? '';
+  if (pathname && !canOpenPage(role, profile, pageOfPath(pathname))) {
+    redirect(`/space/${slug}${homePage(profile) ? `/${homePage(profile)}` : ''}`);
+  }
   const businessType = (business.businessType as string).toLowerCase() as BusinessType;
 
   // Needed so SpaceMobileNav's drawer can show the real business switcher on
@@ -84,6 +93,7 @@ export default async function SpaceSlugLayout({
         userAvatarUrl={currentUser.avatarUrl}
         userEmail={currentUser.email}
         userRole={role}
+        userProfile={profile ?? null}
         activeModules={business.modulosActivos}
       />
       {/* lg:pl-[var(--space-sidebar-w,15rem)] en vez de un md:pl-60 fijo — SpaceSidebar (client)
@@ -107,6 +117,7 @@ export default async function SpaceSlugLayout({
           userAvatarUrl={currentUser.avatarUrl}
           userEmail={currentUser.email}
           userRole={role}
+          userProfile={profile ?? null}
           businesses={affiliates}
           canCreateMore={canCreateMore}
           spanishFlag={business.spanishFlag ?? null}

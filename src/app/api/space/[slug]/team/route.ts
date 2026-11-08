@@ -69,6 +69,7 @@ export async function POST(
       businessName: affiliate.name,
       slug,
       role: data.role ?? body.role,
+      profile: data.profile ?? body.profile ?? null,
       inviterEmail: currentUser.email,
     });
   }

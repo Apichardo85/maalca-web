@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { canOpenPage, pageOfPath } from '@/lib/access-profiles';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { SpaceTopBarControls } from '@/components/space/SpaceTopBarControls';
 import { BusinessSwitcher } from '@/components/space/BusinessSwitcher';
@@ -31,6 +32,8 @@ interface Props {
   userAvatarUrl?: string | null;
   userEmail?: string | null;
   userRole?: string | null;
+  /** Perfil de acceso (chofer, cajero…): limita las páginas que se muestran. Ver lib/access-profiles.ts. */
+  userProfile?: string | null;
   businesses: Business[];
   canCreateMore: boolean;
   /** ISO-2 de la bandera junto a "ES" (Settings.spanishFlag del negocio). */
@@ -58,6 +61,7 @@ export function SpaceMobileNav({
   userAvatarUrl = null,
   userEmail = null,
   userRole = null,
+  userProfile = null,
   businesses,
   canCreateMore,
   spanishFlag,
@@ -129,9 +133,10 @@ export function SpaceMobileNav({
     { label: getText('Facturación', 'Billing'), icon: '💳', href: `/space/${slug}/settings` },
   ];
 
-  const navItems = activeModules
+  const navItems = (activeModules
     ? allNavItems.filter((item) => !item.token || activeModules.includes(item.token))
-    : allNavItems;
+    : allNavItems
+  ).filter((item) => canOpenPage(userRole, userProfile, pageOfPath(item.href)));
 
   const isActive = (href: string) =>
     href === `/space/${slug}` ? pathname === href : !!pathname?.startsWith(href);

@@ -89,7 +89,16 @@ export function RouteContent({ slug, currency, brand: brandInfo, initialSheet, p
       .sort((a, b) => a.stop.sortOrder - b.stop.sortOrder)
       .map((s, i) => {
         const env = s.containers.filter((c) => c.outstanding > 0).map((c) => `${c.outstanding} ${c.containerTypeName}`).join(', ');
-        return `<tr><td>${i + 1}</td><td><b>${esc(s.stop.customerName)}</b><br><small>${esc([s.stop.customerAddress, s.stop.customerPhone].filter(Boolean).join(' · '))}</small></td><td>${esc(env || '—')}</td><td class="r">${s.amountOwed > 0 ? esc(fmt.format(s.amountOwed)) : '—'}</td><td></td><td></td><td></td></tr>`;
+        // Lo que ya se registró en el sistema sale escrito; lo pendiente queda en blanco para anotarlo a mano.
+        const r = s.result;
+        const num = (n: number) => String(Number(n.toFixed(2)));
+        const methodLabel: Record<string, string> = { cash: getText('Efectivo', 'Cash'), transfer: getText('Transferencia', 'Transfer'), mixed: getText('Mixto', 'Mixed') };
+        const deliveredParts = r ? r.items.map((it) => `${num(it.quantity)} ${it.description}`) : [];
+        if (r && deliveredParts.length === 0 && r.containersDelivered > 0) deliveredParts.push(`${r.containersDelivered} ${getText('llenos', 'full')}`);
+        if (!r && (s.stop.status === 'skipped' || s.stop.status === 'failed')) deliveredParts.push(stopLabel[s.stop.status]);
+        const collectedParts = r ? [r.containersReturned > 0 ? `${r.containersReturned} ${getText('vacíos', 'empty')}` : '', r.containersDamaged > 0 ? `${r.containersDamaged} ${getText('dañados', 'damaged')}` : ''].filter(Boolean) : [];
+        const paid = r && r.paymentAmount > 0 ? `${esc(fmt.format(r.paymentAmount))}${r.paymentMethod ? `<br><small>${esc(methodLabel[r.paymentMethod] ?? r.paymentMethod)}</small>` : ''}` : '';
+        return `<tr><td>${i + 1}</td><td><b>${esc(s.stop.customerName)}</b><br><small>${esc([s.stop.customerAddress, s.stop.customerPhone].filter(Boolean).join(' · '))}</small></td><td>${esc(env || '—')}</td><td class="r">${s.amountOwed > 0 ? esc(fmt.format(s.amountOwed)) : '—'}</td><td>${esc(deliveredParts.join(', '))}</td><td>${esc(collectedParts.join(', '))}</td><td>${paid}</td></tr>`;
       })
       .join('');
     const logo = brandInfo.logoUrl ? `<img src="${esc(brandInfo.logoUrl)}" style="height:44px;max-width:160px;object-fit:contain"/>` : '';
@@ -401,17 +410,31 @@ export function RouteContent({ slug, currency, brand: brandInfo, initialSheet, p
                 </div>
               </button>
 
+              {/* Dirección y Navegar siempre a la vista: el chofer no debería abrir la parada para saber a dónde ir. */}
+              {s.stop.status === 'pending' &&
+                (s.stop.customerAddress || (s.stop.customerLat != null && s.stop.customerLng != null) ? (
+                  <a
+                    href={mapsUrl(s.stop.customerAddress ?? '', s.stop.customerLat, s.stop.customerLng)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border-2 px-4 py-2.5 text-sm font-semibold"
+                    style={{ borderColor: 'var(--brand-primary, #045AFE)', color: 'var(--brand-primary, #045AFE)' }}
+                  >
+                    <span aria-hidden="true">📍</span>
+                    {getText('Navegar hasta aquí', 'Navigate here')}
+                  </a>
+                ) : (
+                  <p className="mt-2 rounded-lg bg-amber-50 p-2 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+                    {getText('Este cliente no tiene dirección ni ubicación registrada. Pídele a la oficina que la agregue en su ficha de Clientes.', 'This customer has no address or location on file. Ask the office to add it in their Customers record.')}
+                  </p>
+                ))}
+
               {open && (
                 <div className="mt-3 space-y-3 text-sm">
                   <div className="flex flex-wrap gap-2">
                     {s.stop.customerPhone && (
                       <a href={`tel:${s.stop.customerPhone}`} className={btn}>
                         {getText('Llamar', 'Call')}
-                      </a>
-                    )}
-                    {(s.stop.customerAddress || (s.stop.customerLat != null && s.stop.customerLng != null)) && (
-                      <a href={mapsUrl(s.stop.customerAddress ?? '', s.stop.customerLat, s.stop.customerLng)} target="_blank" rel="noopener noreferrer" className={btn}>
-                        {getText('Navegar', 'Navigate')}
                       </a>
                     )}
                     {editable && s.stop.status === 'pending' && !s.stop.arrivedAt && (
