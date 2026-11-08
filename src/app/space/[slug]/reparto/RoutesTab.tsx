@@ -156,6 +156,13 @@ export function RoutesTab({ slug, routes, vehicles, drivers, customers, onChange
               ))}
             </select>
           </div>
+          {drivers.length === 0 && (
+            <p className="text-xs text-gray-500 dark:text-neutral-400">
+              {getText('Aún no hay conductores. Agrégalos en ', 'No drivers yet. Add them in ')}
+              <a href={`/space/${slug}/equipo`} className="font-semibold underline">{getText('Equipo', 'Team')}</a>
+              {getText(' (rol Conductor) y dales acceso al dashboard.', ' (Driver role) and give them dashboard access.')}
+            </p>
+          )}
 
           <div>
             <p className="text-sm font-semibold">

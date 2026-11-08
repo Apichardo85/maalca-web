@@ -36,12 +36,17 @@ export function RepartoContent({ slug, currency, customers, initialVehicles, ini
   const [types, setTypes] = useState(initialTypes);
   const [anaqueles, setAnaqueles] = useState(initialAnaqueles);
 
+  const [refreshing, setRefreshing] = useState(0);
+
   async function load<T>(path: string, set: (v: T) => void) {
+    setRefreshing((n) => n + 1);
     try {
       const res = await fetch(`/api/space/${slug}/${path}`, { cache: 'no-store' });
       if (res.ok) set(await res.json());
     } catch {
       /* se queda con lo que ya tiene */
+    } finally {
+      setRefreshing((n) => n - 1);
     }
   }
 
@@ -72,11 +77,14 @@ export function RepartoContent({ slug, currency, customers, initialVehicles, ini
       </div>
 
       <div className="mt-4">
+        {refreshing > 0 && (
+          <p role="status" className="mb-2 text-xs text-gray-500 dark:text-neutral-400">{getText('Actualizando…', 'Refreshing…')}</p>
+        )}
         {tab === 'routes' && (
           <RoutesTab slug={slug} routes={routes} vehicles={vehicles} drivers={drivers} customers={customers} notify={notify} onChange={() => load('routes', setRoutes)} />
         )}
         {tab === 'vehicles' && (
-          <VehiclesTab slug={slug} vehicles={vehicles} drivers={drivers} notify={notify} onChange={() => load('vehicles', setVehicles)} />
+          <VehiclesTab slug={slug} vehicles={vehicles} drivers={drivers} notify={notify} onChange={() => load('vehicles?includeInactive=true', setVehicles)} />
         )}
         {tab === 'containers' && (
           <EnvasesTab

@@ -101,6 +101,8 @@ export function RouteContent({ slug, currency, initialSheet, products }: Props) 
     if (pending > 0 && !window.confirm(getText(`Quedan ${pending} paradas pendientes. Se marcarán como omitidas. ¿Cerrar la ruta?`, `${pending} stops are pending. They will be marked skipped. Close the route?`))) return;
     const res = await call('close', { markPendingAsSkipped: true }, getText('No se pudo cerrar la ruta.', "Couldn't close the route."));
     if (!res) return;
+    // El estado cambia al instante; el cuadre y la hoja se traen después (la API tarda un par de segundos).
+    setSheet((prev) => ({ ...prev, status: 'completed' }));
     try {
       const r = await fetch(`${base}/reconciliation`, { cache: 'no-store' });
       if (r.ok) setRecon(await r.json());

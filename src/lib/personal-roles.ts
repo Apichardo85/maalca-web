@@ -21,6 +21,7 @@ export const ROLE_SUGGESTIONS: Record<string, { es: string; en: string }[]> = {
     { es: 'Vendedor', en: 'Salesperson' },
     { es: 'Cajero', en: 'Cashier' },
     { es: 'Almacén', en: 'Warehouse' },
+    { es: 'Conductor', en: 'Driver' },
   ],
   creator: [
     { es: 'Editor', en: 'Editor' },

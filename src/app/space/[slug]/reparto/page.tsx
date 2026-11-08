@@ -45,7 +45,7 @@ export default async function RepartoPage({ params }: { params: Promise<{ slug: 
   try {
     const [cRes, vRes, rRes, tRes, uRes, ctRes, aRes] = await Promise.all([
       fetch(`${base}/customers?limit=1000`, { headers, cache: 'no-store' }),
-      fetch(`${base}/vehicles`, { headers, cache: 'no-store' }),
+      fetch(`${base}/vehicles?includeInactive=true`, { headers, cache: 'no-store' }),
       fetch(`${base}/routes`, { headers, cache: 'no-store' }),
       fetch(`${base}/team`, { headers, cache: 'no-store' }),
       fetch(`${base}/billing/unbilled-deliveries`, { headers, cache: 'no-store' }),
