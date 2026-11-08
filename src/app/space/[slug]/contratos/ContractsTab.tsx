@@ -339,6 +339,11 @@ export function ContractsTab({
                   {c.customerName ?? customers.find((x) => x.id === c.customerId)?.name ?? '—'}
                   {c.contractNumber && <span className="mr-2 text-xs font-bold text-red-700 dark:text-red-400">No. {c.contractNumber}</span>}
                   {!c.isActive && <span className="ml-2 text-xs font-semibold text-gray-400 dark:text-neutral-500">{getText('Inactivo', 'Inactive')}</span>}
+                  {c.acceptedAt && (
+                    <span className="ml-2 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                      ✓ {getText('Aceptado por', 'Accepted by')} {c.acceptedByName} · {formatDate(c.acceptedAt)}
+                    </span>
+                  )}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-neutral-400">
                   {getText('Entrega', 'Delivery')}: {label(DELIVERY_OPTIONS, c.deliveryFrequency)} · {getText('Cobro', 'Billing')}: {label(BILLING_OPTIONS, c.billingCycle)} · {c.creditDays} {getText('días', 'days')}

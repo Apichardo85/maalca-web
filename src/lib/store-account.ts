@@ -60,6 +60,77 @@ export interface JoinStoreInput {
   wantsCredit?: boolean;
 }
 
+
+// ── Portal del cliente con contrato (reparto): contrato, envases, saldo, facturas, pagos, entregas y próxima visita ──
+export interface PortalContract {
+  id: string;
+  contractNumber: string | null;
+  deliveryFrequency: string;
+  billingCycle: string;
+  creditDays: number;
+  startDate: string;
+  endDate: string | null;
+  racksLoaned: number;
+  bottlesLoaned: number;
+  accepted: boolean;
+  acceptedAt: string | null;
+  acceptedByName: string | null;
+  /** Aceptó una versión anterior: el texto cambió y debe volver a aceptar. */
+  changedSinceAccepted: boolean;
+  /** Huella del texto actual; se devuelve al aceptar. */
+  documentHash: string;
+}
+export interface PortalContainer {
+  containerTypeId: string;
+  containerTypeName: string;
+  delivered: number;
+  returned: number;
+  damaged: number;
+  adjustments: number;
+  outstanding: number;
+}
+export interface PortalOpenInvoice {
+  invoiceId: string;
+  invoiceNumber: string;
+  issueDate: string;
+  dueDate: string | null;
+  open: number;
+  ageDays: number;
+  isOverdue: boolean;
+}
+export interface CustomerPortal {
+  /** false = cuenta aprobada pero aún sin ficha de cliente con este correo. */
+  linked: boolean;
+  customerName: string;
+  address: string | null;
+  contract: PortalContract | null;
+  containers: PortalContainer[];
+  anaqueles: { label: string | null; location: string | null; status: string }[];
+  balance: number;
+  creditOnAccount: number;
+  openInvoices: PortalOpenInvoice[];
+  recentPayments: { paidAt: string; amount: number; method: string }[];
+  recentDeliveries: {
+    deliveredAt: string;
+    items: { itemId: string | null; description: string; quantity: number; unitPrice: number; lineTotal: number }[];
+    total: number;
+  }[];
+  nextVisit: { date: string; routeStatus: string; onTheWay: boolean; stopsBefore: number | null } | null;
+  deliveryFrequency: string | null;
+}
+export interface PortalContractDocument {
+  title: string;
+  body: string;
+  contractNumber: string | null;
+  date: string;
+  businessName: string;
+  businessPhone: string | null;
+  businessAddress: string | null;
+  businessLogoUrl: string | null;
+  businessColor: string | null;
+  customerName: string;
+}
+
 export interface UseStoreAccount {
   /** true mientras se averigua si hay sesión. */
   loading: boolean;
@@ -76,6 +147,12 @@ export interface UseStoreAccount {
   loadOrders: () => Promise<StoreOrderSummary[]>;
   /** Corrige sus datos (nombre, teléfono, empresa, Tax ID). Devuelve el mensaje de error, o null si se guardó. */
   updateProfile: (input: { name?: string; phone?: string; businessName?: string; taxId?: string }) => Promise<string | null>;
+  /** Su portal de reparto. null = no disponible (sin sesión, sin cuenta aprobada o negocio sin portal). */
+  loadPortal: () => Promise<CustomerPortal | null>;
+  /** Texto del contrato tal como se le muestra para aceptar. */
+  loadContractDocument: () => Promise<PortalContractDocument | null>;
+  /** Acepta el contrato: nombre escrito como firma + huella del texto que leyó. Devuelve el mensaje de error, o null si quedó aceptado. */
+  acceptContract: (name: string, documentHash: string) => Promise<string | null>;
 }
 
 export function useStoreAccount(slug: string, enabled: boolean): UseStoreAccount {
@@ -187,6 +264,31 @@ export function useStoreAccount(slug: string, enabled: boolean): UseStoreAccount
       if (!res.ok) return data?.error?.message ?? 'Error';
       setMe(data);
       return null;
+    },
+    loadPortal: async () => {
+      try {
+        const res = await call('/portal');
+        return res.ok ? ((await res.json()) as CustomerPortal) : null;
+      } catch {
+        return null;
+      }
+    },
+    loadContractDocument: async () => {
+      try {
+        const res = await call('/portal/contract');
+        return res.ok ? ((await res.json()) as PortalContractDocument) : null;
+      } catch {
+        return null;
+      }
+    },
+    acceptContract: async (name: string, documentHash: string) => {
+      const res = await call('/portal/contract/accept', {
+        method: 'POST',
+        body: JSON.stringify({ name, agree: true, documentHash }),
+      });
+      if (res.ok) return null;
+      const data = await res.json().catch(() => null);
+      return data?.error?.message ?? 'Error';
     },
   };
 }

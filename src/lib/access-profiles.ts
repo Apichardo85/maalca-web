@@ -12,7 +12,7 @@ export function isAccessProfile(v: unknown): v is AccessProfile {
 
 export const PROFILE_LABELS: Record<AccessProfile, { es: string; en: string; descEs: string; descEn: string }> = {
   driver: { es: 'Chofer', en: 'Driver', descEs: 'Solo sus rutas de reparto', descEn: 'Only their delivery routes' },
-  cashier: { es: 'Cajero', en: 'Cashier', descEs: 'Punto de venta, pedidos y clientes', descEn: 'Point of sale, orders and customers' },
+  cashier: { es: 'Cajero', en: 'Cashier', descEs: 'Punto de venta, pedidos, clientes, facturas y cobros', descEn: 'Point of sale, orders, customers, invoices and collections' },
   warehouse: { es: 'Almacén', en: 'Warehouse', descEs: 'Solo inventario', descEn: 'Inventory only' },
   accounting: { es: 'Contabilidad', en: 'Accounting', descEs: 'Facturas, contratos y cobros, gastos', descEn: 'Invoices, contracts & collections, expenses' },
 };
@@ -20,7 +20,7 @@ export const PROFILE_LABELS: Record<AccessProfile, { es: string; en: string; des
 // Primer tramo de la ruta (/space/{slug}/{página}) que cada perfil puede abrir. '' es el dashboard.
 const PROFILE_PAGES: Record<AccessProfile, string[]> = {
   driver: ['ruta'],
-  cashier: ['pos', 'orders', 'clientes'],
+  cashier: ['pos', 'orders', 'clientes', 'invoices', 'contratos'],
   warehouse: ['inventory'],
   accounting: ['contratos', 'invoices', 'gastos', 'clientes', 'tablero'],
 };
@@ -66,7 +66,7 @@ export interface AccessChoice {
 
 export const ACCESS_CHOICES: AccessChoice[] = [
   { value: 'Staff|driver', role: 'Staff', profile: 'driver', es: 'Chofer (solo sus rutas)', en: 'Driver (own routes only)' },
-  { value: 'Staff|cashier', role: 'Staff', profile: 'cashier', es: 'Cajero (punto de venta y clientes)', en: 'Cashier (POS and customers)' },
+  { value: 'Staff|cashier', role: 'Staff', profile: 'cashier', es: 'Cajero (venta, facturas y cobros)', en: 'Cashier (sales, invoices and collections)' },
   { value: 'Staff|warehouse', role: 'Staff', profile: 'warehouse', es: 'Almacén (inventario)', en: 'Warehouse (inventory)' },
   { value: 'Manager|accounting', role: 'Manager', profile: 'accounting', es: 'Contabilidad (cobros, facturas, gastos)', en: 'Accounting (collections, invoices, expenses)' },
   { value: 'Manager|', role: 'Manager', profile: null, es: 'Gerente (casi todo)', en: 'Manager (almost everything)' },

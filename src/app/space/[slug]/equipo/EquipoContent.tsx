@@ -995,7 +995,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                       <p className="text-xs text-gray-400 dark:text-neutral-500">{member.role}</p>
                     </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end">
+                  <div className="flex flex-wrap items-center gap-2 sm:max-w-[65%] sm:justify-end">
                     <span
                       className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${
                         member.isActive
@@ -1012,7 +1012,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                           disabled={busyId === link.id}
                           onChange={(e) => updateAccess(link.id, e.target.value)}
                           aria-label={getText('Acceso al sistema', 'System access')}
-                          className="min-h-11 rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 text-xs"
+                          className="min-h-11 w-44 max-w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 text-xs"
                         >
                           {ACCESS_CHOICES.map((o) => (
                             <option key={o.value} value={o.value}>
@@ -1130,7 +1130,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                     <select
                       value={inviteAccess}
                       onChange={(e) => setInviteAccess(e.target.value)}
-                      className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm"
+                      className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm sm:w-56"
                     >
                       {ACCESS_CHOICES.map((c) => (
                         <option key={c.value} value={c.value}>
@@ -1196,7 +1196,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                         value={accessValue(c.role, c.profile)}
                         disabled={busyId === c.id}
                         onChange={(e) => updateAccess(c.id, e.target.value)}
-                        className="min-h-11 rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 text-xs"
+                        className="min-h-11 w-48 max-w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-2 text-xs"
                       >
                         {ACCESS_CHOICES.map((o) => (
                           <option key={o.value} value={o.value}>
@@ -1242,7 +1242,7 @@ export function EquipoContent({ slug, businessType, plan, role, initialPersonal,
                     <select
                       value={standaloneAccess}
                       onChange={(e) => setStandaloneAccess(e.target.value)}
-                      className="rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm"
+                      className="w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2 text-sm sm:w-56"
                     >
                       {ACCESS_CHOICES.map((c) => (
                         <option key={c.value} value={c.value}>

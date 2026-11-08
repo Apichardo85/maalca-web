@@ -37,6 +37,9 @@ export interface ContractRow {
   contractNumber: string | null;
   racksLoaned: number;
   bottlesLoaned: number;
+  /** Aceptación en línea desde el portal del cliente (ausente en un API anterior). */
+  acceptedAt?: string | null;
+  acceptedByName?: string | null;
 }
 
 export interface TemplateTag {

@@ -9,6 +9,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useStoreAccount, type StoreOrderSummary } from '@/lib/store-account';
 import { StoreAccountSheet } from '@/components/public/StoreAccountSheet';
+import { PortalSections } from './PortalSections';
 
 interface Props {
   slug: string;
@@ -178,6 +179,9 @@ export function CuentaContent({ slug, name, logoUrl, color, barColor, currency }
             </div>
           </dl>
         </section>
+
+        {/* Portal de reparto: contrato, saldo, envases, entregas y próxima visita (solo si hay ficha de cliente) */}
+        <PortalSections account={account} t={t} language={language} accent={accent} currency={currency} />
 
         {/* Pedidos */}
         <section>

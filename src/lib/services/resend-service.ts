@@ -231,7 +231,7 @@ const ROLE_LABELS_ES: Record<string, string> = { Owner: 'Dueño', Manager: 'Gere
 // Qué va a ver la persona al entrar, según su acceso. Texto general: sirve para cualquier tipo de negocio.
 const PROFILE_INVITE_ES: Record<string, { label: string; sees: string }> = {
   driver: { label: 'Chofer', sees: 'tus rutas de reparto del día: paradas, direcciones, entregas y cobros' },
-  cashier: { label: 'Cajero', sees: 'el punto de venta, los pedidos y los clientes' },
+  cashier: { label: 'Cajero', sees: 'el punto de venta, los pedidos, los clientes, las facturas y los cobros' },
   warehouse: { label: 'Almacén', sees: 'el inventario' },
   accounting: { label: 'Contabilidad', sees: 'las facturas, los contratos y cobros y los gastos' },
 };
