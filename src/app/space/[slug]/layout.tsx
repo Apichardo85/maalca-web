@@ -86,11 +86,11 @@ export default async function SpaceSlugLayout({
         userRole={role}
         activeModules={business.modulosActivos}
       />
-      {/* md:pl-[var(--space-sidebar-w,15rem)] en vez de un md:pl-60 fijo — SpaceSidebar (client)
+      {/* lg:pl-[var(--space-sidebar-w,15rem)] en vez de un md:pl-60 fijo — SpaceSidebar (client)
           ajusta esa CSS var en :root cuando el usuario colapsa/expande el sidebar (persistido en
           localStorage), y este wrapper (server component, no puede leer ese estado directo) solo
           la sigue. El fallback 15rem es para el primer paint antes de que el useEffect corra. */}
-      <div className="flex-1 min-w-0 transition-[padding] duration-200 md:pl-[var(--space-sidebar-w,15rem)]">
+      <div className="flex-1 min-w-0 transition-[padding] duration-200 lg:pl-[var(--space-sidebar-w,15rem)]">
         {isImpersonation && (
           <SupportModeBanner businessName={business.name} expiresAt={impersonationExpiresAt} />
         )}

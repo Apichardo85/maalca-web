@@ -190,7 +190,7 @@ export function SpaceSidebar({
        * SpaceTopBarControls instead of relying on the global Header for that.
        */}
       <aside
-        className={`hidden md:flex fixed top-0 bottom-0 left-0 z-30 flex-col overflow-hidden bg-white dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800 transition-[width] duration-200 ${
+        className={`hidden lg:flex fixed top-0 bottom-0 left-0 z-30 flex-col overflow-hidden bg-white dark:bg-neutral-900 border-r border-gray-200 dark:border-neutral-800 transition-[width] duration-200 ${
           collapsed ? 'w-0 border-r-0' : 'w-60'
         }`}
       >
@@ -255,7 +255,7 @@ export function SpaceSidebar({
         onClick={toggleCollapsed}
         aria-label={collapsed ? getText('Mostrar menú', 'Show menu') : getText('Ocultar menú', 'Hide menu')}
         title={collapsed ? getText('Mostrar menú', 'Show menu') : getText('Ocultar menú', 'Hide menu')}
-        className="hidden md:flex fixed top-20 z-40 h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-500 shadow-sm transition-[left] duration-200 hover:text-gray-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+        className="hidden lg:flex fixed top-20 z-40 h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-500 shadow-sm transition-[left] duration-200 hover:text-gray-900 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400 dark:hover:text-white"
         style={{ left: collapsed ? '0.75rem' : '15rem' }}
       >
         <svg

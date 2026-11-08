@@ -152,7 +152,7 @@ export function SpaceMobileNav({
           which stays visible at every breakpoint. This is now its one mount
           point for the whole /space section. */}
       <div className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-gray-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900 md:justify-end md:border-none md:bg-transparent md:px-6 md:py-4">
-        <div className="flex min-w-0 items-center gap-2 md:hidden">
+        <div className="flex min-w-0 items-center gap-2 lg:hidden">
           <button
             type="button"
             onClick={() => setIsOpen((v) => !v)}
@@ -187,7 +187,7 @@ export function SpaceMobileNav({
           (business name + plan badge, then the same 5 nav links in the same
           order, active link highlighted the same way). */}
       {isOpen && (
-        <div className="fixed inset-0 z-40 md:hidden">
+        <div className="fixed inset-0 z-40 lg:hidden">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsOpen(false)} aria-hidden="true" />
           <div className="animate-fade-in-left absolute bottom-0 left-0 top-0 flex w-72 max-w-[80vw] flex-col bg-white shadow-2xl dark:bg-neutral-900">
             <div className="border-b border-gray-200 px-4 py-5 dark:border-neutral-800">
