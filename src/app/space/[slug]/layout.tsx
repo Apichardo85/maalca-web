@@ -18,6 +18,24 @@ interface Affiliate {
   plan: Plan;
 }
 
+/**
+ * Color del negocio como variables CSS del panel: --brand-primary (botones y acentos que ya lo usan),
+ * --brand-primary-hover y --brand-tint (fondo suave para tarjetas y encabezados). Si el hex es muy claro
+ * (texto blanco ilegible encima) se oscurece; si no hay color válido, se queda el azul de MaalCa.
+ */
+function spaceBrandVars(hex?: string | null): React.CSSProperties | undefined {
+  if (!hex || !/^#[0-9a-f]{6}$/i.test(hex)) return undefined;
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  const lum = 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  const base = lum > 0.4 ? `color-mix(in srgb, ${hex} 60%, black)` : hex;
+  return {
+    '--brand-primary': base,
+    '--brand-primary-hover': `color-mix(in srgb, ${base} 85%, black)`,
+    '--brand-tint': `color-mix(in srgb, ${base} 7%, transparent)`,
+  } as React.CSSProperties;
+}
+
 export default async function SpaceSlugLayout({
   children,
   params,
@@ -55,7 +73,7 @@ export default async function SpaceSlugLayout({
 
   return (
     <NotificationsProvider slug={slug}>
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-background" style={spaceBrandVars(business.primaryColor)}>
       <SpaceSidebar
         slug={slug}
         businessName={business.name}

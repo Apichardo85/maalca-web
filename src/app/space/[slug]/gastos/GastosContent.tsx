@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
+import { downloadBrandedPdf, type BrandInfo } from '@/lib/pdf/document';
 import { formatDate, moneyFormatter, readApiError } from '@/lib/receivables';
 import {
   EXPENSE_CATEGORIES,
@@ -18,6 +19,7 @@ import {
 interface Props {
   slug: string;
   currency: 'USD' | 'DOP';
+  brand: BrandInfo;
   initialMonth: string;
   initialExpenses: Expense[];
   initialProfit: ProfitReport | null;
@@ -35,7 +37,7 @@ interface Form {
   notes: string;
 }
 
-export function GastosContent({ slug, currency, initialMonth, initialExpenses, initialProfit }: Props) {
+export function GastosContent({ slug, currency, brand: brandInfo, initialMonth, initialExpenses, initialProfit }: Props) {
   const { language } = useSimpleLanguage();
   const es = language === 'es';
   const getText = (a: string, b: string) => (es ? a : b);
@@ -71,6 +73,31 @@ export function GastosContent({ slug, currency, initialMonth, initialExpenses, i
     setMonth(next);
     setForm(null);
     await load(next);
+  }
+
+  // Reporte mensual para contabilidad: PDF con logo y color del negocio.
+  async function downloadReport() {
+    if (!profit) return;
+    try {
+      await downloadBrandedPdf({
+        brand: brandInfo,
+        documentTitle: getText('Reporte de utilidad', 'Profit report'),
+        metaLines: [monthTitle(month)],
+        items: profit.expensesByCategory.map((c) => ({ description: categoryLabel(c.category, es), total: fmt.format(c.total) })),
+        subtotalLines: [
+          { label: getText('Ventas', 'Sales'), value: fmt.format(profit.salesTotal) },
+          { label: `  ${getText('Facturado', 'Invoiced')}`, value: fmt.format(profit.salesInvoiced) },
+          { label: `  ${getText('Mostrador', 'Counter')}`, value: fmt.format(profit.salesCounter) },
+          { label: getText('Gastos', 'Expenses'), value: fmt.format(profit.expensesTotal) },
+          { label: getText('Utilidad de caja', 'Cash profit'), value: fmt.format(profit.cashProfit) },
+        ],
+        amountValue: fmt.format(profit.profit),
+        status: profit.profit < 0 ? { label: getText('Pérdida', 'Loss'), tone: 'danger' } : { label: getText('Utilidad', 'Profit'), tone: 'success' },
+        filename: `utilidad-${month}`,
+      });
+    } catch {
+      toast.error(getText('No se pudo generar el PDF.', "Couldn't generate the PDF."));
+    }
   }
 
   function monthTitle(m: string) {
@@ -183,23 +210,23 @@ export function GastosContent({ slug, currency, initialMonth, initialExpenses, i
       {profit && (
         <section className="mt-4">
           <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-xl border border-gray-200 dark:border-neutral-800 p-3">
+            <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-[var(--brand-tint)] p-3">
               <p className="text-xs text-gray-500 dark:text-neutral-400">{getText('Ventas', 'Sales')}</p>
               <p className="text-lg font-bold">{fmt.format(profit.salesTotal)}</p>
               <p className="text-[11px] text-gray-500 dark:text-neutral-400">
                 {getText('Facturado', 'Invoiced')} {fmt.format(profit.salesInvoiced)} · {getText('Mostrador', 'Counter')} {fmt.format(profit.salesCounter)}
               </p>
             </div>
-            <div className="rounded-xl border border-gray-200 dark:border-neutral-800 p-3">
+            <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-[var(--brand-tint)] p-3">
               <p className="text-xs text-gray-500 dark:text-neutral-400">{getText('Gastos', 'Expenses')}</p>
               <p className="text-lg font-bold">{fmt.format(profit.expensesTotal)}</p>
             </div>
-            <div className="rounded-xl border border-gray-200 dark:border-neutral-800 p-3">
+            <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-[var(--brand-tint)] p-3">
               <p className="text-xs text-gray-500 dark:text-neutral-400">{getText('Utilidad', 'Profit')}</p>
               <p className={`text-lg font-bold ${profit.profit < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-700 dark:text-green-400'}`}>{fmt.format(profit.profit)}</p>
               <p className="text-[11px] text-gray-500 dark:text-neutral-400">{getText('Ventas − gastos', 'Sales − expenses')}</p>
             </div>
-            <div className="rounded-xl border border-gray-200 dark:border-neutral-800 p-3">
+            <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-[var(--brand-tint)] p-3">
               <p className="text-xs text-gray-500 dark:text-neutral-400">{getText('Utilidad de caja', 'Cash profit')}</p>
               <p className={`text-lg font-bold ${profit.cashProfit < 0 ? 'text-red-600 dark:text-red-400' : ''}`}>{fmt.format(profit.cashProfit)}</p>
               <p className="text-[11px] text-gray-500 dark:text-neutral-400">
@@ -230,6 +257,10 @@ export function GastosContent({ slug, currency, initialMonth, initialExpenses, i
               ))}
             </ul>
           )}
+
+          <button type="button" onClick={downloadReport} className={`${ghost} mt-3`}>
+            {getText('Descargar reporte (PDF)', 'Download report (PDF)')}
+          </button>
         </section>
       )}
 

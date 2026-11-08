@@ -7,11 +7,13 @@ import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { formatDate, moneyFormatter, readApiError } from '@/lib/receivables';
 import { mapsUrl, type DriverSheet, type DriverStop, type ProductLite, type Reconciliation, type StopStatus } from '@/lib/delivery';
+import type { BrandInfo } from '@/lib/pdf/document';
 import { DeliveryForm } from './DeliveryForm';
 
 interface Props {
   slug: string;
   currency: 'USD' | 'DOP';
+  brand: BrandInfo;
   initialSheet: DriverSheet;
   products: ProductLite[];
 }
@@ -23,7 +25,7 @@ const STATUS_STYLE: Record<StopStatus, string> = {
   failed: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
 };
 
-export function RouteContent({ slug, currency, initialSheet, products }: Props) {
+export function RouteContent({ slug, currency, brand: brandInfo, initialSheet, products }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -51,6 +53,29 @@ export function RouteContent({ slug, currency, initialSheet, products }: Props) 
     skipped: getText('Omitido', 'Skipped'),
     failed: getText('Fallido', 'Failed'),
   };
+
+  // Hoja de reparto en papel (plan B si falla el teléfono): marca del negocio y casillas para anotar a mano.
+  function printSheet() {
+    const w = window.open('', '_blank');
+    if (!w) {
+      toast.error(getText('El navegador bloqueó la ventana de impresión.', 'The browser blocked the print window.'));
+      return;
+    }
+    const esc = (v: string) => v.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] as string);
+    const color = /^#[0-9a-f]{6}$/i.test(brandInfo.primaryColor ?? '') ? (brandInfo.primaryColor as string) : '#045AFE';
+    const rows = [...sheet.stops]
+      .sort((a, b) => a.stop.sortOrder - b.stop.sortOrder)
+      .map((s, i) => {
+        const env = s.containers.filter((c) => c.outstanding > 0).map((c) => `${c.outstanding} ${c.containerTypeName}`).join(', ');
+        return `<tr><td>${i + 1}</td><td><b>${esc(s.stop.customerName)}</b><br><small>${esc([s.stop.customerAddress, s.stop.customerPhone].filter(Boolean).join(' · '))}</small></td><td>${esc(env || '—')}</td><td class="r">${s.amountOwed > 0 ? esc(fmt.format(s.amountOwed)) : '—'}</td><td></td><td></td><td></td></tr>`;
+      })
+      .join('');
+    const logo = brandInfo.logoUrl ? `<img src="${esc(brandInfo.logoUrl)}" style="height:44px;max-width:160px;object-fit:contain"/>` : '';
+    w.document.write(
+      `<!doctype html><html><head><meta charset="utf-8"><title>${esc(sheet.name)}</title><style>body{font-family:sans-serif;margin:16px;color:#111}header{display:flex;align-items:center;gap:12px;border-bottom:3px solid ${color};padding-bottom:8px}h1{font-size:18px;margin:0;color:${color}}p{margin:2px 0;font-size:12px;color:#444}table{width:100%;border-collapse:collapse;margin-top:12px;font-size:12px}th{background:${color};color:#fff;text-align:left;padding:6px}td{border:1px solid #bbb;padding:6px;height:34px;vertical-align:top}.r{text-align:right}small{color:#555}</style></head><body><header>${logo}<div><h1>${esc(brandInfo.name)}</h1><p>${esc(sheet.name)} · ${esc(formatDate(sheet.routeDate))}${sheet.vehiclePlate ? ` · ${esc(sheet.vehiclePlate)}` : ''}${sheet.loadedFull != null ? ` · ${getText('Cargado', 'Loaded')}: ${sheet.loadedFull}` : ''}</p></div></header><table><thead><tr><th>#</th><th>${getText('Cliente', 'Customer')}</th><th>${getText('Envases en cliente', 'Containers at customer')}</th><th>${getText('Saldo', 'Balance')}</th><th>${getText('Entregó', 'Delivered')}</th><th>${getText('Recogió', 'Collected')}</th><th>${getText('Cobró', 'Paid')}</th></tr></thead><tbody>${rows}</tbody></table><script>window.onload=function(){window.print()}</script></body></html>`,
+    );
+    w.document.close();
+  }
 
   async function refresh() {
     try {
@@ -125,7 +150,12 @@ export function RouteContent({ slug, currency, initialSheet, products }: Props) 
       <Link href={`/space/${slug}/ruta`} className="text-sm text-gray-500 dark:text-neutral-400">
         ← {getText('Mis rutas', 'My routes')}
       </Link>
-      <h1 className="mt-2 break-words text-xl font-bold">{sheet.name}</h1>
+      <div className="mt-2 flex items-start justify-between gap-2">
+        <h1 className="break-words text-xl font-bold">{sheet.name}</h1>
+        <button type="button" onClick={printSheet} className="shrink-0 rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-semibold">
+          {getText('Imprimir hoja', 'Print sheet')}
+        </button>
+      </div>
       <p className="text-sm text-gray-500 dark:text-neutral-400">
         {formatDate(sheet.routeDate)} · {statusLabel[sheet.status] ?? sheet.status}
         {sheet.vehiclePlate ? ` · ${sheet.vehiclePlate}` : ''} · {done}/{sheet.stops.length}

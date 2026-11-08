@@ -52,6 +52,7 @@ export default async function RouteDetailPage({ params }: { params: Promise<{ sl
     <RouteContent
       slug={slug}
       currency={space.business.currency === 'DOP' ? 'DOP' : 'USD'}
+      brand={{ name: space.business.name, logoUrl: space.business.logoUrl ?? null, primaryColor: space.business.primaryColor ?? null }}
       initialSheet={sheet}
       products={products}
     />

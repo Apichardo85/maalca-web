@@ -12,6 +12,8 @@ interface SpaceResponse {
     name: string;
     businessType: string;
     currency?: 'USD' | 'DOP';
+    logoUrl?: string | null;
+    primaryColor?: string | null;
     modulosActivos: string[];
   };
 }
@@ -67,6 +69,7 @@ export default async function ContratosPage({ params }: { params: Promise<{ slug
     <ContratosContent
       slug={slug}
       currency={space.business.currency === 'DOP' ? 'DOP' : 'USD'}
+      brand={{ name: space.business.name, logoUrl: space.business.logoUrl ?? null, primaryColor: space.business.primaryColor ?? null }}
       customers={customers}
       initialContracts={contracts}
       initialAging={aging}

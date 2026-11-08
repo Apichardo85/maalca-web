@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
+import { downloadBrandedPdf, type BrandInfo } from '@/lib/pdf/document';
 import {
   type AgingReport,
   type AgingRow,
@@ -25,10 +26,12 @@ interface PayTarget {
 export function ReceivablesTab({
   slug,
   currency,
+  brand,
   initialAging,
 }: {
   slug: string;
   currency: 'USD' | 'DOP';
+  brand: BrandInfo;
   initialAging: AgingReport;
 }) {
   const { language } = useSimpleLanguage();
@@ -56,6 +59,43 @@ export function ReceivablesTab({
   async function refreshAging() {
     const res = await fetch(`/api/space/${slug}/receivables/aging`, { cache: 'no-store' });
     if (res.ok) setAging(await res.json());
+  }
+
+  // Estado de cuenta en PDF con el logo y el color del negocio (mismo generador que las facturas).
+  async function downloadStatement(st: CustomerStatement) {
+    try {
+      await downloadBrandedPdf({
+        brand,
+        documentTitle: getText('Estado de cuenta', 'Account statement'),
+        counterpartLabel: getText('Cliente', 'Customer'),
+        counterpartName: st.customerName,
+        metaLines: [`${getText('Al', 'As of')}: ${formatDate(st.asOf)}`],
+        items: st.lines.map((l) => ({
+          description: `${formatDate(l.date)} · ${l.type === 'payment' ? getText('Pago', 'Payment') : l.type === 'settled' ? getText('Saldada', 'Settled') : getText('Factura', 'Invoice')}${l.reference ? ` ${l.reference}` : ''}`,
+          total: l.debit > 0 ? `+${fmt.format(l.debit)}` : `−${fmt.format(l.credit)}`,
+        })),
+        subtotalLines: [
+          { label: getText('Facturado', 'Invoiced'), value: fmt.format(st.totalInvoiced) },
+          { label: getText('Pagado', 'Paid'), value: fmt.format(st.totalPaid) },
+          ...(st.creditOnAccount > 0 ? [{ label: getText('Saldo a favor', 'Customer credit'), value: fmt.format(st.creditOnAccount) }] : []),
+        ],
+        amountValue: fmt.format(st.balance),
+        status:
+          st.balance > 0
+            ? { label: getText('Saldo pendiente', 'Balance due'), tone: 'danger' }
+            : { label: getText('Al día', 'Paid up'), tone: 'success' },
+        filename: `estado-de-cuenta-${st.customerName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`,
+      });
+    } catch {
+      toast.error(getText('No se pudo generar el PDF.', "Couldn't generate the PDF."));
+    }
+  }
+
+  // WhatsApp: abre el chat con el resumen listo (el dueño elige el contacto); no se envía nada solo.
+  function whatsappStatement(st: CustomerStatement) {
+    const open = st.openInvoices.map((i) => `• ${i.invoiceNumber}: ${fmt.format(i.open)}`).join('\n');
+    const text = `${brand.name}\n${getText('Estado de cuenta', 'Account statement')} — ${st.customerName}\n${getText('Al', 'As of')} ${formatDate(st.asOf)}\n\n${open ? `${open}\n\n` : ''}${getText('Saldo', 'Balance')}: ${fmt.format(st.balance)}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
   }
 
   async function openStatement(customerId: string) {
@@ -136,15 +176,15 @@ export function ReceivablesTab({
       <Toast toasts={toast.toasts} onRemove={toast.remove} />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <div className="rounded-xl border border-gray-200 dark:border-neutral-800 p-4">
+        <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-[var(--brand-tint)] p-4">
           <p className="text-xs text-gray-500 dark:text-neutral-400">{getText('Por cobrar', 'Receivable')}</p>
           <p className="mt-1 text-xl font-bold">{fmt.format(aging.totalBalance)}</p>
         </div>
-        <div className="rounded-xl border border-gray-200 dark:border-neutral-800 p-4">
+        <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-[var(--brand-tint)] p-4">
           <p className="text-xs text-gray-500 dark:text-neutral-400">{getText('A favor de clientes', 'Customer credit')}</p>
           <p className="mt-1 text-xl font-bold">{fmt.format(aging.totalCreditOnAccount)}</p>
         </div>
-        <div className="col-span-2 sm:col-span-1 rounded-xl border border-gray-200 dark:border-neutral-800 p-4">
+        <div className="col-span-2 sm:col-span-1 rounded-xl border border-gray-200 dark:border-neutral-800 bg-[var(--brand-tint)] p-4">
           <p className="text-xs text-gray-500 dark:text-neutral-400">{getText('Clientes con saldo', 'Customers with balance')}</p>
           <p className="mt-1 text-xl font-bold">{aging.rows.filter((r) => r.balance > 0).length}</p>
         </div>
@@ -258,6 +298,15 @@ export function ReceivablesTab({
             >
               {getText('Abono a cuenta', 'Payment on account')}
             </button>
+
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button type="button" onClick={() => downloadStatement(statement)} className="rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-2 text-sm font-semibold">
+                {getText('Descargar PDF', 'Download PDF')}
+              </button>
+              <button type="button" onClick={() => whatsappStatement(statement)} className="rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-2 text-sm font-semibold">
+                WhatsApp
+              </button>
+            </div>
 
             <h3 className="mt-5 text-sm font-semibold">{getText('Facturas abiertas', 'Open invoices')}</h3>
             {statement.openInvoices.length === 0 ? (

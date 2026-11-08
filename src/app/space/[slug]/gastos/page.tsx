@@ -43,6 +43,7 @@ export default async function GastosPage({ params }: { params: Promise<{ slug: s
     <GastosContent
       slug={slug}
       currency={space.business.currency === 'DOP' ? 'DOP' : 'USD'}
+      brand={{ name: space.business.name, logoUrl: space.business.logoUrl ?? null, primaryColor: space.business.primaryColor ?? null }}
       initialMonth={month}
       initialExpenses={expenses}
       initialProfit={profit}
