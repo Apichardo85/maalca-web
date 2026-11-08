@@ -126,6 +126,8 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [rnc, setRnc] = useState('');
+  const [address, setAddress] = useState('');
   const [saving, setSaving] = useState(false);
 
   const [selected, setSelected] = useState<CustomerRow | null>(null);
@@ -170,6 +172,8 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
           name: name.trim(),
           phone: phone ? normalizePhone(phone) : null,
           email: email.trim() || null,
+          rnc: rnc.trim() || null,
+          address: address.trim() || null,
           status: 'Active',
         }),
       });
@@ -177,6 +181,8 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
       setName('');
       setPhone('');
       setEmail('');
+      setRnc('');
+      setAddress('');
       setShowForm(false);
       toast.success(getText('Cliente agregado.', 'Customer added.'));
       await refetch();
@@ -198,6 +204,23 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
       // El modal muestra "sin historial" si history queda null.
     } finally {
       setLoadingHistory(false);
+    }
+  }
+
+  async function toggleActive(customer: CustomerRow) {
+    const next = customer.status === 'Active' ? 'Inactive' : 'Active';
+    try {
+      const res = await fetch(`/api/space/${slug}/customers/${customer.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: customer.name, email: customer.email, phone: customer.phone, notes: customer.notes, status: next }),
+      });
+      if (!res.ok) throw new Error('toggle failed');
+      setSelected({ ...customer, status: next });
+      toast.success(next === 'Inactive' ? getText('Cliente desactivado.', 'Customer deactivated.') : getText('Cliente activado.', 'Customer activated.'));
+      await refetch();
+    } catch {
+      toast.error(getText('No se pudo actualizar. Intenta de nuevo.', "Couldn't update it. Try again."));
     }
   }
 
@@ -379,6 +402,20 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
             placeholder={getText('Email (opcional)', 'Email (optional)')}
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
           />
+          <input
+            type="text"
+            value={rnc}
+            onChange={(e) => setRnc(e.target.value)}
+            placeholder={getText('Cédula o RNC (opcional)', 'ID or tax ID (optional)')}
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
+          />
+          <input
+            type="text"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder={getText('Dirección (opcional)', 'Address (optional)')}
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
+          />
           <button
             type="button"
             onClick={handleAdd}
@@ -428,6 +465,14 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete }: Props
                 {selected.notes}
               </p>
             )}
+
+            <button
+              type="button"
+              onClick={() => toggleActive(selected)}
+              className="mb-4 rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold dark:border-neutral-700"
+            >
+              {selected.status === 'Active' ? getText('Desactivar cliente', 'Deactivate customer') : getText('Activar cliente', 'Activate customer')}
+            </button>
 
             <CustomerInsights slug={slug} customerId={selected.id} customerName={selected.name} getText={getText} language={language} />
 

@@ -81,7 +81,7 @@ export function GastosContent({ slug, currency, initialMonth, initialExpenses, i
   function openNew() {
     const { from, to } = monthBounds(month);
     const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Santo_Domingo' });
-    setForm({ id: null, category: 'otro', description: '', amount: '', date: today >= from && today <= to ? today : from, recurrence: 'none', vendor: '', method: '', notes: '' });
+    setForm({ id: null, category: EXPENSE_CATEGORIES[0], description: '', amount: '', date: today >= from && today <= to ? today : from, recurrence: 'none', vendor: '', method: '', notes: '' });
   }
 
   async function save() {
@@ -254,7 +254,7 @@ export function GastosContent({ slug, currency, initialMonth, initialExpenses, i
               ))}
             </select>
             <input className={input} placeholder={getText('Descripción (ej. Factura de luz)', 'Description (e.g. Electric bill)')} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-            <input className={input} type="number" inputMode="decimal" min="0" step="0.01" placeholder={getText('Monto', 'Amount')} value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
+            <input className={input} type="number" inputMode="decimal" min="0" step="0.01" placeholder={`${getText('Monto', 'Amount')} (${currency === 'DOP' ? 'RD$' : 'US$'})`} value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
             <input className={input} type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
             <input className={input} placeholder={getText('Proveedor (opcional)', 'Vendor (optional)')} value={form.vendor} onChange={(e) => setForm({ ...form, vendor: e.target.value })} />
             <select className={input} value={form.method} onChange={(e) => setForm({ ...form, method: e.target.value })}>
