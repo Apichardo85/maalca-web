@@ -524,7 +524,7 @@ export function StatsContent({ slug, kpis, plan, detailed: initialDetailed, repo
                 <ReportPieCard
                   title={getText('Método de pago (mostrador)', 'Payment method (counter)')}
                   data={reports.byPaymentMethod.map((p) => ({
-                    name: p.method === 'Cash' ? getText('Efectivo', 'Cash') : p.method === 'Card' ? getText('Tarjeta', 'Card') : getText('Otro', 'Other'),
+                    name: p.method === 'Cash' ? getText('Efectivo', 'Cash') : p.method === 'Card' ? getText('Tarjeta', 'Card') : p.method === 'Transfer' ? getText('Transferencia', 'Transfer') : getText('Otro', 'Other'),
                     value: p.revenue,
                   }))}
                   valueLabel={(v) => `${reports.currency} ${v.toFixed(2)}`}

@@ -13,6 +13,9 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
+  // Región del visitante (Vercel la manda en este header): RD → la API arranca el negocio en pesos, el resto en dólares.
+  const country = req.headers.get('x-vercel-ip-country');
+  if (country && /^[A-Za-z]{2}$/.test(country) && !body.country) body.country = country.toUpperCase();
 
   const apiRes = await fetch(`${API}/api/onboarding`, {
     method: 'POST',

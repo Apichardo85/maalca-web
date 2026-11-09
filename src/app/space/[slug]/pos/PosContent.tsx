@@ -59,6 +59,8 @@ const NEW_CUSTOMER = '__new__';
 const PAYMENT_METHODS: { value: string; es: string; en: string; icon: string }[] = [
   { value: 'Cash', es: 'Efectivo', en: 'Cash', icon: '💵' },
   { value: 'Card', es: 'Tarjeta (QR)', en: 'Card (QR)', icon: '💳' },
+  { value: 'Transfer', es: 'Transferencia', en: 'Bank transfer', icon: '🏦' },
+  { value: 'Credit', es: 'A crédito', en: 'On credit', icon: '📒' },
   { value: 'Other', es: 'Otro', en: 'Other', icon: '🧾' },
 ];
 
@@ -181,7 +183,7 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
   // Defensa extra por si currency llega vacío/inválido desde algún otro caller — Intl.NumberFormat
   // revienta con "Invalid currency code" en vez de degradar con gracia.
   const safeCurrency = currency === 'DOP' ? 'DOP' : 'USD';
-  const fmt = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: safeCurrency }).format(n);
+  const fmt = (n: number) => new Intl.NumberFormat(safeCurrency === 'DOP' ? 'es-DO' : 'en-US', { style: 'currency', currency: safeCurrency }).format(n);
 
   function addToCart(item: PosItem) {
     setCart((prev) => {
@@ -248,6 +250,10 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
   async function chargeSale() {
     if (cart.length === 0 || !paymentMethod) return;
     if (paymentMethod === 'Card') return chargeWithStripe();
+    if (paymentMethod === 'Credit' && selectedCustomerId === NEW_CUSTOMER) {
+      toast.error(getText('Elige el cliente al que le vendes a crédito.', 'Pick the customer you are selling to on credit.'));
+      return;
+    }
 
     setCharging(true);
     try {
@@ -720,6 +726,14 @@ export function PosContent({ slug, affiliateId, currency, items, businessType, c
               </button>
             ))}
           </div>
+
+          {paymentMethod === 'Credit' && (
+            <p className="mt-2 text-xs text-gray-500 dark:text-neutral-400">
+              {selectedCustomerId === NEW_CUSTOMER
+                ? getText('Elige arriba el cliente: la venta queda como factura por cobrar en Contratos y cobros.', 'Pick the customer above: the sale becomes an open invoice in Contracts & collections.')
+                : getText('Queda como factura por cobrar; vence según los días de crédito del cliente.', "It becomes an open invoice, due per the customer's credit days.")}
+            </p>
+          )}
 
           <button
             onClick={chargeSale}
