@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { ModuleIntro } from '@/components/space/ModuleIntro';
 import type { RouteSummary, RouteStatus } from '@/lib/delivery';
@@ -13,16 +14,79 @@ const STATUS_ES: Record<RouteStatus, [string, string]> = {
   cancelled: ['Cancelada', 'Cancelled'],
 };
 
-export function RutaContent({ slug, routes }: { slug: string; routes: RouteSummary[] }) {
+const REFRESH_MS = 30_000;
+
+export function RutaContent({ slug, routes: initialRoutes }: { slug: string; routes: RouteSummary[] }) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
+
+  // La pantalla queda abierta toda la mañana mientras el que planifica asigna o cierra rutas: sin refresco el
+  // conductor veía la foto de cuando cargó la página. Se refresca sola y, si falla, se queda con lo último bueno.
+  const [routes, setRoutes] = useState(initialRoutes);
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [offline, setOffline] = useState(false);
+  const inFlight = useRef(false);
+
+  const refresh = useCallback(async () => {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setRefreshing(true);
+    try {
+      const res = await fetch(`/api/space/${slug}/routes/mine`, { cache: 'no-store' });
+      if (!res.ok) throw new Error();
+      setRoutes(await res.json());
+      setUpdatedAt(new Date());
+      setOffline(false);
+    } catch {
+      // Sin señal en la calle es lo normal: se avisa y se reintenta al siguiente ciclo.
+      setOffline(true);
+    } finally {
+      inFlight.current = false;
+      setRefreshing(false);
+    }
+  }, [slug]);
+
+  useEffect(() => {
+    const timer = setInterval(refresh, REFRESH_MS);
+    // Volver a la pestaña después de un rato es justo cuando lo de pantalla está más viejo.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [refresh]);
+
+  const updatedLabel = updatedAt
+    ? updatedAt.toLocaleTimeString(language === 'es' ? 'es-DO' : 'en-US', { hour: '2-digit', minute: '2-digit' })
+    : null;
 
   return (
     <div className="px-4 py-6 max-w-xl mx-auto">
       <p className="text-xs uppercase tracking-widest font-semibold text-gray-400 dark:text-neutral-500">
         {getText('Reparto', 'Delivery')}
       </p>
-      <h1 className="mt-1 text-2xl font-bold">{getText('Mis rutas de hoy', "Today's routes")}</h1>
+      <div className="mt-1 flex items-start justify-between gap-3">
+        <h1 className="text-2xl font-bold">{getText('Mis rutas de hoy', "Today's routes")}</h1>
+        <button
+          type="button"
+          onClick={refresh}
+          disabled={refreshing}
+          className="mt-1 shrink-0 rounded-full border border-gray-300 px-3 py-1.5 text-xs font-semibold disabled:opacity-50 dark:border-neutral-700"
+        >
+          {refreshing ? getText('Actualizando…', 'Refreshing…') : getText('Actualizar', 'Refresh')}
+        </button>
+      </div>
+      <p className="mt-1 text-xs text-gray-400 dark:text-neutral-500">
+        {offline
+          ? getText('Sin conexión — mostrando lo último que se pudo cargar.', 'Offline — showing the last data loaded.')
+          : updatedLabel
+            ? getText(`Actualizado a las ${updatedLabel}`, `Updated at ${updatedLabel}`)
+            : getText('Se actualiza sola cada 30 segundos.', 'Refreshes by itself every 30 seconds.')}
+      </p>
 
       <ModuleIntro
         id="mis-rutas"

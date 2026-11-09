@@ -10,6 +10,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { MembersPanel, type StoreCustomerRow, type StoreSettings } from './MembersPanel';
+import { CustomersPanel } from './CustomersPanel';
 
 export interface PriceListRow {
   id: string;
@@ -323,6 +324,13 @@ export function PriceListsContent({ slug, initialLists, currency, initialMembers
           ))}
         </ul>
       )}
+      <CustomersPanel
+        slug={slug}
+        lists={lists}
+        getText={getText}
+        onError={(m) => toast.error(m)}
+        onSuccess={(m) => toast.success(m)}
+      />
       <MembersPanel
         slug={slug}
         lists={lists}

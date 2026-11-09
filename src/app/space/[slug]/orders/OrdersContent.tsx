@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { ModuleIntro } from '@/components/space/ModuleIntro';
@@ -290,10 +291,33 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
         {isPaidPlan(plan) && <TaxSettingsCard slug={slug} initial={taxSettings} getText={getText} toast={toast} />}
 
         {orders.length === 0 ? (
-          <div className="mt-8 max-w-3xl rounded-2xl border border-dashed border-gray-300 dark:border-neutral-700 p-10 text-center">
-            <p className="text-sm text-gray-500 dark:text-neutral-400">
+          // Sin esta explicación, un negocio que vende en ruta ve la pantalla vacía y cree que algo se rompió:
+          // las entregas del camión crean entrega + factura, nunca un pedido.
+          <div className="mt-8 max-w-3xl rounded-2xl border border-dashed border-gray-300 dark:border-neutral-700 p-8 text-center">
+            <p className="text-sm font-medium text-gray-700 dark:text-neutral-200">
               {getText('Todavía no hay pedidos.', 'No orders yet.')}
             </p>
+            <p className="mx-auto mt-2 max-w-md text-sm text-gray-500 dark:text-neutral-400">
+              {getText(
+                'Acá caen los pedidos que te hacen desde tu página y las ventas que cobras en el punto de venta. Las entregas que hace el camión en su ruta no son pedidos: esas van en Reparto y en Facturas.',
+                'This is where orders from your page and sales you charge at the point of sale land. Deliveries made by the truck on its route are not orders: those live in Delivery and Invoices.',
+              )}
+            </p>
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+              <Link
+                href={`/space/${slug}/pos`}
+                className="min-h-10 rounded-full px-4 py-2 text-xs font-semibold text-white"
+                style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
+              >
+                {getText('Cobrar en el punto de venta', 'Charge at the point of sale')}
+              </Link>
+              <Link
+                href={`/${slug}`}
+                className="min-h-10 rounded-full border border-gray-300 px-4 py-2 text-xs font-semibold dark:border-neutral-700"
+              >
+                {getText('Ver mi página', 'View my page')}
+              </Link>
+            </div>
           </div>
         ) : (
           <>

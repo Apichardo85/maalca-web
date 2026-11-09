@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { ModuleIntro } from '@/components/space/ModuleIntro';
@@ -138,6 +138,11 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers, ca
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [query, setQuery] = useState('');
+  // Filtros por cliente y por rango de fechas (fecha de emisión). Vacío = sin filtrar.
+  const [customerFilter, setCustomerFilter] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   const [showActivity, setShowActivity] = useState(false);
   const [activity, setActivity] = useState<AuditLogRow[]>([]);
   const [activityLoading, setActivityLoading] = useState(false);
@@ -456,6 +461,48 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers, ca
     if (next && activity.length === 0) loadActivity();
   }
 
+  // Los filtros viven en la URL: así el dueño puede guardar o mandar "las vencidas de Colmado X en octubre".
+  // Se usa history.replaceState y no el router: cambiar un filtro no tiene por qué volver al servidor ni
+  // re-renderizar la página entera mientras se escribe.
+  const hydrated = useRef(false);
+
+  useEffect(() => {
+    if (hydrated.current) return;
+    hydrated.current = true;
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('estado');
+    if (status === 'Pending' || status === 'Overdue' || status === 'Paid' || status === 'Cancelled') setStatusFilter(status);
+    const cliente = params.get('cliente');
+    const desde = params.get('desde');
+    const hasta = params.get('hasta');
+    const buscar = params.get('buscar');
+    if (cliente) setCustomerFilter(cliente);
+    if (desde) setFromDate(desde);
+    if (hasta) setToDate(hasta);
+    if (buscar) setQuery(buscar);
+    if (cliente || desde || hasta) setShowFilters(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated.current) return;
+    const next = new URLSearchParams();
+    if (statusFilter !== 'all') next.set('estado', statusFilter);
+    if (customerFilter) next.set('cliente', customerFilter);
+    if (fromDate) next.set('desde', fromDate);
+    if (toDate) next.set('hasta', toDate);
+    if (query.trim()) next.set('buscar', query.trim());
+    const qs = next.toString();
+    window.history.replaceState(null, '', qs ? `${window.location.pathname}?${qs}` : window.location.pathname);
+  }, [statusFilter, customerFilter, fromDate, toDate, query]);
+
+  function clearFilters() {
+    setStatusFilter('all');
+    setCustomerFilter('');
+    setFromDate('');
+    setToDate('');
+    setQuery('');
+  }
+
   // Una factura Pendiente cuya fecha de vencimiento ya pasó se trata como Vencida, aunque el
   // backend todavía no la haya marcado: es lo que el dueño necesita ver para cobrar.
   const todayKey = new Date().toISOString().slice(0, 10);
@@ -464,9 +511,22 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers, ca
   const q = query.trim().toLowerCase();
   const matchesQuery = (i: InvoiceRow) =>
     !q || i.invoiceNumber.toLowerCase().includes(q) || (i.customer?.name ?? '').toLowerCase().includes(q);
-  const searched = invoices.filter(matchesQuery);
+  // Rango por fecha de emisión, inclusivo en ambos extremos (lo que el dueño espera de "del 1 al 15").
+  const matchesRange = (i: InvoiceRow) => {
+    const day = i.issueDate.slice(0, 10);
+    if (fromDate && day < fromDate) return false;
+    if (toDate && day > toDate) return false;
+    return true;
+  };
+  const matchesCustomer = (i: InvoiceRow) => !customerFilter || i.customer?.id === customerFilter;
+  const searched = invoices.filter((i) => matchesQuery(i) && matchesCustomer(i) && matchesRange(i));
   const countOf = (st: InvoiceRow['status']) => searched.filter((i) => effectiveStatus(i) === st).length;
   const visibleInvoices = searched.filter((i) => statusFilter === 'all' || effectiveStatus(i) === statusFilter);
+  const filtersOn = statusFilter !== 'all' || customerFilter !== '' || fromDate !== '' || toDate !== '' || query.trim() !== '';
+  // Clientes que aparecen en las facturas, para el selector (no todo el padrón: solo los que facturaste).
+  const invoiceCustomers = Array.from(
+    new Map(invoices.filter((i) => i.customer).map((i) => [i.customer!.id, i.customer!.name])).entries(),
+  ).sort((a, b) => a[1].localeCompare(b[1]));
   const sumOf = (sts: InvoiceRow['status'][]) =>
     invoices.filter((i) => sts.includes(effectiveStatus(i))).reduce((acc, i) => acc + i.total, 0);
   const receivable = sumOf(['Pending', 'Overdue']);
@@ -714,7 +774,102 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers, ca
                   {label} ({n})
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => setShowFilters((v) => !v)}
+                aria-pressed={showFilters}
+                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  customerFilter || fromDate || toDate
+                    ? 'border-gray-900 bg-gray-900 text-white dark:border-white dark:bg-white dark:text-gray-900'
+                    : 'border-gray-300 text-gray-600 dark:border-neutral-700 dark:text-neutral-300'
+                }`}
+              >
+                {getText('Cliente y fechas', 'Customer and dates')}
+                {(customerFilter ? 1 : 0) + (fromDate || toDate ? 1 : 0) > 0 &&
+                  ` (${(customerFilter ? 1 : 0) + (fromDate || toDate ? 1 : 0)})`}
+              </button>
+              {filtersOn && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="rounded-full px-3 py-1.5 text-xs font-semibold text-gray-500 underline dark:text-neutral-400"
+                >
+                  {getText('Limpiar', 'Clear')}
+                </button>
+              )}
             </div>
+
+            {showFilters && (
+              <div className="grid grid-cols-1 gap-3 rounded-xl border border-gray-200/70 bg-white p-3 sm:grid-cols-3 dark:border-neutral-800 dark:bg-neutral-900">
+                <div className="sm:col-span-3">
+                  <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-neutral-400">
+                    {getText('Cliente', 'Customer')}
+                  </label>
+                  <select
+                    value={customerFilter}
+                    onChange={(e) => setCustomerFilter(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700"
+                  >
+                    <option value="">{getText('Todos los clientes', 'All customers')}</option>
+                    {invoiceCustomers.map(([id, name]) => (
+                      <option key={id} value={id}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-neutral-400">
+                    {getText('Desde', 'From')}
+                  </label>
+                  <input
+                    type="date"
+                    value={fromDate}
+                    max={toDate || undefined}
+                    onChange={(e) => setFromDate(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-neutral-400">
+                    {getText('Hasta', 'To')}
+                  </label>
+                  <input
+                    type="date"
+                    value={toDate}
+                    min={fromDate || undefined}
+                    onChange={(e) => setToDate(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700"
+                  />
+                </div>
+                <div className="flex items-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const now = new Date();
+                      const first = new Date(now.getFullYear(), now.getMonth(), 1);
+                      setFromDate(first.toISOString().slice(0, 10));
+                      setToDate(now.toISOString().slice(0, 10));
+                    }}
+                    className="min-h-9 rounded-full border border-gray-300 px-3 text-xs font-medium dark:border-neutral-700"
+                  >
+                    {getText('Este mes', 'This month')}
+                  </button>
+                  {(fromDate || toDate) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFromDate('');
+                        setToDate('');
+                      }}
+                      className="min-h-9 px-2 text-xs text-gray-500 underline dark:text-neutral-400"
+                    >
+                      {getText('Todo', 'All time')}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -751,12 +906,32 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers, ca
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-semibold">{invoice.invoiceNumber}</p>
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${STATUS_STYLES[effectiveStatus(invoice)]}`}>
+                      <button
+                        type="button"
+                        onClick={() => setStatusFilter(effectiveStatus(invoice))}
+                        title={getText('Ver solo las de este estado', 'Show only this status')}
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-semibold transition-opacity hover:opacity-80 ${STATUS_STYLES[effectiveStatus(invoice)]}`}
+                      >
                         {STATUS_LABELS[effectiveStatus(invoice)][language]}
-                      </span>
+                      </button>
                     </div>
                     <p className="mt-0.5 text-xs text-gray-500 dark:text-neutral-400">
-                      {invoice.customer?.name ?? '—'} · {dateFmt(invoice.issueDate)}
+                      {invoice.customer ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCustomerFilter(invoice.customer!.id);
+                            setShowFilters(true);
+                          }}
+                          title={getText('Ver solo las de este cliente', 'Show only this customer')}
+                          className="underline decoration-dotted underline-offset-2 hover:text-text-primary"
+                        >
+                          {invoice.customer.name}
+                        </button>
+                      ) : (
+                        '—'
+                      )}{' '}
+                      · {dateFmt(invoice.issueDate)}
                       {invoice.dueDate && ` · ${getText('vence', 'due')} ${dateFmt(invoice.dueDate)}`}
                     </p>
                     {invoice.status === 'Cancelled' && invoice.voidReason && (
