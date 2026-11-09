@@ -43,9 +43,10 @@ interface Props {
   productCount: number;
   /** Idioma principal del negocio: define en qué idioma está la traducción (EN o ES). */
   businessLanguage?: string | null;
+  currency?: 'USD' | 'DOP';
 }
 
-export function CatalogView({ slug, plan, items: initialItems, productCount, businessLanguage }: Props) {
+export function CatalogView({ slug, plan, items: initialItems, productCount, businessLanguage, currency = 'USD' }: Props) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => language === 'es' ? es : en;
 
@@ -159,6 +160,7 @@ export function CatalogView({ slug, plan, items: initialItems, productCount, bus
               {demoItems.map((item) => (
                 <ItemRow
                   baseLanguage={normalizeBaseLanguage(businessLanguage)}
+                  currency={currency}
                   key={item.id}
                   item={item}
                   slug={slug}
@@ -231,6 +233,7 @@ export function CatalogView({ slug, plan, items: initialItems, productCount, bus
                 {filteredRealItems.map((item) => (
                   <ItemRow
                     baseLanguage={normalizeBaseLanguage(businessLanguage)}
+                    currency={currency}
                     key={item.id}
                     item={item}
                     slug={slug}
@@ -281,10 +284,12 @@ function ItemRow({
   onToggleActive,
   toggling,
   baseLanguage,
+  currency,
 }: {
   item: CatalogItem;
   slug: string;
   baseLanguage: BaseLanguage;
+  currency: 'USD' | 'DOP';
   getText: (es: string, en: string) => string;
   onToggleActive: (item: CatalogItem) => void;
   toggling: boolean;
@@ -294,7 +299,7 @@ function ItemRow({
   const days = (item.weekDays ?? []).map((d) => (es ? DAY_ES[d] : DAY_EN[d]) ?? d);
   const periods = (item.periods ?? []).filter((p) => p !== 'all_day').map((p) => (es ? PERIOD_ES[p] : PERIOD_EN[p]) ?? p);
   const flags = (item.flags ?? []).map((f) => (es ? FLAG_ES[f] : FLAG_EN[f]) ?? f);
-  const price = item.price != null ? `$${Number(item.price).toFixed(2)}` : null;
+  const price = item.price != null ? `${currency === 'DOP' ? 'RD$' : '$'}${Number(item.price).toFixed(2)}` : null;
   const hasEn = Boolean(item.nameEn || item.descriptionEn);
   const tag = translationTag(baseLanguage);
   const otherLang = baseLanguage === 'en' ? getText('español', 'Spanish') : getText('inglés', 'English');

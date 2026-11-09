@@ -256,7 +256,7 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
   }
 
   const fmt = (n: number, currency: string) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(n);
+    new Intl.NumberFormat(currency === 'DOP' ? 'es-DO' : 'en-US', { style: 'currency', currency }).format(n);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-neutral-950 text-gray-900 dark:text-white">

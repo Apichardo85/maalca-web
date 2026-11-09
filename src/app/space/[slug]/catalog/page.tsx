@@ -28,7 +28,7 @@ interface RawCatalogItem extends CatalogItem {
 }
 
 interface SpaceData {
-  business: { plan: Plan; language?: string | null };
+  business: { plan: Plan; language?: string | null; currency?: 'USD' | 'DOP' };
   items: RawCatalogItem[];
   productCount: number;
 }
@@ -77,6 +77,7 @@ export default async function CatalogPage({
       slug={slug}
       plan={data.business.plan}
       businessLanguage={data.business.language ?? null}
+      currency={data.business.currency === 'DOP' ? 'DOP' : 'USD'}
       items={items}
       productCount={data.productCount}
     />
