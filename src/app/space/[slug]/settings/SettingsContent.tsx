@@ -207,6 +207,8 @@ export function SettingsContent({ slug, plan, trialDaysRemaining, currency: init
   // Moneda en la que el negocio muestra sus precios — no depende de plan ni de Stripe Connect
   // (ese es Country, que es para dónde llega el dinero). Cualquier dueño la puede cambiar.
   const [currency, setCurrency] = useState<'USD' | 'DOP'>(initialCurrency);
+  // Negocio en pesos (RD): el plan se acuerda y factura con MaalCa en pesos, no por la suscripción de Stripe en dólares.
+  const billedInPesos = currency === 'DOP';
   const [bizLanguage, setBizLanguage] = useState<'es' | 'en'>(initialBizLanguage);
   const [bizLanguageSaving, setBizLanguageSaving] = useState(false);
 
@@ -300,7 +302,7 @@ export function SettingsContent({ slug, plan, trialDaysRemaining, currency: init
                   {isPaidPlan(plan) ? planName : getText('Starter (30 días gratis)', 'Starter (30-day free trial)')}
                 </p>
               </div>
-              {isPaidPlan(plan) && (
+              {isPaidPlan(plan) && !billedInPesos && (
                 <span className="rounded-full bg-brand-primary/10 px-3 py-1 text-xs font-medium text-brand-primary">
                   ${priceOf(summary, planKey(String(plan).toLowerCase() === 'enterprise' ? 'Enterprise' : 'Entrepreneur', summary?.interval ?? 'month'))}/{summary?.interval === 'year' ? getText('año', 'yr') : getText('mes', 'mo')}
                 </span>
@@ -322,6 +324,15 @@ export function SettingsContent({ slug, plan, trialDaysRemaining, currency: init
 
             {isPaidPlan(plan) && (
               <>
+                {billedInPesos ? (
+                  <p className="mt-4 rounded-xl bg-gray-50 p-3 text-sm text-gray-600 dark:bg-neutral-800 dark:text-neutral-300">
+                    {getText(
+                      'Tu plan se acuerda y se factura en pesos directamente con MaalCa. Para cambiar de plan o módulos, escríbenos.',
+                      'Your plan is agreed and billed in pesos directly with MaalCa. To change plan or modules, contact us.',
+                    )}
+                  </p>
+                ) : (
+                <>
                 <button
                   onClick={handleManageBilling}
                   disabled={portalLoading}
@@ -334,6 +345,8 @@ export function SettingsContent({ slug, plan, trialDaysRemaining, currency: init
                 {portalError && (
                   <p className="mt-2 text-xs text-red-600 dark:text-red-400">{portalError}</p>
                 )}
+                </>
+                )}
                 {summary && (
                   <div className="mt-4 space-y-3">
                     <p className="text-sm text-gray-600 dark:text-neutral-300">
@@ -342,7 +355,7 @@ export function SettingsContent({ slug, plan, trialDaysRemaining, currency: init
                         `Screens: using ${summary.screensUsed} of ${summary.screenAllowance}.`,
                       )}
                     </p>
-                    {summary.hasSubscription && (
+                    {summary.hasSubscription && !billedInPesos && (
                       <ExtraScreensControl slug={slug} summary={summary} onUpdated={setSummary} />
                     )}
                   </div>
@@ -383,7 +396,7 @@ export function SettingsContent({ slug, plan, trialDaysRemaining, currency: init
             </p>
             <p className="mt-1 text-sm text-gray-600 dark:text-neutral-300">
               {getText(
-                'En qué moneda le mostrás los precios a tus clientes — catálogo, página pública y canales.',
+                'En qué moneda le muestras los precios a tus clientes — catálogo, página pública y canales.',
                 'What currency your prices are shown in to customers — catalog, public page, and channels.',
               )}
             </p>

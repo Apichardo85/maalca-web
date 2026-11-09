@@ -634,7 +634,7 @@ export function BoardContent({
           <h2 className="text-sm font-semibold">{getText('Idioma, tema y efecto de la pantalla', 'Screen language, theme and effect')}</h2>
           <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
             {getText(
-              'Como nadie interactúa con la TV, esto se configura acá — no cambia con el idioma de este panel.',
+              'Como nadie interactúa con la TV, esto se configura aquí — no cambia con el idioma de este panel.',
               "Since nobody interacts with the TV, this is set here — it doesn't change with this panel's language.",
             )}
           </p>
@@ -753,7 +753,7 @@ export function BoardContent({
               </h2>
               <p className="mt-1 text-xs text-gray-500 dark:text-neutral-400">
                 {getText(
-                  'Más TVs con su propia configuración (ej. solo comerciales, o en inglés). Lo que no cambies acá hereda lo del negocio, arriba.',
+                  'Más TVs con su propia configuración (ej. solo comerciales, o en inglés). Lo que no cambies aquí hereda lo del negocio, arriba.',
                   'More TVs with their own settings (e.g. ads-only, or in English). Anything you leave unset here inherits the business default above.',
                 )}
               </p>
