@@ -17,6 +17,7 @@ const NAV = [
   { href: '/ops/equipo', label: 'Staff MaalCa' },
   { href: '/ops/modulos', label: 'Módulos' },
   { href: '/ops/precios', label: 'Precios' },
+  { href: '/ops/cotizador', label: 'Cotizador' },
   { href: '/ops/pantallas', label: 'Pantallas' },
   { href: '/ops/sitio', label: 'Sitio' },
 ];
@@ -89,7 +90,7 @@ export function OpsShell({ role, children }: { role: OpsRole; children: React.Re
           </div>
 
           <nav className="mt-6 flex gap-1 overflow-x-auto border-b border-gray-200 dark:border-neutral-800 pb-3">
-            {NAV.map((n) => (
+            {NAV.filter((n) => n.href !== '/ops/cotizador' || role === 'Owner').map((n) => (
               <NavLink key={n.href} href={n.href} label={n.label} />
             ))}
           </nav>
