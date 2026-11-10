@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { moneyFormatter, readApiError } from '@/lib/receivables';
 import {
@@ -36,12 +36,15 @@ interface ItemRow {
   qty: number;
 }
 
-function Stepper({ label, value, onChange }: { label: string; value: number; onChange: (n: number) => void }) {
+// Pensado para el camión: sol, calor y manos sucias. Botones grandes, números grandes y atajos con las cantidades de siempre.
+const QUICK = [1, 2, 3, 5, 10];
+
+function Stepper({ label, value, onChange, presets }: { label?: string; value: number; onChange: (n: number) => void; presets?: number[] }) {
   return (
-    <div className="flex flex-col items-center">
-      <span className="text-[11px] text-gray-500 dark:text-neutral-400">{label}</span>
-      <div className="mt-1 flex items-center gap-1">
-        <button type="button" onClick={() => onChange(Math.max(0, value - 1))} className="h-10 w-10 rounded-lg border border-gray-300 dark:border-neutral-700 text-lg font-semibold" aria-label="−">
+    <div className="flex flex-col items-end">
+      {label && <span className="mb-1 self-start text-sm font-semibold text-gray-700 dark:text-neutral-200">{label}</span>}
+      <div className="flex items-center gap-2">
+        <button type="button" onClick={() => onChange(Math.max(0, value - 1))} className="h-14 w-14 rounded-xl border-2 border-gray-400 text-3xl font-bold active:bg-gray-200 dark:border-neutral-600 dark:active:bg-neutral-700" aria-label="−">
           −
         </button>
         <input
@@ -50,12 +53,28 @@ function Stepper({ label, value, onChange }: { label: string; value: number; onC
           min="0"
           value={value}
           onChange={(e) => onChange(Math.max(0, Math.floor(Number(e.target.value) || 0)))}
-          className="h-10 w-14 rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent text-center text-base"
+          className="h-14 w-16 rounded-xl border-2 border-gray-400 bg-transparent text-center text-2xl font-bold dark:border-neutral-600"
         />
-        <button type="button" onClick={() => onChange(value + 1)} className="h-10 w-10 rounded-lg border border-gray-300 dark:border-neutral-700 text-lg font-semibold" aria-label="+">
+        <button type="button" onClick={() => onChange(value + 1)} className="h-14 w-14 rounded-xl border-2 border-gray-400 text-3xl font-bold active:bg-gray-200 dark:border-neutral-600 dark:active:bg-neutral-700" aria-label="+">
           +
         </button>
       </div>
+      {presets && (
+        <div className="mt-2 flex gap-2">
+          {presets.map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => onChange(n)}
+              aria-pressed={value === n}
+              className={`h-12 min-w-12 rounded-full border-2 px-3 text-lg font-bold ${value === n ? 'border-transparent text-white' : 'border-gray-400 dark:border-neutral-600'}`}
+              style={value === n ? { backgroundColor: 'var(--brand-primary, #045AFE)' } : undefined}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -70,7 +89,6 @@ export function DeliveryForm({ slug, routeId, stop, containerTypes, products, cu
 
   const [lines, setLines] = useState<Record<string, Line>>({});
   const [items, setItems] = useState<ItemRow[]>([]);
-  const [pickProduct, setPickProduct] = useState('');
   const [anaquelId, setAnaquelId] = useState<string>(stop.anaqueles.length === 1 ? stop.anaqueles[0].id : '');
   const [scanning, setScanning] = useState(false);
   const [payAmount, setPayAmount] = useState('');
@@ -78,6 +96,12 @@ export function DeliveryForm({ slug, routeId, stop, containerTypes, products, cu
   const [receivedBy, setReceivedBy] = useState('');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
+  // Los productos que más se entregan salen primero (se aprende en este teléfono; no hay que configurar nada).
+  const usageKey = `maalca-route-product-use:${slug}`;
+  const [usage, setUsage] = useState<Record<string, number>>({});
+  useEffect(() => {
+    try { setUsage(JSON.parse(localStorage.getItem(usageKey) ?? '{}')); } catch { /* sin historial */ }
+  }, [usageKey]);
 
   const priceOf = (p: ProductLite) => stop.agreedPrices?.find((a) => a.itemId === p.id)?.price ?? p.price;
   const productById = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
@@ -90,11 +114,15 @@ export function DeliveryForm({ slug, routeId, stop, containerTypes, products, cu
   const setLine = (typeId: string, patch: Partial<Line>) => setLines((prev) => ({ ...prev, [typeId]: { ...lineOf(typeId), ...patch } }));
   const heldOf = (typeId: string) => stop.containers.find((c) => c.containerTypeId === typeId)?.outstanding ?? 0;
 
-  function addProduct() {
-    if (!pickProduct) return;
-    setItems((prev) => (prev.some((r) => r.productId === pickProduct) ? prev : [...prev, { productId: pickProduct, qty: 1 }]));
-    setPickProduct('');
-  }
+  const qtyOf = (productId: string) => items.find((r) => r.productId === productId)?.qty ?? 0;
+  const setQty = (productId: string, n: number) =>
+    setItems((prev) => {
+      if (n <= 0) return prev.filter((r) => r.productId !== productId);
+      return prev.some((r) => r.productId === productId) ? prev.map((r) => (r.productId === productId ? { ...r, qty: n } : r)) : [...prev, { productId, qty: n }];
+    });
+  const sortedProducts = useMemo(() => [...products].sort((a, b) => (usage[b.id] ?? 0) - (usage[a.id] ?? 0)), [products, usage]);
+  const totalQty = items.reduce((sum, r) => sum + r.qty, 0);
+  const singleType = containerTypes.length === 1 ? containerTypes[0] : null;
 
   async function onScanned(raw: string) {
     setScanning(false);
@@ -135,6 +163,11 @@ export function DeliveryForm({ slug, routeId, stop, containerTypes, products, cu
     setSaving(true);
     try {
       // Sin señal: se guarda en el teléfono y se envía sola al volver (con la misma llave, no se duplica).
+      try {
+        const next = { ...usage };
+        items.forEach((r) => { next[r.productId] = (next[r.productId] ?? 0) + r.qty; });
+        localStorage.setItem(usageKey, JSON.stringify(next));
+      } catch { /* sin historial */ }
       const outcome = await postOrQueue(routeId, {
         kind: 'delivery',
         stopId: stop.stop.id,
@@ -181,124 +214,147 @@ export function DeliveryForm({ slug, routeId, stop, containerTypes, products, cu
     }
   }
 
-  const input = 'w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2.5 text-base';
+  const input = 'w-full rounded-xl border-2 border-gray-400 dark:border-neutral-600 bg-transparent px-3 py-3 text-lg';
+  const bigBtn = 'rounded-xl border-2 border-gray-400 dark:border-neutral-600 px-4 py-3.5 text-base font-bold active:bg-gray-200 dark:active:bg-neutral-700';
+  const brandBg = { backgroundColor: 'var(--brand-primary, #045AFE)' };
 
   return (
-    <div className="mt-3 space-y-5 rounded-xl border border-gray-200 dark:border-neutral-800 p-3">
+    <div className="mt-3 space-y-6 rounded-xl border border-gray-200 dark:border-neutral-800 p-3">
       {scanning && <QrScanner onResult={onScanned} onClose={() => setScanning(false)} />}
-
-      {containerTypes.length > 0 && (
-        <section>
-          <h4 className="text-sm font-semibold">{getText('Envases', 'Containers')}</h4>
-          {containerTypes.map((t) => {
-            const l = lineOf(t.id);
-            return (
-              <div key={t.id} className="mt-2 rounded-lg bg-gray-50 dark:bg-neutral-900 p-2">
-                <p className="text-sm font-medium">
-                  {t.name}
-                  <span className="ml-2 text-xs font-normal text-gray-500 dark:text-neutral-400">
-                    {getText('Tiene', 'Holds')}: {heldOf(t.id)}
-                  </span>
-                </p>
-                <div className="mt-1 flex justify-between">
-                  <Stepper label={getText('Entrego', 'Delivered')} value={l.delivered} onChange={(n) => setLine(t.id, { delivered: n })} />
-                  <Stepper label={getText('Recojo vacíos', 'Empties back')} value={l.returned} onChange={(n) => setLine(t.id, { returned: n })} />
-                  <Stepper label={getText('Dañados', 'Damaged')} value={l.damaged} onChange={(n) => setLine(t.id, { damaged: n })} />
-                </div>
-              </div>
-            );
-          })}
-
-          <div className="mt-3 flex items-center gap-2">
-            <select value={anaquelId} onChange={(e) => setAnaquelId(e.target.value)} className={`${input} flex-1`}>
-              <option value="">{getText('Anaquel (opcional)', 'Rack (optional)')}</option>
-              {stop.anaqueles.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.label ?? a.qrCode}{a.location ? ` · ${a.location}` : ''}
-                </option>
-              ))}
-            </select>
-            <button type="button" onClick={() => setScanning(true)} className="shrink-0 rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2.5 text-sm font-semibold">
-              {getText('Escanear QR', 'Scan QR')}
-            </button>
-          </div>
-        </section>
-      )}
 
       {products.length > 0 && (
         <section>
-          <h4 className="text-sm font-semibold">{getText('Productos', 'Products')}</h4>
-          {items.map((row) => {
-            const p = productById.get(row.productId);
-            if (!p) return null;
+          <h4 className="text-base font-bold">{getText('Productos', 'Products')}</h4>
+          <div className="mt-2 space-y-3">
+            {sortedProducts.map((p) => {
+              const qty = qtyOf(p.id);
+              if (qty === 0) {
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setQty(p.id, 1)}
+                    className="flex w-full items-center justify-between gap-3 rounded-xl border-2 border-gray-400 px-4 py-4 text-left active:bg-gray-200 dark:border-neutral-600 dark:active:bg-neutral-700"
+                  >
+                    <span className="min-w-0">
+                      <span className="block break-words text-lg font-bold">{p.name}</span>
+                      <span className="block text-base text-gray-600 dark:text-neutral-300">{fmt.format(priceOf(p))}</span>
+                    </span>
+                    <span className="shrink-0 rounded-full px-4 py-2 text-lg font-bold text-white" style={brandBg}>+ {getText('Agregar', 'Add')}</span>
+                  </button>
+                );
+              }
+              return (
+                <div key={p.id} className="rounded-xl border-2 p-3" style={{ borderColor: 'var(--brand-primary, #045AFE)' }}>
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="break-words text-lg font-bold">{p.name}</p>
+                    <p className="shrink-0 text-base font-semibold">{fmt.format(priceOf(p))}</p>
+                  </div>
+                  <div className="mt-2 flex justify-end">
+                    <Stepper value={qty} onChange={(n) => setQty(p.id, n)} presets={QUICK} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {total > 0 && <p className="mt-3 text-right text-xl font-extrabold">{getText('Total', 'Total')}: {fmt.format(total)}</p>}
+        </section>
+      )}
+
+      {containerTypes.length > 0 && (
+        <section>
+          <h4 className="text-base font-bold">{getText('Envases', 'Containers')}</h4>
+          {containerTypes.map((t) => {
+            const l = lineOf(t.id);
             return (
-              <div key={row.productId} className="mt-2 flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="break-words text-sm font-medium">{p.name}</p>
-                  <p className="text-xs text-gray-500 dark:text-neutral-400">{fmt.format(priceOf(p))}</p>
-                </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  <Stepper label="" value={row.qty} onChange={(n) => setItems((prev) => (n === 0 ? prev.filter((r) => r.productId !== row.productId) : prev.map((r) => (r.productId === row.productId ? { ...r, qty: n } : r))))} />
-                </div>
+              <div key={t.id} className="mt-2 space-y-3 rounded-xl bg-gray-50 p-3 dark:bg-neutral-900">
+                <p className="text-base font-bold">
+                  {t.name}
+                  <span className="ml-2 text-sm font-normal text-gray-600 dark:text-neutral-300">
+                    {getText('Tiene', 'Holds')}: {heldOf(t.id)}
+                  </span>
+                </p>
+                {/* Lo normal en reparto es cambiar: entrego llenos y recojo vacíos. Un toque y queda parejo con lo vendido. */}
+                {singleType?.id === t.id && totalQty > 0 && (l.delivered !== totalQty || l.returned !== totalQty) && (
+                  <button type="button" onClick={() => setLine(t.id, { delivered: totalQty, returned: totalQty })} className={`${bigBtn} w-full`}>
+                    {getText(`Cambio parejo: entrego ${totalQty} y recojo ${totalQty} vacíos`, `Even swap: deliver ${totalQty}, collect ${totalQty} empties`)}
+                  </button>
+                )}
+                <Stepper label={getText('Entrego (llenos)', 'Delivered (full)')} value={l.delivered} onChange={(n) => setLine(t.id, { delivered: n })} presets={QUICK} />
+                <Stepper label={getText('Recojo vacíos', 'Empties back')} value={l.returned} onChange={(n) => setLine(t.id, { returned: n })} presets={QUICK} />
+                <Stepper label={getText('Dañados', 'Damaged')} value={l.damaged} onChange={(n) => setLine(t.id, { damaged: n })} />
               </div>
             );
           })}
-          <div className="mt-2 flex gap-2">
-            <select value={pickProduct} onChange={(e) => setPickProduct(e.target.value)} className={`${input} flex-1`}>
-              <option value="">{getText('Agregar producto…', 'Add product…')}</option>
-              {products.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} — {fmt.format(priceOf(p))}
-                </option>
-              ))}
-            </select>
-            <button type="button" onClick={addProduct} disabled={!pickProduct} className="shrink-0 rounded-lg border border-gray-300 dark:border-neutral-700 px-4 py-2.5 text-sm font-semibold disabled:opacity-50">
-              {getText('Agregar', 'Add')}
-            </button>
-          </div>
-          {total > 0 && <p className="mt-2 text-right text-sm font-semibold">{getText('Total', 'Total')}: {fmt.format(total)}</p>}
+          {singleType && totalQty > 0 && lineOf(singleType.id).delivered > 0 && lineOf(singleType.id).delivered !== totalQty && (
+            <p className="mt-2 rounded-lg bg-amber-50 p-2 text-sm font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+              {getText(`Vendes ${totalQty} y entregas ${lineOf(singleType.id).delivered} envases. ¿Está bien?`, `You sell ${totalQty} but deliver ${lineOf(singleType.id).delivered} containers. Is that right?`)}
+            </p>
+          )}
+
+          {(stop.anaqueles.length > 0) && (
+            <div className="mt-3 flex items-center gap-2">
+              <select value={anaquelId} onChange={(e) => setAnaquelId(e.target.value)} className={`${input} flex-1`}>
+                <option value="">{getText('Anaquel (opcional)', 'Rack (optional)')}</option>
+                {stop.anaqueles.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.label ?? a.qrCode}{a.location ? ` · ${a.location}` : ''}
+                  </option>
+                ))}
+              </select>
+              <button type="button" onClick={() => setScanning(true)} className={`${bigBtn} shrink-0`}>
+                {getText('Escanear QR', 'Scan QR')}
+              </button>
+            </div>
+          )}
         </section>
       )}
 
       <section>
-        <h4 className="text-sm font-semibold">{getText('Cobro', 'Payment')}</h4>
-        <div className="mt-2 flex gap-2">
-          <input type="number" inputMode="decimal" min="0" step="0.01" value={payAmount} onChange={(e) => setPayAmount(e.target.value)} placeholder="0.00" className={`${input} flex-1`} />
-          <select value={method} onChange={(e) => setMethod(e.target.value as 'cash' | 'transfer')} className={`${input} w-40`}>
-            <option value="cash">{getText('Efectivo', 'Cash')}</option>
-            <option value="transfer">{getText('Transferencia', 'Transfer')}</option>
-          </select>
-        </div>
-        <div className="mt-2 flex flex-wrap gap-2">
+        <h4 className="text-base font-bold">{getText('Cobro', 'Payment')}</h4>
+        <div className="mt-2 grid grid-cols-1 gap-2">
           {total > 0 && (
-            <button type="button" onClick={() => setPayAmount(String(total))} className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-semibold">
-              {getText('Cobrar esta entrega', 'Charge this delivery')}
+            <button type="button" onClick={() => setPayAmount(String(total))} className="rounded-xl px-4 py-4 text-lg font-bold text-white" style={brandBg}>
+              {getText('Cobrar esta entrega', 'Charge this delivery')} · {fmt.format(total)}
             </button>
           )}
           {stop.amountOwed > 0 && (
-            <button type="button" onClick={() => setPayAmount(String(stop.amountOwed))} className="rounded-full border border-gray-300 dark:border-neutral-700 px-3 py-1.5 text-xs font-semibold">
+            <button type="button" onClick={() => setPayAmount(String(stop.amountOwed))} className={bigBtn}>
               {getText('Cobrar todo lo que debe', 'Collect full balance')} ({fmt.format(stop.amountOwed)})
             </button>
           )}
         </div>
+        <input type="number" inputMode="decimal" min="0" step="0.01" value={payAmount} onChange={(e) => setPayAmount(e.target.value)} placeholder={getText('Monto cobrado', 'Amount collected')} className={`${input} mt-2 text-2xl font-bold`} />
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          {(['cash', 'transfer'] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setMethod(m)}
+              aria-pressed={method === m}
+              className={`rounded-xl border-2 px-4 py-3.5 text-lg font-bold ${method === m ? 'border-transparent text-white' : 'border-gray-400 dark:border-neutral-600'}`}
+              style={method === m ? brandBg : undefined}
+            >
+              {m === 'cash' ? getText('Efectivo', 'Cash') : getText('Transferencia', 'Transfer')}
+            </button>
+          ))}
+        </div>
       </section>
 
-      <section className="space-y-2">
-        <input value={receivedBy} onChange={(e) => setReceivedBy(e.target.value)} placeholder={getText('Quién recibió (opcional)', 'Received by (optional)')} className={input} />
-        <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={getText('Nota (opcional)', 'Note (optional)')} className={input} />
-      </section>
+      <details className="rounded-xl border border-gray-200 p-3 dark:border-neutral-800">
+        <summary className="cursor-pointer text-base font-semibold">{getText('Quién recibió / nota (opcional)', 'Received by / note (optional)')}</summary>
+        <div className="mt-2 space-y-2">
+          <input value={receivedBy} onChange={(e) => setReceivedBy(e.target.value)} placeholder={getText('Quién recibió', 'Received by')} className={input} />
+          <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={getText('Nota', 'Note')} className={input} />
+        </div>
+      </details>
 
-      <div className="flex gap-2">
-        <button type="button" onClick={onCancel} disabled={saving} className="flex-1 rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-3 text-base font-semibold">
+      {/* Los botones se quedan pegados abajo: con la lista larga o el teléfono al sol no hay que buscarlos. */}
+      <div className="sticky bottom-0 -mx-3 -mb-3 flex gap-2 rounded-b-xl border-t border-gray-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-950">
+        <button type="button" onClick={onCancel} disabled={saving} className={`${bigBtn} flex-1`}>
           {getText('Cancelar', 'Cancel')}
         </button>
-        <button
-          type="button"
-          onClick={submit}
-          disabled={saving}
-          className="flex-1 rounded-full px-4 py-3 text-base font-semibold text-white disabled:opacity-50"
-          style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}
-        >
+        <button type="button" onClick={submit} disabled={saving} className="flex-[2] rounded-xl px-4 py-4 text-lg font-extrabold text-white disabled:opacity-50" style={brandBg}>
           {saving ? getText('Guardando…', 'Saving…') : getText('Registrar entrega', 'Record delivery')}
         </button>
       </div>

@@ -54,6 +54,12 @@ export function RouteContent({ slug, currency, brand: brandInfo, initialSheet, p
   const [delivering, setDelivering] = useState<string | null>(null);
   const [loadedFull, setLoadedFull] = useState(initialSheet.loadedFull?.toString() ?? '');
   const [busy, setBusy] = useState(false);
+  // La última carga se recuerda en este teléfono: casi siempre se sale con lo mismo.
+  const lastLoadedKey = `maalca-route-last-loaded:${slug}`;
+  const [lastLoaded, setLastLoaded] = useState('');
+  useEffect(() => {
+    try { setLastLoaded(localStorage.getItem(lastLoadedKey) ?? ''); } catch { /* sin historial */ }
+  }, [lastLoadedKey]);
   const [recon, setRecon] = useState<Reconciliation | null>(null);
   // Modo camión: estado de la ubicación del teléfono (se comparte con la oficina mientras la ruta está en curso).
   const [gps, setGps] = useState<'off' | 'ok' | 'denied' | 'unsupported'>('off');
@@ -262,13 +268,15 @@ export function RouteContent({ slug, currency, brand: brandInfo, initialSheet, p
     const n = loadedFull.trim() === '' ? null : Math.max(0, Math.floor(Number(loadedFull) || 0));
     const res = await call('start', { loadedFull: n }, getText('No se pudo iniciar la ruta.', "Couldn't start the route."));
     if (res) {
+      try { if (n) localStorage.setItem(lastLoadedKey, String(n)); } catch { /* sin historial */ }
       toast.success(getText('Ruta iniciada.', 'Route started.'));
       await refresh();
     }
   }
 
   async function skip(stop: DriverStop, status: 'skipped' | 'failed') {
-    const notes = window.prompt(getText('Motivo (opcional)', 'Reason (optional)')) ?? null;
+    // "No estaba" es un toque y listo; solo al omitir se pregunta el motivo.
+    const notes = status === 'failed' ? null : window.prompt(getText('Motivo (opcional)', 'Reason (optional)')) ?? null;
     setBusy(true);
     try {
       const outcome = await postOrQueue(sheet.routeId, {
@@ -383,7 +391,19 @@ export function RouteContent({ slug, currency, brand: brandInfo, initialSheet, p
       {(sheet.status === 'planned' || sheet.status === 'loading') && (
         <div className="mt-4 rounded-xl border border-gray-200 dark:border-neutral-800 p-3">
           <label className="text-sm font-semibold">{getText('Botellones llenos cargados en el camión', 'Full bottles loaded on the truck')}</label>
-          <input type="number" inputMode="numeric" min="0" value={loadedFull} onChange={(e) => setLoadedFull(e.target.value)} className="mt-2 w-full rounded-lg border border-gray-300 dark:border-neutral-700 bg-transparent px-3 py-2.5 text-base" />
+          <input type="number" inputMode="numeric" min="0" value={loadedFull} onChange={(e) => setLoadedFull(e.target.value)} className="mt-2 w-full rounded-xl border-2 border-gray-400 bg-transparent px-3 py-3 text-center text-3xl font-bold dark:border-neutral-600" />
+          <div className="mt-2 grid grid-cols-4 gap-2">
+            {[-10, -5, 5, 10].map((d) => (
+              <button key={d} type="button" onClick={() => setLoadedFull(String(Math.max(0, (Number(loadedFull) || 0) + d)))} className="h-14 rounded-xl border-2 border-gray-400 text-xl font-bold active:bg-gray-200 dark:border-neutral-600 dark:active:bg-neutral-700">
+                {d > 0 ? `+${d}` : d}
+              </button>
+            ))}
+          </div>
+          {lastLoaded && lastLoaded !== loadedFull && (
+            <button type="button" onClick={() => setLoadedFull(lastLoaded)} className="mt-2 w-full rounded-xl border-2 border-gray-400 py-3 text-base font-bold dark:border-neutral-600">
+              {getText(`Igual que la última vez: ${lastLoaded}`, `Same as last time: ${lastLoaded}`)}
+            </button>
+          )}
           <button type="button" onClick={startRoute} disabled={busy} className={`${primary} mt-3 w-full`} style={brand}>
             {getText('Iniciar ruta', 'Start route')}
           </button>
@@ -417,7 +437,7 @@ export function RouteContent({ slug, currency, brand: brandInfo, initialSheet, p
                     href={mapsUrl(s.stop.customerAddress ?? '', s.stop.customerLat, s.stop.customerLng)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border-2 px-4 py-2.5 text-sm font-semibold"
+                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-full border-2 px-4 py-3.5 text-base font-bold"
                     style={{ borderColor: 'var(--brand-primary, #045AFE)', color: 'var(--brand-primary, #045AFE)' }}
                   >
                     <span aria-hidden="true">📍</span>
@@ -428,6 +448,12 @@ export function RouteContent({ slug, currency, brand: brandInfo, initialSheet, p
                     {getText('Este cliente no tiene dirección ni ubicación registrada. Pídele a la oficina que la agregue en su ficha de Clientes.', 'This customer has no address or location on file. Ask the office to add it in their Customers record.')}
                   </p>
                 ))}
+
+              {editable && s.stop.status === 'pending' && !open && (
+                <button type="button" onClick={() => { setOpenStop(s.stop.id); setDelivering(s.stop.id); }} className={`${primary} mt-2 w-full py-4 text-lg`} style={brand}>
+                  {getText('Registrar entrega', 'Record delivery')}
+                </button>
+              )}
 
               {open && (
                 <div className="mt-3 space-y-3 text-sm">
