@@ -4,10 +4,25 @@
 // hitos de pago, mensualidad) y, aparte, lo interno (comisión del referido, margen, capitalización). Se recuerda en este
 // navegador y copia el texto de la propuesta y los renglones de cada factura para pegarlos en Propuestas / Facturación
 // del espacio de MaalCa. No guarda nada en el servidor ni toca datos de ningún negocio.
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useOpsCanManage } from '../OpsRoleContext';
+import type { OpsAffiliate } from '../types';
 
-const STORE_KEY = 'maalca-cotizador-v1';
+// v2: un borrador por fuente (manual, prospecto o cada negocio). El v1 se migra a "manual".
+const STORE_PREFIX = 'maalca-cotizador-v2:';
+const LEGACY_KEY = 'maalca-cotizador-v1';
+
+interface QuoteLine { group: string; token: string; label: string; qty: number; unitUsd: number; totalUsd: number; isCourtesy: boolean }
+interface Quote {
+  country: string | null; tier: number; tierName: string; tierFactor: number; isCorporate: boolean; locations: number;
+  packageName: string | null; packageSavingsUsd: number;
+  monthlyLines: QuoteLine[]; monthlyListUsd: number; monthlyUsd: number;
+  setupLines: QuoteLine[]; setupListUsd: number; setupUsd: number;
+}
+interface PricingModule { token: string; es: string; tier: string }
+type Source = 'manual' | 'negocio' | 'prospecto';
+interface Prospect { modules: string[]; country: string; isCorporate: boolean; locations: number; vehicles: number; users: number; contractClients: number; importClients: number }
+const PROSPECT0: Prospect = { modules: [], country: 'DO', isCorporate: false, locations: 1, vehicles: 0, users: 0, contractClients: 0, importClients: 0 };
 
 interface Q {
   cliente: string;
@@ -56,21 +71,81 @@ function CotizadorInner() {
   const [q, setQ] = useState<Q>(DEFAULTS);
   const [tab, setTab] = useState<'cliente' | 'ajustes' | 'interno'>('cliente');
   const [msg, setMsg] = useState<string | null>(null);
+  const [source, setSource] = useState<Source>('manual');
+  const [affiliates, setAffiliates] = useState<OpsAffiliate[]>([]);
+  const [affId, setAffId] = useState('');
+  const [modules, setModules] = useState<PricingModule[]>([]);
+  const [prospect, setProspect] = useState<Prospect>(PROSPECT0);
+  const [quote, setQuote] = useState<Quote | null>(null);
+  const [quoting, setQuoting] = useState(false);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
 
+  const storeKey = STORE_PREFIX + (source === 'negocio' ? affId || 'sin-negocio' : source);
+
+  // Borrador guardado de esta fuente (si no hay, el v1 para "manual", o los valores por defecto).
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(STORE_KEY);
-      if (raw) setQ({ ...DEFAULTS, ...JSON.parse(raw) });
-    } catch { /* sin almacenamiento: se usan los valores por defecto */ }
-  }, []);
+      const raw = localStorage.getItem(storeKey) ?? (source === 'manual' ? localStorage.getItem(LEGACY_KEY) : null);
+      setQ(raw ? { ...DEFAULTS, ...JSON.parse(raw) } : DEFAULTS);
+    } catch { setQ(DEFAULTS); }
+  }, [storeKey, source]);
+
+  // Lista de negocios y catálogo de módulos, solo cuando se necesitan.
+  useEffect(() => {
+    if (source === 'negocio' && affiliates.length === 0) {
+      fetch('/api/ops/affiliates', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : [])).then((d) => setAffiliates(Array.isArray(d) ? d : [])).catch(() => {});
+    }
+    if (source === 'prospecto' && modules.length === 0) {
+      fetch('/api/ops/pricing', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((d) => setModules(d?.modules ?? [])).catch(() => {});
+    }
+  }, [source, affiliates.length, modules.length]);
+
+  const persist = (next: Q) => { try { localStorage.setItem(storeKey, JSON.stringify(next)); } catch { /* ignorar */ } };
 
   const set = (k: keyof Q, v: string) => {
     setQ((prev) => {
       const next = { ...prev, [k]: k === 'cliente' ? v : parseFloat(v) || 0 } as Q;
-      try { localStorage.setItem(STORE_KEY, JSON.stringify(next)); } catch { /* ignorar */ }
+      persist(next);
       return next;
     });
   };
+
+  // Los precios salen de la fórmula del API: lista = nivel 1, familia/fundador = con el nivel del país.
+  const applyQuote = useCallback((r: Quote, cliente: string) => {
+    setQuote(r);
+    setQ((prev) => {
+      const next = { ...prev, cliente, lista: r.setupListUsd, fam: r.setupUsd, mLista: r.monthlyListUsd, mFam: r.monthlyUsd };
+      try { localStorage.setItem(storeKey, JSON.stringify(next)); } catch { /* ignorar */ }
+      return next;
+    });
+  }, [storeKey]);
+
+  async function runQuote() {
+    setQuoting(true);
+    setQuoteError(null);
+    try {
+      const aff = affiliates.find((a) => a.id === affId);
+      const res = source === 'negocio'
+        ? await fetch(`/api/ops/affiliates/${affId}/quote`, { cache: 'no-store' })
+        : await fetch('/api/ops/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(prospect) });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error?.message ?? 'No se pudo calcular la cotización.');
+      applyQuote(data as Quote, source === 'negocio' ? aff?.name ?? q.cliente : q.cliente);
+    } catch (e) {
+      setQuoteError(e instanceof Error ? e.message : 'Algo salió mal.');
+    } finally {
+      setQuoting(false);
+    }
+  }
+
+  // Al elegir un negocio se cotiza solo: asume los módulos que tiene activos.
+  useEffect(() => {
+    if (source === 'negocio' && affId) runQuote();
+    else setQuote(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [source, affId]);
+
+  const setP = <K extends keyof Prospect>(k: K, v: Prospect[K]) => setProspect((p) => ({ ...p, [k]: v }));
 
   const calc = useMemo(() => {
     const pcts = [q.h1, q.h2, q.h3];
@@ -102,6 +177,7 @@ function CotizadorInner() {
     'Calendario de pagos:',
     ...calc.hitos.map((h, i) => `${i + 1}. ${h.nombre} — ${h.pct}% = ${money(h.monto)}`),
     '',
+    ...(quote ? ['', 'Incluye:', ...quote.monthlyLines.map((l) => `- ${l.label}${l.qty !== 1 ? ` x ${l.qty}` : ''}${l.isCourtesy ? ' (cortesía)' : ''}`), ''] : []),
     `Mensualidad: plan estándar ${money(q.mLista)}/mes; plan fundador ${money(q.mFam)}/mes durante ${q.vig} meses (ahorro de ${money((q.mLista - q.mFam) * 12)} al año).`,
     `Referidos: cada negocio que recomiendes y se active te da ${money(q.cred)} en créditos de la plataforma.`,
   ].join('\n');
@@ -127,6 +203,47 @@ function CotizadorInner() {
       <div className="flex flex-wrap gap-2">{tabBtn('cliente', 'Para el cliente')}{tabBtn('ajustes', 'Ajustar números')}{tabBtn('interno', '🔒 Interno')}</div>
       {msg && <p className="text-sm font-medium text-brand-primary">{msg}</p>}
 
+      <div className={card}>
+        <p className={lbl}>Precios desde</p>
+        <div className="mt-1 flex flex-wrap gap-2">
+          {([['manual', 'Manual'], ['negocio', 'Negocio existente'], ['prospecto', 'Prospecto']] as [Source, string][]).map(([k, t]) => (
+            <button key={k} onClick={() => setSource(k)} className={`rounded-full border px-3 py-1.5 text-sm font-semibold ${source === k ? 'border-brand-primary text-brand-primary' : 'border-border text-text-secondary'}`}>{t}</button>
+          ))}
+        </div>
+        {source === 'negocio' && (
+          <div className="mt-3 flex flex-wrap items-end gap-2">
+            <label className="flex flex-1 flex-col gap-1"><span className={lbl}>Negocio</span>
+              <select className={input} value={affId} onChange={(e) => setAffId(e.target.value)}>
+                <option value="">Elige un negocio…</option>
+                {affiliates.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+              </select>
+            </label>
+            {affId && <button onClick={runQuote} disabled={quoting} className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-text-primary disabled:opacity-50">{quoting ? 'Calculando…' : 'Recalcular'}</button>}
+          </div>
+        )}
+        {source === 'prospecto' && (
+          <div className="mt-3 space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {modules.map((m) => (
+                <label key={m.token} className="flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs text-text-primary">
+                  <input type="checkbox" checked={prospect.modules.includes(m.token)} onChange={(e) => setP('modules', e.target.checked ? [...prospect.modules, m.token] : prospect.modules.filter((t) => t !== m.token))} />
+                  {m.es}
+                </label>
+              ))}
+            </div>
+            <div className="grid gap-3 sm:grid-cols-4">
+              <label className="flex flex-col gap-1"><span className={lbl}>País (ISO2)</span><input className={input} maxLength={2} value={prospect.country} onChange={(e) => setP('country', e.target.value.toUpperCase())} /></label>
+              {([['locations', 'Locales'], ['vehicles', 'Vehículos'], ['users', 'Usuarios'], ['contractClients', 'Clientes con contrato'], ['importClients', 'Clientes a importar']] as [keyof Prospect, string][]).map(([k, t]) => (
+                <label key={k} className="flex flex-col gap-1"><span className={lbl}>{t}</span><input className={input} type="number" min={0} value={prospect[k] as number} onChange={(e) => setP(k, (parseInt(e.target.value) || 0) as never)} /></label>
+              ))}
+              <label className="flex items-center gap-2 self-end pb-2 text-sm text-text-primary"><input type="checkbox" checked={prospect.isCorporate} onChange={(e) => setP('isCorporate', e.target.checked)} />Corporativo</label>
+            </div>
+            <button onClick={runQuote} disabled={quoting || prospect.modules.length === 0} className="rounded-full bg-brand-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{quoting ? 'Calculando…' : 'Calcular'}</button>
+          </div>
+        )}
+        {quoteError && <p className="mt-2 text-sm text-red-600">{quoteError}</p>}
+      </div>
+
       {tab === 'cliente' && (
         <div className="space-y-4">
           <div className={card}>
@@ -137,6 +254,26 @@ function CotizadorInner() {
               <tr className="border-t border-border font-bold"><td className="py-1.5">Total</td><td className="py-1.5 text-right">{money(q.fam)}</td></tr>
             </tbody></table>
           </div>
+          {quote && (
+            <div className={card}>
+              <h2 className="mb-1 font-semibold text-text-primary">
+                Qué incluye{quote.packageName ? ` · ${quote.packageName}` : ''}{quote.isCorporate ? ' · Corporativo' : ''}
+              </h2>
+              <p className="mb-2 text-xs text-text-muted">
+                {quote.country ?? '—'} · {quote.tierName}{quote.tier > 1 ? ` (×${quote.tierFactor})` : ''}
+                {quote.packageSavingsUsd > 0 ? ` · el paquete ahorra ${money(quote.packageSavingsUsd)}/mes frente a módulos sueltos` : ''}
+              </p>
+              <table className="w-full text-sm text-text-primary"><tbody>
+                {quote.monthlyLines.map((l, i) => (
+                  <tr key={'m' + i} className="border-b border-border last:border-0">
+                    <td className="py-1">{l.label}{l.qty !== 1 ? ` × ${l.qty}` : ''}{l.isCourtesy ? ' (cortesía)' : ''}</td>
+                    <td className="py-1 text-right">{money(l.totalUsd)}/mes</td>
+                  </tr>
+                ))}
+              </tbody></table>
+              <p className="mt-2 text-xs text-text-muted">Lista {money(quote.monthlyListUsd)}/mes → {money(quote.monthlyUsd)}/mes · Setup lista {money(quote.setupListUsd)} → {money(quote.setupUsd)}</p>
+            </div>
+          )}
           <div className={card}>
             <h2 className="mb-2 font-semibold text-text-primary">Calendario de pagos</h2>
             <table className="w-full text-sm text-text-primary"><tbody>

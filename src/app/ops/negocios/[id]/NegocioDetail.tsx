@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useOpsCanManage } from '../../OpsRoleContext';
@@ -17,6 +17,72 @@ import { MODULE_CATALOG, isModuleRelevant } from '@/lib/module-catalog';
 // Dashboard/Diseñar/Identidad/Módulos no están acá — siempre visibles en el sidebar, no son
 // apagables.
 const MODULE_TOKENS = MODULE_CATALOG;
+
+// Corporativo + locales alimentan el cotizador (mínimo corporativo, locales extra). El país y el nivel de
+// precio salen del país del negocio; aquí solo se muestran para ver con qué precio se cotiza.
+function CorporateControl({ affiliateId }: { affiliateId: string }) {
+  const [info, setInfo] = useState<{ isCorporate: boolean; locations: number; country: string | null; tierName: string; monthlyUsd: number } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function load() {
+    try {
+      const res = await fetch(`/api/ops/affiliates/${affiliateId}/quote`, { cache: 'no-store' });
+      if (!res.ok) return;
+      const d = await res.json();
+      setInfo({ isCorporate: d.isCorporate, locations: d.locations, country: d.country, tierName: d.tierName, monthlyUsd: d.monthlyUsd });
+    } catch { /* sin datos: no se muestra */ }
+  }
+  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [affiliateId]);
+
+  async function save(isCorporate: boolean, locations: number) {
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch(`/api/ops/affiliates/${affiliateId}/corporate`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isCorporate, locations }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error?.message ?? 'No se pudo guardar.');
+      await load();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Algo salió mal.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!info) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-xs">
+      <button
+        onClick={() => save(!info.isCorporate, info.locations)}
+        disabled={busy}
+        aria-pressed={info.isCorporate}
+        title="Corporativo: aplica el mínimo corporativo y soporte corporativo en la cotización."
+        className={`rounded-full border px-3 py-1.5 font-medium disabled:opacity-50 ${info.isCorporate ? 'border-brand-primary text-brand-primary' : 'border-gray-300 dark:border-neutral-700 text-gray-600 dark:text-neutral-300'}`}
+      >
+        {info.isCorporate ? 'Corporativo ✓' : 'Marcar corporativo'}
+      </button>
+      <label className="flex items-center gap-1 text-gray-600 dark:text-neutral-300">
+        Locales
+        <input
+          type="number" min={1} max={50} value={info.locations} disabled={busy}
+          onChange={(e) => setInfo({ ...info, locations: Math.max(1, parseInt(e.target.value) || 1) })}
+          onBlur={() => save(info.isCorporate, info.locations)}
+          className="w-14 rounded-lg border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1"
+        />
+      </label>
+      <span className="text-gray-500 dark:text-neutral-400">
+        País {info.country ?? '—'} · {info.tierName} · ${info.monthlyUsd}/mes
+      </span>
+      <Link href="/ops/cotizador" className="text-brand-primary underline">Cotizar</Link>
+      {err && <span className="text-red-500">{err}</span>}
+    </div>
+  );
+}
 
 export function NegocioDetail({
   initialAffiliate,
@@ -311,6 +377,7 @@ export function NegocioDetail({
               >
                 {a.screensOnly ? 'Solo pantallas · sin setup ✓' : 'Solo pantallas (sin setup)'}
               </button>
+              {canManage && <CorporateControl affiliateId={a.id} />}
               <button
                 onClick={() => setStatus({ isFeatured: !a.isFeatured })}
                 disabled={busy}

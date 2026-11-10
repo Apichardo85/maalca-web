@@ -79,6 +79,16 @@ export function SpaceDashboard({
   const [showAnimation, setShowAnimation] = useState(isNew);
   const [copied, setCopied] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
+  // Precio de Growth con el nivel del país del negocio; mientras carga (o si falla) se usa el de lista.
+  const [growthPrice, setGrowthPrice] = useState<number>(PRICE_ENTREPRENEUR);
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/space/${business.slug}/billing/upgrade-price`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (!cancelled && d && typeof d.growthMonthlyUsd === 'number' && d.growthMonthlyUsd > 0) setGrowthPrice(d.growthMonthlyUsd); })
+      .catch(() => { /* respaldo: precio de lista */ });
+    return () => { cancelled = true; };
+  }, [business.slug]);
   const [lowStock, setLowStock] = useState<{ count: number; items: { id: string; name: string }[] } | null>(null);
 
   const { language } = useSimpleLanguage();
@@ -363,7 +373,7 @@ export function SpaceDashboard({
               }}
               className="mt-4 rounded-full bg-brand-primary px-5 py-2 text-sm font-medium text-white transition hover:bg-brand-primary-hover"
             >
-              {getText(`Mejorar — $${PRICE_ENTREPRENEUR}/mes`, `Upgrade — $${PRICE_ENTREPRENEUR}/mo`)}
+              {getText(`Mejorar — $${growthPrice}/mes`, `Upgrade — $${growthPrice}/mo`)}
             </button>
           </div>
         )}
@@ -411,7 +421,7 @@ export function SpaceDashboard({
               }}
               className="mt-4 rounded-full bg-brand-primary px-5 py-2 text-sm font-medium text-white transition hover:bg-brand-primary-hover"
             >
-              {getText(`Mejorar — $${PRICE_ENTREPRENEUR}/mes`, `Upgrade — $${PRICE_ENTREPRENEUR}/mo`)}
+              {getText(`Mejorar — $${growthPrice}/mes`, `Upgrade — $${growthPrice}/mo`)}
             </button>
           </div>
         )}

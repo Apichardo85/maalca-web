@@ -26,6 +26,15 @@ type Plan = {
   cta: { es: string; en: string };
 };
 
+interface BookPlan { id: string; name: string; monthlyUsd: number; listUsd: number; yearlyUsd: number; setupUsd: number; setupListUsd: number }
+interface PriceBook {
+  country: string; tier: number; tierName: string; tierFactor: number;
+  plans: BookPlan[]; addOns: PublicAddOn[];
+  corporateFromUsd: number; corporateFromListUsd: number;
+  vehicleUsd: number; userUsd: number; clientsBlockUsd: number; extraLocationPercent: number;
+}
+const COUNTRY_KEY = "maalca-country";
+
 type AddOn = {
   id: string;
   name: { es: string; en: string };
@@ -314,6 +323,36 @@ const comparisonRows: { label: { es: string; en: string }; values: ComparisonVal
 export default function ServiciosPage() {
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const [addOns, setAddOns] = useState<AddOn[]>(FALLBACK_ADDONS);
+  const [country, setCountry] = useState<string>("");
+  const [book, setBook] = useState<PriceBook | null>(null);
+
+  // País para el precio: lo que eligió el visitante (se recuerda) o el que detecta el edge.
+  useEffect(() => {
+    let saved = "";
+    try { saved = localStorage.getItem(COUNTRY_KEY) ?? ""; } catch { /* sin almacenamiento */ }
+    if (saved) { setCountry(saved); return; }
+    fetch("/api/geo").then((r) => (r.ok ? r.json() : null)).then((d) => setCountry(d?.country ?? "US")).catch(() => setCountry("US"));
+  }, []);
+
+  // Libro de precios del API con el nivel del país; si falla, quedan los precios del respaldo.
+  useEffect(() => {
+    if (!country) return;
+    let cancelled = false;
+    fetch(`${API_BASE}/api/public/pricing?country=${encodeURIComponent(country)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: PriceBook | null) => {
+        if (cancelled || !d || !Array.isArray(d.plans)) return;
+        setBook(d);
+        if (Array.isArray(d.addOns) && d.addOns.length > 0) setAddOns(d.addOns.map(fromApi));
+      })
+      .catch(() => { /* sin API: respaldo */ });
+    return () => { cancelled = true; };
+  }, [country]);
+
+  const pickCountry = (c: string) => {
+    setCountry(c);
+    try { localStorage.setItem(COUNTRY_KEY, c); } catch { /* ignorar */ }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -430,14 +469,38 @@ export default function ServiciosPage() {
             </div>
           </div>
 
+          <div className="mb-6 flex items-center justify-center gap-2 text-sm text-text-muted">
+            <label htmlFor="price-country">{language === "en" ? "Prices for" : "Precios para"}</label>
+            <select
+              id="price-country"
+              value={country === "DO" ? "DO" : "US"}
+              onChange={(e) => pickCountry(e.target.value)}
+              className="rounded-lg border border-border bg-surface px-2 py-1 text-text-primary"
+            >
+              <option value="DO">{language === "en" ? "Dominican Republic" : "República Dominicana"}</option>
+              <option value="US">{language === "en" ? "United States / other" : "Estados Unidos / otros"}</option>
+            </select>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
             {plans.map((plan, index) => {
               const isFree = plan.price === 0;
+              const bp = book?.plans.find((x) => x.id === plan.id);
+              const monthly = bp ? bp.monthlyUsd : plan.price;
+              const listMonthly = bp ? bp.listUsd : plan.price;
               const effectivePrice = isFree
                 ? 0
                 : billing === "annual"
-                ? Math.round(plan.price * (1 - ANNUAL_DISCOUNT))
-                : plan.price;
+                ? bp ? Math.round(bp.yearlyUsd / 12) : Math.round(plan.price * (1 - ANNUAL_DISCOUNT))
+                : monthly;
+              const billedYear = bp ? bp.yearlyUsd : effectivePrice * 12;
+              const discounted = !isFree && !!bp && bp.listUsd > bp.monthlyUsd;
+              const setupText = bp && plan.setup
+                ? {
+                    es: `Setup único $${bp.setupUsd} · sin setup si solo usas pantallas`,
+                    en: `One-time setup $${bp.setupUsd} · no setup if you only use screens`,
+                  }
+                : plan.setup;
 
               return (
                 <div
@@ -483,6 +546,9 @@ export default function ServiciosPage() {
                         </span>
                       ) : (
                         <>
+                          {discounted && billing === "monthly" && (
+                            <span className="text-lg text-text-muted line-through">${listMonthly}</span>
+                          )}
                           <span className="text-4xl font-bold text-text-primary">${effectivePrice}</span>
                           <span className="text-text-muted text-sm">
                             USD / {language === "en" ? "mo" : "mes"}
@@ -494,8 +560,8 @@ export default function ServiciosPage() {
                     {!isFree && billing === "annual" && (
                       <div className="text-xs text-brand-primary font-semibold mb-2">
                         {language === "en"
-                          ? `Billed $${effectivePrice * 12} / year`
-                          : `Facturado $${effectivePrice * 12} / año`}
+                          ? `Billed $${billedYear} / year`
+                          : `Facturado $${billedYear} / año`}
                       </div>
                     )}
 
@@ -505,10 +571,15 @@ export default function ServiciosPage() {
                       </div>
                     )}
 
-                    {plan.setup && (
-                      <div className="text-xs text-text-muted mb-5">{L(plan.setup)}</div>
+                    {discounted && (
+                      <div className="text-xs text-brand-primary font-semibold mb-1">
+                        {language === "en" ? `Price for ${book?.tierName}` : `Precio para ${book?.tierName}`}
+                      </div>
                     )}
-                    {!plan.setup && <div className="mb-5" />}
+                    {setupText && (
+                      <div className="text-xs text-text-muted mb-5">{L(setupText)}</div>
+                    )}
+                    {!setupText && <div className="mb-5" />}
 
                     <p className="text-text-secondary text-sm mb-6 leading-relaxed">{L(plan.tagline)}</p>
 
@@ -571,9 +642,17 @@ export default function ServiciosPage() {
                   </span>
                 </div>
                 <div className="text-xs text-text-muted mb-5">
-                  {language === "en"
-                    ? "From $350 / mo · SOW and contract tailored to your operation"
-                    : "Desde $350 / mes · SOW y contrato a medida de tu operación"}
+                  {(() => {
+                    const from = book?.corporateFromUsd ?? 350;
+                    const units = book
+                      ? language === "en"
+                        ? ` · +$${book.vehicleUsd}/vehicle · +$${book.userUsd}/extra user · +$${book.clientsBlockUsd}/100 contract clients · extra locations at ${book.extraLocationPercent}%`
+                        : ` · +$${book.vehicleUsd}/vehículo · +$${book.userUsd}/usuario extra · +$${book.clientsBlockUsd}/100 clientes con contrato · local extra al ${book.extraLocationPercent}%`
+                      : "";
+                    return language === "en"
+                      ? `From $${from} / mo${units} · SOW and contract tailored to your operation`
+                      : `Desde $${from} / mes${units} · SOW y contrato a medida de tu operación`;
+                  })()}
                 </div>
                 <p className="text-text-secondary text-sm mb-6 leading-relaxed">
                   {language === "en"
@@ -650,13 +729,13 @@ export default function ServiciosPage() {
                     <span className="text-xs font-bold text-text-primary block">
                       Growth
                     </span>
-                    <span className="text-xs text-text-muted">${PRICE_ENTREPRENEUR}</span>
+                    <span className="text-xs text-text-muted">${book?.plans.find((x) => x.id === "emprendedor")?.monthlyUsd ?? PRICE_ENTREPRENEUR}</span>
                   </th>
                   <th className="text-center py-4 px-3">
                     <span className="text-xs font-bold text-brand-primary block">
                       Professional
                     </span>
-                    <span className="text-xs text-text-muted">${PRICE_PROFESSIONAL}</span>
+                    <span className="text-xs text-text-muted">${book?.plans.find((x) => x.id === "profesional")?.monthlyUsd ?? PRICE_PROFESSIONAL}</span>
                   </th>
                 </tr>
               </thead>

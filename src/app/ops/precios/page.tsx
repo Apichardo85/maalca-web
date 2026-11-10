@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useOpsCanManage } from '../OpsRoleContext';
+import PricingFormula from './PricingFormula';
 
 // Extras de MaalCa (PlatformAddOns en maalca-api). /servicios los lee del API, así que un
 // cambio aquí llega a la página pública en máx. ~10 min (cache del API + revalidación de la web),
@@ -22,6 +23,7 @@ interface AddOn {
   unit: Unit;
   sortOrder: number;
   active: boolean;
+  applyTierDiscount: boolean;
   updatedAt: string | null;
   updatedBy: string | null;
 }
@@ -47,6 +49,7 @@ const EMPTY: Draft = {
   unit: 'Monthly',
   sortOrder: 99,
   active: true,
+  applyTierDiscount: true,
 };
 
 const input =
@@ -129,6 +132,7 @@ export default function OpsPreciosPage() {
 
   return (
     <div>
+      <PricingFormula canManage={canManage} />
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold">Precios</h2>
@@ -310,6 +314,14 @@ export default function OpsPreciosPage() {
             <label className="flex items-center gap-2 self-end pb-2 text-sm">
               <input type="checkbox" checked={draft.active} onChange={(e) => set('active', e.target.checked)} />
               Visible en /servicios
+            </label>
+            <label className="flex items-center gap-2 self-end pb-2 text-sm">
+              <input
+                type="checkbox"
+                checked={!draft.applyTierDiscount}
+                onChange={(e) => set('applyTierDiscount', !e.target.checked)}
+              />
+              Sin descuento por país
             </label>
           </div>
           <div className="mt-5 flex gap-2">
