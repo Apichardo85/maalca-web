@@ -7,7 +7,7 @@ import type { RetailAttributes } from '@/lib/commerce';
 import type { PublicCanal } from '@/lib/public-contact';
 import type { MealPeriod, WeekDay, MenuItemFlags } from '@/lib/types';
 
-export type BusinessType = 'restaurant' | 'barber' | 'service' | 'retail' | 'community';
+export type BusinessType = 'restaurant' | 'barber' | 'service' | 'retail' | 'community' | 'dealer';
 
 export interface Category {
   id: string;
@@ -31,6 +31,54 @@ export interface HorarioDay {
   abre: string;
   cierra: string;
   cerrado: boolean;
+}
+
+/** Dealer -- un vehículo de la vitrina pública (GET /api/public/affiliates/{slug}/dealer-vehicles).
+ *  El precio viene en la moneda base del negocio; la web lo convierte según `DealerPublicSettings`. */
+export interface PublicVehicle {
+  id: string;
+  make: string;
+  model: string;
+  trim?: string | null;
+  year: number;
+  condition: 'new' | 'used' | 'certified';
+  price: number;
+  compareAtPrice?: number | null;
+  mileage?: number | null;
+  mileageUnit: 'km' | 'mi';
+  transmission?: 'automatic' | 'manual' | null;
+  fuelType?: 'gasoline' | 'diesel' | 'hybrid' | 'electric' | 'other' | null;
+  bodyType?: string | null;
+  drivetrain?: 'fwd' | 'rwd' | 'awd' | '4x4' | null;
+  exteriorColor?: string | null;
+  interiorColor?: string | null;
+  engine?: string | null;
+  doors?: number | null;
+  passengers?: number | null;
+  stockNumber?: string | null;
+  importOrigin?: string | null;
+  status: 'available' | 'reserved' | 'sold';
+  featured: boolean;
+  imageUrl?: string | null;
+  images?: string[] | null;
+  description?: string | null;
+  descriptionEn?: string | null;
+  createdAt: string;
+}
+
+/** Config del dealer que decide el dueño (Diseño > Configuración): moneda, unidad de millaje y reservados. */
+export interface DealerPublicSettings {
+  priceDisplay: 'base' | 'usd' | 'dop' | 'both';
+  usdToDop?: number | null;
+  mileageUnit: 'km' | 'mi';
+  showReserved: boolean;
+  /** Fase 2 (conversión). Todo apagado por defecto: el dueño lo activa en el panel. */
+  financingEnabled?: boolean;
+  financingRate?: number | null;     // tasa anual en %
+  financingTerms?: number[];         // plazos en meses
+  minDownPercent?: number;           // inicial mínimo, % del precio
+  tradeInEnabled?: boolean;
+  testDriveEnabled?: boolean;
 }
 
 export interface PublicTemplateProps {
@@ -161,6 +209,9 @@ export interface PublicTemplateProps {
      *  /public/affiliates/{slug}/programs, el template no necesita filtrar de nuevo.
      *  Lanzamiento inicial solo businessType Community; null/[] = sin programas o afiliado
      *  no es Community todavia. */
+    /** Solo Dealer -- inventario público + config (moneda/millaje/reservados). El servidor ya
+     *  quitó vendidos, ocultos y (si el dueño lo decidió) reservados. null/undefined = sin datos. */
+    dealer?: { baseCurrency: 'USD' | 'DOP'; settings: DealerPublicSettings; vehicles: PublicVehicle[] } | null;
     programs?: Array<{
       id: string;
       title: string;
@@ -229,6 +280,7 @@ export const TEMPLATES: Record<BusinessType, ComponentType<PublicTemplateProps>>
   // Retail tiene dos plantillas sobre el mismo motor de comercio; RetailLayouts elige por business.store_layout.
   retail: dynamic(() => import('@/components/public/templates/RetailLayouts').then((m) => m.RetailLayoutsTemplate)),
   community: dynamic(() => import('@/components/public/templates/Community').then((m) => m.CommunityTemplate)),
+  dealer: dynamic(() => import('@/components/public/templates/Dealer').then((m) => m.DealerTemplate)),
 };
 
 export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
@@ -237,6 +289,7 @@ export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
   service: 'Servicios',
   retail: 'Tienda',
   community: 'Comunidad',
+  dealer: 'Autoventa',
 };
 
 /** Igual que BUSINESS_TYPE_LABELS, en inglés: el panel de un negocio con idioma inglés mostraba
@@ -247,6 +300,7 @@ export const BUSINESS_TYPE_LABELS_EN: Record<BusinessType, string> = {
   service: 'Services',
   retail: 'Store',
   community: 'Community',
+  dealer: 'Car dealer',
 };
 
 /** Same emoji as the onboarding business-type selector (BUSINESS_TYPES in
@@ -258,6 +312,7 @@ export const BUSINESS_TYPE_ICONS: Record<BusinessType, string> = {
   service: '🛠️',
   retail: '🛍️',
   community: '🤝',
+  dealer: '🚗',
 };
 
 /** Label for the /space nav item that leads to the catalog editor — the generic
@@ -268,6 +323,7 @@ export const CATALOG_NAV_LABELS: Record<BusinessType, { es: string; en: string }
   service: { es: 'Servicios', en: 'Services' },
   retail: { es: 'Catálogo', en: 'Catalog' },
   community: { es: 'Programas', en: 'Programs' },
+  dealer: { es: 'Vehículos', en: 'Vehicles' },
 };
 
 // RESUELTO (backlog 2026-09-26): "Programas" para Community ya no es el catalogo

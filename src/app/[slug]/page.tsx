@@ -144,6 +144,22 @@ async function getActivities(slug: string): Promise<PublicActivity[]> {
   }
 }
 
+// Dealer: inventario público + config (moneda/millaje/reservados). null = falló o no es Dealer;
+// el template muestra "inventario en actualización" en vez de romper la página.
+async function getDealerVehicles(slug: string): Promise<PublicTemplateProps['business']['dealer']> {
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/public/affiliates/${slug}/dealer-vehicles`,
+      { next: { revalidate: 60, tags: [`affiliate:${slug}`] } },
+    );
+    if (!res.ok) return null;
+    return res.json();
+  } catch (e) {
+    console.error('[slug] getDealerVehicles error', e);
+    return null;
+  }
+}
+
 async function getPrograms(slug: string): Promise<PublicCommunityProgram[]> {
   try {
     const res = await fetch(
@@ -232,6 +248,10 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
     ? await getPrograms(slug)
     : [];
 
+  const dealer = affiliate.businessType.toLowerCase() === 'dealer'
+    ? await getDealerVehicles(slug)
+    : null;
+
   const causas = affiliate.businessType.toLowerCase() === 'community'
     ? await getCausas(slug)
     : [];
@@ -308,6 +328,7 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
           communityImpact: affiliate.communityImpact ?? null,
           activities,
           programs,
+          dealer,
           spanishFlag: affiliate.spanishFlag ?? null,
           ordersEnabled: affiliate.ordersEnabled !== false,
           store_layout: affiliate.storeLayout === 'marketplace' ? 'marketplace' : 'boutique',

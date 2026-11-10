@@ -84,6 +84,8 @@ export function SpaceMobileNav({
     { label: getText('Diseñar mi Espacio', 'Design my Space'), icon: '🎨', href: `/space/${slug}/design` },
     { label: getText('Identidad', 'Identity'), icon: '🪪', href: `/space/${slug}/identidad` },
     { label: catalogLabel, icon: '📦', href: `/space/${slug}/catalog`, token: 'catalog' },
+    // Dealer: su inventario de vehículos reemplaza al catálogo (el token 'vehicles' solo está activo para Dealer).
+    { label: getText('Vehículos', 'Vehicles'), icon: '🚗', href: `/space/${slug}/vehicles`, token: 'vehicles' },
     { label: getText('Pedidos', 'Orders'), icon: '🧾', href: `/space/${slug}/orders`, token: 'orders' },
     // Cocina/Fila/Facturas/Propuestas: ya no se filtran por businessType acá — ver el comentario
     // completo en SpaceSidebar.tsx. El gate real es activeModules.includes(token) más abajo.

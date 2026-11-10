@@ -18,6 +18,7 @@ const TRIAL_BUSINESS_TYPES = [
   // por ahora. Fase 2 del backlog Comunidad ya tiene vitrina pública; el onboarding público
   // (OnboardingForm.tsx) todavía no la ofrece a clientes reales.
   { value: 'community', label: 'Comunidad' },
+  { value: 'dealer', label: 'Autoventa' },
 ] as const;
 
 function CreateTrialModal({

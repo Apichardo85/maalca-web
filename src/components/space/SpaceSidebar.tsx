@@ -86,6 +86,8 @@ export function SpaceSidebar({
     ...(businessType !== 'community'
       ? [{ label: catalogLabel, icon: '📦', href: `/space/${slug}/catalog`, token: 'catalog' }]
       : []),
+    // Dealer (autoventa): su inventario de vehículos reemplaza al catálogo (módulo 'vehicles', ver VehicleListing en el API).
+    { label: getText('Vehículos', 'Vehicles'), icon: '🚗', href: `/space/${slug}/vehicles`, token: 'vehicles' },
     // Calculadora de impacto (insumos -> recetas -> combos -> servir) — solo Community, ver
     // CommunityService.cs / ImpactContent.tsx. Sin token: no hay modulo activable/desactivable
     // para esto todavia, es parte fija del businessType Community.

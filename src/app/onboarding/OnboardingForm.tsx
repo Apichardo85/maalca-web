@@ -20,6 +20,7 @@ const BUSINESS_TYPES = [
   // eso ya lo maneja el template (Community.tsx) mostrando "proximamente", no algo que bloquee
   // la creacion del espacio aqui.
   { value: 'community', labelKey: 'onboarding.type.community.label', emoji: '🤝', examplesKey: 'onboarding.type.community.examples', comingSoon: false },
+  { value: 'dealer', labelKey: 'onboarding.type.dealer.label', emoji: '🚗', examplesKey: 'onboarding.type.dealer.examples', comingSoon: false },
   { value: 'creator', labelKey: 'onboarding.type.creator.label', emoji: '🎨', examplesKey: null, comingSoon: true },
   { value: 'publisher', labelKey: 'onboarding.type.publisher.label', emoji: '📚', examplesKey: null, comingSoon: true },
   { value: 'professional', labelKey: 'onboarding.type.professional.label', emoji: '💼', examplesKey: null, comingSoon: true },
