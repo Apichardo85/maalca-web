@@ -1,6 +1,6 @@
 'use client';
 
-// Cotizador de implementación MaalCa (solo staff). Calcula lo que ve el cliente (precio de lista vs precio fundador,
+// Cotizador de implementación MaalCa (solo staff). Calcula lo que ve el cliente (precio de lista vs precio con descuento por país,
 // hitos de pago, mensualidad) y, aparte, lo interno (comisión del referido, margen, capitalización). Se recuerda en este
 // navegador y copia el texto de la propuesta y los renglones de cada factura para pegarlos en Propuestas / Facturación
 // del espacio de MaalCa. No guarda nada en el servidor ni toca datos de ningún negocio.
@@ -8,9 +8,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useOpsCanManage } from '../OpsRoleContext';
 import type { OpsAffiliate } from '../types';
 
-// v2: un borrador por fuente (manual, prospecto o cada negocio). El v1 se migra a "manual".
-const STORE_PREFIX = 'maalca-cotizador-v2:';
-const LEGACY_KEY = 'maalca-cotizador-v1';
+// v3: un borrador por fuente (manual, prospecto o cada negocio). Los borradores v1/v2 traían datos de prueba (pagos, nombre de cliente) y se descartan.
+const STORE_PREFIX = 'maalca-cotizador-v3:';
 
 interface QuoteLine { group: string; token: string; label: string; qty: number; unitUsd: number; totalUsd: number; isCourtesy: boolean }
 interface Quote {
@@ -45,8 +44,8 @@ interface Q {
 }
 
 const DEFAULTS: Q = {
-  cliente: 'Omar Pichardo — Gift of God Fragances',
-  lista: 4000, fam: 3000, pagado: 100, h1: 50, h2: 30, h3: 20, cumplidos: 1,
+  cliente: '',
+  lista: 4000, fam: 3000, pagado: 0, h1: 50, h2: 30, h3: 20, cumplidos: 0,
   mLista: 350, mFam: 150, vig: 12, cred: 150,
   arFijo: 600, arMesPct: 10, socPct: 0, infra: 25, local: 400,
 };
@@ -82,13 +81,11 @@ function CotizadorInner() {
 
   const storeKey = STORE_PREFIX + (source === 'negocio' ? affId || 'sin-negocio' : source);
 
-  // Borrador guardado de esta fuente (si no hay, el v1 para "manual", o los valores por defecto).
+  // Borrador guardado de esta fuente (si no hay, los valores por defecto).
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(storeKey) ?? (source === 'manual' ? localStorage.getItem(LEGACY_KEY) : null);
-      // Un borrador nuevo de negocio o prospecto empieza sin pagos ni hitos cumplidos (los de DEFAULTS son del caso de Omar).
-      const base: Q = source === 'manual' ? DEFAULTS : { ...DEFAULTS, pagado: 0, cumplidos: 0 };
-      setQ(raw ? { ...base, ...JSON.parse(raw) } : base);
+      const raw = localStorage.getItem(storeKey);
+      setQ(raw ? { ...DEFAULTS, ...JSON.parse(raw) } : DEFAULTS);
     } catch { setQ(DEFAULTS); }
   }, [storeKey, source]);
 
@@ -112,7 +109,7 @@ function CotizadorInner() {
     });
   };
 
-  // Los precios salen de la fórmula del API: lista = nivel 1, familia/fundador = con el nivel del país.
+  // Los precios salen de la fórmula del API: lista = nivel 1, precio con descuento = con el nivel del país.
   const applyQuote = useCallback((r: Quote, cliente: string) => {
     setQuote(r);
     setQ((prev) => {
@@ -173,21 +170,21 @@ function CotizadorInner() {
     `Propuesta de implementación MaalCa — ${q.cliente}`,
     '',
     `Implementación (precio de lista): ${money(q.lista)}`,
-    `Precio fundador / familia: ${money(-(q.lista - q.fam))}`,
+    `Descuento: ${money(-(q.lista - q.fam))}`,
     `Total: ${money(q.fam)}`,
     '',
     'Calendario de pagos:',
     ...calc.hitos.map((h, i) => `${i + 1}. ${h.nombre} — ${h.pct}% = ${money(h.monto)}`),
     '',
     ...(quote ? ['', 'Incluye:', ...quote.monthlyLines.map((l) => `- ${l.label}${l.qty !== 1 ? ` x ${l.qty}` : ''}${l.isCourtesy ? ' (cortesía)' : ''}`), ''] : []),
-    `Mensualidad: plan estándar ${money(q.mLista)}/mes; plan fundador ${money(q.mFam)}/mes durante ${q.vig} meses (ahorro de ${money((q.mLista - q.mFam) * 12)} al año).`,
+    `Mensualidad: plan estándar ${money(q.mLista)}/mes; plan con descuento ${money(q.mFam)}/mes durante ${q.vig} meses (ahorro de ${money((q.mLista - q.mFam) * 12)} al año).`,
     `Referidos: cada negocio que recomiendes y se active te da ${money(q.cred)} en créditos de la plataforma.`,
   ].join('\n');
 
   const renglonesFactura = (i: number) => {
     const h = calc.hitos[i];
     const lineas = [`Implementación MaalCa — ${h.nombre} (${h.pct}%) | 1 | ${(q.lista * h.pct / 100).toFixed(2)}`,
-      `Precio fundador / familia (${h.pct}%) | 1 | ${(-(q.lista - q.fam) * h.pct / 100).toFixed(2)}`];
+      `Descuento (${h.pct}%) | 1 | ${(-(q.lista - q.fam) * h.pct / 100).toFixed(2)}`];
     if (i === 0 && q.pagado > 0) lineas.push(`Abono recibido | 1 | ${(-q.pagado).toFixed(2)}`);
     return `Descripción | Cantidad | Precio unitario\n${lineas.join('\n')}`;
   };
@@ -252,7 +249,7 @@ function CotizadorInner() {
             <h2 className="mb-2 font-semibold text-text-primary">{q.cliente}</h2>
             <table className="w-full text-sm text-text-primary"><tbody>
               <tr><td className="py-1.5">Implementación (precio de lista)</td><td className="py-1.5 text-right">{money(q.lista)}</td></tr>
-              <tr><td className="py-1.5">Precio fundador / familia</td><td className="py-1.5 text-right text-green-600">{money(-(q.lista - q.fam))}</td></tr>
+              <tr><td className="py-1.5">Descuento</td><td className="py-1.5 text-right text-green-600">{money(-(q.lista - q.fam))}</td></tr>
               <tr className="border-t border-border font-bold"><td className="py-1.5">Total</td><td className="py-1.5 text-right">{money(q.fam)}</td></tr>
             </tbody></table>
           </div>
@@ -292,7 +289,7 @@ function CotizadorInner() {
           </div>
           <div className={card}>
             <h2 className="mb-2 font-semibold text-text-primary">Mensualidad</h2>
-            <p className="text-sm text-text-primary">Estándar {money(q.mLista)}/mes · Fundador <b>{money(q.mFam)}/mes</b> por {q.vig} meses · Ahorro {money((q.mLista - q.mFam) * 12)}/año</p>
+            <p className="text-sm text-text-primary">Estándar {money(q.mLista)}/mes · Con descuento <b>{money(q.mFam)}/mes</b> por {q.vig} meses · Ahorro {money((q.mLista - q.mFam) * 12)}/año</p>
             <p className="mt-1 text-sm text-text-muted">Créditos por referido: {money(q.cred)} por negocio activado.</p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -308,12 +305,12 @@ function CotizadorInner() {
         <div className="space-y-4">
           <div className={card}><label className="flex flex-col gap-1"><span className={lbl}>Cliente</span><input className={input} value={q.cliente} onChange={(e) => set('cliente', e.target.value)} /></label></div>
           <div className={`${card} grid gap-3 sm:grid-cols-3`}>
-            <Field label="Precio de lista ($)" k="lista" q={q} set={set} /><Field label="Precio familia ($)" k="fam" q={q} set={set} /><Field label="Pagado hasta hoy ($)" k="pagado" q={q} set={set} />
+            <Field label="Precio de lista ($)" k="lista" q={q} set={set} /><Field label="Precio con descuento ($)" k="fam" q={q} set={set} /><Field label="Pagado hasta hoy ($)" k="pagado" q={q} set={set} />
             <Field label="Hito 1 (%)" k="h1" q={q} set={set} /><Field label="Hito 2 (%)" k="h2" q={q} set={set} /><Field label="Hito 3 (%)" k="h3" q={q} set={set} />
             <Field label="Hitos cumplidos (0–3)" k="cumplidos" q={q} set={set} />
           </div>
           <div className={`${card} grid gap-3 sm:grid-cols-4`}>
-            <Field label="Plan de lista ($/mes)" k="mLista" q={q} set={set} /><Field label="Plan familia ($/mes)" k="mFam" q={q} set={set} /><Field label="Vigencia (meses)" k="vig" q={q} set={set} /><Field label="Crédito por referido ($)" k="cred" q={q} set={set} />
+            <Field label="Plan de lista ($/mes)" k="mLista" q={q} set={set} /><Field label="Plan con descuento ($/mes)" k="mFam" q={q} set={set} /><Field label="Vigencia (meses)" k="vig" q={q} set={set} /><Field label="Crédito por referido ($)" k="cred" q={q} set={set} />
           </div>
           <div className={`${card} grid gap-3 sm:grid-cols-3`}>
             <Field label="Referido: comisión fija ($)" k="arFijo" q={q} set={set} /><Field label="Referido: % de la mensualidad" k="arMesPct" q={q} set={set} /><Field label="Socio: % del neto" k="socPct" q={q} set={set} />
@@ -338,8 +335,8 @@ function CotizadorInner() {
           </div>
           <div className={card}>
             <h2 className="mb-2 font-semibold text-text-primary">Mensualidad y capitalización</h2>
-            {[['Mensualidad familia', money(q.mFam)], [`Referido (${q.arMesPct}%)`, money(-calc.arMes)], ['Infraestructura', money(-q.infra)], ['Margen mensual', money(calc.margenFam)], [`Margen con plan de lista (${money(q.mLista)})`, money(calc.margenLista)],
-              [`Clientes que cubren el local (${money(q.local)}) a precio familia`, String(calc.clientesFam)], ['… a precio de lista', String(calc.clientesLista)]].map(([a, b]) => (
+            {[['Mensualidad con descuento', money(q.mFam)], [`Referido (${q.arMesPct}%)`, money(-calc.arMes)], ['Infraestructura', money(-q.infra)], ['Margen mensual', money(calc.margenFam)], [`Margen con plan de lista (${money(q.mLista)})`, money(calc.margenLista)],
+              [`Clientes que cubren el local (${money(q.local)}) a precio con descuento`, String(calc.clientesFam)], ['… a precio de lista', String(calc.clientesLista)]].map(([a, b]) => (
               <div key={a} className="flex justify-between border-b border-border py-1.5 text-sm text-text-primary last:border-0"><span>{a}</span><b>{b}</b></div>
             ))}
           </div>
