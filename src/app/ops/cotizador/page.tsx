@@ -86,7 +86,9 @@ function CotizadorInner() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(storeKey) ?? (source === 'manual' ? localStorage.getItem(LEGACY_KEY) : null);
-      setQ(raw ? { ...DEFAULTS, ...JSON.parse(raw) } : DEFAULTS);
+      // Un borrador nuevo de negocio o prospecto empieza sin pagos ni hitos cumplidos (los de DEFAULTS son del caso de Omar).
+      const base: Q = source === 'manual' ? DEFAULTS : { ...DEFAULTS, pagado: 0, cumplidos: 0 };
+      setQ(raw ? { ...base, ...JSON.parse(raw) } : base);
     } catch { setQ(DEFAULTS); }
   }, [storeKey, source]);
 
