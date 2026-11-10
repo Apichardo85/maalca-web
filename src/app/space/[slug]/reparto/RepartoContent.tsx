@@ -9,6 +9,7 @@ import type { AdminRoute, Anaquel, ContainerType, DriverOption, UnbilledReport, 
 import type { BrandInfo } from '@/lib/pdf/document';
 import { RoutesTab } from './RoutesTab';
 import { VehiclesTab } from './VehiclesTab';
+import { TemplatesTab } from './TemplatesTab';
 import { BillingTab } from './BillingTab';
 import { EnvasesTab } from './EnvasesTab';
 import { LiveTab } from './LiveTab';
@@ -27,7 +28,7 @@ interface Props {
   brand?: BrandInfo;
 }
 
-type Tab = 'routes' | 'live' | 'vehicles' | 'containers' | 'billing';
+type Tab = 'routes' | 'templates' | 'live' | 'vehicles' | 'containers' | 'billing';
 
 export function RepartoContent({ slug, currency, customers, initialVehicles, initialRoutes, drivers, initialUnbilled, initialTypes, initialAnaqueles, businessName, brand }: Props) {
   const { language } = useSimpleLanguage();
@@ -57,6 +58,7 @@ export function RepartoContent({ slug, currency, customers, initialVehicles, ini
   const notify = { success: toast.success, error: toast.error };
   const tabs: { key: Tab; label: string }[] = [
     { key: 'routes', label: getText('Rutas', 'Routes') },
+    { key: 'templates', label: getText('Rutas fijas', 'Fixed routes') },
     { key: 'live', label: getText('En vivo', 'Live') },
     { key: 'vehicles', label: getText('Vehículos', 'Vehicles') },
     { key: 'containers', label: getText('Envases', 'Containers') },
@@ -78,7 +80,7 @@ export function RepartoContent({ slug, currency, customers, initialVehicles, ini
         steps={[
           getText('En Vehículos, registra cada camión y quién lo maneja.', 'In Vehicles, add each truck and who drives it.'),
           getText('En Envases, crea el tipo de botellón y el anaquel con QR de cada cliente.', 'In Containers, create the bottle type and each customer’s QR shelf.'),
-          getText('En Rutas, arma la ruta con sus paradas y asígnala; el conductor la ve en su celular.', 'In Routes, build the route with its stops and assign it; the driver sees it on their phone.'),
+          getText('En Rutas fijas, arma una vez cada ruta (días, camión, chofer y paradas) y se crea sola cada día; en Rutas cambias el chofer de un día o armas una suelta.', 'In Fixed routes, build each route once (days, truck, driver, stops) and it creates itself every day; in Routes you change a day’s driver or build a one-off.'),
           getText('Al cerrar el ciclo, usa Facturar ciclo para cobrar lo entregado.', 'At the end of the cycle, use Bill cycle to invoice what was delivered.'),
         ]}
       />
@@ -102,6 +104,9 @@ export function RepartoContent({ slug, currency, customers, initialVehicles, ini
         )}
         {tab === 'routes' && (
           <RoutesTab slug={slug} currency={currency} routes={routes} vehicles={vehicles} drivers={drivers} customers={customers} notify={notify} onChange={() => load('routes', setRoutes)} />
+        )}
+        {tab === 'templates' && (
+          <TemplatesTab slug={slug} vehicles={vehicles} drivers={drivers} customers={customers} notify={notify} onRoutesChange={() => load('routes', setRoutes)} />
         )}
         {tab === 'live' && <LiveTab slug={slug} />}
         {tab === 'vehicles' && (

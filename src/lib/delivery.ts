@@ -182,6 +182,21 @@ export interface AdminRoute {
   stops: RouteStop[];
 }
 
+/** Ruta fija: crea sola la ruta del día en los días marcados. days: 0 = domingo … 6 = sábado. */
+export interface RouteTemplate {
+  id: string;
+  name: string;
+  vehicleId: string | null;
+  vehiclePlate: string | null;
+  driverId: string | null;
+  driverName: string | null;
+  days: number[];
+  isActive: boolean;
+  notes: string | null;
+  stopsTotal: number;
+  stops: { customerId: string; customerName: string; customerAddress: string | null; sortOrder: number }[];
+}
+
 export interface DriverOption {
   id: string;
   name: string;

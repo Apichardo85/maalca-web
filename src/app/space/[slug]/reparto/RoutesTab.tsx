@@ -60,6 +60,9 @@ export function RoutesTab({ slug, currency = 'DOP', routes, vehicles, drivers, c
   const [form, setForm] = useState<Form | null>(null);
   const [query, setQuery] = useState('');
   const [saving, setSaving] = useState(false);
+  // Chofer/camión asignados desde la tarjeta (sin abrir el formulario) y repetición de una ruta en otra fecha.
+  const [assigning, setAssigning] = useState<string | null>(null);
+  const [repeat, setRepeat] = useState<{ id: string; date: string } | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [recon, setRecon] = useState<Record<string, Reconciliation | 'loading' | 'error'>>({});
   // El listado del API no trae las paradas: se piden al abrir una ruta (o al editarla).
@@ -228,6 +231,71 @@ export function RoutesTab({ slug, currency = 'DOP', routes, vehicles, drivers, c
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  const sortedCustomerIds = (full: AdminRoute) => [...full.stops].sort((a, b) => a.sortOrder - b.sortOrder).map((s) => s.customerId);
+
+  // Cambia chofer y/o camión de una ruta que todavía no salió, directo desde la tarjeta. Las paradas se conservan.
+  async function quickAssign(r: AdminRoute, patch: { driverId?: string | null; vehicleId?: string | null }) {
+    setAssigning(r.id);
+    try {
+      const full = await loadDetail(r.id);
+      if (!full) {
+        notify.error(getText('No se pudieron cargar las paradas de la ruta.', "Couldn't load the route's stops."));
+        return;
+      }
+      const vehicleId = 'vehicleId' in patch ? patch.vehicleId ?? null : r.vehicleId ?? null;
+      let driverId = 'driverId' in patch ? patch.driverId ?? null : r.driverId ?? null;
+      // Al poner camión a una ruta sin chofer, se usa el conductor habitual de ese camión.
+      if ('vehicleId' in patch && !driverId) driverId = vehicles.find((v) => v.id === vehicleId)?.driverId ?? null;
+      const res = await fetch(`/api/space/${slug}/routes/${r.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: r.name, routeDate: r.routeDate.slice(0, 10), vehicleId, driverId, customerIds: sortedCustomerIds(full) }),
+      });
+      if (!res.ok) {
+        notify.error(await readApiError(res, getText('No se pudo asignar.', "Couldn't assign.")));
+        return;
+      }
+      notify.success(getText('Asignado.', 'Assigned.'));
+      setDetails((prev) => { const next = { ...prev }; delete next[r.id]; return next; });
+      await onChange();
+    } catch {
+      notify.error(getText('Sin conexión. Intenta de nuevo.', 'No connection. Try again.'));
+    } finally {
+      setAssigning(null);
+    }
+  }
+
+  // Las rutas se repiten casi igual cada día: copia nombre, camión, chofer y paradas a otra fecha.
+  async function repeatRoute(r: AdminRoute, date: string) {
+    if (!date) return;
+    setAssigning(r.id);
+    try {
+      const full = await loadDetail(r.id);
+      if (!full) {
+        notify.error(getText('No se pudieron cargar las paradas de la ruta.', "Couldn't load the route's stops."));
+        return;
+      }
+      const [, mm, dd] = date.split('-');
+      const base = r.name.replace(/\s*(—|-)?\s*\d{1,2}\/\d{1,2}$/, '').trim() || r.name;
+      const res = await fetch(`/api/space/${slug}/routes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: `${base} — ${dd}/${mm}`, routeDate: date, vehicleId: r.vehicleId ?? null, driverId: r.driverId ?? null, customerIds: sortedCustomerIds(full) }),
+      });
+      if (!res.ok) {
+        notify.error(await readApiError(res, getText('No se pudo repetir la ruta.', "Couldn't repeat the route.")));
+        return;
+      }
+      notify.success(getText('Ruta creada para esa fecha.', 'Route created for that date.'));
+      setRepeat(null);
+      await onChange();
+    } catch {
+      notify.error(getText('Sin conexión. Intenta de nuevo.', 'No connection. Try again.'));
+    } finally {
+      setAssigning(null);
+    }
+  }
+
   function addressOf(s: RouteStop): string | null {
     return s.customerAddress || byId.get(s.customerId)?.address || null;
   }
@@ -274,12 +342,51 @@ export function RoutesTab({ slug, currency = 'DOP', routes, vehicles, drivers, c
           <span aria-hidden="true" className={`mt-1 shrink-0 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`}>▾</span>
         </button>
 
+        {/* Mientras la ruta no haya salido, chofer y camión se cambian aquí mismo, sin abrir el formulario. */}
+        {canEdit(r.status) && (
+          <div className="flex flex-wrap items-center gap-2 border-t border-gray-100 px-4 py-3 dark:border-neutral-800">
+            <select
+              aria-label={getText('Chofer', 'Driver')}
+              value={r.driverId ?? ''}
+              disabled={assigning === r.id}
+              onChange={(e) => quickAssign(r, { driverId: e.target.value || null })}
+              className={`${input} !w-auto min-w-[10rem] flex-1 !py-2.5 ${r.driverId ? '' : 'border-amber-400 dark:border-amber-500'}`}
+            >
+              <option value="">{getText('👤 Asignar chofer…', '👤 Assign driver…')}</option>
+              {drivers.map((d) => (
+                <option key={d.id} value={d.id}>{d.name}</option>
+              ))}
+            </select>
+            <select
+              aria-label={getText('Camión', 'Truck')}
+              value={r.vehicleId ?? ''}
+              disabled={assigning === r.id}
+              onChange={(e) => quickAssign(r, { vehicleId: e.target.value || null })}
+              className={`${input} !w-auto min-w-[10rem] flex-1 !py-2.5`}
+            >
+              <option value="">{getText('🚚 Sin camión', '🚚 No truck')}</option>
+              {vehicles.filter((v) => v.isActive).map((v) => (
+                <option key={v.id} value={v.id}>{v.name ? `${v.name} · ${v.plate}` : v.plate}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {open && (
           <div className="space-y-4 border-t border-gray-200 p-4 dark:border-neutral-800">
             <div className="flex flex-wrap gap-2">
               <a href={`/space/${slug}/ruta/${r.id}`} className={outlineBtn}>
                 {getText('Abrir hoja de reparto', 'Open delivery sheet')}
               </a>
+              {r.status !== 'cancelled' && (
+                <button
+                  type="button"
+                  onClick={() => setRepeat(repeat?.id === r.id ? null : { id: r.id, date: new Date(Date.now() + 86_400_000).toLocaleDateString('en-CA') })}
+                  className={outlineBtn}
+                >
+                  {getText('Repetir en otra fecha', 'Repeat on another date')}
+                </button>
+              )}
               {canEdit(r.status) && (
                 <>
                   <button type="button" onClick={() => startEdit(r)} className="rounded-full px-3 py-1.5 text-xs font-semibold text-white" style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}>
@@ -291,6 +398,14 @@ export function RoutesTab({ slug, currency = 'DOP', routes, vehicles, drivers, c
                 </>
               )}
             </div>
+            {repeat?.id === r.id && (
+              <div className="flex flex-wrap items-center gap-2">
+                <input type="date" value={repeat.date} onChange={(e) => setRepeat({ id: r.id, date: e.target.value })} className={`${input} !w-auto`} />
+                <button type="button" disabled={assigning === r.id || !repeat.date} onClick={() => repeatRoute(r, repeat.date)} className="rounded-full px-4 py-2 text-xs font-semibold text-white disabled:opacity-50" style={{ backgroundColor: 'var(--brand-primary, #045AFE)' }}>
+                  {getText('Crear ruta', 'Create route')}
+                </button>
+              </div>
+            )}
             {!canEdit(r.status) && r.status !== 'cancelled' && (
               <p className="text-xs text-gray-500 dark:text-neutral-400">
                 {getText('La ruta ya salió o está cerrada: se puede ver completa, pero no modificar.', 'The route has left or is closed: you can view it in full but not change it.')}
