@@ -39,7 +39,7 @@ Decisiones:
 - Bolsa Growth = precio Growth ($38). Bolsa Professional = Professional − Growth ($57).
 - `parte = bolsa × peso / suma de pesos del tier`; `suelto = parte × 1.3` (SoloMarkup).
 - El tier sale de ModuleCatalog + ModulePlanRule (/ops/modulos). Cambia el tier y el precio se
-  recalcula solo. Módulos de ModulosCortesia: precio 0, etiqueta "Cortesía".
+  recalcula solo. Módulos de ModulosCortesia: se muestran con su valor real y un renglón de descuento igual "Cortesía: …" (neto 0; no cuentan para el paquete ni para la implementación). En el cotizador el renglón dice "primeros N meses" según la vigencia.
 
 Pesos por defecto (editables):
 
@@ -53,7 +53,7 @@ Pesos por defecto (editables):
 ### 1.2 Mensualidad de un negocio (USD, Nivel 1)
 1. `sueltos = Σ suelto de sus módulos activos (sin cortesía)`.
 2. `paquete = Growth si todos sus módulos pagos son Growth; Professional si hay alguno Professional`.
-3. `base = min(sueltos, paquete)`. Si gana el paquete, mostrar "Ahorras X con el plan".
+3. `base = min(sueltos, paquete)`. Si gana el paquete, mostrar "Ahorras X con el plan". Piso: si hay módulos de pago y `sueltos < Growth ($38)`, línea "Ajuste a mínimo del plan Growth" y la base sube a Growth (pocos módulos sueltos nunca cuestan menos que el plan más barato).
 4. Sumar unidades (PlatformAddOns, editables en /ops/precios):
 
 | key | defecto | cantidad |

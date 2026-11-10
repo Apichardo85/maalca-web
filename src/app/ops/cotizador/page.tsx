@@ -176,7 +176,7 @@ function CotizadorInner() {
     'Calendario de pagos:',
     ...calc.hitos.map((h, i) => `${i + 1}. ${h.nombre} — ${h.pct}% = ${money(h.monto)}`),
     '',
-    ...(quote ? ['', 'Incluye:', ...quote.monthlyLines.map((l) => `- ${l.label}${l.qty !== 1 ? ` x ${l.qty}` : ''}${l.isCourtesy ? ' (cortesía)' : ''}`), ''] : []),
+    ...(quote ? ['', 'Incluye:', ...quote.monthlyLines.filter((l) => l.group !== 'courtesy').map((l) => `- ${l.label}${l.qty !== 1 ? ` x ${l.qty}` : ''}${l.isCourtesy ? ` (cortesía los primeros ${q.vig} meses; pasado ese tiempo, si no lo necesitas, simplemente se deja de usar)` : ''}`), ''] : []),
     `Mensualidad: plan estándar ${money(q.mLista)}/mes; plan con descuento ${money(q.mFam)}/mes durante ${q.vig} meses (ahorro de ${money((q.mLista - q.mFam) * 12)} al año).`,
     `Referidos: cada negocio que recomiendes y se active te da ${money(q.cred)} en créditos de la plataforma.`,
   ].join('\n');
@@ -265,8 +265,8 @@ function CotizadorInner() {
               <table className="w-full text-sm text-text-primary"><tbody>
                 {quote.monthlyLines.map((l, i) => (
                   <tr key={'m' + i} className="border-b border-border last:border-0">
-                    <td className="py-1">{l.label}{l.qty !== 1 ? ` × ${l.qty}` : ''}{l.isCourtesy ? ' (cortesía)' : ''}</td>
-                    <td className="py-1 text-right">{money(l.totalUsd)}/mes</td>
+                    <td className="py-1">{l.label}{l.qty !== 1 ? ` × ${l.qty}` : ''}{l.group === 'courtesy' ? ` · primeros ${q.vig} meses` : ''}</td>
+                    <td className={`py-1 text-right ${l.group === 'courtesy' ? 'text-green-600' : ''}`}>{money(l.totalUsd)}/mes</td>
                   </tr>
                 ))}
               </tbody></table>
