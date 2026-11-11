@@ -34,14 +34,16 @@ export default async function ClientesPage({
   const space: SpaceResponse = await spaceRes.json();
 
   let customers: CustomerRow[] = [];
+  let total = 0;
   try {
-    const res = await fetch(`${API}/api/affiliates/${space.business.id}/customers?limit=100`, {
+    const res = await fetch(`${API}/api/affiliates/${space.business.id}/customers?limit=50`, {
       headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': space.business.id },
       cache: 'no-store',
     });
     if (res.ok) {
       const json = await res.json();
       customers = json?.data ?? [];
+      total = json?.total ?? customers.length;
     }
   } catch {
     // Queda vacío — ClientesContent renderiza el estado vacío en vez de tronar.
@@ -51,6 +53,7 @@ export default async function ClientesPage({
     <ClientesContent
       slug={slug}
       initialCustomers={customers}
+      initialTotal={total}
       canHardDelete={space.isImpersonation === true}
       requireContact={space.business.businessType?.toLowerCase() === 'retail'}
       currency={space.business.currency === 'DOP' ? 'DOP' : 'USD'}

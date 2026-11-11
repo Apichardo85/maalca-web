@@ -9,6 +9,9 @@ import { CustomerPicker } from '@/components/ui/CustomerPicker';
 import { Toast } from '@/components/ui/Toast';
 import { DangerZoneDelete } from '@/components/space/DangerZoneDelete';
 import { downloadBrandedPdf } from '@/lib/pdf/document';
+import { Pagination } from '@/components/ui/Pagination';
+
+const PAGE_SIZE = 25;
 
 interface InvoiceItemRow {
   id: string;
@@ -522,6 +525,10 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers, ca
   const searched = invoices.filter((i) => matchesQuery(i) && matchesCustomer(i) && matchesRange(i));
   const countOf = (st: InvoiceRow['status']) => searched.filter((i) => effectiveStatus(i) === st).length;
   const visibleInvoices = searched.filter((i) => statusFilter === 'all' || effectiveStatus(i) === statusFilter);
+  const [page, setPage] = useState(1);
+  const invTotalPages = Math.max(1, Math.ceil(visibleInvoices.length / PAGE_SIZE));
+  const safePage = Math.min(page, invTotalPages);
+  const pagedInvoices = visibleInvoices.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
   const filtersOn = statusFilter !== 'all' || customerFilter !== '' || fromDate !== '' || toDate !== '' || query.trim() !== '';
   // Clientes que aparecen en las facturas, para el selector (no todo el padrón: solo los que facturaste).
   const invoiceCustomers = Array.from(
@@ -884,7 +891,7 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers, ca
               {getText('Ninguna factura coincide con los filtros.', 'No invoices match the filters.')}
             </p>
           )}
-          {visibleInvoices.map((invoice) => {
+          {pagedInvoices.map((invoice) => {
             const isCollectable = invoice.status === 'Pending' || invoice.status === 'Overdue';
             const paymentLink = paymentLinks[invoice.id];
             const customerPhone = customers.find((c) => c.id === invoice.customerId)?.phone;
@@ -1106,6 +1113,10 @@ export function InvoicesContent({ slug, currency, initialInvoices, customers, ca
             );
           })}
         </div>
+
+        {visibleInvoices.length > PAGE_SIZE && (
+          <Pagination currentPage={safePage} totalPages={invTotalPages} onPageChange={setPage} totalItems={visibleInvoices.length} itemsPerPage={PAGE_SIZE} />
+        )}
 
         <div className="mt-8 border-t border-gray-200 dark:border-neutral-800 pt-4">
           <button

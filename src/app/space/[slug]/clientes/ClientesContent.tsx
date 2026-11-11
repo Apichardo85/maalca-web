@@ -1,7 +1,7 @@
 'use client';
 
 import { formatPhoneInput, isValidPhone, normalizePhone, PHONE_INPUT_PROPS } from '@/lib/phone';
-import { useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
@@ -10,6 +10,9 @@ import { DangerZoneDelete } from '@/components/space/DangerZoneDelete';
 import { CustomerInsights } from './CustomerInsights';
 import { SalesReport } from './SalesReport';
 import { ImportTab } from '../contratos/ImportTab';
+import { Pagination } from '@/components/ui/Pagination';
+
+const PAGE_SIZE = 50;
 
 export interface CustomerRow {
   id: string;
@@ -111,6 +114,7 @@ const validEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 interface Props {
   slug: string;
   initialCustomers: CustomerRow[];
+  initialTotal?: number;
   // Solo true cuando quien mira la página es un admin de plataforma en modo soporte (ver
   // isImpersonation en layout.tsx) — el gate real (platform_admin + platform_role Owner) vive
   // en el backend, esto solo decide si se muestra el botón.
@@ -123,7 +127,7 @@ interface Props {
 // Clientes (tarea #249) — lista + ficha con historial real. Reusa el backend Customer.cs que ya
 // existía (CRUD completo) desde antes de esta tarea, y el vínculo por teléfono con
 // Appointment/Invoice/QueueEntry/TableReservation/Proposal cableado en la tarea #244.
-export function ClientesContent({ slug, initialCustomers, canHardDelete, requireContact = false, currency = 'USD' }: Props) {
+export function ClientesContent({ slug, initialCustomers, initialTotal, canHardDelete, requireContact = false, currency = 'USD' }: Props) {
   const sym = currency === 'DOP' ? 'RD$' : '$';
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
@@ -131,6 +135,9 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete, require
 
   const [customers, setCustomers] = useState<CustomerRow[]>(initialCustomers);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(initialTotal ?? initialCustomers.length);
+  const firstLoad = useRef(true);
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -147,27 +154,37 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete, require
   const [showReport, setShowReport] = useState(false);
   const [showImport, setShowImport] = useState(false);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return customers;
-    return customers.filter(
-      (c) =>
-        c.name.toLowerCase().includes(q) ||
-        c.phone?.toLowerCase().includes(q) ||
-        c.email?.toLowerCase().includes(q),
-    );
-  }, [customers, search]);
+  // Búsqueda y paginación van al servidor (PAGE_SIZE por página), no se filtra en el cliente.
+  const filtered = customers;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  async function refetch() {
+  async function load(p: number, q: string) {
     try {
-      const res = await fetch(`/api/space/${slug}/customers?limit=100`, { cache: 'no-store' });
+      const qs = new URLSearchParams({ page: String(p), limit: String(PAGE_SIZE) });
+      if (q.trim()) qs.set('search', q.trim());
+      const res = await fetch(`/api/space/${slug}/customers?${qs}`, { cache: 'no-store' });
       if (!res.ok) return;
       const json = await res.json();
       setCustomers(json?.data ?? []);
+      setTotal(json?.total ?? 0);
     } catch {
       // Deja la lista como estaba.
     }
   }
+
+  async function refetch() {
+    await load(page, search);
+  }
+
+  useEffect(() => {
+    if (firstLoad.current) {
+      firstLoad.current = false;
+      return;
+    }
+    const t = setTimeout(() => load(page, search), 300);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, search]);
 
   async function handleAdd() {
     if (!name.trim() || saving) return;
@@ -384,7 +401,7 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete, require
       <input
         type="text"
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) => { setSearch(e.target.value); setPage(1); }}
         placeholder={getText('Buscar por nombre, teléfono o email...', 'Search by name, phone, or email...')}
         className="mb-4 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-brand-primary focus:outline-none dark:border-neutral-700 dark:bg-neutral-900 dark:text-white"
       />
@@ -392,7 +409,7 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete, require
       {filtered.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-6 py-12 text-center dark:border-neutral-700 dark:bg-neutral-900/50">
           <p className="text-sm text-gray-500 dark:text-neutral-400">
-            {customers.length === 0
+            {total === 0 && !search.trim()
               ? getText(
                   'Todavía no hay clientes. Se agregan solos cuando alguien reserva, entra a la fila, o crea uno manualmente.',
                   "No customers yet. They're added automatically when someone books, joins the queue, or you add one manually.",
@@ -472,6 +489,10 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete, require
             </table>
           </div>
         </>
+      )}
+
+      {total > PAGE_SIZE && (
+        <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} totalItems={total} itemsPerPage={PAGE_SIZE} />
       )}
 
       {/* Nuevo cliente */}

@@ -13,6 +13,9 @@ import { CustomerTrustBadge, canMarkNoShow } from '@/components/space/CustomerTr
 import { PickupRulesCard, type PickupRules } from './PickupRulesCard';
 import { TaxSettingsCard, type TaxSettings } from './TaxSettingsCard';
 import { CARRIERS, carrierLabel } from '@/lib/commerce';
+import { Pagination } from '@/components/ui/Pagination';
+
+const PAGE_SIZE = 24;
 
 // OrderRow/formatScheduledFor/printTicket viven en @/lib/orderTicket (la Estación de pedidos,
 // /space/{slug}/station, los necesita igual que acá) — re-exportados para no tocar a quienes
@@ -93,6 +96,10 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
   const statusCount = (st: OrderRow['status']) => searched.filter((o) => o.status === st).length;
   const visibleOrders = statusFilter === 'all' ? searched : searched.filter((o) => o.status === statusFilter);
   const filtering = !!q || statusFilter !== 'all';
+  const [page, setPage] = useState(1);
+  const ordTotalPages = Math.max(1, Math.ceil(visibleOrders.length / PAGE_SIZE));
+  const safePage = Math.min(page, ordTotalPages);
+  const pagedOrders = visibleOrders.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   async function updateStatus(orderId: string, status: string, estimatedMinutes?: number) {
     setUpdatingId(orderId);
@@ -355,7 +362,7 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
             </p>
           )}
           <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {visibleOrders.map((order) => (
+            {pagedOrders.map((order) => (
               <div
                 key={order.id}
                 className="rounded-2xl border border-gray-200/70 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5"
@@ -788,6 +795,9 @@ export function OrdersContent({ slug, businessName, timezone, plan, initialOrder
               </div>
             ))}
           </div>
+          {visibleOrders.length > PAGE_SIZE && (
+            <Pagination currentPage={safePage} totalPages={ordTotalPages} onPageChange={setPage} totalItems={visibleOrders.length} itemsPerPage={PAGE_SIZE} />
+          )}
           </>
         )}
       </div>
