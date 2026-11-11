@@ -19,6 +19,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import SimpleLanguageToggle from '@/components/ui/SimpleLanguageToggle';
 import PublicThemeToggle from '@/components/public/PublicThemeToggle';
 import { googleMapsUrl } from '@/lib/maps';
+import { formatHour, getOpenStatus, type OpenStatus } from '@/lib/business-hours';
 import { VehicleDetail } from '@/components/public/dealer/VehicleDetail';
 import { TradeInModal } from '@/components/public/dealer/LeadForms';
 import { CompareSheet } from '@/components/public/dealer/CompareSheet';
@@ -27,7 +28,8 @@ import { deriveBrandPalette, deriveDarkBrandPalette, themeVarsCss } from '@/lib/
 import {
   BODY_LABELS, CONDITION_LABELS, DEFAULT_DEALER_SETTINGS, EMPTY_FILTERS, FUEL_LABELS, STATUS_LABELS,
   TRANSMISSION_LABELS, activeFilterCount, applyFilters, facetCounts, filtersFromParams, filtersToParams, formatMileage,
-  formatVehiclePrices, label, primaryCurrency, uniqueValues, vehicleTitle, type VehicleFilters,
+  formatVehiclePrices, label, monthlyPayment, ORIGIN_LABELS, primaryCurrency, uniqueValues, vehicleTitle,
+  vehicleWhatsAppLink, type VehicleFilters,
 } from '@/lib/dealer';
 
 const MAALCA_BLUE = '#045AFE';
@@ -39,6 +41,14 @@ const INK = 'var(--dl-ink, #161A22)';
 const MUTED = 'var(--dl-muted, #5B6472)';
 const AMBER = 'var(--dl-amber, #B4740E)';
 const AMBER_BG = 'var(--dl-amber-bg, #FBF1DF)';
+// Superficie oscura de marca (barra superior, hero, tapa de las fotos): inkSurface funciona en claro y en
+// oscuro, a diferencia de ink, que en modo oscuro es casi blanco y no sirve de fondo bajo texto blanco.
+const INK_SURFACE = 'var(--dl-ink-surface, #161A22)';
+const WHATSAPP_GREEN = '#16A34A';
+// Tintes neutros para las tarjetas sin foto: un grid entero del mismo gris se ve apagado, y variarlo
+// por vehículo (siempre el mismo para el mismo id) da sensación de inventario real.
+const TINTS = ['#334155', '#3F3F46', '#1E293B', '#44403C', '#3B3B52', '#2C3E2F'];
+const tintFor = (id: string) => TINTS[[...id].reduce((a, c) => a + c.charCodeAt(0), 0) % TINTS.length];
 
 const inputCls = 'w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2';
 const inputStyle = { borderColor: BORDER, backgroundColor: SURFACE, color: INK } as const;
@@ -67,19 +77,19 @@ export function DealerTemplate({ business, capabilities }: PublicTemplateProps) 
       'dl-ink': lightPalette.ink, 'dl-muted': lightPalette.muted,
       'dl-accent': lightAccentHex, 'dl-accent-text': lightPalette.accentText, 'dl-on-accent': lightPalette.onAccent,
       'dl-amber': '#B4740E', 'dl-amber-bg': '#FBF1DF',
+      'dl-ink-surface': lightPalette.inkSurface,
     },
     {
       'dl-bg': darkPalette.bg, 'dl-surface': darkPalette.surface, 'dl-border': darkPalette.border,
       'dl-ink': darkPalette.ink, 'dl-muted': darkPalette.muted,
       'dl-accent': darkPalette.accent, 'dl-accent-text': darkPalette.accentText, 'dl-on-accent': darkPalette.onAccent,
       'dl-amber': '#F2B556', 'dl-amber-bg': 'rgba(242,181,86,0.16)',
+      'dl-ink-surface': darkPalette.inkSurface,
     },
   );
   const accentText = `var(--dl-accent-text, ${lightPalette.accentText})`;
   const accentFill = `var(--dl-accent, ${lightAccentHex})`;
   const onAccent = `var(--dl-on-accent, ${lightPalette.onAccent})`;
-  const heroInk = lightPalette.onAccent;
-  const heroOnDark = heroInk.toLowerCase() === '#ffffff';
 
   const { language } = useSimpleLanguage();
   const lang = language === 'es' ? 'es' : 'en';
@@ -102,6 +112,10 @@ export function DealerTemplate({ business, capabilities }: PublicTemplateProps) 
   const toggleCompare = (id: string) =>
     setCompareIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : prev.length >= MAX_COMPARE ? prev : [...prev, id]));
   const [hydrated, setHydrated] = useState(false);
+  // El estado de apertura depende de la hora real del visitante: se calcula en el cliente para no
+  // servir desde el SSR un "Abierto" que ya venció.
+  const [openStatus, setOpenStatus] = useState<OpenStatus | null>(null);
+  useEffect(() => { setOpenStatus(getOpenStatus(business.horario, business.timezone)); }, [business.horario, business.timezone]);
 
   useEffect(() => {
     setFilters(filtersFromParams(new URLSearchParams(window.location.search)));
@@ -178,35 +192,74 @@ export function DealerTemplate({ business, capabilities }: PublicTemplateProps) 
     <div style={{ backgroundColor: PAPER, color: INK, minHeight: '100vh' }} className="font-sans dl-scope">
       <style dangerouslySetInnerHTML={{ __html: themeCss }} />
 
+      {/* ── Barra superior: horario, dirección y contacto directo ────────── */}
+      {(openStatus || business.address || business.whatsapp) && (
+        <div style={{ backgroundColor: INK_SURFACE, color: '#FFFFFF' }}>
+          <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-2.5 text-[13px]">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
+              {openStatus && (
+                <span className="inline-flex items-center gap-2">
+                  <span className="h-2 w-2 shrink-0 rounded-full" aria-hidden
+                    style={{ backgroundColor: openStatus.state === 'open' ? '#22C55E' : openStatus.state === 'opening_soon' ? '#F59E0B' : '#94A3B8' }} />
+                  {openStatus.state === 'open'
+                    ? t(`Abierto · cierra ${formatHour(openStatus.closesAt)}`, `Open · closes ${formatHour(openStatus.closesAt)}`)
+                    : openStatus.state === 'opening_soon'
+                      ? t(`Abre a las ${formatHour(openStatus.opensAt)}`, `Opens at ${formatHour(openStatus.opensAt)}`)
+                      : t('Cerrado ahora', 'Closed now')}
+                </span>
+              )}
+              {business.address && (
+                <a href={googleMapsUrl(business.address)} target="_blank" rel="noopener noreferrer"
+                  className="opacity-85 underline-offset-2 hover:underline hover:opacity-100">
+                  {business.address}
+                </a>
+              )}
+            </div>
+            {business.whatsapp && (
+              <a href={`https://wa.me/${business.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer"
+                className="inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-1.5 font-semibold"
+                style={{ backgroundColor: WHATSAPP_GREEN, color: '#FFFFFF' }}>
+                <WhatsAppIcon /> {t('Escríbenos', 'Message us')}
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <header style={{ backgroundColor: accent }} className="relative overflow-hidden">
+      {/* Superficie oscura (no el color de marca a plancha): una autoventa se lee como showroom, y el
+          color primario queda para precios, botones y badges, donde sí tiene que resaltar. */}
+      <header style={{ backgroundColor: INK_SURFACE, color: '#FFFFFF' }} className="relative overflow-hidden">
         {business.cover_image_url && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={business.cover_image_url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-40" />
+          <img src={business.cover_image_url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-45" />
         )}
-        <div className="absolute right-4 top-4 z-20 flex items-center gap-2">
-          <SimpleLanguageToggle variant={heroOnDark ? 'dark' : 'light'} spanishFlag={business.spanishFlag} />
-          <PublicThemeToggle variant={heroOnDark ? 'dark' : 'light'} />
+        {/* Oscurece hacia la izquierda: el texto se lee aunque la portada sea una foto clara. */}
+        <div className="absolute inset-0" aria-hidden
+          style={{ background: 'linear-gradient(105deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.34) 55%, rgba(0,0,0,0.12) 100%)' }} />
+        <div className="absolute inset-x-0 top-0 h-1" aria-hidden style={{ backgroundColor: accentFill }} />
+        <div className="absolute right-4 top-5 z-20 flex items-center gap-2">
+          <SimpleLanguageToggle variant="dark" spanishFlag={business.spanishFlag} />
+          <PublicThemeToggle variant="dark" />
         </div>
-        <div className="relative z-10 mx-auto max-w-[1100px] px-4 pb-10 pt-14 text-center sm:pt-16" style={{ color: heroInk }}>
+        <div className="relative z-10 mx-auto max-w-[1100px] px-4 pb-12 pt-12 sm:pb-14 sm:pt-14">
           {business.logo_url && (
+            // Sin recuadro: los logos de autoventa suelen ser horizontales y un cuadro los recorta.
             // eslint-disable-next-line @next/next/no-img-element
             <img src={business.logo_url} alt={business.name}
-              className="mx-auto mb-4 h-20 w-20 rounded-2xl border-2 border-white/40 bg-white object-contain p-2 shadow-lg" />
+              className="mb-5 h-14 w-auto max-w-[260px] object-contain object-left sm:h-16" />
           )}
-          <h1 className="text-3xl font-bold sm:text-4xl">{business.name}</h1>
-          {business.address && (
-            <p className="mt-2 text-sm opacity-80">
-              <a href={googleMapsUrl(business.address)} target="_blank" rel="noopener noreferrer"
-                className="underline decoration-current/40 underline-offset-2 hover:decoration-current">
-                📍 {business.address}
-              </a>
-            </p>
-          )}
-          <p className="mt-3 text-sm font-medium opacity-90">
+          <span className="inline-block rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em]"
+            style={{ borderColor: 'rgba(255,255,255,0.35)', color: '#FFFFFF' }}>
             {vehicles.length > 0
-              ? t(`${vehicles.length} vehículos en inventario`, `${vehicles.length} vehicles in stock`)
+              ? t(`${vehicles.length} ${vehicles.length === 1 ? 'vehículo disponible' : 'vehículos disponibles'}`,
+                  `${vehicles.length} ${vehicles.length === 1 ? 'vehicle' : 'vehicles'} available`)
               : t('Inventario en actualización', 'Inventory being updated')}
+          </span>
+          <h1 className="mt-4 max-w-[760px] text-3xl font-bold leading-[1.1] sm:text-5xl">{business.name}</h1>
+          <p className="mt-3 max-w-[560px] text-sm opacity-85 sm:text-base">
+            {t('Ficha completa, precio claro y respuesta directa — sin dar vueltas.',
+               'Full specs, clear pricing and a direct answer — no runaround.')}
           </p>
         </div>
       </header>
@@ -325,6 +378,7 @@ export function DealerTemplate({ business, capabilities }: PublicTemplateProps) 
               <li key={v.id}>
                 <VehicleCard
                   v={v} slug={business.slug} onOpen={openVehicle} lang={lang} baseCurrency={baseCurrency} settings={settings}
+                  whatsapp={business.whatsapp} businessName={business.name}
                   fav={favorites.has(v.id)} onFav={() => favorites.toggle(v.id)}
                   compared={compareIds.includes(v.id)} compareFull={compareIds.length >= MAX_COMPARE} onCompare={() => toggleCompare(v.id)}
                   accentText={accentText} accentFill={accentFill} onAccent={onAccent}
@@ -411,11 +465,12 @@ export function DealerTemplate({ business, capabilities }: PublicTemplateProps) 
   );
 }
 
-function VehicleCard({ v, slug, onOpen, lang, baseCurrency, settings, accentText, accentFill, onAccent, fav, onFav, compared, compareFull, onCompare }: {
+function VehicleCard({ v, slug, onOpen, lang, baseCurrency, settings, accentText, accentFill, onAccent, fav, onFav, compared, compareFull, onCompare, whatsapp, businessName }: {
   v: PublicVehicle; slug: string; onOpen: (id: string) => void; lang: 'es' | 'en';
   fav: boolean; onFav: () => void; compared: boolean; compareFull: boolean; onCompare: () => void;
   baseCurrency: 'USD' | 'DOP'; settings: typeof DEFAULT_DEALER_SETTINGS;
   accentText: string; accentFill: string; onAccent: string;
+  whatsapp?: string | null; businessName: string;
 }) {
   const t = (es: string, en: string) => (lang === 'es' ? es : en);
   const prices = formatVehiclePrices(v.price, baseCurrency, settings);
@@ -428,6 +483,20 @@ function VehicleCard({ v, slug, onOpen, lang, baseCurrency, settings, accentText
     label(FUEL_LABELS, v.fuelType, lang),
     label(BODY_LABELS, v.bodyType, lang),
   ].filter(Boolean) as string[];
+  const origin = label(ORIGIN_LABELS, v.importOrigin, lang);
+  const photoCount = v.images?.length ?? (v.imageUrl ? 1 : 0);
+  // "Desde X/mes": la cuota más baja que ofrece el dueño — enganche mínimo y el plazo más largo.
+  // Mismos parámetros que la calculadora de la ficha, para que no muestren números distintos.
+  const terms = settings.financingTerms?.length ? settings.financingTerms : [60];
+  const monthly = settings.financingEnabled
+    ? monthlyPayment(v.price * (1 - Math.min(settings.minDownPercent ?? 20, 90) / 100), settings.financingRate ?? 0, Math.max(...terms))
+    : 0;
+  const monthlyLabel = monthly > 0 ? formatVehiclePrices(monthly, baseCurrency, settings)[0] : null;
+  const waLink = vehicleWhatsAppLink(
+    whatsapp,
+    t(`Hola ${businessName}, me interesa el ${vehicleTitle(v)}. ¿Está disponible?`,
+      `Hi ${businessName}, I'm interested in the ${vehicleTitle(v)}. Is it available?`),
+  );
 
   return (
     <div className="relative">
@@ -442,13 +511,14 @@ function VehicleCard({ v, slug, onOpen, lang, baseCurrency, settings, accentText
       className="group block overflow-hidden rounded-2xl border transition-shadow hover:shadow-lg"
       style={{ borderColor: BORDER, backgroundColor: SURFACE }}
     >
-      <div className="relative aspect-[4/3] w-full overflow-hidden" style={{ backgroundColor: BORDER }}>
+      <div className="relative aspect-[4/3] w-full overflow-hidden" style={{ backgroundColor: v.imageUrl ? INK_SURFACE : tintFor(v.id) }}>
         {v.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={v.imageUrl} alt={vehicleTitle(v)} loading="lazy"
             className={`h-full w-full object-cover transition-transform group-hover:scale-[1.03] ${reserved ? 'opacity-80' : ''}`} />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-5xl" aria-hidden>🚗</div>
+          // Sin foto: silueta sobre la superficie oscura. Un emoji a tamaño grande abarata la vitrina.
+          <div className="flex h-full w-full items-center justify-center"><CarSilhouette /></div>
         )}
         <div className="absolute left-2 top-2 flex flex-wrap gap-1.5">
           {v.featured && (
@@ -469,6 +539,16 @@ function VehicleCard({ v, slug, onOpen, lang, baseCurrency, settings, accentText
             </span>
           )}
         </div>
+        {origin && (
+          <span className="absolute bottom-2 left-2 rounded-md bg-black/65 px-2 py-1 text-[11px] font-semibold text-white">
+            {origin}
+          </span>
+        )}
+        {photoCount > 1 && (
+          <span className="absolute bottom-2 right-2 rounded-md bg-black/65 px-2 py-1 text-[11px] font-semibold text-white">
+            {t(`${photoCount} fotos`, `${photoCount} photos`)}
+          </span>
+        )}
       </div>
       <div className="p-4">
         <h3 className="text-base font-semibold leading-snug">{vehicleTitle(v)}</h3>
@@ -478,6 +558,15 @@ function VehicleCard({ v, slug, onOpen, lang, baseCurrency, settings, accentText
           {prices[1] && <span className="text-sm font-medium" style={{ color: MUTED }}>{prices[1]}</span>}
           {was && <span className="text-xs line-through" style={{ color: MUTED }}>{was}</span>}
         </div>
+        {monthlyLabel && (
+          <p className="mt-0.5 text-xs font-semibold" style={{ color: MUTED }}>
+            {t(`desde ${monthlyLabel}/mes`, `from ${monthlyLabel}/mo`)}
+          </p>
+        )}
+        <span className={`mt-3 block rounded-lg py-2.5 text-center text-sm font-bold ${waLink ? 'mr-[50px]' : ''}`}
+          style={{ backgroundColor: accentFill, color: onAccent }}>
+          {t('Ver ficha', 'View details')}
+        </span>
       </div>
     </Link>
     {/* Botones hermanos del enlace (no dentro: un <button> dentro de un <a> no es HTML válido). */}
@@ -487,6 +576,14 @@ function VehicleCard({ v, slug, onOpen, lang, baseCurrency, settings, accentText
       style={fav ? { color: '#FF6B81' } : undefined}>
       {fav ? '♥' : '♡'}
     </button>
+    {waLink && (
+      <a href={waLink} target="_blank" rel="noopener noreferrer"
+        aria-label={t('Preguntar por este vehículo por WhatsApp', 'Ask about this vehicle on WhatsApp')}
+        className="absolute bottom-4 right-4 flex h-[42px] w-[42px] items-center justify-center rounded-lg border"
+        style={{ borderColor: BORDER, backgroundColor: SURFACE, color: WHATSAPP_GREEN }}>
+        <WhatsAppIcon size={19} />
+      </a>
+    )}
     <button type="button" onClick={onCompare} aria-pressed={compared} disabled={!compared && compareFull}
       title={!compared && compareFull ? t('Máximo 3 vehículos', 'Maximum 3 vehicles') : undefined}
       className="absolute right-2 top-12 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-bold text-white disabled:opacity-40"
@@ -494,5 +591,26 @@ function VehicleCard({ v, slug, onOpen, lang, baseCurrency, settings, accentText
       {compared ? `✓ ${t('Comparando', 'Comparing')}` : t('Comparar', 'Compare')}
     </button>
     </div>
+  );
+}
+
+/** Silueta de vehículo para las tarjetas sin foto (y la ficha). Hereda el color del contenedor. */
+function CarSilhouette({ size = 84 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeOpacity="0.3"
+      strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M3 13l2-5.5A2 2 0 017 6h10a2 2 0 012 1.5L21 13v4h-2M3 17v-4m0 4h2m14 0H5" />
+      <circle cx="7.5" cy="17" r="1.8" />
+      <circle cx="16.5" cy="17" r="1.8" />
+    </svg>
+  );
+}
+
+function WhatsAppIcon({ size = 15 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm0 18a8 8 0 01-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1112 20z" />
+      <path d="M8.5 7.3c.2-.4.4-.4.6-.4h.5c.2 0 .4 0 .6.4l.8 1.9c.1.3 0 .5-.1.7l-.4.5c-.1.2-.2.3 0 .6a7 7 0 003.1 2.7c.3.1.5.1.7-.1l.5-.6c.2-.2.4-.2.6-.1l1.8.9c.3.1.4.3.4.5 0 .6-.3 1.3-1 1.6-.5.3-1.2.4-2 .2-2-.5-4.5-2.6-5.6-5-.4-.9-.4-1.9-.1-2.6l.1-.2z" />
+    </svg>
   );
 }
