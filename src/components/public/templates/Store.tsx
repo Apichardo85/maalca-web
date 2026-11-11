@@ -237,6 +237,13 @@ export function StoreTemplate({ business, items, categories: categoriesProp, cap
   const [sort, setSort] = useState<SortKey>('featured');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [showAllBrands, setShowAllBrands] = useState(false);
+  // Resultados por tandas: con catálogos de miles de productos, pintar todo de golpe congela la página
+  // y dispara miles de descargas de fotos. "Ver más" agrega otra tanda; cambiar filtros vuelve a la primera.
+  const RESULTS_PAGE = 48;
+  const [shown, setShown] = useState(RESULTS_PAGE);
+  useEffect(() => {
+    setShown(RESULTS_PAGE);
+  }, [query, dept, brandsSel, size, priceMin, priceMax, onlyDeals, onlyStock, onlyVolume, sort]);
 
   const clearFilters = () => {
     setQuery('');
@@ -882,9 +889,25 @@ export function StoreTemplate({ business, items, categories: categoriesProp, cap
                   <button type="button" onClick={clearFilters} style={{ ...linkBtn, marginTop: 8 }}>{getText('Limpiar filtros', 'Clear filters')}</button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-3 @3xl:grid-cols-3 @6xl:grid-cols-4">
-                  {results.map((i) => <ResultCard key={i.id} item={i} {...cardProps} />)}
-                </div>
+                <>
+                  <div className="grid grid-cols-2 gap-3 @3xl:grid-cols-3 @6xl:grid-cols-4">
+                    {results.slice(0, shown).map((i) => <ResultCard key={i.id} item={i} {...cardProps} />)}
+                  </div>
+                  {results.length > shown && (
+                    <div style={{ textAlign: 'center', marginTop: 20 }}>
+                      <p style={{ margin: '0 0 8px', color: MUTED, fontSize: 13 }}>
+                        {getText(`Mostrando ${Math.min(shown, results.length)} de ${results.length}`, `Showing ${Math.min(shown, results.length)} of ${results.length}`)}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setShown((n) => n + RESULTS_PAGE)}
+                        style={{ border: `1px solid ${BORDER}`, borderRadius: 8, padding: '0 24px', minHeight: 44, backgroundColor: SURFACE, color: INK, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        {getText('Ver más productos', 'Show more products')}
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </main>
           </div>
