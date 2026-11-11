@@ -380,6 +380,14 @@ export function InventoryContent({ slug, initialItems, initialTotal, initialTota
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
+    // Excel (.xlsx/.xls, p. ej. el export de Clover) es un zip binario: leerlo como texto da basura.
+    if (/\.xlsx?$/i.test(file.name)) {
+      toast.error(getText(
+        'Este archivo es de Excel. Ábrelo y guárdalo como CSV (Archivo → Guardar como → CSV UTF-8), luego súbelo de nuevo.',
+        'This is an Excel file. Open it and save as CSV (File → Save as → CSV UTF-8), then upload it again.',
+      ));
+      return;
+    }
     setImporting(true);
     try {
       const csvContent = await file.text();

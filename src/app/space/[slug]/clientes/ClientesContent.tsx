@@ -9,6 +9,7 @@ import { Modal } from '@/components/ui/Modal';
 import { DangerZoneDelete } from '@/components/space/DangerZoneDelete';
 import { CustomerInsights } from './CustomerInsights';
 import { SalesReport } from './SalesReport';
+import { ImportTab } from '../contratos/ImportTab';
 
 export interface CustomerRow {
   id: string;
@@ -144,6 +145,7 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete, require
   const [history, setHistory] = useState<CustomerHistory | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [showImport, setShowImport] = useState(false);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -351,6 +353,13 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete, require
         <div className="flex flex-shrink-0 gap-2">
           <button
             type="button"
+            onClick={() => setShowImport(true)}
+            className="flex min-h-11 items-center justify-center rounded-full border border-gray-200 px-4 text-sm font-medium text-gray-700 transition hover:border-brand-primary dark:border-neutral-700 dark:text-neutral-300"
+          >
+            ⬆ {getText('Importar', 'Import')}
+          </button>
+          <button
+            type="button"
             onClick={() => setShowReport(true)}
             className="flex min-h-11 items-center justify-center rounded-full border border-gray-200 px-4 text-sm font-medium text-gray-700 transition hover:border-brand-primary dark:border-neutral-700 dark:text-neutral-300"
           >
@@ -365,6 +374,11 @@ export function ClientesContent({ slug, initialCustomers, canHardDelete, require
           </button>
         </div>
       </div>
+      <Modal isOpen={showImport} onClose={() => setShowImport(false)} title={getText('Importar clientes', 'Import customers')} size="xl">
+        <div className="overflow-y-auto p-4">
+          <ImportTab slug={slug} onImported={refetch} />
+        </div>
+      </Modal>
       <SalesReport slug={slug} open={showReport} onClose={() => setShowReport(false)} getText={getText} currency={currency} />
 
       <input
