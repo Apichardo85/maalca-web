@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation';
 import { getMaalcaApiToken } from '@/lib/api-auth';
 import { TableroContent } from './TableroContent';
+import { TableroTienda } from './TableroTienda';
+import type { OrderRow } from '@/lib/orderTicket';
 import type { AgingReport } from '@/lib/receivables';
 import type { Anaquel, OwnerBoardToday } from '@/lib/delivery';
 
@@ -19,7 +21,23 @@ export default async function TableroPage({ params }: { params: Promise<{ slug: 
 
   const space = await spaceRes.json();
   const active: string[] = space.business.modulosActivos ?? [];
-  if (!active.includes('routes')) redirect(`/space/${slug}`);
+  const currency = space.business.currency === 'DOP' ? 'DOP' : 'USD';
+
+  // Sin rutas pero con pedidos (tiendas, mayoristas): tablero de pedidos del día.
+  if (!active.includes('routes')) {
+    if (!active.includes('orders')) redirect(`/space/${slug}`);
+    let orders: OrderRow[] = [];
+    try {
+      const r = await fetch(`${API}/api/affiliates/${space.business.id}/orders`, {
+        headers: { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': space.business.id },
+        cache: 'no-store',
+      });
+      if (r.ok) orders = await r.json();
+    } catch {
+      // Queda vacío; el componente refresca solo.
+    }
+    return <TableroTienda slug={slug} currency={currency} initialOrders={orders} />;
+  }
 
   const h = { Authorization: `Bearer ${token}`, 'X-Affiliate-Id': space.business.id };
   const base = `${API}/api/affiliates/${space.business.id}`;

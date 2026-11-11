@@ -148,6 +148,10 @@ export function SpaceSidebar({
     { label: getText('Facturas', 'Invoices'), icon: '🧾', href: `/space/${slug}/invoices`, token: 'invoices' },
     { label: getText('Contratos y cobros', 'Contracts & collections'), icon: '📑', href: `/space/${slug}/contratos`, token: 'contracts' },
     { label: getText('Operación hoy', "Today's operation"), icon: '📈', href: `/space/${slug}/tablero`, token: 'routes' },
+    // Negocios con pedidos pero sin rutas: la misma página muestra el tablero de pedidos del día.
+    ...(activeModules && !activeModules.includes('routes')
+      ? [{ label: getText('Operación hoy', "Today's operation"), icon: '📈', href: `/space/${slug}/tablero`, token: 'orders' }]
+      : []),
     { label: getText('Mis rutas', 'My routes'), icon: '🚚', href: `/space/${slug}/ruta`, token: 'routes' },
     { label: getText('Reparto (admin)', 'Delivery (admin)'), icon: '📦', href: `/space/${slug}/reparto`, token: 'routes' },
     { label: getText('Gastos y utilidad', 'Expenses & profit'), icon: '💸', href: `/space/${slug}/gastos`, token: 'expenses' },
