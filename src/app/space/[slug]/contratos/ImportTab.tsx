@@ -25,7 +25,7 @@ const FIELDS: { key: Field; es: string; en: string; synonyms: string[] }[] = [
 
 const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
 
-export function ImportTab({ slug }: { slug: string }) {
+export function ImportTab({ slug, onImported }: { slug: string; onImported?: () => void }) {
   const { language } = useSimpleLanguage();
   const getText = (es: string, en: string) => (language === 'es' ? es : en);
   const toast = useToast();
@@ -120,6 +120,7 @@ export function ImportTab({ slug }: { slug: string }) {
         toast.success(getText(`${data.imported} clientes importados.`, `${data.imported} customers imported.`));
         setGrid([]);
         setRaw('');
+        onImported?.();
       }
     } catch {
       toast.error(getText('No se pudo procesar el archivo.', "Couldn't process the file."));
