@@ -162,6 +162,12 @@ export function RetailTemplate({
   const [onlyOffers, setOnlyOffers] = useState(false);
   // Filtro por marca (perfumería: se compra por marca). Solo aparece con 2+ marcas en el catálogo.
   const [brand, setBrand] = useState<string | null>(null);
+  // Grilla por tandas: con catálogos de miles de productos, pintar todo de golpe congela la página.
+  const GRID_PAGE = 48;
+  const [shown, setShown] = useState(GRID_PAGE);
+  useEffect(() => {
+    setShown(GRID_PAGE);
+  }, [activeTab, query, sort, onlyOffers, brand]);
   const brands = Array.from(
     new Set(items.map((i) => i.retail?.brand?.trim()).filter((b): b is string => !!b)),
   ).sort((a, b) => a.localeCompare(b));
@@ -240,6 +246,13 @@ export function RetailTemplate({
     seenGroups.add(k);
     return true;
   });
+
+  // Un enlace compartido (/p/{id}) abre ese producto aunque caiga fuera de la primera tanda.
+  const gridItems = visibleItems.slice(0, shown);
+  if (deepLinkedId && !gridItems.some((i) => i.id === deepLinkedId)) {
+    const linked = visibleItems.find((i) => i.id === deepLinkedId);
+    if (linked) gridItems.unshift(linked);
+  }
 
   return (
     <div id="top" className={`${display.variable} rl-scope`} style={{ minHeight: '100vh', backgroundColor: BG, containerType: 'inline-size' } as React.CSSProperties}>
@@ -616,7 +629,7 @@ export function RetailTemplate({
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-4 gap-y-7">
-            {visibleItems.map((item) => (
+            {gridItems.map((item) => (
               <ProductCard
                 key={item.id}
                 item={item}
@@ -641,6 +654,20 @@ export function RetailTemplate({
                 autoOpen={deepLinkedId === item.id}
               />
             ))}
+          </div>
+        )}
+        {visibleItems.length > shown && (
+          <div style={{ textAlign: 'center', marginTop: 28 }}>
+            <p style={{ margin: '0 0 8px', color: MUTED, fontSize: 13 }}>
+              {getText(`Mostrando ${shown} de ${visibleItems.length}`, `Showing ${shown} of ${visibleItems.length}`)}
+            </p>
+            <button
+              type="button"
+              onClick={() => setShown((n) => n + GRID_PAGE)}
+              style={{ border: `1px solid ${BORDER}`, borderRadius: 8, padding: '0 24px', minHeight: 44, backgroundColor: SURFACE, color: INK, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+            >
+              {getText('Ver más productos', 'Show more products')}
+            </button>
           </div>
         )}
       </main>
