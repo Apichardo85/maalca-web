@@ -34,7 +34,7 @@ const PROFILE_HOME: Record<AccessProfile, string> = {
 };
 
 // Un Empleado sin perfil conserva el acceso de antes, pero no ve lo que la API ya le prohíbe (solo dueño/gerente).
-const STAFF_HIDDEN_PAGES = ['contratos', 'tablero', 'reparto', 'gastos', 'calidad', 'price-lists', 'design', 'identidad', 'modules', 'stats', 'settings'];
+const STAFF_HIDDEN_PAGES = ['contratos', 'tablero', 'reparto', 'gastos', 'calidad', 'price-lists', 'design', 'identidad', 'modules', 'stats', 'settings', 'integraciones'];
 
 /** ¿Puede este usuario abrir esta página? `page` es el primer tramo tras /space/{slug}/ ('' = dashboard). */
 export function canOpenPage(role: string | null | undefined, profile: string | null | undefined, page: string): boolean {

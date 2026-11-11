@@ -102,6 +102,7 @@ export function SpaceMobileNav({
     ...(businessType === 'retail'
       ? [
           { label: getText('Envíos', 'Shipping'), icon: '📦', href: `/space/${slug}/shipping`, token: 'shipping' },
+          { label: getText('Integraciones', 'Integrations'), icon: '🔌', href: `/space/${slug}/integraciones`, token: 'orders' },
           { label: getText('Listas de precio', 'Price lists'), icon: '🏷️', href: `/space/${slug}/price-lists`, token: 'pricelists' },
         ]
       : []),
