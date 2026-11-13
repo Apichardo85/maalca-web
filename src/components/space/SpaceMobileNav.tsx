@@ -122,6 +122,7 @@ export function SpaceMobileNav({
     { label: getText('Mis rutas', 'My routes'), icon: '🚚', href: `/space/${slug}/ruta`, token: 'routes' },
     { label: getText('Reparto (admin)', 'Delivery (admin)'), icon: '📦', href: `/space/${slug}/reparto`, token: 'routes' },
     { label: getText('Gastos y utilidad', 'Expenses & profit'), icon: '💸', href: `/space/${slug}/gastos`, token: 'expenses' },
+    { label: getText('Factura electrónica', 'E-invoicing'), icon: '🧾', href: `/space/${slug}/fiscal`, token: 'fiscal' },
     { label: getText('Calidad del agua', 'Water quality'), icon: '💧', href: `/space/${slug}/calidad`, token: 'quality' },
     { label: getText('Propuestas', 'Proposals'), icon: '✍️', href: `/space/${slug}/proposals`, token: 'proposals' },
     { label: getText('Pantalla', 'Screen'), icon: '📺', href: `/space/${slug}/board`, token: 'board' },
