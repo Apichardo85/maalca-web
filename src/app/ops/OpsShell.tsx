@@ -19,6 +19,7 @@ const NAV = [
   { href: '/ops/precios', label: 'Precios' },
   { href: '/ops/cotizador', label: 'Cotizador' },
   { href: '/ops/pantallas', label: 'Pantallas' },
+  { href: '/ops/contenido', label: 'Contenido' },
   { href: '/ops/agentes', label: 'Agentes' },
   { href: '/ops/sitio', label: 'Sitio' },
 ];
