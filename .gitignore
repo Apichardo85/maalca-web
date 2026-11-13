@@ -51,3 +51,6 @@ docs/frontend-design-guide.md
 docs/private/
 
 _to_delete/
+
+# Salidas de trabajo de Claude (archivos temporales)
+Claude outputs/

@@ -9,6 +9,7 @@ import { PageViewTracker } from '@/components/public/PageViewTracker';
 import { stripRichTextToPlain } from '@/lib/sanitize-html';
 import { RestaurantJsonLd } from '@/components/seo/JsonLd';
 import { alignCatalogToTemplates, normalizeBaseLanguage } from '@/lib/catalog-language';
+import { tidyItemNames } from '@/lib/display-name';
 
 interface PublicActivity {
   id: string;
@@ -225,13 +226,16 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
 
   const { affiliate, categories = [], items, capabilities } = data;
 
-  const mappedItems = alignCatalogToTemplates(
+  const alignedItems = alignCatalogToTemplates(
     items.map((item) => ({
       ...item,
       image_url: item.image_url ?? (item as typeof item & { imageUrl?: string | null }).imageUrl ?? null,
     })),
     normalizeBaseLanguage(affiliate.language),
   );
+  // Tiendas: los nombres importados vienen a mano (MAYÚSCULAS, minúsculas, mezclados). Solo se muestran parejos;
+  // lo guardado y lo que ve el dueño en su panel no cambia.
+  const mappedItems = affiliate.businessType.toLowerCase() === 'retail' ? tidyItemNames(alignedItems) : alignedItems;
 
   const Template = TEMPLATES[affiliate.businessType.toLowerCase() as BusinessType];
   if (!Template) notFound();

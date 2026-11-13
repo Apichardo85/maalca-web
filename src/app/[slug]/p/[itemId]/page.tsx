@@ -8,6 +8,7 @@ import type { Metadata } from 'next';
 import PublicAffiliatePage from '../../page';
 import { stripRichTextToPlain } from '@/lib/sanitize-html';
 import { formatPrice } from '@/lib/currency';
+import { formatDisplayName } from '@/lib/display-name';
 
 interface PageProps {
   params: Promise<{ slug: string; itemId: string }>;
@@ -26,6 +27,7 @@ interface CatalogItem {
 interface CatalogResponse {
   affiliate: {
     name: string;
+    businessType?: string | null;
     logoUrl?: string | null;
     currency?: string | null;
   };
@@ -62,7 +64,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const priceText = item.price != null ? formatPrice(item.price, currency) : null;
   const plain = item.description ? stripRichTextToPlain(item.description).trim() : '';
   const description = (plain ? plain.slice(0, 200) : [priceText, affiliate.name].filter(Boolean).join(' · ')) || affiliate.name;
-  const title = `${item.name} · ${affiliate.name}`;
+  const itemName = affiliate.businessType?.toLowerCase() === 'retail' ? formatDisplayName(item.name) : item.name;
+  const title = `${itemName} · ${affiliate.name}`;
   const url = `https://maalca.com/${slug}/p/${itemId}`;
 
   // Foto del producto; si no tiene, la tarjeta de identidad del negocio ([slug]/opengraph-image).
