@@ -315,9 +315,14 @@ export function NegocioDetail({
 
   return (
     <div>
-      <Link href="/ops/negocios" className="text-xs font-medium text-gray-400 hover:text-gray-600 dark:hover:text-neutral-300">
-        ← Negocios
-      </Link>
+      <div className="flex items-center justify-between gap-3">
+        <Link href="/ops/negocios" className="text-xs font-medium text-gray-400 hover:text-gray-600 dark:hover:text-neutral-300">
+          ← Negocios
+        </Link>
+        <Link href={`/ops/negocios/${a.id}/marca`} className="text-xs font-medium text-brand-primary hover:underline">
+          Marca y marketing →
+        </Link>
+      </div>
 
       <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
         <div>
