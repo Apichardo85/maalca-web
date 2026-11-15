@@ -14,6 +14,7 @@ import {
   type ElectronicInvoice,
   type FiscalOverview,
 } from '@/lib/fiscal';
+import { FISCAL_PROVINCES, municipalitiesOf } from '@/lib/fiscal-geo';
 
 interface Props {
   slug: string;
@@ -49,8 +50,8 @@ export function FiscalContent({ slug, currency, initialOverview, initialInvoices
   const [profile, setProfile] = useState(
     p
       ? {
-          rnc: p.rnc, legalName: p.legalName, tradeName: p.tradeName ?? '', address: p.address, province: p.province ?? '',
-          municipality: p.municipality ?? '', email: p.email ?? '', environment: p.environment,
+          rnc: p.rnc, legalName: p.legalName, tradeName: p.tradeName ?? '', address: p.address, province: /^\d{6}$/.test(p.province ?? '') ? (p.province as string) : '',
+          municipality: /^\d{6}$/.test(p.municipality ?? '') ? (p.municipality as string) : '', email: p.email ?? '', environment: p.environment,
           defaultBillingIndicator: p.defaultBillingIndicator, defaultGoodService: p.defaultGoodService,
         }
       : emptyProfile,
@@ -217,8 +218,18 @@ export function FiscalContent({ slug, currency, initialOverview, initialInvoices
           <input className={input} placeholder={getText('Razón social (como en la DGII)', 'Legal name (as in the DGII)')} value={profile.legalName} onChange={(e) => setProfile({ ...profile, legalName: e.target.value })} />
           <input className={input} placeholder={getText('Nombre comercial (opcional)', 'Trade name (optional)')} value={profile.tradeName} onChange={(e) => setProfile({ ...profile, tradeName: e.target.value })} />
           <input className={input} placeholder={getText('Dirección fiscal', 'Tax address')} value={profile.address} onChange={(e) => setProfile({ ...profile, address: e.target.value })} />
-          <input className={input} placeholder={getText('Provincia', 'Province')} value={profile.province} onChange={(e) => setProfile({ ...profile, province: e.target.value })} />
-          <input className={input} placeholder={getText('Municipio', 'Municipality')} value={profile.municipality} onChange={(e) => setProfile({ ...profile, municipality: e.target.value })} />
+          <select className={input} value={profile.province} onChange={(e) => setProfile({ ...profile, province: e.target.value, municipality: '' })}>
+            <option value="">{getText('Provincia', 'Province')}</option>
+            {FISCAL_PROVINCES.map(([code, name]) => (
+              <option key={code} value={code}>{name}</option>
+            ))}
+          </select>
+          <select className={input} disabled={!profile.province} value={profile.municipality} onChange={(e) => setProfile({ ...profile, municipality: e.target.value })}>
+            <option value="">{getText('Municipio', 'Municipality')}</option>
+            {municipalitiesOf(profile.province).map(([code, name]) => (
+              <option key={code} value={code}>{name}</option>
+            ))}
+          </select>
           <input className={input} type="email" placeholder={getText('Correo del negocio', 'Business email')} value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} />
           <select className={input} disabled={locked} value={profile.environment} onChange={(e) => setProfile({ ...profile, environment: e.target.value })}>
             <option value="sandbox">{getText('Pruebas (sandbox)', 'Testing (sandbox)')}</option>
@@ -358,8 +369,8 @@ export function FiscalContent({ slug, currency, initialOverview, initialInvoices
               </p>
               {i.errorMessage && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{i.errorMessage}</p>}
               <div className="mt-2 flex flex-wrap gap-2">
-                {i.pdfUrl && <a href={i.pdfUrl} target="_blank" rel="noreferrer" className={ghost}>PDF</a>}
-                {i.xmlUrl && <a href={i.xmlUrl} target="_blank" rel="noreferrer" className={ghost}>XML</a>}
+                {i.pdfUrl && <a href={`/api/space/${slug}/fiscal/invoices/${i.id}/files/pdf`} target="_blank" rel="noreferrer" className={ghost}>PDF</a>}
+                {i.xmlUrl && <a href={`/api/space/${slug}/fiscal/invoices/${i.id}/files/xml`} target="_blank" rel="noreferrer" className={ghost}>XML</a>}
                 {i.status === 'processing' && <button type="button" onClick={() => invoiceAction(i, 'refresh')} disabled={busy === `refresh-${i.id}`} className={ghost}>{getText('Consultar estado', 'Check status')}</button>}
                 {i.status === 'failed' && <button type="button" onClick={() => invoiceAction(i, 'retry')} disabled={busy === `retry-${i.id}`} className={ghost}>{getText('Reintentar', 'Retry')}</button>}
               </div>
