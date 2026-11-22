@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useOpsCanManage } from '../../../OpsRoleContext';
 import { NETWORKS, type AgentAffiliatePlan, type BrandProfile } from './types';
+import { FacebookConnection } from './FacebookConnection';
 
 const INPUT =
   'w-full rounded-md border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1.5 text-xs disabled:opacity-60';
@@ -143,6 +144,11 @@ export function BrandPanel({
           </div>
         )}
       </div>
+
+      {/* Redes conectadas (fase 4: publicación automática) */}
+      <Suspense fallback={null}>
+        <FacebookConnection affiliateId={affiliateId} />
+      </Suspense>
 
       {/* Perfil de marca */}
       <div className={CARD}>

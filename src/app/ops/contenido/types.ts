@@ -18,7 +18,16 @@ export interface ContentItem {
   reviewNotes: string | null;
   staffNote: string | null;
   decidedBy: string | null;
+  /** Fase 4: lo llena el publicador cuando la red confirma el post. */
+  publishedAt: string | null;
+  externalUrl: string | null;
+  /** Último error al publicar (sin página conectada, token vencido, etc.). */
+  publishError: string | null;
+  publishAttempts: number;
 }
+
+/** Redes con conector de publicación automática. Las demás se quedan en Aprobado. */
+export const AUTO_PUBLISH_NETWORKS: ContentItem['network'][] = ['facebook'];
 
 export interface ContentQuota {
   affiliateId: string;

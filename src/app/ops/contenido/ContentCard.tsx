@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { NETWORK_LABEL, STATUS_LABEL, type ContentItem } from './types';
+import { AUTO_PUBLISH_NETWORKS, NETWORK_LABEL, STATUS_LABEL, type ContentItem } from './types';
 
 const INPUT =
   'w-full rounded-md border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1.5 text-xs';
@@ -99,7 +99,17 @@ export function ContentCard({ item, onChange, onError, onNotice }: Props) {
     }
   }
 
+  async function publishNow() {
+    const updated = await call(`${item.id}/publish`, 'POST', {});
+    if (updated) {
+      onChange(updated);
+      if (updated.status === 'published') onNotice('Publicado en Facebook.');
+      else onError(updated.publishError ?? 'No se pudo publicar.');
+    }
+  }
+
   const verdict = item.reviewVerdict ? VERDICT[item.reviewVerdict] : null;
+  const autoPublish = AUTO_PUBLISH_NETWORKS.includes(item.network);
   const media = editing ? draft.mediaUrl : item.mediaUrl;
   const kind = editing ? draft.mediaKind : item.mediaKind;
 
@@ -168,6 +178,34 @@ export function ContentCard({ item, onChange, onError, onNotice }: Props) {
       )}
       {item.staffNote && (
         <p className="mt-1 text-xs text-gray-600 dark:text-neutral-400"><span className="font-medium">Nota de {item.decidedBy ?? 'staff'}:</span> {item.staffNote}</p>
+      )}
+
+      {/* Publicación (fase 4) */}
+      {item.status === 'published' && (
+        <p className="mt-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 px-3 py-2 text-xs text-blue-700 dark:text-blue-300">
+          Publicado{item.publishedAt ? ` el ${new Date(item.publishedAt).toLocaleString('es', { dateStyle: 'medium', timeStyle: 'short' })}` : ''}.
+          {item.externalUrl && (
+            <> <a href={item.externalUrl} target="_blank" rel="noopener noreferrer" className="font-medium underline">Ver en {NETWORK_LABEL[item.network]}</a></>
+          )}
+        </p>
+      )}
+      {item.status === 'approved' && (
+        <div className="mt-3 rounded-lg border border-gray-200 dark:border-neutral-800 px-3 py-2 text-xs">
+          {autoPublish ? (
+            <p className="text-gray-600 dark:text-neutral-300">
+              Sale sola el {new Date(item.scheduledFor).toLocaleDateString('es', { day: 'numeric', month: 'short', timeZone: 'UTC' })} (12:00 UTC).
+              {item.publishAttempts >= 3 && ' Falló 3 veces: ya no se reintenta sola.'}
+            </p>
+          ) : (
+            <p className="text-gray-500 dark:text-neutral-400">
+              {NETWORK_LABEL[item.network]} todavía no tiene publicación automática: se publica a mano.
+            </p>
+          )}
+          {item.publishError && <p className="mt-1 text-red-600 dark:text-red-400">{item.publishError}</p>}
+          {autoPublish && (
+            <button disabled={busy} onClick={publishNow} className={`${BTN} mt-2 bg-blue-600 text-white`}>Publicar ahora</button>
+          )}
+        </div>
       )}
 
       {open && (
