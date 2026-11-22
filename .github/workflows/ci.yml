@@ -1,0 +1,49 @@
+name: ci
+
+# Candado del pipeline: corre en cada push a develop y main. Vercel despliega por su cuenta;
+# este CI es el semáforo que dice si el commit es sano antes de pasarlo a main.
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci --no-audit --no-fund
+
+      # El repo arrastra errores de TypeScript y ESLint viejos (el build los ignora). El trinquete
+      # solo falla si el commit AGREGA errores; ver scripts/ci/ratchet.mjs.
+      - name: TypeScript (sin errores nuevos)
+        run: |
+          npx tsc --noEmit > tsc-output.txt 2>&1 || true
+          node scripts/ci/ratchet.mjs tsc tsc-output.txt
+
+      - name: ESLint (sin errores nuevos)
+        run: |
+          npx eslint . -f json -o eslint-output.json || true
+          node scripts/ci/ratchet.mjs eslint eslint-output.json
+
+      # Build real de producción. Apunta al API de staging para que cualquier fetch en build
+      # funcione sin tocar producción; las llaves de Supabase son de relleno (solo build).
+      - name: Build
+        run: npx next build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_API_BASE_URL: https://maalca-api-staging.up.railway.app
+          MAALCA_API_URL: https://maalca-api-staging.up.railway.app
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
