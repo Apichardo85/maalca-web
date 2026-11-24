@@ -14,8 +14,14 @@ export const PRICE_PREMIUM = 195;
 export const PRICE_ENTREPRENEUR_YEARLY = 380;
 export const PRICE_PROFESSIONAL_YEARLY = 950;
 export const SETUP_FEE = 150;
-export const EXTRA_SCREEN_MONTHLY = 15;
-export const EXTRA_SCREEN_YEARLY = 150;
+// Pantallas de TV: se cobran SIEMPRE aparte, ningún plan las incluye (2026-11-24). Precio por
+// pantalla, escalonado: 1.ª $39 · 2.ª $15 · desde la 3.ª $10 al mes (anual: $390 · $150 · $100).
+export const SCREEN_FIRST_MONTHLY = 39;
+export const SCREEN_SECOND_MONTHLY = 15;
+export const SCREEN_MORE_MONTHLY = 10;
+export const SCREEN_FIRST_YEARLY = 390;
+export const SCREEN_SECOND_YEARLY = 150;
+export const SCREEN_MORE_YEARLY = 100;
 
 // Add-ons mensuales (USD)
 export const ADDON_SOCIAL_POSTS = 75;

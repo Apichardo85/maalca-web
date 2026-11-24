@@ -355,7 +355,7 @@ export function SettingsContent({ slug, plan, trialDaysRemaining, currency: init
                         `Screens: using ${summary.screensUsed} of ${summary.screenAllowance}.`,
                       )}
                     </p>
-                    {summary.hasSubscription && !billedInPesos && (
+                    {!billedInPesos && (
                       <ExtraScreensControl slug={slug} summary={summary} onUpdated={setSummary} />
                     )}
                   </div>

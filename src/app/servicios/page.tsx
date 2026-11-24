@@ -82,7 +82,7 @@ const plans: Plan[] = [
       en: "Once you're selling: bookings, online payments, unlimited catalog and automations that save you hours.",
     },
     price: 38,
-    setup: { es: "Setup único $150 · sin setup si solo usas pantallas", en: "One-time setup $150 · no setup if you only use screens" },
+    setup: { es: "Setup único $150", en: "One-time setup $150" },
     highlight: true,
     features: [
       { es: "Todo lo de Starter (catálogo ilimitado)", en: "Everything in Starter (unlimited catalog)" },
@@ -91,7 +91,6 @@ const plans: Plan[] = [
       { es: "Automatizaciones básicas (confirmaciones, recordatorios)", en: "Basic automations (confirmations, reminders)" },
       { es: "Pagos con Stripe (tarjeta, Apple Pay, Google Pay)", en: "Stripe payments (card, Apple Pay, Google Pay)" },
       { es: "Analytics de conversión", en: "Conversion analytics" },
-      { es: "1 pantalla de menú para TV incluida", en: "1 TV menu screen included" },
       { es: "Soporte prioritario (24h)", en: "Priority support (24h)" },
     ],
     cta: { es: "Comienza tu prueba gratis", en: "Start your free trial" },
@@ -109,11 +108,10 @@ const plans: Plan[] = [
       en: "For businesses that quote, invoice, book or take orders: the full customer cycle in one place.",
     },
     price: PRICE_PROFESSIONAL,
-    setup: { es: "Setup único $150 · sin setup si solo usas pantallas", en: "One-time setup $150 · no setup if you only use screens" },
+    setup: { es: "Setup único $150", en: "One-time setup $150" },
     highlight: false,
     features: [
       { es: "Todo lo de Growth", en: "Everything in Growth" },
-      { es: "2 pantallas de menú para TV incluidas", en: "2 TV menu screens included" },
       { es: "Facturas y propuestas con firma digital del cliente", en: "Invoices and proposals with client e-signature" },
       { es: "Automatizaciones avanzadas: recordatorios y bloqueo de horario", en: "Advanced automations: reminders and schedule blocking" },
       { es: "Reportes y analíticas ampliadas", en: "Extended reports and analytics" },
@@ -179,25 +177,15 @@ const FALLBACK_ADDONS: AddOn[] = [
     },
   },
   {
-    id: "screen-full-service",
-    name: { es: "Servicio completo de pantallas", en: "Full screen service" },
+    id: "screen",
+    name: { es: "Pantalla de TV", en: "TV screen" },
     price: 39,
-    unit: { es: "/local/mes", en: "/location/mo" },
-    desc: {
-      es: "Cargamos y mantenemos tu contenido (menú, promos y comerciales), vigilamos cada TV y reemplazamos el dispositivo en 48 h. El diseño se genera solo desde tu catálogo.",
-      en: "We load and keep your content up to date (menu, promos and ads), watch every TV and replace the device within 48 h. The design is generated from your catalog.",
-    },
-  },
-  {
-    id: "extra-screen",
-    name: { es: "Pantalla adicional", en: "Extra screen" },
-    price: 15,
     unit: { es: "/mes", en: "/mo" },
     desc: {
-      es: "Más pantallas de TV para tu menú o anuncios, además de las incluidas en tu plan.",
-      en: "More TV screens for your menu or ads, on top of those included in your plan.",
+      es: "Tu catálogo en la TV, aparte de cualquier plan (también sin plan). Cargamos y mantenemos tu contenido (menú, promos y comerciales), vigilamos la TV y reemplazamos el dispositivo en 48 h.",
+      en: "Your catalog on the TV, separate from any plan (no plan needed). We load and keep your content up to date (menu, promos and ads), watch the TV and replace the device within 48 h.",
     },
-    note: { es: "Desde la 2.ª pantalla extra, $10 c/u", en: "From the 2nd extra screen, $10 each" },
+    note: { es: "2.ª pantalla $15 · desde la 3.ª $10 c/u", en: "2nd screen $15 · from the 3rd, $10 each" },
   },
   {
     id: "social-posts",
@@ -308,7 +296,7 @@ const comparisonRows: { label: { es: string; en: string }; values: ComparisonVal
   },
   {
     label: { es: "Pantallas de TV (menú y anuncios)", en: "TV screens (menu and ads)" },
-    values: [{ es: "1 (en la prueba)", en: "1 (during trial)" }, "1", "2"],
+    values: [{ es: "Aparte", en: "Separate" }, { es: "Aparte", en: "Separate" }, { es: "Aparte", en: "Separate" }],
   },
   {
     label: { es: "Soporte", en: "Support" },
@@ -497,8 +485,8 @@ export default function ServiciosPage() {
               const discounted = !isFree && !!bp && bp.listUsd > bp.monthlyUsd;
               const setupText = bp && plan.setup
                 ? {
-                    es: `Setup único $${bp.setupUsd} · sin setup si solo usas pantallas`,
-                    en: `One-time setup $${bp.setupUsd} · no setup if you only use screens`,
+                    es: `Setup único $${bp.setupUsd}`,
+                    en: `One-time setup $${bp.setupUsd}`,
                   }
                 : plan.setup;
 

@@ -125,8 +125,8 @@ export function ModulesContent({ slug, businessId, activeTokens, businessType, p
         {trialActive && trialEnd && (
           <p className="mt-6 rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 py-3 text-sm text-gray-700 dark:text-neutral-200">
             {getText(
-              `Estás probando todo, pantalla incluida, hasta el ${trialEnd.toLocaleDateString('es')}. Después, tu página y tu catálogo siguen en línea; lo demás vuelve con Growth.`,
-              `You're trying everything, screen included, until ${trialEnd.toLocaleDateString('en')}. After that your page and catalog stay online; the rest comes back with Growth.`,
+              `Estás probando todo (las pantallas se pagan aparte) hasta el ${trialEnd.toLocaleDateString('es')}. Después, tu página y tu catálogo siguen en línea; lo demás vuelve con Growth.`,
+              `You're trying everything (screens are paid separately) until ${trialEnd.toLocaleDateString('en')}. After that your page and catalog stay online; the rest comes back with Growth.`,
             )}
           </p>
         )}
