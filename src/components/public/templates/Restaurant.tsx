@@ -16,7 +16,7 @@
 // weekDays populated; otherwise the full menu shows with no filter, so a
 // business without that data configured never sees a confusing empty view.
 import { useEffect, useMemo, useState } from 'react';
-import { Inter } from 'next/font/google';
+import localFont from 'next/font/local';
 import { deriveBrandPalette, deriveDarkBrandPalette, brandPaletteCss } from '@/lib/brand-palette';
 import type { ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart } from '@/components/public/cart/useCart';
@@ -64,7 +64,7 @@ import { categoryLabel } from '@/lib/category-label';
 // vienen de las variables --rt-* que calcula deriveBrandPalette() a partir del color primario del
 // negocio (ver src/lib/brand-palette.ts) y se fijan en el contenedor raíz de la plantilla.
 // El segundo valor de cada var() es el respaldo si la variable no existe.
-const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'], variable: '--font-restaurant-body' });
+const inter = localFont({ src: '../../../fonts/inter-latin-wght-normal.woff2', weight: '100 900', variable: '--font-restaurant-body' });
 
 const ALL_TAB = '__all__';
 // Pestaña virtual con solo los platos en oferta (precio anterior mayor al actual). Solo aparece si hay alguno.

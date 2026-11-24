@@ -20,12 +20,12 @@ import {
 } from '@/lib/board-layouts';
 import { ensureContrast, mix, type BoardPalette } from './MenuBoardLayouts';
 import { buildAutoDailyMenu, hasOwnDailyMenu } from '@/lib/daily-menu-auto';
-import { Great_Vibes, Playfair_Display } from 'next/font/google';
+import localFont from 'next/font/local';
 
 // Estilo Tropical: letra script para los adornos y una serif con presencia para títulos, como los
 // flyers impresos de restaurante (cargadas solo en el bundle del board).
-const scriptFont = Great_Vibes({ weight: '400', subsets: ['latin'], display: 'swap' });
-const serifFont = Playfair_Display({ weight: ['700', '900'], subsets: ['latin'], display: 'swap' });
+const scriptFont = localFont({ src: '../../fonts/great-vibes-latin-400-normal.woff2', weight: '400', display: 'swap' });
+const serifFont = localFont({ src: '../../fonts/playfair-display-latin-wght-normal.woff2', weight: '400 900', display: 'swap' });
 
 type BoardItem = PublicTemplateProps['items'][number] & {
   modifierGroups?: Array<{
