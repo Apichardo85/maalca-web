@@ -9,7 +9,7 @@
 import { useEffect, useState } from 'react';
 import { OpenStatusBar } from '@/components/public/OpenStatusBar';
 import { getOpenStatus, getScheduleTarget, cartScheduleFrom, todayKeyInTimezone, type OpenStatus } from '@/lib/business-hours';
-import { Playfair_Display } from 'next/font/google';
+import localFont from 'next/font/local';
 import type { ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
 import { useCart, type CartItem } from '@/components/public/cart/useCart';
 import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
@@ -41,7 +41,7 @@ import { StoreAccountSheet } from '@/components/public/StoreAccountSheet';
 
 // Serif editorial solo para títulos (hero, secciones, nombre del producto en el detalle). El resto va en la
 // sans del sitio para que precios y descripciones se lean limpios en móvil.
-const display = Playfair_Display({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-retail-display' });
+const display = localFont({ src: '../../../fonts/playfair-display-latin-wght-normal.woff2', weight: '400 900', variable: '--font-retail-display' });
 
 const ALL_TAB = '__all__';
 const DEFAULT_BRAND = '#A6452B';

@@ -12,7 +12,7 @@ import { useEffect, useState } from 'react';
 import { OpenStatusBar } from '@/components/public/OpenStatusBar';
 import { getOpenStatus, todayKeyInTimezone, type OpenStatus } from '@/lib/business-hours';
 import type { CSSProperties } from 'react';
-import { Fraunces, IBM_Plex_Mono } from 'next/font/google';
+import localFont from 'next/font/local';
 import type { FaqEntry, ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
 import { resolveWhatsAppDigits, resolveContactItems } from '@/lib/public-contact';
 import { trackCanalClick } from '@/lib/public-events';
@@ -29,8 +29,8 @@ import { deriveBrandPalette, deriveDarkBrandPalette, brandPaletteCss } from '@/l
 
 // Scoped to this template only — Fraunces gives the pull-quote/headers real
 // character; Plex Mono is the "spec sheet" voice for numbers, prices, labels.
-const fraunces = Fraunces({ subsets: ['latin'], weight: ['500', '600'], variable: '--font-service-display' });
-const plexMono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['500'], variable: '--font-service-mono' });
+const fraunces = localFont({ src: '../../../fonts/fraunces-latin-wght-normal.woff2', weight: '100 900', variable: '--font-service-display' });
+const plexMono = localFont({ src: '../../../fonts/ibm-plex-mono-latin-500-normal.woff2', weight: '500', variable: '--font-service-mono' });
 
 // Todo el juego de neutros sale de la paleta de la marca (brandPaletteCss, scope .sv-scope): fondo, líneas,
 // tinta y texto secundario toman el matiz del color primario, en claro y en oscuro (html[data-theme="dark"]).

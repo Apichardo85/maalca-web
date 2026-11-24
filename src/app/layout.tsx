@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Inter, Caveat } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { Header, Footer } from "@/components/layout";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
@@ -7,23 +7,26 @@ import SiteContentLoader from "@/components/site/SiteContentLoader";
 import { OrganizationJsonLd, WebSiteJsonLd } from "@/components/seo/JsonLd";
 export const dynamic = "force-dynamic";
 
-const playfairDisplay = Playfair_Display({
+// Fuentes servidas desde el repo (src/fonts): el build no depende de Google Fonts.
+const playfairDisplay = localFont({
+  src: "../fonts/playfair-display-latin-wght-normal.woff2",
+  weight: "400 900",
   variable: "--font-playfair",
-  subsets: ["latin"],
   display: "swap",
 });
 
-const inter = Inter({
+const inter = localFont({
+  src: "../fonts/inter-latin-wght-normal.woff2",
+  weight: "100 900",
   variable: "--font-inter",
-  subsets: ["latin"],
   display: "swap",
 });
 
-const caveat = Caveat({
+const caveat = localFont({
+  src: "../fonts/caveat-latin-wght-normal.woff2",
+  weight: "400 700",
   variable: "--font-caveat",
-  subsets: ["latin"],
   display: "swap",
-  weight: ["500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -104,13 +107,6 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('theme');var d=window.matchMedia('(prefers-color-scheme: dark)').matches;if(t==='dark'||(!t&&d)){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();`,
           }}
-        />
-        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
         />
         <OrganizationJsonLd />
         <WebSiteJsonLd />

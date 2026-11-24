@@ -8,7 +8,7 @@
 // motif and a perforated "ticket stub" service card as the signature
 // element — distinct from Service's mono rate-card index.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Oswald } from 'next/font/google';
+import localFont from 'next/font/local';
 import type { ProcessStep, PublicTemplateProps } from '@/lib/templates/registry';
 import { resolveContactItems } from '@/lib/public-contact';
 import { trackCanalClick } from '@/lib/public-events';
@@ -34,7 +34,7 @@ import { categoryLabel } from '@/lib/category-label';
 // Scoped to this template only — condensed uppercase display for headers,
 // duration and price (no separate mono role; the condensed weight already
 // carries the "precision" voice this template needs).
-const oswald = Oswald({ subsets: ['latin'], weight: ['500', '600', '700'], variable: '--font-barber-display' });
+const oswald = localFont({ src: '../../../fonts/oswald-latin-wght-normal.woff2', weight: '200 700', variable: '--font-barber-display' });
 
 const ALL_TAB = '__all__';
 
