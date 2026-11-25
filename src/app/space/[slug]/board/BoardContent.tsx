@@ -4,7 +4,6 @@ import { useRef, useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
-import { isPaidPlan } from '@/lib/plan-limits';
 import {
   IMPLEMENTED_LAYOUTS, type BoardLayoutName, type BoardOrientation, type BoardPanel, type DailyMenu,
 } from '@/lib/board-layouts';
@@ -14,6 +13,7 @@ import { WallsSection, type WallRow } from './WallsSection';
 import { ScreenDevicesPanel } from '@/components/space/ScreenDevicesPanel';
 import { readApiError, useBillingSummary } from '@/lib/billing';
 import { ScreenLimitNotice, type ScreenLimitDetails } from '@/components/space/billing/ScreenLimitNotice';
+import { ExtraScreensControl } from '@/components/space/billing/ExtraScreensControl';
 
 export interface ScreenAdRow {
   id: string;
@@ -199,7 +199,7 @@ function LayoutPicker({
  * imágenes de catálogo (ver screen-ads/upload-media/route.ts).
  */
 export function BoardContent({
-  slug, plan, initialAds, initialAdFrequency, initialLanguage, initialBoardTheme,
+  slug, initialAds, initialAdFrequency, initialLanguage, initialBoardTheme,
   initialTransitionEffect, initialBoardLayout, initialBoardOrientation, initialBoardPanels, initialDailyMenu, products,
   initialScreens, initialWalls, categories,
 }: Props) {
@@ -586,13 +586,20 @@ export function BoardContent({
           </button>
         </p>
 
-        {!isPaidPlan(plan) && (
-          <p className="mt-3 text-sm text-gray-500 dark:text-neutral-400">
-            {getText(
-              'El Menu Board es parte del plan Growth. Con el plan gratis, esta pantalla queda configurada pero no se activa públicamente.',
-              'The Menu Board is part of the Growth plan. On the free plan, this screen stays configured but not publicly active.',
-            )}
-          </p>
+        {/* Ningún plan incluye pantallas: cada TV se paga aparte. Sin pantalla pagada, el board
+            público sale "en pausa"; aquí se contrata la 1.ª (con o sin plan). */}
+        {billing && billing.screenAllowance < 1 && (
+          <div className="mt-4 rounded-2xl border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-4">
+            <p className="text-sm font-medium text-amber-900 dark:text-amber-300">
+              {getText(
+                'Tu pantalla está en pausa. Las pantallas se pagan aparte de cualquier plan: contrata la primera para que tu TV muestre tu catálogo.',
+                'Your screen is paused. Screens are paid separately from any plan: get the first one so your TV shows your catalog.',
+              )}
+            </p>
+            <div className="mt-3 rounded-xl bg-white dark:bg-neutral-900 p-3">
+              <ExtraScreensControl slug={slug} summary={billing} onUpdated={setBilling} compact />
+            </div>
+          </div>
         )}
 
         {/* Monitoreo: qué TVs están mostrando cada pantalla y desde cuándo (señal de vida del board). */}
