@@ -9,7 +9,7 @@ import type { OrderRow } from '@/lib/orderTicket';
 // "Operación hoy" para negocios con pedidos pero SIN módulo de rutas (tiendas, mayoristas). El tablero de
 // reparto (TableroContent) habla de camiones y envases; este habla de lo que mueve una tienda: ventas del día,
 // pedidos por atender, envíos por despachar y lo pendiente de cobro. Todo sale de la lista de pedidos que el
-// panel ya carga — sin endpoints nuevos.
+// panel ya carga. Si el negocio tiene Clover conectado, suma también lo cobrado en el mostrador (lectura en vivo, sin duplicar datos).
 
 interface Props {
   slug: string;
@@ -23,6 +23,8 @@ const h2 = 'text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-
 // Un pedido "vendido" ya está cobrado o en proceso; Pending (sin pagar) y Canceled no cuentan como venta.
 const SOLD = new Set(['Paid', 'Preparing', 'Ready', 'Fulfilled']);
 
+interface CloverDay { date: string; total: number; orders: number }
+
 const dayKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 export function TableroTienda({ slug, currency, initialOrders }: Props) {
@@ -32,6 +34,8 @@ export function TableroTienda({ slug, currency, initialOrders }: Props) {
 
   const [orders, setOrders] = useState<OrderRow[]>(initialOrders);
   const [updatedAt, setUpdatedAt] = useState(() => new Date());
+  // Mostrador (Clover) por día, últimos 7 días. null = sin Clover conectado: el tablero queda como antes.
+  const [counter, setCounter] = useState<CloverDay[] | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -49,7 +53,32 @@ export function TableroTienda({ slug, currency, initialOrders }: Props) {
         // Se queda con lo último que tenía.
       }
     };
-    const id = setInterval(load, REFRESH_MS);
+    let hasClover = true;
+    const loadCounter = async () => {
+      if (!hasClover) return;
+      try {
+        const from = new Date();
+        from.setDate(from.getDate() - 6);
+        const res = await fetch(`/api/space/${slug}/integrations/clover/sales?from=${dayKey(from)}&to=${dayKey(new Date())}`, { cache: 'no-store' });
+        // 4xx = Clover no conectado (o sin permiso): no se vuelve a preguntar. Un fallo de red o 5xx sí reintenta.
+        if (res.status >= 400 && res.status < 500) {
+          hasClover = false;
+          if (alive) setCounter(null);
+          return;
+        }
+        if (!res.ok || !alive) return;
+        const json = await res.json();
+        if (Array.isArray(json?.byDay)) setCounter(json.byDay as CloverDay[]);
+      } catch {
+        // Se queda con lo último que tenía.
+      }
+    };
+    loadCounter();
+    const tick = () => {
+      load();
+      loadCounter();
+    };
+    const id = setInterval(tick, REFRESH_MS);
     return () => {
       alive = false;
       clearInterval(id);
@@ -62,7 +91,11 @@ export function TableroTienda({ slug, currency, initialOrders }: Props) {
 
   const todays = orders.filter((o) => isToday(o.createdAt) && o.status !== 'Canceled');
   const soldToday = todays.filter((o) => SOLD.has(o.status));
-  const salesToday = soldToday.reduce((s, o) => s + o.total, 0);
+  const salesOnline = soldToday.reduce((s, o) => s + o.total, 0);
+  const counterToday = counter?.find((d) => d.date === todayKey);
+  const salesCounter = counterToday?.total ?? 0;
+  const ordersCounter = counterToday?.orders ?? 0;
+  const salesToday = salesOnline + salesCounter;
   const toShip = orders.filter((o) => isShipping(o) && !o.trackingNumber && ['Paid', 'Preparing', 'Ready'].includes(o.status));
   const toAttend = orders.filter((o) => !isShipping(o) && ['Paid', 'Preparing', 'Ready'].includes(o.status));
   const unpaid = orders.filter((o) => o.status === 'Pending');
@@ -73,7 +106,8 @@ export function TableroTienda({ slug, currency, initialOrders }: Props) {
     const d = new Date();
     d.setDate(d.getDate() - (6 - i));
     const key = dayKey(d);
-    const total = orders.filter((o) => SOLD.has(o.status) && dayKey(new Date(o.createdAt)) === key).reduce((s, o) => s + o.total, 0);
+    const online = orders.filter((o) => SOLD.has(o.status) && dayKey(new Date(o.createdAt)) === key).reduce((s, o) => s + o.total, 0);
+    const total = online + (counter?.find((c) => c.date === key)?.total ?? 0);
     return { key, label: d.toLocaleDateString(language === 'es' ? 'es' : 'en-US', { weekday: 'short' }), total };
   });
   const maxDay = Math.max(1, ...days.map((d) => d.total));
@@ -106,7 +140,9 @@ export function TableroTienda({ slug, currency, initialOrders }: Props) {
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {kpi(getText('Vendido hoy', 'Sold today'), fmt.format(salesToday), `${soldToday.length} ${getText(soldToday.length === 1 ? 'pedido' : 'pedidos', soldToday.length === 1 ? 'order' : 'orders')}`, `/space/${slug}/orders`)}
+        {kpi(getText('Vendido hoy', 'Sold today'), fmt.format(salesToday), counter
+            ? `${fmt.format(salesOnline)} ${getText('internet', 'online')} · ${fmt.format(salesCounter)} ${getText('mostrador', 'in-store')} · ${soldToday.length + ordersCounter} ${getText('ventas', 'sales')}`
+            : `${soldToday.length} ${getText(soldToday.length === 1 ? 'pedido' : 'pedidos', soldToday.length === 1 ? 'order' : 'orders')}`, `/space/${slug}/orders`)}
         {kpi(getText('Por despachar', 'To ship'), String(toShip.length), getText('envíos pagados sin rastreo', 'paid shipments without tracking'), `/space/${slug}/orders`)}
         {kpi(getText('Por atender', 'To handle'), String(toAttend.length), getText('recoger en tienda', 'store pickup'), `/space/${slug}/orders`)}
         {kpi(getText('Sin pagar', 'Unpaid'), String(unpaid.length), unpaid.length > 0 ? fmt.format(unpaidTotal) : undefined, `/space/${slug}/orders`)}

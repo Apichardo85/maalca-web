@@ -27,6 +27,7 @@ interface Report {
   byTender: { label: string; total: number; count: number }[];
   topItems: { name: string; qty: number; total: number }[];
   truncated: boolean;
+  unlisted?: { qty: number; total: number };
 }
 
 type Range = 1 | 7 | 30 | 90;
@@ -366,6 +367,23 @@ export function IntegracionesContent({ slug, currency }: { slug: string; currenc
                     <p className="mt-3 text-xs text-text-muted">
                       {getText(`Estos concentran el ${stats.topShare}% de lo vendido.`, `These account for ${stats.topShare}% of sales.`)}
                     </p>
+                  )}
+                  {report.unlisted && report.unlisted.qty > 0 && (
+                    <div className="mt-3 rounded-xl border border-border bg-surface-elevated p-3 text-xs">
+                      <p className="flex justify-between gap-3 font-semibold text-text-primary">
+                        <span>{getText('Ventas sin producto', 'Sales without a product')}</span>
+                        <span>
+                          {report.unlisted.qty} · {fmt.format(report.unlisted.total)}
+                          {report.gross > 0 && ` (${Math.round((report.unlisted.total / report.gross) * 100)}%)`}
+                        </span>
+                      </p>
+                      <p className="mt-1 text-text-muted">
+                        {getText(
+                          'Cobros por artículo genérico (ej. "GENERAL ITEMS"). No se pueden rankear ni descuentan inventario; para verlos por producto hay que cobrarlos escaneando el artículo del catálogo.',
+                          'Charges rung up as a generic item (e.g. "GENERAL ITEMS"). They cannot be ranked and do not reduce stock; scan the catalog item at checkout to see them by product.'
+                        )}
+                      </p>
+                    </div>
                   )}
                 </section>
               </div>
