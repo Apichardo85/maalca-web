@@ -21,7 +21,8 @@ const BUSINESS_TYPES = [
   // la creacion del espacio aqui.
   { value: 'community', labelKey: 'onboarding.type.community.label', emoji: '🤝', examplesKey: 'onboarding.type.community.examples', comingSoon: false },
   { value: 'dealer', labelKey: 'onboarding.type.dealer.label', emoji: '🚗', examplesKey: 'onboarding.type.dealer.examples', comingSoon: false },
-  { value: 'creator', labelKey: 'onboarding.type.creator.label', emoji: '🎨', examplesKey: null, comingSoon: true },
+  // Autor: plantilla Creator (Creator.tsx) y módulo Obras ya existen — abierto al onboarding.
+  { value: 'creator', labelKey: 'onboarding.type.creator.label', emoji: '✒️', examplesKey: null, comingSoon: false },
   { value: 'publisher', labelKey: 'onboarding.type.publisher.label', emoji: '📚', examplesKey: null, comingSoon: true },
   { value: 'professional', labelKey: 'onboarding.type.professional.label', emoji: '💼', examplesKey: null, comingSoon: true },
 ] as const;

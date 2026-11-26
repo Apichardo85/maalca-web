@@ -35,6 +35,27 @@ export function sanitizeRichText(html: string | null | undefined): string {
 }
 
 /**
+ * Igual que sanitizeRichText pero para texto literario (capítulos del lector del autor): suma citas,
+ * separadores de escena y cursivas/negritas de pegados de Word (i/b). Solo etiquetas, sin atributos nuevos. Mismo criterio: nada de scripts, iframes ni estilos libres.
+ */
+export function sanitizeLiteraryHtml(html: string | null | undefined): string {
+  if (!html) return '';
+  return sanitizeHtmlLib(html, {
+    allowedTags: ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'a', 'blockquote', 'hr', 'sup', 'sub'],
+    allowedAttributes: {
+      a: ['href', 'target', 'rel'],
+      '*': ['style'],
+    },
+    allowedStyles: {
+      '*': {
+        'text-align': [/^left$|^right$|^center$|^justify$/],
+      },
+    },
+    allowedSchemes: ['http', 'https', 'mailto'],
+  });
+}
+
+/**
  * Texto plano sin etiquetas — para <meta description>, og:description, y cualquier otro
  * lugar donde el HTML del RichTextEditor se vería como texto crudo ("<p>Somos...</p>")
  * en vez de renderizarse. No usar esto para el cuerpo visible de la página pública.

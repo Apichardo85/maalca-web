@@ -19,6 +19,8 @@ const TRIAL_BUSINESS_TYPES = [
   // (OnboardingForm.tsx) todavía no la ofrece a clientes reales.
   { value: 'community', label: 'Comunidad' },
   { value: 'dealer', label: 'Autoventa' },
+  // Autor (CiriWhispers y similares): plantilla Creator + módulo Obras.
+  { value: 'creator', label: 'Autor' },
 ] as const;
 
 function CreateTrialModal({

@@ -6,8 +6,9 @@ import type { PlanCapabilities } from '@/lib/capabilities';
 import type { RetailAttributes } from '@/lib/commerce';
 import type { PublicCanal } from '@/lib/public-contact';
 import type { MealPeriod, WeekDay, MenuItemFlags } from '@/lib/types';
+import type { PublicWorkSummary } from '@/lib/creator';
 
-export type BusinessType = 'restaurant' | 'barber' | 'service' | 'retail' | 'community' | 'dealer';
+export type BusinessType = 'restaurant' | 'barber' | 'service' | 'retail' | 'community' | 'dealer' | 'creator';
 
 export interface Category {
   id: string;
@@ -212,6 +213,9 @@ export interface PublicTemplateProps {
     /** Solo Dealer -- inventario público + config (moneda/millaje/reservados). El servidor ya
      *  quitó vendidos, ocultos y (si el dueño lo decidió) reservados. null/undefined = sin datos. */
     dealer?: { baseCurrency: 'USD' | 'DOP'; settings: DealerPublicSettings; vehicles: PublicVehicle[] } | null;
+    /** Solo Creator (autor) -- obras publicadas (tabla Works, ver WorkService.cs). El servidor ya quitó los
+     *  borradores y calculó qué se puede leer ahora. null/[] = sin obras o el fetch falló. */
+    works?: PublicWorkSummary[] | null;
     programs?: Array<{
       id: string;
       title: string;
@@ -281,6 +285,7 @@ export const TEMPLATES: Record<BusinessType, ComponentType<PublicTemplateProps>>
   retail: dynamic(() => import('@/components/public/templates/RetailLayouts').then((m) => m.RetailLayoutsTemplate)),
   community: dynamic(() => import('@/components/public/templates/Community').then((m) => m.CommunityTemplate)),
   dealer: dynamic(() => import('@/components/public/templates/Dealer').then((m) => m.DealerTemplate)),
+  creator: dynamic(() => import('@/components/public/templates/Creator').then((m) => m.CreatorTemplate)),
 };
 
 export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
@@ -290,6 +295,7 @@ export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
   retail: 'Tienda',
   community: 'Comunidad',
   dealer: 'Autoventa',
+  creator: 'Autor',
 };
 
 /** Igual que BUSINESS_TYPE_LABELS, en inglés: el panel de un negocio con idioma inglés mostraba
@@ -301,6 +307,7 @@ export const BUSINESS_TYPE_LABELS_EN: Record<BusinessType, string> = {
   retail: 'Store',
   community: 'Community',
   dealer: 'Car dealer',
+  creator: 'Author',
 };
 
 /** Same emoji as the onboarding business-type selector (BUSINESS_TYPES in
@@ -313,6 +320,7 @@ export const BUSINESS_TYPE_ICONS: Record<BusinessType, string> = {
   retail: '🛍️',
   community: '🤝',
   dealer: '🚗',
+  creator: '✒️',
 };
 
 /** Label for the /space nav item that leads to the catalog editor — the generic
@@ -324,6 +332,7 @@ export const CATALOG_NAV_LABELS: Record<BusinessType, { es: string; en: string }
   retail: { es: 'Catálogo', en: 'Catalog' },
   community: { es: 'Programas', en: 'Programs' },
   dealer: { es: 'Vehículos', en: 'Vehicles' },
+  creator: { es: 'Libros y servicios', en: 'Books & services' },
 };
 
 // RESUELTO (backlog 2026-09-26): "Programas" para Community ya no es el catalogo

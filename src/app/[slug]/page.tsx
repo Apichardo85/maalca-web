@@ -10,6 +10,7 @@ import { stripRichTextToPlain } from '@/lib/sanitize-html';
 import { RestaurantJsonLd } from '@/components/seo/JsonLd';
 import { alignCatalogToTemplates, normalizeBaseLanguage } from '@/lib/catalog-language';
 import { tidyItemNames } from '@/lib/display-name';
+import { getPublicWorks } from '@/lib/creator';
 
 interface PublicActivity {
   id: string;
@@ -260,6 +261,11 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
     ? await getCausas(slug)
     : [];
 
+  // Creator (autor): obras desde su propia tabla (Works). [] = sin obras o falló; la página no se cae.
+  const works = affiliate.businessType.toLowerCase() === 'creator'
+    ? (await getPublicWorks(slug)) ?? []
+    : null;
+
   const donationsSummary = affiliate.businessType.toLowerCase() === 'community'
     ? await getDonationsSummary(slug)
     : null;
@@ -333,6 +339,7 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
           activities,
           programs,
           dealer,
+          works,
           spanishFlag: affiliate.spanishFlag ?? null,
           ordersEnabled: affiliate.ordersEnabled !== false,
           store_layout: affiliate.storeLayout === 'marketplace' ? 'marketplace' : 'boutique',

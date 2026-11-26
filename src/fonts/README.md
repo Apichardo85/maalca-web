@@ -12,3 +12,8 @@ Se sirven con `next/font/local` para que el build no dependa de Google Fonts.
 | fraunces-latin-wght-normal.woff2 | Fraunces (variable) | 100–900 |
 | ibm-plex-mono-latin-500-normal.woff2 | IBM Plex Mono | 500 |
 | great-vibes-latin-400-normal.woff2 | Great Vibes | 400 |
+| bodoni-moda-latin-wght-normal.woff2 / -italic | Bodoni Moda (variable) | 400–900 |
+| source-serif-4-latin-wght-normal.woff2 / -italic | Source Serif 4 (variable, 5.3.1) | 200–900 |
+| courier-prime-latin-400-normal.woff2 | Courier Prime | 400 |
+
+Bodoni Moda, Source Serif 4 y Courier Prime: plantilla de autor (Creator, dirección "La careta").
