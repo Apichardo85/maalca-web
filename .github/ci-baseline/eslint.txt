@@ -3,8 +3,8 @@
 1 scripts/replace-framer-motion.ts|prefer-const
 1 scripts/update-i18n-arch.js|@typescript-eslint/no-require-imports
 1 scripts/update-i18n.js|@typescript-eslint/no-require-imports
-4 src/app/login/page.tsx|@next/next/no-html-link-for-pages
-4 src/app/pegote/fila/page.tsx|@next/next/no-html-link-for-pages
-4 src/components/ciriwhispers/StoryReader.tsx|@next/next/no-html-link-for-pages
-4 src/components/space/SupportModeBanner.tsx|@next/next/no-html-link-for-pages
+6 src/app/login/page.tsx|@next/next/no-html-link-for-pages
+6 src/app/pegote/fila/page.tsx|@next/next/no-html-link-for-pages
+6 src/components/ciriwhispers/StoryReader.tsx|@next/next/no-html-link-for-pages
+6 src/components/space/SupportModeBanner.tsx|@next/next/no-html-link-for-pages
 2 src/lib/brand-palette.ts|prefer-const
