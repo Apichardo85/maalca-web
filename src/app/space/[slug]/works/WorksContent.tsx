@@ -12,6 +12,7 @@ import { Toast } from '@/components/ui/Toast';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import { sanitizeLiteraryHtml } from '@/lib/sanitize-html';
 import { ManuscriptImport, type ImportedChapter } from './ManuscriptImport';
+import { TranslationPanel } from './TranslationPanel';
 import {
   READING_ACCESS_LABELS, WORK_KIND_LABELS, readingMinutes,
   type ReadingAccess, type Work, type WorkBuyLink, type WorkChapter, type WorkChapterRef, type WorkDetail, type WorkKind,
@@ -516,6 +517,18 @@ export function WorksContent({ slug, initialWorks }: Props) {
         <p className="mt-4 text-sm text-gray-500 dark:text-neutral-400">
           {getText('Guarda la obra para empezar a agregar capítulos.', 'Save the work to start adding chapters.')}
         </p>
+      )}
+
+      {/* Traducción: solo con capítulos (lo que se traduce es el texto, capítulo por capítulo). */}
+      {editing.id && chapters.length > 0 && (
+        <TranslationPanel
+          base={`${base}/${editing.id}`}
+          lang="en"
+          chaptersKey={chapters.map((c) => `${c.id}:${c.wordCount}`).join(',')}
+          getText={getText}
+          toastError={toast.error}
+          toastSuccess={toast.success}
+        />
       )}
     </div>
   );

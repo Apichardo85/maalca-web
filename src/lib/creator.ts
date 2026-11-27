@@ -98,6 +98,64 @@ export interface Work {
   revision?: number;
 }
 
+// ── Traducción de obras (panel del autor; ver WorkTranslationService en maalca-api) ──────────────
+
+/** queued → generating → draft (borrador del modelo) → published (el autor la publicó) | failed. */
+export type TranslationStatus = 'queued' | 'generating' | 'draft' | 'published' | 'failed';
+
+export interface WorkTranslationSettings {
+  language: string;
+  brief?: string | null;
+  glossary?: string | null;
+  credit?: string | null;
+}
+
+export interface WorkChapterTranslationRef {
+  chapterId: string;
+  number: number;
+  sourceTitle: string;
+  sourceWordCount: number;
+  /** null = nunca se pidió traducción. */
+  status?: TranslationStatus | null;
+  title?: string | null;
+  wordCount: number;
+  /** El original cambió después de traducirlo o revisarlo. */
+  stale: boolean;
+  reviewed: boolean;
+  error?: string | null;
+  costUsd: number;
+  updatedAt?: string | null;
+}
+
+export interface WorkTranslationOverview {
+  workId: string;
+  workTitle: string;
+  settings: WorkTranslationSettings;
+  chapters: WorkChapterTranslationRef[];
+  modelId?: string | null;
+  /** Hay modelo activo y llave del proveedor; sin eso la cola no avanza. */
+  ready: boolean;
+  totalCostUsd: number;
+}
+
+export interface WorkChapterTranslationDetail {
+  chapterId: string;
+  number: number;
+  sourceTitle: string;
+  sourceHtml?: string | null;
+  status?: TranslationStatus | null;
+  title?: string | null;
+  contentHtml?: string | null;
+  stale: boolean;
+  reviewed: boolean;
+  error?: string | null;
+  modelId?: string | null;
+  costUsd: number;
+  generatedAt?: string | null;
+  reviewedAt?: string | null;
+  publishedAt?: string | null;
+}
+
 export interface WorkChapterRef {
   id: string;
   number: number;
