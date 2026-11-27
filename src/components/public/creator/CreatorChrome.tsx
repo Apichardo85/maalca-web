@@ -21,8 +21,11 @@ interface ChromeAuthor {
   canales?: PublicCanal[];
 }
 
-/** showLibrary: la portada lo apaga si no hay nada para leer (no hay sección #biblioteca a la que saltar). */
-export function CreatorNav({ author, lang, showLibrary = true }: { author: ChromeAuthor; lang: 'es' | 'en'; showLibrary?: boolean }) {
+/**
+ * showLibrary: la portada lo apaga si no hay nada para leer (no hay sección #biblioteca a la que saltar).
+ * showReaders: la portada lo apaga si el autor no tiene cartas ni membresía (en /lectores no habría nada que hacer).
+ */
+export function CreatorNav({ author, lang, showLibrary = true, showReaders = true }: { author: ChromeAuthor; lang: 'es' | 'en'; showLibrary?: boolean; showReaders?: boolean }) {
   const t = (es: string, en: string) => (lang === 'es' ? es : en);
   return (
     <header style={{ borderBottom: `1px solid ${CW.line}` }}>
@@ -45,7 +48,9 @@ export function CreatorNav({ author, lang, showLibrary = true }: { author: Chrom
           {showLibrary && (
             <Link href={authorHref(author.slug, '#biblioteca')} style={{ color: CW.textSoft, textDecoration: 'none' }}>{t('biblioteca', 'library')}</Link>
           )}
-          <Link href={authorHref(author.slug, '/lectores')} style={{ color: CW.textSoft, textDecoration: 'none' }}>{t('lectores', 'readers')}</Link>
+          {showReaders && (
+            <Link href={authorHref(author.slug, '/lectores')} style={{ color: CW.textSoft, textDecoration: 'none' }}>{t('lectores', 'readers')}</Link>
+          )}
           {author.contactEmail && (
             <a href={`mailto:${author.contactEmail}`} style={{ color: CW.textSoft, textDecoration: 'none' }}>{t('contacto', 'contact')}</a>
           )}

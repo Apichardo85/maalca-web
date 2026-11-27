@@ -6,7 +6,7 @@
 // catálogo genérico; el catálogo (`items`) se muestra aparte como servicios/productos del autor (talleres,
 // corrección, ediciones firmadas). Todo el texto literario sale de lo que el autor escribió en su espacio
 // (Identidad y Obras): la plantilla no inventa frases.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
@@ -59,6 +59,19 @@ export function CreatorTemplate({ business, items, capabilities }: PublicTemplat
   const price = club?.membershipAvailable && club.monthlyPrice ? formatMoney(club.monthlyPrice, club.currency, lang) : null;
   const benefits = lang === 'en' && club?.benefitsEn ? club.benefitsEn : club?.benefits;
   const pitch = lang === 'en' && club?.lettersPitchEn ? club.lettersPitchEn : club?.lettersPitch;
+  const hasClub = Boolean(club?.lettersEnabled || price);
+
+  // La portada se cachea igual para todos; si el lector ya entró, se sabe aquí (cookie httpOnly vía /me)
+  // para que "Hacerme miembro" vaya directo al pago sin volver a pedir el correo.
+  const [signedIn, setSignedIn] = useState(false);
+  useEffect(() => {
+    if (!price) return;
+    let alive = true;
+    fetch(`/api/readers/${encodeURIComponent(business.slug)}/me`)
+      .then((r) => { if (alive) setSignedIn(r.ok); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [price, business.slug]);
 
   const author = {
     slug: business.slug,
@@ -70,7 +83,7 @@ export function CreatorTemplate({ business, items, capabilities }: PublicTemplat
 
   return (
     <CreatorRoot accent={accent}>
-      <CreatorNav author={author} lang={lang} showLibrary={library.length > 0} />
+      <CreatorNav author={author} lang={lang} showLibrary={library.length > 0} showReaders={hasClub} />
 
       {/* ── Portada ─────────────────────────────────────────────── */}
       <section style={{ ...wrap, ...twoCols, gap: 72, alignItems: 'center', paddingTop: 96, paddingBottom: 120 }}>
@@ -216,10 +229,12 @@ export function CreatorTemplate({ business, items, capabilities }: PublicTemplat
             )}
           </div>
           <div style={{ border: `2px solid ${accent}`, padding: 32, display: 'flex', flexDirection: 'column', gap: 16, background: CW.paper, color: CW.ink }}>
-            <MembershipButton slug={business.slug} lang={lang} accent={accent} signedIn={false} />
-            <Link href={authorHref(business.slug, '/lectores')} style={{ fontFamily: FONT.mono, fontSize: 14, color: CW.paperFaint }}>
-              {t('¿ya eres miembro? entra', 'already a member? sign in')}
-            </Link>
+            <MembershipButton slug={business.slug} lang={lang} accent={accent} signedIn={signedIn} />
+            {!signedIn && (
+              <Link href={authorHref(business.slug, '/lectores')} style={{ fontFamily: FONT.mono, fontSize: 14, color: CW.paperFaint }}>
+                {t('¿ya eres miembro? entra', 'already a member? sign in')}
+              </Link>
+            )}
           </div>
         </section>
       )}

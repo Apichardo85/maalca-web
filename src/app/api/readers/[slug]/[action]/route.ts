@@ -41,6 +41,8 @@ export async function POST(req: NextRequest, { params }: Ctx) {
     case 'subscribe':
       return relay(await clubPost(slug, '', {
         email: body.email, name: body.name ?? null, language: body.language ?? null, workSlug: body.workSlug ?? null, source: body.source ?? null,
+        // Campo trampa: viaja tal cual; el API descarta el alta si trae texto.
+        website: typeof body.website === 'string' ? body.website : null,
       }));
     case 'login':
       return relay(await clubPost(slug, '/login', { email: body.email, language: body.language ?? null }));

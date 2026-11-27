@@ -56,6 +56,7 @@ function buttonStyle(accent: string): CSSProperties {
 /** Correo para recibir las cartas (doble opt-in: llega un correo para confirmar). */
 export function SubscribeForm({ slug, lang, accent, tone = 'paper', workSlug, cta }: FormTone & { slug: string; lang: Lang; workSlug?: string; cta?: string }) {
   const [email, setEmail] = useState('');
+  const [trap, setTrap] = useState('');
   const [state, setState] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
   const [message, setMessage] = useState('');
   const id = `cw-sub-${workSlug ?? 'page'}`;
@@ -64,7 +65,7 @@ export function SubscribeForm({ slug, lang, accent, tone = 'paper', workSlug, ct
     e.preventDefault();
     if (!email.trim()) return;
     setState('sending');
-    const r = await post(slug, 'subscribe', { email: email.trim(), language: lang, workSlug: workSlug ?? null });
+    const r = await post(slug, 'subscribe', { email: email.trim(), language: lang, workSlug: workSlug ?? null, website: trap });
     if (r.ok) {
       setState('done');
       setMessage(t(lang, 'Listo. Revisa tu correo y confirma con el enlace que te llegó.', 'Done. Check your email and confirm with the link we sent.'));
@@ -81,9 +82,23 @@ export function SubscribeForm({ slug, lang, accent, tone = 'paper', workSlug, ct
     <form onSubmit={submit} style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
       <label htmlFor={id} style={visuallyHidden}>{t(lang, 'Correo electrónico', 'Email address')}</label>
       <input id={id} type="email" required autoComplete="email" placeholder={t(lang, 'tu@correo.com', 'you@email.com')} value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle(tone)} />
+      {/* Campo trampa: invisible para personas y lectores de pantalla; los bots lo llenan y el API descarta el alta. */}
+      <input
+        type="text"
+        name="website"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        value={trap}
+        onChange={(e) => setTrap(e.target.value)}
+        style={{ position: 'absolute', left: '-10000px', width: 1, height: 1, opacity: 0 }}
+      />
       <button type="submit" disabled={state === 'sending'} style={{ ...buttonStyle(accent), opacity: state === 'sending' ? 0.6 : 1 }}>
         {state === 'sending' ? t(lang, 'Enviando…', 'Sending…') : cta ?? t(lang, 'Quiero las cartas', 'Send me the letters')}
       </button>
+      <p style={{ flexBasis: '100%', margin: 0, fontSize: 14, color: tone === 'paper' ? CW.paperFaint : CW.muted, textAlign: 'center' }}>
+        {t(lang, 'Tu correo es solo para las cartas. Te das de baja cuando quieras.', 'Your email is only for the letters. Unsubscribe anytime.')}
+      </p>
       {state === 'error' && <p role="alert" style={{ flexBasis: '100%', margin: 0, fontSize: 15, color: CW.locked }}>{message}</p>}
     </form>
   );
