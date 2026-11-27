@@ -21,7 +21,8 @@ interface ChromeAuthor {
   canales?: PublicCanal[];
 }
 
-export function CreatorNav({ author, lang }: { author: ChromeAuthor; lang: 'es' | 'en' }) {
+/** showLibrary: la portada lo apaga si no hay nada para leer (no hay sección #biblioteca a la que saltar). */
+export function CreatorNav({ author, lang, showLibrary = true }: { author: ChromeAuthor; lang: 'es' | 'en'; showLibrary?: boolean }) {
   const t = (es: string, en: string) => (lang === 'es' ? es : en);
   return (
     <header style={{ borderBottom: `1px solid ${CW.line}` }}>
@@ -41,7 +42,9 @@ export function CreatorNav({ author, lang }: { author: ChromeAuthor; lang: 'es' 
         </Link>
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 24, fontFamily: FONT.mono, fontSize: 15 }}>
           <Link href={authorHref(author.slug, '#obras')} style={{ color: CW.textSoft, textDecoration: 'none' }}>{t('obras', 'works')}</Link>
-          <Link href={authorHref(author.slug, '#biblioteca')} style={{ color: CW.textSoft, textDecoration: 'none' }}>{t('biblioteca', 'library')}</Link>
+          {showLibrary && (
+            <Link href={authorHref(author.slug, '#biblioteca')} style={{ color: CW.textSoft, textDecoration: 'none' }}>{t('biblioteca', 'library')}</Link>
+          )}
           <Link href={authorHref(author.slug, '/lectores')} style={{ color: CW.textSoft, textDecoration: 'none' }}>{t('lectores', 'readers')}</Link>
           {author.contactEmail && (
             <a href={`mailto:${author.contactEmail}`} style={{ color: CW.textSoft, textDecoration: 'none' }}>{t('contacto', 'contact')}</a>

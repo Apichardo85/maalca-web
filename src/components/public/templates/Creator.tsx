@@ -70,7 +70,7 @@ export function CreatorTemplate({ business, items, capabilities }: PublicTemplat
 
   return (
     <CreatorRoot accent={accent}>
-      <CreatorNav author={author} lang={lang} />
+      <CreatorNav author={author} lang={lang} showLibrary={library.length > 0} />
 
       {/* ── Portada ─────────────────────────────────────────────── */}
       <section style={{ ...wrap, ...twoCols, gap: 72, alignItems: 'center', paddingTop: 96, paddingBottom: 120 }}>

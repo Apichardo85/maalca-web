@@ -82,6 +82,8 @@ export function renderBoard(slug: string, data: BoardCatalogResponse, screenId?:
       ...item,
       image_url: item.image_url ?? (item as typeof item & { imageUrl?: string | null }).imageUrl ?? null,
       video_url: (item as typeof item & { videoUrl?: string | null }).videoUrl ?? null,
+      // El API manda isDemo (camelCase); las pantallas filtran por is_demo.
+      is_demo: item.is_demo ?? (item as typeof item & { isDemo?: boolean }).isDemo ?? false,
     })),
     normalizeBaseLanguage(data.affiliate.language),
   );

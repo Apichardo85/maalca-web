@@ -38,6 +38,7 @@ interface PublicCatalogResponse {
     barcode?: string | null;
     status?: string | null;
     is_demo?: boolean;
+    isDemo?: boolean; // así llega del API (camelCase); is_demo queda por compatibilidad
     // Receta (Restaurante) — solo presente cuando el plato tiene ingredientes ligados en
     // Inventario (ver PublicCatalogService.GetCatalogAsync). Nombres solamente, sin
     // cantidad/costo — eso es información interna del negocio, no del cliente.
@@ -99,7 +100,7 @@ export default async function KioskPage({ params }: PageProps) {
   if (!['restaurant', 'retail'].includes(businessType)) notFound();
 
   const items: KioskItem[] = data.items
-    .filter((i) => i.status !== 'Inactive' && !i.is_demo && (i.price ?? 0) > 0)
+    .filter((i) => i.status !== 'Inactive' && !(i.is_demo ?? i.isDemo) && (i.price ?? 0) > 0)
     .map((i) => ({
       id: i.id,
       name: i.name,

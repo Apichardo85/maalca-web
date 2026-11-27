@@ -231,6 +231,8 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
     items.map((item) => ({
       ...item,
       image_url: item.image_url ?? (item as typeof item & { imageUrl?: string | null }).imageUrl ?? null,
+      // El API manda isDemo (camelCase); las plantillas que esconden los de ejemplo (Creator) leen is_demo.
+      is_demo: item.is_demo ?? (item as typeof item & { isDemo?: boolean }).isDemo ?? false,
     })),
     normalizeBaseLanguage(affiliate.language),
   );
