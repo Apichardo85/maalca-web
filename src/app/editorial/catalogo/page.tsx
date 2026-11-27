@@ -1,11 +1,12 @@
 "use client";
 import Link from "next/link";
-import { books } from "@/data/ciriwhispers/books";
+import { CIRIWHISPERS_SLUG, useAuthorWorks } from "@/hooks/useAuthorWorks";
 import { EDITORIAL_ASSISTED_PRICE_DISPLAY } from "@/config/editorial-pricing";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
 
 export default function CatalogoPage() {
   const { t } = useTranslation();
+  const works = useAuthorWorks(CIRIWHISPERS_SLUG);
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -24,16 +25,16 @@ export default function CatalogoPage() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-            {books.map((book) => (
+            {works.map((book) => (
               <Link
                 key={book.id}
-                href={`/ciriwhispers/obras/${book.id}`}
+                href={`/${CIRIWHISPERS_SLUG}/obras/${book.slug}`}
                 className="group"
               >
                 <div className="rounded-xl overflow-hidden border border-stone-200 dark:border-stone-700 hover:border-amber-300 dark:hover:border-amber-700 transition-all duration-300 hover:shadow-lg bg-white dark:bg-stone-900">
                   <div className="aspect-[2/3] overflow-hidden bg-stone-100 dark:bg-stone-800">
                     <img
-                      src={book.cover}
+                      src={book.coverUrl || "/images/projects/ciriwhispers.png"}
                       alt={book.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       onError={(e) => {

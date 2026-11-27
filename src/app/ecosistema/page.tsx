@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslation } from "@/hooks/useSimpleLanguage";
 import { getActiveEcosystemProjects } from "@/data/ecosystem-projects";
-import { books } from "@/data/ciriwhispers/books";
+import { CIRIWHISPERS_SLUG, useAuthorWorks } from "@/hooks/useAuthorWorks";
+import { readableLabel } from "@/lib/creator";
 export default function EcosistemaPage() {
   const router = useRouter();
   const { t } = useTranslation();
+  const works = useAuthorWorks(CIRIWHISPERS_SLUG);
   // Generate translated projects
   const allTranslatedProjects = [
     {
@@ -247,17 +249,17 @@ export default function EcosistemaPage() {
             </p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            {books.map((book, index) => (
+            {works.map((book, index) => (
               <div
                 key={book.id}
                 className="group animate-fade-in-up"
                 style={{ animationDelay: `${index * 0.08}s` }}
               >
-                <Link href={`/ciriwhispers/obras/${book.id}`}>
+                <Link href={`/${CIRIWHISPERS_SLUG}/obras/${book.slug}`}>
                   <div className="bg-surface-elevated rounded-xl overflow-hidden border border-border hover:border-brand-primary/40 transition-all duration-300 hover:shadow-lg hover:shadow-brand-primary/10">
                     <div className="aspect-[2/3] overflow-hidden bg-surface">
                       <img
-                        src={book.cover}
+                        src={book.coverUrl || '/images/projects/ciriwhispers.png'}
                         alt={book.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         onError={(e) => {
@@ -270,14 +272,8 @@ export default function EcosistemaPage() {
                         {book.title}
                       </h4>
                       <p className="text-xs text-text-muted mb-2">{book.year}</p>
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                        book.statusKey.includes('available')
-                          ? 'bg-green-900/40 text-green-400 border border-green-700/30'
-                          : book.statusKey.includes('inProgress')
-                            ? 'bg-blue-900/40 text-blue-400 border border-blue-700/30'
-                            : 'bg-surface text-text-muted border border-border'
-                      }`}>
-                        {book.statusKey.includes('available') ? 'Disponible' : book.statusKey.includes('inProgress') ? 'En proceso' : 'En desarrollo'}
+                      <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-surface text-text-muted border border-border">
+                        {readableLabel(book, 'es')}
                       </span>
                     </div>
                   </div>
@@ -286,7 +282,7 @@ export default function EcosistemaPage() {
             ))}
           </div>
           <div className="text-center mt-10">
-            <Link href="/ciriwhispers/obras">
+            <Link href={`/${CIRIWHISPERS_SLUG}#obras`}>
               <Button
                 variant="outline"
                 className="border-brand-primary/30 text-brand-primary hover:bg-brand-primary hover:text-text-primary transition-all"

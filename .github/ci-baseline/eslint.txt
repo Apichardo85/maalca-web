@@ -5,6 +5,5 @@
 1 scripts/update-i18n.js|@typescript-eslint/no-require-imports
 6 src/app/login/page.tsx|@next/next/no-html-link-for-pages
 6 src/app/pegote/fila/page.tsx|@next/next/no-html-link-for-pages
-6 src/components/ciriwhispers/StoryReader.tsx|@next/next/no-html-link-for-pages
 6 src/components/space/SupportModeBanner.tsx|@next/next/no-html-link-for-pages
 2 src/lib/brand-palette.ts|prefer-const

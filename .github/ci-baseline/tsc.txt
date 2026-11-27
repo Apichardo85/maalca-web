@@ -1,5 +1,4 @@
 1 src/app/api/levantamiento/[token]/route.ts|TS2305
-3 src/app/ciriwhispers/page.tsx|TS2554
 1 src/app/dr-pichardo/page.tsx|TS2322
 1 src/app/dr-pichardo/servicios/page.tsx|TS2322
 2 src/app/masa-tina/page.tsx|TS2339

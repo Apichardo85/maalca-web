@@ -25,7 +25,7 @@ export const RESERVED = new Set([
   'dashboard', 'admin', 'api', 'auth', 'app', 'www',
   'about', 'contact', 'contacto', 'pricing', 'terms', 'privacy', 'legal',
   'help', 'blog', 'docs', '_next', 'static', 'public', 'assets', 'images',
-  'catering', 'editorial', 'properties', 'ciriwhispers', 'pegote',
+  'catering', 'editorial', 'properties', 'pegote',
   'settings', 'catalog', 'categories', 'upgrade',
   'masa-tina', 'dr-pichardo', 'hablando-mierda', 'casos-estudio', 'ecosistema',
   'affiliates', 'tarjeta', 'sync-test',

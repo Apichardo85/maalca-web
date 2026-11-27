@@ -52,7 +52,7 @@ const RESERVED = new Set([
   'about', 'contact', 'contacto', 'pricing', 'terms', 'privacy', 'legal',
   'help', 'blog', 'docs', '_next', 'static', 'public', 'assets', 'images',
   'favicon.ico', 'robots.txt', 'sitemap.xml',
-  'catering', 'editorial', 'properties', 'ciriwhispers', 'pegote',
+  'catering', 'editorial', 'properties', 'pegote',
   'settings', 'catalog', 'categories', 'upgrade',
   'masa-tina',
   'dr-pichardo', 'hablando-mierda', 'casos-estudio', 'ecosistema',
