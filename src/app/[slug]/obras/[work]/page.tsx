@@ -4,7 +4,7 @@
 // ?lang=en: índice con lo traducido y publicado (cada idioma con su URL, enlazadas con hreflang).
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { getCreatorAuthor, getPublicWork, getReaderClub, langQuery, readingLang } from '@/lib/creator';
+import { getCreatorAuthor, getPublicWork, getReaderClub, langQuery, readingLang, workCover } from '@/lib/creator';
 import { readerToken } from '@/lib/reader-session';
 import { stripRichTextToPlain } from '@/lib/sanitize-html';
 import { WorkView } from '@/components/public/creator/WorkView';
@@ -37,9 +37,9 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
       siteName: author.name,
       title,
       description,
-      ...(data.work.coverUrl ? { images: [{ url: data.work.coverUrl }] } : {}),
+      ...(workCover(data.work, lang) ? { images: [{ url: workCover(data.work, lang)! }] } : {}),
     },
-    twitter: { card: data.work.coverUrl ? 'summary_large_image' : 'summary', title, description },
+    twitter: { card: workCover(data.work, lang) ? 'summary_large_image' : 'summary', title, description },
   };
 }
 

@@ -59,7 +59,7 @@ function localInputToIso(v: string): string | null {
 const emptyWork = {
   title: '', titleEn: '', subtitle: '', slug: '',
   kind: 'novel' as WorkKind, status: 'draft' as Work['status'],
-  synopsis: '', synopsisEn: '', coverUrl: '',
+  synopsis: '', synopsisEn: '', coverUrl: '', coverUrlEn: '',
   year: '', isbn: '', imprint: '', contentNotice: '',
   buyLinks: [] as WorkBuyLink[],
   readingAccess: 'sample' as ReadingAccess, freeFrom: '', freeUntil: '',
@@ -71,7 +71,7 @@ function toForm(w: Work): WorkForm {
   return {
     title: w.title, titleEn: w.titleEn ?? '', subtitle: w.subtitle ?? '', slug: w.slug,
     kind: w.kind, status: w.status,
-    synopsis: w.synopsis ?? '', synopsisEn: w.synopsisEn ?? '', coverUrl: w.coverUrl ?? '',
+    synopsis: w.synopsis ?? '', synopsisEn: w.synopsisEn ?? '', coverUrl: w.coverUrl ?? '', coverUrlEn: w.coverUrlEn ?? '',
     year: w.year != null ? String(w.year) : '', isbn: w.isbn ?? '', imprint: w.imprint ?? '', contentNotice: w.contentNotice ?? '',
     buyLinks: w.buyLinks ?? [],
     readingAccess: w.readingAccess, freeFrom: isoToLocalInput(w.freeFrom), freeUntil: isoToLocalInput(w.freeUntil),
@@ -92,6 +92,7 @@ function toPayload(f: WorkForm, expectedRevision: number | null) {
     synopsis: f.synopsis || null,
     synopsisEn: f.synopsisEn || null,
     coverUrl: f.coverUrl.trim() || null,
+    coverUrlEn: f.coverUrlEn.trim() || null,
     year: f.year.trim() ? Number(f.year) : null,
     isbn: f.isbn.trim() || null,
     imprint: f.imprint.trim() || null,
@@ -118,7 +119,8 @@ export function WorksContent({ slug, initialWorks }: Props) {
   const [form, setForm] = useState<WorkForm>(emptyWork);
   const [chapters, setChapters] = useState<WorkChapterRef[]>([]);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  // Qué portada se está subiendo (null = ninguna).
+  const [uploading, setUploading] = useState<'coverUrl' | 'coverUrlEn' | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   // Versión de la ficha que tiene este formulario, y si el API dijo que ya cambió (409).
   const [revision, setRevision] = useState<number | null>(null);
@@ -165,11 +167,12 @@ export function WorksContent({ slug, initialWorks }: Props) {
     setWorks((prev) => (prev.some((p) => p.id === w.id) ? prev.map((p) => (p.id === w.id ? w : p)) : [...prev, w]));
   }
 
-  async function handleCover(e: ChangeEvent<HTMLInputElement>) {
+  // field: portada original o la de la edición en inglés (sin ella, en inglés se usa la original).
+  async function handleCover(e: ChangeEvent<HTMLInputElement>, field: 'coverUrl' | 'coverUrlEn' = 'coverUrl') {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
-    setUploading(true);
+    setUploading(field);
     try {
       const fd = new FormData();
       fd.append('file', file);
@@ -177,11 +180,11 @@ export function WorksContent({ slug, initialWorks }: Props) {
       const res = await fetch(`/api/space/${slug}/catalog/upload-image`, { method: 'POST', body: fd });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.url) throw new Error(data?.error ?? getText('No pudimos subir la portada.', "We couldn't upload the cover."));
-      setForm((f) => ({ ...f, coverUrl: data.url }));
+      setForm((f) => ({ ...f, [field]: data.url }));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : getText('No pudimos subir la portada.', "We couldn't upload the cover."));
     } finally {
-      setUploading(false);
+      setUploading(null);
     }
   }
 
@@ -377,22 +380,32 @@ export function WorksContent({ slug, initialWorks }: Props) {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4">
-          {form.coverUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={form.coverUrl} alt="" className="h-28 w-20 rounded object-cover" />
-          ) : (
-            <div className="flex h-28 w-20 items-center justify-center rounded bg-gray-100 text-2xl dark:bg-neutral-800">📖</div>
-          )}
-          <div className="flex flex-wrap gap-2">
-            <label className={`${secondaryBtn} cursor-pointer`}>
-              {uploading ? getText('Subiendo…', 'Uploading…') : getText('Subir portada', 'Upload cover')}
-              <input type="file" accept="image/*" className="hidden" onChange={handleCover} disabled={uploading} />
-            </label>
-            {form.coverUrl && (
-              <button type="button" className={secondaryBtn} onClick={() => set('coverUrl', '')}>{getText('Quitar', 'Remove')}</button>
-            )}
-          </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {([
+            ['coverUrl', getText('Portada', 'Cover')],
+            ['coverUrlEn', getText('Portada en inglés (opcional; sin ella se usa la otra)', 'English cover (optional; falls back to the other)')],
+          ] as const).map(([field, label]) => (
+            <div key={field}>
+              <span className={labelClass}>{label}</span>
+              <div className="flex flex-wrap items-center gap-4">
+                {form[field] ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={form[field]} alt="" className="h-28 w-20 rounded object-cover" />
+                ) : (
+                  <div className="flex h-28 w-20 items-center justify-center rounded bg-gray-100 text-2xl dark:bg-neutral-800">📖</div>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  <label className={`${secondaryBtn} cursor-pointer`}>
+                    {uploading === field ? getText('Subiendo…', 'Uploading…') : getText('Subir', 'Upload')}
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleCover(e, field)} disabled={uploading !== null} />
+                  </label>
+                  {form[field] && (
+                    <button type="button" className={secondaryBtn} onClick={() => set(field, '')}>{getText('Quitar', 'Remove')}</button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3">

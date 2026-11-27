@@ -11,7 +11,7 @@ import Link from 'next/link';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { sanitizeRichText, stripRichTextToPlain } from '@/lib/sanitize-html';
-import { formatMoney, kindLabel, readableLabel, workSynopsis, workTitle, type PublicWorkSummary } from '@/lib/creator';
+import { formatMoney, kindLabel, readableLabel, workCover, workSynopsis, workTitle, type PublicWorkSummary } from '@/lib/creator';
 import { resolveWhatsAppDigits } from '@/lib/public-contact';
 import { useCart } from '@/components/public/cart/useCart';
 import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
@@ -296,9 +296,9 @@ function FeaturedWork({ work, slug, lang, accent }: { work: PublicWorkSummary; s
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <span style={{ ...monoNote, color: accent }}>{kicker}</span>
       <div style={{ display: 'flex', gap: 28, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        {work.coverUrl && (
+        {workCover(work, lang) && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={work.coverUrl} alt="" style={{ width: 150, height: 'auto', boxShadow: '0 18px 40px rgba(20,19,24,.25)' }} />
+          <img src={workCover(work, lang)!} alt="" style={{ width: 150, height: 'auto', boxShadow: '0 18px 40px rgba(20,19,24,.25)' }} />
         )}
         <div style={{ flex: '1 1 240px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           <h2 style={{ margin: 0, fontFamily: FONT.display, fontWeight: 400, fontSize: 'clamp(40px, 5vw, 52px)', lineHeight: 1.05 }}>{workTitle(work, lang)}</h2>

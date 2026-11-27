@@ -24,6 +24,8 @@ export interface PublicWorkSummary {
   synopsis?: string | null;
   synopsisEn?: string | null;
   coverUrl?: string | null;
+  /** Portada de la edición en inglés (sin ella, en inglés se usa coverUrl). */
+  coverUrlEn?: string | null;
   year?: number | null;
   imprint?: string | null;
   featured: boolean;
@@ -105,6 +107,8 @@ export interface Work {
   synopsis?: string | null;
   synopsisEn?: string | null;
   coverUrl?: string | null;
+  /** Portada de la edición en inglés (sin ella, en inglés se usa coverUrl). */
+  coverUrlEn?: string | null;
   year?: number | null;
   isbn?: string | null;
   imprint?: string | null;
@@ -229,6 +233,11 @@ export const READING_ACCESS_LABELS: Record<ReadingAccess, { es: string; en: stri
 
 export function kindLabel(kind: WorkKind, lang: Lang): string {
   return (WORK_KIND_LABELS[kind] ?? WORK_KIND_LABELS.other)[lang];
+}
+
+/** Portada para el idioma: en inglés, la de la edición en inglés si existe; si no, la original. */
+export function workCover(w: { coverUrl?: string | null; coverUrlEn?: string | null }, lang: 'es' | 'en'): string | null {
+  return (lang === 'en' && w.coverUrlEn) || w.coverUrl || null;
 }
 
 export function workTitle(w: { title: string; titleEn?: string | null }, lang: Lang): string {

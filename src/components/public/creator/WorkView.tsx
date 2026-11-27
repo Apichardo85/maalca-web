@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { sanitizeRichText } from '@/lib/sanitize-html';
-import { formatMoney, kindLabel, langQuery, readableLabel, readingMinutes, workSynopsis, workTitle, type CreatorAuthor, type PublicReaderClub, type PublicWork, type ReadingLang } from '@/lib/creator';
+import { formatMoney, kindLabel, langQuery, workCover, readableLabel, readingMinutes, workSynopsis, workTitle, type CreatorAuthor, type PublicReaderClub, type PublicWork, type ReadingLang } from '@/lib/creator';
 import { CreatorRoot, CW, FONT, creatorAccent, monoNote } from './theme';
 import { CreatorFooter, CreatorNav, authorHref } from './CreatorChrome';
 import { MembershipButton, SubscribeForm } from './ReaderForms';
@@ -87,10 +87,10 @@ export function WorkView({ author, data, club, signedIn }: { author: CreatorAuth
               <span style={{ fontFamily: FONT.mono, fontSize: 13, color: CW.paperFaint }}>{data.translationCredit || 'Translated by the author'}</span>
             )}
           </div>
-          {work.coverUrl && (
+          {workCover(work, textLang) && (
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={work.coverUrl} alt={workTitle(work, lang)} style={{ width: '100%', maxWidth: 360, height: 'auto', boxShadow: '0 24px 60px rgba(20,19,24,.28)' }} />
+              <img src={workCover(work, textLang)!} alt={workTitle(work, textLang)} style={{ width: '100%', maxWidth: 360, height: 'auto', boxShadow: '0 24px 60px rgba(20,19,24,.28)' }} />
             </div>
           )}
         </div>
