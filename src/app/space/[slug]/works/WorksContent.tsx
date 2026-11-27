@@ -29,13 +29,13 @@ const primaryBtn = 'rounded-full bg-brand-primary px-4 py-2 text-sm font-semibol
 const secondaryBtn = 'rounded-full border border-gray-300 dark:border-neutral-700 px-4 py-2 text-sm font-medium text-gray-600 dark:text-neutral-300 disabled:opacity-40';
 const dangerBtn = 'rounded-full border border-red-300 px-4 py-2 text-sm font-medium text-red-600 dark:border-red-800 dark:text-red-400';
 
-async function api<T>(url: string, init?: RequestInit): Promise<{ ok: boolean; data: T | null; error?: string }> {
+async function api<T>(url: string, init?: RequestInit): Promise<{ ok: boolean; data: T | null; error?: string; status?: number }> {
   try {
     const res = await fetch(url, { ...init, headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) } });
-    if (res.status === 204) return { ok: true, data: null };
+    if (res.status === 204) return { ok: true, data: null, status: 204 };
     const data = await res.json().catch(() => null);
-    if (!res.ok) return { ok: false, data: null, error: data?.error?.message ?? (typeof data?.error === 'string' ? data.error : `HTTP ${res.status}`) };
-    return { ok: true, data };
+    if (!res.ok) return { ok: false, status: res.status, data: null, error: data?.error?.message ?? (typeof data?.error === 'string' ? data.error : `HTTP ${res.status}`) };
+    return { ok: true, data, status: res.status };
   } catch {
     return { ok: false, data: null, error: 'network' };
   }
@@ -78,7 +78,9 @@ function toForm(w: Work): WorkForm {
   };
 }
 
-function toPayload(f: WorkForm) {
+// expectedRevision: la versión con la que se abrió el formulario. Si otro guardó en medio, el API
+// responde 409 STALE_WORK en vez de pisar sus cambios con los datos viejos de esta pestaña.
+function toPayload(f: WorkForm, expectedRevision: number | null) {
   return {
     title: f.title.trim(),
     titleEn: f.titleEn.trim() || null,
@@ -99,6 +101,7 @@ function toPayload(f: WorkForm) {
     freeUntil: localInputToIso(f.freeUntil),
     featured: f.featured,
     sortOrder: Number(f.sortOrder) || 0,
+    expectedRevision,
   };
 }
 
@@ -116,6 +119,9 @@ export function WorksContent({ slug, initialWorks }: Props) {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // Versión de la ficha que tiene este formulario, y si el API dijo que ya cambió (409).
+  const [revision, setRevision] = useState<number | null>(null);
+  const [stale, setStale] = useState(false);
 
   const sorted = useMemo(() => [...works].sort((a, b) => a.sortOrder - b.sortOrder || b.createdAt.localeCompare(a.createdAt)), [works]);
 
@@ -124,6 +130,8 @@ export function WorksContent({ slug, initialWorks }: Props) {
     setForm(emptyWork);
     setChapters([]);
     setConfirmDelete(false);
+    setRevision(null);
+    setStale(false);
   }
 
   async function startEdit(w: Work) {
@@ -131,9 +139,13 @@ export function WorksContent({ slug, initialWorks }: Props) {
     setForm(toForm(w));
     setChapters([]);
     setConfirmDelete(false);
+    setRevision(w.revision ?? null);
+    setStale(false);
     const res = await api<WorkDetail>(`${base}/${w.id}`);
     if (res.ok && res.data) {
       setForm(toForm(res.data.work));
+      setRevision(res.data.work.revision ?? null);
+      upsertLocal(res.data.work);
       setChapters(res.data.chapters);
     } else {
       toast.error(getText('No pudimos cargar los capítulos.', "We couldn't load the chapters."));
@@ -144,6 +156,8 @@ export function WorksContent({ slug, initialWorks }: Props) {
     setEditing(null);
     setForm(emptyWork);
     setChapters([]);
+    setRevision(null);
+    setStale(false);
   }
 
   function upsertLocal(w: Work) {
@@ -177,17 +191,24 @@ export function WorksContent({ slug, initialWorks }: Props) {
       return;
     }
     setSaving(true);
-    const payload = JSON.stringify(toPayload(form));
+    const payload = JSON.stringify(toPayload(form, editing?.id ? revision : null));
     const res = editing?.id
       ? await api<Work>(`${base}/${editing.id}`, { method: 'PUT', body: payload })
       : await api<Work>(base, { method: 'POST', body: payload });
     setSaving(false);
+    if (res.status === 409 && editing?.id) {
+      setStale(true);
+      toast.error(getText('Esta obra cambió desde que la abriste. No se guardó para no borrar esos cambios.', 'This work changed since you opened it. Not saved, so those changes are kept.'));
+      return;
+    }
     if (!res.ok || !res.data) {
       toast.error(res.error && res.error !== 'network' ? res.error : getText('No se pudo guardar la obra.', 'Could not save the work.'));
       return;
     }
     upsertLocal(res.data);
     setForm(toForm(res.data));
+    setRevision(res.data.revision ?? null);
+    setStale(false);
     if (!editing?.id) {
       setEditing({ id: res.data.id });
       toast.success(getText('Obra creada. Ahora agrega sus capítulos.', 'Work created. Now add its chapters.'));
@@ -283,6 +304,27 @@ export function WorksContent({ slug, initialWorks }: Props) {
 
       <form onSubmit={handleSave} className={`${cardClass} space-y-4`}>
         <h1 className="text-lg font-bold">{editing.id ? form.title || getText('Obra', 'Work') : getText('Nueva obra', 'New work')}</h1>
+
+        {stale && editing.id && (
+          <div role="alert" className="flex flex-col gap-2 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200 sm:flex-row sm:items-center sm:justify-between">
+            <span>
+              {getText(
+                'Alguien guardó esta obra (otra pestaña u otra persona) después de que la abriste. Carga la versión actual; lo que cambiaste aquí sin guardar se pierde.',
+                'Someone saved this work (another tab or person) after you opened it. Load the current version; your unsaved changes here will be lost.',
+              )}
+            </span>
+            <button
+              type="button"
+              className={secondaryBtn}
+              onClick={() => {
+                const current = works.find((w) => w.id === editing.id);
+                if (current) void startEdit(current);
+              }}
+            >
+              {getText('Cargar la versión actual', 'Load current version')}
+            </button>
+          </div>
+        )}
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div>

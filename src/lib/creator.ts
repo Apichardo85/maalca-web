@@ -94,6 +94,8 @@ export interface Work {
   wordCount: number;
   createdAt: string;
   updatedAt?: string | null;
+  /** Versión de la ficha (concurrencia optimista). Se devuelve como expectedRevision al guardar. */
+  revision?: number;
 }
 
 export interface WorkChapterRef {
