@@ -105,14 +105,15 @@ export function ManuscriptImport({
 }: {
   hasChapters: boolean;
   getText: (es: string, en: string) => string;
-  onImport: (chapters: ImportedChapter[], mode: 'append' | 'replace', firstIsSample: boolean) => Promise<boolean>;
+  /** sampleCount: cuántos de los capítulos cargados (desde el primero) quedan como muestra gratis. */
+  onImport: (chapters: ImportedChapter[], mode: 'append' | 'replace', sampleCount: number) => Promise<boolean>;
   onCancel: () => void;
 }) {
   const [html, setHtml] = useState('');
   const [split, setSplit] = useState<SplitMode>('headings');
   const [titles, setTitles] = useState<Record<number, string>>({});
   const [mode, setMode] = useState<'append' | 'replace'>('append');
-  const [firstIsSample, setFirstIsSample] = useState(!hasChapters);
+  const [sampleCount, setSampleCount] = useState(hasChapters ? 0 : 1);
   const [busy, setBusy] = useState(false);
   const [confirmReplace, setConfirmReplace] = useState(false);
 
@@ -141,7 +142,7 @@ export function ManuscriptImport({
       return;
     }
     setBusy(true);
-    const ok = await onImport(chapters.map((c, i) => ({ ...c, title: (titles[i] ?? c.title).trim() || `${i + 1}` })), mode, firstIsSample);
+    const ok = await onImport(chapters.map((c, i) => ({ ...c, title: (titles[i] ?? c.title).trim() || `${i + 1}` })), mode, Math.min(sampleCount, chapters.length));
     setBusy(false);
     if (!ok) setConfirmReplace(false);
   }
@@ -224,8 +225,16 @@ export function ManuscriptImport({
           </>
         )}
         <label className="flex items-center gap-1.5">
-          <input type="checkbox" checked={firstIsSample} onChange={(e) => setFirstIsSample(e.target.checked)} />
-          {getText('El primero es muestra gratis', 'First one is a free sample')}
+          {getText('Muestra gratis: los primeros', 'Free sample: the first')}
+          <input
+            type="number"
+            min={0}
+            max={Math.max(chapters.length, 1)}
+            value={sampleCount}
+            onChange={(e) => setSampleCount(Math.max(0, Math.min(500, Number(e.target.value) || 0)))}
+            className="w-16 rounded-lg border border-gray-300 bg-transparent px-2 py-1 text-sm dark:border-neutral-700"
+          />
+          {getText('capítulos', 'chapters')}
         </label>
       </div>
 

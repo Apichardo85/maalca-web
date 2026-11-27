@@ -498,10 +498,10 @@ function ChaptersPanel({
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
 
-  async function importManuscript(list: ImportedChapter[], mode: 'append' | 'replace', firstIsSample: boolean): Promise<boolean> {
+  async function importManuscript(list: ImportedChapter[], mode: 'append' | 'replace', sampleCount: number): Promise<boolean> {
     const payload = {
       mode,
-      chapters: list.map((c, i) => ({ number: null, title: c.title, contentHtml: sanitizeLiteraryHtml(c.contentHtml), isSample: firstIsSample && i === 0 })),
+      chapters: list.map((c, i) => ({ number: null, title: c.title, contentHtml: sanitizeLiteraryHtml(c.contentHtml), isSample: i < sampleCount })),
     };
     const res = await api<WorkChapterRef[]>(`${base}/chapters-import`, { method: 'POST', body: JSON.stringify(payload) });
     if (!res.ok || !res.data) {

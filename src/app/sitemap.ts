@@ -1,8 +1,29 @@
 import type { MetadataRoute } from 'next'
 
 const BASE_URL = 'https://maalca.com'
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+// Se rehace cada hora: así entran las obras nuevas de los autores sin desplegar.
+export const revalidate = 3600
+
+/** Obras publicadas de los autores (espacio Creator), de maalca-api. Si el API falla, el sitemap sale sin ellas. */
+async function authorWorks(): Promise<MetadataRoute.Sitemap> {
+  try {
+    const res = await fetch(`${API_BASE}/api/public/sitemap/works`, { next: { revalidate: 3600 } })
+    if (!res.ok) return []
+    const rows: { affiliateSlug: string; workSlug: string; lastModified: string }[] = await res.json()
+    return rows.map((r) => ({
+      url: `${BASE_URL}/${encodeURIComponent(r.affiliateSlug)}/obras/${encodeURIComponent(r.workSlug)}`,
+      lastModified: new Date(r.lastModified),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    }))
+  } catch {
+    return []
+  }
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
 
   // Páginas principales
@@ -34,5 +55,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/verde-prive`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
   ]
 
-  return [...mainPages, ...projects, ...affiliates]
+  return [...mainPages, ...projects, ...affiliates, ...(await authorWorks())]
 }
