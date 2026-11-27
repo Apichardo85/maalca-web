@@ -6,7 +6,7 @@ import type { PlanCapabilities } from '@/lib/capabilities';
 import type { RetailAttributes } from '@/lib/commerce';
 import type { PublicCanal } from '@/lib/public-contact';
 import type { MealPeriod, WeekDay, MenuItemFlags } from '@/lib/types';
-import type { PublicWorkSummary } from '@/lib/creator';
+import type { PublicReaderClub, PublicWorkSummary } from '@/lib/creator';
 
 export type BusinessType = 'restaurant' | 'barber' | 'service' | 'retail' | 'community' | 'dealer' | 'creator';
 
@@ -216,6 +216,8 @@ export interface PublicTemplateProps {
     /** Solo Creator (autor) -- obras publicadas (tabla Works, ver WorkService.cs). El servidor ya quitó los
      *  borradores y calculó qué se puede leer ahora. null/[] = sin obras o el fetch falló. */
     works?: PublicWorkSummary[] | null;
+    /** Solo Creator -- club de lectores (cartas y membresía). null = sin datos: la plantilla no muestra el bloque. */
+    readerClub?: PublicReaderClub | null;
     programs?: Array<{
       id: string;
       title: string;

@@ -3,7 +3,8 @@
 // Qué capítulos se pueden leer lo decide maalca-api (WorkService.CanRead); los cerrados salen con candado.
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { getCreatorAuthor, getPublicWork } from '@/lib/creator';
+import { getCreatorAuthor, getPublicWork, getReaderClub } from '@/lib/creator';
+import { readerToken } from '@/lib/reader-session';
 import { stripRichTextToPlain } from '@/lib/sanitize-html';
 import { WorkView } from '@/components/public/creator/WorkView';
 
@@ -37,7 +38,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function WorkPage({ params }: PageProps) {
   const { slug, work } = await params;
-  const [author, data] = await Promise.all([getCreatorAuthor(slug), getPublicWork(slug, work)]);
+  const token = await readerToken(slug);
+  const [author, data, club] = await Promise.all([getCreatorAuthor(slug), getPublicWork(slug, work, token), getReaderClub(slug)]);
   if (!author || !data) notFound();
-  return <WorkView author={author} data={data} />;
+  return <WorkView author={author} data={data} club={club} signedIn={Boolean(token)} />;
 }

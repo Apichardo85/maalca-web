@@ -6,11 +6,16 @@
 // catálogo genérico; el catálogo (`items`) se muestra aparte como servicios/productos del autor (talleres,
 // corrección, ediciones firmadas). Todo el texto literario sale de lo que el autor escribió en su espacio
 // (Identidad y Obras): la plantilla no inventa frases.
+import { useState } from 'react';
 import Link from 'next/link';
 import type { PublicTemplateProps } from '@/lib/templates/registry';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { sanitizeRichText, stripRichTextToPlain } from '@/lib/sanitize-html';
-import { kindLabel, readableLabel, workSynopsis, workTitle, type PublicWorkSummary } from '@/lib/creator';
+import { formatMoney, kindLabel, readableLabel, workSynopsis, workTitle, type PublicWorkSummary } from '@/lib/creator';
+import { resolveWhatsAppDigits } from '@/lib/public-contact';
+import { useCart } from '@/components/public/cart/useCart';
+import { WhatsAppCart } from '@/components/public/cart/WhatsAppCart';
+import { MembershipButton, SubscribeForm } from '@/components/public/creator/ReaderForms';
 import { CreatorRoot, CW, FONT, creatorAccent, monoNote } from '@/components/public/creator/theme';
 import { CreatorFooter, CreatorNav, authorHref } from '@/components/public/creator/CreatorChrome';
 
@@ -25,11 +30,7 @@ function splitDescription(html?: string | null): { headline: string | null; rest
   return m ? { headline: m[1], rest: m[2] } : { headline: plain.length <= 180 ? plain : null, rest: plain.length <= 180 ? null : plain };
 }
 
-function formatPrice(price: number, currency: 'USD' | 'DOP', lang: 'es' | 'en') {
-  return new Intl.NumberFormat(lang === 'es' ? 'es-DO' : 'en-US', { style: 'currency', currency, maximumFractionDigits: 2 }).format(price);
-}
-
-export function CreatorTemplate({ business, items }: PublicTemplateProps) {
+export function CreatorTemplate({ business, items, capabilities }: PublicTemplateProps) {
   const { language } = useSimpleLanguage();
   const lang: 'es' | 'en' = language === 'es' ? 'es' : 'en';
   const t = (es: string, en: string) => (lang === 'es' ? es : en);
@@ -45,6 +46,19 @@ export function CreatorTemplate({ business, items }: PublicTemplateProps) {
   const { headline, rest } = splitDescription(description);
   const heroImage = business.cover_image_url || business.logo_url;
   const services = items.filter((i) => i.status == null || i.status.toLowerCase() === 'active').filter((i) => !i.is_demo);
+  const currency = business.currency ?? 'USD';
+
+  // Tienda: el mismo carrito y checkout de las demás plantillas (pedido → Stripe Connect del autor o WhatsApp).
+  const { cart, addToCart, removeFromCart, clearCart, cartTotal, cartCount } = useCart();
+  const [cartOpen, setCartOpen] = useState(false);
+  const waDigits = resolveWhatsAppDigits(business);
+  const onlinePayments = capabilities.onlinePayments && capabilities.stripeReady !== false;
+  const sells = services.some((i) => typeof i.price === 'number' && i.price > 0) && business.ordersEnabled !== false && (onlinePayments || !!waDigits);
+
+  const club = business.readerClub ?? null;
+  const price = club?.membershipAvailable && club.monthlyPrice ? formatMoney(club.monthlyPrice, club.currency, lang) : null;
+  const benefits = lang === 'en' && club?.benefitsEn ? club.benefitsEn : club?.benefits;
+  const pitch = lang === 'en' && club?.lettersPitchEn ? club.lettersPitchEn : club?.lettersPitch;
 
   const author = {
     slug: business.slug,
@@ -169,7 +183,17 @@ export function CreatorTemplate({ business, items }: PublicTemplateProps) {
                     <span style={{ fontFamily: FONT.display, fontSize: 26 }}>{name}</span>
                     {desc && <span style={{ fontSize: 15, lineHeight: 1.6, color: CW.paperText }}>{desc}</span>}
                     {typeof i.price === 'number' && i.price > 0 && (
-                      <span style={{ marginTop: 'auto', fontFamily: FONT.mono, fontSize: 15 }}>{formatPrice(i.price, business.currency ?? 'USD', lang)}</span>
+                      sells ? (
+                        <button
+                          type="button"
+                          onClick={() => addToCart({ id: i.id, name, price: i.price as number, image: i.imageUrl ?? i.image_url ?? undefined })}
+                          style={{ marginTop: 'auto', background: CW.night, color: CW.paper, font: `16px ${FONT.body}`, border: 0, padding: 13, borderRadius: 2, cursor: 'pointer' }}
+                        >
+                          {formatMoney(i.price, currency, lang)} · {t('Añadir', 'Add')}
+                        </button>
+                      ) : (
+                        <span style={{ marginTop: 'auto', fontFamily: FONT.mono, fontSize: 15 }}>{formatMoney(i.price, currency, lang)}</span>
+                      )
                     )}
                   </div>
                 );
@@ -179,7 +203,72 @@ export function CreatorTemplate({ business, items }: PublicTemplateProps) {
         </section>
       )}
 
+      {/* ── Membresía ───────────────────────────────────────────── */}
+      {price && (
+        <section id="membresia" style={{ ...wrap, ...twoCols, alignItems: 'center' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <span style={{ ...monoNote, color: CW.gold }}>{t('membresía', 'membership')}</span>
+            <h2 style={{ margin: 0, fontFamily: FONT.display, fontWeight: 400, fontSize: 'clamp(34px, 4vw, 48px)', lineHeight: 1.1 }}>
+              {price} <span style={{ fontSize: '0.55em', color: CW.muted }}>{t('al mes', 'a month')}</span>
+            </h2>
+            {benefits && (
+              <div className="cw-prose" style={{ fontSize: 18, lineHeight: 1.7, color: CW.muted }} dangerouslySetInnerHTML={{ __html: sanitizeRichText(benefits) }} />
+            )}
+          </div>
+          <div style={{ border: `2px solid ${accent}`, padding: 32, display: 'flex', flexDirection: 'column', gap: 16, background: CW.paper, color: CW.ink }}>
+            <MembershipButton slug={business.slug} lang={lang} accent={accent} signedIn={false} />
+            <Link href={authorHref(business.slug, '/lectores')} style={{ fontFamily: FONT.mono, fontSize: 14, color: CW.paperFaint }}>
+              {t('¿ya eres miembro? entra', 'already a member? sign in')}
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* ── Cartas por correo ───────────────────────────────────── */}
+      {club?.lettersEnabled && (
+        <section id="cartas" style={{ background: CW.paper, color: CW.ink }}>
+          <div style={{ maxWidth: 760, margin: '0 auto', padding: '104px 24px', display: 'flex', flexDirection: 'column', gap: 22, textAlign: 'center', alignItems: 'center' }}>
+            {business.logo_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={business.logo_url} alt="" width={88} height={88} style={{ width: 88, height: 88, objectFit: 'contain' }} />
+            )}
+            <span style={{ ...monoNote, color: accent }}>{t('cartas por correo', 'letters by email')}</span>
+            <h2 style={{ margin: 0, fontFamily: FONT.display, fontWeight: 400, fontStyle: 'italic', fontSize: 'clamp(32px, 4vw, 44px)' }}>
+              {t(`Cartas desde ${business.name}`, `Letters from ${business.name}`)}
+            </h2>
+            {pitch && <p style={{ margin: 0, fontSize: 18, lineHeight: 1.7, color: CW.paperText }}>{pitch}</p>}
+            <SubscribeForm slug={business.slug} lang={lang} accent={accent} />
+          </div>
+        </section>
+      )}
+
       <CreatorFooter author={author} lang={lang} />
+
+      {sells && (
+        <WhatsAppCart
+          cart={cart}
+          clearCart={clearCart}
+          addToCart={addToCart}
+          removeFromCart={removeFromCart}
+          cartTotal={cartTotal}
+          cartCount={cartCount}
+          whatsappNumber={waDigits ?? ''}
+          businessName={business.name}
+          slug={business.slug}
+          currency={currency}
+          onlinePayments={onlinePayments}
+          pickupNewCustomerLimit={capabilities.pickupNewCustomerLimit ?? null}
+          shippingMethods={capabilities.shippingMethods}
+          taxRate={(capabilities.salesTaxRate ?? 0) / 100}
+          taxOnShipping={capabilities.salesTaxOnShipping !== false}
+          taxState={capabilities.salesTaxState ?? null}
+          ordersPaused={business.ordersEnabled === false}
+          pickupOrders
+          getText={t}
+          isOpen={cartOpen}
+          onOpenChange={setCartOpen}
+        />
+      )}
     </CreatorRoot>
   );
 }

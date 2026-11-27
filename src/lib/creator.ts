@@ -5,7 +5,7 @@
 
 export type WorkKind = 'novel' | 'poetry' | 'stories' | 'micro' | 'essay' | 'chronicle' | 'other';
 export type WorkStatus = 'draft' | 'published';
-export type ReadingAccess = 'free' | 'sample' | 'closed';
+export type ReadingAccess = 'free' | 'sample' | 'members' | 'closed';
 /** Lo que se puede leer AHORA (incluida la ventana gratis): toda, algunos capítulos o nada. */
 export type ReadableNow = 'full' | 'sample' | 'none';
 
@@ -32,6 +32,8 @@ export interface PublicWorkSummary {
   /** Solo si hay una ventana de lectura gratis abierta ahora. */
   freeUntil?: string | null;
   buyLinks: WorkBuyLink[];
+  /** La obra se abre completa para los miembros del club (ReadingAccess 'members'). */
+  forMembers: boolean;
 }
 
 export interface PublicWorkChapterRef {
@@ -39,6 +41,8 @@ export interface PublicWorkChapterRef {
   title: string;
   wordCount: number;
   readable: boolean;
+  /** Cerrado ahora, pero un miembro del club lo puede leer. */
+  membersOnly: boolean;
 }
 
 export interface PublicWork {
@@ -46,6 +50,8 @@ export interface PublicWork {
   isbn?: string | null;
   contentNotice?: string | null;
   chapters: PublicWorkChapterRef[];
+  /** Último capítulo que abrió este lector (solo con sesión). */
+  continueAt?: number | null;
 }
 
 export interface PublicWorkChapter {
@@ -131,6 +137,7 @@ export const WORK_KIND_LABELS: Record<WorkKind, { es: string; en: string }> = {
 export const READING_ACCESS_LABELS: Record<ReadingAccess, { es: string; en: string; hintEs: string; hintEn: string }> = {
   free: { es: 'Abierta', en: 'Open', hintEs: 'Todos los capítulos se leen gratis.', hintEn: 'Every chapter is free to read.' },
   sample: { es: 'Muestra', en: 'Sample', hintEs: 'Solo los capítulos marcados como muestra.', hintEn: 'Only the chapters marked as sample.' },
+  members: { es: 'Miembros', en: 'Members', hintEs: 'Las muestras para todos; completa para los miembros del club.', hintEn: 'Samples for everyone; the full work for club members.' },
   closed: { es: 'Cerrada', en: 'Closed', hintEs: 'No se lee en la página: solo ficha y dónde comprarla.', hintEn: 'Not readable on the page: just the details and where to buy it.' },
 };
 
@@ -166,13 +173,53 @@ export function readableLabel(w: PublicWorkSummary, lang: Lang): string {
   return lang === 'es' ? 'solo en libro' : 'book only';
 }
 
+// ── Club de lectores ────────────────────────────────────────────────────────────
+
+export interface PublicReaderClub {
+  lettersEnabled: boolean;
+  lettersPitch?: string | null;
+  lettersPitchEn?: string | null;
+  membershipAvailable: boolean;
+  monthlyPrice?: number | null;
+  currency: 'USD' | 'DOP' | string;
+  benefits?: string | null;
+  benefitsEn?: string | null;
+}
+
+export interface ReaderMe {
+  email: string;
+  name?: string | null;
+  status: 'pending' | 'confirmed' | 'unsubscribed';
+  lettersOptIn: boolean;
+  isMember: boolean;
+  membershipStatus: 'none' | 'active' | 'past_due' | 'canceled';
+  membershipCurrentPeriodEnd?: string | null;
+}
+
+/** Cookie httpOnly de la sesión del lector, una por autor. La pone /[slug]/lectores/* y la lee el servidor. */
+export function readerCookieName(slug: string): string {
+  return `cw_reader_${slug.replace(/[^a-z0-9-]/gi, '')}`;
+}
+
+export const READER_COOKIE_MAX_AGE = 60 * 60 * 24 * 90; // igual que ReaderTokens.SessionLife en el API
+
+export function formatMoney(amount: number, currency: string, lang: Lang): string {
+  return new Intl.NumberFormat(lang === 'es' ? 'es-DO' : 'en-US', { style: 'currency', currency, maximumFractionDigits: 2 }).format(amount);
+}
+
 // ── Fetchers (servidor) ─────────────────────────────────────────────────────────
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
-async function getJson<T>(path: string, tag: string): Promise<T | null> {
+/** Con sesión de lector la respuesta es personal: va sin caché y con X-Reader-Token. */
+async function getJson<T>(path: string, tag: string, readerToken?: string | null): Promise<T | null> {
   try {
-    const res = await fetch(`${API_BASE}${path}`, { next: { revalidate: 60, tags: [tag] } });
+    const res = await fetch(
+      `${API_BASE}${path}`,
+      readerToken
+        ? { headers: { 'X-Reader-Token': readerToken }, cache: 'no-store' }
+        : { next: { revalidate: 60, tags: [tag] } },
+    );
     if (!res.ok) return null;
     return (await res.json()) as T;
   } catch (e) {
@@ -185,18 +232,29 @@ export function getPublicWorks(slug: string) {
   return getJson<PublicWorkSummary[]>(`/api/public/affiliates/${encodeURIComponent(slug)}/works`, `affiliate:${slug}`);
 }
 
-export function getPublicWork(slug: string, workSlug: string) {
+export function getPublicWork(slug: string, workSlug: string, readerToken?: string | null) {
   return getJson<PublicWork>(
     `/api/public/affiliates/${encodeURIComponent(slug)}/works/${encodeURIComponent(workSlug)}`,
     `affiliate:${slug}`,
+    readerToken,
   );
 }
 
-export function getPublicChapter(slug: string, workSlug: string, number: number) {
+export function getPublicChapter(slug: string, workSlug: string, number: number, readerToken?: string | null) {
   return getJson<PublicWorkChapter>(
     `/api/public/affiliates/${encodeURIComponent(slug)}/works/${encodeURIComponent(workSlug)}/chapters/${number}`,
     `affiliate:${slug}`,
+    readerToken,
   );
+}
+
+export function getReaderClub(slug: string) {
+  return getJson<PublicReaderClub>(`/api/public/affiliates/${encodeURIComponent(slug)}/readers/club`, `affiliate:${slug}`);
+}
+
+export async function getReaderMe(slug: string, readerToken?: string | null): Promise<ReaderMe | null> {
+  if (!readerToken) return null;
+  return getJson<ReaderMe>(`/api/public/affiliates/${encodeURIComponent(slug)}/readers/me`, `affiliate:${slug}`, readerToken);
 }
 
 /** Lo mínimo del autor que necesitan la ficha de obra y el lector (barra y pie). Sale de /catalog. */

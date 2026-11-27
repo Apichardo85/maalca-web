@@ -4,6 +4,7 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getCreatorAuthor, getPublicChapter } from '@/lib/creator';
+import { readerToken } from '@/lib/reader-session';
 import { sanitizeLiteraryHtml } from '@/lib/sanitize-html';
 import { ReaderView } from '@/components/public/creator/ReaderView';
 
@@ -32,7 +33,8 @@ export default async function ChapterPage({ params }: PageProps) {
   const { slug, work, capitulo } = await params;
   const n = parseNumber(capitulo);
   if (n === null) notFound();
-  const [author, ch] = await Promise.all([getCreatorAuthor(slug), getPublicChapter(slug, work, n)]);
+  const token = await readerToken(slug);
+  const [author, ch] = await Promise.all([getCreatorAuthor(slug), getPublicChapter(slug, work, n, token)]);
   if (!author || !ch) notFound();
-  return <ReaderView author={author} chapter={ch} html={sanitizeLiteraryHtml(ch.contentHtml ?? '')} />;
+  return <ReaderView signedIn={Boolean(token)} author={author} chapter={ch} html={sanitizeLiteraryHtml(ch.contentHtml ?? '')} />;
 }

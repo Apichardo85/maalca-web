@@ -1,13 +1,15 @@
 'use client';
 // src/components/public/creator/WorkView.tsx — ficha pública de una obra (ver app/[slug]/obras/[work]).
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { sanitizeRichText } from '@/lib/sanitize-html';
-import { kindLabel, readableLabel, readingMinutes, workSynopsis, workTitle, type CreatorAuthor, type PublicWork } from '@/lib/creator';
+import { formatMoney, kindLabel, readableLabel, readingMinutes, workSynopsis, workTitle, type CreatorAuthor, type PublicReaderClub, type PublicWork } from '@/lib/creator';
 import { CreatorRoot, CW, FONT, creatorAccent, monoNote } from './theme';
 import { CreatorFooter, CreatorNav, authorHref } from './CreatorChrome';
+import { MembershipButton, SubscribeForm } from './ReaderForms';
 
-export function WorkView({ author, data }: { author: CreatorAuthor; data: PublicWork }) {
+export function WorkView({ author, data, club, signedIn }: { author: CreatorAuthor; data: PublicWork; club: PublicReaderClub | null; signedIn: boolean }) {
   const { language } = useSimpleLanguage();
   const lang: 'es' | 'en' = language === 'es' ? 'es' : 'en';
   const t = (es: string, en: string) => (lang === 'es' ? es : en);
@@ -16,6 +18,19 @@ export function WorkView({ author, data }: { author: CreatorAuthor; data: Public
   const synopsis = workSynopsis(work, lang);
   const firstReadable = chapters.find((c) => c.readable);
   const kicker = [kindLabel(work.kind, lang), work.imprint, work.year].filter(Boolean).join(' · ');
+  const membersOnly = chapters.filter((c) => c.membersOnly).length;
+  const price = club?.membershipAvailable && club.monthlyPrice ? formatMoney(club.monthlyPrice, club.currency, lang) : null;
+
+  // Seguir leyendo: con sesión lo dice el servidor; sin sesión, el último capítulo abierto en este navegador.
+  const [continueAt, setContinueAt] = useState<number | null>(data.continueAt ?? null);
+  useEffect(() => {
+    if (data.continueAt) return;
+    try {
+      const n = Number(window.localStorage.getItem(`cw-place:${author.slug}:${work.slug}`));
+      if (Number.isInteger(n) && chapters.some((c) => c.number === n && c.readable)) setContinueAt(n);
+    } catch { /* navegador sin almacenamiento */ }
+  }, [data.continueAt, author.slug, work.slug, chapters]);
+  const startAt = continueAt && continueAt !== firstReadable?.number ? continueAt : null;
 
   return (
     <CreatorRoot accent={accent}>
@@ -34,9 +49,14 @@ export function WorkView({ author, data }: { author: CreatorAuthor; data: Public
               <div className="cw-prose" style={{ fontSize: 18, lineHeight: 1.75, color: CW.paperText }} dangerouslySetInnerHTML={{ __html: sanitizeRichText(synopsis) }} />
             )}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+              {startAt && (
+                <Link href={authorHref(author.slug, `/obras/${work.slug}/${startAt}`)} className="cw-btn" style={{ background: accent, color: '#FFFFFF' }}>
+                  {t('Seguir leyendo', 'Keep reading')} · {startAt}
+                </Link>
+              )}
               {firstReadable && (
-                <Link href={authorHref(author.slug, `/obras/${work.slug}/${firstReadable.number}`)} className="cw-btn" style={{ background: accent, color: '#FFFFFF' }}>
-                  {t('Empezar a leer', 'Start reading')}
+                <Link href={authorHref(author.slug, `/obras/${work.slug}/${firstReadable.number}`)} className="cw-btn" style={startAt ? { border: `1px solid ${CW.ink}`, color: CW.ink } : { background: accent, color: '#FFFFFF' }}>
+                  {startAt ? t('Desde el principio', 'From the beginning') : t('Empezar a leer', 'Start reading')}
                 </Link>
               )}
               {work.buyLinks.map((l) => (
@@ -69,8 +89,8 @@ export function WorkView({ author, data }: { author: CreatorAuthor; data: Public
                     <span style={{ fontFamily: FONT.mono, fontSize: 14, color: CW.muted, minWidth: 28 }}>{c.number}</span>
                     <span style={{ fontFamily: FONT.display, fontStyle: 'italic', fontSize: 22, color: c.readable ? CW.text : CW.muted }}>{c.title}</span>
                   </span>
-                  <span style={{ fontFamily: FONT.mono, fontSize: 13, color: c.readable ? CW.open : CW.locked, whiteSpace: 'nowrap' }}>
-                    {c.readable ? `${readingMinutes(c.wordCount)} min` : t('en el libro', 'in the book')}
+                  <span style={{ fontFamily: FONT.mono, fontSize: 13, color: c.readable ? CW.open : c.membersOnly ? CW.gold : CW.locked, whiteSpace: 'nowrap' }}>
+                    {c.readable ? `${readingMinutes(c.wordCount)} min` : c.membersOnly ? t('para miembros', 'for members') : t('en el libro', 'in the book')}
                   </span>
                 </>
               );
@@ -88,6 +108,36 @@ export function WorkView({ author, data }: { author: CreatorAuthor; data: Public
           </ol>
         </section>
       )}
+
+      {/* Lo que sigue: hacerse miembro (si hay capítulos para miembros) o recibir las cartas. */}
+      {(membersOnly > 0 && price) || club?.lettersEnabled ? (
+        <section style={{ background: CW.paper, color: CW.ink }}>
+          <div style={{ maxWidth: 760, margin: '0 auto', padding: '80px 24px', display: 'flex', flexDirection: 'column', gap: 20, textAlign: 'center', alignItems: 'center' }}>
+            {membersOnly > 0 && price ? (
+              <>
+                <span style={{ ...monoNote, color: accent }}>{t('membresía', 'membership')} · {price} {t('al mes', 'a month')}</span>
+                <h2 style={{ margin: 0, fontFamily: FONT.display, fontStyle: 'italic', fontWeight: 400, fontSize: 'clamp(30px, 4vw, 40px)' }}>
+                  {t(`Los ${membersOnly} capítulos que faltan, para miembros`, `The remaining ${membersOnly} chapters, for members`)}
+                </h2>
+                <MembershipButton slug={author.slug} lang={lang} accent={accent} signedIn={signedIn} />
+                {!signedIn && (
+                  <Link href={authorHref(author.slug, '/lectores')} style={{ fontFamily: FONT.mono, fontSize: 14, color: CW.paperFaint }}>
+                    {t('¿ya eres miembro? entra', 'already a member? sign in')}
+                  </Link>
+                )}
+              </>
+            ) : (
+              <>
+                <span style={{ ...monoNote, color: accent }}>{t('cartas', 'letters')}</span>
+                <h2 style={{ margin: 0, fontFamily: FONT.display, fontStyle: 'italic', fontWeight: 400, fontSize: 'clamp(30px, 4vw, 40px)' }}>
+                  {t('Recibe lo próximo por correo', 'Get what comes next by email')}
+                </h2>
+                <SubscribeForm slug={author.slug} lang={lang} accent={accent} workSlug={work.slug} />
+              </>
+            )}
+          </div>
+        </section>
+      ) : null}
 
       <CreatorFooter author={author} lang={lang} />
     </CreatorRoot>

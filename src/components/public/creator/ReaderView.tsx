@@ -8,6 +8,7 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { readingMinutes, type CreatorAuthor, type PublicWorkChapter } from '@/lib/creator';
 import { CreatorRoot, CW, FONT, creatorAccent } from './theme';
 import { authorHref } from './CreatorChrome';
+import { saveProgress } from './ReaderForms';
 
 const SIZES = [17, 19, 21, 23] as const;
 const SIZE_KEY = 'cw-reader-size';
@@ -19,7 +20,7 @@ function writeStore(key: string, value: string) {
   try { window.localStorage.setItem(key, value); } catch { /* navegador sin almacenamiento */ }
 }
 
-export function ReaderView({ author, chapter, html }: { author: CreatorAuthor; chapter: PublicWorkChapter; html: string }) {
+export function ReaderView({ author, chapter, html, signedIn }: { author: CreatorAuthor; chapter: PublicWorkChapter; html: string; signedIn: boolean }) {
   const { language } = useSimpleLanguage();
   const lang: 'es' | 'en' = language === 'es' ? 'es' : 'en';
   const t = (es: string, en: string) => (lang === 'es' ? es : en);
@@ -36,8 +37,10 @@ export function ReaderView({ author, chapter, html }: { author: CreatorAuthor; c
     if (Number.isInteger(saved) && saved >= 0 && saved < SIZES.length) setSizeIdx(saved);
     // Recordar el último capítulo abierto de esta obra (para "seguir leyendo" en la ficha más adelante).
     writeStore(placeKey, String(chapter.number));
+    // Con sesión de lector, el lugar también queda en el servidor (sigue en otro dispositivo).
+    if (signedIn) void saveProgress(author.slug, chapter.workSlug, chapter.number);
     if (readStore(`cw-notice:${author.slug}:${chapter.workSlug}`) === '1') setNotice(false);
-  }, [placeKey, chapter.number, author.slug, chapter.workSlug]);
+  }, [placeKey, chapter.number, author.slug, chapter.workSlug, signedIn]);
 
   useEffect(() => {
     const onScroll = () => {

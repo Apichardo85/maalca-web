@@ -10,6 +10,8 @@ import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
 import { Toast } from '@/components/ui/Toast';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
+import { sanitizeLiteraryHtml } from '@/lib/sanitize-html';
+import { ManuscriptImport, type ImportedChapter } from './ManuscriptImport';
 import {
   READING_ACCESS_LABELS, WORK_KIND_LABELS, readingMinutes,
   type ReadingAccess, type Work, type WorkBuyLink, type WorkChapter, type WorkChapterRef, type WorkDetail, type WorkKind,
@@ -494,6 +496,23 @@ function ChaptersPanel({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+
+  async function importManuscript(list: ImportedChapter[], mode: 'append' | 'replace', firstIsSample: boolean): Promise<boolean> {
+    const payload = {
+      mode,
+      chapters: list.map((c, i) => ({ number: null, title: c.title, contentHtml: sanitizeLiteraryHtml(c.contentHtml), isSample: firstIsSample && i === 0 })),
+    };
+    const res = await api<WorkChapterRef[]>(`${base}/chapters-import`, { method: 'POST', body: JSON.stringify(payload) });
+    if (!res.ok || !res.data) {
+      toastError(res.error && res.error !== 'network' ? res.error : getText('No se pudo cargar el manuscrito.', 'Could not load the manuscript.'));
+      return false;
+    }
+    onChange(res.data);
+    setImporting(false);
+    toastSuccess(getText(`${list.length} capítulos cargados.`, `${list.length} chapters loaded.`));
+    return true;
+  }
 
   async function edit(c: WorkChapterRef) {
     setLoading(true);
@@ -559,6 +578,14 @@ function ChaptersPanel({
     onChange(res.data);
   }
 
+  if (importing) {
+    return (
+      <div className={`${cardClass} mt-6`}>
+        <ManuscriptImport hasChapters={chapters.length > 0} getText={getText} onImport={importManuscript} onCancel={() => setImporting(false)} />
+      </div>
+    );
+  }
+
   if (open) {
     return (
       <div className={`${cardClass} mt-6 space-y-3`}>
@@ -596,7 +623,10 @@ function ChaptersPanel({
     <div className={`${cardClass} mt-6`}>
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="text-base font-semibold">{getText('Capítulos', 'Chapters')} <span className="font-normal text-gray-400">({chapters.length})</span></h2>
-        <button type="button" className={primaryBtn} onClick={create} disabled={loading}>{getText('+ Capítulo', '+ Chapter')}</button>
+        <div className="flex gap-2">
+          <button type="button" className={secondaryBtn} onClick={() => setImporting(true)}>{getText('Cargar manuscrito', 'Load manuscript')}</button>
+          <button type="button" className={primaryBtn} onClick={create} disabled={loading}>{getText('+ Capítulo', '+ Chapter')}</button>
+        </div>
       </div>
       {chapters.length === 0 ? (
         <p className="text-sm text-gray-500 dark:text-neutral-400">{getText('Sin capítulos todavía.', 'No chapters yet.')}</p>

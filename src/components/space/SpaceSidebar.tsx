@@ -90,6 +90,7 @@ export function SpaceSidebar({
     { label: getText('Vehículos', 'Vehicles'), icon: '🚗', href: `/space/${slug}/vehicles`, token: 'vehicles' },
     // Creator (autor): obras, capítulos y lectura gratis (módulo 'works', ver Work.cs en el API).
     { label: getText('Obras', 'Works'), icon: '📖', href: `/space/${slug}/works`, token: 'works' },
+    { label: getText('Lectores', 'Readers'), icon: '✉️', href: `/space/${slug}/readers`, token: 'readers' },
     // Calculadora de impacto (insumos -> recetas -> combos -> servir) — solo Community, ver
     // CommunityService.cs / ImpactContent.tsx. Sin token: no hay modulo activable/desactivable
     // para esto todavia, es parte fija del businessType Community.
