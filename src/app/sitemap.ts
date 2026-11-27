@@ -11,13 +11,19 @@ async function authorWorks(): Promise<MetadataRoute.Sitemap> {
   try {
     const res = await fetch(`${API_BASE}/api/public/sitemap/works`, { next: { revalidate: 3600 } })
     if (!res.ok) return []
-    const rows: { affiliateSlug: string; workSlug: string; lastModified: string }[] = await res.json()
-    return rows.map((r) => ({
-      url: `${BASE_URL}/${encodeURIComponent(r.affiliateSlug)}/obras/${encodeURIComponent(r.workSlug)}`,
-      lastModified: new Date(r.lastModified),
-      changeFrequency: 'monthly' as const,
-      priority: 0.6,
-    }))
+    const rows: { affiliateSlug: string; workSlug: string; lastModified: string; languages?: string[] }[] = await res.json()
+    return rows.map((r) => {
+      const url = `${BASE_URL}/${encodeURIComponent(r.affiliateSlug)}/obras/${encodeURIComponent(r.workSlug)}`
+      // Obra con capítulos traducidos y publicados: su versión en inglés es otra URL (?lang=en).
+      const hasEn = r.languages?.includes('en') ?? false
+      return {
+        url,
+        lastModified: new Date(r.lastModified),
+        changeFrequency: 'monthly' as const,
+        priority: 0.6,
+        ...(hasEn ? { alternates: { languages: { es: url, en: `${url}?lang=en` } } } : {}),
+      }
+    })
   } catch {
     return []
   }

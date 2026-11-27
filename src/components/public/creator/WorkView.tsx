@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { sanitizeRichText } from '@/lib/sanitize-html';
-import { formatMoney, kindLabel, readableLabel, readingMinutes, workSynopsis, workTitle, type CreatorAuthor, type PublicReaderClub, type PublicWork } from '@/lib/creator';
+import { formatMoney, kindLabel, langQuery, readableLabel, readingMinutes, workSynopsis, workTitle, type CreatorAuthor, type PublicReaderClub, type PublicWork, type ReadingLang } from '@/lib/creator';
 import { CreatorRoot, CW, FONT, creatorAccent, monoNote } from './theme';
 import { CreatorFooter, CreatorNav, authorHref } from './CreatorChrome';
 import { MembershipButton, SubscribeForm } from './ReaderForms';
@@ -15,7 +15,13 @@ export function WorkView({ author, data, club, signedIn }: { author: CreatorAuth
   const t = (es: string, en: string) => (lang === 'es' ? es : en);
   const accent = creatorAccent(author.primaryColor);
   const { work, chapters } = data;
-  const synopsis = workSynopsis(work, lang);
+  // Idioma de lectura (?lang=en confirmado por el API): manda sobre el idioma de la interfaz en título y sinopsis.
+  const reading: ReadingLang = data.language ?? 'es';
+  const textLang = reading === 'en' ? 'en' : lang;
+  const q = langQuery(reading);
+  const hasEn = data.languages?.includes('en') ?? false;
+  const workPath = authorHref(author.slug, `/obras/${work.slug}`);
+  const synopsis = workSynopsis(work, textLang);
   const firstReadable = chapters.find((c) => c.readable);
   const kicker = [kindLabel(work.kind, lang), work.imprint, work.year].filter(Boolean).join(' · ');
   const membersOnly = chapters.filter((c) => c.membersOnly).length;
@@ -43,19 +49,19 @@ export function WorkView({ author, data, club, signedIn }: { author: CreatorAuth
               ← {t('obras', 'works')}
             </Link>
             <span style={{ ...monoNote, color: accent }}>{kicker}</span>
-            <h1 style={{ margin: 0, fontFamily: FONT.display, fontWeight: 400, fontSize: 'clamp(40px, 6vw, 64px)', lineHeight: 1.04 }}>{workTitle(work, lang)}</h1>
+            <h1 lang={reading} style={{ margin: 0, fontFamily: FONT.display, fontWeight: 400, fontSize: 'clamp(40px, 6vw, 64px)', lineHeight: 1.04 }}>{workTitle(work, textLang)}</h1>
             {work.subtitle && <span style={{ fontStyle: 'italic', fontSize: 20, color: CW.paperText }}>{work.subtitle}</span>}
             {synopsis && (
               <div className="cw-prose" style={{ fontSize: 18, lineHeight: 1.75, color: CW.paperText }} dangerouslySetInnerHTML={{ __html: sanitizeRichText(synopsis) }} />
             )}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
               {startAt && (
-                <Link href={authorHref(author.slug, `/obras/${work.slug}/${startAt}`)} className="cw-btn" style={{ background: accent, color: '#FFFFFF' }}>
+                <Link href={`${workPath}/${startAt}${q}`} className="cw-btn" style={{ background: accent, color: '#FFFFFF' }}>
                   {t('Seguir leyendo', 'Keep reading')} · {startAt}
                 </Link>
               )}
               {firstReadable && (
-                <Link href={authorHref(author.slug, `/obras/${work.slug}/${firstReadable.number}`)} className="cw-btn" style={startAt ? { border: `1px solid ${CW.ink}`, color: CW.ink } : { background: accent, color: '#FFFFFF' }}>
+                <Link href={`${workPath}/${firstReadable.number}${q}`} className="cw-btn" style={startAt ? { border: `1px solid ${CW.ink}`, color: CW.ink } : { background: accent, color: '#FFFFFF' }}>
                   {startAt ? t('Desde el principio', 'From the beginning') : t('Empezar a leer', 'Start reading')}
                 </Link>
               )}
@@ -68,6 +74,18 @@ export function WorkView({ author, data, club, signedIn }: { author: CreatorAuth
             <span style={{ fontFamily: FONT.mono, fontSize: 14, color: CW.paperFaint }}>
               {[readableLabel(work, lang), data.isbn ? `ISBN ${data.isbn}` : null].filter(Boolean).join(' · ')}
             </span>
+            {hasEn && (
+              <Link
+                href={`${workPath}${reading === 'en' ? '' : '?lang=en'}`}
+                hrefLang={reading === 'en' ? 'es' : 'en'}
+                style={{ fontFamily: FONT.mono, fontSize: 14, color: accent }}
+              >
+                {reading === 'en' ? 'Leer en español' : 'Read in English'}
+              </Link>
+            )}
+            {reading === 'en' && (
+              <span style={{ fontFamily: FONT.mono, fontSize: 13, color: CW.paperFaint }}>{data.translationCredit || 'Translated by the author'}</span>
+            )}
           </div>
           {work.coverUrl && (
             <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -87,7 +105,10 @@ export function WorkView({ author, data, club, signedIn }: { author: CreatorAuth
                 <>
                   <span style={{ display: 'flex', gap: 18, alignItems: 'baseline' }}>
                     <span style={{ fontFamily: FONT.mono, fontSize: 14, color: CW.muted, minWidth: 28 }}>{c.number}</span>
-                    <span style={{ fontFamily: FONT.display, fontStyle: 'italic', fontSize: 22, color: c.readable ? CW.text : CW.muted }}>{c.title}</span>
+                    <span lang={reading === 'en' && c.translated ? 'en' : 'es'} style={{ fontFamily: FONT.display, fontStyle: 'italic', fontSize: 22, color: c.readable ? CW.text : CW.muted }}>{c.title}</span>
+                    {reading === 'en' && !c.translated && (
+                      <span style={{ fontFamily: FONT.mono, fontSize: 12, color: CW.muted }}>· español</span>
+                    )}
                   </span>
                   <span style={{ fontFamily: FONT.mono, fontSize: 13, color: c.readable ? CW.open : c.membersOnly ? CW.gold : CW.locked, whiteSpace: 'nowrap' }}>
                     {c.readable ? `${readingMinutes(c.wordCount)} min` : c.membersOnly ? t('para miembros', 'for members') : t('en el libro', 'in the book')}
@@ -98,7 +119,7 @@ export function WorkView({ author, data, club, signedIn }: { author: CreatorAuth
               return (
                 <li key={c.number}>
                   {c.readable ? (
-                    <Link href={authorHref(author.slug, `/obras/${work.slug}/${c.number}`)} style={style}>{row}</Link>
+                    <Link href={`${workPath}/${c.number}${q}`} style={style}>{row}</Link>
                   ) : (
                     <div style={style} aria-label={`${c.title} — ${t('no disponible para leer aquí', 'not available to read here')}`}>{row}</div>
                   )}

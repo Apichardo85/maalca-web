@@ -2,10 +2,12 @@
 // src/components/public/creator/ReaderView.tsx — lector de un capítulo (ver app/[slug]/obras/[work]/[capitulo]).
 // Papel claro, columna estrecha, tamaño de letra ajustable y barra de avance. El lugar guardado y el tamaño
 // viven en localStorage del visitante (conveniencia por navegador, con try/catch: puede no existir).
+// Idioma de lectura: lo pide la URL (?lang=en) y lo confirma el API (chapter.language). Si se pidió inglés y
+// este capítulo aún no está traducido, se lee el original con un aviso; la navegación sigue en inglés.
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
-import { readingMinutes, type CreatorAuthor, type PublicWorkChapter } from '@/lib/creator';
+import { langQuery, readingMinutes, type CreatorAuthor, type PublicWorkChapter, type ReadingLang } from '@/lib/creator';
 import { CreatorRoot, CW, FONT, creatorAccent } from './theme';
 import { authorHref } from './CreatorChrome';
 import { saveProgress } from './ReaderForms';
@@ -20,7 +22,7 @@ function writeStore(key: string, value: string) {
   try { window.localStorage.setItem(key, value); } catch { /* navegador sin almacenamiento */ }
 }
 
-export function ReaderView({ author, chapter, html, signedIn }: { author: CreatorAuthor; chapter: PublicWorkChapter; html: string; signedIn: boolean }) {
+export function ReaderView({ author, chapter, html, signedIn, asked = 'es' }: { author: CreatorAuthor; chapter: PublicWorkChapter; html: string; signedIn: boolean; asked?: ReadingLang }) {
   const { language } = useSimpleLanguage();
   const lang: 'es' | 'en' = language === 'es' ? 'es' : 'en';
   const t = (es: string, en: string) => (lang === 'es' ? es : en);
@@ -30,7 +32,13 @@ export function ReaderView({ author, chapter, html, signedIn }: { author: Creato
   const [notice, setNotice] = useState(!!chapter.contentNotice);
 
   const placeKey = `cw-place:${author.slug}:${chapter.workSlug}`;
-  const workHref = authorHref(author.slug, `/obras/${chapter.workSlug}`);
+  const workPath = authorHref(author.slug, `/obras/${chapter.workSlug}`);
+  const reading: ReadingLang = chapter.language ?? 'es';
+  const q = langQuery(asked);
+  const workHref = `${workPath}${q}`;
+  const hasEn = chapter.languages?.includes('en') ?? false;
+  // Cambiar de idioma: solo si este capítulo existe en el otro.
+  const switchHref = hasEn ? `${workPath}/${chapter.number}${reading === 'en' ? '' : '?lang=en'}` : null;
 
   useEffect(() => {
     const saved = Number(readStore(SIZE_KEY));
@@ -74,6 +82,11 @@ export function ReaderView({ author, chapter, html, signedIn }: { author: Creato
           <Link href={workHref} style={{ fontFamily: FONT.mono, fontSize: 15, color: CW.textSoft, textDecoration: 'none', padding: '12px 4px' }}>
             ← {chapter.workTitle}
           </Link>
+          {switchHref && (
+            <Link href={switchHref} hrefLang={reading === 'en' ? 'es' : 'en'} style={{ fontFamily: FONT.mono, fontSize: 14, color: CW.textSoft, textDecoration: 'none', padding: '12px 4px', marginLeft: 'auto' }}>
+              {reading === 'en' ? 'Leer en español' : 'Read in English'}
+            </Link>
+          )}
           <div role="group" aria-label={t('Tamaño de letra', 'Text size')} style={{ display: 'flex' }}>
             <button type="button" onClick={() => changeSize(-1)} disabled={sizeIdx === 0} aria-label={t('Letra más pequeña', 'Smaller text')} style={{ ...btn, fontSize: 15, opacity: sizeIdx === 0 ? 0.4 : 1 }}>A</button>
             <button type="button" onClick={() => changeSize(1)} disabled={sizeIdx === SIZES.length - 1} aria-label={t('Letra más grande', 'Larger text')} style={{ ...btn, fontSize: 21, opacity: sizeIdx === SIZES.length - 1 ? 0.4 : 1 }}>A</button>
@@ -85,7 +98,12 @@ export function ReaderView({ author, chapter, html, signedIn }: { author: Creato
       </div>
 
       <main style={{ background: CW.paper, color: CW.ink, minHeight: 'calc(100vh - 59px)' }}>
-        <article style={{ maxWidth: 680, margin: '0 auto', padding: '48px 24px 72px' }}>
+        <article lang={reading} style={{ maxWidth: 680, margin: '0 auto', padding: '48px 24px 72px' }}>
+          {asked === 'en' && reading === 'es' && (
+            <p lang="en" style={{ margin: '0 0 24px', padding: '12px 16px', border: `1px solid ${CW.paperLine}`, fontFamily: FONT.mono, fontSize: 14, color: CW.paperText }}>
+              This chapter isn&apos;t translated into English yet. Here is the original Spanish.
+            </p>
+          )}
           <div style={{ padding: '10px 0', borderTop: '1px solid #CFC6B6', borderBottom: '1px solid #CFC6B6', fontFamily: FONT.mono, fontSize: 13, color: CW.paperText, display: 'flex', justifyContent: 'space-between' }}>
             <span>{t('capítulo', 'chapter')} {chapter.number}</span>
             <span>{readingMinutes(chapter.wordCount)} min</span>
@@ -109,12 +127,19 @@ export function ReaderView({ author, chapter, html, signedIn }: { author: Creato
             />
           )}
 
+          {reading === 'en' && !notice && (
+            <p style={{ marginTop: 40, fontFamily: FONT.mono, fontSize: 14, color: CW.paperText }}>
+              {chapter.translationCredit || 'Translated by the author'}
+              {chapter.originalTitle && <> · <span lang="es" style={{ fontStyle: 'italic' }}>{chapter.originalTitle}</span></>}
+            </p>
+          )}
+
           <nav aria-label={t('Capítulos', 'Chapters')} style={{ marginTop: 56, paddingTop: 24, borderTop: '1px solid #CFC6B6', display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
             {chapter.prevNumber ? (
-              <Link href={`${workHref}/${chapter.prevNumber}`} className="cw-btn" style={{ border: `1px solid ${CW.ink}`, color: CW.ink }}>← {t('Anterior', 'Previous')}</Link>
+              <Link href={`${workPath}/${chapter.prevNumber}${q}`} className="cw-btn" style={{ border: `1px solid ${CW.ink}`, color: CW.ink }}>← {t('Anterior', 'Previous')}</Link>
             ) : <span />}
             {chapter.nextNumber ? (
-              <Link href={`${workHref}/${chapter.nextNumber}`} className="cw-btn" style={{ background: accent, color: '#FFFFFF' }}>{t('Siguiente', 'Next')} →</Link>
+              <Link href={`${workPath}/${chapter.nextNumber}${q}`} className="cw-btn" style={{ background: accent, color: '#FFFFFF' }}>{t('Siguiente', 'Next')} →</Link>
             ) : (
               <Link href={workHref} className="cw-btn" style={{ background: CW.ink, color: CW.paper }}>{t('Volver a la obra', 'Back to the work')}</Link>
             )}

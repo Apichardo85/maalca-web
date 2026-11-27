@@ -43,7 +43,12 @@ export interface PublicWorkChapterRef {
   readable: boolean;
   /** Cerrado ahora, pero un miembro del club lo puede leer. */
   membersOnly: boolean;
+  /** Con ?lang: este capítulo tiene traducción publicada en ese idioma (title ya viene traducido). */
+  translated?: boolean;
 }
+
+/** Idiomas de lectura: "es" es el original. */
+export type ReadingLang = 'es' | 'en';
 
 export interface PublicWork {
   work: PublicWorkSummary;
@@ -52,6 +57,11 @@ export interface PublicWork {
   chapters: PublicWorkChapterRef[];
   /** Último capítulo que abrió este lector (solo con sesión). */
   continueAt?: number | null;
+  /** Idioma en que viene el índice ("es" si no se pidió otro o no hay traducción publicada). */
+  language?: ReadingLang;
+  /** Idiomas en que se puede leer la obra ("es" + los que tienen capítulos traducidos y publicados). */
+  languages?: ReadingLang[];
+  translationCredit?: string | null;
 }
 
 export interface PublicWorkChapter {
@@ -64,6 +74,22 @@ export interface PublicWorkChapter {
   prevNumber?: number | null;
   nextNumber?: number | null;
   contentNotice?: string | null;
+  /** Idioma del texto que viene ("es" = el original). */
+  language?: ReadingLang;
+  languages?: ReadingLang[];
+  translationCredit?: string | null;
+  /** Título original cuando el texto viene traducido. */
+  originalTitle?: string | null;
+}
+
+/** ?lang de la URL → idioma de lectura pedido (solo "en"; cualquier otra cosa es el original). */
+export function readingLang(raw: string | string[] | undefined): ReadingLang {
+  return (Array.isArray(raw) ? raw[0] : raw) === 'en' ? 'en' : 'es';
+}
+
+/** Sufijo de URL para leer en ese idioma. */
+export function langQuery(lang: ReadingLang): string {
+  return lang === 'en' ? '?lang=en' : '';
 }
 
 // ── Dashboard ───────────────────────────────────────────────────────────────────
@@ -292,17 +318,17 @@ export function getPublicWorks(slug: string) {
   return getJson<PublicWorkSummary[]>(`/api/public/affiliates/${encodeURIComponent(slug)}/works`, `affiliate:${slug}`);
 }
 
-export function getPublicWork(slug: string, workSlug: string, readerToken?: string | null) {
+export function getPublicWork(slug: string, workSlug: string, readerToken?: string | null, lang: ReadingLang = 'es') {
   return getJson<PublicWork>(
-    `/api/public/affiliates/${encodeURIComponent(slug)}/works/${encodeURIComponent(workSlug)}`,
+    `/api/public/affiliates/${encodeURIComponent(slug)}/works/${encodeURIComponent(workSlug)}${langQuery(lang)}`,
     `affiliate:${slug}`,
     readerToken,
   );
 }
 
-export function getPublicChapter(slug: string, workSlug: string, number: number, readerToken?: string | null) {
+export function getPublicChapter(slug: string, workSlug: string, number: number, readerToken?: string | null, lang: ReadingLang = 'es') {
   return getJson<PublicWorkChapter>(
-    `/api/public/affiliates/${encodeURIComponent(slug)}/works/${encodeURIComponent(workSlug)}/chapters/${number}`,
+    `/api/public/affiliates/${encodeURIComponent(slug)}/works/${encodeURIComponent(workSlug)}/chapters/${number}${langQuery(lang)}`,
     `affiliate:${slug}`,
     readerToken,
   );

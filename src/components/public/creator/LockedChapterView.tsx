@@ -4,7 +4,7 @@
 // (comprar el libro, hacerse miembro o leer la muestra) en vez de un 404. El texto nunca viaja: el API no lo manda.
 import Link from 'next/link';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
-import { formatMoney, workTitle, type CreatorAuthor, type PublicReaderClub, type PublicWork, type PublicWorkChapterRef } from '@/lib/creator';
+import { formatMoney, langQuery, workTitle, type CreatorAuthor, type PublicReaderClub, type PublicWork, type PublicWorkChapterRef } from '@/lib/creator';
 import { CreatorRoot, CW, FONT, creatorAccent, monoNote } from './theme';
 import { CreatorFooter, CreatorNav, authorHref } from './CreatorChrome';
 import { MembershipButton } from './ReaderForms';
@@ -25,6 +25,7 @@ export function LockedChapterView({ author, data, chapter, club, signedIn }: {
   const firstReadable = chapters.find((c) => c.readable);
   const price = club?.membershipAvailable && club.monthlyPrice ? formatMoney(club.monthlyPrice, club.currency, lang) : null;
   const forMembers = chapter.membersOnly && price;
+  const q = langQuery(data.language ?? 'es');
 
   const headline = forMembers
     ? poem ? t('Este poema es para los miembros', 'This poem is for members') : t('Este capítulo es para los miembros', 'This chapter is for members')
@@ -36,7 +37,7 @@ export function LockedChapterView({ author, data, chapter, club, signedIn }: {
 
       <section style={{ background: CW.paper, color: CW.ink }}>
         <div style={{ maxWidth: 760, margin: '0 auto', padding: '88px 24px 104px', display: 'flex', flexDirection: 'column', gap: 22, alignItems: 'center', textAlign: 'center' }}>
-          <Link href={authorHref(author.slug, `/obras/${work.slug}`)} style={{ ...monoNote, fontSize: 14, color: CW.paperFaint, textDecoration: 'none' }}>
+          <Link href={`${authorHref(author.slug, `/obras/${work.slug}`)}${q}`} style={{ ...monoNote, fontSize: 14, color: CW.paperFaint, textDecoration: 'none' }}>
             ← {workTitle(work, lang)}
           </Link>
           <span style={{ ...monoNote, color: accent }}>{chapter.number}</span>
@@ -54,7 +55,7 @@ export function LockedChapterView({ author, data, chapter, club, signedIn }: {
               ))
             )}
             {firstReadable && (
-              <Link href={authorHref(author.slug, `/obras/${work.slug}/${firstReadable.number}`)} className="cw-btn" style={{ border: `1px solid ${CW.ink}`, color: CW.ink }}>
+              <Link href={`${authorHref(author.slug, `/obras/${work.slug}/${firstReadable.number}`)}${q}`} className="cw-btn" style={{ border: `1px solid ${CW.ink}`, color: CW.ink }}>
                 {t('Leer la muestra gratis', 'Read the free sample')}
               </Link>
             )}

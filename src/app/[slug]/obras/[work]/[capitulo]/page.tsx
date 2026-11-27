@@ -5,7 +5,7 @@
 // si no existe, notFound().
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import { getCreatorAuthor, getPublicChapter, getPublicWork, getReaderClub } from '@/lib/creator';
+import { getCreatorAuthor, getPublicChapter, getPublicWork, getReaderClub, langQuery, readingLang } from '@/lib/creator';
 import { readerToken } from '@/lib/reader-session';
 import { sanitizeLiteraryHtml } from '@/lib/sanitize-html';
 import { ReaderView } from '@/components/public/creator/ReaderView';
@@ -13,6 +13,8 @@ import { LockedChapterView } from '@/components/public/creator/LockedChapterView
 
 interface PageProps {
   params: Promise<{ slug: string; work: string; capitulo: string }>;
+  // ?lang=en: el capítulo traducido si está publicado; si no, el original con un aviso.
+  searchParams: Promise<{ lang?: string | string[] }>;
 }
 
 function parseNumber(raw: string): number | null {
@@ -20,16 +22,20 @@ function parseNumber(raw: string): number | null {
   return Number.isInteger(n) && n >= 1 && n <= 10_000 ? n : null;
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { slug, work, capitulo } = await params;
+  const asked = readingLang((await searchParams).lang);
   const n = parseNumber(capitulo);
   if (n === null) return { title: 'Lector' };
-  const [author, ch] = await Promise.all([getCreatorAuthor(slug), getPublicChapter(slug, work, n)]);
+  const [author, ch] = await Promise.all([getCreatorAuthor(slug), getPublicChapter(slug, work, n, null, asked)]);
   if (!author) return { title: 'Lector' };
   if (ch) {
+    const base = `https://maalca.com/${slug}/obras/${ch.workSlug}/${ch.number}`;
+    const hasEn = ch.languages?.includes('en') ?? false;
     return {
       title: `${ch.title} · ${ch.workTitle} · ${author.name}`,
-      alternates: { canonical: `https://maalca.com/${slug}/obras/${ch.workSlug}/${ch.number}` },
+      // Pedido en inglés sin traducción publicada: es el original, así que su URL canónica es la española.
+      alternates: { canonical: `${base}${langQuery(ch.language ?? 'es')}`, ...(hasEn ? { languages: { es: base, en: `${base}?lang=en` } } : {}) },
     };
   }
   // Cerrado: título para quien lo comparte, pero fuera de los buscadores (no hay texto que indexar).
@@ -42,16 +48,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-export default async function ChapterPage({ params }: PageProps) {
+export default async function ChapterPage({ params, searchParams }: PageProps) {
   const { slug, work, capitulo } = await params;
+  const asked = readingLang((await searchParams).lang);
   const n = parseNumber(capitulo);
   if (n === null) notFound();
   const token = await readerToken(slug);
-  const [author, ch] = await Promise.all([getCreatorAuthor(slug), getPublicChapter(slug, work, n, token)]);
+  const [author, ch] = await Promise.all([getCreatorAuthor(slug), getPublicChapter(slug, work, n, token, asked)]);
   if (!author) notFound();
-  if (ch) return <ReaderView signedIn={Boolean(token)} author={author} chapter={ch} html={sanitizeLiteraryHtml(ch.contentHtml ?? '')} />;
+  if (ch) {
+    return <ReaderView signedIn={Boolean(token)} author={author} chapter={ch} asked={asked} html={sanitizeLiteraryHtml(ch.contentHtml ?? '')} />;
+  }
 
-  const [data, club] = await Promise.all([getPublicWork(slug, work, token), getReaderClub(slug)]);
+  const [data, club] = await Promise.all([getPublicWork(slug, work, token, asked), getReaderClub(slug)]);
   const ref = data?.chapters.find((c) => c.number === n);
   if (!data || !ref || ref.readable) notFound();
   return <LockedChapterView author={author} data={data} chapter={ref} club={club} signedIn={Boolean(token)} />;
