@@ -8,7 +8,7 @@ import { sanitizeContactValue } from '@/lib/public-contact';
 import { useTranslation } from '@/hooks/useSimpleLanguage';
 
 // Only these 4 have a real public template (src/components/public/templates/).
-// Creator/Publisher/Professional stay visible but disabled until Fase 5 confirms
+// Professional stays visible but disabled until Fase 5 confirms
 // the existing 4 work end-to-end and those templates get built.
 const BUSINESS_TYPES = [
   { value: 'restaurant', labelKey: 'onboarding.type.restaurant.label', emoji: '🍽️', examplesKey: 'onboarding.type.restaurant.examples', comingSoon: false },
@@ -23,7 +23,8 @@ const BUSINESS_TYPES = [
   { value: 'dealer', labelKey: 'onboarding.type.dealer.label', emoji: '🚗', examplesKey: 'onboarding.type.dealer.examples', comingSoon: false },
   // Autor: plantilla Creator (Creator.tsx) y módulo Obras ya existen — abierto al onboarding.
   { value: 'creator', labelKey: 'onboarding.type.creator.label', emoji: '✒️', examplesKey: null, comingSoon: false },
-  { value: 'publisher', labelKey: 'onboarding.type.publisher.label', emoji: '📚', examplesKey: null, comingSoon: true },
+  // Publisher (sello editorial) no se ofrece: el único sello es Duende Ediciones, de MaalCa, y no se vende.
+  // Se crea solo desde /ops; el API también lo rechaza en el registro (OnboardingService.SelfServeTypes).
   { value: 'professional', labelKey: 'onboarding.type.professional.label', emoji: '💼', examplesKey: null, comingSoon: true },
 ] as const;
 
