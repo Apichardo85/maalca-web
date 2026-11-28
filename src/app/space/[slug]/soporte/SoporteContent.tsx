@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
@@ -54,7 +55,12 @@ export function SoporteContent({ slug, initialTicketId }: { slug: string; initia
             {getText('Pídenos cambios en tu espacio y sigue cada solicitud aquí.', 'Ask us for changes to your space and follow each request here.')}
           </p>
         </div>
-        <NewRequestTrigger slug={slug} onCreated={load} />
+        <div className="flex items-center gap-3">
+          <Link href={`/space/${slug}/historial`} className="text-sm text-brand-primary hover:underline">
+            {getText('Historial de cambios', 'Change history')}
+          </Link>
+          <NewRequestTrigger slug={slug} onCreated={load} />
+        </div>
       </header>
 
       <ModuleIntro

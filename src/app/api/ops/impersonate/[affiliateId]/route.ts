@@ -4,9 +4,10 @@ import { getMaalcaApiToken } from '@/lib/api-auth';
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
 // Abre una sesión de soporte (impersonation) de 2h contra el afiliado dado. El backend hace
-// toda la validación (platform_admin, negocio existe) — este proxy solo reenvía.
+// toda la validación (platform_admin, negocio existe) — este proxy solo reenvía. ?ticketId= liga los
+// cambios de la sesión a esa solicitud de soporte (historial de cambios).
 export async function POST(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ affiliateId: string }> },
 ) {
   const token = await getMaalcaApiToken();
@@ -14,7 +15,7 @@ export async function POST(
 
   const { affiliateId } = await params;
 
-  const apiRes = await fetch(`${API}/api/ops/impersonate/${affiliateId}`, {
+  const apiRes = await fetch(`${API}/api/ops/impersonate/${affiliateId}${req.nextUrl.search}`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
   });

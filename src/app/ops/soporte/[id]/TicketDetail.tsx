@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useOpsCanManage } from '../../OpsRoleContext';
 import type { OpsTeamMember } from '../../types';
 import { dueLabel } from '../SupportInbox';
+import { ChangeHistoryList, type ChangeSet } from '@/components/space/support/ChangeHistoryList';
 import {
   OPS_STATUS_LABELS,
   PLAN_LABELS,
@@ -79,7 +80,8 @@ export function TicketDetail({ id }: { id: string }) {
     setEntering(true);
     setError(null);
     try {
-      const res = await fetch(`/api/ops/impersonate/${detail.ticket.affiliateId}`, { method: 'POST' });
+      // ?ticketId: lo que se cambie en esta sesión queda ligado a la solicitud (historial y revertir).
+      const res = await fetch(`/api/ops/impersonate/${detail.ticket.affiliateId}?ticketId=${detail.ticket.id}`, { method: 'POST' });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(apiErrorMessage(data, 'No se pudo entrar como soporte.'));
       const slug = detail.ticket.affiliateSlug;
@@ -188,6 +190,7 @@ export function TicketDetail({ id }: { id: string }) {
               </div>
             </form>
           )}
+          <TicketChanges ticketId={t.id} affiliateId={t.affiliateId} onReverted={load} />
         </div>
 
         {/* Panel lateral */}
@@ -269,5 +272,56 @@ export function TicketDetail({ id }: { id: string }) {
         </aside>
       </div>
     </div>
+  );
+}
+
+/**
+ * Cambios hechos en el espacio del negocio desde esta solicitud (modo soporte abierto con "Entrar como
+ * soporte"), con revertir. "Todo el negocio" muestra el historial completo, de cualquiera.
+ */
+function TicketChanges({ ticketId, affiliateId, onReverted }: { ticketId: string; affiliateId: string; onReverted: () => void }) {
+  const [scope, setScope] = useState<'ticket' | 'affiliate'>('ticket');
+  const [sets, setSets] = useState<ChangeSet[] | null>(null);
+
+  const load = useCallback(async () => {
+    const url = scope === 'ticket' ? `/api/ops/support/tickets/${ticketId}/changes` : `/api/ops/changes?affiliateId=${affiliateId}&take=30`;
+    const res = await fetch(url, { cache: 'no-store' });
+    setSets(res.ok ? await res.json() : []);
+  }, [scope, ticketId, affiliateId]);
+
+  useEffect(() => { load(); }, [load]);
+
+  return (
+    <section className="space-y-2 pt-2">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-neutral-100">Cambios en el espacio</h2>
+        <div className="flex gap-1 text-xs">
+          {(['ticket', 'affiliate'] as const).map((k) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => setScope(k)}
+              className={`rounded-full px-2.5 py-1 font-medium ${scope === k ? 'bg-gray-900 text-white dark:bg-neutral-100 dark:text-neutral-900' : 'text-gray-600 hover:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-800'}`}
+            >
+              {k === 'ticket' ? 'De esta solicitud' : 'Todo el negocio'}
+            </button>
+          ))}
+        </div>
+      </div>
+      {sets === null ? (
+        <p className="text-xs text-gray-500">Cargando…</p>
+      ) : (
+        <ChangeHistoryList
+          sets={sets}
+          canRevert
+          showTicket={scope === 'affiliate'}
+          revertUrl={(id) => `/api/ops/changes/${id}/revert`}
+          onReverted={() => { load(); onReverted(); }}
+        />
+      )}
+      {scope === 'ticket' && sets?.length === 0 && (
+        <p className="text-[11px] text-gray-500 dark:text-neutral-400">Los cambios quedan ligados aquí cuando entras con &quot;Entrar como soporte&quot; desde esta solicitud.</p>
+      )}
+    </section>
   );
 }
