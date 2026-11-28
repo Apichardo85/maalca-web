@@ -61,7 +61,7 @@ function CorporateControl({ affiliateId }: { affiliateId: string }) {
         onClick={() => save(!info.isCorporate, info.locations)}
         disabled={busy}
         aria-pressed={info.isCorporate}
-        title="Corporativo: aplica el mínimo corporativo y soporte corporativo en la cotización."
+        title="Corporativo: aplica el mínimo corporativo y soporte corporativo en la cotización, y le da al negocio los puntos y el tiempo de respuesta del add-on de soporte."
         className={`rounded-full border px-3 py-1.5 font-medium disabled:opacity-50 ${info.isCorporate ? 'border-brand-primary text-brand-primary' : 'border-gray-300 dark:border-neutral-700 text-gray-600 dark:text-neutral-300'}`}
       >
         {info.isCorporate ? 'Corporativo ✓' : 'Marcar corporativo'}

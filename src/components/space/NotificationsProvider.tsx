@@ -26,6 +26,7 @@ export const NOTIFICATION_MODULE_ROUTES: Record<string, string> = {
   proposals: 'proposal_accepted',
   inscripciones: 'signup',
   'price-lists': 'member_request',
+  soporte: 'support',
 };
 
 type PushState = 'unsupported' | 'blocked' | 'off' | 'on';

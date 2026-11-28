@@ -12,6 +12,8 @@ const TYPE_ICON: Record<string, string> = {
   invoice_paid: '💳',
   proposal_accepted: '✍️',
   signup: '🙋',
+  member_request: '🪪',
+  support: '💬',
 };
 
 function timeAgo(iso: string, language: 'es' | 'en'): string {

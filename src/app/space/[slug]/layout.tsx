@@ -6,6 +6,7 @@ import type { BusinessType } from '@/lib/templates/registry';
 import { SpaceSidebar } from '@/components/space/SpaceSidebar';
 import { SpaceMobileNav } from '@/components/space/SpaceMobileNav';
 import { SupportModeBanner } from '@/components/space/SupportModeBanner';
+import { SupportButton } from '@/components/space/support/SupportButton';
 import { PastDueBanner } from '@/components/space/billing/PastDueBanner';
 import { NotificationsProvider } from '@/components/space/NotificationsProvider';
 import { isPaidPlan } from '@/lib/plan-limits';
@@ -124,6 +125,9 @@ export default async function SpaceSlugLayout({
           activeModules={business.modulosActivos}
         />
         {children}
+        {/* "Pedir ayuda" a MaalCa: no para quien ya ES soporte (modo soporte) ni para perfiles de acceso
+            limitados (chofer, cajero…), que no administran el espacio. */}
+        {!isImpersonation && !profile && <SupportButton slug={slug} />}
       </div>
     </div>
     </NotificationsProvider>
