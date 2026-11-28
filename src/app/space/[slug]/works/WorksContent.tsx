@@ -4,7 +4,7 @@
 // Obras del autor (businessType 'creator'): ficha de cada libro, capítulos con su texto y qué se puede leer
 // gratis en la página pública (abierta / muestra / cerrada, más una ventana de tiempo que la abre completa).
 // Mismo patrón de página propia que /vehicles y /programs. La regla de lectura la aplica el API (WorkService).
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
 import { useToast } from '@/hooks/useToast';
@@ -13,9 +13,11 @@ import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import { sanitizeLiteraryHtml } from '@/lib/sanitize-html';
 import { ManuscriptImport, type ImportedChapter } from './ManuscriptImport';
 import { TranslationPanel } from './TranslationPanel';
+import { ExportPanel } from './ExportPanel';
+import { ImprintContractsCard } from './ImprintContractsCard';
 import {
   READING_ACCESS_LABELS, WORK_KIND_LABELS, readingMinutes,
-  type ReadingAccess, type Work, type WorkBuyLink, type WorkChapter, type WorkChapterRef, type WorkDetail, type WorkKind,
+  type ImprintOption, type ReadingAccess, type Work, type WorkBuyLink, type WorkChapter, type WorkChapterRef, type WorkDetail, type WorkKind,
 } from '@/lib/creator';
 
 interface Props {
@@ -60,7 +62,7 @@ const emptyWork = {
   title: '', titleEn: '', subtitle: '', slug: '',
   kind: 'novel' as WorkKind, status: 'draft' as Work['status'],
   synopsis: '', synopsisEn: '', coverUrl: '', coverUrlEn: '',
-  year: '', isbn: '', imprint: '', contentNotice: '',
+  year: '', isbn: '', imprint: '', imprintId: '', byline: '', contentNotice: '',
   buyLinks: [] as WorkBuyLink[],
   readingAccess: 'sample' as ReadingAccess, freeFrom: '', freeUntil: '',
   featured: false, sortOrder: '0',
@@ -72,7 +74,8 @@ function toForm(w: Work): WorkForm {
     title: w.title, titleEn: w.titleEn ?? '', subtitle: w.subtitle ?? '', slug: w.slug,
     kind: w.kind, status: w.status,
     synopsis: w.synopsis ?? '', synopsisEn: w.synopsisEn ?? '', coverUrl: w.coverUrl ?? '', coverUrlEn: w.coverUrlEn ?? '',
-    year: w.year != null ? String(w.year) : '', isbn: w.isbn ?? '', imprint: w.imprint ?? '', contentNotice: w.contentNotice ?? '',
+    year: w.year != null ? String(w.year) : '', isbn: w.isbn ?? '', imprint: w.imprint ?? '',
+    imprintId: w.imprintId ?? '', byline: w.byline ?? '', contentNotice: w.contentNotice ?? '',
     buyLinks: w.buyLinks ?? [],
     readingAccess: w.readingAccess, freeFrom: isoToLocalInput(w.freeFrom), freeUntil: isoToLocalInput(w.freeUntil),
     featured: w.featured, sortOrder: String(w.sortOrder ?? 0),
@@ -95,7 +98,10 @@ function toPayload(f: WorkForm, expectedRevision: number | null) {
     coverUrlEn: f.coverUrlEn.trim() || null,
     year: f.year.trim() ? Number(f.year) : null,
     isbn: f.isbn.trim() || null,
-    imprint: f.imprint.trim() || null,
+    // Con sello de MaalCa (por llave) el texto libre no hace falta: el nombre sale del sello.
+    imprintId: f.imprintId || null,
+    imprint: f.imprintId ? null : f.imprint.trim() || null,
+    byline: f.byline.trim() || null,
     contentNotice: f.contentNotice.trim() || null,
     buyLinks: f.buyLinks.filter((l) => l.label.trim() && l.url.trim()).map((l) => ({ label: l.label.trim(), url: l.url.trim() })),
     readingAccess: f.readingAccess,
@@ -125,6 +131,14 @@ export function WorksContent({ slug, initialWorks }: Props) {
   // Versión de la ficha que tiene este formulario, y si el API dijo que ya cambió (409).
   const [revision, setRevision] = useState<number | null>(null);
   const [stale, setStale] = useState(false);
+  // Sellos de MaalCa que esta obra puede elegir (contratos activos, o el propio sello).
+  const [imprintOptions, setImprintOptions] = useState<ImprintOption[]>([]);
+
+  async function loadImprintOptions() {
+    const res = await api<ImprintOption[]>(`/api/space/${slug}/imprint/options`);
+    if (res.ok && Array.isArray(res.data)) setImprintOptions(res.data);
+  }
+  useEffect(() => { void loadImprintOptions(); }, [slug]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const sorted = useMemo(() => [...works].sort((a, b) => a.sortOrder - b.sortOrder || b.createdAt.localeCompare(a.createdAt)), [works]);
 
@@ -259,6 +273,8 @@ export function WorksContent({ slug, initialWorks }: Props) {
             {getText('+ Nueva obra', '+ New work')}
           </button>
         </div>
+
+        <ImprintContractsCard slug={slug} getText={getText} onChange={loadImprintOptions} />
 
         {sorted.length === 0 ? (
           <div className={`${cardClass} text-center text-sm text-gray-500 dark:text-neutral-400`}>
@@ -415,12 +431,45 @@ export function WorksContent({ slug, initialWorks }: Props) {
           </div>
           <div>
             <label className={labelClass}>{getText('Sello', 'Imprint')}</label>
-            <input className={inputClass} value={form.imprint} onChange={(e) => set('imprint', e.target.value)} />
+            {imprintOptions.length > 0 || form.imprintId ? (
+              // Sello de MaalCa por llave (contrato activo); "otro" deja escribir uno de fuera.
+              <select
+                className={inputClass}
+                value={form.imprintId || (form.imprint ? '__other' : '')}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setForm((f) => ({ ...f, imprintId: v === '__other' ? '' : v, imprint: v === '__other' ? f.imprint || ' ' : '' }));
+                }}
+              >
+                <option value="">{getText('Sin sello', 'No imprint')}</option>
+                {imprintOptions.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
+                {form.imprintId && !imprintOptions.some((o) => o.id === form.imprintId) && (
+                  <option value={form.imprintId}>{works.find((w) => w.id === editing.id)?.imprintName ?? getText('Sello actual', 'Current imprint')}</option>
+                )}
+                <option value="__other">{getText('Otro (fuera de MaalCa)…', 'Other (outside MaalCa)…')}</option>
+              </select>
+            ) : (
+              <input className={inputClass} value={form.imprint} onChange={(e) => set('imprint', e.target.value)} />
+            )}
+            {!form.imprintId && form.imprint && (imprintOptions.length > 0) && (
+              <input className={`${inputClass} mt-2`} value={form.imprint.trimStart()} onChange={(e) => set('imprint', e.target.value)} placeholder={getText('Nombre del sello', 'Imprint name')} />
+            )}
           </div>
           <div>
             <label className={labelClass}>ISBN</label>
             <input className={inputClass} value={form.isbn} onChange={(e) => set('isbn', e.target.value)} />
           </div>
+        </div>
+
+        <div>
+          <label className={labelClass}>{getText('Autor como sale en el libro', 'Author as printed in the book')}</label>
+          <input
+            className={inputClass}
+            maxLength={120}
+            value={form.byline}
+            onChange={(e) => set('byline', e.target.value)}
+            placeholder={getText('Ej. Ciriaco Pichardo (vacío = el nombre de tu espacio)', 'e.g. Jane Doe (empty = your space name)')}
+          />
         </div>
 
         <div>
@@ -542,6 +591,18 @@ export function WorksContent({ slug, initialWorks }: Props) {
           toastError={toast.error}
           toastSuccess={toast.success}
         />
+      )}
+
+      {/* Exportar: el libro sale de los capítulos guardados; se vuelve a revisar si cambian o se guarda la ficha. */}
+      {editing.id && chapters.length > 0 && (
+        <div className="mt-6">
+          <ExportPanel
+            base={base}
+            workId={editing.id}
+            getText={getText}
+            refreshKey={`${revision ?? 0}|${chapters.map((c) => `${c.id}:${c.wordCount}`).join(',')}`}
+          />
+        </div>
       )}
     </div>
   );

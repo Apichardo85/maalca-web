@@ -36,6 +36,11 @@ export interface PublicWorkSummary {
   buyLinks: WorkBuyLink[];
   /** La obra se abre completa para los miembros del club (ReadingAccess 'members'). */
   forMembers: boolean;
+  /** imprint ya trae el nombre efectivo; imprintSlug es la página del sello si es de MaalCa y está publicada. */
+  imprintSlug?: string | null;
+  /** Autor de la obra (nombre impreso y su página). En el catálogo de un sello, cada obra se lee donde su autor. */
+  authorName?: string | null;
+  authorSlug?: string | null;
 }
 
 export interface PublicWorkChapterRef {
@@ -126,6 +131,110 @@ export interface Work {
   updatedAt?: string | null;
   /** Versión de la ficha (concurrencia optimista). Se devuelve como expectedRevision al guardar. */
   revision?: number;
+  /** Sello de MaalCa (por llave, con contrato activo). imprint es el texto libre para sellos de fuera. */
+  imprintId?: string | null;
+  imprintName?: string | null;
+  /** Nombre del autor como sale en el libro (vacío = el nombre del espacio). */
+  byline?: string | null;
+}
+
+// ── Sello editorial (ver ImprintService en maalca-api) ──────────────────────────────────────────
+
+export type ImprintContractStatus = 'invited' | 'active' | 'declined' | 'ended';
+export type ImprintRight = 'ebook' | 'print' | 'audio' | 'translation';
+
+export const IMPRINT_RIGHTS: { value: ImprintRight; es: string; en: string }[] = [
+  { value: 'ebook', es: 'Ebook', en: 'Ebook' },
+  { value: 'print', es: 'Impreso', en: 'Print' },
+  { value: 'audio', es: 'Audiolibro', en: 'Audiobook' },
+  { value: 'translation', es: 'Traducción', en: 'Translation' },
+];
+
+export const IMPRINT_STATUS_LABELS: Record<ImprintContractStatus, { es: string; en: string }> = {
+  invited: { es: 'Invitación pendiente', en: 'Invitation pending' },
+  active: { es: 'Activo', en: 'Active' },
+  declined: { es: 'Rechazado', en: 'Declined' },
+  ended: { es: 'Terminado', en: 'Ended' },
+};
+
+export interface ImprintContract {
+  id: string;
+  imprintId: string;
+  imprintName: string;
+  imprintSlug?: string | null;
+  imprintLogoUrl?: string | null;
+  authorId: string;
+  authorName: string;
+  authorSlug?: string | null;
+  status: ImprintContractStatus;
+  royaltyEbookPercent: number;
+  royaltyPrintPercent: number;
+  rights: ImprintRight[];
+  startsOn?: string | null;
+  endsOn?: string | null;
+  notes?: string | null;
+  createdAt: string;
+  respondedAt?: string | null;
+  endedAt?: string | null;
+  /** Obras del autor que salen con este sello. */
+  workCount: number;
+}
+
+export interface ImprintContractTerms {
+  royaltyEbookPercent: number;
+  royaltyPrintPercent: number;
+  rights: ImprintRight[];
+  startsOn?: string | null;
+  endsOn?: string | null;
+  notes?: string | null;
+}
+
+export interface ImprintOption {
+  id: string;
+  name: string;
+  slug?: string | null;
+}
+
+export interface ImprintWork {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorSlug?: string | null;
+  title: string;
+  subtitle?: string | null;
+  slug: string;
+  kind: WorkKind;
+  status: WorkStatus;
+  coverUrl?: string | null;
+  coverUrlEn?: string | null;
+  year?: number | null;
+  isbn?: string | null;
+  hasSynopsis: boolean;
+  chapterCount: number;
+  wordCount: number;
+  translations: string[];
+  updatedAt?: string | null;
+}
+
+// ── Exportar (EPUB) ─────────────────────────────────────────────────────────────
+
+export interface WorkExportIssue {
+  level: 'error' | 'warning';
+  code: string;
+  message: string;
+}
+
+export interface WorkExportPreflight {
+  language: ReadingLang;
+  languages: ReadingLang[];
+  ready: boolean;
+  issues: WorkExportIssue[];
+  title: string;
+  author: string;
+  publisher?: string | null;
+  isbn?: string | null;
+  chapterCount: number;
+  wordCount: number;
 }
 
 // ── Traducción de obras (panel del autor; ver WorkTranslationService en maalca-api) ──────────────

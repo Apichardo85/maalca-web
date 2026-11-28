@@ -37,6 +37,10 @@ export function CreatorTemplate({ business, items, capabilities }: PublicTemplat
   const accent = creatorAccent(business.primary_color);
 
   const works = business.works ?? [];
+  // Un sello (publisher) usa esta misma plantilla con su catálogo: obras de varios autores. Cada obra se lee
+  // en la página de su autor (authorSlug), y en las listas se dice de quién es.
+  const isImprint = business.business_type?.toLowerCase() === 'publisher';
+  const workHref = (w: PublicWorkSummary) => authorHref(w.authorSlug || business.slug, `/obras/${w.slug}`);
   const featured = works.find((w) => w.featured) ?? works[0] ?? null;
   const others = works.filter((w) => w.id !== featured?.id);
   const library = works.filter((w) => w.readableNow !== 'none');
@@ -97,7 +101,7 @@ export function CreatorTemplate({ business, items, capabilities }: PublicTemplat
           )}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
             {firstReadable && (
-              <Link href={authorHref(business.slug, `/obras/${firstReadable.slug}`)} className="cw-btn" style={{ background: CW.paper, color: CW.night }}>
+              <Link href={workHref(firstReadable)} className="cw-btn" style={{ background: CW.paper, color: CW.night }}>
                 {t('Leer gratis', 'Read for free')}
               </Link>
             )}
@@ -120,7 +124,7 @@ export function CreatorTemplate({ business, items, capabilities }: PublicTemplat
       <section id="obras" style={{ background: CW.paper, color: CW.ink }}>
         <div style={{ ...wrap, ...twoCols }}>
           {featured ? (
-            <FeaturedWork work={featured} slug={business.slug} lang={lang} accent={accent} />
+            <FeaturedWork work={featured} slug={featured.authorSlug || business.slug} lang={lang} accent={accent} byline={isImprint ? featured.authorName : null} />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <span style={{ ...monoNote, color: accent }}>{t('obras', 'works')}</span>
@@ -133,12 +137,23 @@ export function CreatorTemplate({ business, items, capabilities }: PublicTemplat
               {others.map((w) => (
                 <Link
                   key={w.id}
-                  href={authorHref(business.slug, `/obras/${w.slug}`)}
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, padding: '18px 0', borderBottom: `1px solid ${CW.paperLine}`, textDecoration: 'none', color: CW.ink }}
+                  href={workHref(w)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '14px 0', borderBottom: `1px solid ${CW.paperLine}`, textDecoration: 'none', color: CW.ink }}
                 >
-                  <span style={{ fontFamily: FONT.display, fontSize: 26 }}>{workTitle(w, lang)}</span>
-                  <span style={{ fontFamily: FONT.mono, fontSize: 14, color: CW.paperFaint, whiteSpace: 'nowrap' }}>
-                    {[kindLabel(w.kind, lang), w.year].filter(Boolean).join(' · ')}
+                  {/* Miniatura: la portada del idioma; sin portada, la inicial del título (la lista no queda dispareja). */}
+                  {workCover(w, lang) ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={workCover(w, lang)!} alt="" loading="lazy" style={{ width: 56, height: 84, objectFit: 'cover', flex: 'none', boxShadow: '0 8px 18px rgba(20,19,24,.22)' }} />
+                  ) : (
+                    <span aria-hidden style={{ width: 56, height: 84, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', background: CW.ink, color: CW.paper, fontFamily: FONT.display, fontStyle: 'italic', fontSize: 30 }}>
+                      {workTitle(w, lang).trim().charAt(0)}
+                    </span>
+                  )}
+                  <span style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 }}>
+                    <span style={{ fontFamily: FONT.display, fontSize: 26, lineHeight: 1.15 }}>{workTitle(w, lang)}</span>
+                    <span style={{ fontFamily: FONT.mono, fontSize: 14, color: CW.paperFaint }}>
+                      {[isImprint ? w.authorName : null, kindLabel(w.kind, lang), w.year].filter(Boolean).join(' · ')}
+                    </span>
                   </span>
                 </Link>
               ))}
@@ -166,7 +181,7 @@ export function CreatorTemplate({ business, items, capabilities }: PublicTemplat
             {library.map((w) => (
               <Link
                 key={w.id}
-                href={authorHref(business.slug, `/obras/${w.slug}`)}
+                href={workHref(w)}
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, padding: '20px 0', borderBottom: `1px solid ${CW.lineSoft}`, textDecoration: 'none' }}
               >
                 <span style={{ fontFamily: FONT.display, fontStyle: 'italic', fontSize: 24, color: CW.text }}>{workTitle(w, lang)}</span>
@@ -288,10 +303,11 @@ export function CreatorTemplate({ business, items, capabilities }: PublicTemplat
   );
 }
 
-function FeaturedWork({ work, slug, lang, accent }: { work: PublicWorkSummary; slug: string; lang: 'es' | 'en'; accent: string }) {
+function FeaturedWork({ work, slug, lang, accent, byline }: { work: PublicWorkSummary; slug: string; lang: 'es' | 'en'; accent: string; byline?: string | null }) {
   const t = (es: string, en: string) => (lang === 'es' ? es : en);
   const synopsis = workSynopsis(work, lang);
-  const kicker = [kindLabel(work.kind, lang), work.imprint, work.year].filter(Boolean).join(' · ');
+  // En el catálogo de un sello el sello ya es la página: se dice el autor en su lugar.
+  const kicker = [byline ?? null, kindLabel(work.kind, lang), byline ? null : work.imprint, work.year].filter(Boolean).join(' · ');
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <span style={{ ...monoNote, color: accent }}>{kicker}</span>

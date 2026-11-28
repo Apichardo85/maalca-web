@@ -264,7 +264,8 @@ export default async function PublicAffiliatePage({ params }: PageProps) {
     : [];
 
   // Creator (autor): obras desde su propia tabla (Works). [] = sin obras o falló; la página no se cae.
-  const isCreator = affiliate.businessType.toLowerCase() === 'creator';
+  // Publisher (sello): la misma plantilla; el API le devuelve su catálogo (sus obras + las de sus autores).
+  const isCreator = ['creator', 'publisher'].includes(affiliate.businessType.toLowerCase());
   const [works, readerClub] = isCreator
     ? await Promise.all([getPublicWorks(slug).then((w) => w ?? []), getReaderClub(slug)])
     : [null, null];

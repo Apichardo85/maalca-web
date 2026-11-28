@@ -8,7 +8,7 @@ import type { PublicCanal } from '@/lib/public-contact';
 import type { MealPeriod, WeekDay, MenuItemFlags } from '@/lib/types';
 import type { PublicReaderClub, PublicWorkSummary } from '@/lib/creator';
 
-export type BusinessType = 'restaurant' | 'barber' | 'service' | 'retail' | 'community' | 'dealer' | 'creator';
+export type BusinessType = 'restaurant' | 'barber' | 'service' | 'retail' | 'community' | 'dealer' | 'creator' | 'publisher';
 
 export interface Category {
   id: string;
@@ -288,6 +288,8 @@ export const TEMPLATES: Record<BusinessType, ComponentType<PublicTemplateProps>>
   community: dynamic(() => import('@/components/public/templates/Community').then((m) => m.CommunityTemplate)),
   dealer: dynamic(() => import('@/components/public/templates/Dealer').then((m) => m.DealerTemplate)),
   creator: dynamic(() => import('@/components/public/templates/Creator').then((m) => m.CreatorTemplate)),
+  // Sello editorial: la plantilla de autor con el catálogo de sus autores (cada obra enlaza a la página de su autor).
+  publisher: dynamic(() => import('@/components/public/templates/Creator').then((m) => m.CreatorTemplate)),
 };
 
 export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
@@ -298,6 +300,7 @@ export const BUSINESS_TYPE_LABELS: Record<BusinessType, string> = {
   community: 'Comunidad',
   dealer: 'Autoventa',
   creator: 'Autor',
+  publisher: 'Sello editorial',
 };
 
 /** Igual que BUSINESS_TYPE_LABELS, en inglés: el panel de un negocio con idioma inglés mostraba
@@ -310,6 +313,7 @@ export const BUSINESS_TYPE_LABELS_EN: Record<BusinessType, string> = {
   community: 'Community',
   dealer: 'Car dealer',
   creator: 'Author',
+  publisher: 'Publisher',
 };
 
 /** Same emoji as the onboarding business-type selector (BUSINESS_TYPES in
@@ -323,6 +327,7 @@ export const BUSINESS_TYPE_ICONS: Record<BusinessType, string> = {
   community: '🤝',
   dealer: '🚗',
   creator: '✒️',
+  publisher: '📚',
 };
 
 /** Label for the /space nav item that leads to the catalog editor — the generic
@@ -335,6 +340,7 @@ export const CATALOG_NAV_LABELS: Record<BusinessType, { es: string; en: string }
   community: { es: 'Programas', en: 'Programs' },
   dealer: { es: 'Vehículos', en: 'Vehicles' },
   creator: { es: 'Libros y servicios', en: 'Books & services' },
+  publisher: { es: 'Libros y servicios', en: 'Books & services' },
 };
 
 // RESUELTO (backlog 2026-09-26): "Programas" para Community ya no es el catalogo

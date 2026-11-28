@@ -343,6 +343,8 @@ export function NegocioDetail({
                 <option value="Retail">Retail</option>
                 <option value="Community">Community</option>
                 <option value="Dealer">Dealer (Autoventa)</option>
+                <option value="Creator">Creator (Autor)</option>
+                <option value="Publisher">Publisher (Sello editorial)</option>
               </select>
             ) : (
               <span>{a.businessType}</span>

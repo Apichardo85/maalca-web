@@ -6,6 +6,8 @@ const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 // Proxy único de /api/space/{slug}/works/** → /api/affiliates/{id}/works/** (obras y capítulos del autor,
 // ver WorkEndpoints.cs). El API decide quién lee y quién escribe; aquí solo se resuelve el negocio y se reenvía.
 // Excepción de ruta: el reorden vive en /works/{id}/chapters-order en el API (no bajo /chapters/{id}).
+// La query (?lang=en) pasa tal cual. Una respuesta que no es JSON (el EPUB de /export/epub) se reenvía como
+// archivo, con su tipo y su nombre, sin pasarla por JSON.
 async function forward(req: NextRequest, slug: string, path: string[] | undefined) {
   const token = await getMaalcaApiToken();
   if (!token) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
@@ -15,7 +17,7 @@ async function forward(req: NextRequest, slug: string, path: string[] | undefine
 
   const suffix = path && path.length > 0 ? `/${path.map(encodeURIComponent).join('/')}` : '';
   const hasBody = req.method !== 'GET' && req.method !== 'DELETE';
-  const apiRes = await fetch(`${API}/api/affiliates/${affiliate.id}/works${suffix}`, {
+  const apiRes = await fetch(`${API}/api/affiliates/${affiliate.id}/works${suffix}${req.nextUrl.search}`, {
     method: req.method,
     headers: {
       'Content-Type': 'application/json',
@@ -26,6 +28,13 @@ async function forward(req: NextRequest, slug: string, path: string[] | undefine
     cache: 'no-store',
   });
   if (apiRes.status === 204) return new NextResponse(null, { status: 204 });
+  const type = apiRes.headers.get('content-type') ?? '';
+  if (apiRes.ok && !type.includes('json')) {
+    const headers = new Headers({ 'Content-Type': type || 'application/octet-stream', 'Cache-Control': 'no-store' });
+    const disposition = apiRes.headers.get('content-disposition');
+    if (disposition) headers.set('Content-Disposition', disposition);
+    return new NextResponse(apiRes.body, { status: apiRes.status, headers });
+  }
   const data = await apiRes.json().catch(() => null);
   return NextResponse.json(data ?? {}, { status: apiRes.status });
 }

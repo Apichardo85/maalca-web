@@ -21,6 +21,8 @@ const TRIAL_BUSINESS_TYPES = [
   { value: 'dealer', label: 'Autoventa' },
   // Autor (CiriWhispers y similares): plantilla Creator + módulo Obras.
   { value: 'creator', label: 'Autor' },
+  // Sello editorial (Duende Ediciones): plantilla de autor con el catálogo de sus autores + panel del sello.
+  { value: 'publisher', label: 'Sello editorial' },
 ] as const;
 
 function CreateTrialModal({

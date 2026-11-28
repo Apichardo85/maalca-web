@@ -89,6 +89,10 @@ export function SpaceMobileNav({
     // Creator (autor): obras y capítulos (el token 'works' solo está activo para creator/publisher).
     { label: getText('Obras', 'Works'), icon: '📖', href: `/space/${slug}/works`, token: 'works' },
     { label: getText('Lectores', 'Readers'), icon: '✉️', href: `/space/${slug}/readers`, token: 'readers' },
+    // Sello editorial (publisher): autores con contrato y obras del sello. Sin token: es parte fija del tipo Publisher.
+    ...(businessType === 'publisher'
+      ? [{ label: getText('Sello', 'Imprint'), icon: '📚', href: `/space/${slug}/imprint` }]
+      : []),
     { label: getText('Pedidos', 'Orders'), icon: '🧾', href: `/space/${slug}/orders`, token: 'orders' },
     // Cocina/Fila/Facturas/Propuestas: ya no se filtran por businessType acá — ver el comentario
     // completo en SpaceSidebar.tsx. El gate real es activeModules.includes(token) más abajo.

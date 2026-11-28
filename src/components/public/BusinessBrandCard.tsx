@@ -29,6 +29,7 @@ const TYPE_LABELS_EN: Record<BusinessType, string> = {
   community: "Community",
   dealer: "Car dealer",
   creator: "Author",
+  publisher: "Publisher",
 };
 
 /** #RGB / #RRGGBB → {r,g,b}. Devuelve null si no es un hex usable. */
