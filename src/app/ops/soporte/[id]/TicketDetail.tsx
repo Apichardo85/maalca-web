@@ -8,6 +8,8 @@ import type { OpsTeamMember } from '../../types';
 import { dueLabel } from '../SupportInbox';
 import { ChangeHistoryList, type ChangeSet } from '@/components/space/support/ChangeHistoryList';
 import {
+  IMPACT_LABELS,
+  IMPACT_STYLES,
   OPS_STATUS_LABELS,
   PLAN_LABELS,
   PRIORITY_LABELS,
@@ -130,6 +132,19 @@ export function TicketDetail({ id }: { id: string }) {
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
+      {detail.impact.escalated && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-900 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-200">
+          <span>
+            <strong>Escalada al admin.</strong> Soporte intentó un cambio en rojo y no se guardó. Mira la nota en la conversación.
+          </span>
+          {isOwner && (
+            <button type="button" disabled={busy} onClick={() => act('/escalation/clear')} className="rounded-full bg-red-600 px-3 py-1 text-xs font-medium text-white disabled:opacity-50">
+              Marcar atendida
+            </button>
+          )}
+        </div>
+      )}
+
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         {/* Conversación */}
         <div className="space-y-3">
@@ -195,6 +210,24 @@ export function TicketDetail({ id }: { id: string }) {
 
         {/* Panel lateral */}
         <aside className="space-y-3">
+          <div className={`${card} space-y-2`}>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-neutral-400">Impacto</p>
+              <Link href="/ops/soporte/impacto" className="text-[11px] text-brand-primary hover:underline">Mapa de impacto</Link>
+            </div>
+            <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${IMPACT_STYLES[detail.impact.typeLevel]}`}>
+              {IMPACT_LABELS[detail.impact.typeLevel].es} · {IMPACT_LABELS[detail.impact.typeLevel].hintEs}
+            </span>
+            {detail.impact.typeNoteEs && <p className="text-xs text-gray-600 dark:text-neutral-300">{detail.impact.typeNoteEs}</p>}
+            {detail.impact.estimatedTokens > 0 && (
+              <p className="text-xs text-gray-600 dark:text-neutral-300">Este tipo suele gastar ~{detail.impact.estimatedTokens.toLocaleString('es-DO')} tokens de IA.</p>
+            )}
+            <p className="text-xs text-gray-500 dark:text-neutral-400">
+              IA del negocio este mes: {detail.impact.aiTokensThisMonth.toLocaleString('es-DO')} tokens · US${detail.impact.aiCostUsdThisMonth.toFixed(2)}
+            </p>
+            <p className="text-[11px] text-gray-500 dark:text-neutral-400">Al guardar en modo soporte: lo rojo se bloquea y se escala solo; lo amarillo deja nota para confirmar con el cliente.</p>
+          </div>
+
           <div className={`${card} space-y-2`}>
             <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-neutral-400">Estado</p>
             <div className="flex flex-wrap gap-1.5">

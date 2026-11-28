@@ -3,11 +3,11 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useOpsCanManage } from '../../OpsRoleContext';
-import { PLAN_LABELS, apiErrorMessage, type SupportCatalog, type SupportQuota, type SupportRequestType } from '@/lib/support/types';
+import { IMPACT_LABELS, IMPACT_STYLES, PLAN_LABELS, apiErrorMessage, type ImpactLevel, type SupportCatalog, type SupportQuota, type SupportRequestType } from '@/lib/support/types';
 
 type TypeDraft = Omit<SupportRequestType, 'id'> & { id?: string };
 
-const EMPTY_TYPE: TypeDraft = { key: '', nameEs: '', nameEn: '', descEs: '', descEn: '', weight: 1, isQuote: false, sortOrder: 100, active: true };
+const EMPTY_TYPE: TypeDraft = { key: '', nameEs: '', nameEn: '', descEs: '', descEn: '', weight: 1, isQuote: false, sortOrder: 100, active: true, impactLevel: 'green', estimatedTokens: 0 };
 
 /** Tipos de solicitud (peso en puntos) y topes mensuales por plan. Solo el Owner guarda; Support solo ve. */
 export function SupportConfig() {
@@ -144,6 +144,7 @@ export function SupportConfig() {
                     <p className="text-xs text-gray-500 dark:text-neutral-400">{t.key} · {t.nameEn}</p>
                   </div>
                   <div className="flex items-center gap-3">
+                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${IMPACT_STYLES[t.impactLevel ?? 'green']}`}>{IMPACT_LABELS[t.impactLevel ?? 'green'].es}</span>
                     <span className="text-sm text-gray-700 dark:text-neutral-300">{t.isQuote ? 'Cotizar' : `${t.weight} pts`}</span>
                     {isOwner && (
                       <button type="button" onClick={() => setEditing({ ...t })} className="text-xs font-medium text-brand-primary hover:underline">Editar</button>
@@ -180,6 +181,14 @@ export function SupportConfig() {
               </label>
               <label className="text-xs text-gray-600 dark:text-neutral-300">Orden
                 <input type="number" className={`${field} ml-2 w-20`} value={editing.sortOrder} onChange={(e) => setEditing({ ...editing, sortOrder: Number(e.target.value) })} />
+              </label>
+              <label className="text-xs text-gray-600 dark:text-neutral-300">Impacto
+                <select className={`${field} ml-2`} value={editing.impactLevel ?? 'green'} onChange={(e) => setEditing({ ...editing, impactLevel: e.target.value as ImpactLevel })}>
+                  {(Object.keys(IMPACT_LABELS) as ImpactLevel[]).map((l) => <option key={l} value={l}>{IMPACT_LABELS[l].es} · {IMPACT_LABELS[l].hintEs}</option>)}
+                </select>
+              </label>
+              <label className="text-xs text-gray-600 dark:text-neutral-300">Tokens de IA estimados
+                <input type="number" min={0} className={`${field} ml-2 w-24`} value={editing.estimatedTokens ?? 0} onChange={(e) => setEditing({ ...editing, estimatedTokens: Number(e.target.value) })} />
               </label>
               <label className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-neutral-300">
                 <input type="checkbox" checked={editing.isQuote} onChange={(e) => setEditing({ ...editing, isQuote: e.target.checked })} /> Se cotiza aparte

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useSimpleLanguage } from '@/hooks/useSimpleLanguage';
-import { apiErrorMessage } from '@/lib/support/types';
+import { IMPACT_LABELS, IMPACT_STYLES, apiErrorMessage, type ImpactLevel } from '@/lib/support/types';
 
 export interface ChangeField { field: string; before: string | null; after: string | null }
 export interface ChangeRecord {
@@ -14,6 +14,11 @@ export interface ChangeRecord {
   entityName: string | null;
   operation: 'added' | 'modified' | 'deleted';
   fields: ChangeField[];
+  impactLevel: ImpactLevel;
+  surfacesEs: string[];
+  surfacesEn: string[];
+  noteEs: string | null;
+  noteEn: string | null;
 }
 export interface ChangeSet {
   id: string;
@@ -26,6 +31,7 @@ export interface ChangeSet {
   revertOfChangeSetId: string | null;
   revertedAt: string | null;
   revertedBy: string | null;
+  impactLevel: ImpactLevel;
   records: ChangeRecord[];
 }
 interface RevertResult { reverted: boolean; applied: number; conflicts: string[]; changeSet: ChangeSet }
@@ -145,6 +151,9 @@ export function ChangeHistoryList({
         <li key={s.id} className={`rounded-xl border border-border bg-surface p-3 ${s.revertedAt ? 'opacity-70' : ''}`}>
           <div className="flex flex-wrap items-start justify-between gap-2">
             <p className="text-xs text-text-secondary">
+              <span className={`mr-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${IMPACT_STYLES[s.impactLevel ?? 'green']}`}>
+                {IMPACT_LABELS[s.impactLevel ?? 'green'][es ? 'es' : 'en']}
+              </span>
               <span className="font-medium text-text-primary">{KIND_LABELS[s.actorKind][es ? 'es' : 'en']}</span>
               {s.actorEmail ? ` · ${s.actorEmail}` : ''} · {new Date(s.createdAt).toLocaleString(es ? 'es-DO' : 'en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
               {showTicket && s.supportTicketNumber !== null && ` · ${getText('solicitud', 'request')} #${s.supportTicketNumber}`}
@@ -166,6 +175,12 @@ export function ChangeHistoryList({
                   <span className="font-medium">{es ? r.entityLabelEs : r.entityLabelEn}</span>
                   {r.entityName ? `: ${r.entityName}` : ''} <span className="text-xs text-text-muted">({opLabel(r.operation)})</span>
                 </p>
+                {(r.surfacesEs?.length ?? 0) > 0 && (
+                  <p className="mt-0.5 text-[11px] text-text-muted">
+                    {getText('Se ve en', 'Shows in')}: {(es ? r.surfacesEs : r.surfacesEn).join(' · ')}
+                    {(es ? r.noteEs : r.noteEn) && <span className="block">{es ? r.noteEs : r.noteEn}</span>}
+                  </p>
+                )}
                 {r.operation === 'modified' && r.fields.length > 0 && (
                   <ul className="mt-1 space-y-0.5 pl-3 text-xs text-text-secondary">
                     {r.fields.map((f) => (

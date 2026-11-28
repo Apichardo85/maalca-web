@@ -17,7 +17,11 @@ export interface SupportRequestType {
   isQuote: boolean;
   sortOrder: number;
   active: boolean;
+  impactLevel: ImpactLevel;
+  estimatedTokens: number;
 }
+
+export type ImpactLevel = 'green' | 'yellow' | 'red';
 
 export interface SupportUsage {
   period: string;
@@ -60,6 +64,18 @@ export interface SupportTicketSummary {
   dueAt: string | null;
   createdAt: string;
   lastActivityAt: string;
+  typeImpactLevel: ImpactLevel;
+  escalated: boolean;
+}
+
+export interface SupportImpact {
+  typeLevel: ImpactLevel;
+  typeNoteEs: string | null;
+  estimatedTokens: number;
+  aiTokensThisMonth: number;
+  aiCostUsdThisMonth: number;
+  escalated: boolean;
+  escalatedAt: string | null;
 }
 
 export interface SupportTicketDetail {
@@ -73,6 +89,7 @@ export interface SupportTicketDetail {
   resolvedAt: string | null;
   messages: SupportMessage[];
   usage: SupportUsage;
+  impact: SupportImpact;
 }
 
 export interface SupportSpaceOverview {
@@ -89,6 +106,7 @@ export interface SupportCounts {
   unassigned: number;
   overdue: number;
   pendingWeight: number;
+  escalated: number;
 }
 
 export interface SupportOpsList {
@@ -150,3 +168,25 @@ export function apiErrorMessage(data: unknown, fallback: string): string {
   const msg = (data as { error?: { message?: string } } | null)?.error?.message;
   return typeof msg === 'string' && msg ? msg : fallback;
 }
+
+/** Verde: lo resuelve soporte. Amarillo: lo confirma el cliente. Rojo: lo aprueba o lo hace el admin. */
+export const IMPACT_LABELS: Record<ImpactLevel, { es: string; en: string; hintEs: string; hintEn: string }> = {
+  green: { es: 'Verde', en: 'Green', hintEs: 'Lo resuelve soporte', hintEn: 'Support handles it' },
+  yellow: { es: 'Amarillo', en: 'Yellow', hintEs: 'Confírmalo con el cliente', hintEn: 'Confirm with the customer' },
+  red: { es: 'Rojo', en: 'Red', hintEs: 'Lo aprueba el admin', hintEn: 'Admin approves it' },
+};
+
+export const IMPACT_STYLES: Record<ImpactLevel, string> = {
+  green: 'bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-300',
+  yellow: 'bg-amber-100 text-amber-900 dark:bg-amber-500/15 dark:text-amber-300',
+  red: 'bg-red-100 text-red-800 dark:bg-red-500/15 dark:text-red-300',
+};
+
+export const IMPACT_DOT: Record<ImpactLevel, string> = {
+  green: 'bg-green-500',
+  yellow: 'bg-amber-500',
+  red: 'bg-red-500',
+};
+
+export interface ImpactRule { level: ImpactLevel; surfacesEs: string[]; surfacesEn: string[]; noteEs: string | null; noteEn: string | null }
+export interface ImpactEntity { entityType: string; labelEs: string; labelEn: string; default: ImpactRule; fields: { field: string; rule: ImpactRule }[] }

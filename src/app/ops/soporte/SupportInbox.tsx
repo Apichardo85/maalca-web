@@ -7,6 +7,8 @@ import { useOpsCanManage } from '../OpsRoleContext';
 import type { OpsAffiliate } from '../types';
 import { useAdminPush } from '@/lib/support/useAdminPush';
 import {
+  IMPACT_DOT,
+  IMPACT_LABELS,
   OPS_STATUS_LABELS,
   PRIORITY_LABELS,
   STATUS_STYLES,
@@ -16,12 +18,13 @@ import {
   type SupportTicketSummary,
 } from '@/lib/support/types';
 
-type Filter = 'open' | 'mine' | 'unassigned' | 'waiting_customer' | 'resolved' | 'pending_weight' | 'all';
+type Filter = 'open' | 'mine' | 'unassigned' | 'escalated' | 'waiting_customer' | 'resolved' | 'pending_weight' | 'all';
 
 const FILTERS: { key: Filter; label: string }[] = [
   { key: 'open', label: 'Abiertas' },
   { key: 'mine', label: 'Mías' },
   { key: 'unassigned', label: 'Sin asignar' },
+  { key: 'escalated', label: 'Escaladas' },
   { key: 'waiting_customer', label: 'Esperando al cliente' },
   { key: 'pending_weight', label: 'Peso por aprobar' },
   { key: 'resolved', label: 'Resueltas' },
@@ -71,6 +74,9 @@ export function SupportInbox() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <PushToggle push={push} />
+          <Link href="/ops/soporte/impacto" className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:border-gray-400 dark:border-neutral-700 dark:text-neutral-300">
+            Mapa de impacto
+          </Link>
           {canManage && (
             <Link href="/ops/soporte/config" className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:border-gray-400 dark:border-neutral-700 dark:text-neutral-300">
               Tipos y topes
@@ -87,7 +93,7 @@ export function SupportInbox() {
           <Stat label="Nuevas" value={c.new} />
           <Stat label="Sin asignar" value={c.unassigned} />
           <Stat label="Vencidas" value={c.overdue} tone={c.overdue > 0 ? 'bad' : undefined} />
-          <Stat label="Mías" value={c.mine} />
+          <Stat label={c.escalated > 0 ? 'Escaladas' : 'Mías'} value={c.escalated > 0 ? c.escalated : c.mine} tone={c.escalated > 0 ? 'bad' : undefined} />
         </div>
       )}
 
@@ -152,6 +158,8 @@ function TicketRow({ t }: { t: SupportTicketSummary }) {
       <Link href={`/ops/soporte/${t.id}`} className="flex flex-col gap-1 px-4 py-3 hover:bg-gray-50 sm:flex-row sm:items-center sm:gap-4 dark:hover:bg-neutral-800/60">
         <div className="min-w-0 flex-1">
           <p className="text-xs text-gray-500 dark:text-neutral-400">
+            <span className={`mr-1.5 inline-block h-2 w-2 rounded-full ${IMPACT_DOT[t.typeImpactLevel ?? 'green']}`} title={`Impacto ${IMPACT_LABELS[t.typeImpactLevel ?? 'green'].es}`} />
+            {t.escalated && <span className="mr-1.5 font-semibold text-red-600">ESCALADA</span>}
             #{t.number} · <span className="font-medium text-gray-700 dark:text-neutral-200">{t.affiliateName}</span> · {t.typeNameEs}
             {t.channel !== 'panel' ? ` · ${t.channel}` : ''}
           </p>

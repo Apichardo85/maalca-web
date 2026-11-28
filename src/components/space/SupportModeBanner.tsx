@@ -41,6 +41,9 @@ export function SupportModeBanner({ businessName, expiresAt }: Props) {
         {expiresLabel && <span className="opacity-75"> · expira {expiresLabel}</span>}
       </span>
       <div className="flex items-center gap-3">
+        <a href="/ops/soporte/impacto" target="_blank" rel="noopener" className="underline underline-offset-2 hover:no-underline" title="Lo rojo se bloquea y se escala; lo amarillo se confirma con el cliente.">
+          Mapa de impacto
+        </a>
         <a href="/ops" className="underline underline-offset-2 hover:no-underline">
           Volver a /ops
         </a>
