@@ -81,7 +81,7 @@ const plans: Plan[] = [
       es: "Cuando ya vendes: reservas, pagos online, catálogo ilimitado y automatizaciones que te ahorran horas.",
       en: "Once you're selling: bookings, online payments, unlimited catalog and automations that save you hours.",
     },
-    price: 38,
+    price: PRICE_ENTREPRENEUR,
     setup: { es: "Setup único $150", en: "One-time setup $150" },
     highlight: true,
     features: [

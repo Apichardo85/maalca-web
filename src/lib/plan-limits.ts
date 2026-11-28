@@ -98,7 +98,7 @@ export function remainingItems(plan: Plan, currentRealCount: number): number {
   return Math.max(0, max - currentRealCount);
 }
 
-export const ENTREPRENEUR_PRICE_USD = 38;
+export const ENTREPRENEUR_PRICE_USD = 79;
 
 /** True for Entrepreneur and Enterprise (case-insensitive: API returns 'Enterprise', space endpoint 'enterprise'). */
 export function isPaidPlan(plan?: string | null): boolean {

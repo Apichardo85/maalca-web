@@ -71,9 +71,9 @@ const translations = {
     'home.pricing.heading': 'Empieza gratis. Crece cuando quieras.',
     'home.pricing.starter.price': 'Gratis',
     'home.pricing.starter.desc': 'Tu página, catálogo y QR. 30 días con todo.',
-    'home.pricing.growth.price': '$38/mes',
+    'home.pricing.growth.price': '$79/mes',
     'home.pricing.growth.desc': 'Pedidos y reservas, pagos en línea y automatizaciones.',
-    'home.pricing.professional.price': '$95/mes',
+    'home.pricing.professional.price': '$179/mes',
     'home.pricing.professional.desc': 'Facturas y propuestas con firma, reportes y soporte dedicado.',
     'home.pricing.cta': 'Ver todos los planes',
     // Navigation
@@ -1679,9 +1679,9 @@ const translations = {
     'home.pricing.heading': 'Start free. Grow when you’re ready.',
     'home.pricing.starter.price': 'Free',
     'home.pricing.starter.desc': 'Your page, catalog and QR. 30 days with everything.',
-    'home.pricing.growth.price': '$38/mo',
+    'home.pricing.growth.price': '$79/mo',
     'home.pricing.growth.desc': 'Orders and reservations, online payments and automations.',
-    'home.pricing.professional.price': '$95/mo',
+    'home.pricing.professional.price': '$179/mo',
     'home.pricing.professional.desc': 'Invoices and proposals with e-signature, reports and dedicated support.',
     'home.pricing.cta': 'See all plans',
     // Navigation
