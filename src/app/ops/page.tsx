@@ -5,14 +5,17 @@ import { BusinessAvatar } from './negocios/NegociosTable';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8080';
 
-function Kpi({ label, value }: { label: string; value: string }) {
+function Kpi({ label, value, hint, title }: { label: string; value: string; hint?: string; title?: string }) {
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4">
+    <div title={title} className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4">
       <p className="text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-neutral-500">{label}</p>
       <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+      {hint && <p className="mt-0.5 text-[11px] text-gray-500 dark:text-neutral-400">{hint}</p>}
     </div>
   );
 }
+
+const usd = (n: number) => `$${(n ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 
 // Resumen — lo primero que ves al entrar a /ops. Solo KPIs + lo urgente (negocios con
 // alertas activas); la tabla completa vive en /ops/negocios.
@@ -42,7 +45,14 @@ export default async function OpsResumenPage() {
           <Kpi label="Negocios" value={String(overview.totalAffiliates)} />
           <Kpi label="Growth" value={String(overview.entrepreneurCount)} />
           <Kpi label="Gratis" value={String(overview.freeCount)} />
-          <Kpi label="MRR" value={`$${overview.mrrUsd.toLocaleString()}`} />
+          <Kpi
+            label={overview.mrrSource === 'estimate' ? 'MRR (estimado)' : 'MRR'}
+            value={usd(overview.mrrUsd)}
+            hint={`Planes ${usd(overview.mrrPlansUsd)} · Extras ${usd(overview.mrrAddOnsUsd)}`}
+            title={overview.mrrSource === 'estimate'
+              ? 'Stripe no respondió: planes estimados con la lista vigente × negocios en plan pagado.'
+              : `Lo que cobran ${overview.payingSubscriptions} suscripciones activas de Stripe (cada una a su precio; anual ÷ 12) + extras contratados en Negocios → detalle.`}
+          />
           <Kpi label="Nuevos este mes" value={String(overview.newThisMonth)} />
           <Kpi label="Publicados" value={String(overview.publishedCount)} />
         </div>

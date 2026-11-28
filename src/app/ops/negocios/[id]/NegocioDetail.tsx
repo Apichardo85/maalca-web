@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useOpsCanManage } from '../../OpsRoleContext';
 import type { OpsAffiliate, OpsNote } from '../../types';
 import { MODULE_CATALOG, isModuleRelevant } from '@/lib/module-catalog';
+import { AddOnsControl } from './AddOnsControl';
 
 // Mismo catálogo que ModulesContent.tsx (la vitrina del dueño en /space) — un módulo nuevo se
 // define una sola vez en src/lib/module-catalog.ts y aparece acá automáticamente, con
@@ -61,7 +62,7 @@ function CorporateControl({ affiliateId }: { affiliateId: string }) {
         onClick={() => save(!info.isCorporate, info.locations)}
         disabled={busy}
         aria-pressed={info.isCorporate}
-        title="Corporativo: aplica el mínimo corporativo y soporte corporativo en la cotización, y le da al negocio los puntos y el tiempo de respuesta del add-on de soporte."
+        title="Corporativo: aplica el mínimo corporativo y Soporte 24/7 en la cotización, y le da al negocio los puntos y el tiempo de respuesta del add-on de soporte."
         className={`rounded-full border px-3 py-1.5 font-medium disabled:opacity-50 ${info.isCorporate ? 'border-brand-primary text-brand-primary' : 'border-gray-300 dark:border-neutral-700 text-gray-600 dark:text-neutral-300'}`}
       >
         {info.isCorporate ? 'Corporativo ✓' : 'Marcar corporativo'}
@@ -603,6 +604,8 @@ export function NegocioDetail({
           })()}
         </div>
       </div>
+
+      {canManage && <AddOnsControl affiliateId={a.id} />}
 
       <div className="mt-8">
         <h3 className="text-sm font-semibold text-gray-700 dark:text-neutral-300">Notas CRM</h3>

@@ -124,7 +124,7 @@ export function SupportConfig() {
                 Guardar topes
               </button>
             )}
-            <p className="mt-2 text-[11px] text-gray-500 dark:text-neutral-400">El add-on se activa por negocio con el botón &quot;Corporativo&quot; en Negocios → detalle (el mismo que cobra &quot;Soporte corporativo&quot; en el cotizador).</p>
+            <p className="mt-2 text-[11px] text-gray-500 dark:text-neutral-400">El add-on se activa al contratarle &quot;Soporte 24/7&quot; al negocio en Negocios → detalle → Extras contratados (precio en /ops/precios). Un negocio corporativo ya lo trae.</p>
           </section>
 
           <section className={card}>

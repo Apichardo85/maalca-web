@@ -5,6 +5,12 @@ export interface OpsOverview {
   mrrUsd: number;
   newThisMonth: number;
   publishedCount: number;
+  // MRR = planes (lo que cobra cada suscripción de Stripe) + extras contratados aparte.
+  mrrPlansUsd: number;
+  mrrAddOnsUsd: number;
+  // 'stripe' = cobrado real; 'estimate' = Stripe no respondió y se estimó con la lista vigente.
+  mrrSource: 'stripe' | 'estimate';
+  payingSubscriptions: number;
 }
 
 export interface OpsAffiliate {

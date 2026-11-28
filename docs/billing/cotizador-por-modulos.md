@@ -62,7 +62,7 @@ Pesos por defecto (editables):
 | unit-vehicle | $10 | vehículos activos (routes) |
 | unit-user | $5 | usuarios del equipo sobre 3 |
 | unit-clients-100 | $10 | bloques de 100 clientes con contrato sobre 100 |
-| corp-support | $150 | 1 si el negocio es corporativo |
+| support-247 (Soporte 24/7, del catálogo) | $200 | 1 si el negocio es corporativo |
 
 5. Si es corporativo y el total < CorporateMinUsd ($350): línea "Ajuste a mínimo corporativo".
 
